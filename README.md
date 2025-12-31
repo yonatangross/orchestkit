@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://skillforge.dev/logo.svg" alt="SkillForge Logo" width="120" />
+  <img src="Logo.png" alt="SkillForge Logo" width="120" />
 </p>
 
 <h1 align="center">@skillforge/complete</h1>
