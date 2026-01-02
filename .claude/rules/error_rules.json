@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-01-02T00:00:00",
+  "description": "Learned error patterns from Claude Code sessions. Auto-updated by analyze_errors.py",
+  "rules": [
+    {
+      "id": "pg-role-001",
+      "pattern": "role \"[^\"]+\" does not exist",
+      "signature": "role \"X\" does not exist",
+      "tool": "Bash",
+      "occurrence_count": 3,
+      "first_seen": "2026-01-02T00:00:00",
+      "last_seen": "2026-01-02T00:00:00",
+      "sample_input": {
+        "command": "psql -U postgres -d skillforge"
+      },
+      "fix_suggestion": "Use correct Docker connection: docker exec -it skillforge-postgres-dev psql -U skillforge_user -d skillforge_dev",
+      "category": "database_connection"
+    },
+    {
+      "id": "pg-relation-001",
+      "pattern": "relation \"[^\"]+\" does not exist",
+      "signature": "relation \"X\" does not exist",
+      "tool": "mcp__postgres-mcp__query",
+      "occurrence_count": 2,
+      "first_seen": "2026-01-02T00:00:00",
+      "last_seen": "2026-01-02T00:00:00",
+      "sample_input": {
+        "sql": "SELECT * FROM analysis"
+      },
+      "fix_suggestion": "MCP postgres server may be connected to wrong database. Check connection string in MCP config.",
+      "category": "database_connection"
+    },
+    {
+      "id": "docker-socket-001",
+      "pattern": "connection to server on socket.*/var/run/postgresql",
+      "signature": "connection to server on socket /var/run/postgresql failed",
+      "tool": "Bash",
+      "occurrence_count": 3,
+      "first_seen": "2026-01-02T00:00:00",
+      "last_seen": "2026-01-02T00:00:00",
+      "sample_input": {
+        "command": "docker exec skillforge-postgres psql"
+      },
+      "fix_suggestion": "PostgreSQL socket path issue. For Docker, use: docker exec -it CONTAINER_NAME psql -h localhost -U USER -d DATABASE",
+      "category": "database_connection"
+    }
+  ]
+}

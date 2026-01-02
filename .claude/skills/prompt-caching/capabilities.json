@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "prompt-caching",
+  "version": "1.0.0",
+  "description": "Native provider prompt caching for Anthropic and OpenAI",
+
+  "capabilities": {
+    "anthropic-caching": {
+      "keywords": ["anthropic", "claude", "cache_control", "ephemeral"],
+      "solves": [
+        "Use Anthropic prompt caching",
+        "Set cache breakpoints",
+        "Reduce API costs"
+      ],
+      "reference_file": "SKILL.md#anthropic-caching",
+      "token_cost": 120
+    },
+    "openai-caching": {
+      "keywords": ["openai", "gpt", "cached_tokens", "automatic"],
+      "solves": [
+        "Use OpenAI prompt caching",
+        "Structure prompts for cache hits",
+        "Monitor cache effectiveness"
+      ],
+      "reference_file": "SKILL.md#openai-caching",
+      "token_cost": 100
+    },
+    "wrapper-template": {
+      "keywords": ["wrapper", "template", "implementation", "python"],
+      "solves": [
+        "Prompt cache wrapper template",
+        "Python implementation",
+        "Drop-in caching layer"
+      ],
+      "template_file": "templates/prompt-cache-wrapper.py",
+      "token_cost": 200
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["prompt.*cache", "anthropic.*cache", "openai.*cache"],
+    "medium_confidence": ["cache.*breakpoint", "system.*prompt.*cache"]
+  },
+
+  "integrates_with": ["semantic-caching", "cache-cost-tracking", "llm-streaming"]
+}

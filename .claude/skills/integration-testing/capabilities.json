@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "integration-testing",
+  "version": "1.0.0",
+  "description": "Integration testing patterns for API, database, and service tests",
+
+  "capabilities": {
+    "api-testing": {
+      "keywords": ["api", "endpoint", "httpx", "testclient"],
+      "solves": [
+        "Test FastAPI endpoints",
+        "Integration test patterns",
+        "API contract testing"
+      ],
+      "reference_file": "SKILL.md#api-testing",
+      "token_cost": 120
+    },
+    "database-testing": {
+      "keywords": ["database", "fixture", "transaction", "rollback"],
+      "solves": [
+        "Test database operations",
+        "Use transaction rollback",
+        "Create test fixtures"
+      ],
+      "reference_file": "SKILL.md#database-testing",
+      "token_cost": 100
+    },
+    "test-plan-template": {
+      "keywords": ["plan", "template", "strategy", "coverage"],
+      "solves": [
+        "Integration test plan template",
+        "Coverage strategy",
+        "Test organization"
+      ],
+      "template_file": "templates/test-plan-template.md",
+      "token_cost": 150
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["integration.*test", "api.*test", "database.*test"],
+    "medium_confidence": ["service.*test", "endpoint.*test"]
+  },
+
+  "integrates_with": ["unit-testing", "e2e-testing", "test-data-management"]
+}

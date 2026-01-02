@@ -518,6 +518,84 @@
       "mcp_tools": {
         "discovery": ["mcp-find"]
       }
+    },
+
+    "system-design-reviewer": {
+      "display_name": "System Design Reviewer",
+      "color": "indigo",
+      "model_preference": {
+        "deep_review": "opus",
+        "standard_review": "sonnet"
+      },
+      "capabilities": [
+        "implementation-review",
+        "architectural-assessment",
+        "scale-analysis",
+        "security-review",
+        "ux-evaluation",
+        "cross-layer-coherence"
+      ],
+      "can_solve_examples": [
+        "Review this implementation plan before coding",
+        "Evaluate this PR for architectural issues",
+        "Assess if this feature scales",
+        "Check cross-layer type consistency",
+        "Identify missing indexes or pagination"
+      ],
+      "skills_used": [
+        "system-design-interrogation",
+        "defense-in-depth",
+        "llm-safety-patterns"
+      ],
+      "tools": ["Read", "Grep", "Glob"],
+      "boundaries": {
+        "allowed": ["**/*"],
+        "forbidden_actions": ["write", "modify"]
+      },
+      "handoff_to": ["backend-system-architect", "frontend-ui-developer", "security-auditor"],
+      "mcp_tools": {
+        "reasoning": ["sequential-thinking"],
+        "discovery": ["mcp-find"]
+      }
+    },
+
+    "security-layer-auditor": {
+      "display_name": "Security Layer Auditor",
+      "color": "red",
+      "model_preference": {
+        "deep_audit": "opus",
+        "standard_audit": "sonnet"
+      },
+      "capabilities": [
+        "defense-in-depth-audit",
+        "8-layer-verification",
+        "tenant-isolation-check",
+        "llm-security-review",
+        "data-access-audit",
+        "observability-review"
+      ],
+      "can_solve_examples": [
+        "Audit this endpoint for all 8 security layers",
+        "Verify tenant isolation in this query",
+        "Check if LLM prompts contain sensitive IDs",
+        "Review data access patterns for SQL injection",
+        "Verify output validation on LLM responses"
+      ],
+      "skills_used": [
+        "defense-in-depth",
+        "llm-safety-patterns",
+        "security-checklist"
+      ],
+      "tools": ["Read", "Bash", "Grep", "Glob"],
+      "boundaries": {
+        "allowed": ["**/*"],
+        "forbidden_actions": ["write", "modify"]
+      },
+      "handoff_to": ["backend-system-architect", "security-auditor"],
+      "mcp_tools": {
+        "reasoning": ["sequential-thinking"],
+        "discovery": ["mcp-find"]
+      }
     }
   },
 

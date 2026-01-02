@@ -5,26 +5,29 @@
 
 ---
 
-## MANDATORY: Execute This Protocol on Every New Context Window
+## When to Execute This Protocol
 
-**EVERY TIME a new conversation/context window starts, YOU MUST follow these steps:**
+**Execute these steps ONLY when starting work on a NEW task or when context is needed:**
+
+- Starting a new feature or bugfix
+- Switching between different areas of the codebase
+- Need to understand project state and recent work
+
+**DO NOT read these files on every request** - only when context is actually needed.
 
 ---
 
-## Step 1: Understand Current Project State (REQUIRED)
+## Step 1: Understand Current Project State (Read When Needed)
 
-Read these files **in order** to understand where the project is at:
+When starting work on a task, consider reading these files **if relevant**:
 
-| Priority | File | What You'll Learn |
-|----------|------|-------------------|
-| 1 | `docs/CURRENT_STATUS.md` | Sprint progress, completed issues, what's in progress, blockers |
-| 2 | `docs/ROADMAP.md` | Overall project phases, tech stack, detailed task breakdown |
-| 3 | `.claude/context/shared-context.json` | Decisions, patterns, and context from previous sessions |
+| Priority | File | What You'll Learn | When to Read |
+|----------|------|-------------------|--------------|
+| 1 | `docs/CURRENT_STATUS.md` | Sprint progress, completed issues, what's in progress, blockers | If working on sprint items or need to know blockers |
+| 2 | `docs/ROADMAP.md` | Overall project phases, tech stack, detailed task breakdown | If need full project context or architecture understanding |
+| 3 | `.claude/context/shared-context.json` | Decisions, patterns, and context from previous sessions | If working on related tasks or need previous decisions |
 
-**Command to read all three:**
-```
-Read docs/CURRENT_STATUS.md, docs/ROADMAP.md, .claude/context/shared-context.json
-```
+**Only read files that are relevant to the current task** - don't read all three automatically.
 
 ---
 

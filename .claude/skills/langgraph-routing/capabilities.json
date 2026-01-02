@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "langgraph-routing",
+  "version": "1.0.0",
+  "description": "Conditional and semantic routing patterns for LangGraph workflows",
+
+  "capabilities": {
+    "conditional-routing": {
+      "keywords": ["conditional", "branch", "decision", "if-else"],
+      "solves": [
+        "Route based on conditions",
+        "Implement branching logic",
+        "Create decision nodes"
+      ],
+      "reference_file": "SKILL.md#conditional-routing",
+      "token_cost": 120
+    },
+    "semantic-routing": {
+      "keywords": ["semantic", "embedding", "similarity", "intent"],
+      "solves": [
+        "Route by semantic similarity",
+        "Intent-based routing",
+        "Embedding-based decisions"
+      ],
+      "reference_file": "SKILL.md#semantic-routing",
+      "token_cost": 150
+    },
+    "router-template": {
+      "keywords": ["template", "router", "semantic", "implementation"],
+      "solves": [
+        "Semantic router template",
+        "Production router code",
+        "Copy-paste implementation"
+      ],
+      "template_file": "templates/semantic-router.py",
+      "token_cost": 250
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["semantic.*rout", "conditional.*langgraph", "langgraph.*branch"],
+    "medium_confidence": ["route.*intent", "decision.*node"]
+  },
+
+  "integrates_with": ["langgraph-supervisor", "langgraph-state", "embeddings"]
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "langgraph-parallel",
+  "version": "1.0.0",
+  "description": "Fan-out/fan-in parallel execution patterns for LangGraph",
+
+  "capabilities": {
+    "fanout-pattern": {
+      "keywords": ["fanout", "parallel", "concurrent", "scatter"],
+      "solves": [
+        "Run agents in parallel",
+        "Implement fan-out pattern",
+        "Distribute work across workers"
+      ],
+      "reference_file": "SKILL.md#fan-out",
+      "token_cost": 120
+    },
+    "fanin-pattern": {
+      "keywords": ["fanin", "gather", "aggregate", "collect"],
+      "solves": [
+        "Aggregate parallel results",
+        "Implement fan-in pattern",
+        "Collect worker outputs"
+      ],
+      "reference_file": "SKILL.md#fan-in",
+      "token_cost": 120
+    },
+    "parallel-template": {
+      "keywords": ["template", "implementation", "parallel", "agent"],
+      "solves": [
+        "Parallel agent fanout template",
+        "Production-ready code",
+        "Copy-paste implementation"
+      ],
+      "template_file": "templates/parallel-agent-fanout.py",
+      "token_cost": 350
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["parallel.*agent", "fan.*out.*in", "concurrent.*langgraph"],
+    "medium_confidence": ["parallel.*execution", "multi.*agent.*parallel"]
+  },
+
+  "integrates_with": ["langgraph-supervisor", "langgraph-state", "langgraph-checkpoints"]
+}

@@ -326,6 +326,51 @@ CREATE INDEX idx_embedding ON chunks
 
 ---
 
+### Iterative Index Scans (pgvector 0.8.0)
+
+**The Problem:** With filtered queries, HNSW might not return enough results:
+```sql
+-- ef_search=40, but only 10% of data matches filter
+-- Result: ~4 usable results instead of requested 10
+SELECT * FROM chunks
+WHERE tenant_id = 'abc'
+ORDER BY embedding <=> query_embedding
+LIMIT 10;
+```
+
+**The Solution:** Enable iterative scanning to continue searching until conditions are met:
+
+```sql
+-- Enable iterative scan (3 modes: off, strict_order, relaxed_order)
+SET hnsw.iterative_scan = 'relaxed_order';  -- Best performance
+SET hnsw.max_scan_tuples = 20000;           -- Limit for safety
+
+-- Now filtered queries return full results
+SELECT * FROM chunks
+WHERE tenant_id = 'abc' AND content_type = 'code_block'
+ORDER BY embedding <=> query_embedding
+LIMIT 10;
+```
+
+**Iterative Scan Modes:**
+| Mode | Ordering | Performance | Use Case |
+|------|----------|-------------|----------|
+| `off` | Exact | Baseline | Unfiltered queries |
+| `strict_order` | Exact | Slower | When exact order matters |
+| `relaxed_order` | Approximate | **Best** | Most production use cases |
+
+**Tuning `ef_search`:**
+```sql
+-- Higher ef_search = better recall, more memory
+SET hnsw.ef_search = 100;  -- Default is 40
+
+-- For complex filtered queries
+SET hnsw.ef_search = 200;
+SET hnsw.iterative_scan = 'relaxed_order';
+```
+
+---
+
 ### 3. Metadata Filtering & Boosting
 
 **Problem:** Some chunks are more valuable than others.
@@ -465,5 +510,6 @@ async def test_hybrid_search_golden_dataset():
 
 ---
 
-**Version:** 1.0.0 (December 2025)
+**Version:** 1.1.0 (January 2026)
 **Status:** Production-ready patterns from SkillForge's 415-chunk golden dataset
+**Updated:** pgvector 0.8.0 iterative scan support

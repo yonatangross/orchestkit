@@ -1,0 +1,79 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "semantic-caching",
+  "version": "1.0.0",
+  "description": "Redis-based semantic similarity caching for LLM responses",
+
+  "capabilities": {
+    "redis-vector-cache": {
+      "keywords": ["redis", "vector", "embedding", "similarity", "cache"],
+      "solves": [
+        "Cache LLM responses by semantic similarity",
+        "Reduce API costs with smart caching",
+        "Implement multi-level cache hierarchy"
+      ],
+      "reference_file": "SKILL.md#redis-vector-cache",
+      "token_cost": 150
+    },
+    "similarity-threshold": {
+      "keywords": ["threshold", "similarity", "tuning", "cosine"],
+      "solves": [
+        "Set appropriate similarity threshold",
+        "Balance hit rate vs accuracy",
+        "Tune cache performance"
+      ],
+      "reference_file": "SKILL.md#similarity-threshold",
+      "token_cost": 100
+    },
+    "skillforge-integration": {
+      "keywords": ["skillforge", "integration", "roi", "cost-savings"],
+      "solves": [
+        "Integrate caching with SkillForge",
+        "Calculate ROI for caching",
+        "Production implementation guide"
+      ],
+      "example_file": "examples/skillforge-integration.md",
+      "token_cost": 300
+    },
+    "cache-service": {
+      "keywords": ["service", "implementation", "template", "production"],
+      "solves": [
+        "Production cache service template",
+        "Complete implementation example",
+        "Redis integration code"
+      ],
+      "template_file": "templates/semantic-cache-service.py",
+      "token_cost": 250
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["semantic.*cache", "redis.*vector", "llm.*cache"],
+    "medium_confidence": ["cache.*similarity", "embedding.*cache"]
+  },
+
+  "integrates_with": ["prompt-caching", "cache-cost-tracking", "embeddings"],
+
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100,
+      "use_when": "Initial task analysis"
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 450,
+      "use_when": "Need caching patterns"
+    },
+    "tier_3_specific": {
+      "files": "examples/*.md",
+      "tokens": 300,
+      "use_when": "Need SkillForge integration guide"
+    },
+    "tier_4_generate": {
+      "files": "templates/*.py",
+      "tokens": 250,
+      "use_when": "Ready to implement cache service"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "langgraph-supervisor",
+  "version": "1.0.0",
+  "description": "Supervisor-worker pattern for LangGraph multi-agent orchestration",
+
+  "capabilities": {
+    "supervisor-design": {
+      "keywords": ["supervisor", "orchestration", "routing", "delegation"],
+      "solves": [
+        "Design supervisor agent patterns",
+        "Route tasks to specialized workers",
+        "Coordinate multi-agent workflows"
+      ],
+      "reference_file": "SKILL.md#supervisor-pattern",
+      "token_cost": 150
+    },
+    "worker-delegation": {
+      "keywords": ["worker", "delegation", "specialized", "agent"],
+      "solves": [
+        "Create specialized worker agents",
+        "Define worker capabilities",
+        "Implement delegation logic"
+      ],
+      "reference_file": "SKILL.md#worker-agents",
+      "token_cost": 120
+    },
+    "skillforge-workflow": {
+      "keywords": ["skillforge", "analysis", "content", "workflow"],
+      "solves": [
+        "SkillForge analysis workflow example",
+        "Production supervisor implementation",
+        "Real-world orchestration pattern"
+      ],
+      "example_file": "examples/skillforge-analysis-workflow.md",
+      "token_cost": 400
+    },
+    "supervisor-template": {
+      "keywords": ["template", "implementation", "code", "starter"],
+      "solves": [
+        "Supervisor workflow template",
+        "Production-ready code",
+        "Copy-paste implementation"
+      ],
+      "template_file": "templates/supervisor-workflow.py",
+      "token_cost": 200
+    },
+    "content-analysis": {
+      "keywords": ["content", "analysis", "graph", "multi-agent"],
+      "solves": [
+        "Content analysis graph template",
+        "SkillForge-specific workflow",
+        "Multi-agent content processing"
+      ],
+      "template_file": "templates/content-analysis-graph.py",
+      "token_cost": 250
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["supervisor.*worker", "orchestrat.*agent", "langgraph.*supervisor"],
+    "medium_confidence": ["multi-agent.*route", "delegate.*worker"]
+  },
+
+  "integrates_with": ["langgraph-state", "langgraph-routing", "langgraph-checkpoints"],
+
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100,
+      "use_when": "Initial task analysis"
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 500,
+      "use_when": "Need supervisor patterns"
+    },
+    "tier_3_specific": {
+      "files": "examples/*.md",
+      "tokens": 400,
+      "use_when": "Need SkillForge workflow example"
+    },
+    "tier_4_generate": {
+      "files": "templates/*.py",
+      "tokens": "200-250 each",
+      "use_when": "Ready to implement supervisor workflow"
+    }
+  }
+}

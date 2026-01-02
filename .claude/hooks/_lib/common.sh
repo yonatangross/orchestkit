@@ -58,13 +58,113 @@ get_session_id() {
   get_field '.session_id'
 }
 
-# Log to hook log file
+# Rotate log file if it exceeds size limit (with lazy checking and file locking)
+# Usage: rotate_log_file "logfile" "max_size_kb"
+# Only checks file size every 100 writes to reduce file system operations
+rotate_log_file() {
+  local logfile="$1"
+  local max_size_kb="${2:-200}"  # Default 200KB
+  local max_size_bytes=$((max_size_kb * 1024))
+  local rotation_check_interval=100  # Check every 100 writes
+  
+  # Use file-based counter for thread-safe lazy checking
+  local count_file="${logfile}.count"
+  local count=$(($(cat "$count_file" 2>/dev/null || echo 0) + 1))
+  echo "$count" > "$count_file" 2>/dev/null || true
+  
+  # Only check file size every N writes (lazy rotation)
+  if [[ $((count % rotation_check_interval)) -ne 0 ]]; then
+    return 0
+  fi
+  
+  # Use file locking to prevent concurrent rotations
+  local lockfile="${logfile}.lock"
+  if ! [[ -f "$logfile" ]]; then
+    return 0
+  fi
+  
+  # Try to acquire lock (non-blocking)
+  (
+    if command -v flock >/dev/null 2>&1; then
+      # Use flock for atomic locking (preferred)
+      flock -n 9 || return 0  # Non-blocking, skip if locked
+      
+      # Check file size inside the lock
+      local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
+      if [[ $size -gt $max_size_bytes ]]; then
+        # Rotate: compress old log and truncate
+        local rotated="${logfile}.old.$(date +%Y%m%d-%H%M%S)"
+        mv "$logfile" "$rotated" 2>/dev/null || return 0
+        
+        # Compress if gzip available
+        if command -v gzip >/dev/null 2>&1; then
+          gzip "$rotated" 2>/dev/null || true
+          rotated="${rotated}.gz"
+        fi
+        
+        # Optimized cleanup: use find -delete instead of xargs rm
+        local logdir=$(dirname "$logfile")
+        local logbase=$(basename "$logfile")
+        
+        # Keep only last 5 rotated logs (more efficient: delete oldest first)
+        find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
+          sort -r | tail -n +6 | while IFS= read -r oldfile; do
+            rm -f "$oldfile" 2>/dev/null || true
+          done
+      fi
+    else
+      # Fallback: simple lock file check (less reliable but works without flock)
+      if [[ -f "$lockfile" ]]; then
+        # Lock exists, skip rotation
+        return 0
+      fi
+      
+      # Create lock file
+      echo "$$" > "$lockfile" 2>/dev/null || return 0
+      
+      # Check file size
+      local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
+      if [[ $size -gt $max_size_bytes ]]; then
+        local rotated="${logfile}.old.$(date +%Y%m%d-%H%M%S)"
+        mv "$logfile" "$rotated" 2>/dev/null || {
+          rm -f "$lockfile" 2>/dev/null
+          return 0
+        }
+        
+        if command -v gzip >/dev/null 2>&1; then
+          gzip "$rotated" 2>/dev/null || true
+          rotated="${rotated}.gz"
+        fi
+        
+        local logdir=$(dirname "$logfile")
+        local logbase=$(basename "$logfile")
+        find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
+          sort -r | tail -n +6 | while IFS= read -r oldfile; do
+            rm -f "$oldfile" 2>/dev/null || true
+          done
+      fi
+      
+      # Remove lock file
+      rm -f "$lockfile" 2>/dev/null || true
+    fi
+  ) 9>"$lockfile" 2>/dev/null || {
+    # If flock fails or lockfile creation fails, skip rotation (fail-safe)
+    return 0
+  }
+}
+
+# Log to hook log file with automatic rotation
 # Usage: log_hook "message"
 log_hook() {
   local msg="$1"
+  local logfile="$HOOK_LOG_DIR/hooks.log"
+  
+  # Rotate if needed (200KB limit)
+  rotate_log_file "$logfile" 200
+  
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local hook_name=$(basename "${BASH_SOURCE[1]:-$0}" .sh)
-  echo "[$timestamp] [$hook_name] $msg" >> "$HOOK_LOG_DIR/hooks.log"
+  echo "[$timestamp] [$hook_name] $msg" >> "$logfile"
 }
 
 # Print info message to stderr
@@ -156,4 +256,4 @@ increment_metric() {
 }
 
 # Export functions for subshells
-export -f read_hook_input get_field get_tool_name get_session_id log_hook info success warn error
+export -f read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error

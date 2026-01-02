@@ -21,6 +21,10 @@ fi
 
 # Log to audit file
 AUDIT_LOG="$CLAUDE_PROJECT_DIR/.claude/logs/audit.log"
+
+# Rotate if needed (200KB limit)
+rotate_log_file "$AUDIT_LOG" 200
+
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
 # Get relevant details based on tool type

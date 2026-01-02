@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "ollama-local",
+  "version": "1.0.0",
+  "description": "Local LLM inference with Ollama for development and CI",
+
+  "capabilities": {
+    "setup": {
+      "keywords": ["setup", "install", "configure", "ollama"],
+      "solves": [
+        "Set up Ollama locally",
+        "Configure for development",
+        "Install models"
+      ],
+      "reference_file": "SKILL.md#setup",
+      "token_cost": 100
+    },
+    "model-selection": {
+      "keywords": ["model", "llama", "mistral", "qwen", "selection"],
+      "solves": [
+        "Choose appropriate model",
+        "Compare model capabilities",
+        "Balance speed vs quality"
+      ],
+      "reference_file": "SKILL.md#model-selection",
+      "token_cost": 80
+    },
+    "provider-template": {
+      "keywords": ["provider", "template", "python", "implementation"],
+      "solves": [
+        "Ollama provider template",
+        "Python implementation",
+        "Drop-in LLM provider"
+      ],
+      "template_file": "templates/ollama-provider-template.py",
+      "token_cost": 200
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["ollama", "local.*llm", "self.*hosted.*model"],
+    "medium_confidence": ["local.*inference", "llama.*local"]
+  },
+
+  "integrates_with": ["llm-streaming", "embeddings", "llm-evaluation"]
+}
