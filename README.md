@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  33 skills | 10 commands | 14 agents | 27 hooks
+  54 skills | 11 commands | 14 agents | 30 hooks
 </p>
 
 ---
@@ -44,10 +44,24 @@ After installation, skills are automatically available when Claude Code detects 
 
 | Skill | Description |
 |-------|-------------|
-| `ai-native-development` | RAG pipelines, embeddings, vector databases, agentic workflows, Ollama local inference |
-| `langgraph-workflows` | Multi-agent workflows with LangGraph 1.0 - state management, supervisor-worker patterns, checkpointing |
-| `llm-caching-patterns` | Multi-level caching (semantic + prompt) for 70-95% cost reduction |
-| `llm-safety-patterns` | Prevent hallucination, injection, and data leakage through proper validation |
+| `agent-loops` | Agentic workflows with ReAct, tool use, and autonomous loops |
+| `rag-retrieval` | RAG pipelines, chunking strategies, retrieval patterns |
+| `embeddings` | Embedding models, vector operations, similarity search |
+| `function-calling` | LLM function/tool calling patterns for OpenAI, Anthropic, Ollama |
+| `ollama-local` | Local LLM inference with Ollama, model selection, optimization |
+| `multi-agent-orchestration` | Coordinating multiple AI agents for complex tasks |
+| `langgraph-supervisor` | Supervisor-worker patterns with LangGraph |
+| `langgraph-routing` | Semantic routing and conditional branching |
+| `langgraph-parallel` | Fan-out/fan-in parallel agent execution |
+| `langgraph-state` | State management and persistence in LangGraph |
+| `langgraph-checkpoints` | Checkpointing and recovery for long-running workflows |
+| `langgraph-human-in-loop` | Human approval and intervention patterns |
+| `prompt-caching` | Anthropic/OpenAI prompt caching for cost reduction |
+| `semantic-caching` | Semantic similarity caching with Redis/vector stores |
+| `cache-cost-tracking` | LLM cost tracking and optimization |
+| `llm-streaming` | Streaming responses, SSE, token-by-token output |
+| `llm-evaluation` | Evaluation frameworks, benchmarks, quality metrics |
+| `llm-testing` | Testing LLM applications, mocking, deterministic tests |
 | `langfuse-observability` | LLM tracing, evaluation, prompt management, and cost tracking |
 | `pgvector-search` | Hybrid search with PGVector + BM25 using Reciprocal Rank Fusion |
 
@@ -74,11 +88,20 @@ After installation, skills are automatically available when Claude Code detects 
 
 | Skill | Description |
 |-------|-------------|
-| `testing-strategy-builder` | Test planning, MSW mocking, VCR.py recording, coverage targets |
+| `unit-testing` | Unit test patterns, mocking, coverage strategies |
+| `integration-testing` | Integration test design, test isolation, fixtures |
+| `e2e-testing` | End-to-end testing strategies and patterns |
+| `performance-testing` | Load testing, benchmarking, performance profiling |
 | `webapp-testing` | Playwright testing with autonomous test agents |
+| `msw-mocking` | Mock Service Worker for API mocking |
+| `vcr-http-recording` | HTTP recording/playback for deterministic tests |
+| `test-data-management` | Test fixtures, factories, data generation |
 | `code-review-playbook` | Structured review processes, conventional comments |
 | `quality-gates` | Automated quality enforcement, CI integration |
-| `golden-dataset-*` | Curation, validation, and management for AI/ML testing |
+| `evidence-verification` | Verification evidence collection and validation |
+| `golden-dataset-curation` | Curating high-quality datasets for AI/ML |
+| `golden-dataset-validation` | Validating dataset quality and consistency |
+| `golden-dataset-management` | Managing and versioning golden datasets |
 
 ### DevOps & Security
 
@@ -86,8 +109,10 @@ After installation, skills are automatically available when Claude Code detects 
 |-------|-------------|
 | `devops-deployment` | CI/CD pipelines, Docker, Kubernetes, Terraform patterns |
 | `observability-monitoring` | Structured logging, metrics, distributed tracing, alerting |
-| `security-checklist` | OWASP Top 10 mitigations, auth patterns, compliance |
-| `defense-in-depth` | 8-layer security architecture for AI systems |
+| `owasp-top-10` | OWASP Top 10 mitigations with code examples |
+| `auth-patterns` | Authentication/authorization patterns, JWT, OAuth, sessions |
+| `security-scanning` | Security scanning, SAST, dependency audits |
+| `input-validation` | Input validation, sanitization, injection prevention |
 
 ### Process & Planning
 
@@ -96,7 +121,8 @@ After installation, skills are automatically available when Claude Code detects 
 | `brainstorming` | Socratic questioning, alternative exploration, MVP scoping |
 | `architecture-decision-record` | ADR templates, decision documentation |
 | `ascii-visualizer` | Beautiful ASCII art for architectures and workflows |
-| `system-design-interrogation` | Systematic questioning for design completeness |
+| `github-cli` | GitHub CLI workflows, PR automation, issue management |
+| `browser-content-capture` | Web scraping, content extraction, documentation capture |
 
 ---
 
@@ -116,6 +142,7 @@ Slash commands for common workflows:
 | `/fix-issue` | Fix GitHub issue with parallel analysis | `/fix-issue 456` |
 | `/add-golden` | Curate and add documents to golden dataset | `/add-golden doc.md` |
 | `/brainstorm` | Multi-perspective idea exploration | `/brainstorm caching strategy` |
+| `/errors` | Analyze error patterns and get fix suggestions | `/errors` |
 
 ---
 
@@ -230,7 +257,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 27 hooks have been security-audited and follow these standards:
+All 30 hooks have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
@@ -268,27 +295,34 @@ fi
 
 ```
 .claude/
-+-- skills/                    # 33 domain-specific skills
-|   +-- ai-native-development/
++-- skills/                    # 54 domain-specific skills
+|   +-- agent-loops/
 |   |   +-- capabilities.json  # Discovery metadata
 |   |   +-- SKILL.md          # Core patterns
 |   |   +-- references/       # Detailed docs
 |   |   +-- templates/        # Code templates
-|   +-- langgraph-workflows/
+|   +-- langgraph-supervisor/
+|   +-- rag-retrieval/
 |   +-- ...
-+-- commands/                  # 10 slash commands
++-- commands/                  # 11 slash commands
 |   +-- commit.md
 |   +-- implement.md
+|   +-- errors.md
 |   +-- ...
 +-- agents/                    # 14 specialized agents
 |   +-- llm-integrator.md
 |   +-- security-auditor.md
 |   +-- ...
-+-- hooks/                     # 27 lifecycle hooks
++-- hooks/                     # 30 lifecycle hooks
 |   +-- pretool/
 |   +-- posttool/
 |   +-- lifecycle/
+|   +-- permission/
 |   +-- ...
++-- scripts/                   # Utility scripts
+|   +-- analyze_errors.py
++-- rules/                     # Learned error patterns
+|   +-- error_rules.json
 +-- schemas/                   # JSON schemas
     +-- skill-capabilities.schema.json
 ```
