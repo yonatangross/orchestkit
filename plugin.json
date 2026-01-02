@@ -2,7 +2,7 @@
   "$schema": "https://claude-plugins.dev/schemas/plugin.schema.json",
   "name": "@skillforge/complete",
   "version": "1.0.0",
-  "description": "Comprehensive AI-assisted development toolkit with 33 skills, 14 agents, progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 54 skills, 11 commands, 14 agents, 29 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "displayName": "SkillForge Complete",
   "author": {
     "name": "SkillForge Team",
@@ -46,433 +46,382 @@
 
   "skills": [
     {
+      "id": "agent-loops",
+      "name": "Agent Loops",
+      "path": ".claude/skills/agent-loops",
+      "description": "Agentic workflows with ReAct, tool use, and autonomous loops",
+      "tags": ["ai", "agents", "react", "autonomous"]
+    },
+    {
       "id": "api-design-framework",
       "name": "API Design Framework",
       "path": ".claude/skills/api-design-framework",
-      "capabilities_file": ".claude/skills/api-design-framework/capabilities.json",
       "description": "RESTful API design, OpenAPI specs, versioning, pagination, rate limiting",
-      "tags": ["api", "rest", "openapi", "backend"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 600,
-        "full": 2500
-      }
-    },
-    {
-      "id": "ai-native-development",
-      "name": "AI Native Development",
-      "path": ".claude/skills/ai-native-development",
-      "capabilities_file": ".claude/skills/ai-native-development/capabilities.json",
-      "description": "RAG pipelines, embeddings, vector databases, LLM integration, Ollama local inference",
-      "tags": ["ai", "llm", "rag", "embeddings", "ollama"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 700,
-        "full": 3500
-      }
+      "tags": ["api", "rest", "openapi", "backend"]
     },
     {
       "id": "architecture-decision-record",
       "name": "Architecture Decision Record",
       "path": ".claude/skills/architecture-decision-record",
-      "capabilities_file": ".claude/skills/architecture-decision-record/capabilities.json",
       "description": "ADR templates, decision documentation, tradeoff analysis",
-      "tags": ["architecture", "documentation", "decisions"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 300,
-        "full": 1000
-      }
+      "tags": ["architecture", "documentation", "decisions"]
     },
     {
       "id": "ascii-visualizer",
       "name": "ASCII Visualizer",
       "path": ".claude/skills/ascii-visualizer",
-      "capabilities_file": ".claude/skills/ascii-visualizer/capabilities.json",
-      "description": "ASCII diagrams, architecture visualization, workflow charts, progress bars",
-      "tags": ["visualization", "diagrams", "communication"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 300,
-        "full": 800
-      }
+      "description": "ASCII diagrams, architecture visualization, workflow charts",
+      "tags": ["visualization", "diagrams", "communication"]
+    },
+    {
+      "id": "auth-patterns",
+      "name": "Auth Patterns",
+      "path": ".claude/skills/auth-patterns",
+      "description": "Authentication/authorization patterns, JWT, OAuth, sessions, password security",
+      "tags": ["security", "auth", "jwt", "oauth"]
     },
     {
       "id": "brainstorming",
       "name": "Brainstorming",
       "path": ".claude/skills/brainstorming",
-      "capabilities_file": ".claude/skills/brainstorming/capabilities.json",
       "description": "Socratic questioning, alternative exploration, incremental validation",
-      "tags": ["ideation", "planning", "ux"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 300,
-        "full": 800
-      }
+      "tags": ["ideation", "planning", "ux"]
     },
     {
       "id": "browser-content-capture",
       "name": "Browser Content Capture",
       "path": ".claude/skills/browser-content-capture",
-      "capabilities_file": ".claude/skills/browser-content-capture/capabilities.json",
       "description": "Playwright capture, SPA extraction, auth handling, multi-page crawl",
-      "tags": ["scraping", "playwright", "data-collection"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["scraping", "playwright", "data-collection"]
+    },
+    {
+      "id": "cache-cost-tracking",
+      "name": "Cache Cost Tracking",
+      "path": ".claude/skills/cache-cost-tracking",
+      "description": "LLM cost tracking, cache hit rates, optimization metrics",
+      "tags": ["llm", "cost", "monitoring", "optimization"]
     },
     {
       "id": "code-review-playbook",
       "name": "Code Review Playbook",
       "path": ".claude/skills/code-review-playbook",
-      "capabilities_file": ".claude/skills/code-review-playbook/capabilities.json",
       "description": "Review checklists, conventional comments, feedback templates",
-      "tags": ["code-review", "quality", "collaboration"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["code-review", "quality", "collaboration"]
     },
     {
       "id": "database-schema-designer",
       "name": "Database Schema Designer",
       "path": ".claude/skills/database-schema-designer",
-      "capabilities_file": ".claude/skills/database-schema-designer/capabilities.json",
       "description": "Schema design, normalization, indexing strategies, migrations",
-      "tags": ["database", "postgresql", "schema", "migrations"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
-    },
-    {
-      "id": "defense-in-depth",
-      "name": "Defense in Depth",
-      "path": ".claude/skills/defense-in-depth",
-      "capabilities_file": ".claude/skills/defense-in-depth/capabilities.json",
-      "description": "Layered security architecture, zero-trust principles, security boundaries",
-      "tags": ["security", "architecture", "defense"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "tags": ["database", "postgresql", "schema", "migrations"]
     },
     {
       "id": "design-system-starter",
       "name": "Design System Starter",
       "path": ".claude/skills/design-system-starter",
-      "capabilities_file": ".claude/skills/design-system-starter/capabilities.json",
       "description": "Design tokens, component patterns, spacing scales, typography systems",
-      "tags": ["design-system", "ui", "frontend", "components"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["design-system", "ui", "frontend", "components"]
     },
     {
       "id": "devops-deployment",
       "name": "DevOps Deployment",
       "path": ".claude/skills/devops-deployment",
-      "capabilities_file": ".claude/skills/devops-deployment/capabilities.json",
       "description": "CI/CD pipelines, Docker, Kubernetes, infrastructure as code",
-      "tags": ["devops", "ci-cd", "docker", "kubernetes"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "tags": ["devops", "ci-cd", "docker", "kubernetes"]
+    },
+    {
+      "id": "e2e-testing",
+      "name": "E2E Testing",
+      "path": ".claude/skills/e2e-testing",
+      "description": "End-to-end testing strategies, user flow testing, browser automation",
+      "tags": ["testing", "e2e", "playwright", "automation"]
     },
     {
       "id": "edge-computing-patterns",
       "name": "Edge Computing Patterns",
       "path": ".claude/skills/edge-computing-patterns",
-      "capabilities_file": ".claude/skills/edge-computing-patterns/capabilities.json",
       "description": "Cloudflare Workers, Vercel Edge, edge constraints, edge caching",
-      "tags": ["edge", "serverless", "performance"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["edge", "serverless", "performance"]
+    },
+    {
+      "id": "embeddings",
+      "name": "Embeddings",
+      "path": ".claude/skills/embeddings",
+      "description": "Embedding models, vector operations, similarity search, chunking",
+      "tags": ["ai", "embeddings", "vectors", "semantic-search"]
     },
     {
       "id": "evidence-verification",
       "name": "Evidence Verification",
       "path": ".claude/skills/evidence-verification",
-      "capabilities_file": ".claude/skills/evidence-verification/capabilities.json",
       "description": "Exit code validation, test result capture, build log analysis",
-      "tags": ["testing", "quality-assurance", "verification"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 300,
-        "full": 1000
-      }
+      "tags": ["testing", "quality-assurance", "verification"]
+    },
+    {
+      "id": "function-calling",
+      "name": "Function Calling",
+      "path": ".claude/skills/function-calling",
+      "description": "LLM function/tool calling patterns for OpenAI, Anthropic, Ollama",
+      "tags": ["ai", "llm", "tools", "function-calling"]
     },
     {
       "id": "github-cli",
       "name": "GitHub CLI",
       "path": ".claude/skills/github-cli",
-      "capabilities_file": ".claude/skills/github-cli/capabilities.json",
       "description": "gh issues, gh PRs, gh projects, gh automation, gh releases",
-      "tags": ["github", "automation", "workflow"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
-    },
-    {
-      "id": "golden-dataset-management",
-      "name": "Golden Dataset Management",
-      "path": ".claude/skills/golden-dataset-management",
-      "capabilities_file": ".claude/skills/golden-dataset-management/capabilities.json",
-      "description": "Dataset backup, restore, validation, URL contracts, embedding regeneration",
-      "tags": ["data", "testing", "embeddings"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1200
-      }
+      "tags": ["github", "automation", "workflow"]
     },
     {
       "id": "golden-dataset-curation",
       "name": "Golden Dataset Curation",
       "path": ".claude/skills/golden-dataset-curation",
-      "capabilities_file": ".claude/skills/golden-dataset-curation/capabilities.json",
       "description": "Curating high-quality test datasets for semantic search and RAG",
-      "tags": ["data", "curation", "quality"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1200
-      }
+      "tags": ["data", "curation", "quality"]
+    },
+    {
+      "id": "golden-dataset-management",
+      "name": "Golden Dataset Management",
+      "path": ".claude/skills/golden-dataset-management",
+      "description": "Dataset backup, restore, validation, URL contracts, embedding regeneration",
+      "tags": ["data", "testing", "embeddings"]
     },
     {
       "id": "golden-dataset-validation",
       "name": "Golden Dataset Validation",
       "path": ".claude/skills/golden-dataset-validation",
-      "capabilities_file": ".claude/skills/golden-dataset-validation/capabilities.json",
       "description": "Validating dataset integrity, quality metrics, and contract compliance",
-      "tags": ["data", "validation", "testing"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1200
-      }
+      "tags": ["data", "validation", "testing"]
+    },
+    {
+      "id": "input-validation",
+      "name": "Input Validation",
+      "path": ".claude/skills/input-validation",
+      "description": "Input validation, sanitization, injection prevention, boundary checks",
+      "tags": ["security", "validation", "sanitization"]
+    },
+    {
+      "id": "integration-testing",
+      "name": "Integration Testing",
+      "path": ".claude/skills/integration-testing",
+      "description": "Integration test design, test isolation, fixtures, API testing",
+      "tags": ["testing", "integration", "api-testing"]
     },
     {
       "id": "langfuse-observability",
       "name": "Langfuse Observability",
       "path": ".claude/skills/langfuse-observability",
-      "capabilities_file": ".claude/skills/langfuse-observability/capabilities.json",
       "description": "LLM tracing, cost tracking, prompt management, quality evaluation",
-      "tags": ["observability", "llm", "langfuse", "monitoring"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 700,
-        "full": 1500
-      }
+      "tags": ["observability", "llm", "langfuse", "monitoring"]
     },
     {
-      "id": "langgraph-workflows",
-      "name": "LangGraph Workflows",
-      "path": ".claude/skills/langgraph-workflows",
-      "capabilities_file": ".claude/skills/langgraph-workflows/capabilities.json",
-      "description": "Multi-agent workflows, state management, supervisor-worker, checkpointing",
-      "tags": ["langgraph", "workflows", "multi-agent", "ai"],
-      "token_budget": {
-        "discovery": 110,
-        "overview": 630,
-        "full": 2500
-      }
+      "id": "langgraph-checkpoints",
+      "name": "LangGraph Checkpoints",
+      "path": ".claude/skills/langgraph-checkpoints",
+      "description": "Checkpointing and recovery for long-running LangGraph workflows",
+      "tags": ["langgraph", "persistence", "recovery"]
     },
     {
-      "id": "llm-caching-patterns",
-      "name": "LLM Caching Patterns",
-      "path": ".claude/skills/llm-caching-patterns",
-      "capabilities_file": ".claude/skills/llm-caching-patterns/capabilities.json",
-      "description": "Semantic cache, prompt cache, cache hierarchy, cost optimization",
-      "tags": ["llm", "caching", "performance", "cost-optimization"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 800,
-        "full": 3000
-      }
+      "id": "langgraph-human-in-loop",
+      "name": "LangGraph Human-in-Loop",
+      "path": ".claude/skills/langgraph-human-in-loop",
+      "description": "Human approval and intervention patterns in LangGraph workflows",
+      "tags": ["langgraph", "human-in-loop", "approval"]
     },
     {
-      "id": "llm-safety-patterns",
-      "name": "LLM Safety Patterns",
-      "path": ".claude/skills/llm-safety-patterns",
-      "capabilities_file": ".claude/skills/llm-safety-patterns/capabilities.json",
-      "description": "Input sanitization, output validation, prompt injection defense, guardrails",
-      "tags": ["llm", "security", "safety", "guardrails"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 600,
-        "full": 2500
-      }
+      "id": "langgraph-parallel",
+      "name": "LangGraph Parallel",
+      "path": ".claude/skills/langgraph-parallel",
+      "description": "Fan-out/fan-in parallel agent execution in LangGraph",
+      "tags": ["langgraph", "parallel", "fan-out"]
+    },
+    {
+      "id": "langgraph-routing",
+      "name": "LangGraph Routing",
+      "path": ".claude/skills/langgraph-routing",
+      "description": "Semantic routing and conditional branching in LangGraph",
+      "tags": ["langgraph", "routing", "conditional"]
+    },
+    {
+      "id": "langgraph-state",
+      "name": "LangGraph State",
+      "path": ".claude/skills/langgraph-state",
+      "description": "State management and persistence in LangGraph workflows",
+      "tags": ["langgraph", "state", "management"]
+    },
+    {
+      "id": "langgraph-supervisor",
+      "name": "LangGraph Supervisor",
+      "path": ".claude/skills/langgraph-supervisor",
+      "description": "Supervisor-worker patterns with LangGraph multi-agent orchestration",
+      "tags": ["langgraph", "supervisor", "multi-agent"]
+    },
+    {
+      "id": "llm-evaluation",
+      "name": "LLM Evaluation",
+      "path": ".claude/skills/llm-evaluation",
+      "description": "Evaluation frameworks, benchmarks, quality metrics for LLM outputs",
+      "tags": ["ai", "evaluation", "benchmarks", "quality"]
+    },
+    {
+      "id": "llm-streaming",
+      "name": "LLM Streaming",
+      "path": ".claude/skills/llm-streaming",
+      "description": "Streaming responses, SSE, token-by-token output, backpressure",
+      "tags": ["ai", "streaming", "sse", "realtime"]
+    },
+    {
+      "id": "llm-testing",
+      "name": "LLM Testing",
+      "path": ".claude/skills/llm-testing",
+      "description": "Testing LLM applications, mocking, deterministic tests, fixtures",
+      "tags": ["ai", "testing", "mocking", "deterministic"]
+    },
+    {
+      "id": "msw-mocking",
+      "name": "MSW Mocking",
+      "path": ".claude/skills/msw-mocking",
+      "description": "Mock Service Worker for API mocking in tests and development",
+      "tags": ["testing", "mocking", "msw", "api"]
+    },
+    {
+      "id": "multi-agent-orchestration",
+      "name": "Multi-Agent Orchestration",
+      "path": ".claude/skills/multi-agent-orchestration",
+      "description": "Coordinating multiple AI agents for complex tasks",
+      "tags": ["ai", "agents", "orchestration", "coordination"]
     },
     {
       "id": "observability-monitoring",
       "name": "Observability & Monitoring",
       "path": ".claude/skills/observability-monitoring",
-      "capabilities_file": ".claude/skills/observability-monitoring/capabilities.json",
       "description": "Structured logging, metrics collection, distributed tracing, alerting",
-      "tags": ["observability", "monitoring", "logging", "tracing"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["observability", "monitoring", "logging", "tracing"]
+    },
+    {
+      "id": "ollama-local",
+      "name": "Ollama Local",
+      "path": ".claude/skills/ollama-local",
+      "description": "Local LLM inference with Ollama, model selection, optimization",
+      "tags": ["ai", "ollama", "local", "inference"]
+    },
+    {
+      "id": "owasp-top-10",
+      "name": "OWASP Top 10",
+      "path": ".claude/skills/owasp-top-10",
+      "description": "OWASP Top 10 mitigations with code examples and best practices",
+      "tags": ["security", "owasp", "vulnerabilities", "compliance"]
     },
     {
       "id": "performance-optimization",
       "name": "Performance Optimization",
       "path": ".claude/skills/performance-optimization",
-      "capabilities_file": ".claude/skills/performance-optimization/capabilities.json",
-      "description": "Database query optimization, bundle size reduction, Core Web Vitals, caching",
-      "tags": ["performance", "optimization", "profiling"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "description": "Database query optimization, bundle size reduction, Core Web Vitals",
+      "tags": ["performance", "optimization", "profiling"]
+    },
+    {
+      "id": "performance-testing",
+      "name": "Performance Testing",
+      "path": ".claude/skills/performance-testing",
+      "description": "Load testing, benchmarking, performance profiling, stress testing",
+      "tags": ["testing", "performance", "load-testing", "benchmarks"]
     },
     {
       "id": "pgvector-search",
       "name": "PGVector Hybrid Search",
       "path": ".claude/skills/pgvector-search",
-      "capabilities_file": ".claude/skills/pgvector-search/capabilities.json",
-      "description": "Hybrid search with RRF, pgvector indexing, BM25 integration, metadata filtering",
-      "tags": ["postgresql", "vector-search", "hybrid-search", "pgvector"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "description": "Hybrid search with RRF, pgvector indexing, BM25 integration",
+      "tags": ["postgresql", "vector-search", "hybrid-search", "pgvector"]
+    },
+    {
+      "id": "prompt-caching",
+      "name": "Prompt Caching",
+      "path": ".claude/skills/prompt-caching",
+      "description": "Anthropic/OpenAI prompt caching for cost reduction",
+      "tags": ["ai", "caching", "cost-optimization", "prompts"]
     },
     {
       "id": "quality-gates",
       "name": "Quality Gates",
       "path": ".claude/skills/quality-gates",
-      "capabilities_file": ".claude/skills/quality-gates/capabilities.json",
-      "description": "Complexity scoring, blocking thresholds, gate validation, stuck detection",
-      "tags": ["quality", "ci-cd", "gates"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 300,
-        "full": 800
-      }
+      "description": "Complexity scoring, blocking thresholds, gate validation",
+      "tags": ["quality", "ci-cd", "gates"]
+    },
+    {
+      "id": "rag-retrieval",
+      "name": "RAG Retrieval",
+      "path": ".claude/skills/rag-retrieval",
+      "description": "RAG pipelines, chunking strategies, retrieval patterns, context assembly",
+      "tags": ["ai", "rag", "retrieval", "context"]
     },
     {
       "id": "react-server-components-framework",
       "name": "React Server Components",
       "path": ".claude/skills/react-server-components-framework",
-      "capabilities_file": ".claude/skills/react-server-components-framework/capabilities.json",
       "description": "RSC patterns, server actions, streaming SSR, data fetching, React 19",
-      "tags": ["react", "frontend", "rsc", "react-19"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "tags": ["react", "frontend", "rsc", "react-19"]
     },
     {
       "id": "resilience-patterns",
       "name": "Resilience Patterns",
       "path": ".claude/skills/resilience-patterns",
-      "capabilities_file": ".claude/skills/resilience-patterns/capabilities.json",
-      "description": "Circuit breaker, bulkhead, retry strategies, fallback chains, LLM resilience",
-      "tags": ["resilience", "reliability", "fault-tolerance", "patterns"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 800,
-        "full": 3500
-      }
+      "description": "Circuit breaker, bulkhead, retry strategies, fallback chains",
+      "tags": ["resilience", "reliability", "fault-tolerance", "patterns"]
     },
     {
-      "id": "security-checklist",
-      "name": "Security Checklist",
-      "path": ".claude/skills/security-checklist",
-      "capabilities_file": ".claude/skills/security-checklist/capabilities.json",
-      "description": "OWASP Top 10, authentication patterns, input validation, encryption guidance",
-      "tags": ["security", "owasp", "compliance", "audit"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 800,
-        "full": 4000
-      }
+      "id": "security-scanning",
+      "name": "Security Scanning",
+      "path": ".claude/skills/security-scanning",
+      "description": "Security scanning, SAST, dependency audits, vulnerability detection",
+      "tags": ["security", "scanning", "sast", "audit"]
+    },
+    {
+      "id": "semantic-caching",
+      "name": "Semantic Caching",
+      "path": ".claude/skills/semantic-caching",
+      "description": "Semantic similarity caching with Redis/vector stores for LLM responses",
+      "tags": ["ai", "caching", "semantic", "redis"]
     },
     {
       "id": "streaming-api-patterns",
       "name": "Streaming API Patterns",
       "path": ".claude/skills/streaming-api-patterns",
-      "capabilities_file": ".claude/skills/streaming-api-patterns/capabilities.json",
-      "description": "SSE patterns, WebSocket patterns, readable streams, backpressure handling",
-      "tags": ["streaming", "sse", "websocket", "realtime"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "description": "SSE patterns, WebSocket patterns, readable streams, backpressure",
+      "tags": ["streaming", "sse", "websocket", "realtime"]
     },
     {
-      "id": "system-design-interrogation",
-      "name": "System Design Interrogation",
-      "path": ".claude/skills/system-design-interrogation",
-      "capabilities_file": ".claude/skills/system-design-interrogation/capabilities.json",
-      "description": "Requirements elicitation, constraint identification, scalability analysis",
-      "tags": ["architecture", "design", "planning"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
-    },
-    {
-      "id": "testing-strategy-builder",
-      "name": "Testing Strategy Builder",
-      "path": ".claude/skills/testing-strategy-builder",
-      "capabilities_file": ".claude/skills/testing-strategy-builder/capabilities.json",
-      "description": "Test planning, unit/integration/e2e testing, coverage targets, mocking",
-      "tags": ["testing", "strategy", "tdd", "quality"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 500,
-        "full": 2000
-      }
+      "id": "test-data-management",
+      "name": "Test Data Management",
+      "path": ".claude/skills/test-data-management",
+      "description": "Test fixtures, factories, data generation, seeding strategies",
+      "tags": ["testing", "data", "fixtures", "factories"]
     },
     {
       "id": "type-safety-validation",
       "name": "Type Safety & Validation",
       "path": ".claude/skills/type-safety-validation",
-      "capabilities_file": ".claude/skills/type-safety-validation/capabilities.json",
       "description": "Zod schemas, tRPC patterns, Prisma types, end-to-end typing",
-      "tags": ["typescript", "validation", "type-safety", "zod"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["typescript", "validation", "type-safety", "zod"]
+    },
+    {
+      "id": "unit-testing",
+      "name": "Unit Testing",
+      "path": ".claude/skills/unit-testing",
+      "description": "Unit test patterns, mocking, coverage strategies, TDD",
+      "tags": ["testing", "unit", "mocking", "tdd"]
+    },
+    {
+      "id": "vcr-http-recording",
+      "name": "VCR HTTP Recording",
+      "path": ".claude/skills/vcr-http-recording",
+      "description": "HTTP recording/playback for deterministic tests with VCR.py",
+      "tags": ["testing", "vcr", "http", "recording"]
     },
     {
       "id": "webapp-testing",
       "name": "Web App Testing",
       "path": ".claude/skills/webapp-testing",
-      "capabilities_file": ".claude/skills/webapp-testing/capabilities.json",
       "description": "Playwright testing, test agents, e2e patterns, visual regression",
-      "tags": ["testing", "playwright", "e2e", "frontend"],
-      "token_budget": {
-        "discovery": 100,
-        "overview": 400,
-        "full": 1500
-      }
+      "tags": ["testing", "playwright", "e2e", "frontend"]
     }
   ],
 
@@ -502,7 +451,7 @@
       "skills_used": [
         "api-design-framework",
         "database-schema-designer",
-        "security-checklist",
+        "owasp-top-10",
         "streaming-api-patterns",
         "observability-monitoring",
         "performance-optimization",
@@ -511,7 +460,7 @@
         "edge-computing-patterns",
         "github-cli",
         "resilience-patterns",
-        "langgraph-workflows"
+        "langgraph-supervisor"
       ]
     },
     {
@@ -536,8 +485,9 @@
       ],
       "skills_used": [
         "code-review-playbook",
-        "security-checklist",
-        "testing-strategy-builder",
+        "owasp-top-10",
+        "unit-testing",
+        "integration-testing",
         "evidence-verification",
         "webapp-testing",
         "resilience-patterns"
@@ -563,7 +513,8 @@
         "data-quality"
       ],
       "skills_used": [
-        "ai-native-development",
+        "embeddings",
+        "rag-retrieval",
         "pgvector-search",
         "golden-dataset-management"
       ]
@@ -641,7 +592,8 @@
         "react-server-components-framework",
         "design-system-starter",
         "type-safety-validation",
-        "testing-strategy-builder",
+        "unit-testing",
+        "e2e-testing",
         "webapp-testing"
       ]
     },
@@ -665,9 +617,11 @@
         "rate-limiting"
       ],
       "skills_used": [
-        "ai-native-development",
+        "function-calling",
+        "llm-streaming",
         "streaming-api-patterns",
-        "llm-caching-patterns",
+        "prompt-caching",
+        "semantic-caching",
         "langfuse-observability",
         "resilience-patterns"
       ]
@@ -715,7 +669,8 @@
         "cve-tracking"
       ],
       "skills_used": [
-        "security-checklist"
+        "owasp-top-10",
+        "security-scanning"
       ]
     },
     {
@@ -738,7 +693,11 @@
         "edge-cases"
       ],
       "skills_used": [
-        "testing-strategy-builder",
+        "unit-testing",
+        "integration-testing",
+        "e2e-testing",
+        "msw-mocking",
+        "vcr-http-recording",
         "webapp-testing"
       ]
     },
@@ -785,8 +744,11 @@
         "rag-orchestration"
       ],
       "skills_used": [
-        "langgraph-workflows",
-        "ai-native-development",
+        "langgraph-supervisor",
+        "langgraph-routing",
+        "langgraph-parallel",
+        "langgraph-state",
+        "multi-agent-orchestration",
         "langfuse-observability",
         "observability-monitoring"
       ]
@@ -809,9 +771,10 @@
         "8-layer-framework"
       ],
       "skills_used": [
-        "defense-in-depth",
-        "security-checklist",
-        "llm-safety-patterns"
+        "owasp-top-10",
+        "security-scanning",
+        "auth-patterns",
+        "input-validation"
       ]
     },
     {
@@ -833,9 +796,10 @@
         "coherence-check"
       ],
       "skills_used": [
-        "system-design-interrogation",
-        "defense-in-depth",
-        "llm-safety-patterns"
+        "architecture-decision-record",
+        "owasp-top-10",
+        "security-scanning",
+        "performance-optimization"
       ]
     }
   ],
@@ -900,6 +864,12 @@
       "name": "Verify",
       "file": ".claude/commands/verify.md",
       "description": "Verify implementation with evidence capture"
+    },
+    {
+      "id": "errors",
+      "name": "Errors",
+      "file": ".claude/commands/errors.md",
+      "description": "Analyze error patterns and get fix suggestions"
     }
   ],
 
@@ -1065,6 +1035,14 @@
       "security_risk": "LOW"
     },
     {
+      "id": "error-collector",
+      "type": "posttool",
+      "event": "after_tool_use",
+      "file": ".claude/hooks/posttool/error-collector.sh",
+      "description": "Collect errors from tool executions for pattern analysis",
+      "security_risk": "LOW"
+    },
+    {
       "id": "ci-simulation",
       "type": "pretool",
       "event": "before_bash",
@@ -1086,6 +1064,14 @@
       "event": "before_bash",
       "file": ".claude/hooks/pretool/bash/issue-docs-requirement.sh",
       "description": "Require issue documentation for certain operations",
+      "security_risk": "LOW"
+    },
+    {
+      "id": "error-pattern-warner",
+      "type": "pretool",
+      "event": "before_bash",
+      "file": ".claude/hooks/pretool/bash/error-pattern-warner.sh",
+      "description": "Warn about known error patterns before execution",
       "security_risk": "LOW"
     },
     {
@@ -1159,7 +1145,7 @@
     },
     "auto_triggers": {
       "security-scanning": {
-        "skill": "security-checklist",
+        "skill": "owasp-top-10",
         "agent": "code-quality-reviewer",
         "when": "reviewing code for production",
         "action": "load tier_4_scanning"
@@ -1225,8 +1211,8 @@
       "description": "Create a secure API endpoint with authentication, validation, and tests",
       "skills": [
         "api-design-framework",
-        "security-checklist",
-        "testing-strategy-builder"
+        "owasp-top-10",
+        "unit-testing"
       ],
       "agents": {
         "primary": "backend-system-architect",
@@ -1253,7 +1239,9 @@
       "name": "AI Integration",
       "description": "Add AI/LLM capabilities to the application",
       "skills": [
-        "ai-native-development",
+        "rag-retrieval",
+        "function-calling",
+        "llm-streaming",
         "streaming-api-patterns",
         "observability-monitoring"
       ],
@@ -1270,7 +1258,9 @@
       "skills": [
         "react-server-components-framework",
         "type-safety-validation",
-        "testing-strategy-builder",
+        "unit-testing",
+        "e2e-testing",
+        "msw-mocking",
         "performance-optimization",
         "api-design-framework"
       ],
