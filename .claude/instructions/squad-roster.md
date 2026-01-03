@@ -1,107 +1,187 @@
 # Squad Roster Configuration
 
-## Supervisor Tier
-**Single instance, coordinates all agents**
+## Overview
+**20 Agents: 6 Product + 14 Technical**
 
-### studio-coach (Supervisor)
-- **Model**: claude-3-opus-20240229 (latest Opus for highest reasoning)
-- **Instances**: 1
-- **Token Limit**: 16,000
-- **Role**: Task allocation, validation gates, error recovery
-- **Tools**: Task, Write, Read
-- **Never**: Writes implementation code
+The squad is organized into two main categories:
+1. **Product Thinking Pipeline** - Strategic planning and requirements
+2. **Technical Implementation** - Building and quality assurance
 
-## Core Squad
-**Essential agents for feature development**
+---
 
-### frontend-ui-developer
+## Product Thinking Pipeline (6 agents)
+**Sequential pipeline for product strategy → implementation readiness**
+
+```
+market-intelligence → product-strategist → prioritization-analyst
+        → business-case-builder → requirements-translator → metrics-architect
+```
+
+### market-intelligence
+- **Model**: claude-3-sonnet / haiku (quick scans)
+- **Color**: violet
+- **Specialization**: Market research, competitor analysis, TAM/SAM/SOM, SWOT
+- **Domain**: docs/research/**, docs/market/**, .claude/context/**
+- **Tools**: Read, Write, WebSearch, WebFetch, Grep, Glob, Bash
+- **Handoff**: product-strategist
+
+### product-strategist
+- **Model**: claude-3-sonnet / opus (complex decisions)
+- **Color**: purple
+- **Specialization**: Value proposition, go/no-go, build-buy-partner decisions
+- **Domain**: docs/**, .claude/context/**, research/**
+- **Tools**: Read, Write, WebSearch, WebFetch, Grep, Glob, Bash
+- **Handoff**: prioritization-analyst
+
+### prioritization-analyst
+- **Model**: claude-3-sonnet / haiku (quick ranking)
+- **Color**: plum
+- **Specialization**: RICE/ICE/WSJF scoring, backlog ranking, dependency analysis
+- **Domain**: docs/**, .claude/context/**
+- **Tools**: Read, Write, Grep, Glob, Bash
+- **Handoff**: business-case-builder
+
+### business-case-builder
+- **Model**: claude-3-sonnet / haiku (quick estimates)
+- **Color**: indigo
+- **Specialization**: ROI calculation, cost-benefit analysis, financial projections
+- **Domain**: docs/**, .claude/context/**
+- **Tools**: Read, Write, WebSearch, Grep, Glob, Bash
+- **Handoff**: requirements-translator
+
+### requirements-translator
+- **Model**: claude-3-sonnet / haiku (simple stories)
+- **Color**: magenta
+- **Specialization**: PRD writing, user stories, acceptance criteria, edge cases
+- **Domain**: docs/requirements/**, docs/specs/**, .claude/context/**
+- **Tools**: Read, Write, Grep, Glob, Bash
+- **Handoff**: metrics-architect
+
+### metrics-architect
+- **Model**: claude-3-sonnet / haiku (simple KPIs)
+- **Color**: orchid
+- **Specialization**: OKR design, KPI definition, experiment design, instrumentation
+- **Domain**: docs/metrics/**, docs/analytics/**, .claude/context/**
+- **Tools**: Read, Write, Grep, Glob, Bash
+- **Handoff**: ux-researcher, backend-system-architect, frontend-ui-developer
+
+---
+
+## Technical Implementation Squad (14 agents)
+
+### Core Implementation
+
+#### frontend-ui-developer
 - **Model**: claude-3-sonnet
+- **Color**: purple
 - **Instances**: 2 (can work on different components in parallel)
-- **Token Limit**: 8,000
-- **Specialization**: React/Vue/Angular components, state management
-- **2025 Expertise**: React Server Components (RSC), Next.js 15 App Router, Server Actions, Streaming SSR with Suspense, Tailwind 4 CSS-first, Modern CSS (container queries, View Transitions, oklch), Turbopack/Vite 6, tRPC client integration, Edge middleware
-- **Domain**: frontend/src/**, components/**, hooks/**, app/**(Next.js)
+- **Specialization**: React 19, TypeScript, state management, forms, animations
+- **2025 Expertise**: React Server Components, Next.js 15 App Router, Server Actions, Streaming SSR, Tailwind 4, Turbopack/Vite 6, tRPC client
+- **Domain**: frontend/src/**, components/**, hooks/**
 - **Tools**: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
 
-### backend-system-architect
-- **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: API design, database schemas, authentication
-- **2025 Expertise**: Edge Computing (Cloudflare Workers, Vercel Edge, Deno Deploy), Streaming APIs (SSE, WebSockets, backpressure), Type Safety (tRPC, Zod, Prisma), Server Actions, Route Handlers, AI Integration (LLM APIs, vector databases), OpenTelemetry observability
-- **Domain**: backend/**, api/**, database/**, edge/**
+#### backend-system-architect
+- **Model**: claude-3-sonnet / opus (complex analysis)
+- **Color**: yellow
+- **Specialization**: API design, database schemas, authentication, microservices
+- **2025 Expertise**: Edge Computing, Streaming APIs (SSE, WebSockets), Type Safety (tRPC, Zod, Prisma), OpenTelemetry
+- **Domain**: backend/**, api/**, database/**
 - **Tools**: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
 
-### ai-ml-engineer
+#### llm-integrator
 - **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: LLM integration, prompt engineering, AI features
-- **2025 Expertise**: RAG pipelines (Pinecone, Weaviate, Chroma), Vector databases & embeddings, Agentic workflows (ReAct, multi-agent), LLM streaming responses, Function calling & tool use, Prompt caching & optimization, AI observability (LangSmith, LangFuse), Cost management
-- **Domain**: ml/**, models/**, prompts/**, embeddings/**, agents/**
-- **Tools**: Read, Edit, MultiEdit, Write, Bash, WebFetch
+- **Color**: orange
+- **Specialization**: LLM integration, prompt engineering, function calling, streaming
+- **Domain**: backend/app/shared/services/llm/**, prompts/**
+- **Tools**: Read, Edit, MultiEdit, Write, Bash, WebFetch, Grep, Glob
 
-## Support Squad
-**Specialized agents for quality and design**
+#### workflow-architect
+- **Model**: claude-3-sonnet / opus (architecture)
+- **Color**: blue
+- **Specialization**: LangGraph workflows, multi-agent coordination, checkpointing
+- **Domain**: backend/app/workflows/**, backend/app/services/**
+- **Tools**: Bash, Read, Write, Edit, Grep, Glob
 
-### code-quality-reviewer
+#### data-pipeline-engineer
 - **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: Code review, security audit, test coverage
+- **Color**: emerald
+- **Specialization**: Embeddings, chunking, vector indexing, batch processing
+- **Domain**: backend/app/shared/services/embeddings/**, backend/scripts/**
+- **Tools**: Bash, Read, Write, Edit, Grep, Glob
+
+#### database-engineer
+- **Model**: claude-3-sonnet
+- **Color**: emerald
+- **Specialization**: Schema design, migrations, query optimization, pgvector
+- **Domain**: backend/alembic/**, backend/app/models/**
+- **Tools**: Bash, Read, Write, Edit, Grep, Glob
+
+### Quality & Security
+
+#### code-quality-reviewer
+- **Model**: claude-3-sonnet / opus (security) / haiku (lint)
+- **Color**: green
+- **Specialization**: Code review, security audit, test coverage, quality gates
 - **Domain**: **/*.test.*, **/*.spec.*, tests/**
 - **Tools**: Read, Bash, Grep, Glob
 - **Never**: Implements features
 
-### rapid-ui-designer
-- **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: UI mockups, design systems, component specs
+#### test-generator
+- **Model**: claude-3-sonnet / haiku (simple tests)
+- **Color**: green
+- **Specialization**: Unit/integration/E2E tests, MSW mocking, VCR recording
+- **Domain**: tests/**, backend/tests/**, frontend/src/**/*.test.*
+- **Tools**: Bash, Read, Write, Edit, Grep, Glob
+
+#### security-auditor
+- **Model**: claude-3-sonnet / haiku (scans)
+- **Color**: red
+- **Specialization**: Vulnerability scanning, OWASP compliance, secret detection
+- **Domain**: **/*
+- **Tools**: Bash, Read, Grep, Glob
+- **Never**: Writes or modifies code
+
+#### security-layer-auditor
+- **Model**: claude-3-sonnet / opus (deep audit)
+- **Color**: red
+- **Specialization**: Defense-in-depth, 8-layer verification, tenant isolation
+- **Domain**: **/*
+- **Tools**: Read, Bash, Grep, Glob
+- **Never**: Writes or modifies code
+
+#### debug-investigator
+- **Model**: claude-3-sonnet / opus (complex debugging)
+- **Color**: orange
+- **Specialization**: Root cause analysis, log analysis, hypothesis testing
+- **Domain**: **/*
+- **Tools**: Bash, Read, Grep, Glob
+- **Never**: Fixes bugs (only investigates)
+
+#### system-design-reviewer
+- **Model**: claude-3-sonnet / opus (deep review)
+- **Color**: indigo
+- **Specialization**: Architecture assessment, scale analysis, coherence check
+- **Domain**: **/*
+- **Tools**: Read, Grep, Glob
+- **Never**: Writes or modifies code
+
+### Design & UX
+
+#### rapid-ui-designer
+- **Model**: claude-3-sonnet / haiku (mockups)
+- **Color**: cyan
+- **Specialization**: UI design, wireframing, design systems, component specs
 - **Domain**: designs/**, mockups/**, style-guides/**
 - **Tools**: Write, Read
 - **Never**: Writes code
 
-### ux-researcher
-- **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: Requirements gathering, user research, personas
+#### ux-researcher
+- **Model**: claude-3-sonnet / opus (synthesis)
+- **Color**: pink
+- **Specialization**: User research, personas, journey mapping, usability testing
 - **Domain**: research/**, personas/**, user-stories/**
 - **Tools**: Write, Read, WebSearch
 - **Never**: Implements solutions
-
-### product-manager
-- **Model**: claude-3-sonnet
-- **Instances**: 1
-- **Token Limit**: 8,000
-- **Specialization**: Product strategy, roadmaps, PRDs, feature prioritization, stakeholder management
-- **2025 Expertise**: Lean product development, Jobs-to-be-Done framework, Continuous discovery, Data-driven decision making, RICE prioritization, Product-market fit validation, OKR/KPI frameworks
-- **Domain**: docs/**, requirements/**, roadmaps/**, specs/**, product-plans/**
-- **Tools**: Write, Read, WebSearch, WebFetch, TodoWrite
-- **Activation**: Start of planning phase or when product decisions needed
-- **Never**: Writes code or creates mockups
-
-## Optional Squad
-**Enhancement agents for polish and planning**
-
-### whimsy-injector
-- **Model**: claude-3-haiku (simple tasks, cost optimization)
-- **Instances**: 1
-- **Token Limit**: 4,000
-- **Specialization**: Micro-interactions, loading states, easter eggs
-- **Domain**: components/**, styles/**, animations/**
-- **Tools**: Read, Edit, MultiEdit
-- **Activation**: After core features complete
-
-### sprint-prioritizer
-- **Model**: claude-3-haiku
-- **Instances**: 1
-- **Token Limit**: 4,000
-- **Specialization**: Sprint planning, feature prioritization, risk assessment
-- **Domain**: planning/**, roadmaps/**, backlogs/**
-- **Tools**: Write, Read, TodoWrite
-- **Activation**: Start of sprint or planning phase
 
 ## Agent Activation Rules
 

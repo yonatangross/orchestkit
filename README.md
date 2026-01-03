@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  54 skills | 11 commands | 14 agents | 29 hooks
+  54 skills | 11 commands | 20 agents | 29 hooks
 </p>
 
 ---
@@ -149,6 +149,19 @@ Slash commands for common workflows:
 ## Agents Reference
 
 Specialized agents for domain-specific tasks:
+
+### Product Thinking Pipeline (6 agents)
+
+| Agent | Model | Specialization |
+|-------|-------|----------------|
+| `market-intelligence` | Sonnet | Market research, competitor analysis, TAM/SAM/SOM, SWOT |
+| `product-strategist` | Sonnet/Opus | Value proposition, go/no-go decisions, build-buy-partner |
+| `prioritization-analyst` | Sonnet | RICE/ICE scoring, backlog ranking, dependency analysis |
+| `business-case-builder` | Sonnet | ROI calculations, cost-benefit analysis, financial projections |
+| `requirements-translator` | Sonnet | PRD writing, user stories, acceptance criteria |
+| `metrics-architect` | Sonnet | OKR design, KPI definition, experiment design |
+
+### Technical Implementation (14 agents)
 
 | Agent | Model | Specialization |
 |-------|-------|----------------|
@@ -309,9 +322,10 @@ fi
 |   +-- implement.md
 |   +-- errors.md
 |   +-- ...
-+-- agents/                    # 14 specialized agents
++-- agents/                    # 20 specialized agents (6 product + 14 technical)
+|   +-- market-intelligence.md
+|   +-- product-strategist.md
 |   +-- llm-integrator.md
-|   +-- security-auditor.md
 |   +-- ...
 +-- hooks/                     # 29 lifecycle hooks
 |   +-- pretool/

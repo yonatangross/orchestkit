@@ -1,8 +1,8 @@
 {
   "$schema": "./schemas/agent-registry.schema.json",
-  "version": "3.1.0",
-  "description": "Dynamic agent and skill registry with implementation-focused agents (2025 best practices). Split ai-ml-engineer into 3 specialized agents: data-pipeline-engineer, llm-integrator, workflow-architect. Removed low-value orchestration/planning agents, added database-engineer, security-auditor, test-generator, debug-investigator",
-  "last_updated": "2025-12-29",
+  "version": "4.0.0",
+  "description": "Dynamic agent and skill registry with 20 agents: 14 technical (implementation, quality, security) + 6 product (strategy, prioritization, requirements). Added product thinking pipeline: market-intelligence → product-strategist → prioritization-analyst → business-case-builder → requirements-translator → metrics-architect",
+  "last_updated": "2026-01-03",
 
   "discovery": {
     "protocol": "semantic",
@@ -12,6 +12,250 @@
   },
 
   "agents": {
+    "market-intelligence": {
+      "display_name": "Market Intelligence",
+      "color": "violet",
+      "model_preference": {
+        "research": "sonnet",
+        "quick_scan": "haiku"
+      },
+      "capabilities": [
+        "market-research",
+        "competitor-analysis",
+        "tam-sam-som",
+        "swot-analysis",
+        "trend-identification",
+        "market-sizing",
+        "ecosystem-analysis"
+      ],
+      "can_solve_examples": [
+        "Research competitors for this feature",
+        "Size the market for AI workflow tools",
+        "What are the trends in developer tools?",
+        "Create a SWOT analysis for our product",
+        "Analyze GitHub ecosystem signals",
+        "What's our competitive positioning?"
+      ],
+      "skills_used": [
+        "github-cli"
+      ],
+      "tools": ["Read", "Write", "WebSearch", "WebFetch", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/research/**", "docs/market/**", ".claude/context/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["product-strategist"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "documentation": ["context7"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 1
+    },
+
+    "product-strategist": {
+      "display_name": "Product Strategist",
+      "color": "purple",
+      "model_preference": {
+        "strategy": "sonnet",
+        "complex_decisions": "opus"
+      },
+      "capabilities": [
+        "value-proposition",
+        "strategic-alignment",
+        "go-no-go",
+        "build-buy-partner",
+        "product-vision",
+        "risk-assessment",
+        "opportunity-evaluation"
+      ],
+      "can_solve_examples": [
+        "Should we build this feature?",
+        "Evaluate build vs buy for authentication",
+        "Does this align with our product vision?",
+        "What's the value proposition for this feature?",
+        "Assess the strategic risks of this decision",
+        "Create a go/no-go recommendation"
+      ],
+      "skills_used": [
+        "brainstorming",
+        "github-cli"
+      ],
+      "tools": ["Read", "Write", "WebSearch", "WebFetch", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/**", ".claude/context/**", "research/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["prioritization-analyst"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "documentation": ["context7"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 2
+    },
+
+    "prioritization-analyst": {
+      "display_name": "Prioritization Analyst",
+      "color": "plum",
+      "model_preference": {
+        "scoring": "sonnet",
+        "quick_ranking": "haiku"
+      },
+      "capabilities": [
+        "rice-scoring",
+        "ice-scoring",
+        "wsjf",
+        "backlog-ranking",
+        "opportunity-cost",
+        "dependency-analysis",
+        "trade-off-analysis"
+      ],
+      "can_solve_examples": [
+        "Prioritize the Q1 backlog",
+        "Score this feature using RICE",
+        "What should we build next?",
+        "Analyze opportunity cost of delaying feature X",
+        "Identify dependencies blocking this feature",
+        "Rank these 5 features by value"
+      ],
+      "skills_used": [
+        "github-cli"
+      ],
+      "tools": ["Read", "Write", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/**", ".claude/context/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["business-case-builder"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "database": ["postgres-mcp"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 3
+    },
+
+    "business-case-builder": {
+      "display_name": "Business Case Builder",
+      "color": "indigo",
+      "model_preference": {
+        "financial_modeling": "sonnet",
+        "quick_estimate": "haiku"
+      },
+      "capabilities": [
+        "roi-calculation",
+        "cost-benefit-analysis",
+        "sensitivity-analysis",
+        "risk-assessment",
+        "investment-justification",
+        "payback-period",
+        "financial-projection"
+      ],
+      "can_solve_examples": [
+        "Build a business case for this feature",
+        "Calculate ROI for the workflow builder",
+        "What's the payback period for this investment?",
+        "Run sensitivity analysis on adoption rates",
+        "Assess financial risks of this project",
+        "Justify the investment to stakeholders"
+      ],
+      "skills_used": [],
+      "tools": ["Read", "Write", "WebSearch", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/**", ".claude/context/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["requirements-translator"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 4
+    },
+
+    "requirements-translator": {
+      "display_name": "Requirements Translator",
+      "color": "magenta",
+      "model_preference": {
+        "prd_writing": "sonnet",
+        "simple_stories": "haiku"
+      },
+      "capabilities": [
+        "prd-writing",
+        "user-stories",
+        "acceptance-criteria",
+        "scope-definition",
+        "edge-cases",
+        "functional-requirements",
+        "non-functional-requirements"
+      ],
+      "can_solve_examples": [
+        "Write a PRD for the workflow builder",
+        "Create user stories for authentication",
+        "Define acceptance criteria for this feature",
+        "What's in scope vs out of scope?",
+        "Identify edge cases for form validation",
+        "Create GitHub issues for this feature"
+      ],
+      "skills_used": [
+        "github-cli"
+      ],
+      "tools": ["Read", "Write", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/requirements/**", "docs/specs/**", ".claude/context/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["metrics-architect"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "documentation": ["context7"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 5
+    },
+
+    "metrics-architect": {
+      "display_name": "Metrics Architect",
+      "color": "orchid",
+      "model_preference": {
+        "metrics_design": "sonnet",
+        "simple_kpis": "haiku"
+      },
+      "capabilities": [
+        "okr-design",
+        "kpi-definition",
+        "instrumentation-planning",
+        "experiment-design",
+        "success-criteria",
+        "leading-indicators",
+        "guardrail-metrics"
+      ],
+      "can_solve_examples": [
+        "Define OKRs for the workflow builder",
+        "What KPIs should we track for this feature?",
+        "Design an experiment to validate our hypothesis",
+        "Create an instrumentation plan for analytics",
+        "What are the leading indicators for success?",
+        "Define guardrail metrics to prevent harm"
+      ],
+      "skills_used": [
+        "langfuse-observability"
+      ],
+      "tools": ["Read", "Write", "Grep", "Glob", "Bash"],
+      "boundaries": {
+        "allowed": ["docs/metrics/**", "docs/analytics/**", ".claude/context/**"],
+        "forbidden": ["src/**", "backend/app/**", "frontend/src/**"]
+      },
+      "handoff_to": ["ux-researcher", "backend-system-architect", "frontend-ui-developer"],
+      "mcp_tools": {
+        "memory": ["memory"],
+        "database": ["postgres-mcp"],
+        "discovery": ["mcp-find"]
+      },
+      "pipeline_position": 6
+    },
+
     "backend-system-architect": {
       "display_name": "Backend System Architect",
       "color": "yellow",
@@ -1255,6 +1499,32 @@
   },
 
   "workflows": {
+    "product-thinking-pipeline": {
+      "description": "Full product thinking pipeline from market research to metrics definition",
+      "composes_skills": [
+        "github-cli/SKILL.md",
+        "brainstorming/SKILL.md"
+      ],
+      "agents": [
+        "market-intelligence",
+        "product-strategist",
+        "prioritization-analyst",
+        "business-case-builder",
+        "requirements-translator",
+        "metrics-architect"
+      ],
+      "orchestrator": "product-strategist",
+      "estimated_tokens": 3000,
+      "triggers": ["new feature evaluation", "should we build", "product strategy", "feature prioritization"],
+      "pipeline_order": [
+        {"agent": "market-intelligence", "output": "market_report"},
+        {"agent": "product-strategist", "output": "strategic_recommendation"},
+        {"agent": "prioritization-analyst", "output": "prioritized_backlog"},
+        {"agent": "business-case-builder", "output": "business_case"},
+        {"agent": "requirements-translator", "output": "prd"},
+        {"agent": "metrics-architect", "output": "metrics_framework"}
+      ]
+    },
     "secure-api-endpoint": {
       "description": "Create a secure API endpoint with authentication, validation, and tests",
       "composes_skills": [
