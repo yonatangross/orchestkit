@@ -1,6 +1,6 @@
 ---
 name: edge-computing-patterns
-description: Deploy to edge runtimes (Cloudflare Workers, Vercel Edge, Deno Deploy) for globally distributed, low-latency applications. Master edge middleware, streaming, and runtime constraints for 2025+ edge computing.
+description: Use when deploying to Cloudflare Workers, Vercel Edge, or Deno Deploy. Covers edge middleware, streaming, runtime constraints, and globally distributed low-latency patterns.
 version: 1.0.0
 author: AI Agent Hub
 tags: [edge, cloudflare, vercel, deno, serverless, 2025]

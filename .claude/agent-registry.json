@@ -1,14 +1,45 @@
 {
   "$schema": "./schemas/agent-registry.schema.json",
-  "version": "4.0.0",
-  "description": "Dynamic agent and skill registry with 20 agents: 14 technical (implementation, quality, security) + 6 product (strategy, prioritization, requirements). Added product thinking pipeline: market-intelligence → product-strategist → prioritization-analyst → business-case-builder → requirements-translator → metrics-architect",
-  "last_updated": "2026-01-03",
+  "version": "4.2.0",
+  "description": "Dynamic agent and skill registry with 20 agents: 14 technical (implementation, quality, security) + 6 product (strategy, prioritization, requirements). v4.2: Added golden-dataset-curation and golden-dataset-validation skills to data-pipeline-engineer. Improved all skill descriptions with 'Use when' trigger phrases for better semantic matching.",
+  "last_updated": "2026-01-05",
 
   "discovery": {
     "protocol": "semantic",
     "fallback": "keyword",
     "confidence_threshold": 0.7,
     "max_agents_per_task": 3
+  },
+
+  "coordination": {
+    "forward_message": {
+      "enabled": true,
+      "description": "Allow sub-agents to respond directly to user without supervisor paraphrasing. Prevents 'telephone game' effect that causes ~50% performance degradation.",
+      "eligible_agents": ["backend-system-architect", "frontend-ui-developer", "code-quality-reviewer", "security-auditor"],
+      "conditions": {
+        "min_confidence": 0.85,
+        "task_types": ["direct_answer", "code_review", "analysis_complete"]
+      }
+    },
+    "context_isolation": {
+      "enabled": true,
+      "description": "Each sub-agent operates in clean context focused on its subtask",
+      "shared_context_keys": ["session_intent", "files_modified", "decisions_made"]
+    }
+  },
+
+  "context_engineering": {
+    "attention_positioning": {
+      "start": ["system_identity", "critical_constraints", "security_rules"],
+      "middle": ["retrieved_documents", "older_history", "background_context"],
+      "end": ["current_task", "recent_messages", "output_format"]
+    },
+    "compression": {
+      "trigger_threshold": 0.70,
+      "target_threshold": 0.50,
+      "preserve_recent_messages": 5,
+      "strategy": "anchored_iterative_summarization"
+    }
   },
 
   "agents": {
@@ -385,7 +416,10 @@
       "skills_used": [
         "ai-native-development",
         "pgvector-search",
-        "golden-dataset-management"
+        "golden-dataset-management",
+        "golden-dataset-curation",
+        "golden-dataset-validation",
+        "context-engineering"
       ],
       "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
       "boundaries": {
@@ -430,7 +464,9 @@
         "streaming-api-patterns",
         "llm-caching-patterns",
         "langfuse-observability",
-        "resilience-patterns"
+        "resilience-patterns",
+        "context-engineering",
+        "context-compression"
       ],
       "tools": ["Read", "Edit", "MultiEdit", "Write", "Bash", "WebFetch", "Grep", "Glob"],
       "boundaries": {
@@ -473,7 +509,9 @@
         "langgraph-workflows",
         "ai-native-development",
         "langfuse-observability",
-        "observability-monitoring"
+        "observability-monitoring",
+        "context-engineering",
+        "context-compression"
       ],
       "tools": ["Bash", "Read", "Write", "Edit", "Grep", "Glob"],
       "boundaries": {
@@ -1366,7 +1404,7 @@
         "url-contracts",
         "embedding-regeneration"
       ],
-      "used_by_agents": ["backend-system-architect"],
+      "used_by_agents": ["backend-system-architect", "data-pipeline-engineer"],
       "progressive_load": {
         "discovery": "capabilities.json",
         "overview": "SKILL.md",
@@ -1377,6 +1415,48 @@
         "discovery": 100,
         "overview": 400,
         "full": 1200
+      }
+    },
+
+    "golden-dataset-curation": {
+      "display_name": "Golden Dataset Curation",
+      "path": ".claude/skills/golden-dataset-curation",
+      "provides": [
+        "quality-criteria",
+        "curation-workflows",
+        "multi-agent-analysis",
+        "test-data-patterns"
+      ],
+      "used_by_agents": ["data-pipeline-engineer"],
+      "progressive_load": {
+        "discovery": "capabilities.json",
+        "overview": "SKILL.md"
+      },
+      "token_budget": {
+        "discovery": 100,
+        "overview": 400,
+        "full": 1200
+      }
+    },
+
+    "golden-dataset-validation": {
+      "display_name": "Golden Dataset Validation",
+      "path": ".claude/skills/golden-dataset-validation",
+      "provides": [
+        "schema-validation",
+        "duplicate-detection",
+        "coverage-analysis",
+        "integrity-checks"
+      ],
+      "used_by_agents": ["data-pipeline-engineer"],
+      "progressive_load": {
+        "discovery": "capabilities.json",
+        "overview": "SKILL.md"
+      },
+      "token_budget": {
+        "discovery": 100,
+        "overview": 300,
+        "full": 1000
       }
     },
 

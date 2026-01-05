@@ -1,6 +1,6 @@
 ---
 name: golden-dataset-curation
-description: Quality criteria, workflows, and multi-agent analysis patterns for curating high-quality golden dataset entries
+description: Use when creating or improving golden datasets for AI evaluation. Defines quality criteria, curation workflows, and multi-agent analysis patterns for test data.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, curation, quality, multi-agent, langfuse, 2025]

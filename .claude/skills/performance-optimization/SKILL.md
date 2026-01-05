@@ -1,6 +1,6 @@
 ---
 name: Performance Optimization
-description: Full-stack performance analysis, optimization patterns, monitoring strategies, React 19 concurrent features, and bundle analysis for 2025+ development
+description: Use when application is slow, bundle is too large, or investigating performance issues. Covers profiling, React concurrent features, bundle analysis, and optimization patterns.
 version: 1.1.0
 category: Quality & Optimization
 agents: [backend-system-architect, frontend-ui-developer, code-quality-reviewer]

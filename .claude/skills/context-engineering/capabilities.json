@@ -1,0 +1,88 @@
+{
+  "skill_id": "context-engineering",
+  "version": "1.0.0",
+  "description": "Master context window optimization through attention mechanics, strategic positioning, and degradation awareness",
+
+  "triggers": {
+    "keywords": [
+      "context window",
+      "attention",
+      "token budget",
+      "context limit",
+      "lost in the middle",
+      "context optimization",
+      "prompt engineering",
+      "context engineering",
+      "token efficiency"
+    ],
+    "file_patterns": [],
+    "task_types": [
+      "agent design",
+      "prompt optimization",
+      "system prompt",
+      "context management"
+    ]
+  },
+
+  "loading_tiers": {
+    "tier_1": {
+      "description": "Core concepts loaded on keyword match",
+      "token_estimate": 150,
+      "content": [
+        "Context = everything the model sees (system + tools + docs + history + outputs)",
+        "Lost-in-the-middle: HIGH attention at START and END, LOW in MIDDLE",
+        "Position critical info at START (identity, constraints) and END (current task)",
+        "95% Finding: Token usage explains 80% of agent performance variance",
+        "Optimize tokens-per-task, not tokens-per-request"
+      ]
+    },
+    "tier_2": {
+      "description": "Five context layers loaded on explicit request",
+      "token_estimate": 300,
+      "trigger": "Explain context layers|context anatomy|context structure",
+      "content": [
+        "Layer 1: System Prompts - Identity at right altitude (not too vague, not too rigid)",
+        "Layer 2: Tool Definitions - Clear trigger conditions (if human can't decide, agent can't)",
+        "Layer 3: Retrieved Documents - Just-in-time loading, not pre-loading",
+        "Layer 4: Message History - Treat as scratchpad, implement sliding window",
+        "Layer 5: Tool Outputs - Can reach 83.9% of context! Truncate and structure."
+      ]
+    },
+    "tier_3": {
+      "description": "Budget allocation patterns",
+      "token_estimate": 200,
+      "trigger": "token budget|context budget|allocation",
+      "content": [
+        "Chat allocation: system 5%, tools 5%, history 60%, retrieval 20%, current 10%",
+        "Agent allocation: system 10%, tools 15%, history 30%, retrieval 25%, observations 20%",
+        "Compression trigger: 70% utilization",
+        "Target after compression: 50% utilization",
+        "Always preserve: last 5 messages, system prompt"
+      ]
+    }
+  },
+
+  "references": [
+    "references/attention-mechanics.md",
+    "references/context-layers.md"
+  ],
+  "checklists": [
+    "checklists/context-optimization-checklist.md"
+  ],
+  "examples": [
+    "examples/attention-aware-prompt.md"
+  ],
+
+  "related_skills": [
+    "context-compression",
+    "multi-agent-orchestration",
+    "rag-retrieval",
+    "prompt-caching"
+  ],
+
+  "metadata": {
+    "author": "SkillForge AI Agent Hub",
+    "created": "2026-01-05",
+    "based_on": "Context Engineering research, BrowseComp evaluation findings"
+  }
+}

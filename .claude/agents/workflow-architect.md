@@ -235,7 +235,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph-workflows, ai-native-development (RAG sections), langfuse-observability
+- **Skill references:** langgraph-workflows, ai-native-development (RAG sections), langfuse-observability, context-engineering (context isolation), context-compression (multi-agent state management)
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

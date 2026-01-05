@@ -1,19 +1,19 @@
 ---
 name: react-server-components-framework
-description: Design and implement React Server Components with Next.js 15 App Router. Master server-first architecture, streaming SSR, Server Actions, React 19 patterns, and modern data fetching for 2025+ development.
-version: 1.2.0
+description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
+version: 1.3.0
 author: AI Agent Hub
-tags: [frontend, react, react-19, nextjs, server-components, streaming, 2025]
+tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, 2026]
 ---
 
 # React Server Components Framework
 
 ## Overview
 
-React Server Components (RSC) represent a paradigm shift in React architecture, enabling server-first rendering with client-side interactivity. This skill provides comprehensive patterns, templates, and best practices for building modern Next.js 15 applications using the App Router with Server Components, Server Actions, and streaming.
+React Server Components (RSC) represent a paradigm shift in React architecture, enabling server-first rendering with client-side interactivity. This skill provides comprehensive patterns, templates, and best practices for building modern Next.js 16 applications using the App Router with Server Components, Server Actions, and streaming.
 
 **When to use this skill:**
-- Building Next.js 15+ applications with the App Router
+- Building Next.js 16+ applications with the App Router
 - Designing component boundaries (Server vs Client Components)
 - Implementing data fetching with caching and revalidation
 - Creating mutations with Server Actions
@@ -202,9 +202,9 @@ grep -i "pages router\|getServerSideProps" references/migration-guide.md
 
 ---
 
-## React 19 Patterns (2025+)
+## React 19.2 Patterns (2026+)
 
-React 19 introduces significant changes to component patterns. This section covers the modernization requirements.
+React 19.2 introduces significant changes to component patterns. This section covers the modernization requirements including new Activity component, useEffectEvent hook, and Partial Pre-rendering.
 
 **Detailed Implementation**: See `references/react-19-patterns.md` for:
 - Complete migration guide from React 18
@@ -342,6 +342,77 @@ export function ItemList({ items }: { items: Item[] }): React.ReactNode {
   return <ul>{optimisticItems.map(i => <li key={i.id}>{i.name}</li>)}</ul>
 }
 ```
+
+### 6. Activity Component (React 19.2 - NEW)
+
+The `Activity` component enables preloading UI that users are likely to navigate to, improving perceived performance:
+
+```tsx
+'use client'
+
+import { Activity, useState } from 'react'
+
+export function TabPanel({ tabs }: { tabs: Tab[] }): React.ReactNode {
+  const [activeTab, setActiveTab] = useState(tabs[0].id)
+
+  return (
+    <div>
+      <nav>
+        {tabs.map(tab => (
+          <button key={tab.id} onClick={() => setActiveTab(tab.id)}>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {tabs.map(tab => (
+        <Activity key={tab.id} mode={activeTab === tab.id ? 'visible' : 'hidden'}>
+          <TabContent tab={tab} />
+        </Activity>
+      ))}
+    </div>
+  )
+}
+```
+
+**Activity Modes:**
+- `visible`: Shows children, mounts effects, processes updates normally
+- `hidden`: Hides children, unmounts effects, defers updates until idle
+
+**Use Cases:**
+- Pre-render tabs user is likely to click
+- Preserve form state when navigating away
+- Background loading for faster perceived navigation
+
+### 7. useEffectEvent Hook (React 19.2 - NEW)
+
+Resolves dependency array complexity by defining callbacks outside Effect dependency tracking:
+
+```tsx
+'use client'
+
+import { useEffect, useEffectEvent } from 'react'
+
+export function ChatRoom({ roomId, theme }: { roomId: string; theme: string }): React.ReactNode {
+  // This callback always reads fresh props/state but isn't a dependency
+  const onMessage = useEffectEvent((message: Message) => {
+    showNotification(message, theme) // Always uses current theme
+  })
+
+  useEffect(() => {
+    const connection = createConnection(roomId)
+    connection.on('message', onMessage)
+    return () => connection.disconnect()
+  }, [roomId]) // No need to include onMessage or theme!
+
+  return <div>Chat Room: {roomId}</div>
+}
+```
+
+**Benefits:**
+- Cleaner useEffect dependencies
+- No stale closure issues
+- Functions always access fresh props/state
 
 ---
 
@@ -515,10 +586,12 @@ export function TodoList({ todos }) {
 
 ## Resources
 
-- [Next.js 15 Documentation](https://nextjs.org/docs)
+- [Next.js 16 Documentation](https://nextjs.org/docs)
+- [React 19.2 Blog Post](https://react.dev/blog/2025/10/01/react-19-2)
 - [React Server Components RFC](https://github.com/reactjs/rfcs/blob/main/text/0188-server-components.md)
 - [App Router Migration Guide](https://nextjs.org/docs/app/building-your-application/upgrading/app-router-migration)
 - [Server Actions Documentation](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
+- [Next.js 16 Upgrade Guide](https://nextjs.org/docs/app/guides/upgrading/version-16)
 
 ---
 

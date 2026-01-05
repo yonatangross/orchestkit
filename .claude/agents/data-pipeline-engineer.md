@@ -149,4 +149,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** ai-native-development (embeddings section), pgvector-search, golden-dataset-management
+- **Skill references:** ai-native-development (embeddings section), pgvector-search, golden-dataset-management, context-engineering (RAG context optimization, retrieval layer management)

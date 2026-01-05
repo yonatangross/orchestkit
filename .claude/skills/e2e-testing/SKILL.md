@@ -1,11 +1,13 @@
 ---
 name: e2e-testing
-description: End-to-end testing with Playwright. Use when testing critical user journeys, browser automation, cross-browser testing, or validating complete application flows.
+description: End-to-end testing with Playwright 1.57+. Use when testing critical user journeys, browser automation, cross-browser testing, AI-assisted test generation, or validating complete application flows.
+version: 1.2.0
+tags: [playwright, e2e, testing, ai-agents, 2026]
 ---
 
-# E2E Testing with Playwright
+# E2E Testing with Playwright 1.57+
 
-Validate critical user journeys end-to-end.
+Validate critical user journeys end-to-end with AI-assisted test generation.
 
 ## When to Use
 
@@ -13,6 +15,7 @@ Validate critical user journeys end-to-end.
 - Cross-browser testing
 - Visual regression testing
 - Full stack validation
+- AI-assisted test generation and healing
 
 ## Semantic Locators (2026 Best Practice)
 
@@ -176,8 +179,135 @@ Focus E2E tests on business-critical paths:
 - Hard-coded waits (use Playwright's auto-wait)
 - Testing non-critical paths
 
+## Playwright AI Agents (1.57+ - NEW)
+
+Playwright 1.57 introduces three AI agents for LLM-guided test development:
+
+### 1. Planner Agent 🎭
+
+Explores your app and generates a Markdown test plan:
+
+```bash
+# Generate test plan for a user flow
+npx playwright agents planner --url http://localhost:3000/checkout
+
+# Output: checkout-test-plan.md with steps, assertions, edge cases
+```
+
+### 2. Generator Agent 🎭
+
+Transforms the Markdown plan into Playwright test files:
+
+```bash
+# Generate tests from plan
+npx playwright agents generator --plan checkout-test-plan.md
+
+# Output: checkout.spec.ts with complete test implementation
+```
+
+### 3. Healer Agent 🎭
+
+Automatically repairs failing tests by analyzing failures and updating selectors/assertions:
+
+```bash
+# Run healer on failing tests
+npx playwright agents healer --test checkout.spec.ts
+
+# Analyzes failures, updates locators, re-runs until passing
+```
+
+### AI Agents Workflow
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  use: {
+    // Enable AI agent features
+    aiAgents: {
+      enabled: true,
+      model: 'gpt-4o',  // or local Ollama
+      autoHeal: true,   // Auto-repair on CI failures
+    }
+  }
+});
+```
+
+**Use Cases:**
+- Generate tests for new features from user stories
+- Maintain tests when UI changes (auto-healing)
+- Bootstrap E2E coverage for legacy codebases
+
+---
+
+## Chrome for Testing (1.57+ Breaking Change)
+
+Playwright 1.57 switches from Chromium to **Chrome for Testing** builds:
+
+```typescript
+// Tests now run on Chrome for Testing (not Chromium)
+// This provides better compatibility with production Chrome
+
+// No code changes needed - just upgrade Playwright
+npm install @playwright/test@latest
+npx playwright install
+```
+
+---
+
+## New Assertions (1.57+)
+
+```typescript
+// New: Assert individual class names
+await expect(page.locator('.card')).toContainClass('highlighted');
+await expect(page.locator('.card')).toContainClass(['active', 'visible']);
+
+// New: Describe locators for trace viewer
+const submitBtn = page.getByRole('button', { name: 'Submit' });
+submitBtn.describe('Main form submit button');
+```
+
+---
+
+## Flaky Test Detection (1.57+)
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  // Fail CI if any flaky tests detected
+  failOnFlakyTests: true,
+
+  // Web server with regex-based ready detection
+  webServer: {
+    command: 'npm run dev',
+    wait: /ready in \d+ms/,  // Wait for this log pattern
+  },
+});
+```
+
+---
+
+## IndexedDB Storage State (1.57+)
+
+Save and restore IndexedDB (useful for Firebase Auth):
+
+```typescript
+// Save storage state including IndexedDB
+await page.context().storageState({
+  path: 'auth.json',
+  indexedDB: true  // NEW: Include IndexedDB
+});
+
+// Restore with IndexedDB
+const context = await browser.newContext({
+  storageState: 'auth.json'  // Includes IndexedDB automatically
+});
+```
+
+---
+
 ## Related Skills
 
 - `integration-testing` - API-level testing
 - `webapp-testing` - Autonomous test agents
 - `performance-testing` - Load testing
+- `llm-testing` - Testing AI/LLM components

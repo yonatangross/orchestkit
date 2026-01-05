@@ -1,0 +1,92 @@
+{
+  "skill_id": "context-compression",
+  "version": "1.0.0",
+  "description": "Compress conversation history while preserving task-critical information using anchored summarization",
+
+  "triggers": {
+    "keywords": [
+      "compress",
+      "summarize history",
+      "context too long",
+      "running out of context",
+      "conversation summary",
+      "memory management",
+      "sliding window",
+      "token limit"
+    ],
+    "file_patterns": [],
+    "task_types": [
+      "long conversation",
+      "multi-step workflow",
+      "context management",
+      "memory optimization"
+    ]
+  },
+
+  "loading_tiers": {
+    "tier_1": {
+      "description": "Core compression principles",
+      "token_estimate": 150,
+      "content": [
+        "Goal: Preserve task-critical info, not maximum compression",
+        "Metric: tokens-per-TASK (total to complete), not tokens-per-request",
+        "Strategy: Anchored Iterative Summarization (structured sections, incremental merge)",
+        "Trigger: Compress at 70% context utilization, target 50%",
+        "Preserve: Last 5 messages always uncompressed"
+      ]
+    },
+    "tier_2": {
+      "description": "Anchored summary structure",
+      "token_estimate": 250,
+      "trigger": "anchored|summary structure|what to preserve",
+      "content": [
+        "REQUIRED SECTIONS (forces preservation):",
+        "1. Session Intent - What we're trying to accomplish (NEVER lose)",
+        "2. Files Modified - path: [list of changes]",
+        "3. Decisions Made - decision + rationale",
+        "4. Current State - Where we are in the task",
+        "5. Blockers - Open questions awaiting input",
+        "6. Next Steps - Numbered action items",
+        "Merge incrementally - new compressions extend, don't replace"
+      ]
+    },
+    "tier_3": {
+      "description": "Probe-based evaluation",
+      "token_estimate": 200,
+      "trigger": "evaluate compression|test compression|probe",
+      "content": [
+        "Don't use ROUGE/BLEU - test FUNCTIONAL preservation",
+        "Generate probes from original content:",
+        "- File probes: 'What changed in {path}?'",
+        "- Decision probes: 'What decisions were made?'",
+        "- Blocker probes: 'What errors occurred?'",
+        "Pass if probe answer contains expected keywords",
+        "Target: >90% probe pass rate"
+      ]
+    }
+  },
+
+  "references": [
+    "references/compression-strategies.md"
+  ],
+  "templates": [
+    "templates/anchored-summary-template.md",
+    "templates/compression-probes-template.md"
+  ],
+  "checklists": [
+    "checklists/compression-checklist.md"
+  ],
+
+  "related_skills": [
+    "context-engineering",
+    "memory-systems",
+    "multi-agent-orchestration",
+    "observability-monitoring"
+  ],
+
+  "metadata": {
+    "author": "SkillForge AI Agent Hub",
+    "created": "2026-01-05",
+    "key_principle": "Optimize for tokens-per-task, not tokens-per-request"
+  }
+}

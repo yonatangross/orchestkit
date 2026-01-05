@@ -1,6 +1,6 @@
 ---
 name: Observability & Monitoring
-description: Structured logging, metrics, distributed tracing, and alerting strategies
+description: Use when adding logging, metrics, tracing, or alerting to applications. Covers structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies.
 version: 1.0.0
 category: Operations & Reliability
 agents: [backend-system-architect, code-quality-reviewer, ai-ml-engineer]

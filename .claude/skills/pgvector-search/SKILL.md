@@ -1,9 +1,9 @@
 ---
 name: pgvector-search
-description: Production hybrid search with PGVector + BM25 using Reciprocal Rank Fusion, metadata filtering, and performance optimization for semantic retrieval
-version: 1.0.0
+description: Use when implementing vector search with PostgreSQL. Covers PGVector hybrid search with BM25, metadata filtering, and performance optimization for semantic retrieval.
+version: 1.2.0
 author: SkillForge AI Agent Hub
-tags: [pgvector, hybrid-search, bm25, rrf, semantic-search, retrieval, 2025]
+tags: [pgvector-0.8, hybrid-search, bm25, rrf, semantic-search, retrieval, 2026]
 ---
 
 # PGVector Hybrid Search
@@ -326,7 +326,7 @@ CREATE INDEX idx_embedding ON chunks
 
 ---
 
-### Iterative Index Scans (pgvector 0.8.0)
+### Iterative Index Scans (pgvector 0.8.x)
 
 **The Problem:** With filtered queries, HNSW might not return enough results:
 ```sql
@@ -510,6 +510,6 @@ async def test_hybrid_search_golden_dataset():
 
 ---
 
-**Version:** 1.1.0 (January 2026)
+**Version:** 1.2.0 (January 2026)
 **Status:** Production-ready patterns from SkillForge's 415-chunk golden dataset
-**Updated:** pgvector 0.8.0 iterative scan support
+**Updated:** pgvector 0.8.1 with improved filtering and iterative scan support

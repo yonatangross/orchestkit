@@ -1,6 +1,6 @@
 ---
 name: Webapp Testing
-description: Playwright testing with autonomous test agents (planner, generator, healer)
+description: Use when testing web applications with AI-assisted Playwright. Features autonomous test agents for planning, generating, and self-healing tests automatically.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [playwright, testing, e2e, automation, agents, 2025]

@@ -1,3 +1,11 @@
+---
+name: resilience-patterns
+description: Use when building fault-tolerant systems with circuit breakers, bulkheads, or retry logic. Provides resilience patterns for LLM integrations, distributed workflows, and cascade failure protection.
+version: 1.0.0
+author: SkillForge AI Agent Hub
+tags: [resilience, circuit-breaker, bulkhead, retry, fault-tolerance]
+---
+
 # Resilience Patterns Skill
 
 Production-grade resilience patterns for distributed systems and LLM-based workflows. Covers circuit breakers, bulkheads, retry strategies, and LLM-specific resilience techniques.

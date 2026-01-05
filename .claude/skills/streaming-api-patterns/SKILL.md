@@ -1,6 +1,6 @@
 ---
 name: streaming-api-patterns
-description: Implement real-time data streaming with Server-Sent Events (SSE), WebSockets, and ReadableStream APIs. Master backpressure handling, reconnection strategies, and LLM streaming for 2025+ real-time applications.
+description: Use when building real-time features with SSE, WebSockets, or streaming APIs. Covers backpressure handling, reconnection strategies, and LLM token streaming patterns.
 version: 1.0.0
 author: AI Agent Hub
 tags: [streaming, sse, websocket, real-time, api, 2025]

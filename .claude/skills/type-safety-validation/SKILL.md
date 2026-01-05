@@ -1,6 +1,6 @@
 ---
 name: type-safety-validation
-description: Achieve end-to-end type safety with Zod runtime validation, tRPC type-safe APIs, Prisma ORM, exhaustive type checking, and TypeScript 5.7+ features. Build fully type-safe applications from database to UI for 2025+ development.
+description: Use when adding runtime validation, type-safe APIs, or end-to-end TypeScript safety. Covers Zod schemas, tRPC, Prisma, and exhaustive type checking patterns.
 version: 1.1.0
 author: AI Agent Hub
 tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types, 2025]

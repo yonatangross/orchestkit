@@ -53,7 +53,7 @@ Copy and fill in this template when documenting test execution evidence.
 
 ### Environment
 
-**Runtime:** [e.g., Node v20.5.0, Python 3.11, Rust 1.75]
+**Runtime:** [e.g., Node v22.x, Python 3.13, Rust 1.80]
 **OS:** [e.g., macOS 14.0, Ubuntu 22.04, Windows 11]
 **Test Framework:** [e.g., Jest, Pytest, Cargo Test, Go Test]
 

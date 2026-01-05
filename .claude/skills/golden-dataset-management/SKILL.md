@@ -1,6 +1,6 @@
 ---
 name: golden-dataset-management
-description: Backup, restore, and validate golden datasets for AI/ML systems - ensuring test data integrity and preventing catastrophic data loss
+description: Use when backing up, restoring, or validating golden datasets. Prevents data loss and ensures test data integrity for AI/ML evaluation systems.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, backup, data-protection, testing, regression, 2025]

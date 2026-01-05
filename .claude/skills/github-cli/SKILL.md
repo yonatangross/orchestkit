@@ -1,6 +1,6 @@
 ---
 name: github-cli
-description: GitHub CLI (gh) mastery for issues, PRs, Projects v2, and automation. Source of truth for SkillForge development workflow.
+description: Use when working with GitHub issues, pull requests, or Projects v2 via CLI. Covers gh commands for automation, PR creation, issue management, and workflow scripts.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [github, gh, cli, issues, pr, projects, automation, 2025]

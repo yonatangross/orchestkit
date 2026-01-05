@@ -1,0 +1,148 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "system-design-interrogation",
+  "version": "1.0.0",
+  "description": "Systematic questioning framework for system design - ensures all dimensions (scale, security, data, UX) are considered before implementation",
+
+  "capabilities": {
+    "scale-assessment": {
+      "keywords": ["scale", "load", "traffic", "users", "concurrent", "throughput"],
+      "solves": [
+        "How many users will this feature serve?",
+        "What's the expected request rate?",
+        "How does this scale with data growth?"
+      ],
+      "reference_file": "references/scale-questions.md",
+      "token_cost": 250
+    },
+    "data-architecture": {
+      "keywords": ["data", "storage", "database", "schema", "migration", "structure"],
+      "solves": [
+        "Where should this data live?",
+        "What's the access pattern?",
+        "How does this affect existing schemas?"
+      ],
+      "reference_file": "references/data-questions.md",
+      "token_cost": 300
+    },
+    "security-considerations": {
+      "keywords": ["security", "auth", "permission", "tenant", "isolation", "attack"],
+      "solves": [
+        "What are the security implications?",
+        "How is tenant isolation maintained?",
+        "What attack vectors exist?"
+      ],
+      "reference_file": "references/security-questions.md",
+      "token_cost": 300
+    },
+    "coherence-validation": {
+      "keywords": ["coherence", "consistency", "contract", "interface", "integration"],
+      "solves": [
+        "How does this fit the existing architecture?",
+        "What contracts need updating?",
+        "Are frontend/backend aligned?"
+      ],
+      "reference_file": "references/coherence-questions.md",
+      "token_cost": 250
+    },
+    "ux-impact": {
+      "keywords": ["ux", "user experience", "latency", "feedback", "error"],
+      "solves": [
+        "What's the user experience impact?",
+        "How long will users wait?",
+        "What feedback do they get?"
+      ],
+      "reference_file": "references/ux-questions.md",
+      "token_cost": 200
+    }
+  },
+
+  "question_categories": {
+    "scale": {
+      "questions": [
+        "How many users/tenants will use this?",
+        "What's the expected data volume?",
+        "What's the request rate (reads vs writes)?",
+        "Does it scale linearly or exponentially?",
+        "What happens at 10x/100x current load?"
+      ],
+      "must_answer_before": "implementation"
+    },
+    "data": {
+      "questions": [
+        "Where does this data naturally belong?",
+        "What's the primary access pattern?",
+        "Is it read-heavy, write-heavy, or balanced?",
+        "What's the retention policy?",
+        "Does it need to be searchable? Full-text? Vector?"
+      ],
+      "must_answer_before": "schema_design"
+    },
+    "security": {
+      "questions": [
+        "Who can access this data/feature?",
+        "How is tenant isolation enforced?",
+        "What happens if auth fails?",
+        "What are the attack vectors?",
+        "Is there PII involved?"
+      ],
+      "must_answer_before": "any_code"
+    },
+    "coherence": {
+      "questions": [
+        "Which layers does this touch?",
+        "What contracts/interfaces change?",
+        "Are types consistent across stack?",
+        "Does this break existing clients?",
+        "How does this affect the API?"
+      ],
+      "must_answer_before": "implementation"
+    },
+    "ux": {
+      "questions": [
+        "What's the expected latency?",
+        "What feedback does the user get?",
+        "What happens on failure?",
+        "Is there a loading state?",
+        "Can the user cancel/retry?"
+      ],
+      "must_answer_before": "frontend_work"
+    }
+  },
+
+  "skillforge_dimensions": [
+    "Frontend (React 19)",
+    "Backend (FastAPI)",
+    "Database (PostgreSQL/PGVector)",
+    "LLM Integration (LangGraph)",
+    "Search (Vector + Full-text)",
+    "Auth (JWT/Sessions)",
+    "Observability (Langfuse)",
+    "Cache (Redis)"
+  ],
+
+  "triggers": {
+    "high_confidence": ["system design", "before implementing", "architecture review", "design review"],
+    "medium_confidence": ["planning", "how should", "where should", "which approach"]
+  },
+
+  "integrates_with": ["defense-in-depth", "brainstorming", "database-schema-designer"],
+
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 150,
+      "use_when": "Initial planning"
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 400,
+      "use_when": "Need full question framework"
+    },
+    "tier_3_specific": {
+      "files": "references/*.md",
+      "tokens": "200-300 each",
+      "use_when": "Deep dive into specific dimension"
+    }
+  }
+}

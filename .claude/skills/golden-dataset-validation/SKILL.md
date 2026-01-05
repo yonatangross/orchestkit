@@ -1,6 +1,6 @@
 ---
 name: golden-dataset-validation
-description: Validation rules, schema checks, duplicate detection, and coverage analysis for golden dataset integrity
+description: Use when validating golden dataset quality. Runs schema checks, duplicate detection, and coverage analysis to ensure dataset integrity for AI evaluation.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, validation, integrity, schema, duplicate-detection, 2025]

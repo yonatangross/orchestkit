@@ -1,6 +1,6 @@
 ---
 name: langfuse-observability
-description: LLM observability with self-hosted Langfuse - tracing, evaluation, monitoring, prompt management, and cost tracking
+description: Use when adding observability to LLM applications with Langfuse. Covers tracing, evaluation, prompt management, and cost tracking for self-hosted deployments.
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2025]

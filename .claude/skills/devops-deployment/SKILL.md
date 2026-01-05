@@ -1,6 +1,6 @@
 ---
 name: DevOps & Deployment
-description: CI/CD pipelines, containerization, Kubernetes, and infrastructure as code patterns
+description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. Covers GitHub Actions, Docker, Helm, and Terraform patterns.
 version: 1.0.0
 category: Infrastructure & Deployment
 agents: [backend-system-architect, code-quality-reviewer, studio-coach]

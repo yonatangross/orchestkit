@@ -1,3 +1,11 @@
+---
+name: quality-gates
+description: Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides complexity scoring (1-5), blocking thresholds, and escalation workflows to prevent wasted work.
+version: 1.1.0
+author: SkillForge AI Agent Hub
+tags: [quality, complexity, planning, escalation, blocking]
+---
+
 # Quality Gates Skill
 
 **Version:** 1.0.0

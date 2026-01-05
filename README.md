@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  54 skills | 11 commands | 20 agents | 29 hooks
+  59 skills | 11 commands | 20 agents | 29 hooks
 </p>
 
 ---
@@ -64,6 +64,9 @@ After installation, skills are automatically available when Claude Code detects 
 | `llm-testing` | Testing LLM applications, mocking, deterministic tests |
 | `langfuse-observability` | LLM tracing, evaluation, prompt management, and cost tracking |
 | `pgvector-search` | Hybrid search with PGVector + BM25 using Reciprocal Rank Fusion |
+| `context-compression` | Anchored summarization, probe-based validation, token optimization |
+| `context-engineering` | Attention-aware positioning, context budget management, progressive loading |
+| `llm-safety-patterns` | LLM security, prompt injection prevention, context separation |
 
 ### Backend Development
 
@@ -113,6 +116,7 @@ After installation, skills are automatically available when Claude Code detects 
 | `auth-patterns` | Authentication/authorization patterns, JWT, OAuth, sessions |
 | `security-scanning` | Security scanning, SAST, dependency audits |
 | `input-validation` | Input validation, sanitization, injection prevention |
+| `defense-in-depth` | 8-layer security architecture for AI systems, multi-tenant isolation |
 
 ### Process & Planning
 
@@ -123,6 +127,7 @@ After installation, skills are automatically available when Claude Code detects 
 | `ascii-visualizer` | Beautiful ASCII art for architectures and workflows |
 | `github-cli` | GitHub CLI workflows, PR automation, issue management |
 | `browser-content-capture` | Web scraping, content extraction, documentation capture |
+| `system-design-interrogation` | Structured design questions for scale, security, data, UX, coherence |
 
 ---
 
@@ -308,7 +313,7 @@ fi
 
 ```
 .claude/
-+-- skills/                    # 54 domain-specific skills
++-- skills/                    # 59 domain-specific skills
 |   +-- agent-loops/
 |   |   +-- capabilities.json  # Discovery metadata
 |   |   +-- SKILL.md          # Core patterns
