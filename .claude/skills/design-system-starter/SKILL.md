@@ -429,20 +429,34 @@ interface Theme {
 
 ### Dark Mode Implementation
 
-**Approach 1: CSS Variables**
+**Approach 1: Tailwind CSS @theme with Dark Mode (Recommended)**
+Using Tailwind's `@theme` directive to define design tokens that generate utility classes:
 ```css
-:root {
-  --color-bg-primary: #ffffff;
-  --color-text-primary: #000000;
+@theme {
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-text-primary: #111827;
+  --color-background: #f9fafb;
+  --color-surface: #ffffff;
 }
 
-[data-theme="dark"] {
-  --color-bg-primary: #1a1a1a;
-  --color-text-primary: #ffffff;
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-text-primary: #f9fafb;
+    --color-background: #111827;
+    --color-surface: #1f2937;
+  }
 }
 ```
 
-**Approach 2: Tailwind CSS Dark Mode**
+Then use Tailwind utilities in components:
+```tsx
+<div className="bg-surface text-text-primary">
+  Content
+</div>
+```
+
+**Approach 2: Tailwind CSS Dark Mode Variant**
 ```tsx
 <div className="bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
   Content
@@ -582,6 +596,8 @@ When creating a new design system:
 - [ ] Define semantic color tokens (brand, text, background, feedback)
 - [ ] Set typography scale and font families
 - [ ] Establish spacing scale (4px or 8px base)
+- [ ] **Use Tailwind `@theme` directive** to define tokens (generates utility classes)
+- [ ] **Components use Tailwind utilities** (`bg-primary`, `text-text-primary`) NOT CSS variables
 - [ ] Design atomic components (Button, Input, Label, etc.)
 - [ ] Implement theming system (light/dark mode)
 - [ ] Ensure WCAG 2.1 Level AA compliance
@@ -589,6 +605,11 @@ When creating a new design system:
 - [ ] Create usage examples for each component
 - [ ] Establish versioning and release strategy
 - [ ] Create migration guides for adopting teams
+
+**Current Implementation (January 2026):**
+- ✅ All colors defined in `frontend/src/styles/tokens.css` using `@theme` directive
+- ✅ Components use Tailwind utilities: `bg-primary`, `text-text-primary`, `border-border`
+- ❌ DO NOT use CSS variables in className: `bg-[var(--color-primary)]`
 
 ---
 

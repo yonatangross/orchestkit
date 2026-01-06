@@ -1,0 +1,29 @@
+{
+  "name": "multi-agent-orchestration",
+  "version": "1.0.0",
+  "description": "Patterns for orchestrating multiple AI agents",
+  "capabilities": [
+    "agent-communication",
+    "task-delegation",
+    "result-aggregation",
+    "error-coordination",
+    "agent-lifecycle"
+  ],
+  "triggers": [
+    "multi-agent",
+    "agent orchestration",
+    "multiple agents",
+    "agent coordination",
+    "agent system"
+  ],
+  "antiPatterns": [
+    "tight coupling between agents",
+    "no central coordination",
+    "unbounded agent loops"
+  ],
+  "dependencies": [
+    "langgraph-supervisor",
+    "agent-loops"
+  ],
+  "tags": ["agents", "orchestration", "multi-agent", "2026"]
+}

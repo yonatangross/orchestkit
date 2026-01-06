@@ -1,0 +1,41 @@
+{
+  "name": "llm-testing",
+  "version": "2.0.0",
+  "description": "Testing patterns for LLM-based applications with DeepEval and RAGAS metrics",
+  "capabilities": [
+    "llm-response-mocking",
+    "async-timeout-testing",
+    "structured-output-validation",
+    "quality-gate-testing",
+    "deepeval-assertions",
+    "ragas-metrics",
+    "vcr-recording",
+    "golden-dataset-testing"
+  ],
+  "triggers": [
+    "LLM test",
+    "AI test",
+    "mock LLM",
+    "test AI response",
+    "timeout test",
+    "structured output",
+    "quality gate",
+    "DeepEval",
+    "RAGAS",
+    "faithfulness",
+    "answer relevancy"
+  ],
+  "antiPatterns": [
+    "testing against live LLM APIs in CI",
+    "no timeout handling",
+    "testing with random seeds",
+    "no schema validation",
+    "single metric evaluation"
+  ],
+  "dependencies": [
+    "vcr-http-recording",
+    "llm-evaluation",
+    "unit-testing"
+  ],
+  "tags": ["testing", "llm", "ai", "deepeval", "ragas", "2026"]
+}

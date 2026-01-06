@@ -1,0 +1,28 @@
+{
+  "name": "llm-streaming",
+  "version": "1.0.0",
+  "description": "LLM streaming response patterns for real-time output",
+  "capabilities": [
+    "token-streaming",
+    "sse-responses",
+    "streaming-with-tools",
+    "partial-json-parsing",
+    "cancellation"
+  ],
+  "triggers": [
+    "streaming",
+    "stream response",
+    "SSE",
+    "real-time",
+    "token by token"
+  ],
+  "antiPatterns": [
+    "buffering entire response",
+    "no timeout on streams",
+    "ignoring stream errors"
+  ],
+  "dependencies": [
+    "function-calling"
+  ],
+  "tags": ["streaming", "llm", "real-time", "2026"]
+}

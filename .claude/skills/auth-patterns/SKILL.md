@@ -1,210 +1,119 @@
 ---
 name: auth-patterns
-description: Authentication and authorization patterns. Use when implementing login flows, JWT tokens, session management, password security, or role-based access control.
+description: Authentication and authorization patterns. Use when implementing login flows, JWT tokens, session management, password security, OAuth 2.1, Passkeys/WebAuthn, or role-based access control.
+version: 2.0.0
+tags: [security, authentication, oauth, passkeys, 2026]
 ---
 
 # Authentication Patterns
 
-Implement secure authentication and authorization.
+Implement secure authentication with OAuth 2.1, Passkeys, and modern security standards.
 
 ## When to Use
 
 - Login/signup flows
 - JWT token management
 - Session security
+- OAuth 2.1 with PKCE
+- Passkeys/WebAuthn
+- Multi-factor authentication
 - Role-based access control
 
-## Password Hashing
+## Quick Reference
+
+### Password Hashing (Argon2id)
 
 ```python
 from argon2 import PasswordHasher
-
 ph = PasswordHasher()
-
-# Hash password
 password_hash = ph.hash(password)
-
-# Verify password
-try:
-    ph.verify(password_hash, password)
-    # Password correct
-except:
-    # Password incorrect
-    pass
+ph.verify(password_hash, password)
 ```
 
-**Requirements:**
-- Minimum 12 characters
-- Mixed case + numbers + symbols
-- Use bcrypt, argon2, or scrypt
-- Check against common password lists
-
-## Session Management
-
-```python
-# Secure session cookies
-app.config['SESSION_COOKIE_SECURE'] = True      # HTTPS only
-app.config['SESSION_COOKIE_HTTPONLY'] = True    # No JS access
-app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=1)
-```
-
-## JWT Tokens (Access Token)
+### JWT Access Token
 
 ```python
 import jwt
-from datetime import datetime, timedelta
-
-def create_access_token(user_id: str) -> str:
-    """Short-lived access token (15 min - 1 hour)."""
-    payload = {
-        'user_id': user_id,
-        'type': 'access',
-        'exp': datetime.utcnow() + timedelta(minutes=15),  # Short-lived
-        'iat': datetime.utcnow(),
-    }
-    return jwt.encode(payload, SECRET_KEY, algorithm='HS256')
-
-def verify_token(token: str) -> str | None:
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-        return payload['user_id']
-    except jwt.ExpiredSignatureError:
-        return None
-    except jwt.InvalidTokenError:
-        return None
+payload = {
+    'user_id': user_id,
+    'type': 'access',
+    'exp': datetime.utcnow() + timedelta(minutes=15),
+}
+token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 ```
 
-## Refresh Token Rotation (2026 Best Practice)
+### OAuth 2.1 with PKCE (Required)
 
 ```python
-import secrets
-from datetime import datetime, timedelta
-
-def create_refresh_token(user_id: str, db) -> str:
-    """Long-lived refresh token with rotation."""
-    token = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(token.encode()).hexdigest()
-
-    # Store hashed token in DB (never store plain tokens)
-    db.execute("""
-        INSERT INTO refresh_tokens (user_id, token_hash, expires_at, version)
-        VALUES (?, ?, ?, ?)
-    """, [user_id, token_hash, datetime.utcnow() + timedelta(days=7), 1])
-
-    return token
-
-def rotate_refresh_token(old_token: str, db) -> tuple[str, str]:
-    """Rotate refresh token on use (security best practice).
-
-    Returns: (new_access_token, new_refresh_token)
-    """
-    old_hash = hashlib.sha256(old_token.encode()).hexdigest()
-
-    # Find and invalidate old token
-    row = db.execute("""
-        SELECT user_id, version FROM refresh_tokens
-        WHERE token_hash = ? AND expires_at > NOW() AND revoked = FALSE
-    """, [old_hash]).fetchone()
-
-    if not row:
-        raise InvalidTokenError("Refresh token invalid or expired")
-
-    user_id, version = row
-
-    # Revoke old token
-    db.execute("UPDATE refresh_tokens SET revoked = TRUE WHERE token_hash = ?", [old_hash])
-
-    # Create new tokens (rotation)
-    new_access = create_access_token(user_id)
-    new_refresh = create_refresh_token(user_id, db)
-
-    return new_access, new_refresh
-
-# API endpoint for token refresh
-@app.route('/auth/refresh', methods=['POST'])
-def refresh_tokens():
-    refresh_token = request.json.get('refresh_token')
-    try:
-        access, refresh = rotate_refresh_token(refresh_token, db)
-        return {"access_token": access, "refresh_token": refresh}
-    except InvalidTokenError:
-        abort(401)
+import hashlib, base64, secrets
+code_verifier = secrets.token_urlsafe(64)
+digest = hashlib.sha256(code_verifier.encode()).digest()
+code_challenge = base64.urlsafe_b64encode(digest).rstrip(b'=').decode()
 ```
 
-**Token Expiry Guidelines (2026):**
+### Session Security
+
+```python
+app.config['SESSION_COOKIE_SECURE'] = True      # HTTPS only
+app.config['SESSION_COOKIE_HTTPONLY'] = True    # No JS access
+app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
+```
+
+## Token Expiry (2026 Guidelines)
+
 | Token Type | Expiry | Storage |
 |------------|--------|---------|
-| Access | 15 min - 1 hour | Memory only (no persistence) |
-| Refresh | 7-30 days | HTTPOnly cookie or secure storage |
+| Access | 15 min - 1 hour | Memory only |
+| Refresh | 7-30 days | HTTPOnly cookie |
 
-## Rate Limiting
-
-```python
-from flask_limiter import Limiter
-
-limiter = Limiter(app, key_func=get_remote_address)
-
-@app.route('/login', methods=['POST'])
-@limiter.limit("5 per minute")  # 5 attempts per minute
-def login():
-    # Login logic
-    pass
-```
-
-## Role-Based Access Control
+## Anti-Patterns (FORBIDDEN)
 
 ```python
-from functools import wraps
+# ❌ NEVER store passwords in plaintext
+user.password = request.form['password']
 
-def require_role(role):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            if current_user.role != role:
-                abort(403)
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
+# ❌ NEVER use implicit OAuth grant
+response_type=token  # Deprecated in OAuth 2.1
 
-@app.route('/admin/users')
-@login_required
-@require_role('admin')
-def admin_users():
-    return get_all_users()
-```
+# ❌ NEVER skip rate limiting on login
+@app.route('/login')  # No rate limit!
 
-## Multi-Factor Authentication
+# ❌ NEVER reveal if email exists
+return "Email not found"  # Information disclosure
 
-```python
-import pyotp
+# ✅ ALWAYS use Argon2id or bcrypt
+password_hash = ph.hash(password)
 
-def generate_totp_secret() -> str:
-    return pyotp.random_base32()
+# ✅ ALWAYS use PKCE
+code_challenge=challenge&code_challenge_method=S256
 
-def verify_totp(secret: str, code: str) -> bool:
-    totp = pyotp.TOTP(secret)
-    return totp.verify(code)
+# ✅ ALWAYS rate limit auth endpoints
+@limiter.limit("5 per minute")
+
+# ✅ ALWAYS use generic error messages
+return "Invalid credentials"
 ```
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| Password hash | **Argon2id** (preferred) > Argon2 > bcrypt (legacy) |
+| Password hash | **Argon2id** > bcrypt |
 | Access token expiry | 15 min - 1 hour |
 | Refresh token expiry | 7-30 days with rotation |
 | Session cookie | HTTPOnly, Secure, SameSite=Strict |
-| Rate limit | 5 attempts per 15 min |
-| JWT algorithm | HS256 (symmetric) or RS256 (asymmetric for microservices) |
+| Rate limit | 5 attempts per minute |
+| MFA | Passkeys > TOTP > SMS |
+| OAuth | 2.1 with PKCE (no implicit) |
 
-## Common Mistakes
+## Detailed Documentation
 
-- Storing passwords in plaintext
-- No rate limiting on login
-- Long-lived tokens
-- Revealing if email exists
-- No MFA option
+| Resource | Description |
+|----------|-------------|
+| [references/oauth-2.1-passkeys.md](references/oauth-2.1-passkeys.md) | OAuth 2.1, PKCE, Passkeys/WebAuthn |
+| [examples/auth-implementations.md](examples/auth-implementations.md) | Complete implementation examples |
+| [checklists/auth-checklist.md](checklists/auth-checklist.md) | Security checklist |
+| [templates/auth-middleware-template.py](templates/auth-middleware-template.py) | Flask/FastAPI middleware |
 
 ## Related Skills
 

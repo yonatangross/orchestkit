@@ -1,0 +1,29 @@
+{
+  "name": "test-data-management",
+  "version": "1.0.0",
+  "description": "Test data generation and management patterns",
+  "capabilities": [
+    "fixture-generation",
+    "factory-patterns",
+    "data-seeding",
+    "cleanup-strategies",
+    "data-anonymization"
+  ],
+  "triggers": [
+    "test data",
+    "fixtures",
+    "factory",
+    "seed data",
+    "test database"
+  ],
+  "antiPatterns": [
+    "hardcoded test data",
+    "shared mutable state",
+    "no cleanup"
+  ],
+  "dependencies": [
+    "unit-testing",
+    "integration-testing"
+  ],
+  "tags": ["testing", "data", "fixtures", "2026"]
+}

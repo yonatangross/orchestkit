@@ -1,0 +1,42 @@
+{
+  "name": "input-validation",
+  "version": "2.0.0",
+  "description": "Input validation and sanitization patterns with Zod v4 and Pydantic",
+  "capabilities": [
+    "schema-validation",
+    "type-coercion",
+    "discriminated-unions",
+    "transforms",
+    "async-refinements",
+    "error-formatting",
+    "allowlist-validation",
+    "html-sanitization",
+    "file-validation",
+    "url-validation"
+  ],
+  "triggers": [
+    "input validation",
+    "Zod",
+    "Pydantic",
+    "schema",
+    "validate",
+    "sanitize",
+    "allowlist",
+    "coerce",
+    "transform",
+    "refine"
+  ],
+  "antiPatterns": [
+    "client-side only validation",
+    "blocklist instead of allowlist",
+    "trusting Content-Type header",
+    "not validating file content",
+    "revealing validation details in error messages"
+  ],
+  "dependencies": [
+    "owasp-top-10",
+    "auth-patterns",
+    "type-safety-validation"
+  ],
+  "tags": ["security", "validation", "zod", "pydantic", "2026"]
+}

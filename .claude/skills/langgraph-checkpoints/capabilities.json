@@ -1,0 +1,28 @@
+{
+  "name": "langgraph-checkpoints",
+  "version": "1.0.0",
+  "description": "LangGraph checkpointing and persistence patterns",
+  "capabilities": [
+    "checkpoint-saving",
+    "checkpoint-loading",
+    "memory-backends",
+    "async-checkpoints",
+    "conversation-history"
+  ],
+  "triggers": [
+    "checkpoint",
+    "persistence",
+    "memory",
+    "conversation history",
+    "state recovery"
+  ],
+  "antiPatterns": [
+    "no checkpoint cleanup",
+    "synchronous checkpoints for large state",
+    "missing error handling"
+  ],
+  "dependencies": [
+    "langgraph-state"
+  ],
+  "tags": ["langgraph", "checkpoints", "persistence", "2026"]
+}

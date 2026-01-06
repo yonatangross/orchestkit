@@ -1,0 +1,33 @@
+{
+  "name": "function-calling",
+  "version": "2.0.0",
+  "description": "LLM function calling and tool use patterns with strict mode schemas",
+  "capabilities": [
+    "tool-definition",
+    "tool-execution-loop",
+    "structured-output",
+    "parallel-tool-calls",
+    "strict-mode-schemas",
+    "langchain-tools"
+  ],
+  "triggers": [
+    "function calling",
+    "tool use",
+    "tool call",
+    "structured output",
+    "JSON schema",
+    "LLM tools",
+    "agent tools"
+  ],
+  "antiPatterns": [
+    "vague tool descriptions",
+    "no input validation",
+    "missing error handling",
+    "too many tools (>15)"
+  ],
+  "dependencies": [
+    "agent-loops",
+    "llm-streaming"
+  ],
+  "tags": ["llm", "tools", "function-calling", "2026"]
+}

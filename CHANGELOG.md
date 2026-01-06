@@ -5,6 +5,56 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2026-01-06
+
+### Added
+
+#### New Skills
+- `motion-animation-patterns` - Motion (Framer Motion) animations, page transitions, modal effects, stagger lists, RTL support
+- `i18n-date-patterns` - Internationalization, date formatting with dayjs, useFormatting hook, ICU MessageFormat, Trans component
+
+#### Enhanced Skills (expanded with capabilities.json, checklists, examples)
+- `e2e-testing` - Full Playwright 1.57+ patterns with AI-assisted test generation
+- `auth-patterns` - JWT, OAuth, session management, password security
+- `llm-testing` - LLM application testing, mocking, async timeouts
+- `embeddings` - Embedding models, chunking strategies, similarity search
+- `function-calling` - Tool use patterns for OpenAI, Anthropic, Ollama
+- `input-validation` - Zod v4, sanitization, injection prevention
+- `msw-mocking` - Mock Service Worker patterns for React testing
+- `vcr-http-recording` - VCR.py for Python HTTP recording
+- `langgraph-checkpoints` - Fault-tolerant checkpointing and recovery
+- `langgraph-state` - State management and persistence
+- `langgraph-parallel` - Fan-out/fan-in parallel execution
+- `langgraph-routing` - Semantic routing and conditional branching
+- `langgraph-supervisor` - Supervisor-worker orchestration
+- `langgraph-human-in-loop` - Human approval and intervention
+- `llm-evaluation` - Quality scoring, LLM-as-judge patterns
+- `llm-streaming` - Token streaming, SSE patterns
+- `multi-agent-orchestration` - Agent coordination and synthesis
+- `test-data-management` - Test fixtures and factories
+- `performance-testing` - k6 and Locust load testing
+- `cache-cost-tracking` - LLM cost tracking and optimization
+- `llm-safety-patterns` - Safety checklists and context separation
+
+### Changed
+
+#### Agent Updates
+- `frontend-ui-developer` - Added Motion animations, i18n date patterns, Tailwind @theme utilities
+- `rapid-ui-designer` - Added animation specs with Motion presets
+- `code-quality-reviewer` - Added i18n date pattern checking (v3.8.0)
+- `design-system-starter` - Added animation-tokens to provides
+
+#### Workflow Updates
+- `frontend-2025-compliance` - Added Motion and i18n skills, updated checklist with skeleton pulse, AnimatePresence, i18n dates
+
+#### Pattern Updates
+- New `frontend-animation-patterns.md` context pattern
+
+### Fixed
+- Removed project-specific references, now uses generic "SkillForge Team" branding
+
+---
+
 ## [1.0.0] - 2025-01-01
 
 ### Initial Release

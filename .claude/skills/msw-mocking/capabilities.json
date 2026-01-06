@@ -1,0 +1,38 @@
+{
+  "name": "msw-mocking",
+  "version": "2.0.0",
+  "description": "Mock Service Worker (MSW) 2.x for network-level API mocking in frontend tests",
+  "capabilities": [
+    "http-request-mocking",
+    "graphql-mocking",
+    "websocket-mocking",
+    "error-simulation",
+    "network-delay-simulation",
+    "passthrough-handlers",
+    "runtime-handler-override"
+  ],
+  "triggers": [
+    "mock API",
+    "frontend testing",
+    "MSW",
+    "network mocking",
+    "simulate error",
+    "API test",
+    "http handler",
+    "graphql handler",
+    "websocket mock"
+  ],
+  "antiPatterns": [
+    "jest.spyOn(global, 'fetch')",
+    "jest.mock('axios')",
+    "direct fetch mocking",
+    "testing implementation details",
+    "expect(fetch).toHaveBeenCalledWith"
+  ],
+  "dependencies": [
+    "unit-testing",
+    "integration-testing",
+    "vcr-http-recording"
+  ],
+  "tags": ["testing", "mocking", "frontend", "msw", "2026"]
+}

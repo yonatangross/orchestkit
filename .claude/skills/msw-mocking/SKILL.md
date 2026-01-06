@@ -1,45 +1,47 @@
 ---
 name: msw-mocking
-description: Mock Service Worker (MSW) for API mocking. Use when testing frontend components with network mocking, simulating API errors, or creating deterministic API responses in tests.
+description: Mock Service Worker (MSW) 2.x for API mocking. Use when testing frontend components with network mocking, simulating API errors, or creating deterministic API responses in tests.
+version: 2.0.0
+tags: [msw, testing, mocking, frontend, 2026]
 ---
 
-# MSW (Mock Service Worker)
+# MSW (Mock Service Worker) 2.x
 
-Network-level API mocking for frontend tests.
+Network-level API mocking for frontend tests using MSW 2.x.
 
 ## When to Use
 
 - Frontend component testing
-- Simulating API responses
-- Error state testing
+- Simulating API responses and errors
 - Network delay simulation
+- GraphQL mocking
+- WebSocket mocking (NEW in 2.x)
 
-## Setup
+## Quick Reference
 
 ```typescript
-// src/mocks/handlers.ts
-import { http, HttpResponse } from 'msw';
-
-export const handlers = [
-  http.get('/api/users/:id', ({ params }) => {
-    return HttpResponse.json({
-      id: params.id,
-      name: 'Test User',
-      email: 'test@example.com',
-    });
-  }),
-
-  http.post('/api/users', async ({ request }) => {
-    const body = await request.json();
-    return HttpResponse.json({ id: 'new-123', ...body }, { status: 201 });
-  }),
-];
-
-// src/mocks/server.ts
+// Core imports
+import { http, HttpResponse, graphql, ws, delay, passthrough } from 'msw';
 import { setupServer } from 'msw/node';
-import { handlers } from './handlers';
 
-export const server = setupServer(...handlers);
+// Basic handler
+http.get('/api/users/:id', ({ params }) => {
+  return HttpResponse.json({ id: params.id, name: 'User' });
+});
+
+// Error response
+http.get('/api/fail', () => {
+  return HttpResponse.json({ error: 'Not found' }, { status: 404 });
+});
+
+// Delay simulation
+http.get('/api/slow', async () => {
+  await delay(2000);
+  return HttpResponse.json({ data: 'response' });
+});
+
+// Passthrough (NEW in 2.x)
+http.get('/api/real', () => passthrough());
 ```
 
 ## Test Setup
@@ -54,7 +56,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 ```
 
-## Runtime Handler Override
+## Runtime Override
 
 ```typescript
 import { http, HttpResponse } from 'msw';
@@ -68,58 +70,11 @@ test('shows error on API failure', async () => {
   );
 
   render(<UserProfile id="123" />);
-
   expect(await screen.findByText(/not found/i)).toBeInTheDocument();
 });
 ```
 
-## Simulating Delays
-
-```typescript
-import { delay, http, HttpResponse } from 'msw';
-
-test('shows loading state', async () => {
-  server.use(
-    http.get('/api/users/:id', async () => {
-      await delay(100);
-      return HttpResponse.json({ id: '123', name: 'Test' });
-    })
-  );
-
-  render(<UserProfile id="123" />);
-
-  expect(screen.getByTestId('skeleton')).toBeInTheDocument();
-  expect(await screen.findByText('Test')).toBeInTheDocument();
-});
-```
-
-## Form Submission Test
-
-```typescript
-test('submits form and shows success', async () => {
-  const user = userEvent.setup();
-
-  server.use(
-    http.post('/api/analyze', async ({ request }) => {
-      const body = await request.json();
-      return HttpResponse.json({
-        id: 'analysis-123',
-        url: body.url,
-        status: 'pending',
-      });
-    })
-  );
-
-  render(<AnalysisForm />);
-
-  await user.type(screen.getByLabelText('URL'), 'https://example.com');
-  await user.click(screen.getByRole('button', { name: /analyze/i }));
-
-  expect(await screen.findByText(/analysis started/i)).toBeInTheDocument();
-});
-```
-
-## Anti-Patterns
+## Anti-Patterns (FORBIDDEN)
 
 ```typescript
 // ❌ NEVER mock fetch directly
@@ -146,13 +101,17 @@ expect(await screen.findByText('Success')).toBeInTheDocument()
 | Default behavior | Return success |
 | Override scope | Per-test with `server.use()` |
 | Unhandled requests | Error (catch missing mocks) |
+| GraphQL | Use `graphql.query/mutation` |
+| WebSocket | Use `ws.link()` for WS mocking |
 
-## Common Mistakes
+## Detailed Documentation
 
-- Mocking at implementation level (axios.mock)
-- Forgetting `server.resetHandlers()` cleanup
-- Not handling error cases
-- Missing handlers (silent failures)
+| Resource | Description |
+|----------|-------------|
+| [references/msw-2x-api.md](references/msw-2x-api.md) | Complete MSW 2.x API reference |
+| [examples/handler-patterns.md](examples/handler-patterns.md) | CRUD, auth, error, and upload examples |
+| [checklists/msw-setup-checklist.md](checklists/msw-setup-checklist.md) | Setup and review checklists |
+| [templates/handlers-template.ts](templates/handlers-template.ts) | Starter template for new handlers |
 
 ## Related Skills
 

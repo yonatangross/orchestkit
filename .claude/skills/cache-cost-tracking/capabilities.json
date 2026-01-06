@@ -1,0 +1,29 @@
+{
+  "name": "cache-cost-tracking",
+  "version": "1.0.0",
+  "description": "LLM caching strategies and cost tracking patterns",
+  "capabilities": [
+    "prompt-caching",
+    "response-caching",
+    "cost-calculation",
+    "usage-tracking",
+    "cache-invalidation"
+  ],
+  "triggers": [
+    "cache",
+    "cost tracking",
+    "token usage",
+    "LLM cost",
+    "cache hit"
+  ],
+  "antiPatterns": [
+    "no cache invalidation",
+    "caching dynamic content",
+    "ignoring costs"
+  ],
+  "dependencies": [
+    "semantic-caching",
+    "langfuse-observability"
+  ],
+  "tags": ["caching", "cost", "optimization", "2026"]
+}

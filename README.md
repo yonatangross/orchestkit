@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  59 skills | 11 commands | 20 agents | 29 hooks
+  61 skills | 11 commands | 20 agents | 29 hooks
 </p>
 
 ---
@@ -84,6 +84,8 @@ After installation, skills are automatically available when Claude Code detects 
 |-------|-------------|
 | `react-server-components-framework` | Next.js 15 App Router, RSC patterns, Server Actions, React 19 |
 | `design-system-starter` | Design tokens, component architecture, accessibility guidelines |
+| `motion-animation-patterns` | Motion (Framer Motion) animations, page transitions, stagger effects |
+| `i18n-date-patterns` | Internationalization, date formatting, RTL support, useFormatting hook |
 | `performance-optimization` | React 19 concurrent features, bundle analysis, Core Web Vitals |
 | `edge-computing-patterns` | Cloudflare Workers, Vercel Edge, Deno Deploy patterns |
 
@@ -313,7 +315,7 @@ fi
 
 ```
 .claude/
-+-- skills/                    # 59 domain-specific skills
++-- skills/                    # 61 domain-specific skills
 |   +-- agent-loops/
 |   |   +-- capabilities.json  # Discovery metadata
 |   |   +-- SKILL.md          # Core patterns

@@ -1,0 +1,30 @@
+{
+  "name": "langgraph-state",
+  "version": "1.0.0",
+  "description": "LangGraph state management patterns for agent workflows",
+  "capabilities": [
+    "state-definition",
+    "state-channels",
+    "state-reducers",
+    "subgraphs",
+    "state-persistence"
+  ],
+  "triggers": [
+    "LangGraph state",
+    "StateGraph",
+    "TypedDict",
+    "state channel",
+    "reducer",
+    "workflow state"
+  ],
+  "antiPatterns": [
+    "mutable state",
+    "missing type annotations",
+    "no state validation"
+  ],
+  "dependencies": [
+    "langgraph-checkpoints",
+    "langgraph-routing"
+  ],
+  "tags": ["langgraph", "state", "agents", "2026"]
+}

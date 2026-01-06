@@ -105,27 +105,58 @@ Return structured design specification:
 ## Design System Standards
 
 ### Color Tokens
+
+**Tailwind @theme Approach (Current Implementation)**
+Use Tailwind's `@theme` directive in CSS to define design tokens that automatically generate utility classes:
+
 ```css
-/* Design tokens using CSS custom properties */
+@theme {
+  /* Brand Colors - Use as: bg-primary, text-primary, border-primary */
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-light: #d1fae5;
+  --color-primary-dark: #047857;
+
+  /* Semantic Colors - Use as: bg-success, text-danger, etc. */
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Surface Colors - Use as: bg-surface, bg-surface-muted */
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f4f6;
+  --color-background: #f9fafb;
+
+  /* Text Colors - Use as: text-text-primary, text-text-secondary */
+  --color-text-primary: #111827;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+
+  /* Border Colors - Use as: border-border, border-border-light */
+  --color-border: #e5e7eb;
+  --color-border-light: #f3f4f6;
+}
+```
+
+**Component Usage:**
+```tsx
+// ✅ Use Tailwind utilities directly (NOT CSS variables)
+<div className="bg-primary text-text-inverse hover:bg-primary-hover">
+  Button
+</div>
+
+// ❌ DON'T use CSS variables in className
+<div className="bg-[var(--color-primary)]"> // Wrong approach
+```
+
+**Legacy CSS Variables (for reference only)**
+If you need CSS variables for runtime theming, they can coexist with `@theme`:
+```css
 :root {
-  /* Primary palette */
   --color-primary-50: #eff6ff;
   --color-primary-500: #3b82f6;
   --color-primary-900: #1e3a8a;
-
-  /* Semantic colors */
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-
-  /* Surface colors */
-  --color-surface: #ffffff;
-  --color-surface-elevated: #f8fafc;
-}
-
-.dark {
-  --color-surface: #0f172a;
-  --color-surface-elevated: #1e293b;
 }
 ```
 
@@ -172,6 +203,32 @@ interface ComponentStates {
 }
 ```
 
+### Animation Specifications
+When designing, specify Motion animation presets from `@/lib/animations`:
+
+| UI Element | Recommended Preset |
+|------------|-------------------|
+| Page transitions | `pageFade` or `pageSlide` |
+| Modal/Dialog | `modalBackdrop` + `modalContent` |
+| Lists | `staggerContainer` + `staggerItem` |
+| Cards | `cardHover` + `tapScale` |
+| Buttons | `buttonPress` or `tapScale` |
+| Expandables | `collapse` |
+| Toasts | `toastSlideIn` |
+| Skeletons | `pulse` |
+
+**Design spec example:**
+```json
+{
+  "animation": {
+    "type": "modal",
+    "presets": ["modalBackdrop", "modalContent"],
+    "entrance": "scale + fade from center",
+    "exit": "reverse on close"
+  }
+}
+```
+
 ## Example
 Task: "Design a notification card component"
 
@@ -208,4 +265,4 @@ Task: "Design a notification card component"
 ## Integration
 - **Receives from:** ux-researcher (user requirements, personas), product requirements
 - **Hands off to:** frontend-ui-developer (implementation), code-quality-reviewer (accessibility validation)
-- **Skill references:** design-system-starter
+- **Skill references:** design-system-starter, motion-animation-patterns

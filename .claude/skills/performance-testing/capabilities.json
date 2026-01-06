@@ -1,0 +1,29 @@
+{
+  "name": "performance-testing",
+  "version": "1.0.0",
+  "description": "Performance and load testing patterns",
+  "capabilities": [
+    "load-testing",
+    "stress-testing",
+    "latency-measurement",
+    "throughput-testing",
+    "bottleneck-identification"
+  ],
+  "triggers": [
+    "performance test",
+    "load test",
+    "stress test",
+    "latency",
+    "throughput",
+    "benchmark"
+  ],
+  "antiPatterns": [
+    "testing in production",
+    "unrealistic test data",
+    "ignoring warm-up"
+  ],
+  "dependencies": [
+    "observability-monitoring"
+  ],
+  "tags": ["performance", "testing", "load", "2026"]
+}

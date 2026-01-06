@@ -11,299 +11,121 @@ Validate critical user journeys end-to-end with AI-assisted test generation.
 
 ## When to Use
 
-- Critical user flows
+- Critical user flows (checkout, signup, payment)
 - Cross-browser testing
 - Visual regression testing
 - Full stack validation
 - AI-assisted test generation and healing
 
-## Semantic Locators (2026 Best Practice)
+## Quick Reference - Semantic Locators
 
 ```typescript
 // ✅ PREFERRED: Role-based locators (most resilient)
 await page.getByRole('button', { name: 'Add to cart' }).click();
 await page.getByRole('link', { name: 'Checkout' }).click();
-await page.getByRole('heading', { name: 'Order Summary' });
 
 // ✅ GOOD: Label-based for form controls
 await page.getByLabel('Email').fill('test@example.com');
-await page.getByLabel('Card number').fill('4242424242424242');
 
 // ✅ ACCEPTABLE: Test IDs for stable anchors
 await page.getByTestId('checkout-button').click();
 
 // ❌ AVOID: CSS selectors and XPath (fragile)
-// await page.click('[data-testid="add-to-cart"]');  // Use getByTestId instead
-// await page.locator('.confirmation');              // Use getByRole instead
+// await page.click('[data-testid="add-to-cart"]');
 ```
 
-**Locator Priority (2026):**
-1. `getByRole()` - Matches how users/assistive tech see the page
-2. `getByLabel()` - For form inputs with labels
-3. `getByPlaceholder()` - For inputs with placeholders
-4. `getByTestId()` - When semantic locators aren't possible
+**Locator Priority:** `getByRole()` > `getByLabel()` > `getByPlaceholder()` > `getByTestId()`
 
-## Basic Playwright Test
+## Basic Test
 
 ```typescript
 import { test, expect } from '@playwright/test';
 
-test('user can complete checkout flow', async ({ page }) => {
-  // Navigate
+test('user can complete checkout', async ({ page }) => {
   await page.goto('/products');
-
-  // Add to cart (semantic locator)
   await page.getByRole('button', { name: 'Add to cart' }).click();
-
-  // Go to checkout
   await page.getByRole('link', { name: 'Checkout' }).click();
-
-  // Fill form (label-based locators)
   await page.getByLabel('Email').fill('test@example.com');
-  await page.getByLabel('Card number').fill('4242424242424242');
-
-  // Submit
   await page.getByRole('button', { name: 'Submit' }).click();
-
-  // Verify
   await expect(page.getByRole('heading', { name: 'Order confirmed' })).toBeVisible();
 });
 ```
 
-## Page Object Model
+## AI Agents (1.57+ - NEW)
 
-```typescript
-// pages/checkout.page.ts
-export class CheckoutPage {
-  constructor(private page: Page) {}
+```bash
+# Generate test plan
+npx playwright agents planner --url http://localhost:3000/checkout
 
-  async fillEmail(email: string) {
-    await this.page.fill('[name="email"]', email);
-  }
+# Generate tests from plan
+npx playwright agents generator --plan checkout-test-plan.md
 
-  async fillCard(card: string) {
-    await this.page.fill('[name="card"]', card);
-  }
-
-  async submit() {
-    await this.page.click('button[type="submit"]');
-  }
-
-  async getConfirmation() {
-    return this.page.locator('.confirmation').textContent();
-  }
-}
-
-// tests/checkout.spec.ts
-test('checkout flow', async ({ page }) => {
-  const checkout = new CheckoutPage(page);
-
-  await page.goto('/checkout');
-  await checkout.fillEmail('test@example.com');
-  await checkout.fillCard('4242424242424242');
-  await checkout.submit();
-
-  expect(await checkout.getConfirmation()).toContain('confirmed');
-});
+# Auto-repair failing tests
+npx playwright agents healer --test checkout.spec.ts
 ```
 
-## Visual Regression
+## New Features (1.57+)
 
 ```typescript
-test('homepage visual regression', async ({ page }) => {
-  await page.goto('/');
+// Assert individual class names
+await expect(page.locator('.card')).toContainClass('highlighted');
 
-  // Full page screenshot
-  await expect(page).toHaveScreenshot('homepage.png');
-
-  // Element screenshot
-  await expect(page.locator('.hero')).toHaveScreenshot('hero.png');
-});
-```
-
-## Authentication State
-
-```typescript
-// playwright.config.ts
+// Flaky test detection
 export default defineConfig({
-  projects: [
-    {
-      name: 'setup',
-      testMatch: /.*\.setup\.ts/,
-    },
-    {
-      name: 'logged-in',
-      dependencies: ['setup'],
-      use: {
-        storageState: 'playwright/.auth/user.json',
-      },
-    },
-  ],
+  failOnFlakyTests: true,
 });
 
-// auth.setup.ts
-test('authenticate', async ({ page }) => {
-  await page.goto('/login');
-  await page.fill('[name="email"]', 'test@example.com');
-  await page.fill('[name="password"]', 'password');
-  await page.click('button[type="submit"]');
-
-  await page.context().storageState({ path: 'playwright/.auth/user.json' });
+// IndexedDB storage state
+await page.context().storageState({
+  path: 'auth.json',
+  indexedDB: true  // NEW
 });
 ```
 
-## Critical User Journeys
+## Anti-Patterns (FORBIDDEN)
 
-Focus E2E tests on business-critical paths:
+```typescript
+// ❌ NEVER use CSS selectors for user interactions
+await page.click('.submit-btn');
 
-1. **Authentication:** Signup, login, password reset
-2. **Core Transaction:** Purchase, booking, submission
-3. **Data Operations:** Create, update, delete
-4. **User Settings:** Profile update, preferences
+// ❌ NEVER use hardcoded waits
+await page.waitForTimeout(2000);
+
+// ❌ NEVER test implementation details
+await page.click('[data-testid="btn-123"]');
+
+// ✅ ALWAYS use semantic locators
+await page.getByRole('button', { name: 'Submit' }).click();
+
+// ✅ ALWAYS use Playwright's auto-wait
+await expect(page.getByRole('alert')).toBeVisible();
+```
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
 | Locators | `getByRole` > `getByLabel` > `getByTestId` |
-| Browser | Chromium default, Firefox/WebKit for compat |
+| Browser | Chromium (Chrome for Testing in 1.57+) |
 | Execution | 5-30s per test |
-| Parallelism | Use test sharding |
+| Retries | 2-3 in CI, 0 locally |
 | Screenshots | On failure only |
-| CSS/XPath | Avoid (fragile, breaks on layout changes) |
 
-## Common Mistakes
+## Critical User Journeys to Test
 
-- Too many E2E tests (slow, flaky)
-- No retry logic (flaky tests)
-- Hard-coded waits (use Playwright's auto-wait)
-- Testing non-critical paths
+1. **Authentication:** Signup, login, password reset
+2. **Core Transaction:** Purchase, booking, submission
+3. **Data Operations:** Create, update, delete
+4. **User Settings:** Profile update, preferences
 
-## Playwright AI Agents (1.57+ - NEW)
+## Detailed Documentation
 
-Playwright 1.57 introduces three AI agents for LLM-guided test development:
-
-### 1. Planner Agent 🎭
-
-Explores your app and generates a Markdown test plan:
-
-```bash
-# Generate test plan for a user flow
-npx playwright agents planner --url http://localhost:3000/checkout
-
-# Output: checkout-test-plan.md with steps, assertions, edge cases
-```
-
-### 2. Generator Agent 🎭
-
-Transforms the Markdown plan into Playwright test files:
-
-```bash
-# Generate tests from plan
-npx playwright agents generator --plan checkout-test-plan.md
-
-# Output: checkout.spec.ts with complete test implementation
-```
-
-### 3. Healer Agent 🎭
-
-Automatically repairs failing tests by analyzing failures and updating selectors/assertions:
-
-```bash
-# Run healer on failing tests
-npx playwright agents healer --test checkout.spec.ts
-
-# Analyzes failures, updates locators, re-runs until passing
-```
-
-### AI Agents Workflow
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  use: {
-    // Enable AI agent features
-    aiAgents: {
-      enabled: true,
-      model: 'gpt-4o',  // or local Ollama
-      autoHeal: true,   // Auto-repair on CI failures
-    }
-  }
-});
-```
-
-**Use Cases:**
-- Generate tests for new features from user stories
-- Maintain tests when UI changes (auto-healing)
-- Bootstrap E2E coverage for legacy codebases
-
----
-
-## Chrome for Testing (1.57+ Breaking Change)
-
-Playwright 1.57 switches from Chromium to **Chrome for Testing** builds:
-
-```typescript
-// Tests now run on Chrome for Testing (not Chromium)
-// This provides better compatibility with production Chrome
-
-// No code changes needed - just upgrade Playwright
-npm install @playwright/test@latest
-npx playwright install
-```
-
----
-
-## New Assertions (1.57+)
-
-```typescript
-// New: Assert individual class names
-await expect(page.locator('.card')).toContainClass('highlighted');
-await expect(page.locator('.card')).toContainClass(['active', 'visible']);
-
-// New: Describe locators for trace viewer
-const submitBtn = page.getByRole('button', { name: 'Submit' });
-submitBtn.describe('Main form submit button');
-```
-
----
-
-## Flaky Test Detection (1.57+)
-
-```typescript
-// playwright.config.ts
-export default defineConfig({
-  // Fail CI if any flaky tests detected
-  failOnFlakyTests: true,
-
-  // Web server with regex-based ready detection
-  webServer: {
-    command: 'npm run dev',
-    wait: /ready in \d+ms/,  // Wait for this log pattern
-  },
-});
-```
-
----
-
-## IndexedDB Storage State (1.57+)
-
-Save and restore IndexedDB (useful for Firebase Auth):
-
-```typescript
-// Save storage state including IndexedDB
-await page.context().storageState({
-  path: 'auth.json',
-  indexedDB: true  // NEW: Include IndexedDB
-});
-
-// Restore with IndexedDB
-const context = await browser.newContext({
-  storageState: 'auth.json'  // Includes IndexedDB automatically
-});
-```
-
----
+| Resource | Description |
+|----------|-------------|
+| [references/playwright-1.57-api.md](references/playwright-1.57-api.md) | Complete Playwright 1.57+ API reference |
+| [examples/test-patterns.md](examples/test-patterns.md) | User flows, page objects, visual tests |
+| [checklists/e2e-checklist.md](checklists/e2e-checklist.md) | Test selection and review checklists |
+| [templates/page-object-template.ts](templates/page-object-template.ts) | Page object model template |
 
 ## Related Skills
 

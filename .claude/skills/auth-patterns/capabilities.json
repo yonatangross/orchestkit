@@ -1,0 +1,47 @@
+{
+  "name": "auth-patterns",
+  "version": "2.0.0",
+  "description": "Authentication and authorization patterns with OAuth 2.1, Passkeys/WebAuthn, and modern security standards",
+  "capabilities": [
+    "password-hashing",
+    "jwt-tokens",
+    "refresh-token-rotation",
+    "session-management",
+    "oauth2.1-pkce",
+    "passkeys-webauthn",
+    "mfa-totp",
+    "role-based-access-control",
+    "rate-limiting",
+    "dpop-token-binding"
+  ],
+  "triggers": [
+    "authentication",
+    "authorization",
+    "login",
+    "JWT",
+    "token",
+    "OAuth",
+    "PKCE",
+    "passkey",
+    "WebAuthn",
+    "MFA",
+    "TOTP",
+    "RBAC",
+    "session",
+    "password"
+  ],
+  "antiPatterns": [
+    "storing passwords in plaintext",
+    "no rate limiting on login",
+    "long-lived access tokens",
+    "revealing if email exists",
+    "implicit OAuth grant",
+    "hardcoded secrets"
+  ],
+  "dependencies": [
+    "owasp-top-10",
+    "input-validation",
+    "api-design-framework"
+  ],
+  "tags": ["security", "authentication", "oauth", "passkeys", "2026"]
+}

@@ -1,11 +1,13 @@
 ---
 name: input-validation
 description: Input validation and sanitization patterns. Use when validating user input, preventing injection attacks, implementing allowlists, or sanitizing HTML/SQL/command inputs.
+version: 2.0.0
+tags: [security, validation, zod, pydantic, 2026]
 ---
 
 # Input Validation
 
-Validate and sanitize all untrusted input.
+Validate and sanitize all untrusted input using Zod v4 and Pydantic.
 
 ## When to Use
 
@@ -13,58 +15,19 @@ Validate and sanitize all untrusted input.
 - Query parameters
 - Form submissions
 - API request bodies
+- File uploads
+- URL validation
 
-## Validation Principles
+## Core Principles
 
 1. **Never trust user input**
 2. **Validate on server-side** (client-side is UX only)
 3. **Use allowlists** (not blocklists)
 4. **Validate type, length, format, range**
 
-## Pydantic Validation
+## Quick Reference
 
-```python
-from pydantic import BaseModel, EmailStr, Field, constr
-
-class UserCreate(BaseModel):
-    email: EmailStr
-    name: constr(min_length=2, max_length=100)
-    age: int = Field(ge=0, le=150)
-
-# Usage
-try:
-    user = UserCreate(**request.json)
-except ValidationError as e:
-    return {"errors": e.errors()}, 400
-```
-
-## Allowlist Validation
-
-```python
-def validate_sort_column(column: str) -> str:
-    allowed = ['name', 'email', 'created_at']
-    if column not in allowed:
-        raise ValueError("Invalid sort column")
-    return column
-
-# For SQL - prevents injection
-order_by = validate_sort_column(request.args.get('sort'))
-query = f"SELECT * FROM users ORDER BY {order_by}"
-```
-
-## HTML Sanitization
-
-```python
-from markupsafe import escape
-
-@app.route('/comment', methods=['POST'])
-def create_comment():
-    # Escape HTML to prevent XSS
-    content = escape(request.form['content'])
-    db.execute("INSERT INTO comments (content) VALUES (?)", [content])
-```
-
-## TypeScript/Zod Validation
+### Zod v4 Schema
 
 ```typescript
 import { z } from 'zod';
@@ -72,91 +35,94 @@ import { z } from 'zod';
 const UserSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2).max(100),
-  age: z.number().int().min(0).max(150),
+  age: z.coerce.number().int().min(0).max(150),
+  role: z.enum(['user', 'admin']).default('user'),
 });
 
-// Validate
 const result = UserSchema.safeParse(req.body);
 if (!result.success) {
-  return res.status(400).json({ errors: result.error.errors });
+  return res.status(400).json({ errors: result.error.flatten() });
 }
 ```
 
-## URL Validation
+### Type Coercion (v4)
 
-```python
-from urllib.parse import urlparse
-
-ALLOWED_DOMAINS = ['api.example.com', 'cdn.example.com']
-
-def validate_url(url: str) -> str:
-    parsed = urlparse(url)
-
-    if parsed.scheme not in ['http', 'https']:
-        raise ValueError("Invalid scheme")
-
-    if parsed.hostname not in ALLOWED_DOMAINS:
-        raise ValueError("Domain not allowed")
-
-    return url
+```typescript
+// Query params come as strings - coerce to proper types
+z.coerce.number()  // "123" → 123
+z.coerce.boolean() // "true" → true
+z.coerce.date()    // "2024-01-01" → Date
 ```
 
-## File Upload Validation
+### Discriminated Unions
 
-```python
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-MAX_SIZE = 5 * 1024 * 1024  # 5MB
-
-def validate_upload(file):
-    # Check extension
-    ext = file.filename.rsplit('.', 1)[-1].lower()
-    if ext not in ALLOWED_EXTENSIONS:
-        raise ValueError("Invalid file type")
-
-    # Check size
-    file.seek(0, 2)
-    size = file.tell()
-    file.seek(0)
-    if size > MAX_SIZE:
-        raise ValueError("File too large")
-
-    # Check magic bytes (actual content)
-    header = file.read(8)
-    file.seek(0)
-    if not is_valid_image_header(header):
-        raise ValueError("Invalid file content")
+```typescript
+const ShapeSchema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('circle'), radius: z.number() }),
+  z.object({ type: z.literal('rectangle'), width: z.number(), height: z.number() }),
+]);
 ```
 
-## Security Headers
+### Pydantic (Python)
 
 ```python
-@app.after_request
-def set_security_headers(response):
-    response.headers['Content-Security-Policy'] = "default-src 'self'"
-    response.headers['X-Content-Type-Options'] = 'nosniff'
-    response.headers['X-Frame-Options'] = 'DENY'
-    response.headers['X-XSS-Protection'] = '1; mode=block'
-    return response
+from pydantic import BaseModel, EmailStr, Field
+
+class User(BaseModel):
+    email: EmailStr
+    name: str = Field(min_length=2, max_length=100)
+    age: int = Field(ge=0, le=150)
+```
+
+## Anti-Patterns (FORBIDDEN)
+
+```typescript
+// ❌ NEVER rely on client-side validation only
+if (formIsValid) submit();  // No server validation
+
+// ❌ NEVER use blocklists
+const blocked = ['password', 'secret'];  // Easy to miss fields
+
+// ❌ NEVER trust Content-Type header
+if (file.type === 'image/png') {...}  // Can be spoofed
+
+// ❌ NEVER build queries with string concat
+`SELECT * FROM users WHERE name = '${name}'`  // SQL injection
+
+// ✅ ALWAYS validate server-side
+const result = schema.safeParse(req.body);
+
+// ✅ ALWAYS use allowlists
+const allowed = ['name', 'email', 'createdAt'];
+
+// ✅ ALWAYS validate file magic bytes
+const isPng = buffer[0] === 0x89 && buffer[1] === 0x50;
+
+// ✅ ALWAYS use parameterized queries
+db.query('SELECT * FROM users WHERE name = ?', [name]);
 ```
 
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
-| Validation library | Pydantic (Python), Zod (TS) |
+| Validation library | Zod (TS), Pydantic (Python) |
 | Strategy | Allowlist over blocklist |
 | Location | Server-side always |
 | Error messages | Generic (don't leak info) |
+| File validation | Check magic bytes, not just extension |
 
-## Common Mistakes
+## Detailed Documentation
 
-- Client-side only validation
-- Blocklist instead of allowlist
-- Not validating file content
-- Trusting Content-Type header
+| Resource | Description |
+|----------|-------------|
+| [references/zod-v4-api.md](references/zod-v4-api.md) | Zod v4 API with coercion, transforms |
+| [examples/validation-patterns.md](examples/validation-patterns.md) | Complete validation examples |
+| [checklists/validation-checklist.md](checklists/validation-checklist.md) | Implementation checklist |
+| [templates/validation-schemas.ts](templates/validation-schemas.ts) | Ready-to-use schema templates |
 
 ## Related Skills
 
 - `owasp-top-10` - Injection prevention
 - `auth-patterns` - User input in auth
-- `type-safety-validation` - Zod patterns
+- `type-safety-validation` - TypeScript patterns

@@ -1,0 +1,41 @@
+{
+  "name": "llm-evaluation",
+  "version": "2.0.0",
+  "description": "LLM output evaluation and quality assessment with RAGAS metrics and LLM-as-judge patterns",
+  "capabilities": [
+    "llm-as-judge",
+    "multi-dimension-evaluation",
+    "quality-gates",
+    "hallucination-detection",
+    "pairwise-comparison",
+    "batch-evaluation",
+    "langfuse-integration",
+    "langsmith-datasets",
+    "confidence-intervals"
+  ],
+  "triggers": [
+    "evaluate LLM",
+    "quality gate",
+    "hallucination",
+    "LLM judge",
+    "RAGAS",
+    "faithfulness",
+    "answer relevancy",
+    "context precision",
+    "pairwise comparison",
+    "batch evaluation"
+  ],
+  "antiPatterns": [
+    "using same model to judge its own output",
+    "single dimension evaluation",
+    "no baseline comparison",
+    "threshold too high (>0.9)",
+    "small sample size (<50)"
+  ],
+  "dependencies": [
+    "quality-gates",
+    "langfuse-observability",
+    "agent-loops"
+  ],
+  "tags": ["evaluation", "llm", "quality", "ragas", "langfuse", "2026"]
+}

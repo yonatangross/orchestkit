@@ -1,0 +1,36 @@
+{
+  "name": "embeddings",
+  "version": "2.0.0",
+  "description": "Text embeddings for semantic search and similarity with modern embedding models",
+  "capabilities": [
+    "text-to-vector",
+    "semantic-search",
+    "document-similarity",
+    "chunking-strategies",
+    "batch-embedding",
+    "dimension-reduction",
+    "local-embeddings"
+  ],
+  "triggers": [
+    "embedding",
+    "vector",
+    "semantic search",
+    "similarity",
+    "chunk",
+    "RAG",
+    "text-embedding",
+    "cosine similarity"
+  ],
+  "antiPatterns": [
+    "embedding queries differently than documents",
+    "not chunking long documents",
+    "wrong similarity metric",
+    "re-embedding unchanged content"
+  ],
+  "dependencies": [
+    "rag-retrieval",
+    "pgvector-search",
+    "ollama-local"
+  ],
+  "tags": ["embeddings", "vectors", "semantic-search", "2026"]
+}

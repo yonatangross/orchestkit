@@ -1,0 +1,40 @@
+{
+  "name": "e2e-testing",
+  "version": "1.2.0",
+  "description": "End-to-end testing with Playwright 1.57+ including AI agents for test generation and healing",
+  "capabilities": [
+    "semantic-locators",
+    "visual-regression",
+    "authentication-state",
+    "cross-browser-testing",
+    "ai-test-generation",
+    "ai-test-healing",
+    "flaky-test-detection",
+    "indexeddb-state"
+  ],
+  "triggers": [
+    "e2e test",
+    "playwright",
+    "end-to-end",
+    "browser test",
+    "visual regression",
+    "getByRole",
+    "getByLabel",
+    "page object",
+    "cross-browser",
+    "AI agent"
+  ],
+  "antiPatterns": [
+    "CSS selectors for user interactions",
+    "XPath locators",
+    "hardcoded waits (sleep)",
+    "testing non-critical paths",
+    "page.click('[data-testid]')"
+  ],
+  "dependencies": [
+    "integration-testing",
+    "webapp-testing",
+    "performance-testing"
+  ],
+  "tags": ["testing", "playwright", "e2e", "browser", "ai-agents", "2026"]
+}

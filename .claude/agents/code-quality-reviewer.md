@@ -258,6 +258,23 @@ function CardSkeleton() {
 <Link to="/page">Go</Link> // Missing preload="intent"
 ```
 
+### i18n Date Patterns (v3.8.0)
+```typescript
+// ✅ REQUIRE: Use @/lib/dates helpers
+import { formatDate, formatDateShort, calculateWaitTime } from '@/lib/dates';
+const display = formatDateShort(date);
+
+// ❌ FLAG: Native Date toLocaleDateString
+new Date(date).toLocaleDateString('he-IL') // VIOLATION - use formatDate()
+
+// ❌ FLAG: Hardcoded locale strings
+`${minutes} דקות` // VIOLATION - use i18n.t('time.minutesShort', { count })
+`${minutes} minutes` // VIOLATION - same issue
+
+// ❌ FLAG: Direct dayjs import (should use @/lib/dates)
+import dayjs from 'dayjs'; // VIOLATION - import from @/lib/dates
+```
+
 ### Testing Standards
 ```typescript
 // ✅ REQUIRE: MSW for API mocking
@@ -280,7 +297,7 @@ npm run build:analyze  # Must exist in package.json
 # Missing: rollup-plugin-visualizer or similar
 ```
 
-## Frontend Review Checklist (v3.7.0)
+## Frontend Review Checklist (v3.8.0)
 When reviewing frontend code, verify ALL of the following:
 
 | Pattern | Check | Severity |
@@ -291,6 +308,8 @@ When reviewing frontend code, verify ALL of the following:
 | Skeleton Loading | No spinners for content, skeletons used | MEDIUM |
 | Prefetching | Links have `preload="intent"` or `onMouseEnter` | MEDIUM |
 | MSW Testing | No `jest.mock('fetch')`, MSW handlers used | HIGH |
+| i18n Dates | No `new Date().toLocaleDateString()`, use `@/lib/dates` | HIGH |
+| No Hardcoded Strings | Time strings use `i18n.t()` not inline Hebrew/English | HIGH |
 | Bundle Analysis | `build:analyze` script exists | LOW |
 
 ## Example
@@ -311,4 +330,4 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 ## Integration
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
-- **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook
+- **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook, i18n-date-patterns

@@ -1,8 +1,8 @@
 {
   "$schema": "./schemas/agent-registry.schema.json",
-  "version": "4.2.0",
-  "description": "Dynamic agent and skill registry with 20 agents: 14 technical (implementation, quality, security) + 6 product (strategy, prioritization, requirements). v4.2: Added golden-dataset-curation and golden-dataset-validation skills to data-pipeline-engineer. Improved all skill descriptions with 'Use when' trigger phrases for better semantic matching.",
-  "last_updated": "2026-01-05",
+  "version": "4.4.0",
+  "description": "Dynamic agent and skill registry with 20 agents: 14 technical (implementation, quality, security) + 6 product (strategy, prioritization, requirements). v4.4: Updated design-system-starter and rapid-ui-designer to use Tailwind @theme utilities instead of CSS variables. All frontend components now use bg-primary, text-text-primary, etc. instead of bg-[var(--color-primary)].",
+  "last_updated": "2026-01-06",
 
   "discovery": {
     "protocol": "semantic",
@@ -359,7 +359,8 @@
         "performance-optimization",
         "hooks",
         "forms",
-        "animations"
+        "animations",
+        "motion-animations"
       ],
       "can_solve_examples": [
         "Create a login form component",
@@ -367,14 +368,18 @@
         "Implement dark mode toggle",
         "Add form validation with error states",
         "Create a reusable modal component",
-        "Optimize component re-renders"
+        "Optimize component re-renders",
+        "Add page transition animations",
+        "Implement staggered list animations"
       ],
       "skills_used": [
         "react-server-components-framework",
         "design-system-starter",
         "type-safety-validation",
         "testing-strategy-builder",
-        "webapp-testing"
+        "webapp-testing",
+        "motion-animation-patterns",
+        "i18n-date-patterns"
       ],
       "tools": ["Read", "Edit", "MultiEdit", "Write", "Bash", "Grep", "Glob"],
       "boundaries": {
@@ -783,17 +788,20 @@
         "component-architecture",
         "responsive-layouts",
         "color-theory",
-        "typography"
+        "typography",
+        "animation-specs"
       ],
       "can_solve_examples": [
         "Design a dashboard layout",
         "Create a component library structure",
         "Define spacing and typography scales",
         "Design responsive breakpoints",
-        "Create a color palette for dark mode"
+        "Create a color palette for dark mode",
+        "Specify animation patterns for modals"
       ],
       "skills_used": [
-        "design-system-starter"
+        "design-system-starter",
+        "motion-animation-patterns"
       ],
       "tools": ["Write", "Read"],
       "handoff_to": ["frontend-ui-developer"],
@@ -1039,7 +1047,8 @@
         "component-patterns",
         "spacing-scales",
         "typography-systems",
-        "color-palettes"
+        "color-palettes",
+        "animation-tokens"
       ],
       "used_by_agents": ["rapid-ui-designer", "frontend-ui-developer", "ux-researcher"],
       "progressive_load": {
@@ -1051,6 +1060,56 @@
         "discovery": 100,
         "overview": 400,
         "full": 1500
+      }
+    },
+
+    "motion-animation-patterns": {
+      "display_name": "Motion Animation Patterns",
+      "path": ".claude/skills/motion-animation-patterns",
+      "provides": [
+        "page-transitions",
+        "modal-animations",
+        "list-stagger",
+        "hover-interactions",
+        "skeleton-pulse",
+        "collapse-expand",
+        "toast-animations",
+        "rtl-animations"
+      ],
+      "used_by_agents": ["frontend-ui-developer", "rapid-ui-designer"],
+      "progressive_load": {
+        "discovery": "capabilities.json",
+        "overview": "skill.md",
+        "references": "references/"
+      },
+      "token_budget": {
+        "discovery": 100,
+        "overview": 500,
+        "full": 2000
+      }
+    },
+
+    "i18n-date-patterns": {
+      "display_name": "i18n Date Patterns",
+      "path": ".claude/skills/i18n-date-patterns",
+      "provides": [
+        "translation-keys",
+        "date-formatting",
+        "dayjs-integration",
+        "rtl-support",
+        "locale-switching",
+        "bilingual-matching"
+      ],
+      "used_by_agents": ["frontend-ui-developer"],
+      "progressive_load": {
+        "discovery": "capabilities.json",
+        "overview": "skill.md",
+        "references": "references/"
+      },
+      "token_budget": {
+        "discovery": 100,
+        "overview": 500,
+        "full": 1800
       }
     },
 
@@ -1638,27 +1697,32 @@
       "estimated_tokens": 1000
     },
     "frontend-2025-compliance": {
-      "description": "Verify and implement frontend code following 2025 best practices (React 19, Zod, exhaustive types, MSW, bundle optimization)",
+      "description": "Verify and implement frontend code following 2025 best practices (React 19, Zod, exhaustive types, MSW, bundle optimization, Motion animations)",
       "composes_skills": [
         "react-server-components-framework/SKILL.md#react-19-patterns",
         "type-safety-validation/SKILL.md#exhaustive-type-checking",
         "type-safety-validation/SKILL.md#zod-schemas",
         "testing-strategy-builder/SKILL.md#msw-mock-service-worker",
         "performance-optimization/SKILL.md#frontend-bundle-analysis",
-        "api-design-framework/SKILL.md#frontend-api-integration"
+        "api-design-framework/SKILL.md#frontend-api-integration",
+        "motion-animation-patterns/skill.md",
+        "i18n-date-patterns/skill.md"
       ],
       "primary_agent": "frontend-ui-developer",
       "validation_agent": "code-quality-reviewer",
-      "estimated_tokens": 1500,
-      "triggers": ["2025 patterns", "modern frontend", "best practices", "frontend compliance"],
+      "estimated_tokens": 1800,
+      "triggers": ["2025 patterns", "modern frontend", "best practices", "frontend compliance", "animations", "motion"],
       "checklist": [
         "React 19 APIs: useOptimistic, useFormStatus, use(), startTransition",
         "Zod runtime validation on ALL API responses",
         "Exhaustive switch statements with assertNever default",
         "MSW for API mocking (NOT jest.mock or vi.mock)",
         "Bundle analysis with size budgets (<200KB gzip)",
-        "Skeleton loading states (NOT spinners for content)",
+        "Skeleton loading states with Motion pulse (NOT CSS animate-pulse)",
         "Prefetching on hover/focus for navigation links",
+        "Motion animations from @/lib/animations presets",
+        "AnimatePresence for conditional render exit animations",
+        "i18n dates via @/lib/dates (NOT new Date())",
         "VCR.py for Python HTTP recording in tests"
       ],
       "anti_patterns": [
@@ -1666,7 +1730,10 @@
         "switch without assertNever default - Missing cases cause runtime bugs",
         "await response.json() without Zod - Type safety is false",
         "<Spinner /> for content - Use skeleton components",
-        "<Link> without preload='intent' - Missing prefetch opportunity"
+        "<Link> without preload='intent' - Missing prefetch opportunity",
+        "Inline Motion values - Use @/lib/animations presets",
+        "CSS transitions with Motion - Remove className transition-all",
+        "new Date().toLocaleDateString() - Use formatDate() from @/lib/dates"
       ]
     }
   },

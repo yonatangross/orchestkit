@@ -169,12 +169,15 @@ function getStatusColor(status: Status): string {
 
 ## Loading States (2025 Patterns)
 ```typescript
-// ✅ Skeleton loading (NOT spinners)
+// ✅ Skeleton loading with Motion pulse (NOT CSS animate-pulse)
+import { motion } from 'motion/react';
+import { pulse } from '@/lib/animations';
+
 function AnalysisCardSkeleton() {
   return (
-    <div className="animate-pulse">
-      <div className="h-4 bg-muted rounded w-3/4 mb-2" />
-      <div className="h-3 bg-muted rounded w-1/2" />
+    <div>
+      <motion.div {...pulse} className="h-4 bg-muted rounded w-3/4 mb-2" />
+      <motion.div {...pulse} className="h-3 bg-muted rounded w-1/2" />
     </div>
   )
 }
@@ -183,6 +186,33 @@ function AnalysisCardSkeleton() {
 <Suspense fallback={<AnalysisCardSkeleton />}>
   <AnalysisCard id={analysisId} />
 </Suspense>
+```
+
+## Motion Animations (MANDATORY for UI)
+```typescript
+// ✅ ALWAYS import from centralized presets
+import { motion, AnimatePresence } from 'motion/react';
+import { fadeIn, modalContent, staggerContainer, staggerItem, cardHover, tapScale } from '@/lib/animations';
+
+// ✅ Modal animations
+<AnimatePresence>
+  {isOpen && (
+    <motion.div {...modalContent}>Modal content</motion.div>
+  )}
+</AnimatePresence>
+
+// ✅ List stagger animations
+<motion.ul variants={staggerContainer} initial="initial" animate="animate">
+  {items.map(item => (
+    <motion.li key={item.id} variants={staggerItem}>{item.name}</motion.li>
+  ))}
+</motion.ul>
+
+// ✅ Card hover micro-interactions
+<motion.div {...cardHover} {...tapScale}>Clickable card</motion.div>
+
+// ❌ NEVER inline animation values
+<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>  // Use fadeIn instead
 ```
 
 ## Prefetching Strategy (MANDATORY)
@@ -247,14 +277,20 @@ afterAll(() => server.close())
 4. Write: role-comm-frontend.md
 5. Stop: At task boundaries
 
-## Standards (Updated Dec 2025)
+## Standards (Updated Jan 2026)
 - TypeScript strict mode, no any types
 - Mobile-first responsive, WCAG 2.1 AA compliant
 - **React 19+**, hooks only, no class components
+- **Tailwind CSS utilities** via `@theme` directive (NOT CSS variables in className)
+  - Use `bg-primary`, `text-text-primary`, `border-border` etc.
+  - Colors defined in `frontend/src/styles/tokens.css` with `@theme`
+  - ❌ NEVER use `bg-[var(--color-primary)]` - use `bg-primary` instead
 - **Zod validation** for ALL API responses
 - **Exhaustive type checking** for ALL union types
 - **Skeleton loading states** (no spinners for content)
 - **Prefetching** for all navigable links
+- **i18n-aware dates** via `@/lib/dates` helpers (NO `new Date().toLocaleDateString()`)
+- **useFormatting hook** for currency, lists, ordinals (NO `.join()`, NO hardcoded `₪`)
 - Bundle < 200KB gzipped, Core Web Vitals passing
 - Test coverage > 80% with **MSW for API mocking**
 
@@ -277,6 +313,34 @@ jest.mock('fetch') // Use MSW instead
 
 // ❌ NEVER omit prefetching for navigation
 <Link to="/page">Click</Link> // Add preload="intent"
+
+// ❌ NEVER use native Date for formatting
+new Date().toLocaleDateString('he-IL') // Use formatDate() from @/lib/dates
+
+// ❌ NEVER hardcode locale strings
+`${minutes} דקות` // Use i18n.t('time.minutesShort', { count: minutes })
+
+// ❌ NEVER use .join() for user-facing lists
+items.join(', ') // Use formatList(items) from useFormatting hook
+
+// ❌ NEVER hardcode currency symbols
+`₪${price}` // Use formatILS(price) from useFormatting hook
+
+// ❌ NEVER leave console.log statements in production
+console.log('debug info') // Remove before commit
+
+// ❌ NEVER use inline Motion animation values
+<motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}> // Use @/lib/animations presets
+
+// ❌ NEVER forget AnimatePresence for exit animations
+{isOpen && <motion.div {...fadeIn}>} // Wrap with AnimatePresence
+
+// ❌ NEVER use CSS transitions with Motion components
+<motion.div {...fadeIn} className="transition-all"> // Remove CSS transition
+
+// ❌ NEVER use CSS variables in Tailwind classes
+<div className="bg-[var(--color-primary)]"> // Use bg-primary instead
+<div className="text-[var(--color-text-primary)]"> // Use text-text-primary instead
 ```
 
 ## Example
@@ -301,4 +365,4 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance-optimization
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance-optimization, i18n-date-patterns, motion-animation-patterns
