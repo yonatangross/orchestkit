@@ -1,0 +1,131 @@
+{
+  "name": "skillforge-complete",
+  "displayName": "@skillforge/complete",
+  "owner": "yonatangross",
+  "version": "1.0.0",
+  "description": "The Complete AI Development Toolkit - 61 skills, 20 agents, 11 commands, 29 hooks",
+  "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
+  "license": "MIT",
+  "strict": false,
+
+  "plugins": [
+    {
+      "name": "complete",
+      "description": "Full toolkit - all 61 skills, 20 agents, 11 commands, 29 hooks",
+      "skills": ["*"],
+      "includes_agents": true,
+      "includes_commands": true,
+      "includes_hooks": true
+    },
+    {
+      "name": "ai-development",
+      "description": "AI & LLM patterns: agents, RAG, embeddings, LangGraph, caching",
+      "skills": [
+        "agent-loops",
+        "cache-cost-tracking",
+        "context-compression",
+        "context-engineering",
+        "embeddings",
+        "function-calling",
+        "langfuse-observability",
+        "langgraph-checkpoints",
+        "langgraph-human-in-loop",
+        "langgraph-parallel",
+        "langgraph-routing",
+        "langgraph-state",
+        "langgraph-supervisor",
+        "llm-evaluation",
+        "llm-safety-patterns",
+        "llm-streaming",
+        "llm-testing",
+        "multi-agent-orchestration",
+        "ollama-local",
+        "pgvector-search",
+        "prompt-caching",
+        "rag-retrieval",
+        "semantic-caching"
+      ]
+    },
+    {
+      "name": "backend",
+      "description": "Backend patterns: APIs, databases, streaming, resilience",
+      "skills": [
+        "api-design-framework",
+        "database-schema-designer",
+        "resilience-patterns",
+        "streaming-api-patterns",
+        "type-safety-validation"
+      ]
+    },
+    {
+      "name": "frontend",
+      "description": "Frontend patterns: React 19, RSC, animations, i18n, edge",
+      "skills": [
+        "design-system-starter",
+        "edge-computing-patterns",
+        "i18n-date-patterns",
+        "motion-animation-patterns",
+        "performance-optimization",
+        "react-server-components-framework"
+      ]
+    },
+    {
+      "name": "quality-testing",
+      "description": "Testing patterns: unit, integration, E2E, mocking, golden datasets",
+      "skills": [
+        "code-review-playbook",
+        "e2e-testing",
+        "evidence-verification",
+        "golden-dataset-curation",
+        "golden-dataset-management",
+        "golden-dataset-validation",
+        "integration-testing",
+        "msw-mocking",
+        "performance-testing",
+        "quality-gates",
+        "test-data-management",
+        "unit-testing",
+        "vcr-http-recording",
+        "webapp-testing"
+      ]
+    },
+    {
+      "name": "devops-security",
+      "description": "DevOps & security: CI/CD, observability, OWASP, auth",
+      "skills": [
+        "auth-patterns",
+        "defense-in-depth",
+        "devops-deployment",
+        "input-validation",
+        "observability-monitoring",
+        "owasp-top-10",
+        "security-scanning"
+      ]
+    },
+    {
+      "name": "process-planning",
+      "description": "Planning patterns: brainstorming, ADRs, GitHub CLI",
+      "skills": [
+        "architecture-decision-record",
+        "ascii-visualizer",
+        "brainstorming",
+        "browser-content-capture",
+        "github-cli",
+        "system-design-interrogation"
+      ]
+    }
+  ],
+
+  "features": {
+    "agents": 20,
+    "commands": 11,
+    "hooks": 29,
+    "progressive_loading": true,
+    "capabilities_json": true
+  },
+
+  "installation": {
+    "full": "/plugin install skillforge-complete@complete",
+    "category": "/plugin install skillforge-complete@ai-development"
+  }
+}

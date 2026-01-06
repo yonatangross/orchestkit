@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  61 skills | 11 commands | 20 agents | 29 hooks
+  61 skills | 11 commands | 20 agents | 29 hooks | 7 plugin bundles
 </p>
 
 ---
@@ -26,12 +26,34 @@
 
 ## Quick Start
 
-```bash
-# Install from Claude Plugin Registry
-claude plugin install @skillforge/complete
+### From Marketplace (Recommended)
 
-# Or clone from GitHub
-git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge-claude-plugin
+```bash
+# Step 1: Add the marketplace
+/plugin marketplace add yonatangross/skillforge-claude-plugin
+
+# Step 2: Install full toolkit or specific bundles
+/plugin install skillforge-complete@complete         # Everything (61 skills)
+
+# Or install specific categories:
+/plugin install skillforge-complete@ai-development   # AI/LLM skills (23 skills)
+/plugin install skillforge-complete@backend          # Backend skills (5 skills)
+/plugin install skillforge-complete@frontend         # Frontend skills (6 skills)
+/plugin install skillforge-complete@quality-testing  # Testing skills (14 skills)
+/plugin install skillforge-complete@devops-security  # DevOps skills (7 skills)
+/plugin install skillforge-complete@process-planning # Planning skills (6 skills)
+```
+
+### From GitHub (Manual)
+
+```bash
+git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge
+```
+
+### Project-Scoped (Copy to Project)
+
+```bash
+cp -r skillforge-claude-plugin/.claude your-project/.claude
 ```
 
 After installation, skills are automatically available when Claude Code detects relevant tasks.

@@ -1,0 +1,127 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://skillforge.dev/schemas/marketplace.schema.json",
+  "title": "SkillForge Marketplace Plugin Schema",
+  "description": "Schema for validating marketplace.json plugin registry entries",
+  "type": "object",
+  "required": ["name", "version", "plugins"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Plugin package name",
+      "pattern": "^[a-z0-9-]+$"
+    },
+    "displayName": {
+      "type": "string",
+      "description": "Human-readable display name"
+    },
+    "owner": {
+      "type": "string",
+      "description": "GitHub username or organization"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "description": {
+      "type": "string",
+      "description": "Brief description of the plugin"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "GitHub repository URL"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier"
+    },
+    "strict": {
+      "type": "boolean",
+      "description": "Whether to enforce strict skill matching",
+      "default": false
+    },
+    "plugins": {
+      "type": "array",
+      "description": "Available plugin bundles",
+      "items": {
+        "type": "object",
+        "required": ["name", "skills"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Bundle name for installation",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "description": {
+            "type": "string",
+            "description": "Bundle description"
+          },
+          "skills": {
+            "type": "array",
+            "description": "List of skill names or ['*'] for all",
+            "items": {
+              "type": "string"
+            }
+          },
+          "includes_agents": {
+            "type": "boolean",
+            "description": "Whether this bundle includes agents",
+            "default": false
+          },
+          "includes_commands": {
+            "type": "boolean",
+            "description": "Whether this bundle includes commands",
+            "default": false
+          },
+          "includes_hooks": {
+            "type": "boolean",
+            "description": "Whether this bundle includes hooks",
+            "default": false
+          }
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "description": "Plugin feature summary",
+      "properties": {
+        "agents": {
+          "type": "integer",
+          "description": "Number of agents"
+        },
+        "commands": {
+          "type": "integer",
+          "description": "Number of commands"
+        },
+        "hooks": {
+          "type": "integer",
+          "description": "Number of hooks"
+        },
+        "progressive_loading": {
+          "type": "boolean",
+          "description": "Whether skills use progressive loading"
+        },
+        "capabilities_json": {
+          "type": "boolean",
+          "description": "Whether skills have capabilities.json"
+        }
+      }
+    },
+    "installation": {
+      "type": "object",
+      "description": "Example installation commands",
+      "properties": {
+        "full": {
+          "type": "string",
+          "description": "Command to install full plugin"
+        },
+        "category": {
+          "type": "string",
+          "description": "Example command to install a category"
+        }
+      }
+    }
+  }
+}
