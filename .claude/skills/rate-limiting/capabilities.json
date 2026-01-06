@@ -1,0 +1,44 @@
+{
+  "name": "rate-limiting",
+  "version": "1.0.0",
+  "description": "API rate limiting with Redis, token bucket, and sliding window algorithms",
+
+  "capabilities": {
+    "token-bucket": {
+      "keywords": ["token bucket", "rate limit", "burst", "capacity"],
+      "solves": ["How do I implement token bucket rate limiting?", "Allow bursts while limiting rate"],
+      "reference_file": "SKILL.md#token-bucket-with-redis-custom",
+      "token_cost": 200
+    },
+    "sliding-window": {
+      "keywords": ["sliding window", "moving window", "rate limit"],
+      "solves": ["How to implement precise rate limiting?", "Avoid fixed window edge cases"],
+      "reference_file": "SKILL.md#sliding-window-counter",
+      "token_cost": 180
+    },
+    "slowapi-redis": {
+      "keywords": ["slowapi", "fastapi rate limit", "redis limiter"],
+      "solves": ["How to add rate limiting to FastAPI?", "Distributed rate limiting"],
+      "reference_file": "SKILL.md#slowapi--redis-fastapi",
+      "token_cost": 220
+    },
+    "tiered-limits": {
+      "keywords": ["tiered", "user tier", "free pro enterprise"],
+      "solves": ["Different rate limits per subscription tier", "User-based rate limiting"],
+      "reference_file": "SKILL.md#tiered-rate-limits",
+      "token_cost": 150
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["rate.?limit", "throttl", "token.?bucket", "sliding.?window", "slowapi"],
+    "medium_confidence": ["too.?many.?requests", "429", "abuse.?protect", "api.?limit"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 70 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 400 },
+    "tier_3_specific": { "files": ["references/token-bucket-algorithm.md", "checklists/rate-limiting-checklist.md"], "tokens": 380 },
+    "tier_4_generate": { "files": ["templates/redis-rate-limiter.py", "examples/fastapi-rate-limiting.md"], "tokens": 400 }
+  }
+}

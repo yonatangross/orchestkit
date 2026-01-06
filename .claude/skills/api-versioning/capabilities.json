@@ -1,0 +1,44 @@
+{
+  "name": "api-versioning",
+  "version": "1.0.0",
+  "description": "API versioning strategies: URL path, header, content negotiation, deprecation",
+
+  "capabilities": {
+    "url-versioning": {
+      "keywords": ["url version", "path version", "/v1/", "/v2/"],
+      "solves": ["How to version REST APIs?", "URL-based API versioning"],
+      "reference_file": "SKILL.md#url-path-versioning-recommended",
+      "token_cost": 200
+    },
+    "header-versioning": {
+      "keywords": ["header version", "X-API-Version", "custom header"],
+      "solves": ["Clean URL versioning", "Header-based API version"],
+      "reference_file": "SKILL.md#header-based-versioning",
+      "token_cost": 150
+    },
+    "deprecation": {
+      "keywords": ["deprecation", "sunset", "version lifecycle", "backward compatible"],
+      "solves": ["How to deprecate API versions?", "Version sunset policy"],
+      "reference_file": "SKILL.md#deprecation-headers",
+      "token_cost": 140
+    },
+    "breaking-changes": {
+      "keywords": ["breaking change", "non-breaking", "backward compatible"],
+      "solves": ["What requires a version bump?", "Breaking vs non-breaking changes"],
+      "reference_file": "SKILL.md#breaking-vs-non-breaking-changes",
+      "token_cost": 120
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["api.?version", "v1.*v2", "deprecat", "sunset", "breaking.?change"],
+    "medium_confidence": ["version", "backward.?compat", "api.?evolution"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 65 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 380 },
+    "tier_3_specific": { "files": ["references/versioning-strategies.md", "checklists/versioning-checklist.md"], "tokens": 350 },
+    "tier_4_generate": { "files": ["templates/fastapi-versioned-router.py", "examples/fastapi-versioning.md"], "tokens": 400 }
+  }
+}

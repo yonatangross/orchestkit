@@ -1,0 +1,38 @@
+{
+  "name": "clean-architecture",
+  "version": "1.0.0",
+  "description": "SOLID principles, hexagonal architecture, and DDD tactical patterns",
+
+  "capabilities": {
+    "solid-principles": {
+      "keywords": ["SOLID", "single responsibility", "open closed", "liskov", "interface segregation", "dependency inversion"],
+      "solves": ["How do I apply SOLID principles in Python?", "My classes are doing too much"],
+      "reference_file": "SKILL.md#solid-principles-2026-python",
+      "token_cost": 300
+    },
+    "hexagonal-architecture": {
+      "keywords": ["hexagonal", "ports and adapters", "clean architecture", "onion"],
+      "solves": ["How do I structure my FastAPI app?", "How to separate infrastructure from domain?"],
+      "reference_file": "SKILL.md#hexagonal-architecture-ports--adapters",
+      "token_cost": 250
+    },
+    "ddd-tactical": {
+      "keywords": ["entity", "value object", "aggregate", "domain event", "DDD"],
+      "solves": ["What's the difference between entity and value object?", "How to design aggregates?"],
+      "reference_file": "SKILL.md#ddd-tactical-patterns",
+      "token_cost": 280
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["clean.?architecture", "hexagonal", "ports.?and.?adapters", "SOLID", "DDD.?pattern"],
+    "medium_confidence": ["refactor.*service", "separate.*domain", "decouple", "testable.*architecture"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 80 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 450 },
+    "tier_3_specific": { "files": ["references/hexagonal-architecture.md", "checklists/solid-checklist.md"], "tokens": 400 },
+    "tier_4_generate": { "files": ["templates/domain-entity-template.py", "examples/fastapi-clean-architecture.md"], "tokens": 350 }
+  }
+}

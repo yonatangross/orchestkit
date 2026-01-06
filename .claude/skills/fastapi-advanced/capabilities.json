@@ -1,0 +1,50 @@
+{
+  "name": "fastapi-advanced",
+  "version": "1.0.0",
+  "description": "FastAPI 2026 advanced patterns: lifespan, dependencies, middleware, settings",
+
+  "capabilities": {
+    "lifespan": {
+      "keywords": ["lifespan", "startup", "shutdown", "asynccontextmanager"],
+      "solves": ["FastAPI startup/shutdown", "Resource management in FastAPI"],
+      "reference_file": "SKILL.md#lifespan-management-2026",
+      "token_cost": 180
+    },
+    "dependencies": {
+      "keywords": ["dependency injection", "Depends", "get_db", "service dependency"],
+      "solves": ["FastAPI dependency injection patterns", "Reusable dependencies"],
+      "reference_file": "SKILL.md#dependency-injection-patterns",
+      "token_cost": 220
+    },
+    "middleware": {
+      "keywords": ["middleware", "request id", "timing", "cors", "logging middleware"],
+      "solves": ["Custom FastAPI middleware", "Request/response interceptors"],
+      "reference_file": "SKILL.md#middleware-patterns",
+      "token_cost": 200
+    },
+    "settings": {
+      "keywords": ["settings", "pydantic settings", "env", "configuration"],
+      "solves": ["FastAPI configuration management", "Environment variables"],
+      "reference_file": "SKILL.md#settings-with-pydantic",
+      "token_cost": 150
+    },
+    "health-checks": {
+      "keywords": ["health check", "readiness", "liveness", "health endpoint"],
+      "solves": ["Kubernetes health checks", "Service health monitoring"],
+      "reference_file": "SKILL.md#health-checks",
+      "token_cost": 120
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["fastapi.?lifespan", "fastapi.?middleware", "fastapi.?depend", "pydantic.?settings"],
+    "medium_confidence": ["fastapi", "starlette", "async.?python", "uvicorn"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 75 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 450 },
+    "tier_3_specific": { "files": ["references/middleware-stack.md", "checklists/fastapi-production-checklist.md"], "tokens": 380 },
+    "tier_4_generate": { "files": ["templates/fastapi-app.py", "examples/fastapi-lifespan.md"], "tokens": 400 }
+  }
+}

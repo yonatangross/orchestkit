@@ -1,0 +1,38 @@
+{
+  "name": "error-handling-rfc9457",
+  "version": "1.0.0",
+  "description": "RFC 9457 Problem Details for standardized HTTP API error responses",
+
+  "capabilities": {
+    "problem-details": {
+      "keywords": ["problem details", "RFC 9457", "RFC 7807", "structured error"],
+      "solves": ["How to standardize API error responses?", "What format for API errors?"],
+      "reference_file": "SKILL.md#problem-details-schema",
+      "token_cost": 150
+    },
+    "fastapi-errors": {
+      "keywords": ["fastapi exception", "error handler", "HTTPException"],
+      "solves": ["How to handle errors in FastAPI?", "Custom exception handlers"],
+      "reference_file": "SKILL.md#fastapi-integration",
+      "token_cost": 250
+    },
+    "error-registry": {
+      "keywords": ["error registry", "problem types", "error catalog"],
+      "solves": ["How to document all API errors?", "Error type management"],
+      "reference_file": "SKILL.md#error-type-registry",
+      "token_cost": 120
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["RFC.?9457", "RFC.?7807", "problem.?detail", "application/problem\\+json"],
+    "medium_confidence": ["error.?response", "api.?error", "structured.?error", "error.?format"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 65 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 380 },
+    "tier_3_specific": { "files": ["references/rfc9457-spec.md", "checklists/error-handling-checklist.md"], "tokens": 350 },
+    "tier_4_generate": { "files": ["templates/problem-detail-exceptions.py", "examples/fastapi-problem-details.md"], "tokens": 400 }
+  }
+}

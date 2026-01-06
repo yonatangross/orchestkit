@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  61 skills | 11 commands | 20 agents | 29 hooks | 7 plugin bundles
+  68 skills | 11 commands | 20 agents | 29 hooks | 7 plugin bundles
 </p>
 
 ---
@@ -95,10 +95,17 @@ After installation, skills are automatically available when Claude Code detects 
 | Skill | Description |
 |-------|-------------|
 | `api-design-framework` | REST patterns, versioning, error handling, OpenAPI templates |
+| `api-versioning` | URL path, header, content negotiation versioning strategies |
+| `background-jobs` | Celery, ARQ, Redis task queues for async processing |
+| `caching-strategies` | Write-through, cache-aside, Redis invalidation patterns |
+| `clean-architecture` | SOLID principles, hexagonal architecture, DDD tactical patterns |
 | `database-schema-designer` | Normalization, indexing strategies, migration patterns |
+| `error-handling-rfc9457` | RFC 9457 Problem Details for structured API errors |
+| `fastapi-advanced` | Lifespan, dependencies, middleware, settings (2026 patterns) |
+| `rate-limiting` | Token bucket, sliding window, Redis distributed limiting |
+| `resilience-patterns` | Circuit breakers, bulkheads, retry logic, fault tolerance |
 | `streaming-api-patterns` | SSE, WebSockets, ReadableStream APIs, backpressure handling |
 | `type-safety-validation` | Zod + tRPC + Prisma for end-to-end type safety |
-| `resilience-patterns` | Circuit breakers, bulkheads, retry logic, fault tolerance |
 
 ### Frontend Development
 

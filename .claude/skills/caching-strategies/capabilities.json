@@ -1,0 +1,50 @@
+{
+  "name": "caching-strategies",
+  "version": "1.0.0",
+  "description": "Backend caching with Redis: write-through, write-behind, cache-aside, invalidation",
+
+  "capabilities": {
+    "cache-aside": {
+      "keywords": ["cache aside", "lazy loading", "cache miss", "get or set"],
+      "solves": ["How to implement lazy loading cache?", "Cache on read pattern"],
+      "reference_file": "SKILL.md#cache-aside-lazy-loading",
+      "token_cost": 180
+    },
+    "write-through": {
+      "keywords": ["write through", "cache consistency", "synchronous cache"],
+      "solves": ["How to keep cache consistent with database?", "Strong consistency caching"],
+      "reference_file": "SKILL.md#write-through-cache",
+      "token_cost": 150
+    },
+    "write-behind": {
+      "keywords": ["write behind", "write back", "async cache", "batch writes"],
+      "solves": ["High write throughput caching", "Async database writes"],
+      "reference_file": "SKILL.md#write-behind-write-back",
+      "token_cost": 200
+    },
+    "cache-invalidation": {
+      "keywords": ["invalidation", "cache bust", "TTL", "cache tags"],
+      "solves": ["How to invalidate cache?", "When to expire cached data"],
+      "reference_file": "SKILL.md#cache-invalidation-patterns",
+      "token_cost": 220
+    },
+    "stampede-prevention": {
+      "keywords": ["stampede", "thundering herd", "cache lock", "singleflight"],
+      "solves": ["Prevent cache stampede", "Multiple requests hitting DB"],
+      "reference_file": "SKILL.md#cache-stampede-prevention",
+      "token_cost": 170
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["cache.?aside", "write.?through", "write.?behind", "cache.?invalidat", "redis.?cache"],
+    "medium_confidence": ["caching", "cache.?miss", "cache.?hit", "ttl", "expire"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 75 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 420 },
+    "tier_3_specific": { "files": ["references/cache-patterns.md", "checklists/caching-checklist.md"], "tokens": 380 },
+    "tier_4_generate": { "files": ["templates/redis-cache-service.py", "examples/redis-caching-fastapi.md"], "tokens": 400 }
+  }
+}

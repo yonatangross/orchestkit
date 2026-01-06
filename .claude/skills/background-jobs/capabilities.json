@@ -1,0 +1,44 @@
+{
+  "name": "background-jobs",
+  "version": "1.0.0",
+  "description": "Async task processing with Celery, ARQ, and Redis for Python",
+
+  "capabilities": {
+    "arq-tasks": {
+      "keywords": ["arq", "async queue", "redis queue", "background task"],
+      "solves": ["How to run async background tasks in FastAPI?", "Simple Redis job queue"],
+      "reference_file": "SKILL.md#arq-async-redis-queue",
+      "token_cost": 220
+    },
+    "celery-tasks": {
+      "keywords": ["celery", "task queue", "distributed tasks", "worker"],
+      "solves": ["Enterprise task queue", "Complex job workflows"],
+      "reference_file": "SKILL.md#celery-enterprise",
+      "token_cost": 280
+    },
+    "celery-workflows": {
+      "keywords": ["chain", "group", "chord", "celery workflow"],
+      "solves": ["Sequential task execution", "Parallel task processing"],
+      "reference_file": "SKILL.md#chains-and-groups",
+      "token_cost": 150
+    },
+    "periodic-tasks": {
+      "keywords": ["periodic", "scheduled", "cron", "celery beat"],
+      "solves": ["Run tasks on schedule", "Cron-like job scheduling"],
+      "reference_file": "SKILL.md#periodic-tasks-celery-beat",
+      "token_cost": 120
+    }
+  },
+
+  "triggers": {
+    "high_confidence": ["celery", "arq", "background.?task", "job.?queue", "worker"],
+    "medium_confidence": ["async.?task", "queue", "scheduled", "periodic", "offload"]
+  },
+
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 70 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 400 },
+    "tier_3_specific": { "files": ["references/task-queue-patterns.md", "checklists/background-jobs-checklist.md"], "tokens": 380 },
+    "tier_4_generate": { "files": ["templates/arq-worker-template.py", "examples/arq-fastapi.md"], "tokens": 400 }
+  }
+}

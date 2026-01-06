@@ -173,9 +173,11 @@ def create_tokens(user_id: str) -> dict:
 | Authentication | JWT (15min access, 7d refresh), bcrypt (cost=12) |
 | Validation | Pydantic v2 with Field constraints |
 | Database | SQLAlchemy 2.0 async, proper indexes |
-| Rate Limiting | 100/min default, 10/min for auth endpoints |
+| Rate Limiting | Token bucket via SlowAPI + Redis, 100/min default |
 | Response Time | < 200ms p95 for CRUD, < 500ms for complex |
-| Error Handling | RFC 7807 Problem Details format |
+| Error Handling | RFC 9457 Problem Details format |
+| Caching | Redis cache-aside with TTL + invalidation |
+| Architecture | Clean architecture with SOLID principles |
 
 ## Example
 Task: "Create user registration endpoint"
@@ -211,4 +213,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, security-checklist, database-schema-designer, streaming-api-patterns
+- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, error-handling-rfc9457, caching-strategies, background-jobs, api-versioning, fastapi-advanced

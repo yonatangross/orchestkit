@@ -3,7 +3,7 @@
   "displayName": "@skillforge/complete",
   "owner": "yonatangross",
   "version": "1.0.0",
-  "description": "The Complete AI Development Toolkit - 61 skills, 20 agents, 11 commands, 29 hooks",
+  "description": "The Complete AI Development Toolkit - 68 skills, 20 agents, 11 commands, 29 hooks",
   "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
   "license": "MIT",
   "strict": false,
@@ -11,7 +11,7 @@
   "plugins": [
     {
       "name": "complete",
-      "description": "Full toolkit - all 61 skills, 20 agents, 11 commands, 29 hooks",
+      "description": "Full toolkit - all 68 skills, 20 agents, 11 commands, 29 hooks",
       "skills": ["*"],
       "includes_agents": true,
       "includes_commands": true,
@@ -48,10 +48,17 @@
     },
     {
       "name": "backend",
-      "description": "Backend patterns: APIs, databases, streaming, resilience",
+      "description": "Backend patterns: APIs, databases, caching, rate limiting, architecture",
       "skills": [
         "api-design-framework",
+        "api-versioning",
+        "background-jobs",
+        "caching-strategies",
+        "clean-architecture",
         "database-schema-designer",
+        "error-handling-rfc9457",
+        "fastapi-advanced",
+        "rate-limiting",
         "resilience-patterns",
         "streaming-api-patterns",
         "type-safety-validation"
