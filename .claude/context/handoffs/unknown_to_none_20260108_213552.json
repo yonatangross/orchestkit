@@ -1,9 +1,0 @@
-{
-  "from_agent": "unknown",
-  "to_agent": "none",
-  "timestamp": "2026-01-08T19:35:52Z",
-  "summary": "{\"session_id\":\"eba90c94-e81c-4f9a-957a-71947c68be64\",\"transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/eba90c94-e81c-4f9a-957a-71947c68be64.jsonl\",\"cwd\":\"/Users/yonatangross/coding/skillforge-claude-plugin\",\"permission_mode\":\"bypassPermission...",
-  "suggestions": "Pipeline complete or agent not in standard pipeline",
-  "full_output": "{\"session_id\":\"eba90c94-e81c-4f9a-957a-71947c68be64\",\"transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/eba90c94-e81c-4f9a-957a-71947c68be64.jsonl\",\"cwd\":\"/Users/yonatangross/coding/skillforge-claude-plugin\",\"permission_mode\":\"bypassPermissions\",\"hook_event_name\":\"SubagentStop\",\"stop_hook_active\":false,\"agent_id\":\"a01dc70\",\"agent_transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/agent-a01dc70.jsonl\"}",
-  "status": "ready_for_handoff"
-}

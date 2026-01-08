@@ -1,0 +1,64 @@
+{
+  "name": "backend-architecture-enforcer",
+  "version": "1.0.0",
+  "description": "Enforce FastAPI Clean Architecture with blocking validation for layer separation and DI patterns",
+  "capabilities": {
+    "layer-separation": {
+      "keywords": ["router", "service", "repository", "layer", "clean architecture", "separation"],
+      "solves": [
+        "Prevent database operations in routers",
+        "Block business logic in route handlers",
+        "Ensure proper layer boundaries"
+      ],
+      "reference_file": "SKILL.md#validation-rules"
+    },
+    "dependency-injection": {
+      "keywords": ["depends", "dependency injection", "DI", "fastapi depends", "inject"],
+      "solves": [
+        "Enforce use of FastAPI Depends() pattern",
+        "Block direct instantiation in routers",
+        "Ensure testable code structure"
+      ],
+      "reference_file": "SKILL.md#dependency-injection"
+    },
+    "file-naming": {
+      "keywords": ["naming convention", "file name", "router_", "_service", "_repository"],
+      "solves": [
+        "Enforce consistent file naming patterns",
+        "Validate router/service/repository naming",
+        "Maintain codebase consistency"
+      ],
+      "reference_file": "SKILL.md#file-naming-conventions"
+    },
+    "async-patterns": {
+      "keywords": ["async", "await", "sync", "blocking call", "asyncio"],
+      "solves": [
+        "Detect sync calls in async functions",
+        "Prevent blocking operations in async code",
+        "Ensure async consistency"
+      ],
+      "reference_file": "SKILL.md#async-patterns"
+    }
+  },
+  "triggers": {
+    "high_confidence": [
+      "fastapi.*clean.*architecture",
+      "layer.*separation",
+      "router.*service.*repository"
+    ],
+    "medium_confidence": [
+      "backend.*structure",
+      "enforce.*architecture"
+    ]
+  },
+  "integrates_with": [
+    "clean-architecture",
+    "fastapi-advanced",
+    "api-design-framework"
+  ],
+  "auto_trigger": {
+    "on_agent": "backend-system-architect",
+    "when": "writing backend files",
+    "action": "load SKILL.md"
+  }
+}

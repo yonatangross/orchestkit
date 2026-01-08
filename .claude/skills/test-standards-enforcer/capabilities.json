@@ -1,0 +1,73 @@
+{
+  "name": "test-standards-enforcer",
+  "version": "1.0.0",
+  "description": "Enforce testing best practices with blocking validation for AAA pattern, naming, and coverage",
+  "capabilities": {
+    "aaa-pattern": {
+      "keywords": ["AAA", "arrange act assert", "test structure", "test pattern"],
+      "solves": [
+        "Enforce Arrange-Act-Assert pattern",
+        "Ensure clear test structure",
+        "Improve test readability"
+      ],
+      "reference_file": "SKILL.md#aaa-pattern-required"
+    },
+    "test-naming": {
+      "keywords": ["test name", "test naming", "descriptive test", "test description"],
+      "solves": [
+        "Enforce descriptive test names",
+        "Block generic test names like test1",
+        "Improve test documentation"
+      ],
+      "reference_file": "SKILL.md#naming-conventions"
+    },
+    "test-location": {
+      "keywords": ["test location", "test directory", "tests folder", "where tests"],
+      "solves": [
+        "Validate test file placement",
+        "Block tests mixed with source",
+        "Enforce test directory structure"
+      ],
+      "reference_file": "SKILL.md#file-location-rules"
+    },
+    "coverage-threshold": {
+      "keywords": ["coverage", "test coverage", "code coverage", "80%", "threshold"],
+      "solves": [
+        "Enforce minimum 80% coverage",
+        "Block merges with low coverage",
+        "Maintain quality standards"
+      ],
+      "reference_file": "SKILL.md#coverage-threshold"
+    },
+    "test-isolation": {
+      "keywords": ["test isolation", "shared state", "independent tests", "flaky"],
+      "solves": [
+        "Detect shared mutable state",
+        "Ensure test independence",
+        "Prevent flaky tests"
+      ],
+      "reference_file": "SKILL.md#test-isolation"
+    }
+  },
+  "triggers": {
+    "high_confidence": [
+      "test.*standard",
+      "AAA.*pattern",
+      "coverage.*threshold"
+    ],
+    "medium_confidence": [
+      "test.*naming",
+      "test.*location"
+    ]
+  },
+  "integrates_with": [
+    "unit-testing",
+    "integration-testing",
+    "e2e-testing"
+  ],
+  "auto_trigger": {
+    "on_agent": "test-generator",
+    "when": "writing test files",
+    "action": "load SKILL.md"
+  }
+}

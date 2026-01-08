@@ -81,11 +81,14 @@ for p in "${PROTECTED_FILES[@]}"; do
   fi
 done
 
-# 3. Test file location check
+# 3. Test file location check (skip for .claude/ skill/hook files)
 if [[ "$FILE_PATH" == *"test"* ]] || [[ "$FILE_PATH" == *"spec"* ]]; then
-  # Check it's in proper test directory
-  if [[ "$FILE_PATH" != *"/tests/"* ]] && [[ "$FILE_PATH" != *"/__tests__/"* ]] && [[ "$FILE_PATH" != *"/test/"* ]]; then
-    block "Structure" "Test files should be in tests/, __tests__/, or test/ directory"
+  # Skip check for .claude/ directory (skills, hooks, etc. may have "test" in name)
+  if [[ "$FILE_PATH" != *"/.claude/"* ]]; then
+    # Check it's in proper test directory
+    if [[ "$FILE_PATH" != *"/tests/"* ]] && [[ "$FILE_PATH" != *"/__tests__/"* ]] && [[ "$FILE_PATH" != *"/test/"* ]]; then
+      block "Structure" "Test files should be in tests/, __tests__/, or test/ directory"
+    fi
   fi
 fi
 

@@ -1,0 +1,63 @@
+{
+  "name": "project-structure-enforcer",
+  "version": "1.0.0",
+  "description": "Enforce 2026 folder structure standards with blocking validation for nesting depth and import direction",
+  "capabilities": {
+    "folder-structure": {
+      "keywords": ["folder structure", "directory structure", "project layout", "organization"],
+      "solves": [
+        "Enforce feature-based organization",
+        "Validate proper file placement",
+        "Maintain consistent project structure"
+      ],
+      "reference_file": "SKILL.md#expected-folder-structures"
+    },
+    "nesting-depth": {
+      "keywords": ["nesting", "depth", "levels", "max depth", "deep nesting"],
+      "solves": [
+        "Limit directory nesting to 4 levels",
+        "Prevent overly complex structures",
+        "Improve navigability"
+      ],
+      "reference_file": "SKILL.md#nesting-depth-rules"
+    },
+    "import-direction": {
+      "keywords": ["import", "unidirectional", "circular", "dependency direction"],
+      "solves": [
+        "Enforce unidirectional imports",
+        "Prevent circular dependencies",
+        "Maintain clean architecture"
+      ],
+      "reference_file": "SKILL.md#import-direction"
+    },
+    "component-location": {
+      "keywords": ["component location", "file placement", "where to put"],
+      "solves": [
+        "Validate React component placement",
+        "Enforce hook location rules",
+        "Block barrel files"
+      ],
+      "reference_file": "SKILL.md#validation-rules"
+    }
+  },
+  "triggers": {
+    "high_confidence": [
+      "project.*structure",
+      "folder.*organization",
+      "import.*direction"
+    ],
+    "medium_confidence": [
+      "where.*put.*file",
+      "file.*location"
+    ]
+  },
+  "integrates_with": [
+    "clean-architecture",
+    "react-server-components-framework"
+  ],
+  "auto_trigger": {
+    "on_agent": "code-quality-reviewer",
+    "when": "reviewing file structure",
+    "action": "load SKILL.md"
+  }
+}
