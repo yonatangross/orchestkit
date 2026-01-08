@@ -7,6 +7,10 @@ set -euo pipefail
 # Analysis: Run .claude/scripts/analyze_errors.py nightly (cron)
 # Cost: $0 - No LLM, just logging
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 # Get tool execution details

@@ -3,6 +3,10 @@ set -euo pipefail
 # Context Injector - Injects relevant context into user prompts
 # Hook: UserPromptSubmit
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 PROMPT=$(get_field '.prompt')

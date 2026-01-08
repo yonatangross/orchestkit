@@ -18,16 +18,33 @@ fi
 HOOK_LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
 mkdir -p "$HOOK_LOG_DIR" 2>/dev/null
 
-# Read and cache hook input from stdin (with timeout to prevent hanging)
-_HOOK_INPUT=""
-read_hook_input() {
-  if [[ -z "$_HOOK_INPUT" ]]; then
-    # Use read with timeout - works on macOS and Linux
-    # -t 1 = 1 second timeout, -d '' = read until null (entire input)
+# Hook input caching
+# IMPORTANT: Scripts must call init_hook_input BEFORE any $(get_field ...) calls
+# because command substitution runs in subshells that can't share variables.
+_HOOK_INPUT="${_HOOK_INPUT:-}"
+
+# Initialize hook input - MUST be called at top of script before any get_field calls
+# Usage: init_hook_input (reads from stdin)
+# Usage: init_hook_input "$existing_data" (uses provided data)
+init_hook_input() {
+  if [[ -n "${1:-}" ]]; then
+    # Use provided data
+    _HOOK_INPUT="$1"
+  elif [[ -z "$_HOOK_INPUT" ]]; then
+    # Read from stdin with timeout
     if ! IFS= read -r -t 2 -d '' _HOOK_INPUT 2>/dev/null; then
       # Timeout or EOF reached - that's fine, use what we got
       :
     fi
+  fi
+  export _HOOK_INPUT
+}
+
+# Legacy function - now just returns cached input
+read_hook_input() {
+  # If not initialized, try to initialize (backwards compatibility)
+  if [[ -z "$_HOOK_INPUT" ]]; then
+    init_hook_input
   fi
   echo "$_HOOK_INPUT"
 }
@@ -359,5 +376,5 @@ list_chains() {
 }
 
 # Export functions for subshells
-export -f read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error
+export -f init_hook_input read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error
 export -f get_chain_config is_chain_enabled execute_chain pass_output_to_next get_chain_status list_chains

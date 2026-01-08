@@ -3,6 +3,10 @@ set -euo pipefail
 # Auto-Approve Project Writes - Auto-approves writes within project directory
 # Hook: PermissionRequest (Write|Edit)
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 FILE_PATH=$(get_field '.tool_input.file_path')

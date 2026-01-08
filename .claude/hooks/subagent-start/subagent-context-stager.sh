@@ -8,6 +8,10 @@ set -euo pipefail
 # 2. Stages relevant context files based on the task description
 # 3. Returns systemMessage with staged context
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 SUBAGENT_TYPE=$(get_field '.subagent_type')

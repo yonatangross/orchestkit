@@ -7,16 +7,16 @@ set -euo pipefail
 # Read input from stdin
 INPUT=$(cat)
 
-# Extract parameters - use raw output to preserve newlines
-FILE_PATH=$(echo "$INPUT" | jq -r '.params.file_path // ""')
-CONTENT=$(echo "$INPUT" | jq -r '.params.content // ""')
-TOOL_NAME=$(echo "$INPUT" | jq -r '.toolName // "unknown"')
+# Extract parameters (using correct Claude Code field names)
+FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // ""')
+CONTENT=$(echo "$INPUT" | jq -r '.tool_input.content // ""')
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
 ORIGINAL_CONTENT="$CONTENT"
 
 # Only process Write tool (not Edit - those are existing files)
 if [[ "$TOOL_NAME" != "Write" ]]; then
   jq -n \
-    --argjson params "$(echo "$INPUT" | jq '.params')" \
+    --argjson params "$(echo "$INPUT" | jq '.tool_input')" \
     '{
       decision: "allow",
       updatedInput: $params
@@ -27,7 +27,7 @@ fi
 # Check if file already exists (skip header if it does)
 if [[ -f "$FILE_PATH" ]]; then
   jq -n \
-    --argjson params "$(echo "$INPUT" | jq '.params')" \
+    --argjson params "$(echo "$INPUT" | jq '.tool_input')" \
     '{
       decision: "allow",
       updatedInput: $params

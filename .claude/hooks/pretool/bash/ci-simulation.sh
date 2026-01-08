@@ -3,6 +3,10 @@ set -euo pipefail
 # CI Simulation Hook - Reminds to run CI checks before commits
 # Hook: PreToolUse (Bash)
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../../_lib/common.sh"
 
 COMMAND=$(get_field '.tool_input.command')

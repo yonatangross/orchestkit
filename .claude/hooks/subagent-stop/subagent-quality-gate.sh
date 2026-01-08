@@ -3,6 +3,10 @@ set -euo pipefail
 # Subagent Quality Gate - Validates subagent output quality
 # Hook: SubagentStop
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 AGENT_ID=$(get_field '.agent_id')

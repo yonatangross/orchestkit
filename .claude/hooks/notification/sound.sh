@@ -3,6 +3,10 @@ set -euo pipefail
 # Sound Notifications - Plays sounds for task completion
 # Hook: Notification
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 MESSAGE=$(get_field '.message')

@@ -3,6 +3,10 @@ set -euo pipefail
 # Playwright Safety - Validates browser automation operations
 # Hook: PreToolUse (mcp__playwright__*)
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../../_lib/common.sh"
 
 TOOL_NAME=$(get_tool_name)

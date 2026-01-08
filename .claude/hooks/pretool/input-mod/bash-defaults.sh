@@ -7,10 +7,10 @@ set -euo pipefail
 # Read input from stdin
 INPUT=$(cat)
 
-# Extract parameters
-COMMAND=$(echo "$INPUT" | jq -r '.params.command // ""')
-TIMEOUT=$(echo "$INPUT" | jq -r '.params.timeout // "null"')
-DESCRIPTION=$(echo "$INPUT" | jq -r '.params.description // ""')
+# Extract parameters (using correct Claude Code field names)
+COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
+TIMEOUT=$(echo "$INPUT" | jq -r '.tool_input.timeout // "null"')
+DESCRIPTION=$(echo "$INPUT" | jq -r '.tool_input.description // ""')
 
 # Dangerous command patterns
 DANGEROUS_PATTERNS=(

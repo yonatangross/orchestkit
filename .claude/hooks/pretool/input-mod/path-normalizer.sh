@@ -7,9 +7,9 @@ set -euo pipefail
 # Read input from stdin
 INPUT=$(cat)
 
-# Extract tool name and parameters
-TOOL_NAME=$(echo "$INPUT" | jq -r '.toolName // "unknown"')
-PARAMS=$(echo "$INPUT" | jq -r '.params // {}')
+# Extract tool name and parameters (using correct Claude Code field names)
+TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // "unknown"')
+PARAMS=$(echo "$INPUT" | jq -r '.tool_input // {}')
 
 # Function to normalize a single path
 normalize_path() {

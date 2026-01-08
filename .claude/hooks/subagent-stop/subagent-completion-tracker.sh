@@ -9,6 +9,10 @@ set -euo pipefail
 # Subagent TYPE tracking is done in PreToolUse (subagent-validator.sh)
 # This hook only logs completion events for session correlation.
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 SESSION_ID=$(get_session_id)

@@ -9,6 +9,10 @@ set -euo pipefail
 # 3. Sets up environment variables for the subagent
 # 4. Returns JSON with optional systemMessage for context injection
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 SUBAGENT_TYPE=$(get_field '.subagent_type')
