@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Skill Tracker - Logs Skill tool invocations
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (Skill)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -22,11 +23,11 @@ echo "$(date -Iseconds) | $SKILL_NAME | ${SKILL_ARGS:-no args}" >> "$USAGE_LOG"
 info "Invoking skill: $SKILL_NAME"
 
 # ANSI colors for consolidated output
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Format: Skill: ✓ Tracked
-MSG="${CYAN}Skill:${RESET} ${GREEN}✓${RESET} Tracked"
-echo "{\"systemMessage\":\"$MSG\"}"
+MSG="${GREEN}✓${RESET} Skill tracked"
+echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
 exit 0

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Subagent Validator - Source of truth for subagent tracking
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (Task)
 #
 # This is the ONLY place we track subagent usage because:
@@ -58,11 +59,11 @@ fi
 info "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
 
 # ANSI colors for consolidated output
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Format: Task: ✓ Subagent
-MSG="${CYAN}Task:${RESET} ${GREEN}✓${RESET} Subagent"
-echo "{\"systemMessage\":\"$MSG\"}"
+MSG="${GREEN}✓${RESET} Subagent validated"
+echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
 exit 0

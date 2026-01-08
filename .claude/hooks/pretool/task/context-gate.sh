@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Context Gate - Pre-Tool Hook for Task
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Prevents context overflow by limiting concurrent background agents
 #
 # Strategy:
@@ -176,13 +177,13 @@ Proceeding with: $subagent_type - $description
   log_hook "Context gate passed: $subagent_type"
 
   # ANSI colors for consolidated output
-  GREEN='\033[32m'
-  CYAN='\033[36m'
-  RESET='\033[0m'
+  GREEN=$'\033[32m'
+  CYAN=$'\033[36m'
+  RESET=$'\033[0m'
 
   # Format: Task: ✓ Gate
-  MSG="${CYAN}Task:${RESET} ${GREEN}✓${RESET} Gate"
-  echo "{\"systemMessage\":\"$MSG\"}"
+  MSG="${GREEN}✓${RESET} Context gate passed"
+  echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
   exit 0
 }
 

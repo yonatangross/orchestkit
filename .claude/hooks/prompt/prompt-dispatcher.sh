@@ -1,5 +1,6 @@
 #!/bin/bash
 # UserPromptSubmit Dispatcher - Runs all prompt hooks and outputs combined status
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Consolidates: context-injector, todo-enforcer
 set -euo pipefail
 
@@ -11,9 +12,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS=()
 
 # ANSI colors
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Helper to run a hook
 run_hook() {
@@ -39,14 +40,14 @@ run_hook "Todo" "$SCRIPT_DIR/todo-enforcer.sh"
 # Build combined output
 if [[ ${#RESULTS[@]} -gt 0 ]]; then
   # Format: Prompt: ✓ Check1 | ✓ Check2
-  MSG="${CYAN}Prompt:${RESET}"
+  MSG=""
   for i in "${!RESULTS[@]}"; do
     if [[ $i -gt 0 ]]; then
-      MSG="$MSG |"
+      MSG="$MSG | "
     fi
-    MSG="$MSG ${GREEN}✓${RESET} ${RESULTS[$i]}"
+    MSG="$MSG${GREEN}✓${RESET} ${RESULTS[$i]}"
   done
-  echo "{\"systemMessage\": \"$MSG\"}"
+  echo "{\"systemMessage\": \"$MSG\", \"continue\": true}"
 fi
 
 exit 0

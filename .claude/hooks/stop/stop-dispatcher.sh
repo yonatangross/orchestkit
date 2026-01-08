@@ -1,5 +1,6 @@
 #!/bin/bash
 # Stop Dispatcher - Runs all stop hooks and outputs combined status
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Consolidates: task-completion-check, auto-save-context
 set -euo pipefail
 
@@ -7,9 +8,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESULTS=()
 
 # ANSI colors
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Helper to run a hook
 run_hook() {
@@ -29,20 +30,20 @@ run_hook() {
 }
 
 # Run stop hooks in order
-run_hook "Tasks" "$SCRIPT_DIR/task-completion-check.sh"
-run_hook "Context" "$SCRIPT_DIR/auto-save-context.sh"
+run_hook "Tasks checked" "$SCRIPT_DIR/task-completion-check.sh"
+run_hook "Context saved" "$SCRIPT_DIR/auto-save-context.sh"
 
 # Build combined output
 if [[ ${#RESULTS[@]} -gt 0 ]]; then
   # Format: Stop: ✓ Check1 | ✓ Check2
-  MSG="${CYAN}Stop:${RESET}"
+  MSG=""
   for i in "${!RESULTS[@]}"; do
     if [[ $i -gt 0 ]]; then
-      MSG="$MSG |"
+      MSG="$MSG | "
     fi
-    MSG="$MSG ${GREEN}✓${RESET} ${RESULTS[$i]}"
+    MSG="$MSG${GREEN}✓${RESET} ${RESULTS[$i]}"
   done
-  echo "{\"systemMessage\": \"$MSG\"}"
+  echo "{\"systemMessage\": \"$MSG\", \"continue\": true}"
 fi
 
 exit 0

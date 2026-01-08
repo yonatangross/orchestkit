@@ -10,20 +10,23 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # Read stdin (the agent's output)
 OUTPUT=$(cat)
 
-# Define pipeline sequences
-declare -A NEXT_AGENT
-NEXT_AGENT["market-intelligence"]="product-strategist"
-NEXT_AGENT["product-strategist"]="prioritization-analyst"
-NEXT_AGENT["prioritization-analyst"]="requirements-translator"
-NEXT_AGENT["requirements-translator"]="backend-system-architect"
-NEXT_AGENT["backend-system-architect"]="database-engineer"
-NEXT_AGENT["database-engineer"]="frontend-ui-developer"
-NEXT_AGENT["frontend-ui-developer"]="test-generator"
-NEXT_AGENT["test-generator"]="code-quality-reviewer"
-NEXT_AGENT["code-quality-reviewer"]="security-auditor"
+# Get next agent in pipeline using case statement (Bash 3.2 compatible)
+get_next_agent() {
+    case "$1" in
+        "market-intelligence") echo "product-strategist" ;;
+        "product-strategist") echo "prioritization-analyst" ;;
+        "prioritization-analyst") echo "requirements-translator" ;;
+        "requirements-translator") echo "backend-system-architect" ;;
+        "backend-system-architect") echo "database-engineer" ;;
+        "database-engineer") echo "frontend-ui-developer" ;;
+        "frontend-ui-developer") echo "test-generator" ;;
+        "test-generator") echo "code-quality-reviewer" ;;
+        "code-quality-reviewer") echo "security-auditor" ;;
+        *) echo "none" ;;
+    esac
+}
 
-# Get next agent in pipeline
-NEXT="${NEXT_AGENT[$AGENT_NAME]:-none}"
+NEXT=$(get_next_agent "$AGENT_NAME")
 
 # Extract key information from output
 OUTPUT_LENGTH=${#OUTPUT}
@@ -90,7 +93,7 @@ jq -n \
     }' > "$HANDOFF_FILE"
 
 # Create system message
-SYSTEM_MESSAGE="🤝 Handoff Prepared
+SYSTEM_MESSAGE="Handoff Prepared
 From: $AGENT_NAME
 To: $NEXT
 Timestamp: $TIMESTAMP

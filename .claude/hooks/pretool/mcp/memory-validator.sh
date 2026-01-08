@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Memory Validator - Warns on destructive memory operations
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (mcp__memory__*)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -27,11 +28,11 @@ This operation cannot be undone."
 fi
 
 # ANSI colors for consolidated output
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Format: Memory: ✓ Validated
-MSG="${CYAN}Memory:${RESET} ${GREEN}✓${RESET} Validated"
-echo "{\"systemMessage\":\"$MSG\"}"
+MSG="${GREEN}✓${RESET} Memory validated"
+echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
 exit 0

@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Playwright Safety - Validates browser automation operations
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (mcp__playwright__*)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -28,11 +29,11 @@ if [[ "$TOOL_NAME" == "mcp__playwright__browser_file_upload" ]]; then
 fi
 
 # ANSI colors for consolidated output
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Format: Playwright: ✓ Safe
-MSG="${CYAN}Playwright:${RESET} ${GREEN}✓${RESET} Safe"
-echo "{\"systemMessage\":\"$MSG\"}"
+MSG="${GREEN}✓${RESET} Browser safe"
+echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
 exit 0

@@ -1,7 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 # Context7 Tracker - Logs library documentation lookups
-# Hook: PostToolUse (mcp__context7__*)
+# CC 2.1.1 Compliant: includes continue field in all outputs
+# Hook: PreToolUse (mcp__context7__*)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
 _HOOK_INPUT=$(cat)
@@ -26,11 +27,11 @@ if [[ "$TOOL_NAME" == "mcp__context7__get-library-docs" ]]; then
 fi
 
 # ANSI colors for consolidated output
-GREEN='\033[32m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 # Format: Context7: ✓ Tracked
-MSG="${CYAN}Context7:${RESET} ${GREEN}✓${RESET} Tracked"
-echo "{\"systemMessage\":\"$MSG\"}"
+MSG="${GREEN}✓${RESET} Docs lookup tracked"
+echo "{\"systemMessage\":\"$MSG\", \"continue\": true}"
 exit 0

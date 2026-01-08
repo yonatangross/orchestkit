@@ -13,7 +13,7 @@ CHAIN_CONFIG="${SCRIPT_DIR}/chain-config.json"
 CHAIN_LOG_FILE="${HOOK_LOG_DIR}/chain-execution.log"
 
 # Colors for chain execution output
-CHAIN_COLOR='\033[0;35m'  # Magenta for chain info
+CHAIN_COLOR=$'\033[0;35m'  # Magenta for chain info
 
 # Log chain execution
 log_chain() {

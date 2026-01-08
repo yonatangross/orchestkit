@@ -1,5 +1,6 @@
 #!/bin/bash
 # PreToolUse Dispatcher - Runs all pre-tool checks and outputs combined status
+# CC 2.1.1 Compliant: includes continue field in all outputs
 # Consolidates multiple hooks into single message
 set -euo pipefail
 
@@ -11,10 +12,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh"
 
 # ANSI colors
-GREEN='\033[32m'
-RED='\033[31m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+RED=$'\033[31m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 TOOL_NAME=$(get_tool_name)
 RESULTS=()
@@ -79,19 +80,19 @@ esac
 # Build output
 if [[ ${#RESULTS[@]} -gt 0 ]]; then
   # Format: ToolName: ✓ Check1 | ✓ Check2 | ✓ Check3
-  MSG="${CYAN}${TOOL_NAME}:${RESET}"
+  MSG=""
   for i in "${!RESULTS[@]}"; do
     if [[ $i -gt 0 ]]; then
-      MSG="$MSG |"
+      MSG="$MSG | "
     fi
-    MSG="$MSG ${GREEN}✓${RESET} ${RESULTS[$i]}"
+    MSG="$MSG${GREEN}✓${RESET} ${RESULTS[$i]}"
   done
 
   if [[ -n "$UPDATED_INPUT" ]]; then
     # Return the updated input with combined message
-    echo "$UPDATED_INPUT" | jq --arg msg "$MSG" '.systemMessage = $msg'
+    echo "$UPDATED_INPUT" | jq --arg msg "$MSG" '.systemMessage = $msg | .continue = true'
   else
-    echo "{\"systemMessage\": \"$MSG\"}"
+    echo "{\"systemMessage\": \"$MSG\", \"continue\": true}"
   fi
 fi
 

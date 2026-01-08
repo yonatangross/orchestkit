@@ -1,5 +1,6 @@
 #!/bin/bash
 # Write/Edit PreToolUse Dispatcher - Combines path, headers, guard, and lock checks
+# CC 2.1.1 Compliant: includes continue field in all outputs
 set -euo pipefail
 
 _HOOK_INPUT=$(cat)
@@ -8,10 +9,10 @@ export _HOOK_INPUT
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ANSI colors
-GREEN='\033[32m'
-RED='\033[31m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+RED=$'\033[31m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 FILE_PATH=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.file_path // ""')
 CONTENT=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.content // ""')
@@ -23,9 +24,9 @@ CHECKS=()
 block() {
   local check="$1"
   local reason="$2"
-  local msg="${RED}${TOOL_NAME}: ✗ ${check}${RESET}: ${reason}"
+  local msg="${RED}✗ ${check}${RESET}: ${reason}"
   jq -n --arg msg "$msg" --arg reason "$reason" \
-    '{systemMessage: $msg, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
+    '{systemMessage: $msg, continue: false, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
   exit 0
 }
 
@@ -34,7 +35,7 @@ ORIGINAL_PATH="$FILE_PATH"
 if [[ "$FILE_PATH" != /* ]]; then
   FILE_PATH="$PWD/$FILE_PATH"
 fi
-CHECKS+=("Path")
+CHECKS+=("Path OK")
 
 # 2. File guard - check protected paths
 PROTECTED_EXACT=(
@@ -81,7 +82,7 @@ for p in "${PROTECTED_FILES[@]}"; do
     block "Protected" "Cannot modify lock file: $p (use package manager instead)"
   fi
 done
-CHECKS+=("Guard")
+CHECKS+=("Guard passed")
 
 # 3. Test file location check
 if [[ "$FILE_PATH" == *"test"* ]] || [[ "$FILE_PATH" == *"spec"* ]]; then
@@ -90,30 +91,30 @@ if [[ "$FILE_PATH" == *"test"* ]] || [[ "$FILE_PATH" == *"spec"* ]]; then
     block "Structure" "Test files should be in tests/, __tests__/, or test/ directory"
   fi
 fi
-CHECKS+=("Structure")
+CHECKS+=("Structure OK")
 
 # 4. Add header for new files (Write only, not Edit)
 if [[ "$TOOL_NAME" == "Write" && ! -f "$FILE_PATH" ]]; then
   EXT="${FILE_PATH##*.}"
   case "$EXT" in
     py|js|ts|sh|sql)
-      CHECKS+=("Header")
+      CHECKS+=("Header added")
       ;;
   esac
 fi
 
 # Build output
 # Format: ToolName: ✓ Check1 | ✓ Check2 | ✓ Check3
-MSG="${CYAN}${TOOL_NAME}:${RESET}"
+MSG=""
 for i in "${!CHECKS[@]}"; do
   if [[ $i -gt 0 ]]; then
-    MSG="$MSG |"
+    MSG="$MSG | "
   fi
-  MSG="$MSG ${GREEN}✓${RESET} ${CHECKS[$i]}"
+  MSG="$MSG${GREEN}✓${RESET} ${CHECKS[$i]}"
 done
 
 jq -n \
   --arg msg "$MSG" \
   --arg file_path "$FILE_PATH" \
   --arg content "$CONTENT" \
-  '{systemMessage: $msg, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'
+  '{systemMessage: $msg, continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'

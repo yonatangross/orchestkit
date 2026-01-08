@@ -1,5 +1,6 @@
 #!/bin/bash
 # PostToolUse Dispatcher - Runs all post-tool checks and outputs combined status
+# CC 2.1.1 Compliant: includes continue field in all outputs
 set -euo pipefail
 
 _HOOK_INPUT=$(cat)
@@ -9,10 +10,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh" 2>/dev/null || true
 
 # ANSI colors
-GREEN='\033[32m'
-YELLOW='\033[33m'
-CYAN='\033[36m'
-RESET='\033[0m'
+GREEN=$'\033[32m'
+YELLOW=$'\033[33m'
+CYAN=$'\033[36m'
+RESET=$'\033[0m'
 
 TOOL_NAME=$(echo "$_HOOK_INPUT" | jq -r '.tool_name // "unknown"')
 TOOL_RESULT=$(echo "$_HOOK_INPUT" | jq -r '.tool_result // ""')
@@ -47,19 +48,19 @@ run_check() {
 }
 
 # Run core checks
-run_check "Audit" "$SCRIPT_DIR/audit-logger.sh"
+run_check "Audit logged" "$SCRIPT_DIR/audit-logger.sh"
 run_check "Metrics" "$SCRIPT_DIR/session-metrics.sh"
 
 # Tool-specific checks
 case "$TOOL_NAME" in
   Write|Edit)
-    run_check "Lock" "$SCRIPT_DIR/write-edit/file-lock-release.sh"
-    run_check "Patterns" "$SCRIPT_DIR/../skill/test-pattern-validator.sh"
-    run_check "Imports" "$SCRIPT_DIR/../skill/import-direction-enforcer.sh"
-    run_check "Layers" "$SCRIPT_DIR/../skill/backend-layer-validator.sh"
+    run_check "Lock released" "$SCRIPT_DIR/write-edit/file-lock-release.sh"
+    run_check "Patterns OK" "$SCRIPT_DIR/../skill/test-pattern-validator.sh"
+    run_check "Imports OK" "$SCRIPT_DIR/../skill/import-direction-enforcer.sh"
+    run_check "Layers OK" "$SCRIPT_DIR/../skill/backend-layer-validator.sh"
     ;;
   Bash)
-    run_check "Errors" "$SCRIPT_DIR/error-tracker.sh"
+    run_check "Errors checked" "$SCRIPT_DIR/error-tracker.sh"
     # Check if command failed
     if [[ "$TOOL_RESULT" == *"error"* ]] || [[ "$TOOL_RESULT" == *"Error"* ]]; then
       WARNINGS+=("Command may have errors")
@@ -74,17 +75,17 @@ esac
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   # Show warnings prominently
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
-  echo "{\"systemMessage\": \"${YELLOW}⚠ ${TOOL_NAME}: ${WARN_MSG}${RESET}\"}"
+  echo "{\"systemMessage\": \"${YELLOW}⚠ ${WARN_MSG}${RESET}\", \"continue\": true}"
 elif [[ ${#CHECKS[@]} -gt 0 ]]; then
   # Format: ToolName: ✓ Check1 | ✓ Check2 | ✓ Check3
-  MSG="${CYAN}${TOOL_NAME}:${RESET}"
+  MSG=""
   for i in "${!CHECKS[@]}"; do
     if [[ $i -gt 0 ]]; then
-      MSG="$MSG |"
+      MSG="$MSG | "
     fi
-    MSG="$MSG ${GREEN}✓${RESET} ${CHECKS[$i]}"
+    MSG="$MSG${GREEN}✓${RESET} ${CHECKS[$i]}"
   done
-  echo "{\"systemMessage\": \"$MSG\"}"
+  echo "{\"systemMessage\": \"$MSG\", \"continue\": true}"
 fi
 
 exit 0
