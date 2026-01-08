@@ -212,4 +212,6 @@ main() {
     log "Multi-instance cleanup completed"
 }
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Multi-instance cleaned up"}'
 main "$@"

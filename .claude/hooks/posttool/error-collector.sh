@@ -108,4 +108,6 @@ if [[ "$IS_ERROR" == "true" ]]; then
   log_hook "ERROR captured: $TOOL_NAME - $ERROR_TYPE - ${ERROR_MESSAGE:0:100}"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Errors collected"}'
 exit 0

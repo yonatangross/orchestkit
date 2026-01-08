@@ -174,6 +174,8 @@ Proceeding with: $subagent_type - $description
 
   # Allow the agent to proceed
   log_hook "Context gate passed: $subagent_type"
+  # Output systemMessage for user visibility
+  echo '{"systemMessage":"Context gate passed"}'
   exit 0
 }
 

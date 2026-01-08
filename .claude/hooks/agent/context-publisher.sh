@@ -84,4 +84,6 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
 # Return system message
 echo "$SYSTEM_MESSAGE"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Context published"}'
 exit 0

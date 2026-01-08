@@ -43,4 +43,6 @@ echo "Active Claude Code instances: ${ACTIVE_INSTANCES}" >&2
 # Log session start decision
 coord_log_decision "architecture" "Session started" "New Claude Code session initiated" "local" >/dev/null
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Coordination initialized"}'
 exit 0

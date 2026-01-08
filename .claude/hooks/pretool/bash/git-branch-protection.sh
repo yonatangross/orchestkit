@@ -50,4 +50,6 @@ Aborting command to protect $CURRENT_BRANCH branch."
 fi
 
 # Allow other git operations (fetch, pull, status, etc.)
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Branch protection checked"}'
 exit 0

@@ -25,4 +25,6 @@ echo ""
 echo "========================================"
 echo "::endgroup::"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Review summary generated"}'
 exit 0

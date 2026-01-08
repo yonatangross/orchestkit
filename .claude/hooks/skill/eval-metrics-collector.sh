@@ -34,4 +34,6 @@ echo ""
 echo "Evaluation complete - review metrics above"
 echo "::endgroup::"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Eval metrics collected"}'
 exit 0

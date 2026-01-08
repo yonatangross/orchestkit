@@ -41,4 +41,6 @@ echo "Update shared-context.json with quality_evidence."
 echo "========================================"
 echo "::endgroup::"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Evidence collected"}'
 exit 0

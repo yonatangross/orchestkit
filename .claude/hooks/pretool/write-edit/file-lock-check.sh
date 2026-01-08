@@ -63,4 +63,6 @@ if ! coord_detect_conflict "${FILE_PATH}"; then
   echo "This may indicate concurrent edits. Consider reviewing changes." >&2
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"File lock checked"}'
 exit 0

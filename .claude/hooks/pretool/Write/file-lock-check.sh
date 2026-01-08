@@ -45,20 +45,19 @@ HOLDER_BRANCH=$(echo "$HOLDER_INFO" | jq -r '.branch // "unknown"')
 HOLDER_TASK=$(echo "$HOLDER_INFO" | jq -r '.task // "unknown task"')
 LOCK_REASON=$(echo "$LOCK_INFO" | jq -r '.reason // "editing"')
 
-# Output block message
-cat << EOF
-{
-  "decision": "block",
-  "reason": "File is locked by another Claude Code instance",
-  "details": {
-    "file": "$FILE_PATH",
-    "locked_by": "$LOCK_HOLDER",
-    "branch": "$HOLDER_BRANCH",
-    "task": "$HOLDER_TASK",
-    "lock_reason": "$LOCK_REASON"
-  },
-  "suggestion": "Wait for the other instance to finish, or use /worktree-release to force release the lock"
-}
-EOF
+# Output block message using correct hookSpecificOutput schema
+jq -n \
+  --arg file "$FILE_PATH" \
+  --arg holder "$LOCK_HOLDER" \
+  --arg branch "$HOLDER_BRANCH" \
+  --arg task "$HOLDER_TASK" \
+  --arg reason "$LOCK_REASON" \
+  '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: ("File is locked by instance " + $holder + " on branch " + $branch + " for: " + $task + ". Wait or use /worktree-release to force release.")
+    }
+  }'
 
-exit 2
+exit 0

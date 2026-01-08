@@ -42,4 +42,6 @@ fi
 echo "Migration file is valid"
 echo "::endgroup::"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Migration validated"}'
 exit 0

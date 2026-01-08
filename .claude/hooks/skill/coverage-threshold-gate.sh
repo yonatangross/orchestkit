@@ -113,4 +113,6 @@ if [[ $COVERAGE_INT -lt $THRESHOLD ]]; then
 fi
 
 echo "Coverage gate passed: ${COVERAGE}% (threshold: ${THRESHOLD}%)"
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Coverage threshold checked"}'
 exit 0

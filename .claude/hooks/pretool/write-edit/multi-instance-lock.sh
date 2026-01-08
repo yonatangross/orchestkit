@@ -234,9 +234,9 @@ EOF
     acquire_lock "$FILE_PATH" "Modifying via $TOOL_NAME"
     log "Lock acquired: $FILE_PATH (expires: $EXPIRES_AT)"
 
-    # Add lock info to the output for tracking
+    # Add lock info and systemMessage to the output
     echo "$INPUT" | jq --arg lock_id "$LOCK_ID" --arg expires "$EXPIRES_AT" \
-        '. + {"_coordination": {"lock_id": $lock_id, "expires_at": $expires}}'
+        '. + {"systemMessage": "Lock acquired", "_coordination": {"lock_id": $lock_id, "expires_at": $expires}}'
 }
 
 main

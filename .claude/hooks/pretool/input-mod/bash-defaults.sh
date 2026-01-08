@@ -42,21 +42,21 @@ check_dangerous() {
 # Check if command is dangerous
 if check_dangerous "$COMMAND"; then
   echo "[bash-defaults] BLOCKED dangerous command: $COMMAND" >&2
-  jq -n '{
-    decision: "deny",
-    reason: "Dangerous command detected",
-    metadata: {
-      hook: "bash-defaults",
-      blocked_command: $cmd
+  jq -n --arg cmd "$COMMAND" '{
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "deny",
+      permissionDecisionReason: ("Dangerous command blocked: " + $cmd)
     }
-  }' --arg cmd "$COMMAND"
+  }'
   exit 0
 fi
 
 # Add default timeout if not specified (120 seconds = 2 minutes)
 if [[ "$TIMEOUT" == "null" ]]; then
   TIMEOUT=120000
-  echo "[bash-defaults] Added default timeout: 120000ms" >&2
+  # Log to file instead of stderr to avoid "hook error" display
+  # echo "[bash-defaults] Added default timeout: 120000ms" >> "${CLAUDE_PROJECT_DIR:-.}/.claude/logs/hooks.log" 2>/dev/null || true
 fi
 
 # Build updated params
@@ -69,15 +69,14 @@ UPDATED_PARAMS=$(jq -n \
     timeout: $timeout
   } + (if $description != "" then {description: $description} else {} end)')
 
-# Output decision with updated parameters
+# Output decision with systemMessage for user visibility
 jq -n \
   --argjson params "$UPDATED_PARAMS" \
   '{
-    decision: "allow",
-    updatedInput: $params,
-    metadata: {
-      hook: "bash-defaults",
-      version: "1.0.0",
-      timeout_added: true
+    systemMessage: "Bash defaults applied",
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      updatedInput: $params
     }
   }'

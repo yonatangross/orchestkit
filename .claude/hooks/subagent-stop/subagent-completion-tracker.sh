@@ -18,4 +18,6 @@ source "$(dirname "$0")/../_lib/common.sh"
 SESSION_ID=$(get_session_id)
 log_hook "Subagent completed (session: $SESSION_ID)"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Subagent completion tracked"}'
 exit 0

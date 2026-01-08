@@ -18,4 +18,6 @@ echo "  2. Create issues for critical/high"
 echo "  3. Update dependencies with CVEs"
 echo "========================================"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Security summary generated"}'
 exit 0

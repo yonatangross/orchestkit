@@ -50,4 +50,6 @@ To mark checks as run: touch /tmp/claude-ci-checks-run
 
 EOF
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"CI simulation checked"}'
 exit 0

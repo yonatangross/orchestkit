@@ -27,4 +27,6 @@ if [[ "$TOOL_NAME" == "mcp__playwright__browser_file_upload" ]]; then
   log_hook "File upload: $PATHS"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Playwright safety checked"}'
 exit 0

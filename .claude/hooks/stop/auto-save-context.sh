@@ -20,4 +20,6 @@ if [[ -f "$CONTEXT_FILE" ]]; then
   log_hook "Updated context timestamp"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Context saved"}'
 exit 0

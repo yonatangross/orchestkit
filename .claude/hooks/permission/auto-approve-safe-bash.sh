@@ -49,7 +49,8 @@ SAFE_PATTERNS=(
 for pattern in "${SAFE_PATTERNS[@]}"; do
   if [[ "$COMMAND" =~ $pattern ]]; then
     log_hook "Auto-approved: matches safe pattern '$pattern'"
-    echo '{"decision": "allow", "reason": "Safe command pattern auto-approved"}'
+    # Use decision.message for user-visible status
+    echo '{"decision":{"behavior":"allow","message":"Safe command auto-approved"}}'
     exit 0
   fi
 done

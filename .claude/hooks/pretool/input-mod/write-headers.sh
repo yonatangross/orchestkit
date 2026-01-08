@@ -18,8 +18,11 @@ if [[ "$TOOL_NAME" != "Write" ]]; then
   jq -n \
     --argjson params "$(echo "$INPUT" | jq '.tool_input')" \
     '{
-      decision: "allow",
-      updatedInput: $params
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        updatedInput: $params
+      }
     }'
   exit 0
 fi
@@ -29,8 +32,11 @@ if [[ -f "$FILE_PATH" ]]; then
   jq -n \
     --argjson params "$(echo "$INPUT" | jq '.tool_input')" \
     '{
-      decision: "allow",
-      updatedInput: $params
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        updatedInput: $params
+      }
     }'
   exit 0
 fi
@@ -118,27 +124,31 @@ $rest"
 if [[ "$CONTENT" != *"SkillForge"* ]]; then
   UPDATED_CONTENT=$(add_header "$EXTENSION" "$CONTENT")
   HEADER_ADDED="true"
-  echo "[write-headers] Added header to new file: $FILE_PATH" >&2
+  # Silent operation - log to file if needed instead of stderr (causes "hook error" display)
 else
   UPDATED_CONTENT="$CONTENT"
   HEADER_ADDED="false"
 fi
 
-# Output decision with updated content
-# Use jq to properly escape the content
+# Output decision with systemMessage for user visibility
+if [[ "$HEADER_ADDED" == "true" ]]; then
+  MSG="Header added to new file"
+else
+  MSG="File processed"
+fi
+
 jq -n \
   --arg file_path "$FILE_PATH" \
   --arg content "$UPDATED_CONTENT" \
-  --arg header_added "$HEADER_ADDED" \
+  --arg msg "$MSG" \
   '{
-    decision: "allow",
-    updatedInput: {
-      file_path: $file_path,
-      content: $content
-    },
-    metadata: {
-      hook: "write-headers",
-      version: "1.0.0",
-      header_added: ($header_added == "true")
+    systemMessage: $msg,
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      updatedInput: {
+        file_path: $file_path,
+        content: $content
+      }
     }
   }'

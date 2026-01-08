@@ -49,4 +49,6 @@ esac
 
 echo "[$TIMESTAMP] $TOOL_NAME ${DETAILS:+| $DETAILS}" >> "$AUDIT_LOG"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Audit logged"}'
 exit 0

@@ -21,4 +21,6 @@ echo "$(date -Iseconds) | $SKILL_NAME | ${SKILL_ARGS:-no args}" >> "$USAGE_LOG"
 # Info message
 info "Invoking skill: $SKILL_NAME"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Skill tracked"}'
 exit 0

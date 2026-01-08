@@ -15,4 +15,6 @@ fi
 # Update heartbeat (lightweight operation)
 coord_heartbeat 2>/dev/null || true
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Heartbeat sent"}'
 exit 0

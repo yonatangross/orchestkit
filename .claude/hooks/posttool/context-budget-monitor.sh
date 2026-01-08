@@ -146,8 +146,8 @@ monitor_budget() {
         log "Context usage within budget. No compression needed."
     fi
 
-    # Output status for hook chain
-    echo "{\"tokens\": $current_tokens, \"budget\": $BUDGET_TOTAL, \"usage\": $usage_ratio}"
+    # Output status with systemMessage for user visibility
+    echo "{\"systemMessage\": \"Context budget: ${usage_percent}%\", \"tokens\": $current_tokens, \"budget\": $BUDGET_TOTAL, \"usage\": $usage_ratio}"
 }
 
 # Execute

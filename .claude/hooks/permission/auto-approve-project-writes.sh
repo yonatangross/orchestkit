@@ -39,7 +39,8 @@ if [[ "$FILE_PATH" == "$CLAUDE_PROJECT_DIR"* ]]; then
   done
 
   log_hook "Auto-approved: within project directory"
-  echo '{"decision": "allow", "reason": "Project file write auto-approved"}'
+  # Use decision.message for user-visible status
+  echo '{"decision":{"behavior":"allow","message":"Project write auto-approved"}}'
   exit 0
 fi
 

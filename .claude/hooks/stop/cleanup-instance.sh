@@ -39,4 +39,6 @@ main() {
     log "Instance unregistered. Released locks on: ${locked_files:-none}"
 }
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Instance cleaned up"}'
 main

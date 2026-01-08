@@ -297,4 +297,6 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     echo "" >&2
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Cross-instance tests validated"}'
 exit 0

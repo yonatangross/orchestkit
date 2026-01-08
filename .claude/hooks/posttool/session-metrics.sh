@@ -39,4 +39,6 @@ fi
   fi
 ) 200>"$LOCKFILE" 2>/dev/null || true
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Metrics updated"}'
 exit 0

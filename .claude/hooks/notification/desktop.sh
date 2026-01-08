@@ -14,12 +14,13 @@ export _HOOK_INPUT
 source "$(dirname "$0")/../_lib/common.sh"
 
 MESSAGE=$(get_field '.message')
-LEVEL=$(get_field '.level')
+NOTIFICATION_TYPE=$(get_field '.notification_type')
 
-log_hook "Notification: [$LEVEL] $MESSAGE"
+log_hook "Notification: [$NOTIFICATION_TYPE] $MESSAGE"
 
-# Only show desktop notifications for important events
-if [[ "$LEVEL" == "error" ]] || [[ "$LEVEL" == "warning" ]]; then
+# Show desktop notifications for permission prompts and idle prompts
+# Valid notification_type values: permission_prompt, idle_prompt, auth_success, elicitation_dialog
+if [[ "$NOTIFICATION_TYPE" == "permission_prompt" ]] || [[ "$NOTIFICATION_TYPE" == "idle_prompt" ]]; then
   # Escape message for safe shell interpolation (HI-001 fix)
   # Replace backslashes first, then double quotes
   SAFE_MESSAGE="${MESSAGE//\\/\\\\}"

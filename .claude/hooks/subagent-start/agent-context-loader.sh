@@ -156,4 +156,6 @@ main() {
 }
 
 # Execute
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Agent context loaded"}'
 main "$@"

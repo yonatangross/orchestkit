@@ -250,4 +250,6 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     echo "These are warnings - review before committing" >&2
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Duplicates checked"}'
 exit 0

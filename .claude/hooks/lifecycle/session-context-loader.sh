@@ -27,4 +27,6 @@ if [[ -f "$STATUS_FILE" ]]; then
   log_hook "Current status document exists"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Session context loaded"}'
 exit 0

@@ -31,4 +31,6 @@ if [[ -n "$TOOL_ERROR" ]] || [[ "$EXIT_CODE" != "0" && "$EXIT_CODE" != "" && "$E
   echo "[$TIMESTAMP] $TOOL_NAME | exit: $EXIT_CODE | ${TOOL_ERROR:0:200}" >> "$ERROR_LOG"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Errors tracked"}'
 exit 0

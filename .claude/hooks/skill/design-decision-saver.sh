@@ -18,4 +18,6 @@ echo "  - /database-schema-designer (if schema was designed)"
 echo ""
 echo "::endgroup::"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Design decision saved"}'
 exit 0

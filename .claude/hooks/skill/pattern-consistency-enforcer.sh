@@ -287,4 +287,6 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     echo "Review warnings to ensure consistency across codebase" >&2
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Patterns enforced"}'
 exit 0

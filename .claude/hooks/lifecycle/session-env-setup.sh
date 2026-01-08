@@ -37,4 +37,6 @@ if [[ -n "$BRANCH" ]]; then
   log_hook "Git branch: $BRANCH"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Session env setup"}'
 exit 0

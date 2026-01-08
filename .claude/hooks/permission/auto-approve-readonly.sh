@@ -13,7 +13,7 @@ TOOL_NAME=$(get_tool_name)
 
 log_hook "Auto-approving readonly: $TOOL_NAME"
 
-# Return JSON to allow the operation
-echo '{"decision": "allow", "reason": "Read-only operations are auto-approved"}'
+# Use decision.message for user-visible status
+echo '{"decision":{"behavior":"allow","message":"Readonly auto-approved"}}'
 
 exit 0

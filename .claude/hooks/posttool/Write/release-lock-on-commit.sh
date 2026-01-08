@@ -22,4 +22,6 @@ fi
 # This hook runs after Write tool - we don't release locks here
 # Locks are released on session end or explicit release
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Commit lock released"}'
 exit 0

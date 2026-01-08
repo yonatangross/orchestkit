@@ -56,7 +56,7 @@ update_path_param() {
     # Only update if path changed
     if [[ "$normalized_path" != "$original_path" ]]; then
       PARAMS=$(echo "$PARAMS" | jq --arg path "$normalized_path" ".$param_name = \$path")
-      echo "[path-normalizer] Normalized $param_name: $original_path -> $normalized_path" >&2
+      # Silent operation - log to file if needed instead of stderr (causes "hook error" display)
     fi
   fi
 }
@@ -71,14 +71,14 @@ case "$TOOL_NAME" in
     ;;
 esac
 
-# Output decision with updated parameters
+# Output decision with systemMessage for user visibility
 jq -n \
   --argjson params "$PARAMS" \
   '{
-    decision: "allow",
-    updatedInput: $params,
-    metadata: {
-      hook: "path-normalizer",
-      version: "1.0.0"
+    systemMessage: "Path normalized",
+    hookSpecificOutput: {
+      hookEventName: "PreToolUse",
+      permissionDecision: "allow",
+      updatedInput: $params
     }
   }'

@@ -133,4 +133,6 @@ if [[ "$FILE_PATH" =~ \.py$ ]] && [[ "$FILE_PATH" =~ (tests/|/test/) ]]; then
     fi
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Test location validated"}'
 exit 0

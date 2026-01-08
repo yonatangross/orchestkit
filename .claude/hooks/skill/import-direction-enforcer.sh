@@ -203,4 +203,6 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
     exit 1
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Import direction enforced"}'
 exit 0

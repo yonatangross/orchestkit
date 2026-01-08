@@ -57,4 +57,6 @@ fi
 
 info "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Subagent validated"}'
 exit 0

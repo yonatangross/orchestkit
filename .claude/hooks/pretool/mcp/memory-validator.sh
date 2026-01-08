@@ -26,4 +26,6 @@ Relations: ${RELATIONS:-N/A}
 This operation cannot be undone."
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Memory validated"}'
 exit 0

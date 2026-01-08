@@ -25,4 +25,6 @@ if [[ "$TOOL_NAME" == "mcp__context7__get-library-docs" ]]; then
   echo "$(date -Iseconds) | docs | $LIBRARY_ID | $TOPIC" >> "/tmp/claude-context7-usage.log"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Context7 tracked"}'
 exit 0

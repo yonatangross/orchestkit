@@ -14,8 +14,9 @@ readonly LOCK_TIMEOUT=300        # 5 minutes
 readonly HEARTBEAT_TIMEOUT=300   # 5 minutes
 readonly STALE_CHECK_INTERVAL=60 # 1 minute
 
-# Paths
-COORD_DIR="${CLAUDE_PROJECT_DIR}/.claude/coordination"
+# Paths (use current directory as fallback if CLAUDE_PROJECT_DIR is unset)
+_PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
+COORD_DIR="${_PROJECT_DIR}/.claude/coordination"
 REGISTRY_FILE="${COORD_DIR}/work-registry.json"
 DECISIONS_FILE="${COORD_DIR}/decision-log.json"
 LOCKS_DIR="${COORD_DIR}/locks"
@@ -24,6 +25,43 @@ HEARTBEATS_DIR="${COORD_DIR}/heartbeats"
 # Instance identity (set once per session)
 INSTANCE_ID=""
 INSTANCE_PID=$$
+# Cross-platform file locking helper
+# Usage: with_lock "lockfile" command args...
+# Falls back to simple lockfile approach on macOS where flock is unavailable
+_with_lock() {
+  local lockfile="$1"
+  shift
+  
+  if command -v flock >/dev/null 2>&1; then
+    # Linux: use flock
+    (
+      command -v flock >/dev/null 2>&1 && flock -x 200 || true
+      "$@"
+    ) 200>"${lockfile}"
+  else
+    # macOS fallback: simple lockfile approach
+    local max_wait=30
+    local waited=0
+    while [[ -f "${lockfile}.held" ]] && [[ ${waited} -lt ${max_wait} ]]; do
+      sleep 0.1
+      ((waited++)) || true
+    done
+    
+    # Create lock
+    echo "$$" > "${lockfile}.held" 2>/dev/null || true
+    
+    # Execute command
+    "$@"
+    local result=$?
+    
+    # Release lock
+    rm -f "${lockfile}.held" 2>/dev/null || true
+    
+    return ${result}
+  fi
+}
+
+
 
 # Initialize coordination system
 coord_init() {
@@ -90,7 +128,7 @@ EOF
 
   # Use jq to add instance to registry (atomic update with file lock)
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg wtree "${CLAUDE_PROJECT_DIR}" \
@@ -139,7 +177,7 @@ coord_unregister_instance() {
 
   # Remove from registry
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg now "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
@@ -174,7 +212,7 @@ coord_heartbeat() {
 
   # Update registry heartbeat timestamp
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg now "${now}" \
@@ -230,7 +268,7 @@ coord_cleanup_stale_instances() {
 
       # Remove from registry
       (
-        flock -x 200
+        command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
         jq --arg iid "${stale_iid}" \
            --arg now "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
@@ -347,7 +385,7 @@ EOF
 
   # Add to registry
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg fpath "${rel_path}" \
@@ -396,7 +434,7 @@ coord_release_lock() {
 
   # Remove from registry
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg fpath "${rel_path}" \
@@ -461,7 +499,7 @@ coord_release_all_locks() {
 
   # Clear from registry
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg iid "${INSTANCE_ID}" \
        --arg now "$(date -u +"%Y-%m-%dT%H:%M:%SZ")" \
@@ -582,7 +620,7 @@ coord_log_decision() {
 
   # Append to decision log (atomic)
   (
-    flock -x 200
+    command -v flock >/dev/null 2>&1 && flock -x 200 || true
 
     jq --arg did "${dec_id}" \
        --arg ts "${now}" \

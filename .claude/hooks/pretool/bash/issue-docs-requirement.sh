@@ -59,4 +59,6 @@ TODO: Create docs/issues/${ISSUE_NUM}-<description>/README.md
 EOF
 
 # Allow branch creation - docs can be created after
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Docs requirement checked"}'
 exit 0

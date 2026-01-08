@@ -1,0 +1,197 @@
+#!/bin/bash
+# cc-worktree-remove: Remove a Claude Code worktree and clean up coordination
+#
+# Usage: cc-worktree-remove <feature-name|worktree-path> [options]
+#
+# Removes a git worktree and:
+# - Unregisters instance from coordination registry
+# - Releases any file locks held by the instance
+# - Optionally deletes the feature branch
+#
+# Version: 1.0.0
+# Part of SkillForge Multi-Worktree Coordination System
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m' # No Color
+
+# Parse arguments
+TARGET=""
+DELETE_BRANCH=false
+FORCE=false
+WORKTREE_BASE="${CC_WORKTREE_BASE:-$HOME/worktrees}"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --delete-branch|-d)
+            DELETE_BRANCH=true
+            shift
+            ;;
+        --force|-f)
+            FORCE=true
+            shift
+            ;;
+        --worktree-base)
+            WORKTREE_BASE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            cat << EOF
+Usage: cc-worktree-remove <feature-name|worktree-path> [options]
+
+Removes a git worktree and cleans up coordination artifacts.
+
+Options:
+  -d, --delete-branch     Also delete the git branch
+  -f, --force             Force removal even if worktree has changes
+  --worktree-base <path>  Directory for worktrees (default: ~/worktrees)
+  -h, --help              Show this help message
+
+Environment Variables:
+  CC_WORKTREE_BASE        Default worktree base directory
+
+Examples:
+  cc-worktree-remove user-auth
+  cc-worktree-remove user-auth --delete-branch
+  cc-worktree-remove /path/to/worktree --force
+EOF
+            exit 0
+            ;;
+        *)
+            TARGET="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$TARGET" ]]; then
+    echo -e "${RED}Error: Feature name or worktree path required${NC}"
+    echo "Usage: cc-worktree-remove <feature-name|worktree-path>"
+    exit 1
+fi
+
+# Get repo root
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo -e "${RED}Error: Not in a git repository${NC}"
+    exit 1
+}
+
+COORDINATION_DIR="$REPO_ROOT/.claude/coordination"
+
+# Determine worktree path
+if [[ -d "$TARGET" ]]; then
+    # Target is a path
+    WORKTREE_PATH="$TARGET"
+elif [[ -d "$WORKTREE_BASE/$(basename "$REPO_ROOT")/$TARGET" ]]; then
+    # Target is a feature name
+    WORKTREE_PATH="$WORKTREE_BASE/$(basename "$REPO_ROOT")/$TARGET"
+else
+    echo -e "${RED}Error: Worktree not found: $TARGET${NC}"
+    echo ""
+    echo "Available worktrees:"
+    git worktree list
+    exit 1
+fi
+
+# Verify it's a valid worktree
+if ! git worktree list | grep -q "$WORKTREE_PATH"; then
+    echo -e "${RED}Error: '$WORKTREE_PATH' is not a registered git worktree${NC}"
+    exit 1
+fi
+
+# Get instance ID if available
+INSTANCE_ID=""
+if [[ -f "$WORKTREE_PATH/.claude-local/instance-id.txt" ]]; then
+    INSTANCE_ID=$(cat "$WORKTREE_PATH/.claude-local/instance-id.txt")
+fi
+
+# Get branch name
+BRANCH_NAME=$(git -C "$WORKTREE_PATH" branch --show-current 2>/dev/null || echo "")
+
+echo -e "${BLUE}Removing worktree: ${CYAN}$WORKTREE_PATH${NC}"
+if [[ -n "$INSTANCE_ID" ]]; then
+    echo -e "  Instance ID: ${CYAN}$INSTANCE_ID${NC}"
+fi
+if [[ -n "$BRANCH_NAME" ]]; then
+    echo -e "  Branch: ${CYAN}$BRANCH_NAME${NC}"
+fi
+echo ""
+
+# Stop heartbeat if running
+if [[ -f "$WORKTREE_PATH/.claude-local/heartbeat.pid" ]]; then
+    HEARTBEAT_PID=$(cat "$WORKTREE_PATH/.claude-local/heartbeat.pid" 2>/dev/null || echo "")
+    if [[ -n "$HEARTBEAT_PID" ]] && kill -0 "$HEARTBEAT_PID" 2>/dev/null; then
+        echo -e "  ${YELLOW}Stopping heartbeat process (PID: $HEARTBEAT_PID)${NC}"
+        kill "$HEARTBEAT_PID" 2>/dev/null || true
+    fi
+fi
+
+# Unregister from coordination registry
+if [[ -f "$COORDINATION_DIR/registry.json" ]] && [[ -n "$INSTANCE_ID" ]]; then
+    echo -e "  ${YELLOW}Removing from coordination registry...${NC}"
+    REGISTRY=$(cat "$COORDINATION_DIR/registry.json")
+
+    # Count locks that will be released
+    LOCK_COUNT=$(echo "$REGISTRY" | jq --arg id "$INSTANCE_ID" '[.file_locks | to_entries[] | select(.value.instance_id == $id)] | length')
+
+    # Remove instance and its locks
+    UPDATED=$(echo "$REGISTRY" | jq --arg id "$INSTANCE_ID" \
+        'del(.instances[$id]) |
+         .file_locks = (.file_locks | to_entries | map(select(.value.instance_id != $id)) | from_entries)')
+    echo "$UPDATED" > "$COORDINATION_DIR/registry.json"
+
+    if [[ "$LOCK_COUNT" -gt 0 ]]; then
+        echo -e "    ${GREEN}Released $LOCK_COUNT file lock(s)${NC}"
+    fi
+fi
+
+# Remove git worktree
+echo -e "  ${YELLOW}Removing git worktree...${NC}"
+if [[ "$FORCE" == "true" ]]; then
+    git worktree remove "$WORKTREE_PATH" --force
+else
+    if ! git worktree remove "$WORKTREE_PATH" 2>/dev/null; then
+        echo -e "${RED}Error: Worktree has uncommitted changes. Use --force to override.${NC}"
+        exit 1
+    fi
+fi
+
+# Prune worktree metadata
+git worktree prune
+
+# Delete branch if requested
+if [[ "$DELETE_BRANCH" == "true" ]] && [[ -n "$BRANCH_NAME" ]]; then
+    echo -e "  ${YELLOW}Deleting branch: $BRANCH_NAME${NC}"
+
+    # Check if branch is fully merged
+    if git branch --merged main 2>/dev/null | grep -q "$BRANCH_NAME"; then
+        git branch -d "$BRANCH_NAME" 2>/dev/null || true
+    else
+        if [[ "$FORCE" == "true" ]]; then
+            git branch -D "$BRANCH_NAME" 2>/dev/null || true
+        else
+            echo -e "${YELLOW}  Warning: Branch '$BRANCH_NAME' is not fully merged.${NC}"
+            echo -e "${YELLOW}  Use --force to delete unmerged branches.${NC}"
+        fi
+    fi
+fi
+
+# Success message
+echo ""
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║  Worktree Removed Successfully                                        ║${NC}"
+echo -e "${GREEN}╠══════════════════════════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC}  Worktree:     ${CYAN}$WORKTREE_PATH${NC}"
+if [[ -n "$INSTANCE_ID" ]]; then
+echo -e "${GREEN}║${NC}  Instance ID:  ${CYAN}$INSTANCE_ID${NC} (unregistered)"
+fi
+if [[ "$DELETE_BRANCH" == "true" ]] && [[ -n "$BRANCH_NAME" ]]; then
+echo -e "${GREEN}║${NC}  Branch:       ${CYAN}$BRANCH_NAME${NC} (deleted)"
+fi
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"

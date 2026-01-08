@@ -201,4 +201,6 @@ compress_context() {
 }
 
 # Execute
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Context compressed"}'
 compress_context

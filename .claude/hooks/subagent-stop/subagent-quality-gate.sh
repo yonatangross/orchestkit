@@ -29,4 +29,6 @@ if [[ -n "$ERROR" && "$ERROR" != "null" ]]; then
   fi
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Subagent quality checked"}'
 exit 0

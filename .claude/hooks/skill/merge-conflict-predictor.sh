@@ -299,4 +299,6 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
 fi
 
 # Don't block, just warn
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Merge conflicts predicted"}'
 exit 0

@@ -336,4 +336,6 @@ main() {
 }
 
 # Run main
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Multi-instance initialized"}'
 main "$@"

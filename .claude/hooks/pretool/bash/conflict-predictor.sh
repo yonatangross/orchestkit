@@ -90,4 +90,6 @@ if [[ -n "$CONFLICTS" ]]; then
 fi
 
 # Always allow the commit (this is just a warning)
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Conflicts predicted"}'
 exit 0

@@ -41,4 +41,6 @@ if [[ "$FILE" == *test*.ts ]] || [[ "$FILE" == *spec*.ts ]] || \
   echo "::endgroup::"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Tests run"}'
 exit 0

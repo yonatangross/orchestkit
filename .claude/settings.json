@@ -6,31 +6,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/input-mod/bash-defaults.sh",
-            "statusMessage": "Adding bash defaults..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/git-branch-protection.sh",
-            "statusMessage": "Checking branch protection..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/issue-docs-requirement.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/ci-simulation.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash-dispatcher.sh"
           }
         ]
       },
       {
-        "matcher": "Read|Write|Edit|Glob|Grep",
+        "matcher": "Read|Glob|Grep",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/input-mod/path-normalizer.sh",
-            "statusMessage": "Normalizing file paths..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/input-mod/path-normalizer.sh"
           }
         ]
       },
@@ -39,33 +24,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/input-mod/write-headers.sh",
-            "statusMessage": "Adding file headers..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-edit/file-guard.sh",
-            "statusMessage": "Checking file permissions..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-edit/file-lock-check.sh",
-            "statusMessage": "Checking file locks..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/test-location-validator.sh",
-            "statusMessage": "Validating test location..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/structure-location-validator.sh",
-            "statusMessage": "Validating folder structure..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/backend-file-naming.sh",
-            "statusMessage": "Validating backend naming..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-dispatcher.sh"
           }
         ]
       },
@@ -74,8 +33,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/task/context-gate.sh",
-            "statusMessage": "Checking context budget..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/task/context-gate.sh"
           },
           {
             "type": "command",
@@ -126,53 +84,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/audit-logger.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/session-metrics.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/error-tracker.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/write-edit/file-lock-release.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/test-pattern-validator.sh",
-            "statusMessage": "Validating test patterns..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/import-direction-enforcer.sh",
-            "statusMessage": "Validating import direction..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/backend-layer-validator.sh",
-            "statusMessage": "Validating backend layers..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/di-pattern-enforcer.sh",
-            "statusMessage": "Validating dependency injection..."
-          }
-        ]
-      },
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/coordination-heartbeat.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/dispatcher.sh"
           }
         ]
       }
@@ -211,11 +123,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/context-injector.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/todo-enforcer.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/prompt-dispatcher.sh"
           }
         ]
       }
@@ -225,17 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/coordination-init.sh",
-            "statusMessage": "Initializing coordination..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/session-context-loader.sh",
-            "statusMessage": "Loading session context..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/session-env-setup.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/startup-dispatcher.sh"
           }
         ]
       }
@@ -263,11 +161,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/task-completion-check.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/auto-save-context.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/stop-dispatcher.sh"
           }
         ]
       }
@@ -277,13 +171,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-resource-allocator.sh",
-            "statusMessage": "Allocating resources for subagent..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-resource-allocator.sh"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-context-stager.sh",
-            "statusMessage": "Staging context for subagent..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-context-stager.sh"
           }
         ]
       }
@@ -301,8 +193,7 @@
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/coverage-threshold-gate.sh",
-            "statusMessage": "Checking coverage threshold..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/coverage-threshold-gate.sh"
           }
         ]
       }

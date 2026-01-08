@@ -48,4 +48,6 @@ main() {
     fi
 }
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Heartbeat sent"}'
 main

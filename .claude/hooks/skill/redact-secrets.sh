@@ -18,4 +18,7 @@ if echo "$CC_TOOL_OUTPUT" | grep -qiE \
   echo "::warning::Potential hardcoded credential in output"
 fi
 
+
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Secrets checked"}'
 exit 0  # Don't block, just warn

@@ -45,4 +45,6 @@ fi
 # Release lock
 coord_release_lock "${FILE_PATH}"
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Lock released"}'
 exit 0

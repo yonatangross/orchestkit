@@ -76,4 +76,6 @@ while IFS= read -r rule; do
   fi
 done < <(jq -c '.rules[]?' "$RULES_FILE" 2>/dev/null || echo "")
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Error patterns checked"}'
 exit 0

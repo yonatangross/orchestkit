@@ -44,4 +44,6 @@ if [[ "$IS_COMPLEX" == "true" ]]; then
   log_hook "Complex task detected - todo tracking recommended"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Todo enforced"}'
 exit 0
