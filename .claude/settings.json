@@ -26,6 +26,21 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-edit/file-guard.sh",
             "statusMessage": "Checking file permissions..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/test-location-validator.sh",
+            "statusMessage": "Validating test location..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/structure-location-validator.sh",
+            "statusMessage": "Validating folder structure..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/backend-file-naming.sh",
+            "statusMessage": "Validating backend naming..."
           }
         ]
       },
@@ -90,6 +105,31 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/error-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/test-pattern-validator.sh",
+            "statusMessage": "Validating test patterns..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/import-direction-enforcer.sh",
+            "statusMessage": "Validating import direction..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/backend-layer-validator.sh",
+            "statusMessage": "Validating backend layers..."
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/di-pattern-enforcer.sh",
+            "statusMessage": "Validating dependency injection..."
           }
         ]
       }
@@ -190,6 +230,11 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-stop/subagent-quality-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/coverage-threshold-gate.sh",
+            "statusMessage": "Checking coverage threshold..."
           }
         ]
       }
