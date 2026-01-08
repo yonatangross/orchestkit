@@ -92,7 +92,7 @@ jobs:
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/security/test-command-injection.sh
-          bash tests/security/test-jq-filter-injection.sh
+          bash tests/security/test-jq-injection.sh
           bash tests/security/test-path-traversal.sh
           bash tests/security/test-unicode-attacks.sh
           bash tests/security/test-symlink-attacks.sh
