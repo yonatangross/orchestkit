@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Up-to-date documentation for frameworks and libraries",
+      "env": {}
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-sequential-thinking"],
+      "description": "Complex reasoning and architectural decision support",
+      "env": {}
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-memory"],
+      "description": "Cross-session memory and context persistence",
+      "env": {
+        "MEMORY_FILE": ".claude/memory/memory.json"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-playwright"],
+      "description": "Browser automation for e2e testing and content capture",
+      "env": {},
+      "disabled": true
+    }
+  }
+}

@@ -1,6 +1,9 @@
 ---
 name: rate-limiting
 description: API rate limiting with token bucket, sliding window, and Redis distributed patterns. Use when protecting APIs from abuse, implementing tiered limits, or scaling rate limiting across instances.
+context: fork
+agent: backend-system-architect
+model: sonnet
 version: 1.0.0
 tags: [rate-limiting, redis, token-bucket, fastapi, security, 2026]
 ---

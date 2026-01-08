@@ -1,6 +1,9 @@
 ---
 name: langfuse-observability
 description: Use when adding observability to LLM applications with Langfuse. Covers tracing, evaluation, prompt management, and cost tracking for self-hosted deployments.
+context: fork
+agent: metrics-architect
+model: sonnet
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2025]

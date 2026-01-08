@@ -1,0 +1,140 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "motion-animation-patterns",
+  "version": "1.0.0",
+  "description": "Motion (Framer Motion) animations for React 19 applications with centralized presets, page transitions, modals, stagger lists, and RTL support",
+
+  "capabilities": {
+    "animation-presets": {
+      "keywords": ["animation", "motion", "preset", "fadeIn", "slideUp", "scaleIn"],
+      "solves": [
+        "How do I create consistent animations?",
+        "What animation presets are available?",
+        "Where should I define animations?"
+      ],
+      "reference_file": "SKILL.md#animation-presets-library",
+      "token_cost": 200
+    },
+    "page-transitions": {
+      "keywords": ["page", "transition", "route", "navigation", "AnimatePresence"],
+      "solves": [
+        "How do I animate page transitions?",
+        "Add route change animations",
+        "AnimatePresence for page exits"
+      ],
+      "reference_file": "SKILL.md#page-transitions",
+      "token_cost": 180
+    },
+    "modal-animations": {
+      "keywords": ["modal", "dialog", "overlay", "backdrop", "entrance", "exit"],
+      "solves": [
+        "How do I animate modals?",
+        "Dialog entrance/exit animations",
+        "Backdrop fade effects"
+      ],
+      "reference_file": "SKILL.md#modal-dialog-patterns",
+      "token_cost": 150
+    },
+    "stagger-animations": {
+      "keywords": ["stagger", "list", "children", "delay", "sequence"],
+      "solves": [
+        "How do I stagger list animations?",
+        "Animate children sequentially",
+        "List item entrance effects"
+      ],
+      "reference_file": "SKILL.md#staggered-list-animations",
+      "token_cost": 160
+    },
+    "hover-interactions": {
+      "keywords": ["hover", "tap", "whileHover", "whileTap", "micro-interaction"],
+      "solves": [
+        "How do I add hover effects?",
+        "Button press animations",
+        "Micro-interactions for buttons"
+      ],
+      "reference_file": "SKILL.md#hover-and-tap-interactions",
+      "token_cost": 120
+    },
+    "skeleton-loaders": {
+      "keywords": ["skeleton", "loading", "pulse", "placeholder", "shimmer"],
+      "solves": [
+        "How do I create skeleton loaders?",
+        "Animated loading placeholders",
+        "Pulse animation for loading states"
+      ],
+      "reference_file": "SKILL.md#skeleton-loading-states",
+      "token_cost": 140
+    },
+    "rtl-animations": {
+      "keywords": ["rtl", "ltr", "hebrew", "arabic", "direction", "i18n"],
+      "solves": [
+        "How do I handle RTL animations?",
+        "Direction-aware slide animations",
+        "Hebrew/Arabic animation support"
+      ],
+      "reference_file": "SKILL.md#rtl-aware-animations",
+      "token_cost": 130
+    },
+    "collapse-expand": {
+      "keywords": ["collapse", "expand", "accordion", "height", "auto"],
+      "solves": [
+        "How do I animate height changes?",
+        "Accordion expand/collapse",
+        "Animate to auto height"
+      ],
+      "reference_file": "SKILL.md#collapse-expand-patterns",
+      "token_cost": 140
+    }
+  },
+
+  "triggers": {
+    "high_confidence": [
+      "motion animation",
+      "framer motion",
+      "animate.*component",
+      "page transition",
+      "modal animation",
+      "stagger.*list"
+    ],
+    "medium_confidence": [
+      "hover effect",
+      "loading skeleton",
+      "fade.*in",
+      "slide.*up",
+      "entrance animation"
+    ]
+  },
+
+  "integrates_with": [
+    "react-server-components-framework",
+    "design-system-starter",
+    "i18n-date-patterns",
+    "performance-optimization"
+  ],
+
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100,
+      "use_when": "Initial task analysis - determine if animations are needed"
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 450,
+      "use_when": "Skill confirmed relevant - need animation patterns overview"
+    },
+    "tier_3_specific": {
+      "files": "references/*.md",
+      "tokens": "200-300 each",
+      "use_when": "Need specific animation preset details"
+    }
+  },
+
+  "mcp_tools": {
+    "documentation_lookup": {
+      "tool": "context7",
+      "library_ids": ["framer/motion"],
+      "use_when": "Need latest Motion API documentation"
+    }
+  }
+}

@@ -1,6 +1,9 @@
 ---
 name: type-safety-validation
 description: Use when adding runtime validation, type-safe APIs, or end-to-end TypeScript safety. Covers Zod schemas, tRPC, Prisma, and exhaustive type checking patterns.
+context: fork
+agent: frontend-ui-developer
+model: sonnet
 version: 1.1.0
 author: AI Agent Hub
 tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types, 2025]

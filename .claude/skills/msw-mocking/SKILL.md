@@ -1,6 +1,9 @@
 ---
 name: msw-mocking
 description: Mock Service Worker (MSW) 2.x for API mocking. Use when testing frontend components with network mocking, simulating API errors, or creating deterministic API responses in tests.
+context: fork
+agent: test-generator
+model: sonnet
 version: 2.0.0
 tags: [msw, testing, mocking, frontend, 2026]
 ---

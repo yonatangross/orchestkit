@@ -1,9 +1,26 @@
 ---
 name: architecture-decision-record
 description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Helps teams maintain architectural memory and rationale for backend systems, API designs, database choices, and infrastructure decisions.
-version: 1.0.0
+version: 2.0.0
 author: AI Agent Hub
 tags: [architecture, documentation, decision-making, backend]
+context: fork
+agent: backend-system-architect
+model: opus
+hooks:
+  Stop:
+    - command: |
+        echo "::group::ADR Creation Complete"
+        echo "Architecture Decision Record created."
+        echo ""
+        echo "Next steps:"
+        echo "  1. Review with team stakeholders"
+        echo "  2. Update status to 'Accepted' after approval"
+        echo "  3. Link ADR in implementation PR"
+        echo "  4. Update status to 'Implemented' after deployment"
+        echo ""
+        echo "Store ADRs in: /docs/adr/ or /architecture/decisions/"
+        echo "::endgroup::"
 ---
 
 # Architecture Decision Record
@@ -52,27 +69,6 @@ Current state of the decision:
 - Current state of the system
 - Forces at play (conflicting concerns)
 
-**Example:**
-```markdown
-## Context
-
-Our monolithic application is experiencing scalability issues:
-- Database connection pool exhausted during peak traffic
-- Deployment of any feature requires full application restart
-- Teams blocked waiting for shared resources
-- 45-minute build times impacting developer productivity
-
-Business requirements:
-- Support 10x traffic growth over next 12 months
-- Enable independent team deployments
-- Improve time-to-market for new features
-
-Technical constraints:
-- Team familiar with Node.js and Python
-- AWS infrastructure already in place
-- Budget for 2 senior devops engineers
-```
-
 ### 4. Decision
 **What to include:**
 - The choice being made
@@ -84,66 +80,11 @@ Technical constraints:
 - ✅ "We will adopt microservices architecture using Node.js with Express"
 - ❌ "We will consider using microservices"
 
-**Example:**
-```markdown
-## Decision
-
-We will migrate from our monolithic architecture to microservices using:
-
-**Technology Stack:**
-- Node.js 20+ with Express for service implementation
-- PostgreSQL for transactional data (per service)
-- Redis for caching and session management
-- RabbitMQ for async communication between services
-- Docker + Kubernetes for deployment orchestration
-
-**Service Boundaries:**
-- User Service: Authentication, profiles, preferences
-- Order Service: Order processing, payment integration
-- Inventory Service: Product catalog, stock management
-- Notification Service: Email, SMS, push notifications
-
-**Migration Strategy:**
-- Strangler Fig pattern: Gradually extract services from monolith
-- Start with Notification Service (lowest risk, clear boundaries)
-- Complete migration within 6 months (Q1-Q2 2026)
-
-**Responsibility:**
-- Backend Architect: Service design and API contracts
-- DevOps Team: Kubernetes setup and deployment pipelines
-- Team Leads: Migration execution per service
-```
-
 ### 5. Consequences
 **What to include:**
 - Positive outcomes (benefits)
 - Negative outcomes (costs, risks, trade-offs)
 - Neutral outcomes (things that change but aren't clearly better/worse)
-
-**Be honest about trade-offs:**
-```markdown
-## Consequences
-
-### Positive
-- **Scalability**: Each service can scale independently based on load
-- **Development Velocity**: Teams can deploy services without coordination
-- **Technology Freedom**: Services can use different tech stacks if needed
-- **Fault Isolation**: Failure in one service doesn't crash entire system
-- **Faster Build Times**: Services build in 2-5 minutes vs 45 minutes
-
-### Negative
-- **Operational Complexity**: Managing 4+ services vs 1 application
-- **Network Latency**: Inter-service calls add 10-50ms per hop
-- **Distributed Debugging**: Harder to trace requests across services
-- **Data Consistency**: Eventually consistent vs immediate consistency
-- **Learning Curve**: Team needs to learn Kubernetes, service mesh concepts
-- **Initial Slowdown**: 2-3 months of infrastructure setup before benefits
-
-### Neutral
-- **Testing Strategy**: Shift from integration tests to contract tests
-- **Monitoring**: Need distributed tracing (Jaeger) vs simple logs
-- **Cost**: Higher infrastructure costs offset by improved developer productivity
-```
 
 ### 6. Alternatives Considered
 **Document at least 2 alternatives:**
@@ -152,52 +93,6 @@ We will migrate from our monolithic architecture to microservices using:
 - What it was
 - Why it was considered
 - Why it was not chosen
-
-**Example:**
-```markdown
-## Alternatives Considered
-
-### Alternative 1: Optimize Existing Monolith
-**Description:**
-- Add read replicas for database
-- Implement caching layer (Redis)
-- Use horizontal scaling with load balancer
-
-**Pros:**
-- Lower complexity, team already familiar
-- Faster implementation (4-6 weeks)
-- No architectural re-work needed
-
-**Cons:**
-- Doesn't solve deployment coupling
-- Limited scalability ceiling
-- Build times remain slow
-- Teams still blocked on shared resources
-
-**Why not chosen:**
-This addresses symptoms but not root causes. We'd face the same issues again in 12-18 months as we continue growing.
-
-### Alternative 2: Serverless Architecture (AWS Lambda)
-**Description:**
-- Break application into Lambda functions
-- Use API Gateway for routing
-- DynamoDB for storage
-
-**Pros:**
-- Extreme scalability
-- Pay-per-use pricing model
-- No server management
-
-**Cons:**
-- Vendor lock-in to AWS
-- Cold start latency (500ms+)
-- Limited to 15-minute execution time
-- Team has no serverless experience
-- Harder to debug and test locally
-
-**Why not chosen:**
-Risk too high given team inexperience. Cold starts unacceptable for our real-time features. Microservices provide similar benefits with more control.
-```
 
 ### 7. References (Optional)
 Links to relevant resources:
@@ -213,14 +108,6 @@ Proposed → Accepted → [Implemented] → (Eventually) Superseded/Deprecated
           ↓
       Rejected
 ```
-
-**State Transitions:**
-1. **Proposed**: Draft created, under review
-2. **Accepted**: Team agrees, implementation can begin
-3. **Implemented**: Decision is live in production
-4. **Superseded**: Replaced by new ADR (add reference)
-5. **Deprecated**: No longer recommended (migration path documented)
-6. **Rejected**: Not adopted (reasoning captured)
 
 ## Best Practices
 
@@ -288,38 +175,14 @@ Keep ADRs in version control alongside code:
 ❌ **No Context**: "We decided to use Redis"
 ✅ **Contextual**: "Given our 1M+ concurrent users and sub-50ms latency requirement..."
 
-## Examples
-
-See `/examples/` for complete ADR samples:
-- `adr-0001-adopt-microservices.md` - System architecture decision
-- `adr-0002-choose-postgresql.md` - Database selection
-- `adr-0003-api-versioning-strategy.md` - API design pattern
-
 ## Related Skills
 
 - **api-design-framework**: Use when designing APIs referenced in ADRs
 - **database-schema-designer**: Use when ADR involves database choices
 - **security-checklist**: Consult when ADR has security implications
 
-## Integration with Agents
-
-### Backend System Architect
-- Creates ADRs when designing major system components
-- References ADRs when making related architectural decisions
-- Reviews ADRs for consistency with overall architecture
-
-### Studio Coach
-- Suggests ADRs for complex multi-agent projects
-- Ensures architectural decisions are documented
-- Tracks ADR status in project planning
-
-### Code Quality Reviewer
-- Validates that significant changes have corresponding ADRs
-- Ensures implementation aligns with accepted ADRs
-- Flags when ADR may need to be superseded
-
 ---
 
-**Skill Version**: 1.0.0
-**Last Updated**: 2025-10-31
+**Skill Version**: 2.0.0
+**Last Updated**: 2026-01-08
 **Maintained by**: AI Agent Hub Team

@@ -1,6 +1,9 @@
 ---
 name: DevOps & Deployment
 description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. Covers GitHub Actions, Docker, Helm, and Terraform patterns.
+context: fork
+agent: data-pipeline-engineer
+model: sonnet
 version: 1.0.0
 category: Infrastructure & Deployment
 agents: [backend-system-architect, code-quality-reviewer, studio-coach]

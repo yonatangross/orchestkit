@@ -1,6 +1,9 @@
 ---
 name: api-design-framework
 description: Use this skill when designing REST, GraphQL, or gRPC APIs. Provides comprehensive API design patterns, versioning strategies, error handling conventions, authentication approaches, and OpenAPI/AsyncAPI templates. Ensures consistent, well-documented, and developer-friendly APIs across all backend services.
+context: fork
+agent: backend-system-architect
+model: sonnet
 version: 1.0.0
 author: AI Agent Hub
 tags: [api, rest, graphql, grpc, backend, documentation]

@@ -4,6 +4,7 @@ description: Use when working with GitHub issues, pull requests, or Projects v2 
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [github, gh, cli, issues, pr, projects, automation, 2025]
+model: sonnet
 ---
 
 # GitHub CLI Skill

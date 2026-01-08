@@ -1,6 +1,9 @@
 ---
 name: llm-testing
 description: Testing patterns for LLM-based applications. Use when testing AI/ML integrations, mocking LLM responses, testing async timeouts, or validating structured outputs from LLMs.
+context: fork
+agent: test-generator
+model: sonnet
 version: 2.0.0
 tags: [testing, llm, ai, deepeval, ragas, 2026]
 ---

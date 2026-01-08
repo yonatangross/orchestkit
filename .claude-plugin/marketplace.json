@@ -2,7 +2,7 @@
   "name": "skillforge-complete",
   "displayName": "@skillforge/complete",
   "owner": "yonatangross",
-  "version": "1.0.0",
+  "version": "4.4.1",
   "description": "The Complete AI Development Toolkit - 68 skills, 20 agents, 11 commands, 29 hooks",
   "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
   "license": "MIT",

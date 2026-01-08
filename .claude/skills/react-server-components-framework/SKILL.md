@@ -1,6 +1,8 @@
 ---
 name: react-server-components-framework
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
+agent: frontend-ui-developer
+model: sonnet
 version: 1.3.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, 2026]

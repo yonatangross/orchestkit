@@ -1,6 +1,9 @@
 ---
 name: owasp-top-10
 description: OWASP Top 10 security vulnerabilities and mitigations. Use when conducting security audits, implementing security controls, or reviewing code for common vulnerabilities.
+context: fork
+agent: security-auditor
+model: haiku
 ---
 
 # OWASP Top 10

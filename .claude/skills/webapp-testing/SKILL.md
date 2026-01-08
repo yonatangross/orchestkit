@@ -1,6 +1,9 @@
 ---
 name: Webapp Testing
 description: Use when testing web applications with AI-assisted Playwright. Features autonomous test agents for planning, generating, and self-healing tests automatically.
+context: fork
+agent: test-generator
+model: sonnet
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [playwright, testing, e2e, automation, agents, 2025]

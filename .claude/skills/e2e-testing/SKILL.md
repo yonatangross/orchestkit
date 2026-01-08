@@ -1,8 +1,20 @@
 ---
 name: e2e-testing
 description: End-to-end testing with Playwright 1.57+. Use when testing critical user journeys, browser automation, cross-browser testing, AI-assisted test generation, or validating complete application flows.
-version: 1.2.0
+version: 2.0.0
 tags: [playwright, e2e, testing, ai-agents, 2026]
+context: fork
+agent: test-generator
+model: sonnet
+hooks:
+  PostToolUse:
+    - matcher: Write
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: |
+        echo "::group::E2E Test Summary"
+        echo "Playwright tests generated - run with: npx playwright test"
+        echo "::endgroup::"
 ---
 
 # E2E Testing with Playwright 1.57+

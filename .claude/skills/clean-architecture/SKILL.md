@@ -1,6 +1,9 @@
 ---
 name: clean-architecture
 description: SOLID principles, hexagonal architecture, ports & adapters, and DDD tactical patterns for maintainable Python/FastAPI backends. Use when designing service layers, domain models, or refactoring legacy code.
+context: fork
+agent: code-quality-reviewer
+model: sonnet
 version: 1.0.0
 tags: [architecture, solid, hexagonal, ddd, python, fastapi, 2026]
 ---

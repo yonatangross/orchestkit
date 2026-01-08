@@ -1,6 +1,9 @@
 ---
 name: resilience-patterns
 description: Use when building fault-tolerant systems with circuit breakers, bulkheads, or retry logic. Provides resilience patterns for LLM integrations, distributed workflows, and cascade failure protection.
+context: fork
+agent: backend-system-architect
+model: sonnet
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [resilience, circuit-breaker, bulkhead, retry, fault-tolerance]

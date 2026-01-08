@@ -1,6 +1,9 @@
 ---
 name: pgvector-search
 description: Use when implementing vector search with PostgreSQL. Covers PGVector hybrid search with BM25, metadata filtering, and performance optimization for semantic retrieval.
+context: fork
+agent: database-engineer
+model: sonnet
 version: 1.2.0
 author: SkillForge AI Agent Hub
 tags: [pgvector-0.8, hybrid-search, bm25, rrf, semantic-search, retrieval, 2026]

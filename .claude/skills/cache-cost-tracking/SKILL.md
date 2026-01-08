@@ -1,6 +1,9 @@
 ---
 name: cache-cost-tracking
 description: LLM cost tracking with Langfuse for cached responses. Use when monitoring cache effectiveness, tracking cost savings, or attributing costs to agents in multi-agent systems.
+context: fork
+agent: metrics-architect
+model: haiku
 ---
 
 # Cache Cost Tracking

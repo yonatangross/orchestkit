@@ -1,6 +1,9 @@
 ---
 name: llm-safety-patterns
 description: Use when securing LLM integrations against prompt injection, hallucination, or data leakage. Implements context separation, input validation, and output filtering patterns.
+context: fork
+agent: security-auditor
+model: sonnet
 version: 1.0.0
 ---
 

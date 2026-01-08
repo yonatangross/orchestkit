@@ -1,6 +1,12 @@
 ---
 name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans - refines rough ideas into fully-formed designs through structured Socratic questioning, alternative exploration, and incremental validation
+context: fork
+agent: product-strategist
+model: opus
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
 ---
 
 # Brainstorming Ideas Into Designs
@@ -290,80 +296,6 @@ that pattern with a new route handler..."
 
 ---
 
-## Real-World Brainstorming Examples
-
-### Example 1: SkillForge Content Analysis Pipeline
-
-**Phase 1 - Understanding:**
-- Q: "What problem does this solve?" → A: "Analyze technical content at scale"
-- Q: "How many articles/day?" → A: "100-1000"
-- Q: "What kind of analysis?" → A: "Security, performance, code examples"
-
-**Phase 2 - Exploration:**
-- Approach 1: Single LLM call (fast, shallow analysis)
-- Approach 2: Multiple specialist LLMs (slow, deep analysis) ← CHOSEN
-- Approach 3: Hybrid (fast first pass, deep on-demand)
-
-**Phase 3 - Design:**
-- Supervisor-worker pattern with 8 specialist agents
-- LangGraph for workflow orchestration
-- PostgreSQL for state persistence
-- Quality gate before output
-
-**Result:** SkillForge's current 8-agent analysis workflow
-
-### Example 2: Caching Strategy
-
-**Phase 1 - Understanding:**
-- Q: "What are you caching?" → A: "LLM responses (expensive)"
-- Q: "How similar are queries?" → A: "Many near-duplicates"
-- Q: "Acceptable staleness?" → A: "5 minutes fine"
-
-**Phase 2 - Exploration:**
-- Approach 1: Redis semantic cache (complex, high hit rate)
-- Approach 2: HTTP cache headers (simple, low hit rate)
-- Approach 3: Prompt caching (Claude native, 90% cost savings) ← CHOSEN
-
-**Phase 3 - Design:**
-- Multi-level: Prompt cache (L1) + Redis semantic cache (L2)
-- 5-minute TTL
-- Cache warming with golden queries
-
-**Result:** 70-95% cost reduction strategy
-
-### Example 3: Real-Time Dashboard Updates
-
-**Phase 1 - Understanding:**
-- Q: "What data updates in real-time?" → A: "Analysis progress"
-- Q: "How often?" → A: "Every 2-5 seconds"
-- Q: "How many concurrent users?" → A: "< 50"
-
-**Phase 2 - Exploration:**
-- Approach 1: SSE (simple, server → client only) ← CHOSEN
-- Approach 2: WebSockets (complex, bidirectional)
-- Approach 3: Polling (wasteful, high latency)
-
-**Phase 3 - Design:**
-- Server-Sent Events for progress updates
-- Event broadcaster pattern (pub/sub)
-- Automatic reconnection on disconnect
-
-**Result:** SkillForge's SSE-based progress streaming
-
----
-
-## Examples
-
-**Complete brainstorming sessions:**
-- `references/example-session-auth.md` - Authentication storage design (JWT vs Session vs Cookies)
-- `references/example-session-dashboard.md` - Real-time dashboard design (SSE vs WebSockets vs Polling)
-
-**Output templates:**
-- `assets/design-doc-template.md` - Structured design document format
-- `assets/decision-matrix-template.md` - Weighted decision comparison format
-
----
-
 ## Tips for Effective Brainstorming
 
 1. **Read the codebase first** - Don't propose changes without understanding existing patterns
@@ -377,5 +309,5 @@ that pattern with a new route handler..."
 
 ---
 
-**Version:** 1.0.0 (December 2025)
+**Version:** 2.0.0 (January 2026)
 **Status:** Production patterns from SkillForge brainstorming sessions

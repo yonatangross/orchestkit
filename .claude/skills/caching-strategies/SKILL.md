@@ -1,6 +1,9 @@
 ---
 name: caching-strategies
 description: Backend caching patterns with Redis including write-through, write-behind, cache-aside, and invalidation strategies. Use when optimizing read performance or reducing database load.
+context: fork
+agent: data-pipeline-engineer
+model: sonnet
 version: 1.0.0
 tags: [caching, redis, performance, fastapi, python, 2026]
 ---

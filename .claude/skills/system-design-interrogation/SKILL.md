@@ -1,6 +1,9 @@
 ---
 name: system-design-interrogation
 description: Use when planning system architecture to ensure nothing is missed. Provides structured questions covering scalability, security, data, and operational dimensions before implementation.
+context: fork
+agent: system-design-reviewer
+model: opus
 version: 1.0.0
 ---
 

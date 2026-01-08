@@ -1,6 +1,9 @@
 ---
 name: vcr-http-recording
 description: VCR.py HTTP recording for Python tests. Use when testing Python code making HTTP requests, recording API responses for replay, or creating deterministic tests for external services.
+context: fork
+agent: test-generator
+model: sonnet
 ---
 
 # VCR.py HTTP Recording

@@ -5,6 +5,27 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.1] - 2026-01-08
+
+### Fixed
+
+#### Version Consistency
+- Updated `plugin.json` version from 1.0.0 to 4.4.1
+- Updated `marketplace.json` version from 1.0.0 to 4.4.1
+- Renamed `motion-animation-patterns/skill.md` to `SKILL.md` for consistency with other skills
+
+#### Missing Metadata
+- Added `capabilities.json` for `motion-animation-patterns` skill
+- Added `capabilities.json` for `langgraph-human-in-loop` skill
+
+### Added
+
+#### MCP Configuration
+- Added `.mcp.json` for MCP project-scope server configuration (Claude Code 2025+ feature)
+- Pre-configured servers: context7, sequential-thinking, memory, playwright
+
+---
+
 ## [4.4.0] - 2026-01-06
 
 ### Added

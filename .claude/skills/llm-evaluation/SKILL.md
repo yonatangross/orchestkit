@@ -1,6 +1,9 @@
 ---
 name: llm-evaluation
 description: LLM output evaluation and quality assessment. Use when implementing LLM-as-judge patterns, quality gates for AI outputs, or automated evaluation pipelines.
+context: fork
+agent: llm-integrator
+model: sonnet
 version: 2.0.0
 tags: [evaluation, llm, quality, ragas, langfuse, 2026]
 ---

@@ -1,6 +1,15 @@
 ---
 name: unit-testing
 description: Unit testing patterns and best practices. Use when writing isolated unit tests, implementing AAA pattern, designing test isolation, or setting coverage targets for business logic.
+context: fork
+agent: test-generator
+model: sonnet
+hooks:
+  PostToolUse:
+    - matcher: Write
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Unit Testing

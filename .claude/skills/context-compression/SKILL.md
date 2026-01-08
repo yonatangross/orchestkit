@@ -4,6 +4,7 @@ description: Use when conversation context is too long, hitting token limits, or
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [context, compression, summarization, memory, optimization, 2026]
+model: sonnet
 ---
 
 # Context Compression

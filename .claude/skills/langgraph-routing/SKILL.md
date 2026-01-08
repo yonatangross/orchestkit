@@ -1,6 +1,9 @@
 ---
 name: langgraph-routing
 description: LangGraph conditional routing patterns. Use when implementing dynamic routing based on state, creating branching workflows, or building retry loops with conditional edges.
+context: fork
+agent: workflow-architect
+model: sonnet
 ---
 
 # LangGraph Conditional Routing

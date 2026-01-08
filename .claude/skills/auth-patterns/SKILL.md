@@ -1,6 +1,9 @@
 ---
 name: auth-patterns
 description: Authentication and authorization patterns. Use when implementing login flows, JWT tokens, session management, password security, OAuth 2.1, Passkeys/WebAuthn, or role-based access control.
+context: fork
+agent: security-auditor
+model: sonnet
 version: 2.0.0
 tags: [security, authentication, oauth, passkeys, 2026]
 ---

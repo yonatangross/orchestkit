@@ -1,6 +1,9 @@
 ---
 name: semantic-caching
 description: Redis semantic caching for LLM applications. Use when implementing vector similarity caching, optimizing LLM costs through cached responses, or building multi-level cache hierarchies.
+context: fork
+agent: data-pipeline-engineer
+model: sonnet
 ---
 
 # Semantic Caching

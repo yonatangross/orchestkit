@@ -1,6 +1,9 @@
 ---
 name: edge-computing-patterns
 description: Use when deploying to Cloudflare Workers, Vercel Edge, or Deno Deploy. Covers edge middleware, streaming, runtime constraints, and globally distributed low-latency patterns.
+context: fork
+agent: frontend-ui-developer
+model: sonnet
 version: 1.0.0
 author: AI Agent Hub
 tags: [edge, cloudflare, vercel, deno, serverless, 2025]

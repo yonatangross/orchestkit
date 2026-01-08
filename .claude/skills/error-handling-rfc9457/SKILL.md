@@ -1,6 +1,9 @@
 ---
 name: error-handling-rfc9457
 description: Structured error responses using RFC 9457 Problem Details for HTTP APIs. Use when standardizing error responses, implementing error registries, or improving API error handling.
+context: fork
+agent: backend-system-architect
+model: sonnet
 version: 1.0.0
 tags: [error-handling, rfc9457, problem-details, fastapi, api, 2026]
 ---

@@ -1,6 +1,9 @@
 ---
 name: background-jobs
 description: Async task processing with Celery, ARQ, and Redis for Python backends. Use when offloading long-running tasks, scheduling jobs, or building worker pipelines.
+context: fork
+agent: data-pipeline-engineer
+model: sonnet
 version: 1.0.0
 tags: [background-jobs, celery, arq, redis, async, python, 2026]
 ---

@@ -1,0 +1,118 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "langgraph-human-in-loop",
+  "version": "1.0.0",
+  "description": "LangGraph human-in-the-loop patterns for approval workflows, manual review gates, user feedback integration, and interactive agent supervision",
+
+  "capabilities": {
+    "interrupt-before": {
+      "keywords": ["interrupt", "pause", "stop", "before", "gate"],
+      "solves": [
+        "How do I pause a workflow for approval?",
+        "Add human review before a step",
+        "Interrupt workflow execution"
+      ],
+      "reference_file": "SKILL.md#basic-interrupt",
+      "token_cost": 150
+    },
+    "resume-workflow": {
+      "keywords": ["resume", "continue", "approve", "proceed", "update_state"],
+      "solves": [
+        "How do I resume after human approval?",
+        "Continue workflow after review",
+        "Update state and proceed"
+      ],
+      "reference_file": "SKILL.md#resume-after-approval",
+      "token_cost": 140
+    },
+    "approval-patterns": {
+      "keywords": ["approval", "approve", "reject", "decision", "gate"],
+      "solves": [
+        "How do I implement approval workflows?",
+        "Add approval gate to pipeline",
+        "Handle approve/reject decisions"
+      ],
+      "reference_file": "SKILL.md#approval-patterns",
+      "token_cost": 180
+    },
+    "feedback-integration": {
+      "keywords": ["feedback", "comment", "review", "notes", "human input"],
+      "solves": [
+        "How do I collect human feedback?",
+        "Integrate reviewer comments",
+        "Capture feedback in workflow state"
+      ],
+      "reference_file": "SKILL.md#feedback-integration",
+      "token_cost": 160
+    },
+    "interactive-supervision": {
+      "keywords": ["supervise", "monitor", "interactive", "control", "override"],
+      "solves": [
+        "How do I supervise agent execution?",
+        "Add human oversight to agents",
+        "Override agent decisions"
+      ],
+      "reference_file": "SKILL.md#interactive-supervision",
+      "token_cost": 170
+    },
+    "state-inspection": {
+      "keywords": ["get_state", "inspect", "view", "current state", "debug"],
+      "solves": [
+        "How do I inspect workflow state?",
+        "View current state at interrupt",
+        "Debug paused workflows"
+      ],
+      "reference_file": "SKILL.md#state-inspection",
+      "token_cost": 120
+    }
+  },
+
+  "triggers": {
+    "high_confidence": [
+      "human.*loop",
+      "approval.*workflow",
+      "interrupt.*before",
+      "manual.*review",
+      "pause.*human"
+    ],
+    "medium_confidence": [
+      "human.*approval",
+      "wait.*user",
+      "review.*gate",
+      "supervisor.*pattern"
+    ]
+  },
+
+  "integrates_with": [
+    "langgraph-checkpoints",
+    "langgraph-state",
+    "langgraph-supervisor",
+    "multi-agent-orchestration"
+  ],
+
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100,
+      "use_when": "Initial task analysis - determine if human-in-loop is needed"
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 350,
+      "use_when": "Skill confirmed relevant - need interrupt/resume patterns"
+    },
+    "tier_3_specific": {
+      "files": "references/*.md",
+      "tokens": "200-300 each",
+      "use_when": "Need specific approval workflow examples"
+    }
+  },
+
+  "mcp_tools": {
+    "documentation_lookup": {
+      "tool": "context7",
+      "library_ids": ["langchain-ai/langgraph"],
+      "use_when": "Need latest LangGraph human-in-loop API"
+    }
+  }
+}

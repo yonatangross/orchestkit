@@ -1,6 +1,9 @@
 ---
 name: input-validation
 description: Input validation and sanitization patterns. Use when validating user input, preventing injection attacks, implementing allowlists, or sanitizing HTML/SQL/command inputs.
+context: fork
+agent: security-auditor
+model: sonnet
 version: 2.0.0
 tags: [security, validation, zod, pydantic, 2026]
 ---
