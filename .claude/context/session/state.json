@@ -7,10 +7,13 @@
     "compress": "on_threshold",
     "description": "Current session state - loaded at END for recent context awareness"
   },
-  "session_id": "session-1764232750977",
-  "created_at": "2025-11-27T08:39:10.977Z",
-  "last_updated": "2026-01-08T22:25:00+02:00",
-  "tasks_completed": 0,
-  "files_modified": [],
-  "last_activity": "2026-01-09T00:03:28+02:00"
+  "session_id": "session-template",
+  "current_task": {
+    "description": "No active task",
+    "status": "pending"
+  },
+  "files_touched": [],
+  "decisions_this_session": [],
+  "blockers": [],
+  "next_steps": []
 }
