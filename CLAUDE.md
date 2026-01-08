@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **54 Skills**: Reusable knowledge modules covering AI/LLM, backend, frontend, testing, security, and DevOps
+- **72 Skills**: Reusable knowledge modules covering AI/LLM, backend, frontend, testing, security, and DevOps
 - **20 Agents**: Specialized AI personas for product thinking, system architecture, code quality, and more
 - **11 Commands**: Pre-configured workflows for common development tasks
-- **29 Hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
+- **89 Hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 
 **Purpose**: Enable AI-assisted development of production-grade applications with built-in best practices, security patterns, and quality gates.
@@ -26,7 +26,7 @@ This document provides essential context for Claude Code when working with the S
 ├── commands/            # 11 pre-configured development workflows
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 29 lifecycle hooks for automation
+├── hooks/               # 89 lifecycle hooks for automation
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -38,7 +38,7 @@ This document provides essential context for Claude Code when working with the S
 ├── policies/            # Security policies and compliance rules
 ├── schemas/             # JSON schemas for validation
 ├── scripts/             # Helper utilities (coordination, metrics, validation)
-├── skills/              # 54 skill modules organized by category
+├── skills/              # 72 skill modules organized by category
 │   ├── **/capabilities.json    # Tier 1: Task matching metadata
 │   ├── **/SKILL.md            # Tier 2: Overview and patterns
 │   ├── **/references/*.md     # Tier 3: Specific implementations
