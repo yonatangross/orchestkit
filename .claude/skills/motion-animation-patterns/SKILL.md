@@ -252,7 +252,7 @@ function Skeleton({ className }) {
       variants={pulse}
       initial="initial"
       animate="animate"
-      className={`bg-gray-200 rounded ${className}`}
+      className={"bg-gray-200 rounded " + className}
       aria-hidden="true"
     />
   );

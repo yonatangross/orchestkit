@@ -64,7 +64,7 @@ bin/                     # CLI utilities and scripts
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
 - **Claude Code**: >= 2.1.2 (CC 2.1.2 agent_type support)
-- **MCP Integration**: Context7, Sequential Thinking, Memory, Playwright
+- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure)
 
 ### Expected Application Stack (Skills Support)
 - **Backend**: FastAPI + Python 3.11+ + SQLAlchemy 2.0 + PostgreSQL 18 + pgvector
@@ -470,7 +470,7 @@ ls .claude/agents/
 
 ## Version Information
 
-- **Current Version**: 4.6.4 (as of 2026-01-08)
+- **Current Version**: 4.6.6 (as of 2026-01-09)
 - **Claude Code Requirement**: >= 2.1.2
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -510,4 +510,4 @@ tail -f .claude/hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-09 (v4.6.4 - Marketplace schema fix)
+**Last Updated**: 2026-01-09 (v4.6.6 - Fix skill template literal bash parsing)

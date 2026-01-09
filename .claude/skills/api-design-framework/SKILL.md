@@ -700,7 +700,7 @@ type UsersResponse = z.infer<typeof UsersResponseSchema>
 
 // Fetch with validation
 async function fetchUsers(cursor?: string): Promise<UsersResponse> {
-  const url = cursor ? `/api/v1/users?cursor=${cursor}` : '/api/v1/users'
+  const url = cursor ? "/api/v1/users?cursor=" + cursor : '/api/v1/users'
   const response = await fetch(url)
 
   if (!response.ok) {
@@ -747,7 +747,7 @@ export const api = ky.create({
       async (request) => {
         const token = await getAccessToken()
         if (token) {
-          request.headers.set('Authorization', `Bearer ${token}`)
+          request.headers.set('Authorization', 'Bearer ' + token)
         }
       },
       // Request ID for tracing
@@ -761,7 +761,7 @@ export const api = ky.create({
         if (response.status === 401) {
           const newToken = await refreshToken()
           if (newToken) {
-            request.headers.set('Authorization', `Bearer ${newToken}`)
+            request.headers.set('Authorization', 'Bearer ' + newToken)
             return ky(request, options)
           }
         }

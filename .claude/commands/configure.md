@@ -13,7 +13,8 @@ This wizard helps you:
 2. Customize skill categories
 3. Toggle agents on/off
 4. Configure hooks
-5. Preview and save
+5. Configure MCP integrations (optional)
+6. Preview and save
 
 ## Step 1: Choose Preset
 
@@ -133,7 +134,80 @@ Toggle agents on/off:
 - desktop.sh - Desktop notifications
 - sound.sh - Sound alerts
 
-## Step 5: Preview & Save
+## Step 5: Configure MCP Integrations (Optional)
+
+MCPs (Model Context Protocol servers) enhance SkillForge commands but are **NOT required**.
+Commands work without them - MCPs just add extra capabilities.
+
+**All MCPs are disabled by default.** Use this step to enable the ones you want.
+
+Use the AskUserQuestion tool:
+
+**Question:** "Which MCP integrations would you like to enable? (Optional - commands work without them)"
+
+**Options (multiSelect: true):**
+
+| MCP | Purpose | Enhances |
+|-----|---------|----------|
+| **context7** | Up-to-date library documentation | /implement, /verify, /review-pr |
+| **sequential-thinking** | Structured reasoning for complex problems | /brainstorm, /implement |
+| **memory** | Cross-session knowledge persistence | /brainstorm, /explore, /fix-issue |
+| **playwright** | Browser automation for E2E testing | /verify, browser-content-capture skill |
+
+**Default:** None selected (all MCPs disabled by default)
+
+### Enabling MCPs
+
+SkillForge ships with `.mcp.json` containing all MCP configurations, but **all are disabled by default**.
+
+To enable selected MCPs, update `.mcp.json` by setting `"disabled": false` for each selected MCP:
+
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Up-to-date documentation for frameworks and libraries",
+      "disabled": false
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-sequential-thinking"],
+      "description": "Complex reasoning and architectural decision support",
+      "disabled": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-memory"],
+      "description": "Cross-session memory and context persistence",
+      "env": {
+        "MEMORY_FILE": ".claude/memory/memory.json"
+      },
+      "disabled": true
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@anthropics/mcp-server-playwright"],
+      "description": "Browser automation for e2e testing and content capture",
+      "disabled": true
+    }
+  }
+}
+```
+
+**Note:** Only set `"disabled": false` for MCPs the user selected. Keep `"disabled": true` for unselected MCPs.
+
+### If user selects "None":
+
+- Keep all MCPs disabled (no changes to `.mcp.json`)
+- Commands will work with reduced functionality
+- User can run `/configure` again later to enable MCPs
+
+---
+
+## Step 6: Preview & Save
 
 Show the user their configuration:
 
@@ -165,6 +239,9 @@ Preset: [selected preset] (customized)
 │  ├── Quality Gates: X                                       │
 │  ├── Team: X                                                │
 │  └── Notifications: X                                       │
+│                                                             │
+│  MCPs: X/4 enabled                                          │
+│  └── [list enabled MCPs or "None (all disabled)"]           │
 └─────────────────────────────────────────────────────────────┘
 
 Estimated token overhead: ~X tokens/session
@@ -205,6 +282,12 @@ Write to: `~/.claude/plugins/skillforge/config.json`
   "commands": {
     "enabled": true,
     "disabled": []
+  },
+  "mcps": {
+    "context7": false,
+    "sequential_thinking": false,
+    "memory": false,
+    "playwright": false
   }
 }
 ```
@@ -217,6 +300,8 @@ Users can run `/skillforge:configure` again to modify settings.
 
 Direct editing: `~/.claude/plugins/skillforge/config.json`
 
+For MCPs: Edit `.mcp.json` and set `"disabled": false` for MCPs you want to enable.
+
 ## Preset Definitions
 
 ### Complete (Default)
@@ -226,7 +311,8 @@ Direct editing: `~/.claude/plugins/skillforge/config.json`
   "skills": { "ai_ml": true, "backend": true, "frontend": true, "testing": true, "security": true, "devops": true, "planning": true },
   "agents": { "product": true, "technical": true },
   "hooks": { "safety": true, "productivity": true, "quality_gates": true, "team_coordination": true, "notifications": false },
-  "commands": { "enabled": true }
+  "commands": { "enabled": true },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
 }
 ```
 
@@ -237,7 +323,8 @@ Direct editing: `~/.claude/plugins/skillforge/config.json`
   "skills": { "ai_ml": true, "backend": true, "frontend": true, "testing": true, "security": true, "devops": true, "planning": true },
   "agents": { "product": false, "technical": false },
   "hooks": { "safety": true, "productivity": true, "quality_gates": true, "team_coordination": true, "notifications": false },
-  "commands": { "enabled": true }
+  "commands": { "enabled": true },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
 }
 ```
 
@@ -248,7 +335,8 @@ Direct editing: `~/.claude/plugins/skillforge/config.json`
   "skills": { "ai_ml": false, "backend": false, "frontend": false, "testing": true, "security": true, "devops": false, "planning": true },
   "agents": { "product": false, "technical": false },
   "hooks": { "safety": true, "productivity": true, "quality_gates": false, "team_coordination": false, "notifications": false },
-  "commands": { "enabled": true, "disabled": ["add-golden", "implement", "fix-issue", "review-pr", "run-tests", "create-pr"] }
+  "commands": { "enabled": true, "disabled": ["add-golden", "implement", "fix-issue", "review-pr", "run-tests", "create-pr"] },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
 }
 ```
 
@@ -259,6 +347,7 @@ Direct editing: `~/.claude/plugins/skillforge/config.json`
   "skills": { "ai_ml": false, "backend": false, "frontend": false, "testing": false, "security": false, "devops": false, "planning": false },
   "agents": { "product": false, "technical": false },
   "hooks": { "safety": true, "productivity": true, "quality_gates": false, "team_coordination": true, "notifications": false },
-  "commands": { "enabled": false }
+  "commands": { "enabled": false },
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
 }
 ```

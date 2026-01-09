@@ -460,7 +460,7 @@ function onRenderCallback(
     commitTime
 ) {
     if (actualDuration > 16) {  // > 16ms = dropped frame
-        console.warn(`Slow render: ${id} took ${actualDuration}ms`);
+        console.warn("Slow render: " + id + " took " + actualDuration + "ms");
     }
 }
 
@@ -631,7 +631,7 @@ import { Card } from '@/components/ui/card'
 
 // ❌ BAD: Dynamic string imports break tree-shaking
 const icons = ['Home', 'Settings', 'User']
-icons.forEach(name => import(`lucide-react/dist/esm/icons/${name}`))
+// icons.forEach(name => import("lucide-react/dist/esm/icons/" + name))
 
 // ✅ GOOD: Static imports
 import { Home, Settings, User } from 'lucide-react'
@@ -750,15 +750,15 @@ function VirtualizedList({ items }: { items: Analysis[] }) {
 
   return (
     <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
-      <div style={{ height: `${virtualizer.getTotalSize()}px`, position: 'relative' }}>
+      <div style={{ height: virtualizer.getTotalSize() + "px", position: 'relative' }}>
         {virtualizer.getVirtualItems().map(virtualItem => (
           <div
             key={virtualItem.key}
             style={{
               position: 'absolute',
               top: 0,
-              transform: `translateY(${virtualItem.start}px)`,
-              height: `${virtualItem.size}px`,
+              transform: "translateY(" + virtualItem.start + "px)",
+              height: virtualItem.size + "px",
             }}
           >
             <AnalysisCard analysis={items[virtualItem.index]} />

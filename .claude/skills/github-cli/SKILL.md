@@ -237,7 +237,7 @@ For specific capabilities, see:
 1. **Always use `--json` for scripting** - Parse with `--jq` for reliability
 2. **Non-interactive mode for automation** - Use `--title`, `--body` flags
 3. **Check rate limits before bulk operations** - `gh api rate_limit`
-4. **Use heredocs for multi-line content** - `--body "$(cat <<'EOF'...EOF)"`
+4. **Use heredocs for multi-line content** - "--body \"\$(cat <<EOF...EOF)\""
 5. **Link issues in PRs** - `Closes #123`, `Fixes #456`
 6. **Add verification checklists** - Track test plan completion
 7. **Never commit to dev/main directly** - Always use feature branches + PRs
