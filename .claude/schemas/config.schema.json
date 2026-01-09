@@ -1,0 +1,154 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://skillforge.dev/schemas/config.schema.json",
+  "title": "SkillForge Configuration",
+  "description": "Configuration schema for SkillForge plugin customization",
+  "type": "object",
+  "required": ["version", "preset"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Config schema version"
+    },
+    "preset": {
+      "type": "string",
+      "enum": ["complete", "standard", "lite", "hooks-only", "custom"],
+      "description": "Base preset used"
+    },
+    "customized": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether the preset has been customized"
+    },
+    "skills": {
+      "type": "object",
+      "description": "Skill category toggles",
+      "properties": {
+        "ai_ml": {
+          "type": "boolean",
+          "default": true,
+          "description": "AI/ML skills (26 skills)"
+        },
+        "backend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Backend skills (15 skills)"
+        },
+        "frontend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Frontend skills (8 skills)"
+        },
+        "testing": {
+          "type": "boolean",
+          "default": true,
+          "description": "Testing skills (13 skills)"
+        },
+        "security": {
+          "type": "boolean",
+          "default": true,
+          "description": "Security skills (7 skills)"
+        },
+        "devops": {
+          "type": "boolean",
+          "default": true,
+          "description": "DevOps skills (4 skills)"
+        },
+        "planning": {
+          "type": "boolean",
+          "default": true,
+          "description": "Planning skills (6 skills)"
+        },
+        "disabled": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Individual skills to disable by ID"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agents": {
+      "type": "object",
+      "description": "Agent toggles",
+      "properties": {
+        "product": {
+          "type": "boolean",
+          "default": true,
+          "description": "Product agents (6 agents)"
+        },
+        "technical": {
+          "type": "boolean",
+          "default": true,
+          "description": "Technical agents (14 agents)"
+        },
+        "disabled": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Individual agents to disable by ID"
+        }
+      },
+      "additionalProperties": false
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Hook category toggles",
+      "properties": {
+        "safety": {
+          "type": "boolean",
+          "const": true,
+          "default": true,
+          "description": "Safety hooks (always on, cannot disable)"
+        },
+        "productivity": {
+          "type": "boolean",
+          "default": true,
+          "description": "Productivity hooks (auto-approve, logging)"
+        },
+        "quality_gates": {
+          "type": "boolean",
+          "default": true,
+          "description": "Quality gate hooks (coverage, patterns)"
+        },
+        "team_coordination": {
+          "type": "boolean",
+          "default": true,
+          "description": "Team coordination hooks (locks, conflicts)"
+        },
+        "notifications": {
+          "type": "boolean",
+          "default": false,
+          "description": "Notification hooks (desktop, sound)"
+        },
+        "disabled": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Individual hooks to disable by filename"
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "description": "Command toggles",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable commands"
+        },
+        "disabled": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "Individual commands to disable by ID"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,32 @@
+{
+  "version": "1.0.0",
+  "preset": "complete",
+  "customized": false,
+  "skills": {
+    "ai_ml": true,
+    "backend": true,
+    "frontend": true,
+    "testing": true,
+    "security": true,
+    "devops": true,
+    "planning": true,
+    "disabled": []
+  },
+  "agents": {
+    "product": true,
+    "technical": true,
+    "disabled": []
+  },
+  "hooks": {
+    "safety": true,
+    "productivity": true,
+    "quality_gates": true,
+    "team_coordination": true,
+    "notifications": false,
+    "disabled": []
+  },
+  "commands": {
+    "enabled": true,
+    "disabled": []
+  }
+}

@@ -290,3 +290,42 @@ increment_metric() {
 
 # Export functions for subshells
 export -f init_hook_input read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error
+
+# -----------------------------------------------------------------------------
+# Configuration-aware hook enablement
+# -----------------------------------------------------------------------------
+
+# Config loader path
+CONFIG_LOADER="${CLAUDE_PROJECT_DIR:-.}/.claude/scripts/config-loader.sh"
+
+# Check if hook is enabled based on config
+# Usage: is_hook_enabled_by_config "hook-name.sh"
+# Returns 0 if enabled, 1 if disabled
+is_hook_enabled_by_config() {
+  local hook_name="$1"
+
+  # If config loader doesn't exist, assume enabled (backwards compatibility)
+  if [[ ! -x "$CONFIG_LOADER" ]]; then
+    return 0
+  fi
+
+  local result
+  result=$("$CONFIG_LOADER" is-hook-enabled "$hook_name" 2>/dev/null)
+  [[ "$result" == "true" ]]
+}
+
+# Early exit if hook is disabled
+# Usage: exit_if_disabled (call at top of hook script)
+# This checks the current script's name against the config
+exit_if_disabled() {
+  local hook_name=$(basename "${BASH_SOURCE[1]:-$0}")
+
+  if ! is_hook_enabled_by_config "$hook_name"; then
+    # Output continue: true so Claude Code proceeds without this hook
+    echo '{"continue": true}'
+    exit 0
+  fi
+}
+
+# Export config-aware functions
+export -f is_hook_enabled_by_config exit_if_disabled
