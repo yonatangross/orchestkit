@@ -69,6 +69,7 @@ Interactive wizard to:
 - Toggle skill categories
 - Enable/disable agents
 - Configure hooks
+- Enable MCP integrations (optional)
 
 Config: `~/.claude/plugins/skillforge/config.json`
 
