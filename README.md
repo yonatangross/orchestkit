@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  78 skills | 12 commands | 20 agents | 90 hooks | 7 plugin bundles
+  78 skills | 12 commands | 20 agents | 90 hooks | 4 tiers
 </p>
 
 ---
@@ -35,16 +35,13 @@
 # Step 1: Add the marketplace
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
-# Step 2: Install full toolkit or specific bundles
-/plugin install skillforge-complete@complete         # Everything (78 skills)
+# Step 2: Install (default = complete with everything)
+/plugin install @skillforge                    # Everything (78 skills, 20 agents)
 
-# Or install specific categories:
-/plugin install skillforge-complete@ai-development   # AI/LLM skills (23 skills)
-/plugin install skillforge-complete@backend          # Backend skills (12 skills)
-/plugin install skillforge-complete@frontend         # Frontend skills (6 skills)
-/plugin install skillforge-complete@quality-testing  # Testing skills (14 skills)
-/plugin install skillforge-complete@devops-security  # DevOps skills (7 skills)
-/plugin install skillforge-complete@process-planning # Planning skills (6 skills)
+# Or choose a lighter tier:
+/plugin install @skillforge/standard           # All skills, no agents
+/plugin install @skillforge/lite               # 10 essential skills only
+/plugin install @skillforge/hooks-only         # Just safety hooks
 ```
 
 ### From GitHub (Manual)
@@ -59,7 +56,34 @@ git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plu
 cp -r skillforge-claude-plugin/.claude your-project/.claude
 ```
 
-After installation, skills are automatically available when Claude Code detects relevant tasks.
+### Configuration
+
+Customize your installation anytime:
+
+```bash
+/skillforge:configure
+```
+
+Interactive wizard to:
+- Choose preset (complete/standard/lite/hooks-only)
+- Toggle skill categories
+- Enable/disable agents
+- Configure hooks
+
+Config: `~/.claude/plugins/skillforge/config.json`
+
+---
+
+## Installation Tiers
+
+| Tier | Skills | Agents | Commands | Hooks | Use Case |
+|------|--------|--------|----------|-------|----------|
+| **complete** | 78 | 20 | 12 | 90 | Full AI-assisted development (default) |
+| standard | 78 | 0 | 12 | 90 | All skills, spawn agents manually |
+| lite | 10 | 0 | 5 | 90 | Essential skills, minimal context |
+| hooks-only | 0 | 0 | 0 | 90 | Safety guardrails only |
+
+After installation, skills load automatically based on task context.
 
 ---
 
@@ -177,6 +201,7 @@ Slash commands for common workflows:
 
 | Command | Description | Example |
 |---------|-------------|---------|
+| `/skillforge:configure` | Interactive configuration wizard | `/skillforge:configure` |
 | `/commit` | Smart commit with validation and auto-generated message | `/commit` |
 | `/explore` | Deep codebase exploration with parallel agents | `/explore auth system` |
 | `/implement` | Full-power feature implementation with 17 parallel subagents | `/implement user dashboard` |
@@ -353,7 +378,7 @@ fi
 
 ```
 .claude/
-+-- skills/                    # 72 domain-specific skills
++-- skills/                    # 78 domain-specific skills
 |   +-- agent-loops/
 |   |   +-- capabilities.json  # Discovery metadata
 |   |   +-- SKILL.md          # Core patterns
@@ -362,7 +387,7 @@ fi
 |   +-- langgraph-supervisor/
 |   +-- rag-retrieval/
 |   +-- ...
-+-- commands/                  # 11 slash commands
++-- commands/                  # 12 slash commands
 |   +-- commit.md
 |   +-- implement.md
 |   +-- errors.md
