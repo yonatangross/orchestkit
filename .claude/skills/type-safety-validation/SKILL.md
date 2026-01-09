@@ -197,7 +197,7 @@ const config = {
 function logged(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
   const original = descriptor.value
   descriptor.value = function (...args: any[]) {
-    console.log(`Calling ${propertyKey}`)
+    console.log("Calling " + propertyKey)
     return original.apply(this, args)
   }
 }
@@ -342,7 +342,7 @@ TypeScript's type system can guarantee compile-time exhaustiveness for union typ
 ```typescript
 // ✅ ALWAYS use this helper function
 function assertNever(x: never): never {
-  throw new Error(`Unexpected value: ${x}`)
+  throw new Error("Unexpected value: " + x)
 }
 
 // Example: Status handling
@@ -417,9 +417,9 @@ type APIResponse =
 function handleResponse(response: APIResponse): string {
   switch (response.type) {
     case 'success':
-      return `Data: ${response.data.id}`
+      return "Data: " + response.data.id
     case 'error':
-      return `Error: ${response.error.message}`
+      return "Error: " + response.error.message
     case 'loading':
       return 'Loading...'
     default:
@@ -434,7 +434,8 @@ function handleResponse(response: APIResponse): string {
 // For string pattern unions
 type Size = 'sm' | 'md' | 'lg' | 'xl'
 type Variant = 'primary' | 'secondary' | 'danger'
-type ButtonClass = `btn-${Size}-${Variant}`
+// Template literal type (TypeScript feature)
+type ButtonClass = "btn-${Size}-${Variant}" // Pseudo-syntax for documentation
 
 // Exhaustive size mapping
 const sizeMap = {

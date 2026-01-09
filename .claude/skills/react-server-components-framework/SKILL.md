@@ -105,7 +105,7 @@ export async function createPost(formData: FormData) {
   const post = await db.post.create({ data: { title } })
 
   revalidatePath('/posts')
-  redirect(`/posts/${post.id}`)
+  redirect("/posts/" + post.id)
 }
 ```
 

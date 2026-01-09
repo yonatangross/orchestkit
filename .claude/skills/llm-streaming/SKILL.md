@@ -82,7 +82,7 @@ async def stream_chat(prompt: str):
 
 ```typescript
 async function streamChat(prompt: string, onToken: (t: string) => void) {
-  const response = await fetch(`/chat/stream?prompt=${encodeURIComponent(prompt)}`);
+  const response = await fetch("/chat/stream?prompt=" + encodeURIComponent(prompt));
   const reader = response.body?.getReader();
   const decoder = new TextDecoder();
 

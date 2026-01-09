@@ -57,7 +57,7 @@ logger.info('User action completed', {
 });
 
 // Bad: String interpolation
-logger.info(`User ${user.id} completed purchase`);
+logger.info("User " + user.id + " completed purchase");
 ```
 
 > See `templates/structured-logging.ts` for Winston setup and request middleware

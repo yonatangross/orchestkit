@@ -101,7 +101,7 @@ const blocked = ['password', 'secret'];  // Easy to miss fields
 if (file.type === 'image/png') {...}  // Can be spoofed
 
 // ❌ NEVER build queries with string concat
-`SELECT * FROM users WHERE name = '${name}'`  // SQL injection
+"SELECT * FROM users WHERE name = '" + name + "'"  // SQL injection
 
 // ✅ ALWAYS validate server-side
 const result = schema.safeParse(req.body);

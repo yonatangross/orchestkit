@@ -3,7 +3,7 @@ name: edge-computing-patterns
 description: Use when deploying to Cloudflare Workers, Vercel Edge, or Deno Deploy. Covers edge middleware, streaming, runtime constraints, and globally distributed low-latency patterns.
 context: fork
 agent: frontend-ui-developer
-version: 1.0.0
+version: 1.1.0
 author: AI Agent Hub
 tags: [edge, cloudflare, vercel, deno, serverless, 2025]
 ---
@@ -32,201 +32,85 @@ Edge computing runs code closer to users worldwide, reducing latency from second
 | Max Duration | 30s (paid: unlimited) | 25s | 50ms-5min |
 | Free Tier | 100k req/day | 100k req/month | 100k req/month |
 
-## Cloudflare Workers
+## Platform-Specific Implementation
 
-```typescript
-// worker.ts
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url)
+For detailed code examples and patterns, load the appropriate reference file:
 
-    // Geo-routing
-    const country = request.cf?.country || 'US'
+### Cloudflare Workers
+**Reference:** `references/cloudflare-workers.md`
+- Worker fetch handlers and routing
+- KV storage patterns (eventually consistent)
+- Durable Objects for stateful edge
+- Wrangler CLI and wrangler.toml configuration
+- Caching strategies with Cache API
 
-    if (url.pathname === '/api/hello') {
-      return new Response(JSON.stringify({
-        message: `Hello from ${country}!`
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      })
-    }
+### Vercel Edge Functions
+**Reference:** `references/vercel-edge.md`
+- Edge Middleware for Next.js (auth, A/B testing, geo-routing)
+- Edge API routes with streaming
+- Edge Config for feature flags
+- Geolocation-based routing patterns
 
-    // Cache API
-    const cache = caches.default
-    let response = await cache.match(request)
-
-    if (!response) {
-      response = await fetch(request)
-      // Cache for 1 hour
-      response = new Response(response.body, response)
-      response.headers.set('Cache-Control', 'max-age=3600')
-      await cache.put(request, response.clone())
-    }
-
-    return response
-  }
-}
-
-// Durable Objects for stateful edge
-export class Counter {
-  private state: DurableObjectState
-  private count = 0
-
-  constructor(state: DurableObjectState) {
-    this.state = state
-  }
-
-  async fetch(request: Request) {
-    const url = new URL(request.url)
-
-    if (url.pathname === '/increment') {
-      this.count++
-      await this.state.storage.put('count', this.count)
-    }
-
-    return new Response(JSON.stringify({ count: this.count }))
-  }
-}
-```
-
-## Vercel Edge Functions
-
-```typescript
-// middleware.ts (Edge Middleware)
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-
-export function middleware(request: NextRequest) {
-  // A/B testing
-  const bucket = Math.random() < 0.5 ? 'a' : 'b'
-  const url = request.nextUrl.clone()
-  url.searchParams.set('bucket', bucket)
-
-  // Geo-location
-  const country = request.geo?.country || 'US'
-
-  const response = NextResponse.rewrite(url)
-  response.cookies.set('bucket', bucket)
-  response.headers.set('X-Country', country)
-
-  return response
-}
-
-export const config = {
-  matcher: '/experiment/:path*'
-}
-
-// Edge API Route
-export const runtime = 'edge'
-
-export async function GET(request: Request) {
-  return new Response(JSON.stringify({
-    timestamp: Date.now(),
-    region: process.env.VERCEL_REGION
-  }))
-}
-```
+### Runtime Differences
+**Reference:** `references/runtime-differences.md`
+- Node.js APIs NOT available at edge
+- Web API compatibility matrix
+- Polyfill strategies for crypto, Buffer, streams
 
 ## Edge Runtime Constraints
 
-**✅ Available**:
-- `fetch`, `Request`, `Response`, `Headers`
-- `URL`, `URLSearchParams`
-- `TextEncoder`, `TextDecoder`
-- `ReadableStream`, `WritableStream`
-- `crypto`, `SubtleCrypto`
+**Available APIs:**
+- fetch, Request, Response, Headers
+- URL, URLSearchParams
+- TextEncoder, TextDecoder
+- ReadableStream, WritableStream
+- crypto, SubtleCrypto (Web Crypto API)
 - Web APIs (atob, btoa, setTimeout, etc.)
 
-**❌ Not Available**:
-- Node.js APIs (`fs`, `path`, `child_process`)
-- Native modules
-- Some npm packages
+**NOT Available:**
+- Node.js APIs (fs, path, child_process)
+- Native modules and binary dependencies
 - File system access
+- Some npm packages with Node.js dependencies
 
-## Common Patterns
+## Common Patterns Summary
 
 ### Authentication at Edge
-```typescript
-import { verify } from '@tsndr/cloudflare-worker-jwt'
-
-export default {
-  async fetch(request: Request, env: Env) {
-    const token = request.headers.get('Authorization')?.replace('Bearer ', '')
-
-    if (!token) {
-      return new Response('Unauthorized', { status: 401 })
-    }
-
-    const isValid = await verify(token, env.JWT_SECRET)
-    if (!isValid) {
-      return new Response('Invalid token', { status: 403 })
-    }
-
-    // Proceed with authenticated request
-    return fetch(request)
-  }
-}
-```
+Verify JWT tokens at edge for sub-millisecond auth checks. See `references/cloudflare-workers.md` for implementation.
 
 ### Rate Limiting
-```typescript
-export default {
-  async fetch(request: Request, env: Env) {
-    const ip = request.headers.get('CF-Connecting-IP')
-    const key = `ratelimit:${ip}`
-
-    // Use KV for rate limiting
-    const count = await env.KV.get(key)
-    const currentCount = count ? parseInt(count) : 0
-
-    if (currentCount >= 100) {
-      return new Response('Rate limit exceeded', { status: 429 })
-    }
-
-    await env.KV.put(key, (currentCount + 1).toString(), {
-      expirationTtl: 60 // 1 minute
-    })
-
-    return fetch(request)
-  }
-}
-```
+Use KV (Cloudflare) or Edge Config (Vercel) for distributed rate limiting. Pattern: IP-based key with TTL expiration.
 
 ### Edge Caching
-```typescript
-async function handleRequest(request: Request) {
-  const cache = caches.default
-  const cacheKey = new Request(request.url, request)
+Cache API with cache-aside pattern. Check cache first, fetch origin on miss, store with TTL.
 
-  // Try cache first
-  let response = await cache.match(cacheKey)
+### A/B Testing
+Assign users to buckets via cookie, rewrite URLs to variant pages. See `references/vercel-edge.md` for middleware pattern.
 
-  if (!response) {
-    // Fetch from origin
-    response = await fetch(request)
-
-    // Cache successful responses
-    if (response.status === 200) {
-      response = new Response(response.body, response)
-      response.headers.set('Cache-Control', 'max-age=3600')
-      await cache.put(cacheKey, response.clone())
-    }
-  }
-
-  return response
-}
-```
+### Geo-Routing
+Access request.cf.country (Cloudflare) or request.geo (Vercel) for location-based routing.
 
 ## Best Practices
 
-- ✅ Keep bundles small (<1MB)
-- ✅ Use streaming for large responses
-- ✅ Leverage edge caching (KV, Durable Objects)
-- ✅ Handle errors gracefully (edge errors can't be recovered)
-- ✅ Test cold starts and warm starts
-- ✅ Monitor edge function performance
-- ✅ Use environment variables for secrets
-- ✅ Implement proper CORS headers
+- Keep bundles small (<1MB compressed)
+- Use streaming for large responses to avoid timeouts
+- Leverage platform caching (KV, Durable Objects, Edge Config)
+- Handle errors gracefully (edge errors cannot be recovered)
+- Test cold starts and warm starts separately
+- Monitor edge function performance and error rates
+- Use environment variables for secrets (never hardcode)
+- Implement proper CORS headers for cross-origin requests
+
+## Decision Guide
+
+| Use Case | Recommended Platform |
+|----------|---------------------|
+| Global CDN + compute | Cloudflare Workers |
+| Next.js middleware | Vercel Edge |
+| TypeScript-first | Deno Deploy |
+| Stateful edge | Cloudflare Durable Objects |
+| Feature flags | Vercel Edge Config |
+| Real-time collaboration | Cloudflare Durable Objects + WebSockets |
 
 ## Resources
 
@@ -238,6 +122,7 @@ async function handleRequest(request: Request) {
 
 ### cloudflare-workers
 **Keywords:** cloudflare, workers, kv, durable objects, r2, wrangler
+**Reference:** references/cloudflare-workers.md
 **Solves:**
 - How do I deploy to Cloudflare Workers?
 - Cloudflare KV storage patterns
@@ -246,6 +131,7 @@ async function handleRequest(request: Request) {
 
 ### vercel-edge
 **Keywords:** vercel edge, edge functions, edge middleware, geolocation, next.js
+**Reference:** references/vercel-edge.md
 **Solves:**
 - How do I use Vercel Edge Functions?
 - Edge middleware patterns (auth, A/B testing)
@@ -254,6 +140,7 @@ async function handleRequest(request: Request) {
 
 ### runtime-differences
 **Keywords:** edge runtime, web apis, node.js compatibility, polyfills
+**Reference:** references/runtime-differences.md
 **Solves:**
 - What Node.js APIs are NOT available at edge?
 - Edge-compatible alternatives to Node APIs
@@ -287,6 +174,7 @@ async function handleRequest(request: Request) {
 
 ### deployment-checklist
 **Keywords:** deployment, checklist, production, monitoring
+**Reference:** checklists/edge-deployment-checklist.md
 **Solves:**
 - What should I check before deploying to edge?
 - Edge deployment best practices

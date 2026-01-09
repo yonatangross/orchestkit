@@ -107,7 +107,7 @@ ws.send(JSON.stringify({ type: 'message', text: 'Hello' }))
 async function* generateData() {
   for (let i = 0; i < 1000; i++) {
     await new Promise(resolve => setTimeout(resolve, 100))
-    yield `data-${i}`
+    yield "data-" + i
   }
 }
 
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
         for await (const chunk of stream) {
           const content = chunk.choices[0]?.delta?.content
           if (content) {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ content })}\n\n`))
+            controller.enqueue(encoder.encode("data: " + JSON.stringify({ content }) + "\n\n"))
           }
         }
         controller.enqueue(encoder.encode('data: [DONE]\n\n'))

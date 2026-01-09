@@ -109,7 +109,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const text = await response.text();
     return { content: [{ type: "text", text }] };
   }
-  throw new Error(`Unknown tool: ${request.params.name}`);
+  throw new Error("Unknown tool: " + request.params.name);
 });
 
 const transport = new StdioServerTransport();

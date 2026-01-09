@@ -147,7 +147,7 @@ frontend/src/i18n/locales/
 items.join(', ')                    // Use formatList(items)
 
 // ❌ NEVER hardcode currency
-`₪${price}`                         // Use formatILS(price)
+"₪" + price                         // Use formatILS(price)
 
 // ❌ NEVER use new Date() for formatting
 new Date().toLocaleDateString()     // Use formatDate() from @/lib/dates
