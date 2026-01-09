@@ -114,8 +114,8 @@
     "architecture-decision-record",
     "api-design-framework",
     "design-system-starter",
-    "testing-strategy-builder",
-    "security-checklist"
+    "test-standards-enforcer",
+    "owasp-top-10"
   ],
 
   "progressive_loading": {

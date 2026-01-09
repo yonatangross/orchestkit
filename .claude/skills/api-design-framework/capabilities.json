@@ -114,8 +114,8 @@
   },
 
   "integrates_with": [
-    "security-checklist",
-    "testing-strategy-builder",
+    "owasp-top-10",
+    "integration-testing",
     "type-safety-validation"
   ],
 

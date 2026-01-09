@@ -34,6 +34,7 @@ RUN_SECURITY="true"
 RUN_INTEGRATION="true"
 RUN_E2E="true"
 RUN_PERFORMANCE="true"
+RUN_SKILLS="true"
 COVERAGE=""
 SPECIFIC_CATEGORY=""
 
@@ -46,8 +47,9 @@ for arg in "$@"; do
         --security) SPECIFIC_CATEGORY="security"; RUN_LINT="false"; RUN_UNIT="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
         --integration) SPECIFIC_CATEGORY="integration"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
         --e2e) SPECIFIC_CATEGORY="e2e"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_PERFORMANCE="false" ;;
-        --performance) SPECIFIC_CATEGORY="performance"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false" ;;
-        --all) RUN_LINT="true"; RUN_UNIT="true"; RUN_SECURITY="true"; RUN_INTEGRATION="true"; RUN_E2E="true"; RUN_PERFORMANCE="true" ;;
+        --performance) SPECIFIC_CATEGORY="performance"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_SKILLS="false" ;;
+        --skills) SPECIFIC_CATEGORY="skills"; RUN_LINT="false"; RUN_UNIT="false"; RUN_SECURITY="false"; RUN_INTEGRATION="false"; RUN_E2E="false"; RUN_PERFORMANCE="false" ;;
+        --all) RUN_LINT="true"; RUN_UNIT="true"; RUN_SECURITY="true"; RUN_INTEGRATION="true"; RUN_E2E="true"; RUN_PERFORMANCE="true"; RUN_SKILLS="true" ;;
         --coverage) COVERAGE="true" ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
@@ -61,6 +63,7 @@ for arg in "$@"; do
             echo "  --integration   Run only integration tests"
             echo "  --e2e           Run only E2E tests"
             echo "  --performance   Run only performance tests"
+            echo "  --skills        Run only skill/subagent tests"
             echo "  --all           Run all tests (default)"
             echo "  --coverage      Generate coverage report"
             echo "  --help          Show this help"
@@ -214,6 +217,26 @@ fi
 
 # ============================================================
 # PERFORMANCE TESTS
+
+# ============================================================
+# SKILL / SUBAGENT TESTS
+# ============================================================
+
+if [[ "$RUN_SKILLS" == "true" ]]; then
+    echo ""
+    echo -e "${BOLD}${CYAN}SKILL / SUBAGENT TESTS${NC}"
+    echo ""
+
+    # Run skill tests via the skill test runner (uses quick mode in main runner)
+    if [[ -f "$SCRIPT_DIR/skills/run-skill-tests.sh" ]]; then
+        run_test "Skill Structure Validation" "$SCRIPT_DIR/skills/structure/test-capabilities-json.sh" || true
+        run_test "SKILL.md Validation" "$SCRIPT_DIR/skills/structure/test-skill-md.sh" || true
+        run_test "Progressive Loading" "$SCRIPT_DIR/skills/progressive-loading/test-tier-loading.sh" || true
+        run_test "Semantic Matching" "$SCRIPT_DIR/skills/semantic-matching/test-skill-discovery.sh" || true
+        run_test "Skill-Agent Integration" "$SCRIPT_DIR/skills/integration/test-skill-agent-integration.sh" || true
+        run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
+    fi
+fi
 # ============================================================
 
 if [[ "$RUN_PERFORMANCE" == "true" ]]; then

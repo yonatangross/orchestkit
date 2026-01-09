@@ -103,6 +103,6 @@
   },
   "integrates_with": [
     "react-server-components-framework",
-    "frontend-ui-developer"
+    "type-safety-validation"
   ]
 }

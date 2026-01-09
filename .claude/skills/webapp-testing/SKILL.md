@@ -16,7 +16,16 @@ hooks:
 
 # Webapp Testing Skill
 
-Autonomous end-to-end testing with Playwright's three specialized agents.
+## Overview
+
+Autonomous end-to-end testing with Playwright's three specialized agents for planning, generating, and self-healing tests automatically.
+
+## When to Use
+
+- Setting up E2E testing for web applications
+- Generating tests from user flows
+- Creating self-healing test suites
+- Testing critical user journeys
 
 ## The Three Agents
 

@@ -51,7 +51,7 @@
       "who is working on"
     ]
   },
-  "integrates_with": ["git", "cli-commands"],
+  "integrates_with": ["github-cli"],
   "cli_commands": [
     "cc-worktree-new",
     "cc-worktree-status",

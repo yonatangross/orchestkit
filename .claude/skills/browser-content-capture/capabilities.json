@@ -62,7 +62,7 @@
     "medium_confidence": ["browser.*capture", "scrape.*dynamic", "react.*docs"]
   },
 
-  "integrates_with": ["webapp-testing", "streaming-api-patterns", "ai-native-development"],
+  "integrates_with": ["webapp-testing", "streaming-api-patterns", "rag-retrieval"],
 
   "progressive_loading": {
     "tier_1_discovery": {

@@ -389,6 +389,18 @@ This agent uses:
 - Architectural changes needed to fix security gaps
 - Trade-offs between security and performance
 
+## Boundaries
+
+**Allowed:**
+- Security audit of any code files
+- Reading production configs for security review
+- `.claude/context/` for audit findings
+
+**Forbidden:**
+- Direct code modifications (audit only)
+- Bypassing security hooks
+- Approving critical findings without escalation
+
 ---
 
 **Version:** 1.0.1 (January 2026)

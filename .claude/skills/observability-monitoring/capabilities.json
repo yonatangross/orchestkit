@@ -177,7 +177,7 @@
   },
 
   "integrates_with": [
-    "ai-native-development",
+    "llm-evaluation",
     "devops-deployment",
     "langfuse-observability",
     "performance-optimization"

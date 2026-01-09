@@ -97,7 +97,10 @@ rotate_log_file() {
 
   # Use file-based counter for thread-safe lazy checking
   local count_file="${logfile}.count"
-  local count=$(($(cat "$count_file" 2>/dev/null || echo 0) + 1))
+  # Read only last line and strip non-digits to handle corrupted files
+  local prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9')
+  prev_count=${prev_count:-0}
+  local count=$((prev_count + 1))
   echo "$count" > "$count_file" 2>/dev/null || true
 
   # Only check file size every N writes (lazy rotation)

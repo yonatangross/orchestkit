@@ -159,7 +159,7 @@
   "integrates_with": [
     "quality-gates",
     "code-review-playbook",
-    "testing-strategy-builder"
+    "test-standards-enforcer"
   ],
 
   "progressive_loading": {

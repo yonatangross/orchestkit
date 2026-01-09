@@ -80,7 +80,7 @@
 
   "integrates_with": [
     "architecture-decision-record",
-    "langgraph-workflows",
+    "multi-agent-orchestration",
     "devops-deployment"
   ],
 

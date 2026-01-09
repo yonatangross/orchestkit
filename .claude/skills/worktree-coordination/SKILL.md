@@ -9,7 +9,16 @@ tags: [coordination, worktree, multi-instance, locking, parallel-development, 20
 
 # Worktree Coordination Skill
 
-Manage multiple Claude Code instances working in parallel across git worktrees.
+## Overview
+
+Manage multiple Claude Code instances working in parallel across git worktrees with automatic file locking, conflict detection, and decision synchronization.
+
+## When to Use
+
+- Running multiple Claude Code instances simultaneously
+- Working on related features in parallel
+- Coordinating changes across git worktrees
+- Preventing merge conflicts from parallel work
 
 ## Commands
 
@@ -83,7 +92,7 @@ When Claude Code exits:
 ┌─────────────────────────────────────────────────────────┐
 │  FILE: src/auth/oauth.ts                                │
 ├─────────────────────────────────────────────────────────┤
-│  Status: 🔒 LOCKED                                      │
+│  Status: LOCKED                                         │
 │  Holder: cc-auth-a1b2c3                                 │
 │  Branch: feature/user-authentication                    │
 │  Task:   Implementing OAuth2 login flow                 │

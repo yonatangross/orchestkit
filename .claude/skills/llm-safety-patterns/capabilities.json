@@ -76,7 +76,7 @@
     "medium_confidence": ["llm.*security", "prompt.*audit", "output.*validation"]
   },
 
-  "integrates_with": ["defense-in-depth", "security-checklist", "ai-native-development"],
+  "integrates_with": ["defense-in-depth", "owasp-top-10", "llm-evaluation"],
 
   "progressive_loading": {
     "tier_1_discovery": {

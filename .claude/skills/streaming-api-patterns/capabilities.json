@@ -102,7 +102,7 @@
     "medium_confidence": ["live.*update", "push.*notification", "chat.*server"]
   },
 
-  "integrates_with": ["ai-native-development", "api-design-framework"],
+  "integrates_with": ["llm-streaming", "api-design-framework"],
 
   "progressive_loading": {
     "tier_1_discovery": { "file": "capabilities.json", "tokens": 100 },

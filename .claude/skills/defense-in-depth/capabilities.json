@@ -64,7 +64,7 @@
     "medium_confidence": ["secure.*api", "multi.*layer", "protection"]
   },
 
-  "integrates_with": ["security-checklist", "llm-safety-patterns", "observability-monitoring"],
+  "integrates_with": ["owasp-top-10", "llm-safety-patterns", "observability-monitoring"],
 
   "progressive_loading": {
     "tier_1_discovery": {

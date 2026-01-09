@@ -156,9 +156,9 @@
   },
 
   "integrates_with": [
-    "langgraph-workflows",
-    "ai-native-development",
-    "llm-caching-patterns",
+    "langgraph-state",
+    "llm-evaluation",
+    "semantic-caching",
     "performance-optimization",
     "resilience-patterns"
   ],

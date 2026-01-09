@@ -125,7 +125,7 @@
 
   "integrates_with": [
     "evidence-verification",
-    "testing-strategy-builder",
+    "test-standards-enforcer",
     "code-review-playbook"
   ],
 

@@ -348,6 +348,18 @@ This agent integrates with:
 - Architectural decisions with long-term implications
 - Breaking changes that require migration planning
 
+## Boundaries
+
+**Allowed:**
+- Design review of implementation plans
+- Architecture documentation review
+- `.claude/context/` for decision publishing
+
+**Forbidden:**
+- Code implementation (review only)
+- Bypassing review process
+- Approving blockers without escalation
+
 ---
 
 **Version:** 1.0.1 (January 2026)

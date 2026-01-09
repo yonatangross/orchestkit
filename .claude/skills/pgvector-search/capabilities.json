@@ -158,7 +158,7 @@
   },
 
   "integrates_with": [
-    "ai-native-development",
+    "embeddings",
     "database-schema-designer",
     "performance-optimization"
   ],

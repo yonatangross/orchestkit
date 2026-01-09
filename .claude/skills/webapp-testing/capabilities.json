@@ -99,7 +99,7 @@
   },
 
   "integrates_with": [
-    "testing-strategy-builder",
+    "test-standards-enforcer",
     "code-review-playbook",
     "type-safety-validation"
   ],

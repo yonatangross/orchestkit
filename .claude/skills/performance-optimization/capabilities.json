@@ -195,7 +195,7 @@
     "database-schema-designer",
     "observability-monitoring",
     "pgvector-search",
-    "llm-caching-patterns"
+    "semantic-caching"
   ],
 
   "progressive_loading": {

@@ -42,5 +42,5 @@
     "medium_confidence": ["look.*at.*code", "what.*think.*about", "conventional.*comment"]
   },
 
-  "integrates_with": ["security-auditor", "unit-testing", "api-design-framework"]
+  "integrates_with": ["security-scanning", "unit-testing", "api-design-framework"]
 }

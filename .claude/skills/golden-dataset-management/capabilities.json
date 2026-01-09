@@ -90,7 +90,7 @@
 
   "integrates_with": [
     "pgvector-search",
-    "ai-native-development",
+    "llm-evaluation",
     "devops-deployment"
   ],
 

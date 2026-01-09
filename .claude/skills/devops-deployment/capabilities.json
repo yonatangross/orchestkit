@@ -104,7 +104,7 @@
 
   "integrates_with": [
     "observability-monitoring",
-    "security-checklist",
+    "security-scanning",
     "golden-dataset-management"
   ],
 
