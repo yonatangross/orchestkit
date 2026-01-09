@@ -36,7 +36,7 @@ Once PRs are merged, these commands will work:
 
 | Bundle | Skills | Description |
 |--------|--------|-------------|
-| `complete` | 78 | Full toolkit with 20 agents, 12 commands, 92 hooks |
+| `complete` | 78 | Full toolkit with 20 agents, 12 commands, 90 hooks |
 | `ai-development` | 23 | RAG, embeddings, LangGraph, caching |
 | `backend` | 12 | APIs, databases, streaming, resilience |
 | `frontend` | 6 | React 19, RSC, animations, edge |
@@ -49,7 +49,7 @@ Once PRs are merged, these commands will work:
 - **78 Skills**: Progressive loading with `capabilities.json` for token-efficient discovery
 - **20 Specialized Agents**: Product thinking (6) + technical implementation (14)
 - **12 Commands**: `/commit`, `/implement`, `/review-pr`, `/explore`, etc.
-- **92 Hooks**: Safety, auditing, auto-approval, quality gates
+- **90 Hooks**: Safety, auditing, auto-approval, quality gates
 
 ## More Information
 

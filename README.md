@@ -2,7 +2,7 @@
   <img src="Logo.png" alt="SkillForge Logo" width="120" />
 </p>
 
-<h1 align="center">@skillforge/complete</h1>
+<h1 align="center">SkillForge (skf)</h1>
 
 <p align="center">
   <strong>The Complete AI Development Toolkit for Claude Code</strong>
