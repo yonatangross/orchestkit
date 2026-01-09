@@ -2,8 +2,8 @@
   "name": "skillforge-complete",
   "displayName": "@skillforge/complete",
   "owner": "yonatangross",
-  "version": "4.6.1",
-  "description": "The Complete AI Development Toolkit - 72 skills, 20 agents, 11 commands, 89 hooks",
+  "version": "4.6.3",
+  "description": "The Complete AI Development Toolkit - 78 skills, 20 agents, 12 commands, 92 hooks",
   "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
   "license": "MIT",
   "strict": false,
@@ -23,7 +23,7 @@
   "plugins": [
     {
       "name": "complete",
-      "description": "Full toolkit - all 72 skills, 20 agents, 11 commands, 89 hooks",
+      "description": "Full toolkit - all 78 skills, 20 agents, 12 commands, 92 hooks",
       "skills": ["*"],
       "includes_agents": true,
       "includes_commands": true,
@@ -136,10 +136,10 @@
   ],
 
   "features": {
-    "skills": 72,
+    "skills": 78,
     "agents": 20,
-    "commands": 11,
-    "hooks": 89,
+    "commands": 12,
+    "hooks": 92,
     "progressive_loading": true,
     "capabilities_json": true
   },

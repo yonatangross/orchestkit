@@ -23,7 +23,7 @@ Once PRs are merged, these commands will work:
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
 # Install (choose one)
-/plugin install skillforge-complete@complete         # Everything (72 skills)
+/plugin install skillforge-complete@complete         # Everything (78 skills)
 /plugin install skillforge-complete@ai-development   # AI/LLM skills (23 skills)
 /plugin install skillforge-complete@backend          # Backend skills (12 skills)
 /plugin install skillforge-complete@frontend         # Frontend skills (6 skills)
@@ -36,7 +36,7 @@ Once PRs are merged, these commands will work:
 
 | Bundle | Skills | Description |
 |--------|--------|-------------|
-| `complete` | 72 | Full toolkit with 20 agents, 11 commands, 89 hooks |
+| `complete` | 78 | Full toolkit with 20 agents, 12 commands, 92 hooks |
 | `ai-development` | 23 | RAG, embeddings, LangGraph, caching |
 | `backend` | 12 | APIs, databases, streaming, resilience |
 | `frontend` | 6 | React 19, RSC, animations, edge |
@@ -46,10 +46,10 @@ Once PRs are merged, these commands will work:
 
 ## Features
 
-- **72 Skills**: Progressive loading with `capabilities.json` for token-efficient discovery
+- **78 Skills**: Progressive loading with `capabilities.json` for token-efficient discovery
 - **20 Specialized Agents**: Product thinking (6) + technical implementation (14)
-- **11 Commands**: `/commit`, `/implement`, `/review-pr`, `/explore`, etc.
-- **89 Hooks**: Safety, auditing, auto-approval, quality gates
+- **12 Commands**: `/commit`, `/implement`, `/review-pr`, `/explore`, etc.
+- **92 Hooks**: Safety, auditing, auto-approval, quality gates
 
 ## More Information
 

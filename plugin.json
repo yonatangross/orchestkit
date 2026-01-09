@@ -2,7 +2,7 @@
   "$schema": "https://claude-plugins.dev/schemas/plugin.schema.json",
   "name": "@skillforge/complete",
   "version": "4.6.3",
-  "description": "Comprehensive AI-assisted development toolkit with 78 skills, 12 commands, 20 agents (6 product + 14 technical), 90 hooks, progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 78 skills, 12 commands, 20 agents (6 product + 14 technical), 92 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "displayName": "SkillForge Complete",
   "author": {
     "name": "SkillForge Team",

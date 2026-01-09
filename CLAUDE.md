@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **72 Skills**: Reusable knowledge modules covering AI/LLM, backend, frontend, testing, security, and DevOps
+- **78 Skills**: Reusable knowledge modules covering AI/LLM, backend, frontend, testing, security, and DevOps
 - **20 Agents**: Specialized AI personas for product thinking, system architecture, code quality, and more
 - **12 Commands**: Pre-configured workflows for common development tasks
-- **90 Hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
+- **92 Hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 
 **Purpose**: Enable AI-assisted development of production-grade applications with built-in best practices, security patterns, and quality gates.

@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  78 skills | 12 commands | 20 agents | 90 hooks | 4 tiers
+  78 skills | 12 commands | 20 agents | 92 hooks | 4 tiers
 </p>
 
 ---
@@ -340,7 +340,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 90 hooks have been security-audited and follow these standards:
+All 92 hooks have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
