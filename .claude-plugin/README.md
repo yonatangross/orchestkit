@@ -23,13 +23,13 @@ Once PRs are merged, these commands will work:
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
 # Install (choose one)
-/plugin install skillforge-complete@complete         # Everything (78 skills)
-/plugin install skillforge-complete@ai-development   # AI/LLM skills (23 skills)
-/plugin install skillforge-complete@backend          # Backend skills (12 skills)
-/plugin install skillforge-complete@frontend         # Frontend skills (6 skills)
-/plugin install skillforge-complete@quality-testing  # Testing skills (14 skills)
-/plugin install skillforge-complete@devops-security  # DevOps skills (7 skills)
-/plugin install skillforge-complete@process-planning # Planning skills (6 skills)
+/plugin install skf@complete         # Everything (78 skills)
+/plugin install skf@ai-development   # AI/LLM skills (23 skills)
+/plugin install skf@backend          # Backend skills (12 skills)
+/plugin install skf@frontend         # Frontend skills (6 skills)
+/plugin install skf@quality-testing  # Testing skills (14 skills)
+/plugin install skf@devops-security  # DevOps skills (7 skills)
+/plugin install skf@process-planning # Planning skills (6 skills)
 ```
 
 ## Plugin Bundles

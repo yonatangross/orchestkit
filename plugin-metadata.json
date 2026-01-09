@@ -1,11 +1,11 @@
 {
   "$schema": "https://claude-plugins.dev/schemas/plugin.schema.json",
   "name": "@skillforge/complete",
-  "version": "4.6.4",
+  "version": "4.6.5",
   "description": "Comprehensive AI-assisted development toolkit with 78 skills, 12 commands, 20 agents, 90 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "displayName": "SkillForge Complete",
   "author": {
-    "name": "SkillForge Team",
+    "name": "Yonatan Gross",
     "url": "https://github.com/yonatangross/skillforge-claude-plugin"
   },
   "repository": {

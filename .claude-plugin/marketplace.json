@@ -1,20 +1,20 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "skillforge",
-  "version": "4.6.4",
+  "version": "4.6.5",
   "description": "The Complete AI Development Toolkit - 78 skills, 20 agents, 12 commands, 90 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
-    "email": "yonatangross@gmail.com"
+    "email": "yonatan2gross@gmail.com"
   },
   "plugins": [
     {
-      "name": "skillforge-complete",
+      "name": "skf",
       "description": "Complete AI development toolkit with 78 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 20 specialized agents, 12 commands, and 90 lifecycle hooks.",
-      "version": "4.6.4",
+      "version": "4.6.5",
       "author": {
         "name": "Yonatan Gross",
-        "email": "yonatangross@gmail.com"
+        "email": "yonatan2gross@gmail.com"
       },
       "source": "./",
       "category": "development"

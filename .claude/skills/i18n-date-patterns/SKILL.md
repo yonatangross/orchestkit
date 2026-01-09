@@ -4,7 +4,7 @@ description: Use this skill for internationalization (i18n) in React application
 context: fork
 agent: frontend-ui-developer
 version: 1.2.0
-author: SkillForge Team
+author: Yonatan Gross
 tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
 ---
 
@@ -201,7 +201,7 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 
 **Skill Version**: 1.2.0
 **Last Updated**: 2026-01-06
-**Maintained by**: SkillForge Team
+**Maintained by**: Yonatan Gross
 
 ## Capability Details
 

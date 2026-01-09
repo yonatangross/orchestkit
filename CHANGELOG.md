@@ -5,6 +5,30 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.5] - 2026-01-09
+
+### Changed
+
+**Plugin Namespace Rename**
+- Renamed plugin from `skillforge-complete` to `skf` for shorter agent prefixes
+- Agents now appear as `skf:debug-investigator` instead of `skillforge-complete:debug-investigator`
+
+**Silent Hooks on Success**
+- PreToolUse Task hooks now silent on success (no stderr output)
+- Removed `info()` calls, replaced with `log_hook()` for file-only logging
+- Warnings only shown for actual issues (context limits, unknown types)
+
+**Improved Agent Discovery**
+- Subagent validator now scans `.claude/agents/` directory for valid types
+- Handles namespaced agent types (e.g., `skf:agent-name`)
+
+### Fixed
+
+- Updated author email to `yonatan2gross@gmail.com`
+- Changed author from "SkillForge Team" to "Yonatan Gross"
+
+---
+
 ## [4.6.4] - 2026-01-09
 
 ### Fixed

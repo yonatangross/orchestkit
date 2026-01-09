@@ -1,10 +1,10 @@
 {
-  "name": "skillforge-complete",
-  "version": "4.6.4",
+  "name": "skf",
+  "version": "4.6.5",
   "description": "Comprehensive AI-assisted development toolkit with 78 skills, 12 commands, 20 agents, 90 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
-    "name": "SkillForge Team",
-    "email": "yonatangross@gmail.com",
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
     "url": "https://github.com/yonatangross/skillforge-claude-plugin"
   },
   "homepage": "https://github.com/yonatangross/skillforge-claude-plugin",

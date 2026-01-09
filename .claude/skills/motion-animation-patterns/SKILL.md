@@ -4,7 +4,7 @@ description: Use this skill for implementing Motion (Framer Motion) animations i
 context: fork
 agent: rapid-ui-designer
 version: 1.0.0
-author: SkillForge Team
+author: Yonatan Gross
 tags: [motion, framer-motion, animation, react, ux, transitions, hover, stagger, skeleton]
 ---
 
@@ -394,7 +394,7 @@ When adding animations:
 
 **Skill Version**: 1.0.0
 **Last Updated**: 2026-01-06
-**Maintained by**: SkillForge Team
+**Maintained by**: Yonatan Gross
 
 ## Capability Details
 

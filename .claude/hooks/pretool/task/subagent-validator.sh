@@ -35,28 +35,40 @@ jq -n \
   echo "{\"timestamp\":\"$(date -Iseconds)\",\"subagent_type\":\"$SUBAGENT_TYPE\",\"description\":\"$DESCRIPTION\"}" >> "$TRACKING_LOG"
 }
 
-# === VALIDATION: Load valid types from plugin.json (single source of truth) ===
-REGISTRY="${CLAUDE_PROJECT_DIR:-.}/plugin.json"
+# === VALIDATION: Build valid types from multiple sources ===
 BUILTIN_TYPES="general-purpose|Explore|Plan|claude-code-guide|statusline-setup|Bash"
 
+# Extract agent type (strip namespace prefix like "skf:")
+AGENT_TYPE_ONLY="${SUBAGENT_TYPE##*:}"
+
+# Source 1: Load from plugin.json agents array (if exists)
+REGISTRY="${CLAUDE_PROJECT_DIR:-.}/plugin.json"
+REGISTRY_TYPES=""
 if [[ -f "$REGISTRY" ]]; then
-  # Extract agent IDs from plugin.json agents array
-  REGISTRY_TYPES=$(jq -r '[.agents[].id] | join("|")' "$REGISTRY" 2>/dev/null || echo "")
-  if [[ -n "$REGISTRY_TYPES" ]]; then
-    VALID_TYPES="$BUILTIN_TYPES|$REGISTRY_TYPES"
-  else
-    VALID_TYPES="$BUILTIN_TYPES"
-  fi
-else
-  VALID_TYPES="$BUILTIN_TYPES"
+  REGISTRY_TYPES=$(jq -r '[.agents[].id // empty] | join("|")' "$REGISTRY" 2>/dev/null || echo "")
 fi
 
-if [[ ! "$SUBAGENT_TYPE" =~ ^($VALID_TYPES)$ ]]; then
-  warn "Unknown subagent type: $SUBAGENT_TYPE (not in plugin.json)"
+# Source 2: Scan .claude/agents/ directory for agent markdown files
+AGENTS_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/agents"
+AGENT_FILES_TYPES=""
+if [[ -d "$AGENTS_DIR" ]]; then
+  # List .md files, strip extension, join with |
+  AGENT_FILES_TYPES=$(ls "$AGENTS_DIR"/*.md 2>/dev/null | xargs -I{} basename {} .md | tr '\n' '|' | sed 's/|$//')
+fi
+
+# Combine all valid types
+VALID_TYPES="$BUILTIN_TYPES"
+[[ -n "$REGISTRY_TYPES" ]] && VALID_TYPES="$VALID_TYPES|$REGISTRY_TYPES"
+[[ -n "$AGENT_FILES_TYPES" ]] && VALID_TYPES="$VALID_TYPES|$AGENT_FILES_TYPES"
+
+# Validate (check both full name and stripped name)
+if [[ ! "$SUBAGENT_TYPE" =~ ^($VALID_TYPES)$ ]] && [[ ! "$AGENT_TYPE_ONLY" =~ ^($VALID_TYPES)$ ]]; then
+  # Only log to file, no stderr output (silent on unknown types)
   log_hook "WARNING: Unknown subagent type: $SUBAGENT_TYPE"
 fi
 
-info "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
+# Silent on success - only log to file, no stderr output
+log_hook "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
 
 # CC 2.1.2 Compliant: JSON output without ANSI colors
 # (Colors in JSON break JSON parsing)

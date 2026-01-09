@@ -447,7 +447,7 @@ MIT License - see [LICENSE](./LICENSE) for details.
 
 ## Credits
 
-**Created by:** [SkillForge Team](https://github.com/skillforge)
+**Created by:** [Yonatan Gross](https://github.com/skillforge)
 
 **Inspired by:**
 - The Claude Code community
