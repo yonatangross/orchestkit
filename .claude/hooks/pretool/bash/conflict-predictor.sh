@@ -17,7 +17,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "$SCRIPT_DIR/../../_lib/coordination.sh" ]]; then
     source "$SCRIPT_DIR/../../_lib/coordination.sh"
 else
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -27,7 +27,7 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty')
 
 # Only check for git commit commands
 if ! echo "$COMMAND" | grep -qE '^git\s+commit'; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -35,7 +35,7 @@ fi
 COORD_DIR=$(get_coordination_dir)
 
 if [[ ! -f "$COORD_DIR/registry.json" ]]; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -44,7 +44,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 INSTANCE_ID=$(get_instance_id)
 
 if [[ -z "$CURRENT_BRANCH" ]]; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -53,7 +53,7 @@ OTHER_BRANCHES=$(echo "$REGISTRY" | jq -r --arg current "$CURRENT_BRANCH" --arg 
     '.instances | to_entries[] | select(.key != $id and .value.branch != $current) | .value.branch')
 
 if [[ -z "$OTHER_BRANCHES" ]]; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -97,5 +97,5 @@ fi
 
 # Always allow the commit (this is just a warning)
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Conflicts predicted","continue":true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

@@ -23,7 +23,7 @@ if [[ "$TOOL_NAME" != "Write" ]]; then
         permissionDecision: "allow",
         updatedInput: $params
       }
-    ,"continue":true}'
+    ,"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -37,7 +37,7 @@ if [[ -f "$FILE_PATH" ]]; then
         permissionDecision: "allow",
         updatedInput: $params
       }
-    ,"continue":true}'
+    ,"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -131,18 +131,11 @@ else
 fi
 
 # Output decision with systemMessage for user visibility
-if [[ "$HEADER_ADDED" == "true" ]]; then
-  MSG="Header added to new file"
-else
-  MSG="File processed"
-fi
 
 jq -n \
   --arg file_path "$FILE_PATH" \
   --arg content "$UPDATED_CONTENT" \
-  --arg msg "$MSG" \
   '{
-    systemMessage: $msg,
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "allow",
@@ -151,4 +144,4 @@ jq -n \
         content: $content
       }
     }
-  ,"continue":true}'
+  ,"continue":true,"suppressOutput":true}'

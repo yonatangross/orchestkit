@@ -107,7 +107,7 @@ if [[ -n "$STAGED_CONTEXT" ]]; then
     --arg msg "$SYSTEM_MESSAGE" \
     '{systemMessage: $msg, continue: true}' 2>/dev/null || {
     # Fallback if jq fails
-    echo '{"systemMessage":"Context staged","continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
   }
 
   log_hook "Staged context with $(echo -e "$STAGED_CONTEXT" | wc -l) lines"

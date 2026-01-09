@@ -337,5 +337,5 @@ main() {
 
 # Run main
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Multi-instance initialized","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 main "$@"

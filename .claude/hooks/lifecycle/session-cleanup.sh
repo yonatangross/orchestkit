@@ -38,5 +38,5 @@ if [[ -d "$LOG_DIR" ]]; then
 fi
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Session cleaned up","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

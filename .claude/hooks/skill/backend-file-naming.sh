@@ -153,5 +153,5 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
 fi
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Backend naming checked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

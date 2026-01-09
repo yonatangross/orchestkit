@@ -113,5 +113,5 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
 } > "$LOG_FILE" 2>/dev/null || true
 
 # CC 2.1.2 compliant output
-echo '{"systemMessage":"Context published (Protocol 2.0)","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

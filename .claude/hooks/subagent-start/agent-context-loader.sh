@@ -122,7 +122,7 @@ fi
 # Output CC 2.1.2 compliant JSON
 if [ -n "$system_message" ]; then
     jq -n --arg msg "$system_message" '{systemMessage: $msg, continue: true}' 2>/dev/null || \
-        echo '{"systemMessage":"Agent context loaded","continue":true}'
+        echo '{"continue":true,"suppressOutput":true}'
 else
     echo '{"continue":true}'
 fi

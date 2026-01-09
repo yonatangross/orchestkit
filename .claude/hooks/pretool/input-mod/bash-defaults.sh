@@ -48,7 +48,7 @@ if check_dangerous "$COMMAND"; then
       permissionDecision: "deny",
       permissionDecisionReason: ("Dangerous command blocked: " + $cmd)
     }
-  ,"continue":true}'
+  ,"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -73,10 +73,9 @@ UPDATED_PARAMS=$(jq -n \
 jq -n \
   --argjson params "$UPDATED_PARAMS" \
   '{
-    systemMessage: "Bash defaults applied",
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "allow",
       updatedInput: $params
     }
-  ,"continue":true}'
+  ,"continue":true,"suppressOutput":true}'

@@ -31,5 +31,5 @@ if [[ -n "$ERROR" && "$ERROR" != "null" ]]; then
 fi
 
 # Output with CC 2.1.2 compliance
-echo '{"systemMessage":"Subagent quality checked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

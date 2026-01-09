@@ -5,7 +5,7 @@
 # =============================================================================
 set -euo pipefail
 
-# Source common utilities
+# Source common utilities (includes safe grep functions)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh"
 
@@ -37,13 +37,13 @@ WARNINGS=()
 find_test_file() {
     local impl_file="$1"
     local test_file=""
-    
+
     if [[ "$impl_file" =~ \.(ts|tsx|js|jsx)$ ]]; then
         # TypeScript/JavaScript test patterns
         # Try .test.ts, .test.tsx, .spec.ts, etc.
         local base="${impl_file%.*}"
         local ext="${impl_file##*.}"
-        
+
         # Check common patterns
         for pattern in ".test.$ext" ".spec.$ext" ".test.ts" ".test.tsx"; do
             if [[ -f "${base}${pattern}" ]]; then
@@ -51,13 +51,13 @@ find_test_file() {
                 break
             fi
         done
-        
+
         # Check __tests__ directory
         if [[ -z "$test_file" ]]; then
             local dir=$(dirname "$impl_file")
             local filename=$(basename "$impl_file")
             local base_filename="${filename%.*}"
-            
+
             for pattern in "$dir/__tests__/${base_filename}.test.$ext" \
                            "$dir/__tests__/${base_filename}.spec.$ext" \
                            "$dir/__tests__/${filename}"; do
@@ -67,18 +67,18 @@ find_test_file() {
                 fi
             done
         fi
-        
+
     elif [[ "$impl_file" =~ \.py$ ]]; then
         # Python test patterns
         local dir=$(dirname "$impl_file")
         local filename=$(basename "$impl_file")
-        
+
         # Try test_*.py pattern
         local test_filename="test_${filename}"
         if [[ -f "$dir/$test_filename" ]]; then
             test_file="$dir/$test_filename"
         fi
-        
+
         # Try tests/ directory
         if [[ -z "$test_file" ]]; then
             local parent_dir=$(dirname "$dir")
@@ -89,7 +89,7 @@ find_test_file() {
             fi
         fi
     fi
-    
+
     echo "$test_file"
 }
 
@@ -102,7 +102,7 @@ TEST_FILE=$(find_test_file "$FILE_PATH")
 extract_testable_units() {
     local content="$1"
     local file_path="$2"
-    
+
     if [[ "$file_path" =~ \.(ts|tsx|js|jsx)$ ]]; then
         # TypeScript/JavaScript: Extract exported functions and classes
         echo "$content" | grep -oE "export (function|class|const|async function)\s+[A-Za-z_][A-Za-z0-9_]*" | \
@@ -122,12 +122,12 @@ TESTABLE_UNITS=$(extract_testable_units "$CONTENT" "$FILE_PATH")
 
 if [[ -n "$TESTABLE_UNITS" ]]; then
     UNIT_COUNT=$(echo "$TESTABLE_UNITS" | wc -l | tr -d ' ')
-    
+
     if [[ -z "$TEST_FILE" ]]; then
         ERRORS+=("TEST COVERAGE: No test file found for implementation")
         ERRORS+=("  Implementation: $FILE_PATH")
         ERRORS+=("  Expected test file:")
-        
+
         if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]]; then
             BASE="${FILE_PATH%.*}"
             EXT="${FILE_PATH##*.}"
@@ -138,28 +138,30 @@ if [[ -n "$TESTABLE_UNITS" ]]; then
             ERRORS+=("    - $(dirname "$FILE_PATH")/test_${FILENAME}")
             ERRORS+=("    - $(dirname "$(dirname "$FILE_PATH")")/tests/test_${FILENAME}")
         fi
-        
+
         ERRORS+=("")
         ERRORS+=("  Found $UNIT_COUNT testable units:")
         while IFS= read -r unit; do
             [[ -z "$unit" ]] && continue
             ERRORS+=("    - $unit")
         done <<< "$TESTABLE_UNITS"
-        
+
     else
         # Test file exists - check if new units are tested
         TEST_CONTENT=$(cat "$TEST_FILE" 2>/dev/null || echo "")
         UNTESTED_UNITS=()
-        
+
         while IFS= read -r unit; do
             [[ -z "$unit" ]] && continue
-            
+
             # Check if unit is mentioned in test file
-            if ! echo "$TEST_CONTENT" | grep -qE "\b$unit\b" 2>/dev/null; then
+            # SEC-FIX: Use grep_word_literal for safe word-boundary matching
+            # Unit names are extracted from code and may contain special characters
+            if ! echo "$TEST_CONTENT" | grep_word_literal -q "$unit" 2>/dev/null; then
                 UNTESTED_UNITS+=("$unit")
             fi
         done <<< "$TESTABLE_UNITS"
-        
+
         if [[ ${#UNTESTED_UNITS[@]} -gt 0 ]]; then
             WARNINGS+=("TEST COVERAGE: New units without tests")
             WARNINGS+=("  Implementation: $FILE_PATH")
@@ -184,12 +186,12 @@ fi
 
 if git worktree list >/dev/null 2>&1; then
     WORKTREES=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | awk '{print $2}' || true)
-    
+
     if [[ -n "$WORKTREES" ]]; then
         # Check if this file implements/extends something
         IMPLEMENTS=""
         EXTENDS=""
-        
+
         if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]]; then
             IMPLEMENTS=$(echo "$CONTENT" | grep -oE "implements\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1)
             EXTENDS=$(echo "$CONTENT" | grep -oE "extends\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1)
@@ -197,20 +199,22 @@ if git worktree list >/dev/null 2>&1; then
             EXTENDS=$(echo "$CONTENT" | grep -oE "class\s+[A-Za-z_][A-Za-z0-9_]*\s*\([^)]*\)" | \
                 grep -oE "\([^)]*\)" | tr -d '()' | awk '{print $1}' | head -1)
         fi
-        
+
         if [[ -n "$IMPLEMENTS" || -n "$EXTENDS" ]]; then
             BASE_TYPE="${IMPLEMENTS:-$EXTENDS}"
-            
+
             # Check if base type has tests in other worktrees
             REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
             if [[ -n "$REPO_ROOT" ]]; then
                 while IFS= read -r worktree; do
                     [[ -z "$worktree" ]] && continue
-                    
+
                     # Search for tests of base type
+                    # SEC-FIX: Use grep -Fl for safe literal string matching
+                    # BASE_TYPE is extracted from code and may contain special characters
                     BASE_TESTS=$(find "$worktree" -type f \( -name "*.test.*" -o -name "*.spec.*" -o -name "test_*.py" \) \
-                        -exec grep -l "$BASE_TYPE" {} \; 2>/dev/null | head -3 || true)
-                    
+                        -exec grep -Fl -- "$BASE_TYPE" {} \; 2>/dev/null | head -3 || true)
+
                     if [[ -n "$BASE_TESTS" ]]; then
                         WORKTREE_BRANCH=$(cd "$worktree" && git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
                         WARNINGS+=("SPLIT IMPLEMENTATION: Tests for base type exist in other worktree")
@@ -239,24 +243,24 @@ fi
 check_integration_needs() {
     local content="$1"
     local file_path="$2"
-    
+
     # Check for cross-boundary calls
     CROSS_BOUNDARY=false
-    
+
     if [[ "$file_path" =~ /routers/ ]] && echo "$content" | grep -qE "from.*services.*import" 2>/dev/null; then
         CROSS_BOUNDARY=true
     fi
-    
+
     if [[ "$file_path" =~ /services/ ]] && echo "$content" | grep -qE "from.*repositories.*import" 2>/dev/null; then
         CROSS_BOUNDARY=true
     fi
-    
+
     if [[ "$CROSS_BOUNDARY" == "true" ]]; then
         # Check if integration tests exist
         REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
         if [[ -n "$REPO_ROOT" ]]; then
             INTEGRATION_TESTS=$(find "$REPO_ROOT" -type f \( -name "*integration*.test.*" -o -name "*integration*.spec.*" -o -name "test_*integration*.py" \) 2>/dev/null | head -1)
-            
+
             if [[ -z "$INTEGRATION_TESTS" ]]; then
                 WARNINGS+=("INTEGRATION TESTS: Cross-layer calls detected")
                 WARNINGS+=("  File: $file_path")

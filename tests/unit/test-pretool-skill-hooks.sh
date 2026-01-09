@@ -50,7 +50,7 @@ test_skill_tracker_handles_skill_with_args() {
     fi
 }
 
-test_skill_tracker_has_system_message() {
+test_skill_tracker_has_valid_output() {
     local hook="$HOOKS_DIR/skill-tracker.sh"
     if [[ ! -f "$hook" ]]; then
         skip "skill-tracker.sh not found"
@@ -61,8 +61,8 @@ test_skill_tracker_has_system_message() {
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
-        fail "Missing systemMessage field"
+    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
+        fail "Missing systemMessage or suppressOutput field"
     fi
 }
 

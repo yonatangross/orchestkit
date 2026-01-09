@@ -105,5 +105,5 @@ else
   jq -n \
     --arg file_path "$FILE_PATH" \
     --arg content "$CONTENT" \
-    '{continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'
+    '{continue: true, suppressOutput: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'
 fi

@@ -45,5 +45,5 @@ if [[ "$IS_COMPLEX" == "true" ]]; then
 fi
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Todo enforced","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

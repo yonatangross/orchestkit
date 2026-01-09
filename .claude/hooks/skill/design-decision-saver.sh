@@ -20,5 +20,5 @@ echo ""
 echo "::endgroup::"
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Design decision saved","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

@@ -14,7 +14,7 @@ TOOL_NAME=$(get_tool_name)
 
 log_hook "Auto-approving readonly: $TOOL_NAME"
 
-# Silent approval with CC 2.1.2 compliant output
-echo '{"decision":{"behavior":"allow"}, "continue": true}'
+# Silent approval - no user-visible output
+output_silent_allow
 
 exit 0

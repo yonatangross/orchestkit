@@ -80,8 +80,8 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     --argjson params "$UPDATED_PARAMS" \
     '{systemMessage: $msg, continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: $params}}'
 else
-  # Silent success - no systemMessage
+  # Silent success - suppress all output
   jq -n \
     --argjson params "$UPDATED_PARAMS" \
-    '{continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: $params}}'
+    '{continue: true, suppressOutput: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: $params}}'
 fi

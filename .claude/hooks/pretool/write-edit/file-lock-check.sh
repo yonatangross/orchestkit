@@ -6,14 +6,14 @@
 set -euo pipefail
 
 # Ensure JSON output on any exit (trap for safety)
-trap 'echo "{\"systemMessage\":\"Lock check completed\",\"continue\":true}"' EXIT
+trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source coordination lib with fallback
 source "${SCRIPT_DIR}/../../../coordination/lib/coordination.sh" 2>/dev/null || {
     trap - EXIT
-    echo '{"systemMessage":"Coordination unavailable","continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -27,7 +27,7 @@ fi
 TOOL_INPUT="${TOOL_INPUT:-}"
 if [[ -z "${TOOL_INPUT}" ]]; then
   trap - EXIT
-  echo '{"systemMessage":"No tool input","continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -41,14 +41,14 @@ fi
 
 if [[ -z "${FILE_PATH}" ]]; then
   trap - EXIT
-  echo '{"systemMessage":"No file path found","continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
 # Skip if file is in coordination directory (avoid recursion)
 if [[ "${FILE_PATH}" =~ /.claude/coordination/ ]]; then
   trap - EXIT
-  echo '{"systemMessage":"Skipping coordination files","continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -85,5 +85,5 @@ fi
 
 # Success - output JSON and clear trap
 trap - EXIT
-jq -n --arg msg "File lock checked${CONFLICT_MSG}" '{systemMessage: $msg, continue: true}'
+jq -n '{continue: true, suppressOutput: true}'
 exit 0

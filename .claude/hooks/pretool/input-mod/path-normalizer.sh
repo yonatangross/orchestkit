@@ -75,28 +75,24 @@ case "$TOOL_NAME" in
     ;;
 esac
 
-# ANSI colors
-GREEN=$'\033[32m'
-CYAN=$'\033[36m'
-RESET=$'\033[0m'
-
-# Output decision with colored systemMessage
-# Show different message based on whether path was actually normalized
+# Output: silent on success, only show message if path was normalized
 if [[ "$PATH_CHANGED" == "true" ]]; then
-  MSG="${GREEN}✓${RESET} Path normalized"
+  # Path was normalized - output with updated params (still silent)
+  jq -n \
+    --argjson params "$PARAMS" \
+    '{
+      continue: true,
+      suppressOutput: true,
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "allow",
+        updatedInput: $params
+      }
+    }'
 else
-  MSG="${GREEN}✓${RESET} Path OK"
-fi
-
-jq -n \
-  --arg msg "$MSG" \
-  --argjson params "$PARAMS" \
-  '{
-    systemMessage: $msg,
+  # No changes - silent success
+  jq -n '{
     continue: true,
-    hookSpecificOutput: {
-      hookEventName: "PreToolUse",
-      permissionDecision: "allow",
-      updatedInput: $params
-    }
+    suppressOutput: true
   }'
+fi

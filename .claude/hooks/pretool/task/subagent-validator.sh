@@ -60,5 +60,5 @@ info "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
 
 # CC 2.1.2 Compliant: JSON output without ANSI colors
 # (Colors in JSON break JSON parsing)
-echo '{"systemMessage":"Subagent validated", "continue": true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

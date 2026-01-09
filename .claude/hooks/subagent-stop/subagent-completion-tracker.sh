@@ -19,5 +19,5 @@ SESSION_ID=$(get_session_id)
 log_hook "Subagent completed (session: $SESSION_ID)"
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Subagent completion tracked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

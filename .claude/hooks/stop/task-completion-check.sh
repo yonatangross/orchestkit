@@ -21,5 +21,5 @@ if [[ -f "$TODOS_FILE" ]]; then
 fi
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Task completion checked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

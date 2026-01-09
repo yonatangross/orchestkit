@@ -88,7 +88,7 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   fi
 elif [[ -n "$UPDATED_INPUT" ]]; then
   # Silent success with updated input - remove systemMessage
-  echo "$UPDATED_INPUT" | jq 'del(.systemMessage) | .continue = true'
+  echo "$UPDATED_INPUT" | jq 'del(.systemMessage) | .continue = true | .suppressOutput = true'
 else
   # Silent success - no systemMessage
   echo "{\"continue\": true}"

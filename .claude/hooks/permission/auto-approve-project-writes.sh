@@ -35,18 +35,18 @@ if [[ "$FILE_PATH" == "$CLAUDE_PROJECT_DIR"* ]]; then
   for dir in "${EXCLUDED_DIRS[@]}"; do
     if [[ "$FILE_PATH" == *"/$dir/"* ]]; then
       log_hook "Write to excluded directory: $dir"
-      echo '{"continue": true}'
-      exit 0  # Let user decide
+      output_silent_success  # Let user decide, but silently
+      exit 0
     fi
   done
 
   log_hook "Auto-approved: within project directory"
-  # Silent approval with CC 2.1.2 compliant output
-  echo '{"decision":{"behavior":"allow"}, "continue": true}'
+  # Silent approval - no user-visible output
+  output_silent_allow
   exit 0
 fi
 
-# Outside project directory - let user decide
+# Outside project directory - let user decide (silent passthrough)
 log_hook "Write outside project directory - manual approval required"
-echo '{"continue": true}'
+output_silent_success
 exit 0

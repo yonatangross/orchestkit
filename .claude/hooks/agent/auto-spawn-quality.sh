@@ -269,7 +269,7 @@ main() {
             }'
     else
         log_spawn "No auto-spawn conditions matched for $AGENT_TYPE"
-        echo '{"systemMessage":"No auto-spawn triggered","continue":true}'
+        echo '{"continue":true,"suppressOutput":true}'
     fi
 }
 

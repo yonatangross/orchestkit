@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Ensure JSON output on any exit (trap for safety)
-trap 'echo "{\"systemMessage\":\"Coordination cleaned up\",\"continue\":true}"' EXIT
+trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -22,7 +22,7 @@ log() {
 # Source coordination lib with fallback
 source "${SCRIPT_DIR}/../../coordination/lib/coordination.sh" 2>/dev/null || {
     trap - EXIT
-    echo '{"systemMessage":"Coordination unavailable","continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -51,5 +51,5 @@ log "Coordination cleanup complete"
 
 # Success - output JSON and clear trap
 trap - EXIT
-echo '{"systemMessage":"Coordination cleaned up","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

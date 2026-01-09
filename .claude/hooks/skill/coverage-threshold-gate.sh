@@ -114,5 +114,5 @@ fi
 
 echo "Coverage gate passed: ${COVERAGE}% (threshold: ${THRESHOLD}%)"
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Coverage threshold checked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

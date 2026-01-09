@@ -213,5 +213,5 @@ main() {
 }
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Multi-instance cleaned up","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 main "$@"

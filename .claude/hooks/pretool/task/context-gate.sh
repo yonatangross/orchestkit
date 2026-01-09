@@ -178,7 +178,7 @@ Proceeding with: $subagent_type - $description
 
   # CC 2.1.2 Compliant: JSON output without ANSI colors
   # (Colors in JSON break JSON parsing)
-  echo '{"systemMessage":"Context gate passed", "continue": true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 }
 

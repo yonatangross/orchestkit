@@ -13,7 +13,7 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 # Check if this is a git command we should protect
 if [[ ! "$COMMAND" =~ ^git ]]; then
   # Not a git command, allow it (silent success)
-  echo '{"continue":true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi
 
@@ -49,5 +49,5 @@ Aborting command to protect $CURRENT_BRANCH branch."
 fi
 
 # Allow other git operations (fetch, pull, status, etc.)
-echo '{"systemMessage":"Branch protection checked","continue":true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

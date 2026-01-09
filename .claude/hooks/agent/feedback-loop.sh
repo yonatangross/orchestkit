@@ -281,7 +281,7 @@ main() {
         jq -n --arg agents "$downstream_agents" \
             '{systemMessage: "Feedback loop: routed to \($agents)", continue: true}'
     else
-        echo '{"systemMessage":"Feedback loop: terminal agent - no routing","continue":true}'
+        echo '{"continue":true,"suppressOutput":true}'
     fi
 }
 

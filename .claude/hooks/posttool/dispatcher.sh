@@ -83,7 +83,7 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   echo "{\"systemMessage\": \"${YELLOW}⚠ ${WARN_MSG}${RESET}\", \"continue\": true}"
 else
   # Silent success - no systemMessage
-  echo "{\"continue\": true}"
+  echo "{\"continue\": true, \"suppressOutput\": true}"
 fi
 
 exit 0

@@ -909,7 +909,7 @@ test_pretool_output_has_decision_fields() {
     hook_content=$(cat "$hook_path")
 
     # Should output JSON with proper fields when blocking
-    if echo "$hook_content" | grep -q "permissionDecision\|continue\|systemMessage"; then
+    if echo "$hook_content" | grep -q "permissionDecision\|continue\|systemMessage\|suppressOutput"; then
         return 0
     fi
     fail "Hook should output proper schema fields"

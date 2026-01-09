@@ -139,7 +139,7 @@ test_coordination_cleanup_outputs_valid_json() {
     # Should output valid JSON
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 
@@ -237,7 +237,7 @@ test_coordination_init_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 
@@ -350,7 +350,7 @@ test_instance_heartbeat_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 
@@ -558,7 +558,7 @@ test_session_cleanup_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 
@@ -662,7 +662,7 @@ test_session_env_setup_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 
@@ -773,7 +773,7 @@ test_session_metrics_summary_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         echo "$output" | jq . >/dev/null 2>&1 || fail "Output is not valid JSON: $output"
-        assert_contains "$output" "systemMessage"
+        assert_contains_either "$output" "systemMessage" "suppressOutput"
     fi
 }
 

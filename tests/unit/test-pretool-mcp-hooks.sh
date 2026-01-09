@@ -51,7 +51,7 @@ test_context7_tracker_handles_get_docs() {
     fi
 }
 
-test_context7_tracker_has_system_message() {
+test_context7_tracker_has_valid_output() {
     local hook="$HOOKS_DIR/context7-tracker.sh"
     if [[ ! -f "$hook" ]]; then
         skip "context7-tracker.sh not found"
@@ -62,8 +62,8 @@ test_context7_tracker_has_system_message() {
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
-        fail "Missing systemMessage field"
+    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
+        fail "Missing systemMessage or suppressOutput field"
     fi
 }
 
@@ -178,7 +178,7 @@ test_playwright_safety_handles_file_upload() {
     fi
 }
 
-test_playwright_safety_has_system_message() {
+test_playwright_safety_has_valid_output() {
     local hook="$HOOKS_DIR/playwright-safety.sh"
     if [[ ! -f "$hook" ]]; then
         skip "playwright-safety.sh not found"
@@ -189,8 +189,8 @@ test_playwright_safety_has_system_message() {
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
-        fail "Missing systemMessage field"
+    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
+        fail "Missing systemMessage or suppressOutput field"
     fi
 }
 

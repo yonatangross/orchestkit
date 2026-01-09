@@ -641,3 +641,19 @@ fail() {
   echo -e "${RED}FAIL${NC}: $message" >&2
   return 1
 }
+
+# Assert string contains at least one of two substrings
+# Usage: assert_contains_either "$string" "$substring1" "$substring2"
+assert_contains_either() {
+  local string="$1"
+  local substring1="$2"
+  local substring2="$3"
+
+  if [[ "$string" == *"$substring1"* ]] || [[ "$string" == *"$substring2"* ]]; then
+    return 0
+  else
+    echo -e "${RED}ASSERTION FAILED${NC}: String does not contain '$substring1' or '$substring2'" >&2
+    echo "  String: ${string:0:200}..." >&2
+    return 1
+  fi
+}

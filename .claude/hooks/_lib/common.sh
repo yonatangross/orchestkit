@@ -329,3 +329,177 @@ exit_if_disabled() {
 
 # Export config-aware functions
 export -f is_hook_enabled_by_config exit_if_disabled
+
+# -----------------------------------------------------------------------------
+# Silent output helpers for hooks
+# -----------------------------------------------------------------------------
+
+# Output silent success - hook completed without errors, no user-visible output
+# Usage: output_silent_success
+output_silent_success() {
+  echo '{"continue": true, "suppressOutput": true}'
+}
+
+# Output silent allow - permission hook approves silently
+# Usage: output_silent_allow
+output_silent_allow() {
+  echo '{"decision":{"behavior":"allow"}, "continue": true, "suppressOutput": true}'
+}
+
+# Output error message - only use when there's an actual problem
+# Usage: output_error "Error message"
+output_error() {
+  local msg="$1"
+  jq -n --arg msg "$msg" '{continue: true, systemMessage: $msg}'
+}
+
+# Output block - stops the operation with an error
+# Usage: output_block "Reason"
+output_block() {
+  local reason="$1"
+  jq -n --arg r "$reason" '{continue: false, stopReason: $r}'
+}
+
+# Export output helpers
+export -f output_silent_success output_silent_allow output_error output_block
+
+# -----------------------------------------------------------------------------
+# Safe Grep Utilities - Prevent shell injection from dynamic patterns
+# -----------------------------------------------------------------------------
+# These functions prevent the bug where code content (with backticks, braces,
+# etc.) gets passed to grep and causes shell parsing errors.
+#
+# BACKGROUND: When searching for code patterns dynamically extracted from files,
+# the content may contain regex metacharacters or shell special characters:
+#   - Backticks ` trigger command substitution
+#   - Braces {} are regex quantifiers
+#   - Parentheses () are regex groups
+#   - Brackets [] are character classes
+#   - $, *, ?, +, ^, |, \ are all special
+#
+# Using these utilities ensures safe searching regardless of content.
+# -----------------------------------------------------------------------------
+
+# Escape a string for use as a grep regex pattern
+# Usage: escaped=$(escape_grep_pattern "$raw_string")
+# Returns: String with all regex metacharacters escaped
+escape_grep_pattern() {
+  local raw="$1"
+  # Escape BRE metacharacters: \ . * ^ $ [ ]
+  # Also escape ERE metacharacters for -E mode: + ? { } | ( )
+  printf '%s' "$raw" | sed -e 's/[[\.*^$()+?{|\\]/\\&/g'
+}
+
+# Search for a literal string (no regex interpretation)
+# Usage: grep_literal "search_string" file1 file2 ...
+# Usage: echo "$content" | grep_literal "search_string"
+# Options: Pass grep options BEFORE the search string
+#   grep_literal -l "string" files...   # list matching files
+#   grep_literal -c "string" files...   # count matches
+#   grep_literal -q "string" files...   # quiet mode (for conditionals)
+grep_literal() {
+  local opts=()
+
+  # Collect options (arguments starting with -)
+  while [[ $# -gt 0 && "$1" == -* ]]; do
+    opts+=("$1")
+    shift
+  done
+
+  local pattern="$1"
+  shift
+
+  # Use grep -F for fixed-string (literal) matching
+  # This completely avoids regex interpretation
+  if [[ $# -eq 0 ]]; then
+    # Reading from stdin
+    grep -F "${opts[@]}" -- "$pattern"
+  else
+    # Reading from files
+    grep -F "${opts[@]}" -- "$pattern" "$@"
+  fi
+}
+
+# Search with a safely escaped regex pattern
+# Usage: grep_escaped "pattern_with_special_chars" file1 file2 ...
+# Usage: echo "$content" | grep_escaped "pattern"
+# Note: This escapes the pattern, so regex features won't work.
+# For regex features with safe content, use standard grep.
+grep_escaped() {
+  local opts=()
+
+  while [[ $# -gt 0 && "$1" == -* ]]; do
+    opts+=("$1")
+    shift
+  done
+
+  local pattern="$1"
+  shift
+
+  local escaped_pattern
+  escaped_pattern=$(escape_grep_pattern "$pattern")
+
+  if [[ $# -eq 0 ]]; then
+    grep "${opts[@]}" -- "$escaped_pattern"
+  else
+    grep "${opts[@]}" -- "$escaped_pattern" "$@"
+  fi
+}
+
+# Search for a word boundary match with literal content
+# Usage: grep_word_literal "function_name" file1 file2 ...
+# This is equivalent to grep -w but safer for special characters
+grep_word_literal() {
+  local opts=()
+
+  while [[ $# -gt 0 && "$1" == -* ]]; do
+    opts+=("$1")
+    shift
+  done
+
+  local pattern="$1"
+  shift
+
+  # Use grep -Fw for fixed-string word matching
+  if [[ $# -eq 0 ]]; then
+    grep -Fw "${opts[@]}" -- "$pattern"
+  else
+    grep -Fw "${opts[@]}" -- "$pattern" "$@"
+  fi
+}
+
+# Safe xargs grep for searching multiple files
+# Usage: echo "$file_list" | xargs_grep_literal "pattern"
+# Usage: echo "$file_list" | xargs_grep_literal -l "pattern"  # list files only
+xargs_grep_literal() {
+  local opts=()
+
+  while [[ $# -gt 0 && "$1" == -* ]]; do
+    opts+=("$1")
+    shift
+  done
+
+  local pattern="$1"
+
+  # Use xargs with grep -F for safe literal matching
+  # --no-run-if-empty prevents grep from hanging on empty input
+  xargs --no-run-if-empty grep -F "${opts[@]}" -- "$pattern" 2>/dev/null
+}
+
+# Safe xargs grep with word boundaries
+# Usage: echo "$file_list" | xargs_grep_word "name"
+xargs_grep_word() {
+  local opts=()
+
+  while [[ $# -gt 0 && "$1" == -* ]]; do
+    opts+=("$1")
+    shift
+  done
+
+  local pattern="$1"
+
+  xargs --no-run-if-empty grep -Fw "${opts[@]}" -- "$pattern" 2>/dev/null
+}
+
+# Export safe grep functions
+export -f escape_grep_pattern grep_literal grep_escaped grep_word_literal xargs_grep_literal xargs_grep_word

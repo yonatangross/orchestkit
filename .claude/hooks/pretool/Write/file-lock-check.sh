@@ -14,7 +14,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../_lib/coordination.sh" 2>/dev/null || {
     # If coordination lib not available, allow operation
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 }
 
@@ -26,7 +26,7 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty')
 
 if [[ -z "$FILE_PATH" ]]; then
     # No file path, can't check lock
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -36,7 +36,7 @@ LOCK_STATUS=$(is_file_locked "$FILE_PATH")
 if [[ "$LOCK_STATUS" == "false" ]]; then
     # Not locked, acquire lock and proceed
     acquire_file_lock "$FILE_PATH" "write"
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 

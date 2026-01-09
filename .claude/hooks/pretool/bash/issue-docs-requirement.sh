@@ -16,7 +16,7 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 # Only check for git checkout -b commands creating issue branches
 if [[ ! "$COMMAND" =~ git\ checkout\ -b\ issue/ ]]; then
   # Not creating an issue branch, allow it
-  echo '{"continue": true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi
 
@@ -26,7 +26,7 @@ BRANCH_NAME=$(echo "$COMMAND" | grep -oE 'issue/[0-9]+-[a-zA-Z0-9_-]+' | head -1
 
 if [[ -z "$BRANCH_NAME" ]]; then
   # Couldn't parse branch name, allow command (might be different format)
-  echo '{"continue": true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi
 
@@ -35,7 +35,7 @@ ISSUE_NUM=$(echo "$BRANCH_NAME" | grep -oE '[0-9]+' | head -1)
 
 if [[ -z "$ISSUE_NUM" ]]; then
   # No issue number found, allow command
-  echo '{"continue": true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi
 
@@ -45,7 +45,7 @@ MATCHING_DOCS=$(find "$DOCS_PATH" -maxdepth 2 -type f -name "README.md" -path "*
 
 if [[ -n "$MATCHING_DOCS" ]]; then
   # Documentation exists, allow branch creation
-  echo '{"systemMessage":"Issue docs found","continue": true}'
+  echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi
 
@@ -65,5 +65,5 @@ EOF
 
 # Allow branch creation - docs can be created after
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Docs requirement checked","continue":true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

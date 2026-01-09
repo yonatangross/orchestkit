@@ -78,5 +78,5 @@ for pattern in "${CONFIG_PATTERNS[@]}"; do
 done
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"File guard checked","continue":true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

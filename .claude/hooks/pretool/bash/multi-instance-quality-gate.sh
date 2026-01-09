@@ -20,13 +20,13 @@ COMMAND=$(get_field '.tool_input.command')
 
 # Only run for git commit commands
 if [[ "$TOOL_NAME" != "Bash" ]] || [[ ! "$COMMAND" =~ git.*commit ]]; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
 # Skip if amending or fixup
 if [[ "$COMMAND" =~ --amend|--fixup ]]; then
-    echo '{"continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -44,7 +44,7 @@ STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || ec
 
 if [[ -z "$STAGED_FILES" ]]; then
     echo "No files staged for commit" >&2
-    echo '{"systemMessage":"No files staged","continue": true}'
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -282,5 +282,5 @@ echo "Multi-instance quality gates passed" >&2
 echo "" >&2
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Quality gate passed","continue":true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

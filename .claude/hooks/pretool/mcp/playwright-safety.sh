@@ -30,5 +30,5 @@ fi
 
 # CC 2.1.2 Compliant: JSON output without ANSI colors
 # (Colors in JSON break JSON parsing)
-echo '{"systemMessage":"Browser safe", "continue": true}'
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

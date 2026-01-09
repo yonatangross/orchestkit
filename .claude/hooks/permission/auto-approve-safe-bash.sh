@@ -50,13 +50,13 @@ SAFE_PATTERNS=(
 for pattern in "${SAFE_PATTERNS[@]}"; do
   if [[ "$COMMAND" =~ $pattern ]]; then
     log_hook "Auto-approved: matches safe pattern '$pattern'"
-    # Silent approval with CC 2.1.2 compliant output
-    echo '{"decision":{"behavior":"allow"}, "continue": true}'
+    # Silent approval - no user-visible output
+    output_silent_allow
     exit 0
   fi
 done
 
-# Not a recognized safe command - let user decide
+# Not a recognized safe command - let user decide (silent passthrough)
 log_hook "Command requires manual approval"
-echo '{"continue": true}'
+output_silent_success
 exit 0

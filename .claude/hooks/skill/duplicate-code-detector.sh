@@ -5,7 +5,7 @@
 # =============================================================================
 set -euo pipefail
 
-# Source common utilities
+# Source common utilities (includes safe grep functions)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh"
 
@@ -31,7 +31,7 @@ WARNINGS=()
 # Extract function/class signatures from the content
 extract_signatures() {
     local content="$1"
-    
+
     if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]]; then
         # TypeScript/JavaScript: Extract function/class names
         echo "$content" | grep -oE "(function|class|const|export function|export class)\s+[A-Za-z_][A-Za-z0-9_]*" | sort -u
@@ -47,7 +47,7 @@ NEW_SIGNATURES=$(extract_signatures "$CONTENT")
 if [[ -n "$NEW_SIGNATURES" ]]; then
     # Get project root
     PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "${CLAUDE_PROJECT_DIR:-.}")
-    
+
     # Get all code files in the project (excluding node_modules, .venv, etc.)
     CODE_FILES=$(find "$PROJECT_ROOT" -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" -o -name "*.py" \) \
         ! -path "*/node_modules/*" \
@@ -59,21 +59,26 @@ if [[ -n "$NEW_SIGNATURES" ]]; then
         ! -path "*/.next/*" \
         ! -path "$FILE_PATH" \
         2>/dev/null || echo "")
-    
+
     # Check for duplicate function/class names
     while IFS= read -r signature; do
         [[ -z "$signature" ]] && continue
-        
+
         # Extract just the name
         NAME=$(echo "$signature" | awk '{print $NF}')
-        
+
         # Search for this name in other files
-        DUPLICATES=$(echo "$CODE_FILES" | xargs grep -l "\b$NAME\b" 2>/dev/null | head -5 || true)
-        
+        # SEC-FIX: Use xargs_grep_word for safe word-boundary matching
+        # This prevents shell injection when NAME contains special characters
+        DUPLICATES=$(echo "$CODE_FILES" | xargs_grep_word -l "$NAME" | head -5 || true)
+
         if [[ -n "$DUPLICATES" ]]; then
             # Check if it's a true duplicate (same signature)
-            EXACT_MATCH=$(echo "$CODE_FILES" | xargs grep -h "$signature" 2>/dev/null | head -1 || true)
-            
+            # SEC-FIX: Use xargs_grep_literal for safe literal string matching
+            # Signatures may contain code with backticks, braces, parentheses, etc.
+            # that would cause shell parsing errors if passed to grep directly
+            EXACT_MATCH=$(echo "$CODE_FILES" | xargs_grep_literal -h "$signature" | head -1 || true)
+
             if [[ -n "$EXACT_MATCH" ]]; then
                 WARNINGS+=("DUPLICATE: '$NAME' already exists in:")
                 while IFS= read -r dup_file; do
@@ -97,16 +102,16 @@ fi
 # Check for suspiciously similar code patterns
 check_copypaste_patterns() {
     local content="$1"
-    
+
     # Count repeated code blocks (3+ consecutive identical lines)
     REPEATED_BLOCKS=$(echo "$content" | awk '
-        NR > 1 && $0 == prev { 
+        NR > 1 && $0 == prev {
             count++
             if (count >= 3) print NR-2 ": " prev
         }
         { prev = $0; if ($0 != prev) count = 0 }
     ' | head -5)
-    
+
     if [[ -n "$REPEATED_BLOCKS" ]]; then
         WARNINGS+=("COPY-PASTE: Repeated code blocks detected:")
         while IFS= read -r line; do
@@ -126,7 +131,7 @@ check_copypaste_patterns "$CONTENT"
 # Check for common utility patterns that should be centralized
 check_utility_patterns() {
     local content="$1"
-    
+
     # TypeScript/JavaScript utility patterns
     if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]]; then
         # Check for date formatting (should use @/lib/dates)
@@ -135,7 +140,7 @@ check_utility_patterns() {
             ERRORS+=("  Use centralized date utilities: import { formatDate } from '@/lib/dates'")
             ERRORS+=("")
         fi
-        
+
         # Check for fetch wrappers (should use centralized API client)
         if echo "$content" | grep -qE "fetch\s*\(\s*['\"]" 2>/dev/null; then
             LOCAL_FETCH_COUNT=$(echo "$content" | grep -cE "fetch\s*\(\s*['\"]" 2>/dev/null || echo "0")
@@ -145,7 +150,7 @@ check_utility_patterns() {
                 WARNINGS+=("")
             fi
         fi
-        
+
         # Check for validation logic (should use Zod schemas)
         if echo "$content" | grep -qE "if\s*\([^)]*\.test\([^)]*\)" 2>/dev/null; then
             VALIDATION_COUNT=$(echo "$content" | grep -cE "if\s*\([^)]*\.test\([^)]*\)" 2>/dev/null || echo "0")
@@ -156,7 +161,7 @@ check_utility_patterns() {
             fi
         fi
     fi
-    
+
     # Python utility patterns
     if [[ "$FILE_PATH" =~ \.py$ ]]; then
         # Check for JSON parsing (should use centralized utilities)
@@ -168,7 +173,7 @@ check_utility_patterns() {
                 WARNINGS+=("")
             fi
         fi
-        
+
         # Check for environment variable access (should be centralized)
         if echo "$content" | grep -qE "os\.getenv|os\.environ" 2>/dev/null; then
             ENV_COUNT=$(echo "$content" | grep -cE "os\.getenv|os\.environ" 2>/dev/null || echo "0")
@@ -190,17 +195,17 @@ check_utility_patterns "$CONTENT"
 # Check if we're in a worktree environment
 if git worktree list >/dev/null 2>&1; then
     WORKTREES=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | awk '{print $2}' || true)
-    
+
     if [[ -n "$WORKTREES" ]]; then
         # Get relative path from repo root
         REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
         if [[ -n "$REPO_ROOT" ]]; then
             REL_PATH=$(realpath --relative-to="$REPO_ROOT" "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
-            
+
             # Check if this file is modified in other worktrees
             while IFS= read -r worktree; do
                 [[ -z "$worktree" ]] && continue
-                
+
                 # Check if file exists and is modified in this worktree
                 WORKTREE_FILE="$worktree/$REL_PATH"
                 if [[ -f "$WORKTREE_FILE" ]]; then

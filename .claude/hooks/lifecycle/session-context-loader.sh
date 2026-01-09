@@ -89,6 +89,6 @@ if [[ $CONTEXT_LOADED -gt 0 ]]; then
   fi
   echo "{\"systemMessage\":\"$MSG\",\"continue\":true}"
 else
-  echo '{"continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
 fi
 exit 0

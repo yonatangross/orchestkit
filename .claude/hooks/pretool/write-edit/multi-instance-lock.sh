@@ -23,14 +23,14 @@ log() {
 # Check if coordination is enabled
 if [[ ! -f "$DB_PATH" ]]; then
     # No coordination database, pass through with continue
-    echo "$INPUT" | jq '. + {"continue": true}'
+    echo "$INPUT" | jq '. + {"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
 # Check if we have instance identity
 if [[ ! -f "$INSTANCE_DIR/id.json" ]]; then
     log "WARNING: No instance identity found, passing through"
-    echo "$INPUT" | jq '. + {"continue": true}'
+    echo "$INPUT" | jq '. + {"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -40,13 +40,13 @@ FILE_PATH=$(echo "$INPUT" | jq -r '.file_path // .input.file_path // empty')
 
 # Only process Write and Edit tools
 if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
-    echo "$INPUT" | jq '. + {"continue": true}'
+    echo "$INPUT" | jq '. + {"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
 # Skip if no file path
 if [[ -z "$FILE_PATH" ]]; then
-    echo "$INPUT" | jq '. + {"continue": true}'
+    echo "$INPUT" | jq '. + {"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -239,7 +239,7 @@ EOF
 
     # Add lock info and continue: true to the output
     echo "$INPUT" | jq --arg lock_id "$LOCK_ID" --arg expires "$EXPIRES_AT" \
-        '. + {"continue": true, "systemMessage": "Lock acquired", "_coordination": {"lock_id": $lock_id, "expires_at": $expires}}'
+        '. + {"continue": true, "suppressOutput": true, "_coordination": {"lock_id": $lock_id, "expires_at": $expires}}'
 }
 
 main

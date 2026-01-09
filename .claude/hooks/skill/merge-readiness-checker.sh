@@ -346,5 +346,5 @@ echo "You can safely merge this branch" >&2
 echo "" >&2
 
 # Output systemMessage for user visibility
-echo '{"systemMessage":"Merge readiness checked","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

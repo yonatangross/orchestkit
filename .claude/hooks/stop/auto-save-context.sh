@@ -65,5 +65,5 @@ else
 fi
 
 # Output CC 2.1.2 compliant response
-echo '{"systemMessage":"Context saved (Protocol 2.0)","continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0
