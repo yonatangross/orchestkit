@@ -64,7 +64,7 @@ bin/                     # CLI utilities and scripts
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
 - **Claude Code**: >= 2.1.2 (CC 2.1.2 agent_type support)
-- **MCP Integration**: Context7, Sequential Thinking, Memory, Playwright
+- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure)
 
 ### Expected Application Stack (Skills Support)
 - **Backend**: FastAPI + Python 3.11+ + SQLAlchemy 2.0 + PostgreSQL 18 + pgvector

@@ -311,31 +311,49 @@ SkillForge uses a **token-efficient progressive loading** system via `capabiliti
 
 ---
 
-## MCP Integrations
+## MCP Integrations (Optional)
 
-SkillForge skills integrate with these MCP servers:
+SkillForge commands work **without MCPs**, but these optional integrations enhance functionality:
 
-| MCP Server | Used By | Purpose |
-|------------|---------|---------|
-| `context7` | All skills | Up-to-date library documentation lookup |
-| `langfuse` | AI skills | Prompt management, tracing, cost tracking |
-| `playwright` | Testing skills | Browser automation, E2E testing |
-| `memory` | All commands | Cross-session decision persistence |
-| `sequential-thinking` | Planning | Multi-step reasoning for complex problems |
-| `pg-aiguide` | Database skills | PostgreSQL and TimescaleDB guidance |
+| MCP Server | Enhances | Purpose |
+|------------|----------|---------|
+| `context7` | /implement, /verify, /review-pr | Up-to-date library documentation |
+| `sequential-thinking` | /brainstorm, /implement | Structured reasoning for complex problems |
+| `memory` | /brainstorm, /explore, /fix-issue | Cross-session knowledge persistence |
+| `playwright` | /verify, browser-content-capture | Browser automation for E2E testing |
+
+### Installing MCPs
+
+MCPs are **opt-in**. Configure them via the wizard:
+
+\`\`\`bash
+/skf:configure
+\`\`\`
+
+Or manually create \`.mcp.json\` in your project:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    }
+  }
+}
+\`\`\`
 
 ### Example: Using Context7 for Current Docs
 
-```python
-# Skills automatically query Context7 for latest patterns
+\`\`\`python
+# If context7 MCP is installed, skills can query for latest patterns
 mcp__context7__query-docs(
   libraryId="/langchain-ai/langgraph",
   query="How to implement supervisor-worker pattern"
 )
-```
+\`\`\`
 
 ---
-
 ## Security
 
 ### Hook Auditing

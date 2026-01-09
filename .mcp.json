@@ -5,13 +5,13 @@
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"],
       "description": "Up-to-date documentation for frameworks and libraries",
-      "env": {}
+      "disabled": true
     },
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-sequential-thinking"],
       "description": "Complex reasoning and architectural decision support",
-      "env": {}
+      "disabled": true
     },
     "memory": {
       "command": "npx",
@@ -19,65 +19,14 @@
       "description": "Cross-session memory and context persistence",
       "env": {
         "MEMORY_FILE": ".claude/memory/memory.json"
-      }
+      },
+      "disabled": true
     },
     "playwright": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-playwright"],
       "description": "Browser automation for e2e testing and content capture",
-      "env": {},
       "disabled": true
     }
-  },
-  "toolAnnotations": {
-    "mcp__context7__resolve-library-id": {
-      "safe": true,
-      "cost": "low",
-      "category": "documentation"
-    },
-    "mcp__context7__get-library-docs": {
-      "safe": true,
-      "cost": "medium",
-      "category": "documentation"
-    },
-    "mcp__memory__write": {
-      "safe": false,
-      "cost": "low",
-      "category": "persistence"
-    },
-    "mcp__memory__read": {
-      "safe": true,
-      "cost": "low",
-      "category": "persistence"
-    },
-    "mcp__sequential-thinking__analyze": {
-      "safe": true,
-      "cost": "high",
-      "category": "reasoning"
-    },
-    "mcp__playwright__*": {
-      "safe": false,
-      "cost": "medium",
-      "category": "browser-automation"
-    }
-  },
-  "permissions": {
-    "autoApprove": [
-      "mcp__context7__*",
-      "mcp__memory__read",
-      "mcp__sequential-thinking__*"
-    ],
-    "requireConfirmation": [
-      "mcp__memory__write",
-      "mcp__playwright__*"
-    ]
-  },
-  "fallbacks": {
-    "context7": null,
-    "sequential-thinking": null
-  },
-  "notifications": {
-    "onToolListChanged": true,
-    "refreshIntervalSeconds": 3600
   }
 }
