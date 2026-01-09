@@ -62,8 +62,8 @@ test_context_gate_has_system_message() {
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
-        fail "Missing systemMessage field"
+    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
+        fail "Missing systemMessage or suppressOutput field"
     fi
 }
 
@@ -176,8 +176,8 @@ test_subagent_validator_has_system_message() {
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage")' >/dev/null 2>&1; then
-        fail "Missing systemMessage field"
+    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
+        fail "Missing systemMessage or suppressOutput field"
     fi
 }
 

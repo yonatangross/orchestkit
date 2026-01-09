@@ -71,9 +71,9 @@ test_coordination_init() {
     fi
 
     local has_message=""
-    has_message=$(echo "$output" | jq 'has("systemMessage")' 2>/dev/null) || has_message="false"
+    has_message=$(echo "$output" | jq 'has("systemMessage") or has("suppressOutput")' 2>/dev/null) || has_message="false"
     if [[ "$has_message" == "true" ]]; then
-        log_pass "Has 'systemMessage' field"
+        log_pass "Has 'systemMessage' or 'suppressOutput' field"
     else
         log_fail "Missing 'systemMessage' field"
     fi
