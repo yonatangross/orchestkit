@@ -156,7 +156,23 @@ jobs:
 
           echo "All hook paths are valid!"
 
-  # Job 6: Skills Validation
+  # Job 6: Component Counts Validation
+  counts-validation:
+    name: Component Counts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make scripts executable
+        run: chmod +x bin/*.sh
+
+      - name: Validate component counts
+        run: ./bin/validate-counts.sh
+
+  # Job 7: Skills Validation
   skills-validation:
     name: Skills Validation
     runs-on: ubuntu-latest
@@ -207,7 +223,7 @@ jobs:
   validation-summary:
     name: Validation Summary
     runs-on: ubuntu-latest
-    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, skills-validation]
+    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation]
     if: always()
     steps:
       - name: Check results
@@ -221,6 +237,7 @@ jobs:
           echo "Hook Unit Tests:     ${{ needs.hook-unit-tests.result }}"
           echo "Integration Tests:   ${{ needs.integration-tests.result }}"
           echo "Manifest Validation: ${{ needs.manifest-validation.result }}"
+          echo "Counts Validation:   ${{ needs.counts-validation.result }}"
           echo "Skills Validation:   ${{ needs.skills-validation.result }}"
           echo ""
 
@@ -229,7 +246,8 @@ jobs:
              [[ "${{ needs.schema-validation.result }}" != "success" ]] || \
              [[ "${{ needs.hook-unit-tests.result }}" != "success" ]] || \
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.manifest-validation.result }}" != "success" ]]; then
+             [[ "${{ needs.manifest-validation.result }}" != "success" ]] || \
+             [[ "${{ needs.counts-validation.result }}" != "success" ]]; then
             echo "Some validations failed!"
             exit 1
           fi

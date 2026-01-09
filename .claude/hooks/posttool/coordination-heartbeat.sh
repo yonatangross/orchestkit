@@ -1,10 +1,22 @@
 #!/bin/bash
-set -euo pipefail
 # Coordination Heartbeat - Update heartbeat after each tool use
 # Hook: PostToolUse (*)
+# CC 2.1.2 Compliant: ensures JSON output on all code paths
+
+set -euo pipefail
+
+# Ensure JSON output on any exit (trap for safety)
+trap 'echo "{\"continue\": true}"' EXIT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/../../coordination/lib/coordination.sh"
+
+# Source coordination lib with fallback
+source "${SCRIPT_DIR}/../../coordination/lib/coordination.sh" 2>/dev/null || {
+    # Coordination lib not available, exit cleanly with JSON
+    trap - EXIT
+    echo '{"continue": true}'
+    exit 0
+}
 
 # Load instance ID
 if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
@@ -15,6 +27,7 @@ fi
 # Update heartbeat (lightweight operation)
 coord_heartbeat 2>/dev/null || true
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
+# Success - output JSON and clear trap
+trap - EXIT
+echo '{"continue": true}'
 exit 0

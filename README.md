@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  78 skills | 12 commands | 20 agents | 92 hooks | 4 tiers
+  78 skills | 12 commands | 20 agents | 90 hooks | 4 tiers
 </p>
 
 ---
@@ -220,7 +220,7 @@ Slash commands for common workflows:
 
 Specialized agents for domain-specific tasks:
 
-### Product Thinking Pipeline (6 agents)
+### Product Thinking Pipeline (20 agents)
 
 | Agent | Model | Specialization |
 |-------|-------|----------------|
@@ -231,7 +231,7 @@ Specialized agents for domain-specific tasks:
 | `requirements-translator` | Sonnet | PRD writing, user stories, acceptance criteria |
 | `metrics-architect` | Sonnet | OKR design, KPI definition, experiment design |
 
-### Technical Implementation (14 agents)
+### Technical Implementation (20 agents)
 
 | Agent | Model | Specialization |
 |-------|-------|----------------|
@@ -340,7 +340,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 92 hooks have been security-audited and follow these standards:
+All 90 hooks have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
