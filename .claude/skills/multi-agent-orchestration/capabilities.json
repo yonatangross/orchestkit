@@ -1,29 +1,29 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "multi-agent-orchestration",
   "version": "1.0.0",
   "description": "Patterns for orchestrating multiple AI agents",
   "capabilities": [
     "agent-communication",
-    "task-delegation",
-    "result-aggregation",
+    "agent-lifecycle",
     "error-coordination",
-    "agent-lifecycle"
+    "result-aggregation",
+    "task-delegation"
   ],
-  "triggers": [
-    "multi-agent",
-    "agent orchestration",
-    "multiple agents",
-    "agent coordination",
-    "agent system"
-  ],
-  "antiPatterns": [
-    "tight coupling between agents",
-    "no central coordination",
-    "unbounded agent loops"
-  ],
-  "dependencies": [
+  "triggers": {
+    "high_confidence": [
+      "multi.*agent",
+      "agent.*orchestration",
+      "multiple.*agents"
+    ],
+    "medium_confidence": [
+      "agent coordination",
+      "agent system",
+      "task delegation"
+    ]
+  },
+  "integrates_with": [
     "langgraph-supervisor",
     "agent-loops"
-  ],
-  "tags": ["agents", "orchestration", "multi-agent", "2026"]
+  ]
 }

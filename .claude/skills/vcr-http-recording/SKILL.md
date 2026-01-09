@@ -1,6 +1,14 @@
 ---
 name: vcr-http-recording
 description: VCR.py HTTP recording for Python tests. Use when testing Python code making HTTP requests, recording API responses for replay, or creating deterministic tests for external services.
+context: fork
+agent: test-generator
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # VCR.py HTTP Recording
@@ -181,3 +189,47 @@ version: 1
 - `msw-mocking` - Frontend equivalent
 - `integration-testing` - API testing patterns
 - `llm-testing` - LLM-specific patterns
+
+## Capability Details
+
+### http-recording
+**Keywords:** record HTTP, vcr.use_cassette, record mode, capture HTTP
+**Solves:**
+- Record HTTP interactions for replay
+- Capture real API responses
+- Create deterministic test fixtures
+
+### cassette-replay
+**Keywords:** replay, cassette, playback, mock replay
+**Solves:**
+- Replay recorded HTTP interactions
+- Run tests without network access
+- Ensure consistent test results
+
+### async-support
+**Keywords:** async, aiohttp, httpx async, async cassette
+**Solves:**
+- Record async HTTP clients
+- Handle aiohttp and httpx async
+- Test async API integrations
+
+### sensitive-data-filtering
+**Keywords:** filter, scrub, redact, sensitive data, before_record
+**Solves:**
+- Scrub API keys from cassettes
+- Redact sensitive data
+- Implement before_record hooks
+
+### custom-matchers
+**Keywords:** matcher, match on, request matching, custom match
+**Solves:**
+- Configure request matching rules
+- Ignore dynamic request parts
+- Match by method/host/path
+
+### llm-api-testing
+**Keywords:** LLM cassette, OpenAI recording, Anthropic recording
+**Solves:**
+- Record LLM API responses
+- Test AI integrations deterministically
+- Avoid costly API calls in tests

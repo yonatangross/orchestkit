@@ -1,8 +1,16 @@
 ---
 name: llm-testing
 description: Testing patterns for LLM-based applications. Use when testing AI/ML integrations, mocking LLM responses, testing async timeouts, or validating structured outputs from LLMs.
+context: fork
+agent: test-generator
 version: 2.0.0
 tags: [testing, llm, ai, deepeval, ragas, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/eval-metrics-collector.sh"
 ---
 
 # LLM Testing Patterns
@@ -126,3 +134,47 @@ async def test_llm_integration():
 - `vcr-http-recording` - Record LLM responses
 - `llm-evaluation` - Quality assessment
 - `unit-testing` - Test fundamentals
+
+## Capability Details
+
+### llm-response-mocking
+**Keywords:** mock LLM, fake response, stub LLM, mock AI
+**Solves:**
+- Mock LLM responses in tests
+- Create deterministic AI test fixtures
+- Avoid live API calls in CI
+
+### async-timeout-testing
+**Keywords:** timeout, async test, wait for, polling
+**Solves:**
+- Test async LLM operations
+- Handle timeout scenarios
+- Implement polling assertions
+
+### structured-output-validation
+**Keywords:** structured output, JSON validation, schema validation, output format
+**Solves:**
+- Validate structured LLM output
+- Test JSON schema compliance
+- Assert output structure
+
+### deepeval-assertions
+**Keywords:** DeepEval, assert_test, LLMTestCase, metric assertion
+**Solves:**
+- Use DeepEval for LLM assertions
+- Implement metric-based tests
+- Configure quality thresholds
+
+### golden-dataset-testing
+**Keywords:** golden dataset, golden test, reference output, expected output
+**Solves:**
+- Test against golden datasets
+- Compare with reference outputs
+- Implement regression testing
+
+### vcr-recording
+**Keywords:** VCR, cassette, record, replay, HTTP recording
+**Solves:**
+- Record LLM API responses
+- Replay recordings in tests
+- Create deterministic test suites

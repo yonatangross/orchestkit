@@ -1,8 +1,16 @@
 ---
 name: msw-mocking
 description: Mock Service Worker (MSW) 2.x for API mocking. Use when testing frontend components with network mocking, simulating API errors, or creating deterministic API responses in tests.
+context: fork
+agent: test-generator
 version: 2.0.0
 tags: [msw, testing, mocking, frontend, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # MSW (Mock Service Worker) 2.x
@@ -118,3 +126,47 @@ expect(await screen.findByText('Success')).toBeInTheDocument()
 - `unit-testing` - Component isolation
 - `integration-testing` - Full integration tests
 - `vcr-http-recording` - Python equivalent
+
+## Capability Details
+
+### http-request-mocking
+**Keywords:** http.get, http.post, http handler, REST mock
+**Solves:**
+- Mock REST API endpoints
+- Intercept HTTP requests at network level
+- Create request handlers for testing
+
+### graphql-mocking
+**Keywords:** graphql.query, graphql.mutation, GraphQL handler, mock GraphQL
+**Solves:**
+- Mock GraphQL queries and mutations
+- Handle GraphQL variables in mocks
+- Test GraphQL error scenarios
+
+### websocket-mocking
+**Keywords:** WebSocket, ws mock, real-time mock, socket mock
+**Solves:**
+- Mock WebSocket connections
+- Simulate real-time events
+- Test WebSocket message handling
+
+### error-simulation
+**Keywords:** error simulation, network error, 500 error, mock error
+**Solves:**
+- Simulate API errors in tests
+- Test error handling UI
+- Mock network failures
+
+### network-delay-simulation
+**Keywords:** delay, latency, slow response, loading state
+**Solves:**
+- Simulate slow network responses
+- Test loading state UI
+- Verify timeout handling
+
+### runtime-handler-override
+**Keywords:** runtime override, use.once, test-specific handler, override
+**Solves:**
+- Override handlers for specific tests
+- Create one-time response handlers
+- Customize responses per test

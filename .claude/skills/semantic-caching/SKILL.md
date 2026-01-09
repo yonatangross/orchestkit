@@ -1,6 +1,8 @@
 ---
 name: semantic-caching
 description: Redis semantic caching for LLM applications. Use when implementing vector similarity caching, optimizing LLM costs through cached responses, or building multi-level cache hierarchies.
+context: fork
+agent: data-pipeline-engineer
 ---
 
 # Semantic Caching
@@ -120,3 +122,33 @@ async def get_llm_response(query: str, agent_type: str) -> dict:
 - `prompt-caching` - Provider-native caching
 - `embeddings` - Vector generation
 - `cache-cost-tracking` - Langfuse integration
+
+## Capability Details
+
+### redis-vector-cache
+**Keywords:** redis, vector, embedding, similarity, cache
+**Solves:**
+- Cache LLM responses by semantic similarity
+- Reduce API costs with smart caching
+- Implement multi-level cache hierarchy
+
+### similarity-threshold
+**Keywords:** threshold, similarity, tuning, cosine
+**Solves:**
+- Set appropriate similarity threshold
+- Balance hit rate vs accuracy
+- Tune cache performance
+
+### skillforge-integration
+**Keywords:** skillforge, integration, roi, cost-savings
+**Solves:**
+- Integrate caching with SkillForge
+- Calculate ROI for caching
+- Production implementation guide
+
+### cache-service
+**Keywords:** service, implementation, template, production
+**Solves:**
+- Production cache service template
+- Complete implementation example
+- Redis integration code

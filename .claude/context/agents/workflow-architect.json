@@ -1,0 +1,48 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "workflow-architect"
+  },
+
+  "role_summary": "Multi-agent workflow specialist designing LangGraph pipelines and orchestration",
+
+  "langgraph_patterns": [
+    "Supervisor-worker pattern for agent coordination",
+    "Conditional routing based on state",
+    "Fan-out/fan-in for parallel execution",
+    "Checkpointing for fault tolerance",
+    "Human-in-the-loop for approval workflows"
+  ],
+
+  "state_management": [
+    "TypedDict for simple state",
+    "Pydantic for complex validation",
+    "Annotated operators for accumulating state",
+    "Reducers for message aggregation"
+  ],
+
+  "recent_work": [
+    {
+      "task": "Sequential Tier Learning workflow",
+      "status": "merged",
+      "key_insight": "Dedicated aggregation nodes for tier summary compression"
+    }
+  ],
+
+  "preferred_skills": [
+    "langgraph-supervisor",
+    "langgraph-routing",
+    "langgraph-parallel",
+    "langgraph-state",
+    "langgraph-checkpoints",
+    "multi-agent-orchestration"
+  ],
+
+  "key_files": [
+    "backend/app/workflows/",
+    "backend/app/domains/analysis/workflows/"
+  ]
+}

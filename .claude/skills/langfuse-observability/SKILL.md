@@ -1,6 +1,8 @@
 ---
 name: langfuse-observability
 description: Use when adding observability to LLM applications with Langfuse. Covers tracing, evaluation, prompt management, and cost tracking for self-hosted deployments.
+context: fork
+agent: metrics-architect
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2025]
@@ -542,3 +544,101 @@ See Langfuse documentation at https://langfuse.com/docs for integration details.
 - LangSmith: External prompt storage needed
 - Langfuse: @observe decorator
 - LangSmith: @traceable decorator
+
+## Capability Details
+
+### distributed-tracing
+**Keywords:** trace, tracing, observability, span, nested, parent-child, observe
+**Solves:**
+- How do I trace LLM calls across my application?
+- How to debug slow LLM responses?
+- Track execution flow in multi-agent workflows
+- Create nested trace spans
+
+### cost-tracking
+**Keywords:** cost, token usage, pricing, budget, spend, expense
+**Solves:**
+- How do I track LLM costs?
+- Calculate token usage and pricing
+- Monitor AI budget and spending
+- Track cost per user or session
+
+### prompt-management
+**Keywords:** prompt version, prompt template, prompt control, prompt registry
+**Solves:**
+- How do I version control prompts?
+- Manage prompts in production
+- A/B test different prompt versions
+- Link prompts to traces
+
+### llm-evaluation
+**Keywords:** score, quality, evaluation, rating, assessment, g-eval
+**Solves:**
+- How do I evaluate LLM output quality?
+- Score responses with custom metrics
+- Track quality trends over time
+- Compare prompt versions by quality
+
+### session-tracking
+**Keywords:** session, user tracking, conversation, group traces
+**Solves:**
+- How do I group related traces?
+- Track multi-turn conversations
+- Monitor per-user performance
+- Organize traces by session
+
+### langchain-integration
+**Keywords:** langchain, callback, handler, langgraph integration
+**Solves:**
+- How do I integrate Langfuse with LangChain?
+- Use CallbackHandler for tracing
+- Automatic LangGraph workflow tracing
+- LangChain observability setup
+
+### datasets-evaluation
+**Keywords:** dataset, test set, evaluation dataset, benchmark
+**Solves:**
+- How do I create test datasets in Langfuse?
+- Run automated evaluations
+- Regression testing for LLMs
+- Benchmark prompt versions
+
+### ab-testing
+**Keywords:** a/b test, experiment, compare prompts, variant testing
+**Solves:**
+- How do I A/B test prompts?
+- Compare two prompt versions
+- Experimental prompt evaluation
+- Statistical prompt testing
+
+### monitoring-dashboard
+**Keywords:** dashboard, analytics, metrics, monitoring, queries
+**Solves:**
+- What are the most expensive traces?
+- Average cost by agent type
+- Quality score trends
+- Custom monitoring queries
+
+### skillforge-integration
+**Keywords:** skillforge, migration, setup, workflow integration
+**Solves:**
+- How does SkillForge use Langfuse?
+- Migrate from LangSmith to Langfuse
+- SkillForge workflow tracing patterns
+- Cost tracking per analysis
+
+### multi-judge-evaluation
+**Keywords:** multi judge, g-eval, multiple evaluators, ensemble evaluation, weighted scoring
+**Solves:**
+- How do I use multiple LLM judges to evaluate quality?
+- Set up G-Eval criteria evaluation
+- Configure weighted scoring across judges
+- Wire SkillForge's existing langfuse_evaluators.py
+
+### experiments-api
+**Keywords:** experiment, dataset, benchmark, regression test, prompt testing
+**Solves:**
+- How do I run experiments across datasets?
+- A/B test models and prompts systematically
+- Track quality regression over time
+- Compare experiment results

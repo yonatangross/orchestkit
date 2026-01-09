@@ -1,0 +1,29 @@
+{
+  "$schema": "context://blockers/v1",
+  "_meta": {
+    "position": "END",
+    "token_budget": 150,
+    "auto_load": "if_non_empty",
+    "description": "Active blockers - loaded at END for high attention when issues exist"
+  },
+
+  "blockers": [],
+
+  "resolved_recently": [
+    {
+      "id": "ollama-timeout-ci",
+      "description": "2 tests failing due to Ollama timeout in CI (worker crashes)",
+      "resolved": "2026-01-08",
+      "resolution": "Increased timeout and added retry logic"
+    }
+  ],
+
+  "watching": [
+    {
+      "id": "context-migration",
+      "description": "Context Engineering 2.0 migration in progress",
+      "status": "in_progress",
+      "eta": "2026-01-08"
+    }
+  ]
+}

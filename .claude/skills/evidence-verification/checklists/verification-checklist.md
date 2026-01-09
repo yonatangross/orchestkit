@@ -231,7 +231,7 @@
 
 - [ ] **Evidence documented** in task completion message
 
-- [ ] **Evidence added to shared context** (`.claude/context/shared-context.json`)
+- [ ] **Evidence added to shared context** (`.claude/context/session/state.json (Context Protocol 2.0)`)
 
 - [ ] **Evidence files linked** in completion message
 
@@ -369,7 +369,7 @@
 ## Evidence Storage Locations
 
 ### Shared Context
-**File:** `.claude/context/shared-context.json`
+**File:** `.claude/context/session/state.json (Context Protocol 2.0)`
 **Contains:** Structured evidence metadata
 ```json
 {

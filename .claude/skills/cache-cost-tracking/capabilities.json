@@ -1,29 +1,30 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "cache-cost-tracking",
   "version": "1.0.0",
   "description": "LLM caching strategies and cost tracking patterns",
   "capabilities": [
+    "cache-invalidation",
+    "cost-calculation",
     "prompt-caching",
     "response-caching",
-    "cost-calculation",
-    "usage-tracking",
-    "cache-invalidation"
+    "usage-tracking"
   ],
-  "triggers": [
-    "cache",
-    "cost tracking",
-    "token usage",
-    "LLM cost",
-    "cache hit"
-  ],
-  "antiPatterns": [
-    "no cache invalidation",
-    "caching dynamic content",
-    "ignoring costs"
-  ],
-  "dependencies": [
+  "triggers": {
+    "high_confidence": [
+      "cache.*cost",
+      "cost.*tracking",
+      "token.*usage"
+    ],
+    "medium_confidence": [
+      "cache",
+      "cost tracking",
+      "LLM cost",
+      "cache hit"
+    ]
+  },
+  "integrates_with": [
     "semantic-caching",
     "langfuse-observability"
-  ],
-  "tags": ["caching", "cost", "optimization", "2026"]
+  ]
 }

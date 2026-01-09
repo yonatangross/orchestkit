@@ -1,6 +1,8 @@
 ---
 name: agent-loops
 description: Agentic workflow patterns for autonomous LLM reasoning. Use when building ReAct agents, implementing reasoning loops, or creating LLMs that plan and execute multi-step tasks.
+context: fork
+agent: workflow-architect
 ---
 
 # Agent Loops
@@ -179,3 +181,26 @@ class AgentMemory:
 - `function-calling` - Tool definitions and execution
 - `multi-agent-orchestration` - Coordinating multiple agents
 - `langgraph-workflows` - Stateful agent graphs
+
+## Capability Details
+
+### react-loop
+**Keywords:** react, reason, act, observe, loop
+**Solves:**
+- Implement ReAct pattern
+- Create reasoning loops
+- Build iterative agents
+
+### tool-use
+**Keywords:** tool, function, call, execution
+**Solves:**
+- Implement tool calling
+- Execute functions from LLM
+- Parse tool responses
+
+### workflow-template
+**Keywords:** template, workflow, agent, typescript
+**Solves:**
+- Agent workflow template
+- TypeScript implementation
+- Copy-paste starter

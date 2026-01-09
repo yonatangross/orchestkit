@@ -1,6 +1,8 @@
 ---
 name: langgraph-human-in-loop
 description: LangGraph human-in-the-loop patterns. Use when implementing approval workflows, manual review gates, user feedback integration, or interactive agent supervision.
+context: fork
+agent: workflow-architect
 ---
 
 # LangGraph Human-in-the-Loop
@@ -175,3 +177,47 @@ result = app.invoke(None, config=config)
 - `langgraph-checkpoints` - State persistence
 - `langgraph-routing` - Routing after approval
 - `api-design-framework` - Review API design
+
+## Capability Details
+
+### interrupt-before
+**Keywords:** interrupt, pause, stop, before, gate
+**Solves:**
+- How do I pause a workflow for approval?
+- Add human review before a step
+- Interrupt workflow execution
+
+### resume-workflow
+**Keywords:** resume, continue, approve, proceed, update_state
+**Solves:**
+- How do I resume after human approval?
+- Continue workflow after review
+- Update state and proceed
+
+### approval-patterns
+**Keywords:** approval, approve, reject, decision, gate
+**Solves:**
+- How do I implement approval workflows?
+- Add approval gate to pipeline
+- Handle approve/reject decisions
+
+### feedback-integration
+**Keywords:** feedback, comment, review, notes, human input
+**Solves:**
+- How do I collect human feedback?
+- Integrate reviewer comments
+- Capture feedback in workflow state
+
+### interactive-supervision
+**Keywords:** supervise, monitor, interactive, control, override
+**Solves:**
+- How do I supervise agent execution?
+- Add human oversight to agents
+- Override agent decisions
+
+### state-inspection
+**Keywords:** get_state, inspect, view, current state, debug
+**Solves:**
+- How do I inspect workflow state?
+- View current state at interrupt
+- Debug paused workflows

@@ -7,6 +7,10 @@
 
 set -euo pipefail
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../../_lib/common.sh"
 
 FILE_PATH=$(get_field '.tool_input.file_path')
@@ -73,4 +77,6 @@ for pattern in "${CONFIG_PATTERNS[@]}"; do
   fi
 done
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"File guard checked","continue":true}'
 exit 0

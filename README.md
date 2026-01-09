@@ -10,14 +10,15 @@
 
 <p align="center">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin"><img src="https://img.shields.io/github/stars/yonatangross/skillforge-claude-plugin?style=flat-square" alt="GitHub Stars"></a>
-  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-1.0.0-green?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.6.3-green?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml"><img src="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple?style=flat-square" alt="License"></a>
   <a href="https://github.com/anthropics/claude-plugins-official/pull/86"><img src="https://img.shields.io/badge/anthropic--official-pending-yellow?style=flat-square" alt="Anthropic Official"></a>
   <a href="https://github.com/ananddtyagi/cc-marketplace/pull/24"><img src="https://img.shields.io/badge/cc--marketplace-pending-yellow?style=flat-square" alt="CC Marketplace"></a>
 </p>
 
 <p align="center">
-  68 skills | 11 commands | 20 agents | 29 hooks | 7 plugin bundles
+  78 skills | 11 commands | 20 agents | 89 hooks | 7 plugin bundles
 </p>
 
 ---
@@ -26,18 +27,20 @@
 
 ## Quick Start
 
-### From Marketplace (Recommended)
+### From Marketplace (Pending Approval)
+
+> **Status:** Awaiting approval at [Anthropic Official](https://github.com/anthropics/claude-plugins-official/pull/86) and [CC Marketplace](https://github.com/ananddtyagi/cc-marketplace/pull/24). Once merged, these commands will work:
 
 ```bash
 # Step 1: Add the marketplace
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
 # Step 2: Install full toolkit or specific bundles
-/plugin install skillforge-complete@complete         # Everything (61 skills)
+/plugin install skillforge-complete@complete         # Everything (78 skills)
 
 # Or install specific categories:
 /plugin install skillforge-complete@ai-development   # AI/LLM skills (23 skills)
-/plugin install skillforge-complete@backend          # Backend skills (5 skills)
+/plugin install skillforge-complete@backend          # Backend skills (12 skills)
 /plugin install skillforge-complete@frontend         # Frontend skills (6 skills)
 /plugin install skillforge-complete@quality-testing  # Testing skills (14 skills)
 /plugin install skillforge-complete@devops-security  # DevOps skills (7 skills)
@@ -86,6 +89,11 @@ After installation, skills are automatically available when Claude Code detects 
 | `llm-testing` | Testing LLM applications, mocking, deterministic tests |
 | `langfuse-observability` | LLM tracing, evaluation, prompt management, and cost tracking |
 | `pgvector-search` | Hybrid search with PGVector + BM25 using Reciprocal Rank Fusion |
+| `hyde-retrieval` | HyDE (Hypothetical Document Embeddings) for vocabulary mismatch resolution |
+| `query-decomposition` | Multi-concept query handling with parallel retrieval and fusion |
+| `reranking-patterns` | Cross-encoder and LLM-based reranking for search precision |
+| `contextual-retrieval` | Anthropic's context-prepending technique for improved RAG |
+| `langgraph-functional` | @entrypoint/@task decorator API for modern LangGraph workflows |
 | `context-compression` | Anchored summarization, probe-based validation, token optimization |
 | `context-engineering` | Attention-aware positioning, context budget management, progressive loading |
 | `llm-safety-patterns` | LLM security, prompt injection prevention, context separation |
@@ -106,6 +114,7 @@ After installation, skills are automatically available when Claude Code detects 
 | `resilience-patterns` | Circuit breakers, bulkheads, retry logic, fault tolerance |
 | `streaming-api-patterns` | SSE, WebSockets, ReadableStream APIs, backpressure handling |
 | `type-safety-validation` | Zod + tRPC + Prisma for end-to-end type safety |
+| `mcp-server-building` | Building MCP (Model Context Protocol) servers for Claude extensibility |
 
 ### Frontend Development
 
@@ -306,7 +315,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 29 hooks have been security-audited and follow these standards:
+All 89 hooks have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
@@ -344,7 +353,7 @@ fi
 
 ```
 .claude/
-+-- skills/                    # 61 domain-specific skills
++-- skills/                    # 72 domain-specific skills
 |   +-- agent-loops/
 |   |   +-- capabilities.json  # Discovery metadata
 |   |   +-- SKILL.md          # Core patterns
@@ -363,7 +372,7 @@ fi
 |   +-- product-strategist.md
 |   +-- llm-integrator.md
 |   +-- ...
-+-- hooks/                     # 29 lifecycle hooks
++-- hooks/                     # 89 lifecycle hooks
 |   +-- pretool/
 |   +-- posttool/
 |   +-- lifecycle/

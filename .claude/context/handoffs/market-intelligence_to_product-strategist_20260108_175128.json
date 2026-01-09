@@ -1,0 +1,9 @@
+{
+  "from_agent": "market-intelligence",
+  "to_agent": "product-strategist",
+  "timestamp": "2026-01-08T15:51:28Z",
+  "summary": "test",
+  "suggestions": "Next: product-strategist should define product vision based on market analysis",
+  "full_output": "test",
+  "status": "ready_for_handoff"
+}

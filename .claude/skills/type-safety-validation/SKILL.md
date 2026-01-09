@@ -1,9 +1,17 @@
 ---
 name: type-safety-validation
 description: Use when adding runtime validation, type-safe APIs, or end-to-end TypeScript safety. Covers Zod schemas, tRPC, Prisma, and exhaustive type checking patterns.
+context: fork
+agent: frontend-ui-developer
 version: 1.1.0
 author: AI Agent Hub
 tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types, 2025]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
 ---
 
 # Type Safety & Validation
@@ -601,3 +609,89 @@ switch (status) {
 
 ### v1.0.0 (2025-12-14)
 - Initial skill with Zod, tRPC, Prisma, and TypeScript 5.7+ patterns
+
+## Capability Details
+
+### zod-schemas
+**Keywords:** zod, schema, validation, parse, safeParse, infer, refine, transform
+**Solves:**
+- How do I validate input with Zod?
+- Create runtime validation schema
+- Infer TypeScript types from Zod
+- Transform and refine data with Zod
+- Handle Zod validation errors
+
+### exhaustive-types
+**Keywords:** exhaustive, assertNever, never assertion, switch exhaustive, compile-time exhaustiveness, exhaustive check, missing cases, union exhaustive
+**Solves:**
+- How do I make switch statements exhaustive?
+- Compile-time check for missing union cases
+- assertNever pattern for TypeScript
+- Catch missing cases at compile time
+- Exhaustive handler objects pattern
+- Why does my switch have a default that never runs?
+
+### branded-types
+**Keywords:** branded type, type branding, nominal type, opaque type, NewType, brand, distinct types, id types
+**Solves:**
+- How do I prevent mixing different ID types?
+- Branded types with Zod
+- Python NewType for type safety
+- Prevent UserId where AnalysisId expected
+- Nominal typing in TypeScript
+- Type-safe IDs across the codebase
+
+### trpc
+**Keywords:** trpc, type-safe api, procedure, router, mutation, query, context, middleware
+**Solves:**
+- How do I set up tRPC?
+- Type-safe API calls
+- tRPC with React Query
+- tRPC authentication middleware
+- tRPC error handling
+
+### prisma-types
+**Keywords:** prisma, orm, generated types, model, client, payload, validator
+**Solves:**
+- How do I use Prisma types?
+- Type-safe database queries
+- Prisma schema to TypeScript
+- Extract types from Prisma queries
+- Extend Prisma models with custom fields
+
+### typescript-5-features
+**Keywords:** typescript 5, const parameters, satisfies, decorators, template literals, inferred predicates
+**Solves:**
+- Use TypeScript 5.x features
+- Const type parameters
+- Satisfies operator
+- Modern TypeScript patterns
+- Branded types and template literals
+
+### skillforge-integration
+**Keywords:** skillforge, pydantic, fastapi, openapi, backend types, frontend types
+**Solves:**
+- How can SkillForge use Zod with FastAPI?
+- Convert Pydantic to Zod schemas
+- Share types between Python and TypeScript
+- Validate API responses in frontend
+- Generate types from OpenAPI spec
+
+### implementation-checklist
+**Keywords:** checklist, type safety, validation, testing, deployment
+**Solves:**
+- What steps to implement type safety?
+- Type safety checklist
+- Validation best practices
+- Type safety testing strategy
+- Production deployment checklist
+
+### ty-type-checker
+**Keywords:** ty, rust type checker, strict typing, isinstance, cast, type narrowing, dict extraction, optional types
+**Solves:**
+- How do I make ty type checker pass?
+- Extract values from untyped dicts safely
+- Type-safe agent result processing
+- Handle optional numeric types with ty
+- Type narrowing with isinstance checks
+- Fix 'object | None' type errors in ty

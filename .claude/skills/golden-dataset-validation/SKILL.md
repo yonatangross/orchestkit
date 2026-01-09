@@ -1,9 +1,15 @@
 ---
 name: golden-dataset-validation
 description: Use when validating golden dataset quality. Runs schema checks, duplicate detection, and coverage analysis to ensure dataset integrity for AI evaluation.
+context: fork
+agent: data-pipeline-engineer
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, validation, integrity, schema, duplicate-detection, 2025]
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
 ---
 
 # Golden Dataset Validation
@@ -634,3 +640,33 @@ fi
 
 **Version:** 1.0.0 (December 2025)
 **Issue:** #599
+
+## Capability Details
+
+### schema-validation
+**Keywords:** schema, validation, schema check, format validation
+**Solves:**
+- Validate entries against document schema
+- Check required fields are present
+- Verify data types and constraints
+
+### duplicate-detection
+**Keywords:** duplicate, detection, deduplication, similarity check
+**Solves:**
+- Detect duplicate or near-duplicate entries
+- Use semantic similarity for fuzzy matching
+- Prevent redundant entries in dataset
+
+### referential-integrity
+**Keywords:** referential, integrity, foreign key, relationship
+**Solves:**
+- Verify relationships between documents and queries
+- Check source URL mappings are valid
+- Ensure cross-references are consistent
+
+### coverage-analysis
+**Keywords:** coverage, analysis, distribution, completeness
+**Solves:**
+- Analyze dataset coverage across domains
+- Identify gaps in difficulty distribution
+- Report coverage metrics and recommendations

@@ -3,111 +3,18 @@
   "name": "quality-gates",
   "version": "1.1.0",
   "description": "Complexity scoring (1-5 scale), blocking thresholds, gate validation, stuck detection, requirements completeness, and LLM-as-judge quality patterns",
-
-  "capabilities": {
-    "complexity-scoring": {
-      "keywords": ["complexity", "score", "difficulty", "estimate", "sizing", "1-5 scale"],
-      "solves": [
-        "How complex is this task?",
-        "Score task complexity on 1-5 scale",
-        "Assess implementation difficulty"
-      ],
-      "reference_file": "SKILL.md#1-complexity-scoring-1-5-scale",
-      "token_cost": 140
-    },
-    "blocking-thresholds": {
-      "keywords": ["blocking", "threshold", "gate", "stop", "escalate", "cannot proceed"],
-      "solves": [
-        "When should I block progress?",
-        ">3 critical questions = BLOCK",
-        "Missing dependencies = BLOCK",
-        "3+ failed attempts = BLOCK"
-      ],
-      "reference_file": "SKILL.md#2-quality-gate-thresholds",
-      "token_cost": 150
-    },
-    "critical-questions": {
-      "keywords": ["critical questions", "unanswered", "unknowns", "clarify"],
-      "solves": [
-        "What are critical questions?",
-        "Count unanswered critical questions",
-        "Block if >3 questions unanswered"
-      ],
-      "reference_file": "SKILL.md#critical-questions-must-answer-before-proceeding",
-      "token_cost": 110
-    },
-    "stuck-detection": {
-      "keywords": ["stuck", "failed attempts", "retry", "3 attempts", "escalate"],
-      "solves": [
-        "How do I detect when stuck?",
-        "After 3 failed attempts, escalate",
-        "Track attempt history"
-      ],
-      "reference_file": "SKILL.md#workflow-2-stuck-detection--escalation",
-      "token_cost": 120
-    },
-    "gate-validation": {
-      "keywords": ["validate", "gate check", "pass", "fail", "gate status"],
-      "solves": [
-        "How do I validate quality gates?",
-        "Run pre-task gate validation",
-        "Determine PASS/WARNING/BLOCKED status"
-      ],
-      "template_file": "templates/gate-check-template.md",
-      "token_cost": 130
-    },
-    "pre-task-gate-check": {
-      "keywords": ["pre-task", "before starting", "can proceed"],
-      "solves": [
-        "How do I check gates before starting?",
-        "Assess complexity before proceeding",
-        "Identify blockers early"
-      ],
-      "reference_file": "SKILL.md#workflow-1-pre-task-gate-validation",
-      "token_cost": 140
-    },
-    "complexity-breakdown": {
-      "keywords": ["breakdown", "decompose", "subtasks", "split task"],
-      "solves": [
-        "How do I break down complex tasks?",
-        "Split Level 4-5 into Level 1-3 subtasks",
-        "Create task breakdown with dependencies"
-      ],
-      "template_file": "templates/complexity-assessment.md",
-      "token_cost": 160
-    },
-    "requirements-completeness": {
-      "keywords": ["requirements", "incomplete", "acceptance criteria"],
-      "solves": [
-        "Are requirements complete enough?",
-        "Check functional requirements",
-        "Block if requirements too vague"
-      ],
-      "template_file": "templates/requirements-checklist.md",
-      "token_cost": 140
-    },
-    "escalation-protocol": {
-      "keywords": ["escalate", "ask user", "need help", "human guidance"],
-      "solves": [
-        "When and how to escalate?",
-        "Escalate after 3 failed attempts",
-        "Create escalation message"
-      ],
-      "reference_file": "SKILL.md#template-2-stuck-escalation",
-      "token_cost": 120
-    },
-    "llm-as-judge": {
-      "keywords": ["llm as judge", "g-eval", "aspect scoring", "quality validation"],
-      "solves": [
-        "How do I use LLM-as-judge?",
-        "Evaluate relevance, depth, coherence",
-        "Set quality thresholds (0.0-1.0)"
-      ],
-      "reference_file": "references/gate-patterns.md",
-      "token_cost": 180
-    }
-  },
-
+  "capabilities": [
+    "blocking-thresholds",
+    "complexity-breakdown",
+    "complexity-scoring",
+    "critical-questions",
+    "escalation-protocol",
+    "gate-validation",
+    "llm-as-judge",
+    "pre-task-gate-check",
+    "requirements-completeness",
+    "stuck-detection"
+  ],
   "triggers": {
     "high_confidence": [
       "quality.*gate",
@@ -122,28 +29,9 @@
       "requirements.*unclear"
     ]
   },
-
   "integrates_with": [
     "evidence-verification",
-    "testing-strategy-builder",
+    "test-standards-enforcer",
     "code-review-playbook"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 800,
-      "sections": ["overview", "core-concepts"]
-    },
-    "tier_3_specific": {
-      "files": ["references/gate-patterns.md", "templates/*.md"],
-      "tokens": "100-180 each"
-    }
-  },
-
-  "mcp_tools": []
+  ]
 }

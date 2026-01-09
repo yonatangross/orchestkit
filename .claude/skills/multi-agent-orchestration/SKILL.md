@@ -1,6 +1,8 @@
 ---
 name: multi-agent-orchestration
 description: Multi-agent coordination and synthesis patterns. Use when orchestrating multiple specialized agents, implementing fan-out/fan-in workflows, or synthesizing outputs from parallel agents.
+context: fork
+agent: workflow-architect
 ---
 
 # Multi-Agent Orchestration
@@ -198,3 +200,40 @@ class AgentBus:
 - `langgraph-supervisor` - LangGraph supervisor pattern
 - `langgraph-parallel` - Fan-out/fan-in with LangGraph
 - `agent-loops` - Single agent patterns
+
+## Capability Details
+
+### agent-communication
+**Keywords:** agent communication, message passing, agent protocol, inter-agent
+**Solves:**
+- Establish communication between agents
+- Implement message passing patterns
+- Handle async agent communication
+
+### task-delegation
+**Keywords:** delegate, task routing, work distribution, agent dispatch
+**Solves:**
+- Route tasks to specialized agents
+- Implement work distribution strategies
+- Handle agent capability matching
+
+### result-aggregation
+**Keywords:** aggregate, combine results, merge outputs, synthesis
+**Solves:**
+- Combine outputs from multiple agents
+- Implement result synthesis patterns
+- Handle conflicting agent outputs
+
+### error-coordination
+**Keywords:** error handling, retry, fallback agent, failure recovery
+**Solves:**
+- Handle agent failures gracefully
+- Implement retry and fallback patterns
+- Coordinate error recovery
+
+### agent-lifecycle
+**Keywords:** lifecycle, spawn agent, terminate, agent pool
+**Solves:**
+- Manage agent creation and termination
+- Implement agent pooling
+- Handle agent health checks

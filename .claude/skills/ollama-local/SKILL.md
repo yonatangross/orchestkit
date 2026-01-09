@@ -1,6 +1,7 @@
 ---
 name: ollama-local
 description: Local LLM inference with Ollama. Use when setting up local models for development, CI pipelines, or cost reduction. Covers model selection, LangChain integration, and performance tuning.
+agent: llm-integrator
 ---
 
 # Ollama Local Inference
@@ -191,3 +192,26 @@ ollama pull deepseek-r1:70b-q4_K_M
 - `embeddings` - Embedding patterns (works with nomic-embed-text)
 - `llm-evaluation` - Testing with local models
 - `cost-optimization` - Broader cost strategies
+
+## Capability Details
+
+### setup
+**Keywords:** setup, install, configure, ollama
+**Solves:**
+- Set up Ollama locally
+- Configure for development
+- Install models
+
+### model-selection
+**Keywords:** model, llama, mistral, qwen, selection
+**Solves:**
+- Choose appropriate model
+- Compare model capabilities
+- Balance speed vs quality
+
+### provider-template
+**Keywords:** provider, template, python, implementation
+**Solves:**
+- Ollama provider template
+- Python implementation
+- Drop-in LLM provider

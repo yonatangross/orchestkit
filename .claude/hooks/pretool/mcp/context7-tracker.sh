@@ -1,7 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 # Context7 Tracker - Logs library documentation lookups
-# Hook: PostToolUse (mcp__context7__*)
+# CC 2.1.2 Compliant: includes continue field in all outputs
+# Hook: PreToolUse (mcp__context7__*)
+
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
 
 source "$(dirname "$0")/../../_lib/common.sh"
 
@@ -21,4 +26,7 @@ if [[ "$TOOL_NAME" == "mcp__context7__get-library-docs" ]]; then
   echo "$(date -Iseconds) | docs | $LIBRARY_ID | $TOPIC" >> "/tmp/claude-context7-usage.log"
 fi
 
+# CC 2.1.2 Compliant: JSON output without ANSI colors
+# (Colors in JSON break JSON parsing)
+echo '{"systemMessage":"Docs lookup tracked", "continue": true}'
 exit 0

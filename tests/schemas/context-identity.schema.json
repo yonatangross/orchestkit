@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context://identity/v1",
+  "title": "Context Identity Schema",
+  "description": "Schema for identity.json context file",
+  "type": "object",
+  "required": ["$schema", "_meta", "project", "constraints", "tech_stack"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "context://identity/v1"
+    },
+    "_meta": {
+      "type": "object",
+      "required": ["position", "token_budget", "auto_load", "compress"],
+      "properties": {
+        "position": {
+          "type": "string",
+          "enum": ["START", "MIDDLE", "END"]
+        },
+        "token_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "auto_load": {
+          "type": "string",
+          "enum": ["always", "conditional", "never"]
+        },
+        "compress": {
+          "type": "string",
+          "enum": ["always", "conditional", "never"]
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["name", "type", "version"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "display_name": { "type": "string" },
+        "type": { "type": "string" },
+        "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "repository": { "type": "string", "format": "uri" }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "tech_stack": {
+      "type": "object"
+    },
+    "team": {
+      "type": "object"
+    },
+    "ports": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination://heartbeat/v1",
+  "title": "Instance Heartbeat Schema",
+  "description": "Lightweight heartbeat file for liveness detection",
+  "type": "object",
+  "properties": {
+    "instance_id": {
+      "type": "string",
+      "pattern": "^claude-[0-9]{8}-[0-9]{6}-[a-f0-9]{8}$"
+    },
+    "pid": {
+      "type": "integer"
+    },
+    "last_ping": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ping_count": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Incremental counter to detect heartbeat updates"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["starting", "active", "stopping"],
+      "default": "active"
+    }
+  },
+  "required": ["instance_id", "pid", "last_ping", "ping_count"],
+  "additionalProperties": false
+}

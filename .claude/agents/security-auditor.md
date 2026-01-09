@@ -2,9 +2,14 @@
 name: security-auditor
 color: red
 description: Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps
-model: haiku
-max_tokens: 8000
+max_tokens: 12000
 tools: Bash, Read, Grep, Glob
+skills: owasp-top-10, security-scanning
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -147,7 +152,7 @@ Task: "Run security audit before release"
 ```
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.security-auditor` with findings
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

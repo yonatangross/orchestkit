@@ -3,160 +3,22 @@
   "name": "observability-monitoring",
   "version": "1.0.0",
   "description": "Comprehensive frameworks for structured logging, metrics, distributed tracing, and alerting strategies with real-world SkillForge examples",
-
-  "capabilities": {
-    "structured-logging": {
-      "keywords": ["logging", "structured log", "json log", "correlation id", "log level", "winston", "pino", "structlog"],
-      "solves": [
-        "How do I set up structured logging?",
-        "Implement correlation IDs across services",
-        "JSON logging best practices",
-        "Log aggregation with Loki/LogQL"
-      ],
-      "reference_file": "SKILL.md#advanced-structured-logging",
-      "token_cost": 180
-    },
-    "correlation-tracking": {
-      "keywords": ["correlation id", "request tracking", "trace context", "distributed logs"],
-      "solves": [
-        "How do I track requests across services?",
-        "Implement correlation IDs in middleware",
-        "Find all logs for a single request",
-        "Debug distributed transactions"
-      ],
-      "reference_file": "SKILL.md#correlation-ids",
-      "token_cost": 150
-    },
-    "log-sampling": {
-      "keywords": ["log sampling", "high traffic logging", "sampling rate", "log volume"],
-      "solves": [
-        "How do I reduce log volume in production?",
-        "Sample INFO logs while keeping all errors",
-        "Manage logging costs at scale"
-      ],
-      "reference_file": "SKILL.md#log-sampling",
-      "token_cost": 120
-    },
-    "prometheus-metrics": {
-      "keywords": ["metrics", "prometheus", "counter", "histogram", "gauge", "summary", "red method"],
-      "solves": [
-        "How do I collect application metrics?",
-        "Implement RED method (Rate, Errors, Duration)",
-        "Choose between Counter, Gauge, Histogram",
-        "Avoid high cardinality metrics"
-      ],
-      "reference_file": "SKILL.md#metrics-deep-dive",
-      "token_cost": 200
-    },
-    "metric-types": {
-      "keywords": ["counter", "gauge", "histogram", "summary", "bucket", "quantile"],
-      "solves": [
-        "When to use Counter vs Gauge?",
-        "Histogram vs Summary for latency",
-        "Configure histogram buckets",
-        "Calculate p95/p99 latency"
-      ],
-      "reference_file": "SKILL.md#metric-types",
-      "token_cost": 150
-    },
-    "cardinality-management": {
-      "keywords": ["cardinality", "label explosion", "time series", "prometheus performance"],
-      "solves": [
-        "How do I prevent label cardinality explosions?",
-        "Identify high cardinality metrics",
-        "Fix unbounded labels (user IDs, request IDs)"
-      ],
-      "reference_file": "SKILL.md#cardinality-management",
-      "token_cost": 130
-    },
-    "distributed-tracing": {
-      "keywords": ["tracing", "distributed tracing", "opentelemetry", "span", "trace id", "waterfall"],
-      "solves": [
-        "How do I implement distributed tracing?",
-        "OpenTelemetry setup with auto-instrumentation",
-        "Create manual spans for custom operations",
-        "Trace sampling strategies"
-      ],
-      "reference_file": "SKILL.md#distributed-tracing-patterns",
-      "token_cost": 220
-    },
-    "trace-sampling": {
-      "keywords": ["trace sampling", "head-based sampling", "tail-based sampling", "sampling strategy"],
-      "solves": [
-        "How do I reduce trace volume?",
-        "Sample 10% of traces but keep all errors",
-        "Tail-based vs head-based sampling"
-      ],
-      "reference_file": "SKILL.md#trace-sampling-strategies",
-      "token_cost": 140
-    },
-    "alerting-strategy": {
-      "keywords": ["alert", "alerting", "notification", "threshold", "pagerduty", "slack", "severity"],
-      "solves": [
-        "How do I set up effective alerts?",
-        "Define alert severity levels (P1-P4)",
-        "Create service down and error rate alerts",
-        "Write runbooks for alerts"
-      ],
-      "reference_file": "SKILL.md#alerting-strategy",
-      "token_cost": 160
-    },
-    "alert-fatigue-prevention": {
-      "keywords": ["alert fatigue", "alert grouping", "inhibition", "escalation"],
-      "solves": [
-        "How do I reduce alert noise?",
-        "Group related alerts together",
-        "Suppress alerts with inhibition rules",
-        "Set up escalation policies"
-      ],
-      "reference_file": "SKILL.md#alert-fatigue-prevention",
-      "token_cost": 170
-    },
-    "dashboards": {
-      "keywords": ["dashboard", "visualization", "grafana", "golden signals", "red method", "use method"],
-      "solves": [
-        "How do I create monitoring dashboards?",
-        "Design Golden Signals dashboard layout",
-        "Build SLO/SLI dashboards",
-        "Calculate error budgets"
-      ],
-      "reference_file": "SKILL.md#dashboard-design-principles",
-      "token_cost": 180
-    },
-    "health-checks": {
-      "keywords": ["health check", "liveness", "readiness", "startup probe", "kubernetes"],
-      "solves": [
-        "How do I implement health check endpoints?",
-        "Difference between liveness and readiness",
-        "Health check for database and Redis"
-      ],
-      "reference_file": "SKILL.md#health-checks",
-      "token_cost": 120
-    },
-    "langfuse-observability": {
-      "keywords": ["langfuse", "llm observability", "llm tracing", "token usage", "llm cost tracking"],
-      "solves": [
-        "How do I monitor LLM calls with Langfuse?",
-        "Track LLM token usage and cost",
-        "Trace multi-agent workflows",
-        "Real-world SkillForge LLM observability"
-      ],
-      "example_file": "SKILL.md#example-1-langfuse-observability-integration",
-      "token_cost": 200
-    },
-    "llm-cost-tracking": {
-      "keywords": ["llm cost", "token tracking", "cost optimization", "prometheus llm metrics"],
-      "solves": [
-        "How do I track LLM costs with Prometheus?",
-        "Measure token usage by model and operation",
-        "Calculate cost per analysis/operation",
-        "Build LLM cost dashboards"
-      ],
-      "example_file": "SKILL.md#example-3-llm-cost-tracking",
-      "token_cost": 190
-    }
-  },
-
+  "capabilities": [
+    "alert-fatigue-prevention",
+    "alerting-strategy",
+    "cardinality-management",
+    "correlation-tracking",
+    "dashboards",
+    "distributed-tracing",
+    "health-checks",
+    "langfuse-observability",
+    "llm-cost-tracking",
+    "log-sampling",
+    "metric-types",
+    "prometheus-metrics",
+    "structured-logging",
+    "trace-sampling"
+  ],
   "triggers": {
     "high_confidence": [
       "set up.*monitoring",
@@ -175,46 +37,10 @@
       "llm.*observability"
     ]
   },
-
   "integrates_with": [
-    "ai-native-development",
+    "llm-evaluation",
     "devops-deployment",
     "langfuse-observability",
     "performance-optimization"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "use_when": "Skill confirmed relevant - need patterns and three pillars overview"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#section",
-      "tokens": "120-220 each",
-      "use_when": "Need specific implementation (e.g., correlation IDs, trace sampling)"
-    },
-    "tier_4_examples": {
-      "files": "SKILL.md#real-world-skillforge-examples",
-      "tokens": "190-200 each",
-      "use_when": "Ready to implement with real-world patterns"
-    }
-  },
-
-  "mcp_tools": {
-    "llm_observability": {
-      "tool": "langfuse",
-      "use_when": "LLM tracing and cost tracking needed"
-    },
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/open-telemetry/opentelemetry-python", "/prometheus/client_python"],
-      "use_when": "Need current OpenTelemetry or Prometheus docs"
-    }
-  }
+  ]
 }

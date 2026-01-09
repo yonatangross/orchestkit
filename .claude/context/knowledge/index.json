@@ -1,0 +1,61 @@
+{
+  "$schema": "context://knowledge-index/v1",
+  "_meta": {
+    "position": "START",
+    "token_budget": 150,
+    "auto_load": "always",
+    "description": "Discovery layer - tells Claude what knowledge exists and how to load it"
+  },
+
+  "available_knowledge": {
+    "decisions": {
+      "path": "knowledge/decisions/active.json",
+      "token_estimate": 400,
+      "triggers": ["decision", "why did we", "rationale", "architecture", "chose", "trade-off"],
+      "description": "Recent architectural and technical decisions with rationale",
+      "last_updated": "2026-01-08",
+      "entry_count": 5
+    },
+    "patterns": {
+      "path": "knowledge/patterns/established.json",
+      "token_estimate": 300,
+      "triggers": ["pattern", "convention", "how do we", "standard", "best practice", "approach"],
+      "description": "Established code patterns and conventions",
+      "last_updated": "2026-01-08",
+      "entry_count": 8
+    },
+    "blockers": {
+      "path": "knowledge/blockers/current.json",
+      "token_estimate": 150,
+      "triggers": ["blocked", "issue", "problem", "failing", "broken", "error"],
+      "description": "Active blockers preventing progress",
+      "last_updated": "2026-01-08",
+      "entry_count": 0
+    }
+  },
+
+  "agent_contexts": {
+    "path_pattern": "agents/{agent_id}.json",
+    "token_estimate": 300,
+    "description": "Agent-specific context loaded when agent spawns",
+    "available_agents": [
+      "backend-system-architect",
+      "frontend-ui-developer",
+      "code-quality-reviewer",
+      "security-auditor",
+      "test-generator",
+      "workflow-architect",
+      "llm-integrator"
+    ]
+  },
+
+  "archived_knowledge": {
+    "description": "Historical context - only loaded on explicit request",
+    "sprints": {
+      "sprint-8": "archive/sprints/sprint-8-complete.json"
+    },
+    "sessions": {
+      "pre-refactor": "archive/sessions/shared-context-pre-refactor.json"
+    }
+  }
+}

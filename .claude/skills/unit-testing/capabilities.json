@@ -3,77 +3,26 @@
   "name": "unit-testing",
   "version": "1.0.0",
   "description": "Unit testing patterns with pytest, Vitest, and assertion best practices",
-
-  "capabilities": {
-    "pytest-patterns": {
-      "keywords": ["pytest", "python", "fixture", "parametrize"],
-      "solves": [
-        "Write pytest unit tests",
-        "Use fixtures effectively",
-        "Parametrize test cases"
-      ],
-      "reference_file": "SKILL.md#pytest-patterns",
-      "token_cost": 150
-    },
-    "vitest-patterns": {
-      "keywords": ["vitest", "jest", "typescript", "mock"],
-      "solves": [
-        "Write Vitest unit tests",
-        "Mock dependencies",
-        "Test React components"
-      ],
-      "reference_file": "SKILL.md#vitest-patterns",
-      "token_cost": 150
-    },
-    "skillforge-strategy": {
-      "keywords": ["skillforge", "strategy", "coverage", "pyramid"],
-      "solves": [
-        "SkillForge test strategy example",
-        "Test coverage targets",
-        "Testing pyramid ratios"
-      ],
-      "example_file": "examples/skillforge-test-strategy.md",
-      "token_cost": 300
-    },
-    "test-case-template": {
-      "keywords": ["template", "test", "structure", "arrange"],
-      "solves": [
-        "Test case template",
-        "Arrange-Act-Assert structure",
-        "Copy-paste test starter"
-      ],
-      "template_file": "templates/test-case-template.md",
-      "token_cost": 150
-    }
-  },
-
+  "capabilities": [
+    "pytest-patterns",
+    "skillforge-strategy",
+    "test-case-template",
+    "vitest-patterns"
+  ],
   "triggers": {
-    "high_confidence": ["unit.*test", "pytest.*unit", "vitest.*test"],
-    "medium_confidence": ["test.*function", "test.*class"]
+    "high_confidence": [
+      "unit.*test",
+      "pytest.*unit",
+      "vitest.*test"
+    ],
+    "medium_confidence": [
+      "test.*function",
+      "test.*class"
+    ]
   },
-
-  "integrates_with": ["integration-testing", "msw-mocking", "test-data-management"],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 400,
-      "use_when": "Need unit testing patterns"
-    },
-    "tier_3_specific": {
-      "files": "examples/*.md",
-      "tokens": 300,
-      "use_when": "Need SkillForge test strategy"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.md",
-      "tokens": 150,
-      "use_when": "Ready to write tests"
-    }
-  }
+  "integrates_with": [
+    "integration-testing",
+    "msw-mocking",
+    "test-data-management"
+  ]
 }

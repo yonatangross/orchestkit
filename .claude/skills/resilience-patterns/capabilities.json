@@ -1,90 +1,29 @@
 {
-  "skill": "resilience-patterns",
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "resilience-patterns",
   "version": "1.0.0",
   "description": "Production-grade resilience patterns for distributed systems and LLM workflows",
   "capabilities": [
-    {
-      "id": "circuit-breaker",
-      "keywords": ["circuit breaker", "failure threshold", "cascade failure", "trip", "half-open"],
-      "problems_solved": [
-        "Prevent cascade failures when external services fail",
-        "Automatically recover when services come back online",
-        "Fail fast instead of waiting for timeouts"
-      ],
-      "files": ["references/circuit-breaker.md", "templates/circuit-breaker.py"],
-      "related_capabilities": ["retry-strategies", "error-classification"]
-    },
-    {
-      "id": "bulkhead",
-      "keywords": ["bulkhead", "isolation", "semaphore", "thread pool", "resource pool", "tier"],
-      "problems_solved": [
-        "Isolate failures to prevent entire system crashes",
-        "Prioritize critical operations over optional ones",
-        "Limit concurrent requests to protect resources"
-      ],
-      "files": ["references/bulkhead-pattern.md", "templates/bulkhead.py"],
-      "related_capabilities": ["circuit-breaker"]
-    },
-    {
-      "id": "retry-strategies",
-      "keywords": ["retry", "backoff", "exponential", "jitter", "thundering herd"],
-      "problems_solved": [
-        "Handle transient failures automatically",
-        "Avoid overwhelming recovering services",
-        "Classify errors as retryable vs non-retryable"
-      ],
-      "files": ["references/retry-strategies.md", "templates/retry-handler.py"],
-      "related_capabilities": ["error-classification", "circuit-breaker"]
-    },
-    {
-      "id": "llm-resilience",
-      "keywords": ["LLM", "fallback", "model", "token budget", "rate limit", "context length"],
-      "problems_solved": [
-        "Handle LLM API rate limits gracefully",
-        "Fall back to alternative models when primary fails",
-        "Manage token budgets to prevent context overflow"
-      ],
-      "files": ["references/llm-resilience.md", "templates/llm-fallback-chain.py", "templates/token-budget.py"],
-      "related_capabilities": ["retry-strategies", "circuit-breaker"]
-    },
-    {
-      "id": "error-classification",
-      "keywords": ["error", "retryable", "transient", "permanent", "classification"],
-      "problems_solved": [
-        "Determine which errors should be retried",
-        "Categorize errors by severity and recoverability",
-        "Map HTTP status codes to resilience actions"
-      ],
-      "files": ["references/error-classification.md"],
-      "related_capabilities": ["retry-strategies"]
-    },
-    {
-      "id": "skillforge-integration",
-      "keywords": ["SkillForge", "workflow", "agent", "LangGraph", "multi-agent"],
-      "problems_solved": [
-        "Wire resilience patterns into SkillForge workflows",
-        "Configure per-agent circuit breakers and bulkheads",
-        "Add observability to resilience events"
-      ],
-      "files": ["examples/skillforge-workflow-resilience.md"],
-      "related_capabilities": ["circuit-breaker", "bulkhead", "llm-resilience"]
-    }
+    "bulkhead",
+    "circuit-breaker",
+    "error-classification",
+    "llm-resilience",
+    "retry-strategies"
   ],
-  "checklists": [
-    {
-      "id": "pre-deployment",
-      "name": "Pre-Deployment Resilience Checklist",
-      "file": "checklists/pre-deployment-resilience.md"
-    },
-    {
-      "id": "circuit-breaker-setup",
-      "name": "Circuit Breaker Configuration Guide",
-      "file": "checklists/circuit-breaker-setup.md"
-    }
-  ],
-  "integration_points": {
-    "langgraph-workflows": ["circuit-breaker", "bulkhead", "retry-strategies"],
-    "langfuse-observability": ["circuit-breaker", "llm-resilience"],
-    "ai-native-development": ["llm-resilience", "retry-strategies"]
-  }
+  "triggers": {
+    "high_confidence": [
+      "circuit.*breaker",
+      "retry.*backoff",
+      "bulkhead.*pattern"
+    ],
+    "medium_confidence": [
+      "resilience",
+      "fault.*toleran"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-supervisor",
+    "langfuse-observability",
+    "llm-streaming"
+  ]
 }

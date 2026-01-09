@@ -3,6 +3,10 @@ set -euo pipefail
 # Error Tracker - Tracks and logs tool errors
 # Hook: PostToolUse (*)
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 TOOL_NAME=$(get_tool_name)
@@ -27,4 +31,6 @@ if [[ -n "$TOOL_ERROR" ]] || [[ "$EXIT_CODE" != "0" && "$EXIT_CODE" != "" && "$E
   echo "[$TIMESTAMP] $TOOL_NAME | exit: $EXIT_CODE | ${TOOL_ERROR:0:200}" >> "$ERROR_LOG"
 fi
 
+# Output systemMessage for user visibility
+# No output - dispatcher handles all JSON output for posttool hooks
 exit 0

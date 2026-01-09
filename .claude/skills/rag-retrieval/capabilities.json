@@ -3,77 +3,26 @@
   "name": "rag-retrieval",
   "version": "1.0.0",
   "description": "Retrieval-Augmented Generation patterns for context-aware LLM responses",
-
-  "capabilities": {
-    "retrieval-patterns": {
-      "keywords": ["retrieval", "context", "chunks", "relevance"],
-      "solves": [
-        "Retrieve relevant context for LLM",
-        "Implement RAG pipeline",
-        "Optimize retrieval quality"
-      ],
-      "reference_file": "SKILL.md#retrieval-patterns",
-      "token_cost": 150
-    },
-    "hybrid-search": {
-      "keywords": ["hybrid", "bm25", "vector", "fusion"],
-      "solves": [
-        "Combine keyword and semantic search",
-        "Implement reciprocal rank fusion",
-        "Balance precision and recall"
-      ],
-      "reference_file": "SKILL.md#hybrid-search",
-      "token_cost": 120
-    },
-    "chatbot-example": {
-      "keywords": ["chatbot", "rag", "example", "typescript"],
-      "solves": [
-        "Build RAG chatbot example",
-        "TypeScript implementation",
-        "End-to-end RAG pipeline"
-      ],
-      "example_file": "examples/chatbot-with-rag-example.ts",
-      "token_cost": 350
-    },
-    "pipeline-template": {
-      "keywords": ["pipeline", "template", "implementation", "starter"],
-      "solves": [
-        "RAG pipeline starter template",
-        "Production-ready code",
-        "Copy-paste implementation"
-      ],
-      "template_file": "templates/rag-pipeline-template.ts",
-      "token_cost": 300
-    }
-  },
-
+  "capabilities": [
+    "chatbot-example",
+    "hybrid-search",
+    "pipeline-template",
+    "retrieval-patterns"
+  ],
   "triggers": {
-    "high_confidence": ["rag.*retrieval", "retrieval.*augmented", "context.*retrieval"],
-    "medium_confidence": ["semantic.*search.*llm", "vector.*context"]
+    "high_confidence": [
+      "rag.*retrieval",
+      "retrieval.*augmented",
+      "context.*retrieval"
+    ],
+    "medium_confidence": [
+      "semantic.*search.*llm",
+      "vector.*context"
+    ]
   },
-
-  "integrates_with": ["embeddings", "pgvector-search", "semantic-caching"],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 400,
-      "use_when": "Need RAG patterns"
-    },
-    "tier_3_specific": {
-      "files": "examples/*.ts",
-      "tokens": 350,
-      "use_when": "Need chatbot example"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.ts",
-      "tokens": 300,
-      "use_when": "Ready to implement RAG pipeline"
-    }
-  }
+  "integrates_with": [
+    "embeddings",
+    "pgvector-search",
+    "semantic-caching"
+  ]
 }

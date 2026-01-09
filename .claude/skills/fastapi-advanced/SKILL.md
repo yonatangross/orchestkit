@@ -1,8 +1,16 @@
 ---
 name: fastapi-advanced
 description: FastAPI 2026 advanced patterns including lifespan, dependencies, middleware, settings, and async best practices. Use when building production FastAPI applications.
+context: fork
+agent: backend-system-architect
 version: 1.0.0
 tags: [fastapi, python, async, middleware, dependencies, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
 ---
 
 # FastAPI Advanced Patterns (2026)
@@ -430,3 +438,35 @@ async def lifespan(app: FastAPI):
 - `clean-architecture` - Service layer patterns
 - `database-schema-designer` - SQLAlchemy models
 - `observability-monitoring` - Logging and metrics
+
+## Capability Details
+
+### lifespan
+**Keywords:** lifespan, startup, shutdown, asynccontextmanager
+**Solves:**
+- FastAPI startup/shutdown
+- Resource management in FastAPI
+
+### dependencies
+**Keywords:** dependency injection, Depends, get_db, service dependency
+**Solves:**
+- FastAPI dependency injection patterns
+- Reusable dependencies
+
+### middleware
+**Keywords:** middleware, request id, timing, cors, logging middleware
+**Solves:**
+- Custom FastAPI middleware
+- Request/response interceptors
+
+### settings
+**Keywords:** settings, pydantic settings, env, configuration
+**Solves:**
+- FastAPI configuration management
+- Environment variables
+
+### health-checks
+**Keywords:** health check, readiness, liveness, health endpoint
+**Solves:**
+- Kubernetes health checks
+- Service health monitoring

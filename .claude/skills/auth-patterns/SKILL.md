@@ -1,8 +1,23 @@
 ---
 name: auth-patterns
 description: Authentication and authorization patterns. Use when implementing login flows, JWT tokens, session management, password security, OAuth 2.1, Passkeys/WebAuthn, or role-based access control.
+context: fork
+agent: security-auditor
 version: 2.0.0
 tags: [security, authentication, oauth, passkeys, 2026]
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Write
+  - Edit
+  - Bash
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/redact-secrets.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
 ---
 
 # Authentication Patterns
@@ -120,3 +135,47 @@ return "Invalid credentials"
 - `owasp-top-10` - Security fundamentals
 - `input-validation` - Data validation
 - `api-design-framework` - API security
+
+## Capability Details
+
+### password-hashing
+**Keywords:** password, hashing, bcrypt, argon2, hash
+**Solves:**
+- Securely hash passwords with modern algorithms
+- Configure appropriate cost factors
+- Migrate legacy password hashes
+
+### jwt-tokens
+**Keywords:** JWT, token, access token, claims, jsonwebtoken
+**Solves:**
+- Generate and validate JWT access tokens
+- Implement proper token expiration
+- Handle token refresh securely
+
+### oauth2-pkce
+**Keywords:** OAuth, PKCE, OAuth 2.1, authorization code, code verifier
+**Solves:**
+- Implement OAuth 2.1 with PKCE flow
+- Secure authorization for SPAs and mobile apps
+- Handle OAuth provider integration
+
+### passkeys-webauthn
+**Keywords:** passkey, WebAuthn, FIDO2, passwordless, biometric
+**Solves:**
+- Implement passwordless authentication
+- Configure WebAuthn registration and login
+- Support cross-device passkeys
+
+### session-management
+**Keywords:** session, cookie, session storage, logout, invalidate
+**Solves:**
+- Manage user sessions securely
+- Implement session invalidation on logout
+- Handle concurrent sessions
+
+### role-based-access
+**Keywords:** RBAC, role, permission, authorization, access control
+**Solves:**
+- Implement role-based access control
+- Define permission hierarchies
+- Check authorization in routes

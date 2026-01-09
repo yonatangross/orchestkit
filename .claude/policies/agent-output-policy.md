@@ -38,9 +38,9 @@
 │  │ • Requires: Explicit user request OR extracted from implementation│   │
 │  └──────────────────────────────────────────────────────────────────┘   │
 │                                                                          │
-│  TIER 4: DECISIONS (shared-context.json)                                │
+│  TIER 4: DECISIONS (session/state.json (Context Protocol 2.0))                                │
 │  ┌──────────────────────────────────────────────────────────────────┐   │
-│  │ • Location: .claude/context/shared-context.json                   │   │
+│  │ • Location: .claude/context/session/state.json (Context Protocol 2.0)                   │   │
 │  │ • Max size: 2000 lines total                                      │   │
 │  │ • Lifespan: Permanent                                             │   │
 │  │ • Use for: Architecture decisions, "Why did we choose X?"         │   │
@@ -59,7 +59,7 @@
 | Location | When | Max Size | Content Type |
 |----------|------|----------|--------------|
 | `.claude/context/patterns/` | Extracting reusable patterns | 1000 lines | Code templates, integration patterns |
-| `.claude/context/shared-context.json` | Recording decisions | 2000 lines | Architectural decisions with rationale |
+| `.claude/context/session/state.json (Context Protocol 2.0)` | Recording decisions | 2000 lines | Architectural decisions with rationale |
 | `docs/issues/{num}/` | AFTER PR merge | 200 lines | Final architecture summary |
 
 ### FORBIDDEN File Outputs
@@ -103,7 +103,7 @@ Output rules:
 If you need to persist information:
 - Session state → Memory MCP (mcp__memory__create_entities)
 - Reusable patterns → Request user approval first
-- Decisions → Update shared-context.json agent_decisions section
+- Decisions → Update session/state.json (Context Protocol 2.0) agent_decisions section
 ```
 
 ---
@@ -116,10 +116,10 @@ If you need to persist information:
 #!/bin/bash
 # .git/hooks/pre-commit
 
-# Check shared-context.json size
-CONTEXT_LINES=$(wc -l < .claude/context/shared-context.json 2>/dev/null || echo 0)
+# Check session/state.json (Context Protocol 2.0) size
+CONTEXT_LINES=$(wc -l < .claude/context/session/state.json (Context Protocol 2.0) 2>/dev/null || echo 0)
 if [ "$CONTEXT_LINES" -gt 2000 ]; then
-  echo "❌ shared-context.json exceeds 2000 lines ($CONTEXT_LINES)"
+  echo "❌ session/state.json (Context Protocol 2.0) exceeds 2000 lines ($CONTEXT_LINES)"
   echo "Archive old decisions to docs/decisions/"
   exit 1
 fi
@@ -129,7 +129,7 @@ FORBIDDEN_FILES=$(git diff --cached --name-only | grep -E "\.claude/context/(arc
 if [ -n "$FORBIDDEN_FILES" ]; then
   echo "❌ Forbidden files detected:"
   echo "$FORBIDDEN_FILES"
-  echo "Use patterns/ for reusable code, shared-context.json for decisions"
+  echo "Use patterns/ for reusable code, session/state.json (Context Protocol 2.0) for decisions"
   exit 1
 fi
 ```
@@ -154,7 +154,7 @@ done
 When cleaning up existing files:
 
 - [ ] Move valuable patterns to `.claude/context/patterns/`
-- [ ] Extract decisions to `shared-context.json`
+- [ ] Extract decisions to `session/state.json (Context Protocol 2.0)`
 - [ ] Delete ad-hoc analysis files
 - [ ] Verify pattern files under 1000 lines
 - [ ] Update agent prompts with output policy
@@ -180,7 +180,7 @@ When cleaning up existing files:
 │           • Requires user approval                         │
 │                                                            │
 │  Is this an architectural decision?                        │
-│  └─ YES → shared-context.json (Tier 4) ✅                 │
+│  └─ YES → session/state.json (Context Protocol 2.0) (Tier 4) ✅                 │
 │                                                            │
 │  Everything else → DO NOT CREATE FILES ❌                  │
 │                                                            │

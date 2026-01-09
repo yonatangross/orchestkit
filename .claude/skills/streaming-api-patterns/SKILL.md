@@ -1,9 +1,16 @@
 ---
 name: streaming-api-patterns
 description: Use when building real-time features with SSE, WebSockets, or streaming APIs. Covers backpressure handling, reconnection strategies, and LLM token streaming patterns.
+agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub
 tags: [streaming, sse, websocket, real-time, api, 2025]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
 ---
 
 # Streaming API Patterns
@@ -398,3 +405,68 @@ async def test_stream_cleanup_on_error():
 - [WebSocket Protocol](https://datatracker.ietf.org/doc/html/rfc6455)
 - [Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
 - [Vercel AI SDK](https://sdk.vercel.ai/docs)
+
+## Capability Details
+
+### sse
+**Keywords:** sse, server-sent events, event stream, one-way stream
+**Solves:**
+- How do I implement SSE?
+- Stream data from server to client
+- Real-time notifications
+
+### sse-protocol
+**Keywords:** sse protocol, event format, event types, sse headers
+**Solves:**
+- SSE protocol fundamentals
+- Event format and types
+- SSE HTTP headers
+
+### sse-buffering
+**Keywords:** event buffering, sse race condition, late subscriber, buffer events
+**Solves:**
+- How do I buffer SSE events?
+- Fix SSE race condition
+- Handle late-joining subscribers
+
+### sse-reconnection
+**Keywords:** sse reconnection, reconnect, last-event-id, retry, exponential backoff
+**Solves:**
+- How do I handle SSE reconnection?
+- Implement automatic reconnection
+- Resume from Last-Event-ID
+
+### skillforge-sse
+**Keywords:** skillforge sse, event broadcaster, workflow events, analysis progress
+**Solves:**
+- How does SkillForge SSE work?
+- EventBroadcaster implementation
+- Real-world SSE example
+
+### websocket
+**Keywords:** websocket, ws, bidirectional, real-time chat, socket
+**Solves:**
+- How do I set up WebSocket server?
+- Build a chat application
+- Bidirectional real-time communication
+
+### llm-streaming
+**Keywords:** llm stream, chatgpt stream, ai stream, token stream, openai stream
+**Solves:**
+- How do I stream LLM responses?
+- ChatGPT-style streaming interface
+- Stream tokens as they arrive
+
+### backpressure
+**Keywords:** backpressure, flow control, buffer, readable stream, transform stream
+**Solves:**
+- Handle slow consumers
+- Implement backpressure
+- Stream large files efficiently
+
+### reconnection
+**Keywords:** reconnect, connection lost, retry, resilient, heartbeat
+**Solves:**
+- Handle connection drops
+- Implement automatic reconnection
+- Keep-alive and heartbeat

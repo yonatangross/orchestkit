@@ -1,47 +1,34 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "auth-patterns",
   "version": "2.0.0",
   "description": "Authentication and authorization patterns with OAuth 2.1, Passkeys/WebAuthn, and modern security standards",
   "capabilities": [
-    "password-hashing",
     "jwt-tokens",
-    "refresh-token-rotation",
-    "session-management",
-    "oauth2.1-pkce",
+    "oauth2-pkce",
     "passkeys-webauthn",
-    "mfa-totp",
-    "role-based-access-control",
-    "rate-limiting",
-    "dpop-token-binding"
+    "password-hashing",
+    "role-based-access",
+    "session-management"
   ],
-  "triggers": [
-    "authentication",
-    "authorization",
-    "login",
-    "JWT",
-    "token",
-    "OAuth",
-    "PKCE",
-    "passkey",
-    "WebAuthn",
-    "MFA",
-    "TOTP",
-    "RBAC",
-    "session",
-    "password"
-  ],
-  "antiPatterns": [
-    "storing passwords in plaintext",
-    "no rate limiting on login",
-    "long-lived access tokens",
-    "revealing if email exists",
-    "implicit OAuth grant",
-    "hardcoded secrets"
-  ],
-  "dependencies": [
+  "triggers": {
+    "high_confidence": [
+      "authentication",
+      "OAuth.*PKCE",
+      "passkey",
+      "WebAuthn"
+    ],
+    "medium_confidence": [
+      "login",
+      "JWT",
+      "token",
+      "session",
+      "password"
+    ]
+  },
+  "integrates_with": [
     "owasp-top-10",
     "input-validation",
     "api-design-framework"
-  ],
-  "tags": ["security", "authentication", "oauth", "passkeys", "2026"]
+  ]
 }

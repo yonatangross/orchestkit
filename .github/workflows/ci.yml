@@ -1,0 +1,231 @@
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+  schedule:
+    # Nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+
+jobs:
+  # ============================================================================
+  # STAGE 1: Fast Checks (< 30s)
+  # ============================================================================
+  lint:
+    name: Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq shellcheck
+
+      - name: Run lint checks
+        run: bash tests/ci/lint.sh
+
+  # ============================================================================
+  # STAGE 2: Unit Tests (< 2m)
+  # ============================================================================
+  unit-tests:
+    name: Unit Tests
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install jq
+
+      - name: Run unit tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/unit/test-json-validity.sh
+          bash tests/unit/test-hook-executability.sh
+          bash tests/unit/test-context-schemas.sh
+          bash tests/unit/test-hooks-unit.sh
+
+  # ============================================================================
+  # STAGE 3: Security Tests (< 3m)
+  # ZERO TOLERANCE: Any failure blocks merge
+  # ============================================================================
+  security-tests:
+    name: Security Tests
+    needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: true  # Stop immediately on security failure
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install jq
+
+      - name: Run security tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/security/test-command-injection.sh
+          bash tests/security/test-jq-injection.sh
+          bash tests/security/test-path-traversal.sh
+          bash tests/security/test-unicode-attacks.sh
+          bash tests/security/test-symlink-attacks.sh
+
+  # ============================================================================
+  # STAGE 4: Integration Tests (< 5m)
+  # ============================================================================
+  integration-tests:
+    name: Integration Tests
+    needs: [unit-tests, security-tests]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: brew install jq
+
+      - name: Run integration tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/integration/test-hook-chains.sh
+          bash tests/integration/test-context-system.sh
+          bash tests/e2e/test-progressive-loading.sh
+          bash tests/e2e/test-agent-lifecycle.sh
+          bash tests/e2e/test-coordination-e2e.sh
+
+  # ============================================================================
+  # STAGE 5: Performance Tests (< 2m)
+  # ============================================================================
+  performance-tests:
+    name: Performance Tests
+    needs: [unit-tests, security-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run performance tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/performance/test-token-budget.sh
+  # ============================================================================
+  # STAGE 6: Compliance Tests (NEW)
+  # ============================================================================
+  compliance-tests:
+    name: CC 2.1.2 Compliance
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run CC 2.1.2 compliance tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/compliance/test-cc-212-compliance.sh
+
+  # ============================================================================
+  # STAGE 7: Coverage Report (NEW)
+  # ============================================================================
+  coverage-report:
+    name: Hook Coverage
+    needs: [unit-tests, security-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Generate hook coverage report
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          export COVERAGE_THRESHOLD=20
+          bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: hook-coverage-report
+          path: coverage-report.txt
+          retention-days: 30
+
+
+  # ============================================================================
+  # Final Summary
+  # ============================================================================
+  summary:
+    name: CI Summary
+    needs: [lint, unit-tests, security-tests, integration-tests, performance-tests, compliance-tests, coverage-report]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs
+        run: |
+          echo "=== CI Summary ==="
+          echo "Lint: ${{ needs.lint.result }}"
+          echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Security Tests: ${{ needs.security-tests.result }}"
+          echo "Integration Tests: ${{ needs.integration-tests.result }}"
+          echo "Performance Tests: ${{ needs.performance-tests.result }}"
+          echo "Compliance Tests: ${{ needs.compliance-tests.result }}"
+          echo "Coverage Report: ${{ needs.coverage-report.result }}"
+
+          if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.security-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.performance-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.compliance-tests.result }}" != "success" ]]; then
+            echo "::error::One or more CI stages failed"
+            exit 1
+          fi
+
+          echo "::notice::All CI stages passed!"

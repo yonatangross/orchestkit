@@ -1,0 +1,68 @@
+{
+  "pretool_read": {
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/test/project/src/main.py"
+    },
+    "session_id": "test-session-001"
+  },
+  "pretool_write": {
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "/Users/test/project/src/new-file.ts",
+      "content": "export const foo = 'bar';"
+    },
+    "session_id": "test-session-001"
+  },
+  "pretool_bash_safe": {
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git status"
+    },
+    "session_id": "test-session-001"
+  },
+  "pretool_bash_dangerous": {
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git push origin main --force"
+    },
+    "session_id": "test-session-001"
+  },
+  "pretool_task": {
+    "tool_name": "Task",
+    "tool_input": {
+      "description": "Test subagent",
+      "prompt": "Do something",
+      "subagent_type": "Explore"
+    },
+    "session_id": "test-session-001"
+  },
+  "posttool_success": {
+    "tool_name": "Read",
+    "tool_output": "file contents here",
+    "tool_error": null,
+    "exit_code": 0,
+    "session_id": "test-session-001"
+  },
+  "posttool_error": {
+    "tool_name": "Bash",
+    "tool_output": "",
+    "tool_error": "Command failed: npm test",
+    "exit_code": 1,
+    "session_id": "test-session-001"
+  },
+  "permission_read": {
+    "tool_name": "Read",
+    "tool_input": {
+      "file_path": "/Users/test/project/README.md"
+    },
+    "session_id": "test-session-001"
+  },
+  "permission_write_project": {
+    "tool_name": "Write",
+    "tool_input": {
+      "file_path": "/Users/test/project/src/component.tsx"
+    },
+    "session_id": "test-session-001"
+  }
+}

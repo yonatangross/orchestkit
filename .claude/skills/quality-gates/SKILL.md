@@ -1,9 +1,17 @@
 ---
 name: quality-gates
 description: Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides complexity scoring (1-5), blocking thresholds, and escalation workflows to prevent wasted work.
+context: fork
+agent: code-quality-reviewer
 version: 1.1.0
 author: SkillForge AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Quality Gates Skill
@@ -938,3 +946,76 @@ class QuizQuestion(BaseModel):
 ---
 
 **Remember:** Quality gates prevent wasted work. Better to ask questions upfront than to build the wrong solution. When in doubt, BLOCK and escalate.
+
+## Capability Details
+
+### complexity-scoring
+**Keywords:** complexity, score, difficulty, estimate, sizing, 1-5 scale
+**Solves:**
+- How complex is this task?
+- Score task complexity on 1-5 scale
+- Assess implementation difficulty
+
+### blocking-thresholds
+**Keywords:** blocking, threshold, gate, stop, escalate, cannot proceed
+**Solves:**
+- When should I block progress?
+- >3 critical questions = BLOCK
+- Missing dependencies = BLOCK
+- 3+ failed attempts = BLOCK
+
+### critical-questions
+**Keywords:** critical questions, unanswered, unknowns, clarify
+**Solves:**
+- What are critical questions?
+- Count unanswered critical questions
+- Block if >3 questions unanswered
+
+### stuck-detection
+**Keywords:** stuck, failed attempts, retry, 3 attempts, escalate
+**Solves:**
+- How do I detect when stuck?
+- After 3 failed attempts, escalate
+- Track attempt history
+
+### gate-validation
+**Keywords:** validate, gate check, pass, fail, gate status
+**Solves:**
+- How do I validate quality gates?
+- Run pre-task gate validation
+- Determine PASS/WARNING/BLOCKED status
+
+### pre-task-gate-check
+**Keywords:** pre-task, before starting, can proceed
+**Solves:**
+- How do I check gates before starting?
+- Assess complexity before proceeding
+- Identify blockers early
+
+### complexity-breakdown
+**Keywords:** breakdown, decompose, subtasks, split task
+**Solves:**
+- How do I break down complex tasks?
+- Split Level 4-5 into Level 1-3 subtasks
+- Create task breakdown with dependencies
+
+### requirements-completeness
+**Keywords:** requirements, incomplete, acceptance criteria
+**Solves:**
+- Are requirements complete enough?
+- Check functional requirements
+- Block if requirements too vague
+
+### escalation-protocol
+**Keywords:** escalate, ask user, need help, human guidance
+**Solves:**
+- When and how to escalate?
+- Escalate after 3 failed attempts
+- Create escalation message
+
+### llm-as-judge
+**Keywords:** llm as judge, g-eval, aspect scoring, quality validation
+**Solves:**
+- How do I use LLM-as-judge?
+- Evaluate relevance, depth, coherence
+- Set quality thresholds (0.0-1.0)

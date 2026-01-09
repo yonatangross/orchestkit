@@ -4,12 +4,12 @@
 
 # Colors for output (only if stderr is a terminal)
 if [[ -t 2 ]]; then
-  RED='\033[0;31m'
-  GREEN='\033[0;32m'
-  YELLOW='\033[1;33m'
-  BLUE='\033[0;34m'
-  CYAN='\033[0;36m'
-  NC='\033[0m' # No Color
+  RED=$'\033[0;31m'
+  GREEN=$'\033[0;32m'
+  YELLOW=$'\033[1;33m'
+  BLUE=$'\033[0;34m'
+  CYAN=$'\033[0;36m'
+  NC=$'\033[0m' # No Color
 else
   RED='' GREEN='' YELLOW='' BLUE='' CYAN='' NC=''
 fi
@@ -18,16 +18,33 @@ fi
 HOOK_LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
 mkdir -p "$HOOK_LOG_DIR" 2>/dev/null
 
-# Read and cache hook input from stdin (with timeout to prevent hanging)
-_HOOK_INPUT=""
-read_hook_input() {
-  if [[ -z "$_HOOK_INPUT" ]]; then
-    # Use read with timeout - works on macOS and Linux
-    # -t 1 = 1 second timeout, -d '' = read until null (entire input)
+# Hook input caching
+# IMPORTANT: Scripts must call init_hook_input BEFORE any $(get_field ...) calls
+# because command substitution runs in subshells that can't share variables.
+_HOOK_INPUT="${_HOOK_INPUT:-}"
+
+# Initialize hook input - MUST be called at top of script before any get_field calls
+# Usage: init_hook_input (reads from stdin)
+# Usage: init_hook_input "$existing_data" (uses provided data)
+init_hook_input() {
+  if [[ -n "${1:-}" ]]; then
+    # Use provided data
+    _HOOK_INPUT="$1"
+  elif [[ -z "$_HOOK_INPUT" ]]; then
+    # Read from stdin with timeout
     if ! IFS= read -r -t 2 -d '' _HOOK_INPUT 2>/dev/null; then
       # Timeout or EOF reached - that's fine, use what we got
       :
     fi
+  fi
+  export _HOOK_INPUT
+}
+
+# Legacy function - now just returns cached input
+read_hook_input() {
+  # If not initialized, try to initialize (backwards compatibility)
+  if [[ -z "$_HOOK_INPUT" ]]; then
+    init_hook_input
   fi
   echo "$_HOOK_INPUT"
 }
@@ -44,6 +61,17 @@ read_hook_input() {
 #
 get_field() {
   local filter="$1"
+  # SEC-006 fix: Validate filter contains only safe jq characters
+  # Allow: . a-z A-Z 0-9 _ (covers 99% of legitimate jq filters)
+  # Note: This is intentionally restrictive. If brackets are needed,
+  # use a different approach or extend the pattern carefully.
+  case "$filter" in
+    *[!.a-zA-Z0-9_]*)
+      log_hook "ERROR: Invalid jq filter pattern rejected: $filter"
+      echo ""
+      return 1
+      ;;
+  esac
   local input=$(read_hook_input)
   echo "$input" | jq -r "$filter // \"\"" 2>/dev/null
 }
@@ -66,46 +94,49 @@ rotate_log_file() {
   local max_size_kb="${2:-200}"  # Default 200KB
   local max_size_bytes=$((max_size_kb * 1024))
   local rotation_check_interval=100  # Check every 100 writes
-  
+
   # Use file-based counter for thread-safe lazy checking
   local count_file="${logfile}.count"
-  local count=$(($(cat "$count_file" 2>/dev/null || echo 0) + 1))
+  # Read only last line and strip non-digits to handle corrupted files
+  local prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9')
+  prev_count=${prev_count:-0}
+  local count=$((prev_count + 1))
   echo "$count" > "$count_file" 2>/dev/null || true
-  
+
   # Only check file size every N writes (lazy rotation)
   if [[ $((count % rotation_check_interval)) -ne 0 ]]; then
     return 0
   fi
-  
+
   # Use file locking to prevent concurrent rotations
   local lockfile="${logfile}.lock"
   if ! [[ -f "$logfile" ]]; then
     return 0
   fi
-  
+
   # Try to acquire lock (non-blocking)
   (
     if command -v flock >/dev/null 2>&1; then
       # Use flock for atomic locking (preferred)
       flock -n 9 || return 0  # Non-blocking, skip if locked
-      
+
       # Check file size inside the lock
       local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
       if [[ $size -gt $max_size_bytes ]]; then
         # Rotate: compress old log and truncate
         local rotated="${logfile}.old.$(date +%Y%m%d-%H%M%S)"
         mv "$logfile" "$rotated" 2>/dev/null || return 0
-        
+
         # Compress if gzip available
         if command -v gzip >/dev/null 2>&1; then
           gzip "$rotated" 2>/dev/null || true
           rotated="${rotated}.gz"
         fi
-        
+
         # Optimized cleanup: use find -delete instead of xargs rm
         local logdir=$(dirname "$logfile")
         local logbase=$(basename "$logfile")
-        
+
         # Keep only last 5 rotated logs (more efficient: delete oldest first)
         find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
           sort -r | tail -n +6 | while IFS= read -r oldfile; do
@@ -118,10 +149,10 @@ rotate_log_file() {
         # Lock exists, skip rotation
         return 0
       fi
-      
+
       # Create lock file
       echo "$$" > "$lockfile" 2>/dev/null || return 0
-      
+
       # Check file size
       local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
       if [[ $size -gt $max_size_bytes ]]; then
@@ -130,12 +161,12 @@ rotate_log_file() {
           rm -f "$lockfile" 2>/dev/null
           return 0
         }
-        
+
         if command -v gzip >/dev/null 2>&1; then
           gzip "$rotated" 2>/dev/null || true
           rotated="${rotated}.gz"
         fi
-        
+
         local logdir=$(dirname "$logfile")
         local logbase=$(basename "$logfile")
         find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
@@ -143,7 +174,7 @@ rotate_log_file() {
             rm -f "$oldfile" 2>/dev/null || true
           done
       fi
-      
+
       # Remove lock file
       rm -f "$lockfile" 2>/dev/null || true
     fi
@@ -158,10 +189,10 @@ rotate_log_file() {
 log_hook() {
   local msg="$1"
   local logfile="$HOOK_LOG_DIR/hooks.log"
-  
+
   # Rotate if needed (200KB limit)
   rotate_log_file "$logfile" 200
-  
+
   local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
   local hook_name=$(basename "${BASH_SOURCE[1]:-$0}" .sh)
   echo "[$timestamp] [$hook_name] $msg" >> "$logfile"
@@ -192,14 +223,14 @@ error() {
 block_with_error() {
   local title="$1"
   local message="$2"
-  cat >&2 << EOF
+  cat >&2 << ERREOF
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  🚫 BLOCKED: $title
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 $message
 
-EOF
+ERREOF
   exit 2
 }
 
@@ -208,14 +239,14 @@ EOF
 warn_with_box() {
   local title="$1"
   local message="$2"
-  cat >&2 << EOF
+  cat >&2 << WARNEOF
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║  ⚠️  WARNING: $title
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 $message
 
-EOF
+WARNEOF
 }
 
 # Check if command matches a pattern
@@ -242,6 +273,7 @@ METRICS_FILE="/tmp/claude-session-metrics.json"
 
 # Update metrics counter
 # Usage: increment_metric "tool_name"
+# SEC-007 fix: Use jq --arg for safe variable interpolation
 increment_metric() {
   local tool="$1"
   local session_id=$(get_session_id)
@@ -250,10 +282,11 @@ increment_metric() {
     echo '{"tools":{},"sessions":{}}' > "$METRICS_FILE"
   fi
 
-  # Increment tool counter
-  local current=$(jq -r ".tools.\"$tool\" // 0" "$METRICS_FILE")
-  jq ".tools.\"$tool\" = $((current + 1))" "$METRICS_FILE" > "${METRICS_FILE}.tmp" && mv "${METRICS_FILE}.tmp" "$METRICS_FILE"
+  # SEC-007 fix: Use jq --arg for safe variable interpolation (prevents injection)
+  local current=$(jq -r --arg t "$tool" '.tools[$t] // 0' "$METRICS_FILE")
+  jq --arg t "$tool" --argjson v "$((current + 1))" '.tools[$t] = $v' "$METRICS_FILE" > "${METRICS_FILE}.tmp" && mv "${METRICS_FILE}.tmp" "$METRICS_FILE"
 }
 
+
 # Export functions for subshells
-export -f read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error
+export -f init_hook_input read_hook_input get_field get_tool_name get_session_id log_hook rotate_log_file info success warn error

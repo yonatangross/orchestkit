@@ -1,6 +1,8 @@
 ---
 name: langgraph-routing
 description: LangGraph conditional routing patterns. Use when implementing dynamic routing based on state, creating branching workflows, or building retry loops with conditional edges.
+context: fork
+agent: workflow-architect
 ---
 
 # LangGraph Conditional Routing
@@ -141,3 +143,26 @@ def dynamic_router(state: WorkflowState) -> str:
 - `langgraph-state` - State design for routing
 - `langgraph-supervisor` - Supervisor routing pattern
 - `agent-loops` - ReAct loop patterns
+
+## Capability Details
+
+### conditional-routing
+**Keywords:** conditional, branch, decision, if-else
+**Solves:**
+- Route based on conditions
+- Implement branching logic
+- Create decision nodes
+
+### semantic-routing
+**Keywords:** semantic, embedding, similarity, intent
+**Solves:**
+- Route by semantic similarity
+- Intent-based routing
+- Embedding-based decisions
+
+### router-template
+**Keywords:** template, router, semantic, implementation
+**Solves:**
+- Semantic router template
+- Production router code
+- Copy-paste implementation

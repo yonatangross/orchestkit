@@ -37,4 +37,6 @@ if [[ -d "$LOG_DIR" ]]; then
   ls -t "$LOG_DIR"/audit.log.old* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Session cleaned up","continue":true}'
 exit 0

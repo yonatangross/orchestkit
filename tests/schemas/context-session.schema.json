@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "context://session/v1",
+  "title": "Context Session Schema",
+  "description": "Schema for session/state.json context file",
+  "type": "object",
+  "required": ["$schema", "_meta", "session_id", "current_task"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "const": "context://session/v1"
+    },
+    "_meta": {
+      "type": "object",
+      "required": ["position", "token_budget", "auto_load"],
+      "properties": {
+        "position": {
+          "type": "string",
+          "enum": ["START", "MIDDLE", "END"]
+        },
+        "token_budget": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2000
+        },
+        "auto_load": {
+          "type": "string",
+          "enum": ["always", "conditional", "never"]
+        },
+        "compress_trigger": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "compress_target": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preserve_fields": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "session_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "started": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "current_task": {
+      "type": "object",
+      "properties": {
+        "description": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "in_progress", "completed", "blocked"]
+        },
+        "started": { "type": "string" }
+      }
+    },
+    "files_touched": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "decisions_this_session": {
+      "type": "array"
+    },
+    "blockers": {
+      "type": "array"
+    },
+    "next_steps": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "scratchpad": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

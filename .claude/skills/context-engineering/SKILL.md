@@ -369,3 +369,26 @@ if task_matches("database"):
 **Version:** 1.0.0 (January 2026)
 **Based on:** Context Engineering research, BrowseComp evaluation findings
 **Key Metric:** 80% of agent performance variance explained by token usage
+
+## Capability Details
+
+### attention-mechanics
+**Keywords:** context window, attention, lost in the middle, token budget
+**Solves:**
+- Understand lost-in-the-middle effect (high attention at START/END)
+- Position critical info strategically
+- Optimize tokens-per-task not tokens-per-request
+
+### context-layers
+**Keywords:** context anatomy, context structure, five layers
+**Solves:**
+- Understand 5 context layers (system, tools, docs, history, outputs)
+- Implement just-in-time document loading
+- Manage tool output truncation
+
+### budget-allocation
+**Keywords:** token budget, context budget, allocation
+**Solves:**
+- Allocate tokens across context layers
+- Implement compression triggers at 70% utilization
+- Target 50% utilization after compression

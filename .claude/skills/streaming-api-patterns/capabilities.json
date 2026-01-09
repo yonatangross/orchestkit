@@ -3,114 +3,32 @@
   "name": "streaming-api-patterns",
   "version": "1.0.0",
   "description": "SSE, WebSockets, ReadableStream for real-time data, LLM streaming, and backpressure handling",
-
-  "capabilities": {
-    "sse": {
-      "keywords": ["sse", "server-sent events", "event stream", "one-way stream"],
-      "solves": [
-        "How do I implement SSE?",
-        "Stream data from server to client",
-        "Real-time notifications"
-      ],
-      "reference_file": "references/sse-deep-dive.md",
-      "token_cost": 800
-    },
-    "sse-protocol": {
-      "keywords": ["sse protocol", "event format", "event types", "sse headers"],
-      "solves": [
-        "SSE protocol fundamentals",
-        "Event format and types",
-        "SSE HTTP headers"
-      ],
-      "reference_file": "references/sse-deep-dive.md#sse-protocol-fundamentals",
-      "token_cost": 200
-    },
-    "sse-buffering": {
-      "keywords": ["event buffering", "sse race condition", "late subscriber", "buffer events"],
-      "solves": [
-        "How do I buffer SSE events?",
-        "Fix SSE race condition",
-        "Handle late-joining subscribers"
-      ],
-      "reference_file": "references/sse-deep-dive.md#event-buffering-race-condition-solution",
-      "token_cost": 250
-    },
-    "sse-reconnection": {
-      "keywords": ["sse reconnection", "reconnect", "last-event-id", "retry", "exponential backoff"],
-      "solves": [
-        "How do I handle SSE reconnection?",
-        "Implement automatic reconnection",
-        "Resume from Last-Event-ID"
-      ],
-      "reference_file": "references/sse-deep-dive.md#reconnection-strategies",
-      "token_cost": 200
-    },
-    "skillforge-sse": {
-      "keywords": ["skillforge sse", "event broadcaster", "workflow events", "analysis progress"],
-      "solves": [
-        "How does SkillForge SSE work?",
-        "EventBroadcaster implementation",
-        "Real-world SSE example"
-      ],
-      "example_file": "examples/skillforge-sse-implementation.md",
-      "token_cost": 900
-    },
-    "websocket": {
-      "keywords": ["websocket", "ws", "bidirectional", "real-time chat", "socket"],
-      "solves": [
-        "How do I set up WebSocket server?",
-        "Build a chat application",
-        "Bidirectional real-time communication"
-      ],
-      "reference_file": "SKILL.md#websockets",
-      "token_cost": 200
-    },
-    "llm-streaming": {
-      "keywords": ["llm stream", "chatgpt stream", "ai stream", "token stream", "openai stream"],
-      "solves": [
-        "How do I stream LLM responses?",
-        "ChatGPT-style streaming interface",
-        "Stream tokens as they arrive"
-      ],
-      "reference_file": "SKILL.md#llm-streaming",
-      "token_cost": 180
-    },
-    "backpressure": {
-      "keywords": ["backpressure", "flow control", "buffer", "readable stream", "transform stream"],
-      "solves": [
-        "Handle slow consumers",
-        "Implement backpressure",
-        "Stream large files efficiently"
-      ],
-      "reference_file": "SKILL.md#backpressure-handling",
-      "token_cost": 150
-    },
-    "reconnection": {
-      "keywords": ["reconnect", "connection lost", "retry", "resilient", "heartbeat"],
-      "solves": [
-        "Handle connection drops",
-        "Implement automatic reconnection",
-        "Keep-alive and heartbeat"
-      ],
-      "reference_file": "SKILL.md#reconnection-strategies",
-      "token_cost": 120
-    }
-  },
-
+  "capabilities": [
+    "backpressure",
+    "llm-streaming",
+    "reconnection",
+    "skillforge-sse",
+    "sse",
+    "sse-buffering",
+    "sse-protocol",
+    "sse-reconnection",
+    "websocket"
+  ],
   "triggers": {
-    "high_confidence": ["stream.*response", "real-time.*data", "sse.*implement", "websocket.*setup"],
-    "medium_confidence": ["live.*update", "push.*notification", "chat.*server"]
+    "high_confidence": [
+      "stream.*response",
+      "real-time.*data",
+      "sse.*implement",
+      "websocket.*setup"
+    ],
+    "medium_confidence": [
+      "live.*update",
+      "push.*notification",
+      "chat.*server"
+    ]
   },
-
-  "integrates_with": ["ai-native-development", "api-design-framework"],
-
-  "progressive_loading": {
-    "tier_1_discovery": { "file": "capabilities.json", "tokens": 100 },
-    "tier_2_overview": { "file": "SKILL.md", "tokens": 500, "sections": ["overview", "core-technologies"] },
-    "tier_3_specific": { "files": "SKILL.md#*", "tokens": "120-200 each" }
-  },
-
-  "mcp_tools": {
-    "documentation": { "tool": "context7", "library_ids": ["/vercel/ai", "/langchain-ai/langgraph"] }
-  }
+  "integrates_with": [
+    "llm-streaming",
+    "api-design-framework"
+  ]
 }

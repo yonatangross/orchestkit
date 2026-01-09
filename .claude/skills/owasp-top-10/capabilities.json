@@ -3,44 +3,25 @@
   "name": "owasp-top-10",
   "version": "1.0.0",
   "description": "OWASP Top 10 security vulnerabilities and mitigations",
-
-  "capabilities": {
-    "injection": {
-      "keywords": ["sql injection", "command injection", "injection", "parameterized"],
-      "solves": [
-        "Prevent SQL injection",
-        "Fix command injection",
-        "Use parameterized queries"
-      ],
-      "reference_file": "SKILL.md#3-injection",
-      "token_cost": 100
-    },
-    "access-control": {
-      "keywords": ["access control", "authorization", "idor", "privilege"],
-      "solves": [
-        "Fix broken access control",
-        "Prevent IDOR vulnerabilities",
-        "Implement authorization checks"
-      ],
-      "reference_file": "SKILL.md#1-broken-access-control",
-      "token_cost": 100
-    },
-    "owasp-fixes": {
-      "keywords": ["fix", "mitigation", "example", "vulnerability"],
-      "solves": [
-        "OWASP vulnerability fixes",
-        "Mitigation examples",
-        "Code fix patterns"
-      ],
-      "example_file": "examples/owasp-top10-fixes.md",
-      "token_cost": 300
-    }
-  },
-
+  "capabilities": [
+    "access-control",
+    "injection",
+    "owasp-fixes"
+  ],
   "triggers": {
-    "high_confidence": ["owasp", "sql.*injection", "broken.*access"],
-    "medium_confidence": ["security.*vulnerability", "xss.*prevent"]
+    "high_confidence": [
+      "owasp",
+      "sql.*injection",
+      "broken.*access"
+    ],
+    "medium_confidence": [
+      "security.*vulnerability",
+      "xss.*prevent"
+    ]
   },
-
-  "integrates_with": ["auth-patterns", "input-validation", "security-scanning"]
+  "integrates_with": [
+    "auth-patterns",
+    "input-validation",
+    "security-scanning"
+  ]
 }

@@ -1,6 +1,14 @@
 ---
 name: test-data-management
 description: Test data management with fixtures and factories. Use when creating test data strategies, implementing data factories, managing fixtures, or seeding test databases.
+context: fork
+agent: test-generator
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Test Data Management
@@ -190,3 +198,40 @@ async def clean_database(db_session):
 - `unit-testing` - Test patterns
 - `integration-testing` - Database tests
 - `database-schema-designer` - Schema design
+
+## Capability Details
+
+### fixture-generation
+**Keywords:** fixture, test fixture, pytest fixture, conftest
+**Solves:**
+- Create reusable test fixtures
+- Implement fixture composition
+- Handle fixture cleanup
+
+### factory-patterns
+**Keywords:** factory, FactoryBoy, test factory, model factory
+**Solves:**
+- Generate test data with factories
+- Implement factory inheritance
+- Create related object graphs
+
+### data-seeding
+**Keywords:** seed, seed data, database seed, initial data
+**Solves:**
+- Seed databases for testing
+- Create consistent test environments
+- Implement idempotent seeding
+
+### cleanup-strategies
+**Keywords:** cleanup, teardown, reset, isolation
+**Solves:**
+- Clean up test data after runs
+- Implement transaction rollback
+- Ensure test isolation
+
+### data-anonymization
+**Keywords:** anonymize, faker, synthetic data, mock data
+**Solves:**
+- Generate realistic fake data
+- Anonymize production data for tests
+- Create synthetic datasets

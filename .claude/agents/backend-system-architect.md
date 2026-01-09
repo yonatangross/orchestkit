@@ -2,9 +2,14 @@
 name: backend-system-architect
 color: yellow
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns
-model: sonnet
 max_tokens: 16000
 tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
+skills: api-design-framework, database-schema-designer, owasp-top-10, streaming-api-patterns, observability-monitoring, performance-optimization, devops-deployment, golden-dataset-management, edge-computing-patterns, github-cli, resilience-patterns, langgraph-supervisor, mcp-server-building
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -205,7 +210,7 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ```
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.backend-system-architect` with API decisions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers
@@ -213,4 +218,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, error-handling-rfc9457, caching-strategies, background-jobs, api-versioning, fastapi-advanced
+- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching-strategies, background-jobs, api-versioning, fastapi-advanced, mcp-server-building

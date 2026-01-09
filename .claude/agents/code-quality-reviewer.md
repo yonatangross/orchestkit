@@ -2,9 +2,14 @@
 name: code-quality-reviewer
 color: green
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns
-model: sonnet
-max_tokens: 8000
+max_tokens: 12000
 tools: Read, Bash, Grep, Glob
+skills: code-review-playbook, owasp-top-10, unit-testing, integration-testing, evidence-verification, webapp-testing, resilience-patterns
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -322,7 +327,7 @@ Action: Check for React 19 patterns, Zod validation, exhaustive types
 Report: Missing useOptimistic for form submission, raw fetch without Zod validation
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.code-quality-reviewer` with decisions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

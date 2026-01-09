@@ -1,6 +1,14 @@
 ---
 name: performance-testing
 description: Performance and load testing with k6 and Locust. Use when validating system performance under load, stress testing, identifying bottlenecks, or establishing performance baselines.
+context: fork
+agent: metrics-architect
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Performance Testing
@@ -177,3 +185,40 @@ export default function () {
 - `observability-monitoring` - Metrics collection
 - `performance-optimization` - Fixing bottlenecks
 - `e2e-testing` - Functional validation
+
+## Capability Details
+
+### load-testing
+**Keywords:** load test, concurrent users, k6, Locust, ramp up
+**Solves:**
+- Simulate concurrent user load
+- Configure ramp-up patterns
+- Test system under expected load
+
+### stress-testing
+**Keywords:** stress test, breaking point, peak load, overload
+**Solves:**
+- Find system breaking points
+- Test beyond expected capacity
+- Identify failure modes under stress
+
+### latency-measurement
+**Keywords:** latency, response time, p95, p99, percentile
+**Solves:**
+- Measure response time percentiles
+- Track latency distribution
+- Set latency SLO thresholds
+
+### throughput-testing
+**Keywords:** throughput, requests per second, RPS, TPS
+**Solves:**
+- Measure maximum throughput
+- Test transactions per second
+- Verify capacity requirements
+
+### bottleneck-identification
+**Keywords:** bottleneck, profiling, hot path, performance issue
+**Solves:**
+- Identify performance bottlenecks
+- Profile critical code paths
+- Diagnose slow operations

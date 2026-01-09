@@ -1,10 +1,18 @@
 ---
 name: DevOps & Deployment
 description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. Covers GitHub Actions, Docker, Helm, and Terraform patterns.
+context: fork
+agent: data-pipeline-engineer
 version: 1.0.0
 category: Infrastructure & Deployment
 agents: [backend-system-architect, code-quality-reviewer, studio-coach]
 keywords: [CI/CD, deployment, Docker, Kubernetes, pipeline, infrastructure, GitOps, container, automation, release]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
 ---
 
 # DevOps & Deployment Skill
@@ -843,3 +851,61 @@ Use Opus 4.5 extended thinking for:
 | `terraform-aws.tf` | VPC, EKS, RDS infrastructure |
 | `argocd-application.yaml` | GitOps application |
 | `external-secrets.yaml` | Secrets Manager integration |
+
+## Capability Details
+
+### ci-cd
+**Keywords:** ci, cd, pipeline, github actions, gitlab ci, jenkins, workflow
+**Solves:**
+- How do I set up CI/CD?
+- GitHub Actions workflow patterns
+- Pipeline caching strategies
+- Matrix testing setup
+
+### docker
+**Keywords:** docker, dockerfile, container, image, build, compose, multi-stage
+**Solves:**
+- How do I containerize my app?
+- Multi-stage Dockerfile best practices
+- Docker Compose development setup
+- Container security hardening
+
+### kubernetes
+**Keywords:** kubernetes, k8s, deployment, service, ingress, helm, statefulset, pdb
+**Solves:**
+- How do I deploy to Kubernetes?
+- K8s health probes and resource limits
+- Helm chart structure
+- StatefulSet for databases
+
+### infrastructure-as-code
+**Keywords:** terraform, pulumi, iac, infrastructure, provision, gitops, argocd
+**Solves:**
+- How do I set up infrastructure as code?
+- Terraform AWS patterns (VPC, EKS, RDS)
+- GitOps with ArgoCD
+- Secrets management patterns
+
+### deployment-strategies
+**Keywords:** blue green, canary, rolling, deployment strategy, rollback, zero downtime
+**Solves:**
+- Which deployment strategy should I use?
+- Zero-downtime database migrations
+- Blue-green deployment setup
+- Canary release with traffic splitting
+
+### observability
+**Keywords:** prometheus, grafana, metrics, alerting, monitoring, health check
+**Solves:**
+- How do I add monitoring to my app?
+- Prometheus metrics exposition
+- Grafana dashboard queries
+- Alerting rules for SLOs
+
+### skillforge-examples
+**Keywords:** skillforge, docker compose, github actions, alembic, real world
+**Solves:**
+- How does SkillForge set up CI/CD?
+- Real-world Docker Compose examples
+- Database migration patterns
+- Full CI/CD workflow implementation

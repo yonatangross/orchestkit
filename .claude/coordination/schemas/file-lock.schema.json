@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination://file-lock/v1",
+  "title": "File Lock Schema",
+  "description": "Individual file lock metadata for optimistic locking",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "file_path": {
+      "type": "string",
+      "description": "Relative path from repo root"
+    },
+    "lock_type": {
+      "type": "string",
+      "enum": ["write", "read-many"],
+      "description": "write = exclusive, read-many = shared for reads only"
+    },
+    "locked_by": {
+      "type": "object",
+      "properties": {
+        "instance_id": {
+          "type": "string",
+          "pattern": "^claude-[0-9]{8}-[0-9]{6}-[a-f0-9]{8}$"
+        },
+        "agent_role": {
+          "type": "string"
+        },
+        "pid": {
+          "type": "integer"
+        }
+      },
+      "required": ["instance_id"]
+    },
+    "locked_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Auto-expires after 5 minutes, must be renewed"
+    },
+    "file_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$",
+      "description": "SHA-1 hash of file content when locked (for optimistic locking)"
+    },
+    "intent": {
+      "type": "string",
+      "maxLength": 100,
+      "description": "What change is being made (for conflict resolution)"
+    }
+  },
+  "required": ["schema_version", "file_path", "lock_type", "locked_by", "locked_at", "expires_at", "file_hash"],
+  "additionalProperties": false
+}

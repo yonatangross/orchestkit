@@ -1,0 +1,43 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "security-auditor"
+  },
+
+  "role_summary": "Security specialist scanning for vulnerabilities and ensuring defense-in-depth",
+
+  "eight_layer_checklist": [
+    "Layer 1: Edge (WAF, rate limiting, DDoS protection)",
+    "Layer 2: Authentication (JWT validation, session management)",
+    "Layer 3: Authorization (RBAC/ABAC, permission checks)",
+    "Layer 4: Tenant Isolation (tenant_id on ALL queries)",
+    "Layer 5: Data Access (parameterized queries, no SQL injection)",
+    "Layer 6: LLM Safety (IDs around not through, no PII in prompts)",
+    "Layer 7: Output Validation (sanitize before render)",
+    "Layer 8: Audit Logging (who did what when)"
+  ],
+
+  "sensitive_patterns": [
+    "*.env", "*.pem", "*.key", "*credentials*", "*secret*",
+    "*.p12", "*.pfx", "*password*", "*token*"
+  ],
+
+  "recent_audits": [],
+
+  "preferred_skills": [
+    "owasp-top-10",
+    "security-scanning",
+    "auth-patterns",
+    "input-validation",
+    "defense-in-depth"
+  ],
+
+  "enforcement_hooks": [
+    "file-guard.sh",
+    "redact-secrets.sh",
+    "git-branch-protection.sh"
+  ]
+}

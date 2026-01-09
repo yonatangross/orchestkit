@@ -3,95 +3,16 @@
   "name": "brainstorming",
   "version": "1.0.0",
   "description": "Structured Socratic questioning, alternative exploration, and incremental validation for idea refinement",
-
-  "capabilities": {
-    "phase-1-understanding": {
-      "keywords": ["brainstorm", "idea", "explore", "requirements", "constraints", "purpose"],
-      "solves": [
-        "Help me think through this idea",
-        "What questions should I answer first?",
-        "Clarify requirements and constraints",
-        "Understand the purpose of this feature"
-      ],
-      "reference_file": "SKILL.md#phase-1-understanding",
-      "token_cost": 180
-    },
-    "socratic-questions": {
-      "keywords": ["why", "what problem", "how measure", "who uses", "constraints"],
-      "solves": [
-        "What questions should I ask about this feature?",
-        "Help me discover requirements through questioning",
-        "Uncover implicit constraints"
-      ],
-      "reference_file": "SKILL.md#socratic-questioning-templates",
-      "token_cost": 150
-    },
-    "phase-2-exploration": {
-      "keywords": ["alternatives", "options", "different approach", "trade-offs", "compare"],
-      "solves": [
-        "What are alternative approaches?",
-        "Compare implementation options",
-        "Explore trade-offs between solutions",
-        "Which approach is best?"
-      ],
-      "reference_file": "SKILL.md#phase-2-exploration",
-      "token_cost": 200
-    },
-    "trade-off-analysis": {
-      "keywords": ["pros", "cons", "trade-off", "complexity", "cost", "performance"],
-      "solves": [
-        "What are the trade-offs of each approach?",
-        "Compare complexity vs features",
-        "Speed vs maintainability decisions"
-      ],
-      "reference_file": "SKILL.md#trade-off-exploration-questions",
-      "token_cost": 140
-    },
-    "phase-3-design": {
-      "keywords": ["design", "architecture", "components", "data flow", "implementation"],
-      "solves": [
-        "Present the complete design incrementally",
-        "How should I structure this solution?",
-        "What are the key components?",
-        "Design validation and feedback"
-      ],
-      "reference_file": "SKILL.md#phase-3-design-presentation",
-      "token_cost": 250
-    },
-    "mvp-scoping": {
-      "keywords": ["mvp", "minimum", "yagni", "simplify", "essential", "start small"],
-      "solves": [
-        "What's the minimum viable version?",
-        "How do I avoid over-engineering?",
-        "Apply YAGNI ruthlessly",
-        "Start simple, scale later"
-      ],
-      "reference_file": "SKILL.md#key-principles",
-      "token_cost": 130
-    },
-    "real-world-examples": {
-      "keywords": ["example", "skillforge", "caching", "dashboard", "authentication"],
-      "solves": [
-        "Show me real examples of brainstorming sessions",
-        "How was SkillForge designed?",
-        "Caching strategy examples",
-        "Real-time dashboard design decisions"
-      ],
-      "example_file": "references/example-session-dashboard.md",
-      "token_cost": 300
-    },
-    "design-documentation": {
-      "keywords": ["document", "adr", "decision record", "design doc"],
-      "solves": [
-        "How do I document this design?",
-        "Create an architecture decision record",
-        "Document trade-offs and rationale"
-      ],
-      "template_file": "templates/design-doc-template.md",
-      "token_cost": 180
-    }
-  },
-
+  "capabilities": [
+    "design-documentation",
+    "mvp-scoping",
+    "phase-1-understanding",
+    "phase-2-exploration",
+    "phase-3-design",
+    "real-world-examples",
+    "socratic-questions",
+    "trade-off-analysis"
+  ],
   "triggers": {
     "high_confidence": [
       "brainstorm",
@@ -109,47 +30,11 @@
       "mvp"
     ]
   },
-
   "integrates_with": [
     "architecture-decision-record",
     "api-design-framework",
     "design-system-starter",
-    "testing-strategy-builder",
-    "security-checklist"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if brainstorming is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 380,
-      "use_when": "Skill confirmed relevant - need three-phase process overview"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "250-350 each",
-      "use_when": "Need complete brainstorming session examples"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.md",
-      "tokens": "150-200 each",
-      "use_when": "Ready to document design decisions"
-    }
-  },
-
-  "mcp_tools": {
-    "reasoning": {
-      "tool": "sequential-thinking",
-      "use_when": "Complex multi-step reasoning for trade-off analysis"
-    },
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": [],
-      "use_when": "Need current framework patterns for approach comparison"
-    }
-  }
+    "test-standards-enforcer",
+    "owasp-top-10"
+  ]
 }

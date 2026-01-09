@@ -1,0 +1,364 @@
+{
+  "$schema": "context://patterns/registry/v1",
+  "_meta": {
+    "description": "Centralized pattern registry enforced across all Claude Code instances",
+    "version": "1.0.0",
+    "last_updated": "2026-01-08",
+    "enforcement": "All instances must follow these patterns"
+  },
+  
+  "naming_conventions": {
+    "typescript": {
+      "components": {
+        "pattern": "PascalCase",
+        "example": "UserProfile.tsx",
+        "rule": "React components use PascalCase"
+      },
+      "hooks": {
+        "pattern": "use + PascalCase",
+        "example": "useUserData.ts",
+        "rule": "Custom hooks start with 'use'"
+      },
+      "utilities": {
+        "pattern": "camelCase",
+        "example": "formatDate.ts",
+        "rule": "Utility functions use camelCase"
+      },
+      "types": {
+        "pattern": "PascalCase",
+        "example": "UserProfile",
+        "rule": "Types and interfaces use PascalCase"
+      },
+      "constants": {
+        "pattern": "UPPER_SNAKE_CASE",
+        "example": "API_BASE_URL",
+        "rule": "Constants use UPPER_SNAKE_CASE"
+      }
+    },
+    "python": {
+      "modules": {
+        "pattern": "snake_case",
+        "example": "user_service.py",
+        "rule": "Module files use snake_case"
+      },
+      "classes": {
+        "pattern": "PascalCase",
+        "example": "UserService",
+        "rule": "Classes use PascalCase"
+      },
+      "functions": {
+        "pattern": "snake_case",
+        "example": "get_user_by_id",
+        "rule": "Functions use snake_case"
+      },
+      "constants": {
+        "pattern": "UPPER_SNAKE_CASE",
+        "example": "MAX_RETRY_COUNT",
+        "rule": "Constants use UPPER_SNAKE_CASE"
+      },
+      "private": {
+        "pattern": "_prefix",
+        "example": "_internal_helper",
+        "rule": "Private functions/vars start with underscore"
+      }
+    }
+  },
+  
+  "architecture_patterns": {
+    "backend": {
+      "layer_separation": {
+        "description": "Clean architecture with strict layer boundaries",
+        "layers": [
+          {
+            "name": "routers",
+            "responsibility": "HTTP request/response handling",
+            "can_import": ["services", "schemas"],
+            "cannot_import": ["repositories", "models"],
+            "max_complexity": "Simple - just parse request and call service"
+          },
+          {
+            "name": "services",
+            "responsibility": "Business logic",
+            "can_import": ["repositories", "schemas", "models"],
+            "cannot_import": ["routers"],
+            "max_complexity": "Complex business rules allowed"
+          },
+          {
+            "name": "repositories",
+            "responsibility": "Data access",
+            "can_import": ["models", "schemas"],
+            "cannot_import": ["services", "routers"],
+            "max_complexity": "CRUD + complex queries"
+          },
+          {
+            "name": "schemas",
+            "responsibility": "Pydantic models for validation",
+            "can_import": [],
+            "cannot_import": ["routers", "services", "repositories"],
+            "max_complexity": "Data structures + validators only"
+          },
+          {
+            "name": "models",
+            "responsibility": "SQLAlchemy ORM models",
+            "can_import": [],
+            "cannot_import": ["routers", "services", "repositories", "schemas"],
+            "max_complexity": "DB schema definition only"
+          }
+        ],
+        "enforcement": "backend-layer-validator.sh"
+      },
+      "async_database": {
+        "description": "All database operations must be async",
+        "required_imports": [
+          "from sqlalchemy.ext.asyncio import AsyncSession",
+          "from sqlalchemy.ext.asyncio import create_async_engine"
+        ],
+        "prohibited_patterns": [
+          "from sqlalchemy.orm import Session",
+          "sessionmaker()",
+          "db.query()"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh"
+      },
+      "pydantic_v2": {
+        "description": "Use Pydantic v2 validators",
+        "required_patterns": [
+          "@field_validator",
+          "@model_validator(mode='after')",
+          "Field(..., description='...')"
+        ],
+        "prohibited_patterns": [
+          "@validator",
+          "@root_validator",
+          "validator=...",
+          "Config class"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh"
+      },
+      "tenant_isolation": {
+        "description": "All queries must filter by tenant_id",
+        "required_patterns": [
+          ".where(Model.tenant_id == tenant_id)",
+          ".filter(Model.tenant_id == tenant_id)"
+        ],
+        "enforcement": "Manual review + warnings"
+      }
+    },
+    "frontend": {
+      "react_19": {
+        "description": "Use React 19 APIs",
+        "required_patterns": [
+          "function Component(props: Props): React.ReactNode",
+          "useOptimistic for mutations",
+          "useFormStatus in forms",
+          "use() for suspense-aware data fetching",
+          "startTransition for non-urgent updates"
+        ],
+        "prohibited_patterns": [
+          "React.FC<Props>",
+          "useState with loading flags (use Suspense)",
+          "useEffect for data fetching (use use())"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh"
+      },
+      "zod_validation": {
+        "description": "All API responses validated with Zod",
+        "required_patterns": [
+          "const ResponseSchema = z.object({...})",
+          "const data = ResponseSchema.parse(await response.json())"
+        ],
+        "prohibited_patterns": [
+          "await response.json() as Type",
+          "const data: Type = await response.json()"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - BLOCKING"
+      },
+      "exhaustive_types": {
+        "description": "Switch statements must be exhaustive",
+        "required_patterns": [
+          "default: return assertNever(value)"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - WARNING"
+      },
+      "skeleton_loading": {
+        "description": "Use skeleton loaders, not spinners",
+        "required_patterns": [
+          "<ComponentSkeleton />",
+          "className=\"animate-pulse\""
+        ],
+        "prohibited_patterns": [
+          "<Spinner />",
+          "isLoading && <LoadingSpinner />"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - WARNING"
+      },
+      "date_utilities": {
+        "description": "Centralized date formatting",
+        "required_imports": [
+          "import { formatDate, formatDateShort } from '@/lib/dates'"
+        ],
+        "prohibited_patterns": [
+          "new Date().toLocaleDateString()",
+          "dayjs().format()"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - BLOCKING"
+      },
+      "feature_structure": {
+        "description": "Feature-based folder structure",
+        "structure": "src/features/{feature}/components/",
+        "prohibited_structure": "src/components/{type}/",
+        "enforcement": "structure-location-validator.sh"
+      }
+    },
+    "testing": {
+      "aaa_pattern": {
+        "description": "Arrange-Act-Assert structure",
+        "required_comments": [
+          "// Arrange",
+          "// Act",
+          "// Assert"
+        ],
+        "enforcement": "test-pattern-validator.sh - WARNING"
+      },
+      "msw_mocking": {
+        "description": "MSW for API mocking (not jest.mock)",
+        "required_imports": [
+          "import { http, HttpResponse } from 'msw'",
+          "import { setupServer } from 'msw/node'"
+        ],
+        "prohibited_patterns": [
+          "jest.mock('fetch')",
+          "global.fetch = jest.fn()"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - BLOCKING"
+      },
+      "pytest_fixtures": {
+        "description": "Pytest fixtures (not unittest)",
+        "required_patterns": [
+          "@pytest.fixture",
+          "def fixture_name():"
+        ],
+        "prohibited_patterns": [
+          "def setUp(self):",
+          "def tearDown(self):",
+          "class TestCase(unittest.TestCase)"
+        ],
+        "enforcement": "pattern-consistency-enforcer.sh - BLOCKING"
+      },
+      "coverage_threshold": {
+        "description": "Minimum test coverage",
+        "thresholds": {
+          "backend": 70,
+          "frontend": 70,
+          "critical_paths": 90
+        },
+        "enforcement": "coverage-threshold-gate.sh - BLOCKING"
+      }
+    }
+  },
+  
+  "anti_patterns": {
+    "duplication": {
+      "copy_paste": {
+        "description": "Copy-pasted code blocks",
+        "detection": "3+ consecutive identical lines",
+        "action": "Refactor to function/utility",
+        "enforcement": "duplicate-code-detector.sh"
+      },
+      "utility_functions": {
+        "description": "Duplicated utility logic",
+        "examples": [
+          "Date formatting (use @/lib/dates)",
+          "API calls (use centralized client)",
+          "Validation (use Zod schemas)"
+        ],
+        "enforcement": "duplicate-code-detector.sh - BLOCKING for utils"
+      }
+    },
+    "inconsistency": {
+      "mixed_patterns": {
+        "description": "Using different patterns for same task",
+        "examples": [
+          "Some files use React.FC, others don't",
+          "Some files validate with Zod, others don't",
+          "Some async, some sync"
+        ],
+        "action": "Standardize across codebase",
+        "enforcement": "pattern-consistency-enforcer.sh"
+      }
+    },
+    "coupling": {
+      "layer_violations": {
+        "description": "Wrong layer dependencies",
+        "examples": [
+          "Router importing repository",
+          "Service importing router",
+          "Schema importing service"
+        ],
+        "action": "Fix import to follow clean architecture",
+        "enforcement": "backend-layer-validator.sh - BLOCKING"
+      }
+    }
+  },
+  
+  "worktree_coordination": {
+    "concurrent_modifications": {
+      "description": "Same file modified in multiple branches",
+      "detection": "Check git status in all worktrees",
+      "action": "Coordinate changes or split work",
+      "enforcement": "merge-conflict-predictor.sh - WARNING"
+    },
+    "api_contracts": {
+      "description": "Shared interfaces/exports modified",
+      "detection": "Check usage across worktrees",
+      "action": "Coordinate API changes",
+      "enforcement": "merge-conflict-predictor.sh - WARNING"
+    },
+    "pattern_drift": {
+      "description": "Different patterns in different branches",
+      "detection": "Compare pattern usage across worktrees",
+      "action": "Align on single pattern before merge",
+      "enforcement": "pattern-consistency-enforcer.sh"
+    }
+  },
+  
+  "merge_readiness_checklist": {
+    "required_checks": [
+      {
+        "name": "No duplicate code",
+        "hook": "duplicate-code-detector.sh",
+        "blocking": true
+      },
+      {
+        "name": "Pattern consistency",
+        "hook": "pattern-consistency-enforcer.sh",
+        "blocking": true
+      },
+      {
+        "name": "Test coverage",
+        "hook": "cross-instance-test-validator.sh",
+        "blocking": true
+      },
+      {
+        "name": "No merge conflicts predicted",
+        "hook": "merge-conflict-predictor.sh",
+        "blocking": false
+      },
+      {
+        "name": "All tests pass",
+        "command": "npm test && pytest",
+        "blocking": true
+      },
+      {
+        "name": "No linting errors",
+        "command": "npm run lint && ruff check",
+        "blocking": true
+      },
+      {
+        "name": "Type checking passes",
+        "command": "tsc --noEmit && mypy .",
+        "blocking": true
+      }
+    ]
+  }
+}

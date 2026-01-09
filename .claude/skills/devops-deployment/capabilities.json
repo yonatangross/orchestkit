@@ -3,87 +3,15 @@
   "name": "devops-deployment",
   "version": "1.0.0",
   "description": "CI/CD pipelines, containerization, Kubernetes, and infrastructure as code patterns",
-
-  "capabilities": {
-    "ci-cd": {
-      "keywords": ["ci", "cd", "pipeline", "github actions", "gitlab ci", "jenkins", "workflow"],
-      "solves": [
-        "How do I set up CI/CD?",
-        "GitHub Actions workflow patterns",
-        "Pipeline caching strategies",
-        "Matrix testing setup"
-      ],
-      "reference_file": "SKILL.md#cicd-pipeline-patterns",
-      "token_cost": 200
-    },
-    "docker": {
-      "keywords": ["docker", "dockerfile", "container", "image", "build", "compose", "multi-stage"],
-      "solves": [
-        "How do I containerize my app?",
-        "Multi-stage Dockerfile best practices",
-        "Docker Compose development setup",
-        "Container security hardening"
-      ],
-      "reference_file": "SKILL.md#container-optimization-deep-dive",
-      "token_cost": 180
-    },
-    "kubernetes": {
-      "keywords": ["kubernetes", "k8s", "deployment", "service", "ingress", "helm", "statefulset", "pdb"],
-      "solves": [
-        "How do I deploy to Kubernetes?",
-        "K8s health probes and resource limits",
-        "Helm chart structure",
-        "StatefulSet for databases"
-      ],
-      "reference_file": "SKILL.md#kubernetes-production-patterns",
-      "token_cost": 250
-    },
-    "infrastructure-as-code": {
-      "keywords": ["terraform", "pulumi", "iac", "infrastructure", "provision", "gitops", "argocd"],
-      "solves": [
-        "How do I set up infrastructure as code?",
-        "Terraform AWS patterns (VPC, EKS, RDS)",
-        "GitOps with ArgoCD",
-        "Secrets management patterns"
-      ],
-      "reference_file": "SKILL.md#infrastructure-as-code",
-      "token_cost": 200
-    },
-    "deployment-strategies": {
-      "keywords": ["blue green", "canary", "rolling", "deployment strategy", "rollback", "zero downtime"],
-      "solves": [
-        "Which deployment strategy should I use?",
-        "Zero-downtime database migrations",
-        "Blue-green deployment setup",
-        "Canary release with traffic splitting"
-      ],
-      "reference_file": "SKILL.md#deployment-strategies",
-      "token_cost": 160
-    },
-    "observability": {
-      "keywords": ["prometheus", "grafana", "metrics", "alerting", "monitoring", "health check"],
-      "solves": [
-        "How do I add monitoring to my app?",
-        "Prometheus metrics exposition",
-        "Grafana dashboard queries",
-        "Alerting rules for SLOs"
-      ],
-      "reference_file": "SKILL.md#observability--monitoring",
-      "token_cost": 180
-    },
-    "skillforge-examples": {
-      "keywords": ["skillforge", "docker compose", "github actions", "alembic", "real world"],
-      "solves": [
-        "How does SkillForge set up CI/CD?",
-        "Real-world Docker Compose examples",
-        "Database migration patterns",
-        "Full CI/CD workflow implementation"
-      ],
-      "reference_file": "SKILL.md#real-world-skillforge-examples",
-      "token_cost": 250
-    }
-  },
-
+  "capabilities": [
+    "ci-cd",
+    "deployment-strategies",
+    "docker",
+    "infrastructure-as-code",
+    "kubernetes",
+    "observability",
+    "skillforge-examples"
+  ],
   "triggers": {
     "high_confidence": [
       "deploy.*to",
@@ -101,41 +29,9 @@
       "monitoring"
     ]
   },
-
   "integrates_with": [
     "observability-monitoring",
-    "security-checklist",
+    "security-scanning",
     "golden-dataset-management"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 500,
-      "use_when": "Skill confirmed relevant - need DevOps patterns and architecture"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#*",
-      "tokens": "160-250 each",
-      "use_when": "Need specific implementation guidance (Docker, K8s, CI/CD)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.{yml,yaml,tf}",
-      "tokens": "200-400 each",
-      "use_when": "Ready to generate Dockerfiles, K8s manifests, or Terraform configs"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/kubernetes/kubernetes", "/docker/docker", "/hashicorp/terraform"],
-      "use_when": "Need current framework-specific patterns"
-    }
-  }
+  ]
 }

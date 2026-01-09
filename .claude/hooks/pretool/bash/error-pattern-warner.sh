@@ -6,6 +6,10 @@ set -euo pipefail
 # Checks commands against learned error patterns and warns user
 # Cost: $0 - Just regex matching against local rules file
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../../_lib/common.sh"
 
 RULES_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/rules/error_rules.json"
@@ -72,4 +76,6 @@ while IFS= read -r rule; do
   fi
 done < <(jq -c '.rules[]?' "$RULES_FILE" 2>/dev/null || echo "")
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Error patterns checked","continue":true}'
 exit 0

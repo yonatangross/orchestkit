@@ -3,6 +3,10 @@ set -euo pipefail
 # Todo Enforcer - Reminds about todo tracking for complex tasks
 # Hook: UserPromptSubmit
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 PROMPT=$(get_field '.prompt')
@@ -40,4 +44,6 @@ if [[ "$IS_COMPLEX" == "true" ]]; then
   log_hook "Complex task detected - todo tracking recommended"
 fi
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"Todo enforced","continue":true}'
 exit 0

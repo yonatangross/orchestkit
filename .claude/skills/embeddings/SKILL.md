@@ -1,6 +1,8 @@
 ---
 name: embeddings
 description: Text embeddings for semantic search and similarity. Use when converting text to vectors, choosing embedding models, implementing chunking strategies, or building document similarity features.
+context: fork
+agent: data-pipeline-engineer
 ---
 
 # Embeddings
@@ -97,8 +99,55 @@ similarity = cosine_similarity(vector1, vector2)
 - Using wrong similarity metric (cosine vs euclidean)
 - Re-embedding unchanged content (cache embeddings)
 
+## Advanced Patterns
+
+See `references/advanced-patterns.md` for:
+- **Late Chunking**: Embed full document, extract chunk vectors from contextualized tokens
+- **Batch API**: Production batching with rate limiting and retry
+- **Embedding Cache**: Redis-based caching to avoid re-embedding
+- **Matryoshka Embeddings**: Dimension reduction with text-embedding-3
+
 ## Related Skills
 
 - `rag-retrieval` - Using embeddings for RAG pipelines
-- `pgvector-search` - Storing embeddings in PostgreSQL
+- `hyde-retrieval` - Hypothetical document embeddings for vocabulary mismatch
+- `contextual-retrieval` - Anthropic's context-prepending technique
+- `reranking-patterns` - Cross-encoder reranking for precision
 - `ollama-local` - Local embeddings with nomic-embed-text
+
+## Capability Details
+
+### text-to-vector
+**Keywords:** embedding, text to vector, vectorize, embed text
+**Solves:**
+- Convert text to vector embeddings
+- Choose appropriate embedding models
+- Handle embedding API integration
+
+### semantic-search
+**Keywords:** semantic search, vector search, similarity search, find similar
+**Solves:**
+- Implement semantic search over documents
+- Configure similarity thresholds
+- Rank results by relevance
+
+### chunking-strategies
+**Keywords:** chunk, chunking, split, text splitting, overlap
+**Solves:**
+- Split documents into optimal chunks
+- Configure chunk size and overlap
+- Preserve semantic boundaries
+
+### batch-embedding
+**Keywords:** batch, bulk embed, parallel embedding, batch processing
+**Solves:**
+- Embed large document collections efficiently
+- Handle rate limits and retries
+- Optimize embedding costs
+
+### local-embeddings
+**Keywords:** local, ollama, self-hosted, on-premise, offline
+**Solves:**
+- Run embeddings locally with Ollama
+- Deploy self-hosted embedding models
+- Reduce API costs with local models

@@ -3,65 +3,26 @@
   "name": "architecture-decision-record",
   "version": "1.0.0",
   "description": "ADR templates, decision documentation, and tradeoff analysis following Nygard format",
-
-  "capabilities": {
-    "adr-creation": {
-      "keywords": ["adr", "architecture decision", "decision record", "document decision"],
-      "solves": [
-        "How do I document an architectural decision?",
-        "Create an ADR",
-        "Architecture decision template"
-      ],
-      "template_file": "templates/adr-template.md",
-      "token_cost": 150
-    },
-    "adr-best-practices": {
-      "keywords": ["when to write adr", "adr lifecycle", "adr workflow", "adr process", "adr review", "quantify impact"],
-      "solves": [
-        "When should I write an ADR?",
-        "How do I manage ADR lifecycle?",
-        "What's the ADR review process?",
-        "How to quantify decision impact?",
-        "ADR anti-patterns to avoid",
-        "Link related ADRs"
-      ],
-      "reference_file": "references/adr-best-practices.md",
-      "token_cost": 400
-    },
-    "tradeoff-analysis": {
-      "keywords": ["tradeoff", "pros cons", "alternatives", "comparison", "evaluate options"],
-      "solves": [
-        "How do I analyze tradeoffs?",
-        "Compare architectural options",
-        "Document alternatives considered"
-      ],
-      "reference_file": "SKILL.md#tradeoff-analysis",
-      "token_cost": 120
-    },
-    "consequences": {
-      "keywords": ["consequence", "impact", "risk", "benefit", "outcome"],
-      "solves": [
-        "What are the consequences of this decision?",
-        "Document decision impact",
-        "Risk and benefit analysis"
-      ],
-      "reference_file": "SKILL.md#consequences",
-      "token_cost": 100
-    }
-  },
-
+  "capabilities": [
+    "adr-best-practices",
+    "adr-creation",
+    "consequences",
+    "tradeoff-analysis"
+  ],
   "triggers": {
-    "high_confidence": ["create.*adr", "document.*decision", "architecture.*decision"],
-    "medium_confidence": ["why.*chose", "decision.*record", "tradeoff"]
+    "high_confidence": [
+      "create.*adr",
+      "document.*decision",
+      "architecture.*decision"
+    ],
+    "medium_confidence": [
+      "why.*chose",
+      "decision.*record",
+      "tradeoff"
+    ]
   },
-
-  "integrates_with": ["api-design-framework", "database-schema-designer"],
-
-  "progressive_loading": {
-    "tier_1_discovery": { "file": "capabilities.json", "tokens": 100 },
-    "tier_2_overview": { "file": "SKILL.md", "tokens": 300, "sections": ["overview", "nygard-format"] },
-    "tier_3_generate": { "files": "templates/*.md", "tokens": "150 each" }
-  },
-
-  "mcp_tools": []
+  "integrates_with": [
+    "api-design-framework",
+    "database-schema-designer"
+  ]
 }

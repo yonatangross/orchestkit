@@ -2,229 +2,28 @@
   "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "database-schema-designer",
   "version": "1.0.0",
-  "description": "Schema design for SQL/NoSQL databases, normalization, indexing, migrations, and optimization",
-
-  "capabilities": {
-    "design-philosophy": {
-      "keywords": ["database philosophy", "design principles", "oltp", "olap", "model domain"],
-      "solves": [
-        "What are database design principles?",
-        "OLTP vs OLAP trade-offs",
-        "Model the domain, not the UI",
-        "Data integrity vs performance"
-      ],
-      "reference_file": "SKILL.md#database-design-philosophy",
-      "token_cost": 130
-    },
-    "schema-design": {
-      "keywords": ["schema", "table", "model", "entity", "relationship", "erd", "one-to-many", "many-to-many"],
-      "solves": [
-        "How do I design the database schema?",
-        "Model relationships between entities",
-        "Create an ERD for this feature",
-        "Common schema patterns"
-      ],
-      "reference_file": "SKILL.md#common-schema-patterns",
-      "token_cost": 240
-    },
-    "normalization-1nf-2nf-3nf": {
-      "keywords": ["normalize", "1nf", "2nf", "3nf", "normal form", "atomic values", "redundancy"],
-      "solves": [
-        "Should I normalize this table?",
-        "What normal form should I use?",
-        "How to achieve 1NF/2NF/3NF",
-        "Reduce data redundancy"
-      ],
-      "reference_file": "SKILL.md#normalization",
-      "token_cost": 220
-    },
-    "denormalization": {
-      "keywords": ["denormalize", "performance", "read-heavy", "aggregate", "cache"],
-      "solves": [
-        "When to denormalize?",
-        "Trade-offs of denormalization",
-        "Pre-calculated aggregates",
-        "Optimize for read-heavy workloads"
-      ],
-      "reference_file": "SKILL.md#denormalization-when-to-break-rules",
-      "token_cost": 160
-    },
-    "data-types": {
-      "keywords": ["data type", "varchar", "int", "decimal", "timestamp", "text", "boolean"],
-      "solves": [
-        "Which data type should I use?",
-        "String vs text types",
-        "Decimal vs float for money",
-        "Date/time types and UTC"
-      ],
-      "reference_file": "SKILL.md#data-types",
-      "token_cost": 180
-    },
-    "indexing-strategies": {
-      "keywords": ["index", "b-tree", "hash", "composite", "query performance", "slow query", "explain"],
-      "solves": [
-        "Which columns should I index?",
-        "Query is slow, how to optimize?",
-        "Composite index column order",
-        "Index types (B-tree, hash, full-text)"
-      ],
-      "reference_file": "SKILL.md#indexing-strategies",
-      "token_cost": 200
-    },
-    "constraints": {
-      "keywords": ["constraint", "primary key", "foreign key", "unique", "check", "not null", "cascade"],
-      "solves": [
-        "What constraints should I add?",
-        "Primary key strategies (int vs UUID)",
-        "Foreign key ON DELETE options",
-        "Data validation with CHECK constraints"
-      ],
-      "reference_file": "SKILL.md#constraints",
-      "token_cost": 170
-    },
-    "migrations-safe": {
-      "keywords": ["migration", "alter table", "schema change", "backward compatible", "reversible"],
-      "solves": [
-        "How do I write a database migration?",
-        "Safe migration strategies",
-        "Make migrations reversible",
-        "Backward compatible changes"
-      ],
-      "reference_file": "SKILL.md#database-migrations",
-      "token_cost": 190
-    },
-    "zero-downtime-migrations": {
-      "keywords": ["zero downtime", "live migration", "rename column", "add column", "production"],
-      "solves": [
-        "How to migrate without downtime?",
-        "Add columns to live database",
-        "Rename columns safely",
-        "Backfill existing data"
-      ],
-      "reference_file": "SKILL.md#zero-downtime-migrations",
-      "token_cost": 180
-    },
-    "nosql-design": {
-      "keywords": ["nosql", "mongodb", "document", "collection", "embedding", "referencing", "schema flexibility"],
-      "solves": [
-        "When to use NoSQL?",
-        "MongoDB schema design",
-        "Embed vs reference documents",
-        "Document size limits and trade-offs"
-      ],
-      "reference_file": "SKILL.md#nosql-database-design",
-      "token_cost": 220
-    },
-    "performance-optimization": {
-      "keywords": ["performance", "optimize", "explain", "n+1", "join", "pagination", "caching"],
-      "solves": [
-        "How to optimize slow queries?",
-        "Fix N+1 query problems",
-        "Use EXPLAIN to analyze queries",
-        "Query optimization techniques"
-      ],
-      "reference_file": "SKILL.md#performance-optimization",
-      "token_cost": 180
-    },
-    "polymorphic-relationships": {
-      "keywords": ["polymorphic", "multi-table", "comments", "likes", "generic relationship"],
-      "solves": [
-        "How to model polymorphic relationships?",
-        "Comments on multiple entity types",
-        "Separate foreign keys vs generic approach",
-        "Trade-offs of polymorphic design"
-      ],
-      "reference_file": "SKILL.md#polymorphic-relationships-comments-on-postsphotos",
-      "token_cost": 150
-    },
-    "self-referencing": {
-      "keywords": ["self-reference", "hierarchy", "tree", "manager", "parent-child", "recursive"],
-      "solves": [
-        "How to model hierarchical data?",
-        "Employee-manager relationships",
-        "Category trees and nested sets",
-        "Recursive queries"
-      ],
-      "reference_file": "SKILL.md#self-referencing-employees--manager",
-      "token_cost": 120
-    },
-    "schema-checklist": {
-      "keywords": ["checklist", "best practices", "validation", "review", "complete"],
-      "solves": [
-        "What should I check before deploying?",
-        "Schema design checklist",
-        "Have I covered all requirements?",
-        "Schema review process"
-      ],
-      "reference_file": "SKILL.md#quick-start-checklist",
-      "token_cost": 140
-    },
-    "skillforge-examples": {
-      "keywords": ["skillforge", "example", "real-world", "production"],
-      "solves": [
-        "Show me real-world schema examples",
-        "How is SkillForge schema designed?",
-        "Production schema patterns"
-      ],
-      "example_file": "examples/skillforge-database-schema.md",
-      "token_cost": 280
-    }
-  },
-
+  "description": "SQL/NoSQL schema design, normalization, indexing, migrations, optimization",
+  "capabilities": [
+    "indexing",
+    "migrations",
+    "normalization",
+    "schema-design"
+  ],
   "triggers": {
     "high_confidence": [
       "database.*design",
       "schema.*design",
-      "create.*table",
-      "design.*schema",
-      "data.*model",
-      "table.*structure"
+      "create.*table"
     ],
     "medium_confidence": [
       "normalize",
-      "denormalize",
       "index",
       "migration",
-      "add.*column",
       "query.*slow"
     ]
   },
-
   "integrates_with": [
     "api-design-framework",
-    "type-safety-validation",
-    "performance-optimization",
-    "security-checklist"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if database design is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 719,
-      "use_when": "Skill confirmed relevant - need design philosophy and principles"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "140-220 each",
-      "use_when": "Need specific patterns (normalization, migrations)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.sql",
-      "tokens": "100-150 each",
-      "use_when": "Ready to generate schema or migration SQL"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/prisma/prisma", "/sqlalchemy/sqlalchemy", "/sequelize/sequelize"],
-      "use_when": "Need current ORM-specific patterns and best practices"
-    }
-  }
+    "performance-optimization"
+  ]
 }

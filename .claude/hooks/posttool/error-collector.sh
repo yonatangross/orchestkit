@@ -7,6 +7,10 @@ set -euo pipefail
 # Analysis: Run .claude/scripts/analyze_errors.py nightly (cron)
 # Cost: $0 - No LLM, just logging
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 # Get tool execution details
@@ -50,7 +54,7 @@ fi
 # Only log if there was an error
 if [[ "$IS_ERROR" == "true" ]]; then
   # Get tool input for context
-  TOOL_INPUT=$(get_field '.tool_input' | jq -c '.' 2>/dev/null || echo '{}')
+  TOOL_INPUT=$(get_field '.tool_input' | jq -c '.' 2>/dev/null || echo '{"continue":true}')
 
   # Create hash of input for deduplication
   INPUT_HASH=$(echo "$TOOL_INPUT" | md5sum | cut -d' ' -f1)
@@ -104,4 +108,6 @@ if [[ "$IS_ERROR" == "true" ]]; then
   log_hook "ERROR captured: $TOOL_NAME - $ERROR_TYPE - ${ERROR_MESSAGE:0:100}"
 fi
 
+# Output systemMessage for user visibility
+# No output - dispatcher handles all JSON output for posttool hooks
 exit 0

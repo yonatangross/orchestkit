@@ -3,76 +3,14 @@
   "name": "golden-dataset-management",
   "version": "1.0.0",
   "description": "Backup, restore, and validate golden datasets for AI/ML systems - ensuring test data integrity and preventing catastrophic data loss",
-
-  "capabilities": {
-    "backup": {
-      "keywords": ["golden dataset", "backup", "export", "json backup", "version control data"],
-      "solves": [
-        "How do I backup the golden dataset?",
-        "Export analyses to JSON for version control",
-        "Protect critical test datasets",
-        "Create portable database snapshots"
-      ],
-      "reference_file": "SKILL.md#backup-implementation",
-      "token_cost": 150
-    },
-    "restore": {
-      "keywords": ["restore dataset", "import analyses", "regenerate embeddings", "disaster recovery", "new environment"],
-      "solves": [
-        "How do I restore from backup?",
-        "Import golden dataset to new environment",
-        "Regenerate embeddings after restore",
-        "Disaster recovery procedures"
-      ],
-      "reference_file": "SKILL.md#restore-implementation",
-      "token_cost": 150
-    },
-    "validation": {
-      "keywords": ["verify dataset", "url contract", "data integrity", "validate backup", "placeholder urls"],
-      "solves": [
-        "How do I validate dataset integrity?",
-        "Check URL contracts (no placeholders)",
-        "Verify embeddings exist",
-        "Detect orphaned chunks"
-      ],
-      "reference_file": "SKILL.md#validation",
-      "token_cost": 120
-    },
-    "ci-cd-automation": {
-      "keywords": ["automated backup", "github actions", "ci cd backup", "scheduled backup"],
-      "solves": [
-        "How do I automate dataset backups?",
-        "Set up GitHub Actions for weekly backups",
-        "Commit backups to git automatically",
-        "CI/CD integration patterns"
-      ],
-      "reference_file": "SKILL.md#cicd-integration",
-      "token_cost": 100
-    },
-    "disaster-recovery": {
-      "keywords": ["disaster recovery", "accidental deletion", "migration failure", "rollback"],
-      "solves": [
-        "What if I accidentally delete the dataset?",
-        "Database migration gone wrong",
-        "Restore after data corruption",
-        "Rollback procedures"
-      ],
-      "reference_file": "SKILL.md#disaster-recovery",
-      "token_cost": 130
-    },
-    "skillforge-golden-dataset": {
-      "keywords": ["skillforge", "98 analyses", "415 chunks", "retrieval evaluation", "real world"],
-      "solves": [
-        "What is SkillForge's golden dataset?",
-        "How does SkillForge protect test data?",
-        "Real-world backup/restore examples",
-        "Production golden dataset stats"
-      ],
-      "reference_file": "SKILL.md#skillforges-golden-dataset",
-      "token_cost": 80
-    }
-  },
-
+  "capabilities": [
+    "backup",
+    "ci-cd-automation",
+    "disaster-recovery",
+    "restore",
+    "skillforge-golden-dataset",
+    "validation"
+  ],
   "triggers": {
     "high_confidence": [
       "backup.*golden.*dataset",
@@ -87,41 +25,9 @@
       "regenerate.*embeddings"
     ]
   },
-
   "integrates_with": [
     "pgvector-search",
-    "ai-native-development",
+    "llm-evaluation",
     "devops-deployment"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 400,
-      "use_when": "Skill confirmed relevant - need backup/restore patterns"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#*",
-      "tokens": "100-150 each",
-      "use_when": "Need specific implementation guidance (backup, restore, validation)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.py",
-      "tokens": "200-400 each",
-      "use_when": "Ready to generate backup/restore scripts"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/sqlalchemy/sqlalchemy", "/python/python"],
-      "use_when": "Need current database ORM patterns"
-    }
-  }
+  ]
 }

@@ -3,80 +3,14 @@
   "name": "webapp-testing",
   "version": "1.1.0",
   "description": "Playwright-based testing with visual regression, planner, generator, and healer agents for autonomous test creation and maintenance",
-
-  "capabilities": {
-    "playwright-setup": {
-      "keywords": ["playwright", "setup", "install", "configure", "mcp"],
-      "solves": [
-        "How do I set up Playwright testing?",
-        "Install Playwright MCP server",
-        "Configure test environment",
-        "Initialize Playwright agents with Claude"
-      ],
-      "reference_file": "references/playwright-setup.md",
-      "token_cost": 150
-    },
-    "test-planning": {
-      "keywords": ["test plan", "scenarios", "user flows", "test cases", "planner agent"],
-      "solves": [
-        "How do I create a test plan?",
-        "Use Planner agent to explore app",
-        "Identify test scenarios automatically",
-        "Plan user flow testing with seed.spec.ts"
-      ],
-      "reference_file": "references/planner-agent.md",
-      "token_cost": 180
-    },
-    "test-generation": {
-      "keywords": ["generate tests", "write tests", "playwright code", "selectors", "generator agent"],
-      "solves": [
-        "How do I generate Playwright tests?",
-        "Use Generator agent to write test code",
-        "Create semantic locators that validate live",
-        "Write tests with best practices"
-      ],
-      "reference_file": "references/generator-agent.md",
-      "token_cost": 200
-    },
-    "test-healing": {
-      "keywords": ["fix tests", "failing tests", "self-heal", "maintenance", "healer agent"],
-      "solves": [
-        "How do I fix failing tests automatically?",
-        "Use Healer agent to update broken selectors",
-        "Maintain test suite after UI changes",
-        "Self-healing test automation"
-      ],
-      "reference_file": "references/healer-agent.md",
-      "token_cost": 160
-    },
-    "agent-workflow": {
-      "keywords": ["planner generator healer", "test workflow", "autonomous testing", "playwright agents"],
-      "solves": [
-        "How do the three Playwright agents work together?",
-        "Complete testing workflow with agents",
-        "Planner → Generator → Healer pipeline",
-        "Autonomous test creation and maintenance"
-      ],
-      "reference_file": "SKILL.md#agent-workflow",
-      "token_cost": 120
-    },
-    "visual-regression": {
-      "keywords": ["visual regression", "screenshot", "toHaveScreenshot", "snapshot", "VRT", "baseline", "pixel diff", "visual testing"],
-      "solves": [
-        "How do I set up visual regression testing with Playwright?",
-        "Replace Percy with Playwright native screenshots",
-        "Configure toHaveScreenshot thresholds",
-        "Handle cross-platform screenshot differences",
-        "Mask dynamic content in screenshots",
-        "Set up visual regression in CI/CD",
-        "Update screenshot baselines",
-        "Debug failed visual comparisons"
-      ],
-      "reference_file": "references/visual-regression.md",
-      "token_cost": 450
-    }
-  },
-
+  "capabilities": [
+    "agent-workflow",
+    "playwright-setup",
+    "test-generation",
+    "test-healing",
+    "test-planning",
+    "visual-regression"
+  ],
   "triggers": {
     "high_confidence": [
       "playwright.*test",
@@ -97,45 +31,9 @@
       "baseline.*screenshot"
     ]
   },
-
   "integrates_with": [
-    "testing-strategy-builder",
+    "test-standards-enforcer",
     "code-review-playbook",
     "type-safety-validation"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if Playwright testing is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 300,
-      "use_when": "Skill confirmed relevant - need agent overview and workflow"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "150-200 each",
-      "use_when": "Need specific agent patterns (setup, planner, generator, healer)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.ts",
-      "tokens": "200-300 each",
-      "use_when": "Ready to generate seed.spec.ts or test scaffolding"
-    }
-  },
-
-  "mcp_tools": {
-    "browser_automation": {
-      "tool": "playwright",
-      "use_when": "Browser automation and test execution needed"
-    },
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/microsoft/playwright"],
-      "use_when": "Need current Playwright API patterns or agent features"
-    }
-  }
+  ]
 }

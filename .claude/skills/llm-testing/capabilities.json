@@ -1,41 +1,33 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "llm-testing",
   "version": "2.0.0",
   "description": "Testing patterns for LLM-based applications with DeepEval and RAGAS metrics",
   "capabilities": [
-    "llm-response-mocking",
     "async-timeout-testing",
-    "structured-output-validation",
-    "quality-gate-testing",
     "deepeval-assertions",
-    "ragas-metrics",
-    "vcr-recording",
-    "golden-dataset-testing"
+    "golden-dataset-testing",
+    "llm-response-mocking",
+    "structured-output-validation",
+    "vcr-recording"
   ],
-  "triggers": [
-    "LLM test",
-    "AI test",
-    "mock LLM",
-    "test AI response",
-    "timeout test",
-    "structured output",
-    "quality gate",
-    "DeepEval",
-    "RAGAS",
-    "faithfulness",
-    "answer relevancy"
-  ],
-  "antiPatterns": [
-    "testing against live LLM APIs in CI",
-    "no timeout handling",
-    "testing with random seeds",
-    "no schema validation",
-    "single metric evaluation"
-  ],
-  "dependencies": [
+  "triggers": {
+    "high_confidence": [
+      "LLM.*test",
+      "test.*AI",
+      "DeepEval",
+      "mock.*LLM"
+    ],
+    "medium_confidence": [
+      "AI test",
+      "mock LLM",
+      "structured output",
+      "quality gate"
+    ]
+  },
+  "integrates_with": [
     "vcr-http-recording",
     "llm-evaluation",
     "unit-testing"
-  ],
-  "tags": ["testing", "llm", "ai", "deepeval", "ragas", "2026"]
+  ]
 }

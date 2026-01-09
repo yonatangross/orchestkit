@@ -2,9 +2,13 @@
 name: debug-investigator
 color: orange
 description: Debug specialist who performs systematic root cause analysis on bugs and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs, and produces actionable fix recommendations
-model: sonnet
 max_tokens: 16000
 tools: Bash, Read, Grep, Glob
+skills: observability-monitoring
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -199,7 +203,7 @@ def subscribe(self, channel):
 ```
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.debug-investigator` with hypotheses/findings
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

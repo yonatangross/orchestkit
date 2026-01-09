@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination://work-registry/v1",
+  "title": "Work Registry Schema",
+  "description": "Tracks active Claude Code instances and their current work assignments",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "registry_updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last registry update"
+    },
+    "instances": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "instance_id": {
+            "type": "string",
+            "pattern": "^claude-[0-9]{8}-[0-9]{6}-[a-f0-9]{8}$",
+            "description": "Unique instance ID: claude-YYYYMMDD-HHMMSS-random8hex"
+          },
+          "worktree_path": {
+            "type": "string",
+            "description": "Absolute path to git worktree or repo root"
+          },
+          "pid": {
+            "type": "integer",
+            "description": "Process ID of the Claude Code instance"
+          },
+          "current_task": {
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "agent_role": {
+                "type": "string",
+                "enum": [
+                  "backend-system-architect",
+                  "frontend-ui-developer",
+                  "workflow-architect",
+                  "test-generator",
+                  "code-quality-reviewer",
+                  "security-auditor",
+                  "llm-integrator",
+                  "main"
+                ]
+              },
+              "started_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": ["description", "started_at"]
+          },
+          "files_locked": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "Relative path from repo root"
+            },
+            "maxItems": 100
+          },
+          "heartbeat": {
+            "type": "object",
+            "properties": {
+              "last_ping": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "heartbeat_file": {
+                "type": "string",
+                "description": "Path to heartbeat file"
+              }
+            },
+            "required": ["last_ping", "heartbeat_file"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "idle", "stale", "crashed"],
+            "description": "Instance status (auto-detected based on heartbeat)"
+          },
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "os": {
+                "type": "string"
+              },
+              "branch": {
+                "type": "string"
+              },
+              "user": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": ["instance_id", "worktree_path", "heartbeat", "status"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["schema_version", "registry_updated_at", "instances"],
+  "additionalProperties": false
+}

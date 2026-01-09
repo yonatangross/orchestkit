@@ -1,0 +1,127 @@
+#!/bin/bash
+# Coordination Status CLI - View active instances and locks
+# Usage: coord-status [--json|--verbose]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/coordination.sh"
+
+FORMAT="human"
+VERBOSE=false
+
+# Parse arguments
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --json)
+      FORMAT="json"
+      shift
+      ;;
+    --verbose|-v)
+      VERBOSE=true
+      shift
+      ;;
+    --help|-h)
+      echo "Usage: coord-status [--json|--verbose]"
+      echo ""
+      echo "Options:"
+      echo "  --json      Output in JSON format"
+      echo "  --verbose   Show detailed information"
+      echo "  --help      Show this help message"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+coord_init
+
+# Clean up stale instances first
+STALE_COUNT=$(coord_cleanup_stale_instances)
+
+if [[ "${FORMAT}" == "json" ]]; then
+  # JSON output
+  jq '.' "${REGISTRY_FILE}"
+else
+  # Human-readable output
+  echo "======================================"
+  echo "  Claude Code Coordination Status"
+  echo "======================================"
+  echo ""
+
+  if [[ ${STALE_COUNT} -gt 0 ]]; then
+    echo "Cleaned up ${STALE_COUNT} stale instance(s)"
+    echo ""
+  fi
+
+  INSTANCE_COUNT=$(jq '.instances | length' "${REGISTRY_FILE}")
+  echo "Active Instances: ${INSTANCE_COUNT}"
+  echo ""
+
+  if [[ ${INSTANCE_COUNT} -eq 0 ]]; then
+    echo "No active instances."
+    exit 0
+  fi
+
+  # List instances
+  jq -r '.instances[] |
+    "Instance: \(.instance_id)\n" +
+    "  Role: \(.current_task.agent_role // "main")\n" +
+    "  Task: \(.current_task.description)\n" +
+    "  Branch: \(.metadata.branch // "unknown")\n" +
+    "  Status: \(.status)\n" +
+    "  Files Locked: \(.files_locked | length)\n" +
+    "  Last Heartbeat: \(.heartbeat.last_ping)\n" +
+    (if (.files_locked | length) > 0 then
+      "  Locked Files:\n" + (.files_locked | map("    - \(.)") | join("\n")) + "\n"
+    else "" end)' \
+    "${REGISTRY_FILE}"
+
+  echo ""
+  echo "--------------------------------------"
+
+  # Show lock summary
+  TOTAL_LOCKS=$(find "${LOCKS_DIR}" -name "*.json" 2>/dev/null | wc -l | xargs)
+  echo "Total File Locks: ${TOTAL_LOCKS}"
+
+  if [[ ${TOTAL_LOCKS} -gt 0 ]] && [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Lock Details:"
+    for lock_file in "${LOCKS_DIR}"/*.json; do
+      [[ ! -f "${lock_file}" ]] && continue
+
+      echo ""
+      jq -r '"  File: \(.file_path)\n" +
+             "    Locked By: \(.locked_by.instance_id)\n" +
+             "    Intent: \(.intent)\n" +
+             "    Expires: \(.expires_at)"' \
+        "${lock_file}"
+    done
+  fi
+
+  echo ""
+  echo "--------------------------------------"
+
+  # Show recent decisions
+  DECISION_COUNT=$(jq '.decisions | length' "${DECISIONS_FILE}")
+  echo "Total Decisions Logged: ${DECISION_COUNT}"
+
+  if [[ ${DECISION_COUNT} -gt 0 ]] && [[ "${VERBOSE}" == "true" ]]; then
+    echo ""
+    echo "Recent Decisions (last 5):"
+    jq -r '.decisions | reverse | .[:5] | .[] |
+      "\n  [\(.decision_id)] \(.title)\n" +
+      "    Category: \(.category)\n" +
+      "    Made At: \(.timestamp)\n" +
+      "    Status: \(.status)"' \
+      "${DECISIONS_FILE}"
+  fi
+
+  echo ""
+  echo "======================================"
+fi
+
+exit 0

@@ -2,9 +2,13 @@
 name: llm-integrator
 color: orange
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies
-model: sonnet
 max_tokens: 16000
 tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
+skills: function-calling, llm-streaming, streaming-api-patterns, prompt-caching, semantic-caching, langfuse-observability, resilience-patterns
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -190,7 +194,7 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 ```
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.llm-integrator` with provider config
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

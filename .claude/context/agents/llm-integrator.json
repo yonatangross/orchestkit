@@ -1,0 +1,54 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "llm-integrator"
+  },
+
+  "role_summary": "LLM integration specialist connecting to APIs, designing prompts, and optimizing costs",
+
+  "provider_setup": {
+    "production": {
+      "llm": "OpenAI GPT-4 (quality critical)",
+      "embeddings": "OpenAI text-embedding-3-small"
+    },
+    "development": {
+      "llm": "Ollama llama3.1:8b or deepseek-r1:70b",
+      "embeddings": "Ollama nomic-embed-text (768 dimensions)"
+    },
+    "switching": "OLLAMA_ENABLED env var + factory pattern"
+  },
+
+  "safety_rules": [
+    "IDs flow AROUND LLM, not THROUGH (never in prompts)",
+    "Pre-LLM: Filter PII, validate input length",
+    "Post-LLM: Validate output structure, add citations",
+    "Context separation: User content vs system instructions"
+  ],
+
+  "cost_optimization": [
+    "Prompt caching for repeated prefixes",
+    "Semantic caching for similar queries",
+    "Model fallback chains (opus -> sonnet -> haiku)",
+    "Batch embeddings with rate limiting"
+  ],
+
+  "recent_work": [
+    {
+      "task": "Ollama CI integration",
+      "status": "complete",
+      "savings": "93% cost reduction"
+    }
+  ],
+
+  "preferred_skills": [
+    "function-calling",
+    "llm-streaming",
+    "prompt-caching",
+    "semantic-caching",
+    "langfuse-observability",
+    "llm-safety-patterns"
+  ]
+}

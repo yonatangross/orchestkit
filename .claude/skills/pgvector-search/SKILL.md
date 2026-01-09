@@ -1,9 +1,17 @@
 ---
 name: pgvector-search
 description: Use when implementing vector search with PostgreSQL. Covers PGVector hybrid search with BM25, metadata filtering, and performance optimization for semantic retrieval.
+context: fork
+agent: database-engineer
 version: 1.2.0
 author: SkillForge AI Agent Hub
 tags: [pgvector-0.8, hybrid-search, bm25, rrf, semantic-search, retrieval, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/migration-validator.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/migration-validator.sh"
 ---
 
 # PGVector Hybrid Search
@@ -513,3 +521,101 @@ async def test_hybrid_search_golden_dataset():
 **Version:** 1.2.0 (January 2026)
 **Status:** Production-ready patterns from SkillForge's 415-chunk golden dataset
 **Updated:** pgvector 0.8.1 with improved filtering and iterative scan support
+
+## Capability Details
+
+### hybrid-search-rrf
+**Keywords:** hybrid search, rrf, reciprocal rank fusion, vector bm25, semantic keyword search
+**Solves:**
+- How do I combine vector and keyword search?
+- Implement hybrid retrieval with RRF
+- Merge semantic and BM25 results
+- Improve search recall and precision
+
+### semantic-search
+**Keywords:** semantic search, vector similarity, embedding, nearest neighbor, cosine distance
+**Solves:**
+- How does semantic search work?
+- Understand vector similarity search
+- When to use semantic vs keyword search
+- Semantic search strengths and weaknesses
+
+### keyword-search-bm25
+**Keywords:** bm25, full-text search, tsvector, tsquery, keyword search
+**Solves:**
+- How does BM25 keyword search work?
+- Implement PostgreSQL full-text search
+- Use tsvector and tsquery
+- BM25 vs semantic search trade-offs
+
+### rrf-algorithm
+**Keywords:** rrf, reciprocal rank fusion, rank-based fusion, score normalization
+**Solves:**
+- How does Reciprocal Rank Fusion work?
+- Why use rank instead of scores?
+- RRF smoothing constant (k parameter)
+- Combine incompatible score ranges
+
+### database-schema
+**Keywords:** pgvector schema, chunk table, embedding column, tsvector, generated column
+**Solves:**
+- How do I design schema for hybrid search?
+- Store embeddings with vector(1024)
+- Pre-compute tsvector for performance
+- Index setup for vector and keyword search
+
+### search-query-implementation
+**Keywords:** hybrid search query, sqlalchemy, vector distance, ts_rank_cd, full outer join
+**Solves:**
+- How do I write hybrid search SQL?
+- Implement RRF in SQLAlchemy
+- Use fetch multiplier for better coverage
+- Combine vector and keyword results
+
+### indexing-strategies
+**Keywords:** pgvector index, hnsw, ivfflat, vector index performance, index tuning
+**Solves:**
+- How do I index PGVector for performance?
+- HNSW vs IVFFlat comparison
+- Optimize vector search speed (17x faster)
+- Scale to millions of vectors
+
+### pre-computed-tsvector
+**Keywords:** tsvector, gin index, full-text index, pre-computed column, generated column
+**Solves:**
+- How do I optimize keyword search performance?
+- Pre-compute tsvector vs query-time computation
+- 5-10x speedup with indexed tsvector
+- Use GENERATED ALWAYS AS column
+
+### metadata-filtering
+**Keywords:** metadata filter, faceted search, content type filter, score boosting
+**Solves:**
+- How do I filter search by metadata?
+- Boost results by section title (1.5x)
+- Pre-filter by content type before search
+- Improve search relevance with boosting
+
+### metadata-boosting
+**Keywords:** score boosting, section title boost, document path boost, code block boost
+**Solves:**
+- How do I boost search results by metadata?
+- Implement section title boosting (1.5x)
+- Boost technical queries for code blocks
+- Real-world +6% MRR improvement
+
+### common-patterns
+**Keywords:** filtered search, similarity threshold, multi-query retrieval, search patterns
+**Solves:**
+- How do I filter search by content type?
+- Set minimum similarity threshold
+- Implement multi-query retrieval
+- De-duplicate and re-rank results
+
+### golden-dataset-testing
+**Keywords:** golden dataset, search evaluation, pass rate, mrr, retrieval testing
+**Solves:**
+- How do I test hybrid search quality?
+- Evaluate search with golden queries
+- Calculate pass rate and MRR metrics
+- Benchmark against expected results

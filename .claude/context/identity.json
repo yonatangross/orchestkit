@@ -1,0 +1,65 @@
+{
+  "$schema": "context://identity/v1",
+  "_meta": {
+    "position": "START",
+    "token_budget": 200,
+    "auto_load": "always",
+    "compress": "never",
+    "description": "Project identity and immutable constraints - ALWAYS loaded at START of context"
+  },
+
+  "project": {
+    "name": "SkillForge",
+    "display_name": "SkillForge Complete",
+    "type": "Claude Code Plugin Ecosystem",
+    "version": "4.5.0",
+    "repository": "https://github.com/yonatangross/skillforge-claude-plugin"
+  },
+
+  "constraints": [
+    "NEVER commit directly to main/dev branches",
+    "ALWAYS use tenant_id for multi-tenant data access",
+    "NEVER include database IDs in LLM prompts (IDs flow AROUND, not THROUGH)",
+    "ALWAYS run tests before committing code",
+    "NEVER store secrets in code (use .env files, excluded from git)",
+    "ALWAYS follow progressive loading for skills (capabilities.json first)"
+  ],
+
+  "tech_stack": {
+    "backend": {
+      "framework": "FastAPI",
+      "language": "Python 3.13",
+      "orm": "SQLAlchemy 2.0 (async)",
+      "validation": "Pydantic v2",
+      "workflows": "LangGraph 1.0"
+    },
+    "frontend": {
+      "framework": "React 19",
+      "language": "TypeScript 5.x",
+      "bundler": "Vite",
+      "validation": "Zod",
+      "testing": "Vitest + Playwright + MSW"
+    },
+    "database": {
+      "primary": "PostgreSQL 18+",
+      "vector": "pgvector 0.8.1",
+      "search": "Full-text (tsvector) + Semantic (HNSW)"
+    },
+    "ai": {
+      "production": "OpenAI GPT-4",
+      "development": "Ollama (llama3.1, nomic-embed-text)",
+      "orchestration": "LangGraph 1.0"
+    }
+  },
+
+  "team": {
+    "backend": "Yonatan",
+    "frontend": "Arie"
+  },
+
+  "ports": {
+    "frontend": 5173,
+    "backend": 8500,
+    "postgres": 5437
+  }
+}

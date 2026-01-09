@@ -3,156 +3,41 @@
   "name": "type-safety-validation",
   "version": "1.1.0",
   "description": "End-to-end type safety with Zod, tRPC, Prisma, exhaustive type checking, branded types, and TypeScript 5.7+ features (2025 patterns)",
-
-  "capabilities": {
-    "zod-schemas": {
-      "keywords": ["zod", "schema", "validation", "parse", "safeParse", "infer", "refine", "transform"],
-      "solves": [
-        "How do I validate input with Zod?",
-        "Create runtime validation schema",
-        "Infer TypeScript types from Zod",
-        "Transform and refine data with Zod",
-        "Handle Zod validation errors"
-      ],
-      "reference_file": "references/zod-patterns.md",
-      "template_file": "templates/zod-schema.ts",
-      "token_cost": 350
-    },
-    "exhaustive-types": {
-      "keywords": ["exhaustive", "assertNever", "never assertion", "switch exhaustive", "compile-time exhaustiveness", "exhaustive check", "missing cases", "union exhaustive"],
-      "solves": [
-        "How do I make switch statements exhaustive?",
-        "Compile-time check for missing union cases",
-        "assertNever pattern for TypeScript",
-        "Catch missing cases at compile time",
-        "Exhaustive handler objects pattern",
-        "Why does my switch have a default that never runs?"
-      ],
-      "reference_file": "SKILL.md#exhaustive-type-checking",
-      "token_cost": 280
-    },
-    "branded-types": {
-      "keywords": ["branded type", "type branding", "nominal type", "opaque type", "NewType", "brand", "distinct types", "id types"],
-      "solves": [
-        "How do I prevent mixing different ID types?",
-        "Branded types with Zod",
-        "Python NewType for type safety",
-        "Prevent UserId where AnalysisId expected",
-        "Nominal typing in TypeScript",
-        "Type-safe IDs across the codebase"
-      ],
-      "reference_file": "SKILL.md#branded-types-for-ids",
-      "token_cost": 250
-    },
-    "trpc": {
-      "keywords": ["trpc", "type-safe api", "procedure", "router", "mutation", "query", "context", "middleware"],
-      "solves": [
-        "How do I set up tRPC?",
-        "Type-safe API calls",
-        "tRPC with React Query",
-        "tRPC authentication middleware",
-        "tRPC error handling"
-      ],
-      "reference_file": "references/trpc-setup.md",
-      "template_file": "templates/trpc-router.ts",
-      "token_cost": 400
-    },
-    "prisma-types": {
-      "keywords": ["prisma", "orm", "generated types", "model", "client", "payload", "validator"],
-      "solves": [
-        "How do I use Prisma types?",
-        "Type-safe database queries",
-        "Prisma schema to TypeScript",
-        "Extract types from Prisma queries",
-        "Extend Prisma models with custom fields"
-      ],
-      "reference_file": "references/prisma-types.md",
-      "token_cost": 320
-    },
-    "typescript-5-features": {
-      "keywords": ["typescript 5", "const parameters", "satisfies", "decorators", "template literals", "inferred predicates"],
-      "solves": [
-        "Use TypeScript 5.x features",
-        "Const type parameters",
-        "Satisfies operator",
-        "Modern TypeScript patterns",
-        "Branded types and template literals"
-      ],
-      "reference_file": "references/typescript-5-features.md",
-      "token_cost": 380
-    },
-    "skillforge-integration": {
-      "keywords": ["skillforge", "pydantic", "fastapi", "openapi", "backend types", "frontend types"],
-      "solves": [
-        "How can SkillForge use Zod with FastAPI?",
-        "Convert Pydantic to Zod schemas",
-        "Share types between Python and TypeScript",
-        "Validate API responses in frontend",
-        "Generate types from OpenAPI spec"
-      ],
-      "reference_file": "examples/skillforge-type-safety.md",
-      "token_cost": 420
-    },
-    "implementation-checklist": {
-      "keywords": ["checklist", "type safety", "validation", "testing", "deployment"],
-      "solves": [
-        "What steps to implement type safety?",
-        "Type safety checklist",
-        "Validation best practices",
-        "Type safety testing strategy",
-        "Production deployment checklist"
-      ],
-      "reference_file": "checklists/type-safety-checklist.md",
-      "token_cost": 280
-    },
-    "ty-type-checker": {
-      "keywords": ["ty", "rust type checker", "strict typing", "isinstance", "cast", "type narrowing", "dict extraction", "optional types"],
-      "solves": [
-        "How do I make ty type checker pass?",
-        "Extract values from untyped dicts safely",
-        "Type-safe agent result processing",
-        "Handle optional numeric types with ty",
-        "Type narrowing with isinstance checks",
-        "Fix 'object | None' type errors in ty"
-      ],
-      "reference_file": "references/ty-type-checker-patterns.md",
-      "token_cost": 450
-    }
-  },
-
+  "capabilities": [
+    "branded-types",
+    "exhaustive-types",
+    "implementation-checklist",
+    "prisma-types",
+    "skillforge-integration",
+    "trpc",
+    "ty-type-checker",
+    "typescript-5-features",
+    "zod-schemas"
+  ],
   "triggers": {
-    "high_confidence": ["zod.*schema", "trpc.*setup", "type.*safe", "validate.*input", "ty.*check", "ty.*error", "assertNever", "exhaustive.*switch", "branded.*type"],
-    "medium_confidence": ["typescript.*types", "prisma.*types", "api.*contract", "isinstance.*check", "missing.*case", "union.*type", "NewType"]
+    "high_confidence": [
+      "zod.*schema",
+      "trpc.*setup",
+      "type.*safe",
+      "validate.*input",
+      "ty.*check",
+      "ty.*error",
+      "assertNever",
+      "exhaustive.*switch",
+      "branded.*type"
+    ],
+    "medium_confidence": [
+      "typescript.*types",
+      "prisma.*types",
+      "api.*contract",
+      "isinstance.*check",
+      "missing.*case",
+      "union.*type",
+      "NewType"
+    ]
   },
-
-  "integrates_with": ["api-design-framework", "database-schema-designer"],
-
-  "progressive_loading": {
-    "tier_1_discovery": { "file": "capabilities.json", "tokens": 150 },
-    "tier_2_overview": { "file": "SKILL.md", "tokens": 400, "sections": ["overview", "core-stack"] },
-    "tier_3_references": {
-      "files": "references/*.md",
-      "tokens": "280-420 each",
-      "note": "Load specific reference based on capability match"
-    },
-    "tier_4_templates": {
-      "files": "templates/*.ts",
-      "tokens": "300-400 each",
-      "note": "Use for code generation and examples"
-    },
-    "tier_5_examples": {
-      "files": "examples/*.md",
-      "tokens": 420,
-      "note": "SkillForge-specific integration examples"
-    },
-    "tier_6_checklists": {
-      "files": "checklists/*.md",
-      "tokens": 280,
-      "note": "Implementation and testing checklists"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation": { "tool": "context7", "library_ids": ["/colinhacks/zod", "/trpc/trpc"] }
-  }
+  "integrates_with": [
+    "api-design-framework",
+    "database-schema-designer"
+  ]
 }

@@ -1,0 +1,172 @@
+{
+  "$schema": "coordination://config/v1",
+  "version": "1.0.0",
+  "description": "Configuration for multi-instance Claude Code coordination",
+
+  "instances": {
+    "max_concurrent": 4,
+    "heartbeat_interval_ms": 5000,
+    "stale_timeout_seconds": 30,
+    "cleanup_interval_seconds": 60,
+    "priority_levels": {
+      "supervisor": 0,
+      "high": 1,
+      "normal": 2,
+      "low": 3
+    },
+    "max_claims_per_instance": 3,
+    "capabilities": [
+      "backend",
+      "frontend",
+      "testing",
+      "devops",
+      "security",
+      "documentation"
+    ]
+  },
+
+  "locking": {
+    "enabled": true,
+    "default_ttl_seconds": 60,
+    "max_extensions": 2,
+    "extension_ttl_seconds": 60,
+    "auto_release_on_commit": true,
+    "lock_levels": ["directory", "file", "region"],
+    "conflict_resolution": "first_wins",
+    "preemption": {
+      "enabled": false,
+      "priority_threshold": 0
+    }
+  },
+
+  "messaging": {
+    "transport": "sqlite",
+    "poll_interval_ms": 100,
+    "message_ttl_hours": 24,
+    "retry_count": 3,
+    "retry_delay_ms": 1000,
+    "broadcast_to_self": false,
+    "acknowledgement_required": [
+      "lock_request",
+      "work_offer",
+      "review_request"
+    ]
+  },
+
+  "quality_gates": {
+    "enabled": true,
+    "gates": {
+      "pre_commit": {
+        "enabled": true,
+        "blocking": true,
+        "timeout_seconds": 60,
+        "checks": [
+          "linting",
+          "type_check",
+          "unit_tests",
+          "secrets_scan"
+        ]
+      },
+      "pre_push": {
+        "enabled": true,
+        "blocking": true,
+        "timeout_seconds": 300,
+        "checks": [
+          "integration_tests",
+          "conflict_check",
+          "coverage_threshold",
+          "evidence_validation"
+        ]
+      },
+      "peer_review": {
+        "enabled": true,
+        "required_for_merge": true,
+        "auto_assign": true,
+        "timeout_hours": 2,
+        "reviewer_selection": "capability_based"
+      }
+    },
+    "thresholds": {
+      "min_coverage_percent": 80,
+      "min_quality_score": 0.7,
+      "max_complexity": 15
+    }
+  },
+
+  "knowledge_sharing": {
+    "enabled": true,
+    "sync_on_session_start": true,
+    "max_knowledge_items": 100,
+    "deduplication": {
+      "enabled": true,
+      "similarity_threshold": 0.9,
+      "hash_algorithm": "sha256"
+    },
+    "expiry_days": {
+      "decision": 30,
+      "pattern": 90,
+      "anti_pattern": 90,
+      "blocker": 7,
+      "solution": 30,
+      "context": 14
+    },
+    "confidence": {
+      "initial": 0.7,
+      "verification_boost": 0.1,
+      "decay_per_day": 0.01,
+      "max": 1.0,
+      "min_for_sharing": 0.5
+    }
+  },
+
+  "conflict_detection": {
+    "enabled": true,
+    "semantic_analysis": true,
+    "check_other_worktrees": true,
+    "block_on_conflict": true,
+    "auto_resolve": {
+      "enabled": true,
+      "max_severity": "medium"
+    },
+    "checks": [
+      "file_lock_conflict",
+      "merge_conflict",
+      "interface_change",
+      "import_removal",
+      "type_incompatibility"
+    ]
+  },
+
+  "work_distribution": {
+    "algorithm": "capability_weighted",
+    "scoring_weights": {
+      "capability_match": 0.4,
+      "locality": 0.3,
+      "load_balance": 0.2,
+      "success_rate": 0.1
+    },
+    "work_stealing": {
+      "enabled": true,
+      "idle_threshold_seconds": 60,
+      "max_steal_per_round": 1
+    }
+  },
+
+  "monitoring": {
+    "metrics_enabled": true,
+    "log_level": "info",
+    "audit_retention_days": 7,
+    "alerts": {
+      "stale_locks": true,
+      "high_conflict_rate": true,
+      "low_throughput": true
+    }
+  },
+
+  "paths": {
+    "database": ".claude/coordination/.claude.db",
+    "locks_dir": ".claude/coordination/locks",
+    "instance_dir": ".instance",
+    "schema": ".claude/coordination/schema.sql"
+  }
+}

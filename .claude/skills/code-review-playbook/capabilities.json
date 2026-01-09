@@ -3,226 +3,29 @@
   "name": "code-review-playbook",
   "version": "1.0.0",
   "description": "Structured review processes, conventional comments, language-specific checklists, and feedback templates",
-
-  "capabilities": {
-    "review-process": {
-      "keywords": ["code review", "pr review", "review process", "how to review"],
-      "solves": [
-        "How do I review this PR?",
-        "Code review best practices",
-        "What to look for in reviews",
-        "Step-by-step review workflow"
-      ],
-      "reference_file": "SKILL.md#review-process",
-      "token_cost": 180
-    },
-    "conventional-comments": {
-      "keywords": ["conventional comments", "feedback", "suggestion", "nitpick", "blocking", "praise"],
-      "solves": [
-        "How do I write review comments?",
-        "Conventional comments format",
-        "Constructive feedback patterns",
-        "When to use blocking vs non-blocking"
-      ],
-      "reference_file": "SKILL.md#conventional-comments",
-      "token_cost": 150
-    },
-    "review-philosophy": {
-      "keywords": ["review culture", "constructive", "respectful", "kindness", "mentorship"],
-      "solves": [
-        "What's the purpose of code reviews?",
-        "How to give kind and respectful feedback",
-        "Balance speed with thoroughness"
-      ],
-      "reference_file": "SKILL.md#code-review-philosophy",
-      "token_cost": 120
-    },
-    "general-quality": {
-      "keywords": ["readability", "naming", "dry", "solid", "complexity", "function size"],
-      "solves": [
-        "Check general code quality",
-        "Is this code readable?",
-        "SOLID principles review",
-        "Cyclomatic complexity check"
-      ],
-      "reference_file": "SKILL.md#general-code-quality",
-      "token_cost": 140
-    },
-    "functionality-review": {
-      "keywords": ["correctness", "edge cases", "error handling", "validation", "logging"],
-      "solves": [
-        "Does this code work correctly?",
-        "Check edge cases and boundary conditions",
-        "Validate error handling",
-        "Input/output validation"
-      ],
-      "reference_file": "SKILL.md#functionality",
-      "token_cost": 160
-    },
-    "testing-review": {
-      "keywords": ["test coverage", "test quality", "edge case tests", "test isolation"],
-      "solves": [
-        "Are the tests sufficient?",
-        "Check test coverage and quality",
-        "Do tests cover edge cases?",
-        "Are error paths tested?"
-      ],
-      "reference_file": "SKILL.md#testing",
-      "token_cost": 130
-    },
-    "performance-review": {
-      "keywords": ["performance", "n+1", "caching", "algorithm", "optimization", "slow query"],
-      "solves": [
-        "Check for performance issues",
-        "Identify N+1 query problems",
-        "Algorithm efficiency review",
-        "Resource cleanup verification"
-      ],
-      "reference_file": "SKILL.md#performance",
-      "token_cost": 140
-    },
-    "security-review": {
-      "keywords": ["security", "authentication", "authorization", "injection", "xss", "csrf", "vulnerability"],
-      "solves": [
-        "Review for security issues",
-        "Check authentication and authorization",
-        "Identify injection vulnerabilities",
-        "Validate secrets management"
-      ],
-      "reference_file": "SKILL.md#security",
-      "token_cost": 180
-    },
-    "typescript-review": {
-      "keywords": ["typescript", "type safety", "any types", "strict mode", "async await", "nullability"],
-      "solves": [
-        "Review TypeScript code",
-        "Check for type safety issues",
-        "Avoid 'any' types",
-        "Proper async/await usage"
-      ],
-      "reference_file": "SKILL.md#language-specific-javascripttypescript",
-      "token_cost": 150
-    },
-    "python-review": {
-      "keywords": ["python", "pep8", "type hints", "pythonic", "list comprehension", "context manager"],
-      "solves": [
-        "Review Python code",
-        "Check PEP8 compliance",
-        "Validate type annotations",
-        "Pythonic patterns and idioms"
-      ],
-      "reference_file": "SKILL.md#language-specific-python",
-      "token_cost": 150
-    },
-    "api-design-review": {
-      "keywords": ["api", "rest", "endpoint", "http", "status code", "pagination", "versioning"],
-      "solves": [
-        "Review API design",
-        "Check RESTful conventions",
-        "Validate HTTP methods and status codes",
-        "API error response format"
-      ],
-      "reference_file": "SKILL.md#api-design",
-      "token_cost": 160
-    },
-    "database-review": {
-      "keywords": ["database", "migration", "index", "transaction", "foreign key", "n+1 query"],
-      "solves": [
-        "Review database changes",
-        "Check migrations are safe",
-        "Validate indexes and constraints",
-        "Prevent N+1 queries"
-      ],
-      "reference_file": "SKILL.md#database",
-      "token_cost": 140
-    },
-    "extended-thinking-review": {
-      "keywords": ["opus", "deep analysis", "systemic", "pattern detection", "complex review"],
-      "solves": [
-        "Perform deep code review with extended thinking",
-        "Detect systemic patterns across files",
-        "Complex security analysis",
-        "Cross-file impact analysis"
-      ],
-      "reference_file": "SKILL.md#advanced-pattern-detection-opus-45",
-      "token_cost": 350
-    },
-    "review-anti-patterns": {
-      "keywords": ["anti-pattern", "rubber stamp", "defensive", "giant pr", "nitpicking"],
-      "solves": [
-        "What review anti-patterns should I avoid?",
-        "Am I being too nitpicky?",
-        "How to avoid rubber-stamping",
-        "Common review mistakes"
-      ],
-      "reference_file": "SKILL.md#code-review-anti-patterns",
-      "token_cost": 140
-    },
-    "pr-templates": {
-      "keywords": ["pr template", "pull request", "description", "checklist"],
-      "solves": [
-        "What should I include in PR description?",
-        "PR template format",
-        "Security review checklist"
-      ],
-      "template_file": "templates/pr-template.md",
-      "token_cost": 180
-    }
-  },
-
+  "capabilities": [
+    "language-specific",
+    "pr-template",
+    "quality-checks",
+    "review-process",
+    "security-review"
+  ],
   "triggers": {
     "high_confidence": [
       "review.*code",
       "pr.*review",
       "review.*this",
-      "check.*this.*code",
-      "feedback.*on.*pr",
-      "code.*review.*process"
+      "code.*review"
     ],
     "medium_confidence": [
       "look.*at.*code",
       "what.*think.*about",
-      "review",
       "conventional.*comment"
     ]
   },
-
   "integrates_with": [
-    "security-checklist",
-    "testing-strategy-builder",
-    "evidence-verification",
-    "api-design-framework",
-    "database-schema-designer"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if review playbook is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 915,
-      "use_when": "Skill confirmed relevant - need review philosophy and process"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "150-250 each",
-      "use_when": "Need specific review patterns or feedback examples"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.md",
-      "tokens": "150-200 each",
-      "use_when": "Ready to generate PR or review templates"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/anthropic/anthropic-sdk-typescript", "/microsoft/TypeScript"],
-      "use_when": "Need current best practices for language-specific reviews"
-    }
-  }
+    "security-scanning",
+    "unit-testing",
+    "api-design-framework"
+  ]
 }

@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination://decision-log/v1",
+  "title": "Decision Log Schema",
+  "description": "Append-only log of architectural and implementation decisions",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "log_created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "pattern": "^DEC-[0-9]{8}-[0-9]{4}$",
+            "description": "DEC-YYYYMMDD-NNNN"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "made_by": {
+            "type": "object",
+            "properties": {
+              "instance_id": {
+                "type": "string"
+              },
+              "agent_role": {
+                "type": "string"
+              }
+            },
+            "required": ["instance_id"]
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "architecture",
+              "api-design",
+              "database-schema",
+              "security",
+              "performance",
+              "testing",
+              "workflow",
+              "ui-pattern",
+              "integration"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "context": {
+            "type": "object",
+            "properties": {
+              "problem": {
+                "type": "string"
+              },
+              "alternatives_considered": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "rationale": {
+                "type": "string"
+              }
+            }
+          },
+          "impact": {
+            "type": "object",
+            "properties": {
+              "scope": {
+                "type": "string",
+                "enum": ["local", "module", "service", "system", "global"]
+              },
+              "files_affected": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "dependencies": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Other decision IDs this depends on"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["proposed", "accepted", "implemented", "deprecated", "superseded"],
+            "default": "accepted"
+          },
+          "superseded_by": {
+            "type": "string",
+            "pattern": "^DEC-[0-9]{8}-[0-9]{4}$",
+            "description": "Decision ID that supersedes this one"
+          }
+        },
+        "required": ["decision_id", "timestamp", "made_by", "category", "title", "status"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["schema_version", "log_created_at", "decisions"],
+  "additionalProperties": false
+}

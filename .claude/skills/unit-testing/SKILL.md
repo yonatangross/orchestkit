@@ -1,6 +1,14 @@
 ---
 name: unit-testing
 description: Unit testing patterns and best practices. Use when writing isolated unit tests, implementing AAA pattern, designing test isolation, or setting coverage targets for business logic.
+context: fork
+agent: test-generator
+hooks:
+  PostToolUse:
+    - matcher: Write
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Unit Testing
@@ -184,3 +192,33 @@ def test_access_matrix(role, status):
 - `integration-testing` - Testing interactions
 - `msw-mocking` - Network mocking
 - `test-data-management` - Fixtures and factories
+
+## Capability Details
+
+### pytest-patterns
+**Keywords:** pytest, python, fixture, parametrize
+**Solves:**
+- Write pytest unit tests
+- Use fixtures effectively
+- Parametrize test cases
+
+### vitest-patterns
+**Keywords:** vitest, jest, typescript, mock
+**Solves:**
+- Write Vitest unit tests
+- Mock dependencies
+- Test React components
+
+### skillforge-strategy
+**Keywords:** skillforge, strategy, coverage, pyramid
+**Solves:**
+- SkillForge test strategy example
+- Test coverage targets
+- Testing pyramid ratios
+
+### test-case-template
+**Keywords:** template, test, structure, arrange
+**Solves:**
+- Test case template
+- Arrange-Act-Assert structure
+- Copy-paste test starter

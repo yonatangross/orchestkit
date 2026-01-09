@@ -3,44 +3,25 @@
   "name": "agent-loops",
   "version": "1.0.0",
   "description": "ReAct and tool-use patterns for agentic LLM loops",
-
-  "capabilities": {
-    "react-loop": {
-      "keywords": ["react", "reason", "act", "observe", "loop"],
-      "solves": [
-        "Implement ReAct pattern",
-        "Create reasoning loops",
-        "Build iterative agents"
-      ],
-      "reference_file": "SKILL.md#react-pattern",
-      "token_cost": 120
-    },
-    "tool-use": {
-      "keywords": ["tool", "function", "call", "execution"],
-      "solves": [
-        "Implement tool calling",
-        "Execute functions from LLM",
-        "Parse tool responses"
-      ],
-      "reference_file": "SKILL.md#tool-use",
-      "token_cost": 100
-    },
-    "workflow-template": {
-      "keywords": ["template", "workflow", "agent", "typescript"],
-      "solves": [
-        "Agent workflow template",
-        "TypeScript implementation",
-        "Copy-paste starter"
-      ],
-      "template_file": "templates/agent-workflow-template.ts",
-      "token_cost": 250
-    }
-  },
-
+  "capabilities": [
+    "react-loop",
+    "tool-use",
+    "workflow-template"
+  ],
   "triggers": {
-    "high_confidence": ["react.*pattern", "agent.*loop", "reason.*act"],
-    "medium_confidence": ["iterative.*agent", "tool.*loop"]
+    "high_confidence": [
+      "react.*pattern",
+      "agent.*loop",
+      "reason.*act"
+    ],
+    "medium_confidence": [
+      "iterative.*agent",
+      "tool.*loop"
+    ]
   },
-
-  "integrates_with": ["function-calling", "llm-streaming", "multi-agent-orchestration"]
+  "integrates_with": [
+    "function-calling",
+    "llm-streaming",
+    "multi-agent-orchestration"
+  ]
 }

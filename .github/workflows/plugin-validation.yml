@@ -1,0 +1,237 @@
+name: Plugin Validation
+
+on:
+  push:
+    branches: [main, dev, 'feature/**']
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+env:
+  CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+
+jobs:
+  # Job 1: Syntax and Structure Validation
+  syntax-validation:
+    name: Syntax & Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make test scripts executable
+        run: chmod +x tests/**/*.sh
+
+      - name: Validate Shell Script Syntax
+        run: ./tests/unit/test-shell-syntax.sh --verbose
+
+      - name: Validate JSON Syntax
+        run: ./tests/unit/test-json-validity.sh --verbose
+
+      - name: Check Hook Executability
+        run: ./tests/unit/test-hook-executability.sh
+
+  # Job 2: Schema Validation
+  schema-validation:
+    name: Schema Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make test scripts executable
+        run: chmod +x tests/**/*.sh
+
+      - name: Validate Context Schemas
+        run: ./tests/unit/test-context-schemas.sh --verbose
+
+  # Job 3: Hook Unit Tests
+  hook-unit-tests:
+    name: Hook Unit Tests
+    runs-on: ubuntu-latest
+    needs: syntax-validation
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make scripts executable
+        run: |
+          chmod +x tests/**/*.sh
+          find .claude/hooks -name "*.sh" -exec chmod +x {} \;
+
+      - name: Run Hook Unit Tests
+        run: ./tests/unit/test-hooks-unit.sh --verbose
+
+  # Job 4: Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [syntax-validation, hook-unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get install -y jq bc
+
+      - name: Make scripts executable
+        run: |
+          chmod +x tests/**/*.sh
+          find .claude/hooks -name "*.sh" -exec chmod +x {} \;
+
+      - name: Run Hook Chain Tests
+        run: ./tests/integration/test-hook-chains.sh --verbose
+
+      - name: Run Context System Tests
+        run: ./tests/integration/test-context-system.sh --verbose
+
+  # Job 5: Plugin Manifest Validation
+  manifest-validation:
+    name: Plugin Manifest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Validate plugin.json structure
+        run: |
+          echo "Checking plugin.json..."
+
+          # Check required fields
+          for field in name version description; do
+            value=$(jq -r ".$field // empty" plugin.json)
+            if [[ -z "$value" ]]; then
+              echo "ERROR: Missing required field: $field"
+              exit 1
+            fi
+            echo "  $field: $value"
+          done
+
+          # Validate version format
+          version=$(jq -r '.version' plugin.json)
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "ERROR: Invalid version format: $version"
+            exit 1
+          fi
+
+          echo "Plugin manifest is valid!"
+
+      - name: Check settings.json hook paths
+        run: |
+          echo "Validating hook paths in settings.json..."
+
+          # Extract all hook commands
+          hooks=$(jq -r '.. | .command? // empty' .claude/settings.json | sort -u)
+
+          missing=0
+          while IFS= read -r hook; do
+            [[ -z "$hook" ]] && continue
+            # Replace variable with workspace
+            resolved="${hook//\"\$CLAUDE_PROJECT_DIR\"/.}"
+            if [[ ! -f "$resolved" ]]; then
+              echo "WARNING: Hook not found: $resolved"
+              missing=$((missing + 1))
+            fi
+          done <<< "$hooks"
+
+          if [[ $missing -gt 0 ]]; then
+            echo "Found $missing missing hooks"
+            exit 1
+          fi
+
+          echo "All hook paths are valid!"
+
+  # Job 6: Skills Validation
+  skills-validation:
+    name: Skills Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Validate skill structure
+        run: |
+          echo "Validating skills..."
+
+          skills_dir=".claude/skills"
+          if [[ ! -d "$skills_dir" ]]; then
+            echo "No skills directory found"
+            exit 0
+          fi
+
+          errors=0
+          for skill_dir in "$skills_dir"/*/; do
+            skill_name=$(basename "$skill_dir")
+            echo "Checking skill: $skill_name"
+
+            # Check for required SKILL.md
+            if [[ ! -f "$skill_dir/SKILL.md" ]]; then
+              echo "  ERROR: Missing SKILL.md"
+              errors=$((errors + 1))
+            fi
+
+            # Check for capabilities.json if it exists
+            if [[ -f "$skill_dir/capabilities.json" ]]; then
+              if ! jq empty "$skill_dir/capabilities.json" 2>/dev/null; then
+                echo "  ERROR: Invalid capabilities.json"
+                errors=$((errors + 1))
+              fi
+            fi
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "Found $errors skill errors"
+            exit 1
+          fi
+
+          echo "All skills are valid!"
+
+  # Summary Job
+  validation-summary:
+    name: Validation Summary
+    runs-on: ubuntu-latest
+    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, skills-validation]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "========================================"
+          echo "  Plugin Validation Summary"
+          echo "========================================"
+          echo ""
+          echo "Syntax Validation:   ${{ needs.syntax-validation.result }}"
+          echo "Schema Validation:   ${{ needs.schema-validation.result }}"
+          echo "Hook Unit Tests:     ${{ needs.hook-unit-tests.result }}"
+          echo "Integration Tests:   ${{ needs.integration-tests.result }}"
+          echo "Manifest Validation: ${{ needs.manifest-validation.result }}"
+          echo "Skills Validation:   ${{ needs.skills-validation.result }}"
+          echo ""
+
+          # Fail if any required job failed
+          if [[ "${{ needs.syntax-validation.result }}" != "success" ]] || \
+             [[ "${{ needs.schema-validation.result }}" != "success" ]] || \
+             [[ "${{ needs.hook-unit-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.manifest-validation.result }}" != "success" ]]; then
+            echo "Some validations failed!"
+            exit 1
+          fi
+
+          echo "All validations passed!"

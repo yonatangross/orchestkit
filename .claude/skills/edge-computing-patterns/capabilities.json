@@ -3,106 +3,29 @@
   "name": "edge-computing-patterns",
   "version": "1.0.0",
   "description": "Cloudflare Workers, Vercel Edge, Deno Deploy for globally distributed, low-latency applications",
-
-  "capabilities": {
-    "cloudflare-workers": {
-      "keywords": ["cloudflare", "workers", "kv", "durable objects", "r2", "wrangler"],
-      "solves": [
-        "How do I deploy to Cloudflare Workers?",
-        "Cloudflare KV storage patterns",
-        "Durable Objects for stateful edge",
-        "Wrangler CLI usage and configuration"
-      ],
-      "reference_file": "references/cloudflare-workers.md",
-      "token_cost": 1200
-    },
-    "vercel-edge": {
-      "keywords": ["vercel edge", "edge functions", "edge middleware", "geolocation", "next.js"],
-      "solves": [
-        "How do I use Vercel Edge Functions?",
-        "Edge middleware patterns (auth, A/B testing)",
-        "Geo-based routing and localization",
-        "Edge streaming responses"
-      ],
-      "reference_file": "references/vercel-edge.md",
-      "token_cost": 1400
-    },
-    "runtime-differences": {
-      "keywords": ["edge runtime", "web apis", "node.js compatibility", "polyfills"],
-      "solves": [
-        "What Node.js APIs are NOT available at edge?",
-        "Edge-compatible alternatives to Node APIs",
-        "How to polyfill crypto, base64, buffers",
-        "Package compatibility for edge runtimes"
-      ],
-      "reference_file": "references/runtime-differences.md",
-      "token_cost": 1500
-    },
-    "edge-caching": {
-      "keywords": ["edge cache", "cdn", "cache-control", "stale-while-revalidate", "invalidation"],
-      "solves": [
-        "How do I cache at the edge?",
-        "CDN caching strategies and headers",
-        "Stale-while-revalidate patterns",
-        "Cache invalidation strategies",
-        "Personalization at edge"
-      ],
-      "reference_file": "examples/edge-caching-strategies.md",
-      "token_cost": 1600
-    },
-    "edge-function-template": {
-      "keywords": ["edge function", "template", "boilerplate", "production-ready"],
-      "solves": [
-        "How do I structure an edge function?",
-        "Production-ready edge function template",
-        "Error handling and validation patterns",
-        "CORS, rate limiting, caching setup"
-      ],
-      "reference_file": "templates/edge-function.ts",
-      "token_cost": 1500
-    },
-    "edge-middleware-template": {
-      "keywords": ["middleware", "next.js", "authentication", "a/b testing"],
-      "solves": [
-        "How do I write Next.js edge middleware?",
-        "Authentication middleware patterns",
-        "A/B testing and feature flags",
-        "Geolocation routing middleware"
-      ],
-      "reference_file": "templates/edge-middleware.ts",
-      "token_cost": 1600
-    },
-    "deployment-checklist": {
-      "keywords": ["deployment", "checklist", "production", "monitoring"],
-      "solves": [
-        "What should I check before deploying to edge?",
-        "Edge deployment best practices",
-        "Production readiness checklist",
-        "Monitoring and debugging setup"
-      ],
-      "reference_file": "checklists/edge-deployment-checklist.md",
-      "token_cost": 1700
-    }
-  },
-
+  "capabilities": [
+    "cloudflare-workers",
+    "deployment-checklist",
+    "edge-caching",
+    "edge-function-template",
+    "edge-middleware-template",
+    "runtime-differences",
+    "vercel-edge"
+  ],
   "triggers": {
-    "high_confidence": ["edge.*function", "cloudflare.*worker", "vercel.*edge"],
-    "medium_confidence": ["edge", "cdn", "globally.*distributed"]
+    "high_confidence": [
+      "edge.*function",
+      "cloudflare.*worker",
+      "vercel.*edge"
+    ],
+    "medium_confidence": [
+      "edge",
+      "cdn",
+      "globally.*distributed"
+    ]
   },
-
-  "integrates_with": ["performance-optimization", "streaming-api-patterns"],
-
-  "progressive_loading": {
-    "tier_1_discovery": { "file": "capabilities.json", "tokens": 100 },
-    "tier_2_overview": { "file": "SKILL.md", "tokens": 400, "sections": ["overview", "platform-comparison"] },
-    "tier_3_references": {
-      "files": ["references/*.md", "templates/*.ts", "examples/*.md", "checklists/*.md"],
-      "tokens": "1200-1700 each",
-      "recommendation": "Load only the specific capability needed"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation": { "tool": "context7", "library_ids": ["/cloudflare/workers-sdk"] }
-  }
+  "integrates_with": [
+    "performance-optimization",
+    "streaming-api-patterns"
+  ]
 }

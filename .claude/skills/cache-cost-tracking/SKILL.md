@@ -1,6 +1,8 @@
 ---
 name: cache-cost-tracking
 description: LLM cost tracking with Langfuse for cached responses. Use when monitoring cache effectiveness, tracking cost savings, or attributing costs to agents in multi-agent systems.
+context: fork
+agent: metrics-architect
 ---
 
 # Cache Cost Tracking
@@ -173,3 +175,40 @@ print(f"Cost Saved: ${cost_saved:.2f}")
 - `semantic-caching` - Redis caching
 - `prompt-caching` - Provider caching
 - `langfuse-observability` - Full observability
+
+## Capability Details
+
+### prompt-caching
+**Keywords:** prompt cache, cache prompt, prefix caching, cache breakpoints
+**Solves:**
+- Reduce token costs with cached prompts
+- Configure cache breakpoints
+- Implement provider-native caching
+
+### response-caching
+**Keywords:** response cache, semantic cache, cache response, LLM cache
+**Solves:**
+- Cache LLM responses for repeated queries
+- Implement semantic similarity caching
+- Reduce API calls with cached responses
+
+### cost-calculation
+**Keywords:** cost, token cost, calculate cost, pricing, usage cost
+**Solves:**
+- Calculate token costs by model
+- Track input/output token pricing
+- Estimate cost before execution
+
+### usage-tracking
+**Keywords:** usage, track usage, token usage, API usage, metrics
+**Solves:**
+- Track LLM API usage over time
+- Monitor token consumption
+- Generate usage reports
+
+### cache-invalidation
+**Keywords:** invalidate, cache invalidation, TTL, expire, refresh
+**Solves:**
+- Implement cache invalidation strategies
+- Configure TTL for cached responses
+- Handle stale cache entries

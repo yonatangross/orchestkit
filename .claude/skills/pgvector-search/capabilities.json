@@ -3,142 +3,20 @@
   "name": "pgvector-search",
   "version": "1.0.0",
   "description": "Production hybrid search with PGVector HNSW + BM25 using Reciprocal Rank Fusion, metadata filtering, and performance optimization for semantic retrieval",
-
-  "capabilities": {
-    "hybrid-search-rrf": {
-      "keywords": ["hybrid search", "rrf", "reciprocal rank fusion", "vector bm25", "semantic keyword search"],
-      "solves": [
-        "How do I combine vector and keyword search?",
-        "Implement hybrid retrieval with RRF",
-        "Merge semantic and BM25 results",
-        "Improve search recall and precision"
-      ],
-      "reference_file": "SKILL.md#reciprocal-rank-fusion-rrf",
-      "token_cost": 250
-    },
-    "semantic-search": {
-      "keywords": ["semantic search", "vector similarity", "embedding", "nearest neighbor", "cosine distance"],
-      "solves": [
-        "How does semantic search work?",
-        "Understand vector similarity search",
-        "When to use semantic vs keyword search",
-        "Semantic search strengths and weaknesses"
-      ],
-      "reference_file": "SKILL.md#semantic-search-vector-similarity",
-      "token_cost": 140
-    },
-    "keyword-search-bm25": {
-      "keywords": ["bm25", "full-text search", "tsvector", "tsquery", "keyword search"],
-      "solves": [
-        "How does BM25 keyword search work?",
-        "Implement PostgreSQL full-text search",
-        "Use tsvector and tsquery",
-        "BM25 vs semantic search trade-offs"
-      ],
-      "reference_file": "SKILL.md#keyword-search-bm25",
-      "token_cost": 130
-    },
-    "rrf-algorithm": {
-      "keywords": ["rrf", "reciprocal rank fusion", "rank-based fusion", "score normalization"],
-      "solves": [
-        "How does Reciprocal Rank Fusion work?",
-        "Why use rank instead of scores?",
-        "RRF smoothing constant (k parameter)",
-        "Combine incompatible score ranges"
-      ],
-      "reference_file": "SKILL.md#reciprocal-rank-fusion-rrf",
-      "token_cost": 120
-    },
-    "database-schema": {
-      "keywords": ["pgvector schema", "chunk table", "embedding column", "tsvector", "generated column"],
-      "solves": [
-        "How do I design schema for hybrid search?",
-        "Store embeddings with vector(1024)",
-        "Pre-compute tsvector for performance",
-        "Index setup for vector and keyword search"
-      ],
-      "reference_file": "SKILL.md#database-schema",
-      "token_cost": 160
-    },
-    "search-query-implementation": {
-      "keywords": ["hybrid search query", "sqlalchemy", "vector distance", "ts_rank_cd", "full outer join"],
-      "solves": [
-        "How do I write hybrid search SQL?",
-        "Implement RRF in SQLAlchemy",
-        "Use fetch multiplier for better coverage",
-        "Combine vector and keyword results"
-      ],
-      "reference_file": "SKILL.md#search-query",
-      "token_cost": 200
-    },
-    "indexing-strategies": {
-      "keywords": ["pgvector index", "hnsw", "ivfflat", "vector index performance", "index tuning"],
-      "solves": [
-        "How do I index PGVector for performance?",
-        "HNSW vs IVFFlat comparison",
-        "Optimize vector search speed (17x faster)",
-        "Scale to millions of vectors"
-      ],
-      "reference_file": "SKILL.md#hnsw-vs-ivfflat-indexes",
-      "token_cost": 200
-    },
-    "pre-computed-tsvector": {
-      "keywords": ["tsvector", "gin index", "full-text index", "pre-computed column", "generated column"],
-      "solves": [
-        "How do I optimize keyword search performance?",
-        "Pre-compute tsvector vs query-time computation",
-        "5-10x speedup with indexed tsvector",
-        "Use GENERATED ALWAYS AS column"
-      ],
-      "reference_file": "SKILL.md#pre-computed-tsvector-column",
-      "token_cost": 140
-    },
-    "metadata-filtering": {
-      "keywords": ["metadata filter", "faceted search", "content type filter", "score boosting"],
-      "solves": [
-        "How do I filter search by metadata?",
-        "Boost results by section title (1.5x)",
-        "Pre-filter by content type before search",
-        "Improve search relevance with boosting"
-      ],
-      "reference_file": "SKILL.md#metadata-filtering-boosting",
-      "token_cost": 180
-    },
-    "metadata-boosting": {
-      "keywords": ["score boosting", "section title boost", "document path boost", "code block boost"],
-      "solves": [
-        "How do I boost search results by metadata?",
-        "Implement section title boosting (1.5x)",
-        "Boost technical queries for code blocks",
-        "Real-world +6% MRR improvement"
-      ],
-      "reference_file": "SKILL.md#metadata-filtering-boosting",
-      "token_cost": 150
-    },
-    "common-patterns": {
-      "keywords": ["filtered search", "similarity threshold", "multi-query retrieval", "search patterns"],
-      "solves": [
-        "How do I filter search by content type?",
-        "Set minimum similarity threshold",
-        "Implement multi-query retrieval",
-        "De-duplicate and re-rank results"
-      ],
-      "reference_file": "SKILL.md#common-patterns",
-      "token_cost": 160
-    },
-    "golden-dataset-testing": {
-      "keywords": ["golden dataset", "search evaluation", "pass rate", "mrr", "retrieval testing"],
-      "solves": [
-        "How do I test hybrid search quality?",
-        "Evaluate search with golden queries",
-        "Calculate pass rate and MRR metrics",
-        "Benchmark against expected results"
-      ],
-      "reference_file": "SKILL.md#testing-hybrid-search",
-      "token_cost": 170
-    }
-  },
-
+  "capabilities": [
+    "common-patterns",
+    "database-schema",
+    "golden-dataset-testing",
+    "hybrid-search-rrf",
+    "indexing-strategies",
+    "keyword-search-bm25",
+    "metadata-boosting",
+    "metadata-filtering",
+    "pre-computed-tsvector",
+    "rrf-algorithm",
+    "search-query-implementation",
+    "semantic-search"
+  ],
   "triggers": {
     "high_confidence": [
       "hybrid.*search",
@@ -156,45 +34,9 @@
       "hnsw.*ivfflat"
     ]
   },
-
   "integrates_with": [
-    "ai-native-development",
+    "embeddings",
     "database-schema-designer",
     "performance-optimization"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 500,
-      "use_when": "Skill confirmed relevant - need architecture and core concepts"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#section",
-      "tokens": "120-250 each",
-      "use_when": "Need specific implementation (e.g., RRF algorithm, indexing)"
-    },
-    "tier_4_implementation": {
-      "files": "SKILL.md#skillforge-hybrid-search-implementation",
-      "tokens": "200+ each",
-      "use_when": "Ready to implement with complete code examples"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/pgvector/pgvector"],
-      "use_when": "Need current PGVector API documentation"
-    },
-    "database_testing": {
-      "tool": "skillforge-postgres-dev",
-      "use_when": "Testing search queries and performance"
-    }
-  }
+  ]
 }

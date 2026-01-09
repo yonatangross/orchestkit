@@ -3,115 +3,30 @@
   "name": "github-cli",
   "version": "1.0.0",
   "description": "GitHub CLI (gh) mastery for issues, PRs, Projects v2, and automation. Source of truth for SkillForge development workflow.",
-
-  "capabilities": {
-    "issue-management": {
-      "keywords": ["gh issue", "create issue", "issue labels", "milestone", "assignee", "bulk issues"],
-      "solves": [
-        "How do I create a GitHub issue?",
-        "Add labels to multiple issues",
-        "Link issue to milestone",
-        "Create issue from template"
-      ],
-      "reference_file": "references/issue-management.md",
-      "token_cost": 250
-    },
-    "pr-workflows": {
-      "keywords": ["gh pr", "pull request", "create PR", "review PR", "merge", "auto-merge", "pr checks"],
-      "solves": [
-        "How do I create a PR with gh?",
-        "Wait for PR checks to pass",
-        "Auto-merge when approved",
-        "Request PR review"
-      ],
-      "reference_file": "references/pr-workflows.md",
-      "token_cost": 300
-    },
-    "projects-v2": {
-      "keywords": ["gh project", "project board", "custom fields", "Status", "Priority", "Sprint", "project views"],
-      "solves": [
-        "How do I add issue to project board?",
-        "Set project Status field",
-        "Move item to In Progress",
-        "Query project items"
-      ],
-      "reference_file": "references/projects-v2.md",
-      "template_file": "templates/skillforge-project-config.json",
-      "token_cost": 350
-    },
-    "graphql-api": {
-      "keywords": ["gh api graphql", "GraphQL query", "custom query", "bulk operations", "pagination"],
-      "solves": [
-        "How do I run GraphQL queries with gh?",
-        "Get all open issues with custom fields",
-        "Bulk update project items",
-        "Complex GitHub API queries"
-      ],
-      "reference_file": "references/graphql-api.md",
-      "token_cost": 280
-    },
-    "automation-patterns": {
-      "keywords": ["gh automation", "gh alias", "bulk operations", "jq", "scripting", "retry", "rate limit"],
-      "solves": [
-        "Create reusable gh aliases",
-        "Handle rate limits in scripts",
-        "Bulk close stale issues",
-        "Automated workflow scripts"
-      ],
-      "reference_file": "references/automation-patterns.md",
-      "template_file": "scripts/gh-helpers.sh",
-      "token_cost": 220
-    },
-    "skillforge-workflow": {
-      "keywords": ["SkillForge", "feature branch", "conventional commits", "PR template", "dev branch"],
-      "solves": [
-        "SkillForge branch naming convention",
-        "Create issue and feature branch",
-        "SkillForge PR workflow",
-        "Project field IDs for SkillForge"
-      ],
-      "reference_file": "SKILL.md#skillforge-workflow",
-      "template_file": "templates/skillforge-project-config.json",
-      "token_cost": 150
-    }
-  },
-
+  "capabilities": [
+    "automation-patterns",
+    "graphql-api",
+    "issue-management",
+    "pr-workflows",
+    "projects-v2",
+    "skillforge-workflow"
+  ],
   "triggers": {
-    "high_confidence": ["gh\\s+(issue|pr|project|api)", "create.*issue", "create.*PR", "GitHub.*project"],
-    "medium_confidence": ["milestone", "pull.*request", "project.*board", "issue.*label"]
+    "high_confidence": [
+      "gh\\s+(issue|pr|project|api)",
+      "create.*issue",
+      "create.*PR",
+      "GitHub.*project"
+    ],
+    "medium_confidence": [
+      "milestone",
+      "pull.*request",
+      "project.*board",
+      "issue.*label"
+    ]
   },
-
-  "integrates_with": ["devops-deployment", "code-review-playbook"],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if GitHub CLI is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "sections": ["quick-reference", "skillforge-workflow"],
-      "use_when": "Skill confirmed relevant - need quick reference and workflow conventions"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "200-350 each",
-      "use_when": "Need specific gh capabilities (issues, PRs, projects, GraphQL, automation)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.json, scripts/*.sh",
-      "tokens": "150-250 each",
-      "use_when": "Ready to generate SkillForge project config or automation scripts"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/cli/cli"],
-      "use_when": "Looking up current gh command syntax or new GitHub features"
-    }
-  }
+  "integrates_with": [
+    "devops-deployment",
+    "code-review-playbook"
+  ]
 }

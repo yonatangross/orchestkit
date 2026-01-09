@@ -1,0 +1,143 @@
+#!/bin/bash
+# Coordination Lock CLI - Manage file locks manually
+# Usage: coord-lock [acquire|release|check|list] <file>
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/coordination.sh"
+
+# Parse command
+COMMAND="${1:-}"
+FILE_PATH="${2:-}"
+
+show_usage() {
+  echo "Usage: coord-lock [command] [file]"
+  echo ""
+  echo "Commands:"
+  echo "  acquire <file>   Acquire a write lock on a file"
+  echo "  release <file>   Release a lock on a file"
+  echo "  check <file>     Check if a file is locked"
+  echo "  list             List all active locks"
+  echo "  cleanup          Clean up expired locks and stale instances"
+  echo ""
+  echo "Examples:"
+  echo "  coord-lock acquire backend/app/api/routes.py"
+  echo "  coord-lock check backend/app/api/routes.py"
+  echo "  coord-lock list"
+  exit 1
+}
+
+if [[ -z "${COMMAND}" ]]; then
+  show_usage
+fi
+
+coord_init
+
+# Load instance ID if exists
+if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
+  source "${CLAUDE_PROJECT_DIR}/.claude/.instance_env"
+  export INSTANCE_ID="${CLAUDE_INSTANCE_ID}"
+else
+  # Create temporary instance for manual operations
+  INSTANCE_ID="claude-manual-$(date -u +%Y%m%d-%H%M%S)-$(openssl rand -hex 4)"
+fi
+
+case "${COMMAND}" in
+  acquire)
+    if [[ -z "${FILE_PATH}" ]]; then
+      echo "Error: File path required" >&2
+      show_usage
+    fi
+
+    echo "Acquiring lock on: ${FILE_PATH}"
+    if coord_acquire_lock "${FILE_PATH}" "Manual lock via CLI"; then
+      echo "Lock acquired successfully"
+      exit 0
+    else
+      EXIT_CODE=$?
+      if [[ ${EXIT_CODE} -eq 10 ]]; then
+        echo "Error: File is already locked by another instance" >&2
+        exit 1
+      elif [[ ${EXIT_CODE} -eq 11 ]]; then
+        echo "Expired lock cleaned, retrying..."
+        coord_acquire_lock "${FILE_PATH}" "Manual lock via CLI"
+        echo "Lock acquired successfully"
+        exit 0
+      fi
+    fi
+    ;;
+
+  release)
+    if [[ -z "${FILE_PATH}" ]]; then
+      echo "Error: File path required" >&2
+      show_usage
+    fi
+
+    echo "Releasing lock on: ${FILE_PATH}"
+    if coord_release_lock "${FILE_PATH}"; then
+      echo "Lock released successfully"
+      exit 0
+    else
+      echo "Error: Failed to release lock" >&2
+      exit 1
+    fi
+    ;;
+
+  check)
+    if [[ -z "${FILE_PATH}" ]]; then
+      echo "Error: File path required" >&2
+      show_usage
+    fi
+
+    echo "Checking lock on: ${FILE_PATH}"
+    if coord_check_lock "${FILE_PATH}"; then
+      echo "File is not locked (or locked by current instance)"
+      exit 0
+    else
+      echo "File is locked by another instance"
+      exit 1
+    fi
+    ;;
+
+  list)
+    echo "Active File Locks:"
+    echo "=================="
+    echo ""
+
+    LOCK_COUNT=0
+    for lock_file in "${LOCKS_DIR}"/*.json; do
+      [[ ! -f "${lock_file}" ]] && continue
+
+      ((LOCK_COUNT++))
+
+      jq -r '"File: \(.file_path)\n" +
+             "  Locked By: \(.locked_by.instance_id)\n" +
+             "  Lock Type: \(.lock_type)\n" +
+             "  Intent: \(.intent)\n" +
+             "  Locked At: \(.locked_at)\n" +
+             "  Expires At: \(.expires_at)\n"' \
+        "${lock_file}"
+    done
+
+    if [[ ${LOCK_COUNT} -eq 0 ]]; then
+      echo "No active locks"
+    else
+      echo "Total: ${LOCK_COUNT} lock(s)"
+    fi
+    ;;
+
+  cleanup)
+    echo "Cleaning up stale instances and expired locks..."
+    STALE_COUNT=$(coord_cleanup_stale_instances)
+    echo "Cleaned up ${STALE_COUNT} stale instance(s)"
+    exit 0
+    ;;
+
+  *)
+    echo "Error: Unknown command '${COMMAND}'" >&2
+    show_usage
+    ;;
+esac
+
+exit 0

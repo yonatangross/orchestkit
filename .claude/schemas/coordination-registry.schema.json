@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "coordination://registry/v1",
+  "title": "Multi-Instance Coordination Registry",
+  "description": "Schema for coordinating multiple Claude Code instances across git worktrees",
+  "type": "object",
+  "required": ["instances", "file_locks"],
+  "properties": {
+    "_meta": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "description": { "type": "string" },
+        "stale_threshold_seconds": { "type": "integer", "default": 300 },
+        "lock_timeout_seconds": { "type": "integer", "default": 3600 }
+      }
+    },
+    "instances": {
+      "type": "object",
+      "description": "Active Claude Code instances keyed by instance ID",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["worktree", "branch", "started", "last_heartbeat"],
+        "properties": {
+          "worktree": {
+            "type": "string",
+            "description": "Absolute path to the worktree directory"
+          },
+          "branch": {
+            "type": "string",
+            "description": "Git branch name"
+          },
+          "task": {
+            "type": ["string", "null"],
+            "description": "Current task description"
+          },
+          "files_locked": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "List of file paths locked by this instance"
+          },
+          "started": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO timestamp when instance started"
+          },
+          "last_heartbeat": {
+            "type": "string",
+            "format": "date-time",
+            "description": "ISO timestamp of last heartbeat"
+          },
+          "pid": {
+            "type": "integer",
+            "description": "Process ID of the Claude Code instance"
+          }
+        }
+      }
+    },
+    "file_locks": {
+      "type": "object",
+      "description": "File paths mapped to instance IDs holding locks",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["instance_id", "acquired_at"],
+        "properties": {
+          "instance_id": { "type": "string" },
+          "acquired_at": { "type": "string", "format": "date-time" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "decisions_log": {
+      "type": "array",
+      "description": "Append-only log of architectural decisions across instances",
+      "items": {
+        "type": "object",
+        "required": ["id", "instance_id", "decision", "timestamp"],
+        "properties": {
+          "id": { "type": "string" },
+          "instance_id": { "type": "string" },
+          "decision": { "type": "string" },
+          "rationale": { "type": "string" },
+          "affected_files": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

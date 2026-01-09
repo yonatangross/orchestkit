@@ -1,0 +1,12 @@
+{
+  "$schema": "../schemas/coordination-registry.schema.json",
+  "_meta": {
+    "version": "1.0.0",
+    "description": "Multi-instance coordination registry for Claude Code worktrees",
+    "stale_threshold_seconds": 300,
+    "lock_timeout_seconds": 3600
+  },
+  "instances": {},
+  "file_locks": {},
+  "decisions_log": []
+}

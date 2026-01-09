@@ -1,6 +1,8 @@
 ---
 name: Observability & Monitoring
 description: Use when adding logging, metrics, tracing, or alerting to applications. Covers structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies.
+context: fork
+agent: metrics-architect
 version: 1.0.0
 category: Operations & Reliability
 agents: [backend-system-architect, code-quality-reviewer, ai-ml-engineer]
@@ -832,3 +834,113 @@ Use Opus 4.5 extended thinking for:
 | `opentelemetry-tracing.ts` | Distributed tracing setup |
 | `alerting-rules.yml` | Prometheus alerting rules |
 | `health-checks.ts` | Liveness, readiness, startup probes |
+
+## Capability Details
+
+### structured-logging
+**Keywords:** logging, structured log, json log, correlation id, log level, winston, pino, structlog
+**Solves:**
+- How do I set up structured logging?
+- Implement correlation IDs across services
+- JSON logging best practices
+- Log aggregation with Loki/LogQL
+
+### correlation-tracking
+**Keywords:** correlation id, request tracking, trace context, distributed logs
+**Solves:**
+- How do I track requests across services?
+- Implement correlation IDs in middleware
+- Find all logs for a single request
+- Debug distributed transactions
+
+### log-sampling
+**Keywords:** log sampling, high traffic logging, sampling rate, log volume
+**Solves:**
+- How do I reduce log volume in production?
+- Sample INFO logs while keeping all errors
+- Manage logging costs at scale
+
+### prometheus-metrics
+**Keywords:** metrics, prometheus, counter, histogram, gauge, summary, red method
+**Solves:**
+- How do I collect application metrics?
+- Implement RED method (Rate, Errors, Duration)
+- Choose between Counter, Gauge, Histogram
+- Avoid high cardinality metrics
+
+### metric-types
+**Keywords:** counter, gauge, histogram, summary, bucket, quantile
+**Solves:**
+- When to use Counter vs Gauge?
+- Histogram vs Summary for latency
+- Configure histogram buckets
+- Calculate p95/p99 latency
+
+### cardinality-management
+**Keywords:** cardinality, label explosion, time series, prometheus performance
+**Solves:**
+- How do I prevent label cardinality explosions?
+- Identify high cardinality metrics
+- Fix unbounded labels (user IDs, request IDs)
+
+### distributed-tracing
+**Keywords:** tracing, distributed tracing, opentelemetry, span, trace id, waterfall
+**Solves:**
+- How do I implement distributed tracing?
+- OpenTelemetry setup with auto-instrumentation
+- Create manual spans for custom operations
+- Trace sampling strategies
+
+### trace-sampling
+**Keywords:** trace sampling, head-based sampling, tail-based sampling, sampling strategy
+**Solves:**
+- How do I reduce trace volume?
+- Sample 10% of traces but keep all errors
+- Tail-based vs head-based sampling
+
+### alerting-strategy
+**Keywords:** alert, alerting, notification, threshold, pagerduty, slack, severity
+**Solves:**
+- How do I set up effective alerts?
+- Define alert severity levels (P1-P4)
+- Create service down and error rate alerts
+- Write runbooks for alerts
+
+### alert-fatigue-prevention
+**Keywords:** alert fatigue, alert grouping, inhibition, escalation
+**Solves:**
+- How do I reduce alert noise?
+- Group related alerts together
+- Suppress alerts with inhibition rules
+- Set up escalation policies
+
+### dashboards
+**Keywords:** dashboard, visualization, grafana, golden signals, red method, use method
+**Solves:**
+- How do I create monitoring dashboards?
+- Design Golden Signals dashboard layout
+- Build SLO/SLI dashboards
+- Calculate error budgets
+
+### health-checks
+**Keywords:** health check, liveness, readiness, startup probe, kubernetes
+**Solves:**
+- How do I implement health check endpoints?
+- Difference between liveness and readiness
+- Health check for database and Redis
+
+### langfuse-observability
+**Keywords:** langfuse, llm observability, llm tracing, token usage, llm cost tracking
+**Solves:**
+- How do I monitor LLM calls with Langfuse?
+- Track LLM token usage and cost
+- Trace multi-agent workflows
+- Real-world SkillForge LLM observability
+
+### llm-cost-tracking
+**Keywords:** llm cost, token tracking, cost optimization, prometheus llm metrics
+**Solves:**
+- How do I track LLM costs with Prometheus?
+- Measure token usage by model and operation
+- Calculate cost per analysis/operation
+- Build LLM cost dashboards

@@ -5,6 +5,228 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.3] - 2026-01-09
+
+### Added
+
+**6 New Retrieval & AI Skills**
+- `hyde-retrieval` - HyDE (Hypothetical Document Embeddings) for vocabulary mismatch resolution
+- `query-decomposition` - Multi-concept query handling with parallel retrieval and RRF fusion
+- `reranking-patterns` - Cross-encoder and LLM-based reranking for search precision
+- `contextual-retrieval` - Anthropic's context-prepending technique for improved RAG
+- `langgraph-functional` - New @entrypoint/@task decorator API for modern LangGraph workflows
+- `mcp-server-building` - Building MCP servers for Claude extensibility
+
+**Enhanced Existing Skills**
+- `embeddings` - Added late chunking, batch API patterns, embedding cache, Matryoshka dimensions
+- `rag-retrieval` - Added HyDE integration, agentic RAG, Self-RAG, Corrective RAG (CRAG) patterns
+
+**Subagent Integration**
+- `data-pipeline-engineer` agent now uses: hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval
+- `workflow-architect` agent now uses: langgraph-functional
+- `backend-system-architect` agent now uses: mcp-server-building
+
+### Changed
+
+- Skills count increased from 72 to 78
+- Updated agent markdown files with new skill references
+- All new skills follow slim Tier 1/Tier 2 format with proper schema validation
+
+### Fixed
+
+- capabilities.json files now include required `$schema`, `description`, and `capabilities` fields
+- SKILL.md files now include required "When to Use" sections
+
+---
+
+## [4.6.2] - 2026-01-09
+
+### Added
+
+**Claude Code 2.1.2 Support**
+- `agent_type` field parsing in `startup-dispatcher.sh`
+- Agent-aware context initialization in `session-context-loader.sh`
+- Agent type logging to session state in `session-env-setup.sh`
+
+**Comprehensive Hook Tests (138 new tests)**
+- `test-lifecycle-hooks.sh` - 57 tests for 7 lifecycle hooks
+- `test-file-lock-hooks.sh` - 31 tests for 6 file lock hooks
+- `test-permission-posttool-hooks.sh` - 50 tests for 5 hooks (permissions, posttool, input-mod)
+
+### Changed
+
+- Claude Code requirement updated from `>=2.1.0` to `>=2.1.2`
+- Migrated deprecated `shared-context.json` → Context 2.0 (`session/state.json`)
+
+### Fixed
+
+- Placeholder values (XXX KB) in `evidence-verification/SKILL.md` now show realistic sizes (245 KB, 18 KB)
+
+---
+
+## [4.6.1] - 2026-01-08
+
+### Added
+
+**Comprehensive CI/CD Pipeline**
+- GitHub Actions workflow with 5-stage pipeline (lint → unit → security → integration → performance)
+- Matrix testing on Ubuntu and macOS
+- Zero tolerance policy for security test failures
+
+**New Test Suites**
+- `tests/ci/lint.sh` - Static analysis: JSON validity, shellcheck, schema validation
+- `tests/e2e/test-progressive-loading.sh` - Skill discovery and loading validation
+- `tests/e2e/test-agent-lifecycle.sh` - Agent spawning and handoff testing
+- `tests/e2e/test-coordination-e2e.sh` - Multi-worktree coordination system tests
+- `tests/performance/test-token-budget.sh` - Token budget analysis and recommendations
+- `tests/security/test-unicode-attacks.sh` - Unicode/homoglyph/BIDI attack prevention
+- `tests/security/test-symlink-attacks.sh` - Symlink and TOCTOU attack prevention
+
+**Test Runner v3.0**
+- `tests/run-all-tests.sh` updated with all new test categories
+- 19 test suites, organized by layer (lint, unit, security, integration, e2e, performance)
+
+### Changed
+
+- Skills count increased from 68 to 72
+- Portable shell scripts (macOS + Linux compatibility)
+
+### Removed
+
+**Cleanup of AI Slop Documentation**
+- Removed `.claude/archive/` - deprecated systems and docs
+- Removed `.claude/docs/` - AI-generated design documents
+- Removed `.claude/context/patterns/` - redundant with skills
+- Removed `.claude/workflows/` - orphaned markdown files
+- Removed 16 redundant instruction files (kept only `context-initialization.md`)
+- Removed root slop files: `SECURITY_TEST_INDEX.md`, `HOOK_SECURITY_AUDIT.md`, `SKILL.md`
+- Removed `tests/COMPREHENSIVE-TEST-STRATEGY.md` - replaced by actual tests
+
+
+## [4.5.0] - 2026-01-08
+
+### Added
+
+#### Claude Code 2.1.1 Full Feature Utilization
+
+This release fully leverages Claude Code 2.1.1 capabilities, upgrading the plugin from 6.5/10 to 9.5/10 maturity.
+
+**Engine Requirement**
+- Plugin now requires Claude Code `>=2.1.0`
+
+**SubagentStart Hooks** (NEW hook type)
+- `subagent-resource-allocator.sh` - Pre-allocates context resources before subagent spawn
+- `subagent-context-stager.sh` - Stages relevant context based on task type
+
+**SubagentStop Hooks** (NEW hook type)
+- `subagent-completion-tracker.sh` - Tracks subagent completion metrics
+- `subagent-quality-gate.sh` - Validates subagent output quality
+- `coverage-threshold-gate.sh` - Enforces test coverage thresholds
+
+**Input Modification Hooks** (NEW hook capability)
+- `path-normalizer.sh` - Normalizes file paths to absolute paths for Read/Write/Edit/Glob/Grep
+- `bash-defaults.sh` - Adds default timeout and prevents dangerous bash commands
+- `write-headers.sh` - Adds standard file headers to new files
+
+**Hook Chain Orchestration**
+- `chain-config.json` - Centralized configuration for hook sequences
+- `chain-executor.sh` - Sequential execution with timeout/retry support
+- 4 predefined chains: error_handling, security_validation, test_workflow, code_quality
+
+**Agent-Level Hooks** (all 20 agents)
+- `output-validator.sh` - Validates agent output quality and completeness
+- `context-publisher.sh` - Publishes agent decisions to shared context
+- `handoff-preparer.sh` - Prepares context for next agent in pipeline (10 pipeline agents)
+
+**Skill-Level Hooks** (all 68 skills)
+- Testing skills: `test-runner.sh`, `coverage-check.sh`
+- Security skills: `security-summary.sh`, `redact-secrets.sh`
+- Code review skills: `review-summary-generator.sh`
+- Architecture skills: `design-decision-saver.sh`
+- Database skills: `migration-validator.sh`
+- LLM/AI skills: `eval-metrics-collector.sh`
+- Evidence skills: `evidence-collector.sh`
+
+**MCP Tool Annotations**
+- Added metadata for 6 tool patterns with safety, cost, and category flags
+- Wildcard permission syntax: `mcp__server__*` for bulk tool approval
+- Auto-approve and require-confirmation lists
+- Fallback configuration for context7 and sequential-thinking
+- Notification settings with refresh intervals
+
+**Model Fallback Chains**
+- 15+ complex skills now have `model-alternatives` for resilience
+- Primary: opus → Fallback: sonnet → Last resort: haiku
+
+**Workflow Auto-Triggers** (all 5 workflows)
+- Keyword detection with 0.8 confidence threshold
+- Auto-launch capability for matching patterns
+- Keywords for: frontend-2025-compliance, api-design-compliance, security-audit-workflow, data-pipeline-workflow, ai-integration-workflow
+
+**Dependency Graph**
+- 42 skill-to-agent mappings across 8 domains
+- 8 agent pipeline sequences defined:
+  - product-thinking: market-intelligence → product-strategist → prioritization-analyst
+  - full-stack-feature: requirements → backend → database → frontend → test → review
+  - security-audit: security-auditor → code-quality-reviewer
+  - ai-integration: llm-integrator → workflow-architect → data-pipeline-engineer
+  - database-feature: database-engineer → backend-system-architect
+  - ui-feature: rapid-ui-designer → frontend-ui-developer
+  - bug-investigation: debug-investigator → test-generator
+  - system-review: backend-system-architect → metrics-architect
+
+**Security Manifest**
+- Required permissions: read_project, write_project, execute_bash, call_llm
+- Denied operations: delete_outside_project, execute_system_commands, network_without_approval
+- 11 sensitive file patterns protected (*.env, *.pem, *.key, *credentials*, etc.)
+
+**Tool Restrictions** (8 security-critical skills)
+- `security-scanning`: Read, Grep, Glob, Bash (controlled)
+- `owasp-top-10`: Read, Grep, Glob (read-only)
+- `input-validation`: Read, Grep, Glob, Write, Edit
+- `defense-in-depth`: Read, Grep, Glob (read-only)
+- `auth-patterns`: Read, Grep, Glob, Write, Edit, Bash (full)
+- `golden-dataset-management`: Read, Grep, Glob, Bash
+- `golden-dataset-validation`: Read, Grep, Glob (read-only)
+- `evidence-verification`: Read, Grep, Glob, Bash
+
+### Changed
+
+- `plugin.json` version bumped to 4.5.0
+- Engine requirement updated from `>=1.0.0` to `>=2.1.0`
+- All workflows now have `auto_trigger` configuration
+- All agents now have Stop hooks for validation and context publishing
+- All skills now have PostToolUse and Stop event hooks
+
+### Fixed
+
+- Agent pipeline sequencing now properly chains 10 pipeline agents
+- MCP tool permissions now use proper wildcard syntax
+- Hook execution order guaranteed through chain orchestration
+
+---
+
+## [4.4.1] - 2026-01-08
+
+### Fixed
+
+#### Version Consistency
+- Updated `plugin.json` version from 1.0.0 to 4.4.1
+- Updated `marketplace.json` version from 1.0.0 to 4.4.1
+- Renamed `motion-animation-patterns/skill.md` to `SKILL.md` for consistency with other skills
+
+#### Missing Metadata
+- Added `capabilities.json` for `motion-animation-patterns` skill
+- Added `capabilities.json` for `langgraph-human-in-loop` skill
+
+### Added
+
+#### MCP Configuration
+- Added `.mcp.json` for MCP project-scope server configuration (Claude Code 2025+ feature)
+- Pre-configured servers: context7, sequential-thinking, memory, playwright
+
+---
+
 ## [4.4.0] - 2026-01-06
 
 ### Added

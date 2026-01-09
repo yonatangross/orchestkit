@@ -3,101 +3,17 @@
   "name": "api-design-framework",
   "version": "1.0.0",
   "description": "Comprehensive API design patterns, versioning strategies, error handling conventions, and OpenAPI templates",
-
-  "capabilities": {
-    "rest-design": {
-      "keywords": ["rest", "restful", "http", "endpoint", "route", "path", "resource", "CRUD"],
-      "solves": [
-        "How do I design RESTful APIs?",
-        "REST endpoint patterns and conventions",
-        "HTTP methods and status codes",
-        "API versioning and pagination"
-      ],
-      "reference_file": "references/rest-patterns.md",
-      "token_cost": 600
-    },
-    "endpoint-design": {
-      "keywords": ["endpoint", "route", "path", "resource", "CRUD"],
-      "solves": [
-        "How do I structure API endpoints?",
-        "What's the best URL pattern for this resource?",
-        "RESTful endpoint naming conventions"
-      ],
-      "reference_file": "references/rest-patterns.md#resource-modeling",
-      "token_cost": 150
-    },
-    "pagination": {
-      "keywords": ["pagination", "paginate", "paging", "offset", "cursor", "limit"],
-      "solves": [
-        "How do I add pagination to an endpoint?",
-        "Cursor vs offset pagination",
-        "Pagination best practices"
-      ],
-      "reference_file": "references/rest-patterns.md#pagination",
-      "token_cost": 120
-    },
-    "versioning": {
-      "keywords": ["version", "v1", "v2", "api version", "breaking change"],
-      "solves": [
-        "How do I version my API?",
-        "When to create a new API version",
-        "URL vs header versioning"
-      ],
-      "reference_file": "references/rest-patterns.md#api-versioning",
-      "token_cost": 100
-    },
-    "error-handling": {
-      "keywords": ["error", "exception", "status code", "error response", "validation error"],
-      "solves": [
-        "How do I structure error responses?",
-        "Which HTTP status codes to use",
-        "Error message best practices"
-      ],
-      "reference_file": "references/rest-patterns.md",
-      "token_cost": 130
-    },
-    "rate-limiting": {
-      "keywords": ["rate limit", "throttle", "quota", "requests per second", "429"],
-      "solves": [
-        "How do I implement rate limiting?",
-        "Rate limit headers and responses",
-        "Tiered rate limiting strategies"
-      ],
-      "reference_file": "references/rest-patterns.md",
-      "token_cost": 110
-    },
-    "skillforge-api": {
-      "keywords": ["skillforge", "analysis api", "artifact api", "sse endpoint"],
-      "solves": [
-        "How does SkillForge API work?",
-        "SkillForge endpoint design decisions",
-        "Real-world API design examples"
-      ],
-      "example_file": "examples/skillforge-api-design.md",
-      "token_cost": 650
-    },
-    "authentication": {
-      "keywords": ["auth", "authentication", "bearer", "jwt", "oauth", "api key"],
-      "solves": [
-        "How do I secure API endpoints?",
-        "JWT vs API key authentication",
-        "OAuth2 flow for APIs"
-      ],
-      "reference_file": "SKILL.md#authentication-patterns",
-      "token_cost": 180
-    },
-    "openapi-spec": {
-      "keywords": ["openapi", "swagger", "api spec", "documentation", "schema"],
-      "solves": [
-        "How do I document my API?",
-        "Generate OpenAPI specification",
-        "API documentation best practices"
-      ],
-      "template_file": "templates/openapi-template.yaml",
-      "token_cost": 200
-    }
-  },
-
+  "capabilities": [
+    "authentication",
+    "endpoint-design",
+    "error-handling",
+    "openapi-spec",
+    "pagination",
+    "rate-limiting",
+    "rest-design",
+    "skillforge-api",
+    "versioning"
+  ],
   "triggers": {
     "high_confidence": [
       "design.*api",
@@ -112,41 +28,9 @@
       "request.*response"
     ]
   },
-
   "integrates_with": [
-    "security-checklist",
-    "testing-strategy-builder",
+    "owasp-top-10",
+    "integration-testing",
     "type-safety-validation"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "use_when": "Skill confirmed relevant - need patterns and best practices"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "100-200 each",
-      "use_when": "Need specific implementation guidance"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.yaml",
-      "tokens": "150-300 each",
-      "use_when": "Ready to generate code/config"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/tiangolo/fastapi", "/expressjs/express"],
-      "use_when": "Need current framework-specific patterns"
-    }
-  }
+  ]
 }

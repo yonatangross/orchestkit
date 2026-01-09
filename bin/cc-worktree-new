@@ -1,0 +1,207 @@
+#!/bin/bash
+# cc-worktree-new: Create a new Claude Code worktree with coordination
+#
+# Usage: cc-worktree-new <feature-name> [--base <branch>]
+#
+# Creates a new git worktree with:
+# - Unique instance ID
+# - Symlinked coordination directory
+# - Registered in coordination registry
+# - Background heartbeat process
+#
+# Version: 1.0.0
+# Part of SkillForge Multi-Worktree Coordination System
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Parse arguments
+FEATURE_NAME=""
+BASE_BRANCH="main"
+WORKTREE_BASE="${CC_WORKTREE_BASE:-$HOME/worktrees}"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --base)
+            BASE_BRANCH="$2"
+            shift 2
+            ;;
+        --worktree-base)
+            WORKTREE_BASE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            cat << EOF
+Usage: cc-worktree-new <feature-name> [options]
+
+Creates a new git worktree with Claude Code coordination.
+
+Options:
+  --base <branch>         Base branch to create from (default: main)
+  --worktree-base <path>  Directory for worktrees (default: ~/worktrees)
+  -h, --help              Show this help message
+
+Environment Variables:
+  CC_WORKTREE_BASE        Default worktree base directory
+
+Examples:
+  cc-worktree-new user-auth
+  cc-worktree-new payment-flow --base develop
+  cc-worktree-new hotfix-login --worktree-base /tmp/worktrees
+EOF
+            exit 0
+            ;;
+        *)
+            FEATURE_NAME="$1"
+            shift
+            ;;
+    esac
+done
+
+if [[ -z "$FEATURE_NAME" ]]; then
+    echo -e "${RED}Error: Feature name required${NC}"
+    echo "Usage: cc-worktree-new <feature-name>"
+    exit 1
+fi
+
+# Get repo root
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo -e "${RED}Error: Not in a git repository${NC}"
+    exit 1
+}
+
+COORDINATION_DIR="$REPO_ROOT/.claude/coordination"
+BRANCH_NAME="feature/$FEATURE_NAME"
+WORKTREE_PATH="$WORKTREE_BASE/$(basename "$REPO_ROOT")/$FEATURE_NAME"
+
+# Generate unique instance ID
+INSTANCE_ID="cc-$(echo "$FEATURE_NAME" | tr '/' '-' | tr '[:upper:]' '[:lower:]' | cut -c1-12)-$(openssl rand -hex 3 2>/dev/null || echo "$$")"
+
+echo -e "${BLUE}Creating worktree for: ${GREEN}$FEATURE_NAME${NC}"
+echo ""
+
+# Ensure coordination directory exists
+mkdir -p "$COORDINATION_DIR"/{locks,heartbeats,decisions}
+
+# Initialize registry if needed
+if [[ ! -f "$COORDINATION_DIR/registry.json" ]]; then
+    echo '{"_meta":{"version":"1.0.0","stale_threshold_seconds":300,"lock_timeout_seconds":3600},"instances":{},"file_locks":{},"decisions_log":[]}' > "$COORDINATION_DIR/registry.json"
+    echo -e "${YELLOW}Initialized coordination registry${NC}"
+fi
+
+# Create worktree directory parent
+mkdir -p "$(dirname "$WORKTREE_PATH")"
+
+# Create worktree
+echo -e "Creating git worktree..."
+if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" 2>/dev/null; then
+    # Branch exists, just add worktree
+    git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
+else
+    # Create new branch from base
+    git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "$BASE_BRANCH"
+fi
+
+# Create instance-local directory
+mkdir -p "$WORKTREE_PATH/.claude-local"
+echo "$INSTANCE_ID" > "$WORKTREE_PATH/.claude-local/instance-id.txt"
+echo "$REPO_ROOT" > "$WORKTREE_PATH/.claude-local/main-repo.txt"
+
+# Symlink coordination directory
+if [[ ! -e "$WORKTREE_PATH/.claude/coordination" ]]; then
+    mkdir -p "$WORKTREE_PATH/.claude"
+    ln -sf "$COORDINATION_DIR" "$WORKTREE_PATH/.claude/coordination"
+fi
+
+# Also symlink the hooks lib
+if [[ -d "$REPO_ROOT/.claude/hooks/_lib" ]]; then
+    mkdir -p "$WORKTREE_PATH/.claude/hooks"
+    ln -sf "$REPO_ROOT/.claude/hooks/_lib" "$WORKTREE_PATH/.claude/hooks/_lib"
+fi
+
+# Register instance in registry
+NOW=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)
+REGISTRY=$(cat "$COORDINATION_DIR/registry.json")
+UPDATED=$(echo "$REGISTRY" | jq \
+    --arg id "$INSTANCE_ID" \
+    --arg worktree "$WORKTREE_PATH" \
+    --arg branch "$BRANCH_NAME" \
+    --arg time "$NOW" \
+    '.instances[$id] = {
+        worktree: $worktree,
+        branch: $branch,
+        task: null,
+        files_locked: [],
+        started: $time,
+        last_heartbeat: $time
+    }')
+echo "$UPDATED" > "$COORDINATION_DIR/registry.json"
+
+# Create launch script
+cat > "$WORKTREE_PATH/.claude-local/launch.sh" << 'LAUNCH_EOF'
+#!/bin/bash
+# Launch Claude Code with coordination
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+WORKTREE_DIR="$(dirname "$SCRIPT_DIR")"
+INSTANCE_ID=$(cat "$SCRIPT_DIR/instance-id.txt")
+
+cd "$WORKTREE_DIR"
+
+# Start heartbeat in background
+(
+    while true; do
+        if [[ -f "$WORKTREE_DIR/.claude/coordination/registry.json" ]]; then
+            NOW=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)
+            REGISTRY=$(cat "$WORKTREE_DIR/.claude/coordination/registry.json")
+            UPDATED=$(echo "$REGISTRY" | jq --arg id "$INSTANCE_ID" --arg time "$NOW" \
+                'if .instances[$id] then .instances[$id].last_heartbeat = $time else . end')
+            echo "$UPDATED" > "$WORKTREE_DIR/.claude/coordination/registry.json"
+        fi
+        sleep 30
+    done
+) &
+HEARTBEAT_PID=$!
+echo $HEARTBEAT_PID > "$SCRIPT_DIR/heartbeat.pid"
+
+# Cleanup on exit
+cleanup() {
+    kill $HEARTBEAT_PID 2>/dev/null || true
+    # Unregister instance
+    if [[ -f "$WORKTREE_DIR/.claude/coordination/registry.json" ]]; then
+        REGISTRY=$(cat "$WORKTREE_DIR/.claude/coordination/registry.json")
+        UPDATED=$(echo "$REGISTRY" | jq --arg id "$INSTANCE_ID" \
+            'del(.instances[$id]) |
+             .file_locks = (.file_locks | to_entries | map(select(.value.instance_id != $id)) | from_entries)')
+        echo "$UPDATED" > "$WORKTREE_DIR/.claude/coordination/registry.json"
+    fi
+}
+trap cleanup EXIT
+
+# Launch Claude Code
+claude "$@"
+LAUNCH_EOF
+chmod +x "$WORKTREE_PATH/.claude-local/launch.sh"
+
+# Success message
+echo ""
+echo -e "${GREEN}╔══════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║  Worktree Created Successfully                                        ║${NC}"
+echo -e "${GREEN}╠══════════════════════════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC}  Instance ID:  ${BLUE}$INSTANCE_ID${NC}"
+echo -e "${GREEN}║${NC}  Worktree:     ${BLUE}$WORKTREE_PATH${NC}"
+echo -e "${GREEN}║${NC}  Branch:       ${BLUE}$BRANCH_NAME${NC}"
+echo -e "${GREEN}║${NC}  Base:         ${BLUE}$BASE_BRANCH${NC}"
+echo -e "${GREEN}╠══════════════════════════════════════════════════════════════════════╣${NC}"
+echo -e "${GREEN}║${NC}  To start Claude Code with coordination:                            ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}    ${YELLOW}cd $WORKTREE_PATH && ./.claude-local/launch.sh${NC}"
+echo -e "${GREEN}║${NC}                                                                     ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}  Or start without coordination:                                     ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}    ${YELLOW}cd $WORKTREE_PATH && claude${NC}"
+echo -e "${GREEN}╚══════════════════════════════════════════════════════════════════════╝${NC}"

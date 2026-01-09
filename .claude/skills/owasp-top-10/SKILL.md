@@ -1,6 +1,18 @@
 ---
 name: owasp-top-10
 description: OWASP Top 10 security vulnerabilities and mitigations. Use when conducting security audits, implementing security controls, or reviewing code for common vulnerabilities.
+context: fork
+agent: security-auditor
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/redact-secrets.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
 ---
 
 # OWASP Top 10
@@ -217,3 +229,26 @@ if urlparse(url).hostname not in ALLOWED:
 - `auth-patterns` - Authentication implementation
 - `input-validation` - Sanitization patterns
 - `security-scanning` - Automated scanning
+
+## Capability Details
+
+### injection
+**Keywords:** sql injection, command injection, injection, parameterized
+**Solves:**
+- Prevent SQL injection
+- Fix command injection
+- Use parameterized queries
+
+### access-control
+**Keywords:** access control, authorization, idor, privilege
+**Solves:**
+- Fix broken access control
+- Prevent IDOR vulnerabilities
+- Implement authorization checks
+
+### owasp-fixes
+**Keywords:** fix, mitigation, example, vulnerability
+**Solves:**
+- OWASP vulnerability fixes
+- Mitigation examples
+- Code fix patterns

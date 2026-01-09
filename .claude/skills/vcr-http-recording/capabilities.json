@@ -1,34 +1,32 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "vcr-http-recording",
   "version": "1.0.0",
   "description": "VCR.py HTTP recording for deterministic Python tests",
   "capabilities": [
-    "http-recording",
-    "cassette-replay",
     "async-support",
-    "sensitive-data-filtering",
+    "cassette-replay",
     "custom-matchers",
-    "llm-api-testing"
+    "http-recording",
+    "llm-api-testing",
+    "sensitive-data-filtering"
   ],
-  "triggers": [
-    "VCR",
-    "cassette",
-    "HTTP recording",
-    "pytest.mark.vcr",
-    "record HTTP",
-    "replay HTTP",
-    "mock external API"
-  ],
-  "antiPatterns": [
-    "committing API keys in cassettes",
-    "using 'all' mode in CI",
-    "not filtering sensitive data",
-    "missing cassettes in git"
-  ],
-  "dependencies": [
+  "triggers": {
+    "high_confidence": [
+      "VCR",
+      "cassette",
+      "vcr\\.use_cassette",
+      "HTTP.*recording"
+    ],
+    "medium_confidence": [
+      "record HTTP",
+      "replay HTTP",
+      "pytest.mark.vcr"
+    ]
+  },
+  "integrates_with": [
     "msw-mocking",
     "integration-testing",
     "llm-testing"
-  ],
-  "tags": ["testing", "vcr", "http", "python", "2026"]
+  ]
 }

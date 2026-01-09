@@ -3,6 +3,10 @@ set -euo pipefail
 # Audit Logger - Logs all tool executions for audit trail
 # Hook: PostToolUse (*)
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 TOOL_NAME=$(get_tool_name)
@@ -45,4 +49,6 @@ esac
 
 echo "[$TIMESTAMP] $TOOL_NAME ${DETAILS:+| $DETAILS}" >> "$AUDIT_LOG"
 
+# Output systemMessage for user visibility
+# No output - dispatcher handles all JSON output for posttool hooks
 exit 0

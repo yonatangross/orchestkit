@@ -1,0 +1,129 @@
+#!/bin/bash
+# cc-worktree-sync: Sync shared context and check for conflicts
+#
+# Usage: cc-worktree-sync [--check-conflicts] [--pull-decisions]
+#
+# Version: 1.0.0
+# Part of SkillForge Multi-Worktree Coordination System
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+CHECK_CONFLICTS=false
+PULL_DECISIONS=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --check-conflicts)
+            CHECK_CONFLICTS=true
+            shift
+            ;;
+        --pull-decisions)
+            PULL_DECISIONS=true
+            shift
+            ;;
+        -h|--help)
+            cat << EOF
+Usage: cc-worktree-sync [options]
+
+Sync shared context between worktrees and check for conflicts.
+
+Options:
+  --check-conflicts   Check for potential merge conflicts with other branches
+  --pull-decisions    Show recent architectural decisions from other instances
+  -h, --help          Show this help message
+
+Examples:
+  cc-worktree-sync
+  cc-worktree-sync --check-conflicts
+  cc-worktree-sync --pull-decisions
+EOF
+            exit 0
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || {
+    echo -e "${RED}Error: Not in a git repository${NC}"
+    exit 1
+}
+
+COORDINATION_DIR="$REPO_ROOT/.claude/coordination"
+
+echo -e "${BLUE}Syncing worktree context...${NC}"
+echo ""
+
+# Check for conflicts with other active branches
+if $CHECK_CONFLICTS; then
+    echo -e "${YELLOW}Checking for potential merge conflicts...${NC}"
+
+    CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+    if [[ -f "$COORDINATION_DIR/registry.json" ]]; then
+        OTHER_BRANCHES=$(cat "$COORDINATION_DIR/registry.json" | jq -r --arg current "$CURRENT_BRANCH" \
+            '.instances | to_entries[] | select(.value.branch != $current) | .value.branch')
+
+        CONFLICT_FOUND=false
+
+        for branch in $OTHER_BRANCHES; do
+            # Check if branch exists
+            if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+                # Try merge-tree to detect conflicts
+                MERGE_BASE=$(git merge-base HEAD "$branch" 2>/dev/null || echo "")
+                if [[ -n "$MERGE_BASE" ]]; then
+                    CONFLICTS=$(git merge-tree "$MERGE_BASE" HEAD "$branch" 2>/dev/null | grep -E "^<<<<<<<" || true)
+                    if [[ -n "$CONFLICTS" ]]; then
+                        echo -e "${RED}⚠ Potential conflict with $branch${NC}"
+                        CONFLICT_FOUND=true
+                    else
+                        echo -e "${GREEN}✓ No conflicts with $branch${NC}"
+                    fi
+                fi
+            fi
+        done
+
+        if ! $CONFLICT_FOUND; then
+            echo -e "${GREEN}No conflicts detected with active worktrees${NC}"
+        fi
+    else
+        echo -e "${YELLOW}No coordination registry found${NC}"
+    fi
+    echo ""
+fi
+
+# Pull recent decisions
+if $PULL_DECISIONS; then
+    echo -e "${YELLOW}Recent architectural decisions:${NC}"
+    echo ""
+
+    if [[ -f "$COORDINATION_DIR/registry.json" ]]; then
+        DECISIONS=$(cat "$COORDINATION_DIR/registry.json" | jq -r \
+            '.decisions_log | sort_by(.timestamp) | reverse | .[:10][] |
+             "  [\(.timestamp | split("T")[0])] \(.instance_id): \(.decision)"')
+
+        if [[ -n "$DECISIONS" ]]; then
+            echo "$DECISIONS"
+        else
+            echo -e "  ${DIM}No decisions logged yet${NC}"
+        fi
+    fi
+    echo ""
+fi
+
+# Show sync summary
+echo -e "${GREEN}Sync complete${NC}"
+
+# Show current instance status
+if [[ -f ".claude-local/instance-id.txt" ]]; then
+    INSTANCE_ID=$(cat .claude-local/instance-id.txt)
+    echo -e "Instance: ${BLUE}$INSTANCE_ID${NC}"
+fi

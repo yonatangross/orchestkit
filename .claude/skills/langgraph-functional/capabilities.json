@@ -1,0 +1,31 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "langgraph-functional",
+  "version": "1.0.0",
+  "description": "LangGraph Functional API with @entrypoint and @task decorators for modern workflow patterns",
+  "capabilities": [
+    "entrypoint-pattern",
+    "task-definition",
+    "functional-workflows",
+    "parallel-execution"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "langgraph.*functional",
+      "entrypoint.*decorator",
+      "task.*decorator"
+    ],
+    "medium_confidence": [
+      "functional.*api",
+      "workflow.*function",
+      "@task",
+      "@entrypoint"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-state",
+    "langgraph-checkpoints",
+    "langgraph-human-in-loop"
+  ],
+  "agent": "workflow-architect"
+}

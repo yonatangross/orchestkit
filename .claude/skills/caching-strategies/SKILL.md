@@ -1,6 +1,8 @@
 ---
 name: caching-strategies
 description: Backend caching patterns with Redis including write-through, write-behind, cache-aside, and invalidation strategies. Use when optimizing read performance or reducing database load.
+context: fork
+agent: data-pipeline-engineer
 version: 1.0.0
 tags: [caching, redis, performance, fastapi, python, 2026]
 ---
@@ -341,3 +343,35 @@ except:
 - `redis-patterns` - Advanced Redis usage
 - `resilience-patterns` - Fallback strategies
 - `observability-monitoring` - Cache hit metrics
+
+## Capability Details
+
+### cache-aside
+**Keywords:** cache aside, lazy loading, cache miss, get or set
+**Solves:**
+- How to implement lazy loading cache?
+- Cache on read pattern
+
+### write-through
+**Keywords:** write through, cache consistency, synchronous cache
+**Solves:**
+- How to keep cache consistent with database?
+- Strong consistency caching
+
+### write-behind
+**Keywords:** write behind, write back, async cache, batch writes
+**Solves:**
+- High write throughput caching
+- Async database writes
+
+### cache-invalidation
+**Keywords:** invalidation, cache bust, TTL, cache tags
+**Solves:**
+- How to invalidate cache?
+- When to expire cached data
+
+### stampede-prevention
+**Keywords:** stampede, thundering herd, cache lock, singleflight
+**Solves:**
+- Prevent cache stampede
+- Multiple requests hitting DB

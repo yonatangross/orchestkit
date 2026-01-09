@@ -2,16 +2,28 @@
   "name": "skillforge-complete",
   "displayName": "@skillforge/complete",
   "owner": "yonatangross",
-  "version": "1.0.0",
-  "description": "The Complete AI Development Toolkit - 68 skills, 20 agents, 11 commands, 29 hooks",
+  "version": "4.6.1",
+  "description": "The Complete AI Development Toolkit - 72 skills, 20 agents, 11 commands, 89 hooks",
   "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
   "license": "MIT",
   "strict": false,
 
+  "marketplace_status": {
+    "anthropic_official": {
+      "status": "pending",
+      "pr": "https://github.com/anthropics/claude-plugins-official/pull/86"
+    },
+    "cc_marketplace": {
+      "status": "pending",
+      "pr": "https://github.com/ananddtyagi/cc-marketplace/pull/24"
+    },
+    "note": "Marketplace installation will work once PRs are approved. Until then, use manual installation."
+  },
+
   "plugins": [
     {
       "name": "complete",
-      "description": "Full toolkit - all 68 skills, 20 agents, 11 commands, 29 hooks",
+      "description": "Full toolkit - all 72 skills, 20 agents, 11 commands, 89 hooks",
       "skills": ["*"],
       "includes_agents": true,
       "includes_commands": true,
@@ -19,7 +31,7 @@
     },
     {
       "name": "ai-development",
-      "description": "AI & LLM patterns: agents, RAG, embeddings, LangGraph, caching",
+      "description": "AI & LLM patterns: agents, RAG, embeddings, LangGraph, caching (23 skills)",
       "skills": [
         "agent-loops",
         "cache-cost-tracking",
@@ -48,7 +60,7 @@
     },
     {
       "name": "backend",
-      "description": "Backend patterns: APIs, databases, caching, rate limiting, architecture",
+      "description": "Backend patterns: APIs, databases, caching, rate limiting, architecture (12 skills)",
       "skills": [
         "api-design-framework",
         "api-versioning",
@@ -66,7 +78,7 @@
     },
     {
       "name": "frontend",
-      "description": "Frontend patterns: React 19, RSC, animations, i18n, edge",
+      "description": "Frontend patterns: React 19, RSC, animations, i18n, edge (6 skills)",
       "skills": [
         "design-system-starter",
         "edge-computing-patterns",
@@ -78,7 +90,7 @@
     },
     {
       "name": "quality-testing",
-      "description": "Testing patterns: unit, integration, E2E, mocking, golden datasets",
+      "description": "Testing patterns: unit, integration, E2E, mocking, golden datasets (14 skills)",
       "skills": [
         "code-review-playbook",
         "e2e-testing",
@@ -98,7 +110,7 @@
     },
     {
       "name": "devops-security",
-      "description": "DevOps & security: CI/CD, observability, OWASP, auth",
+      "description": "DevOps & security: CI/CD, observability, OWASP, auth (7 skills)",
       "skills": [
         "auth-patterns",
         "defense-in-depth",
@@ -111,7 +123,7 @@
     },
     {
       "name": "process-planning",
-      "description": "Planning patterns: brainstorming, ADRs, GitHub CLI",
+      "description": "Planning patterns: brainstorming, ADRs, GitHub CLI (6 skills)",
       "skills": [
         "architecture-decision-record",
         "ascii-visualizer",
@@ -124,15 +136,18 @@
   ],
 
   "features": {
+    "skills": 72,
     "agents": 20,
     "commands": 11,
-    "hooks": 29,
+    "hooks": 89,
     "progressive_loading": true,
     "capabilities_json": true
   },
 
   "installation": {
-    "full": "/plugin install skillforge-complete@complete",
-    "category": "/plugin install skillforge-complete@ai-development"
+    "manual": "git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge",
+    "project_scoped": "cp -r skillforge-claude-plugin/.claude your-project/.claude",
+    "marketplace_full": "/plugin install skillforge-complete@complete",
+    "marketplace_category": "/plugin install skillforge-complete@{bundle-name}"
   }
 }

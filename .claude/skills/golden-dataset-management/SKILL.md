@@ -1,9 +1,16 @@
 ---
 name: golden-dataset-management
 description: Use when backing up, restoring, or validating golden datasets. Prevents data loss and ensures test data integrity for AI/ML evaluation systems.
+context: fork
+agent: data-pipeline-engineer
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, backup, data-protection, testing, regression, 2025]
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash  # For backup/restore scripts
 ---
 
 # Golden Dataset Management
@@ -589,3 +596,53 @@ poetry run pytest tests/integration/test_retrieval_quality.py
 
 **Version:** 1.0.0 (December 2025)
 **Status:** Production-ready patterns from SkillForge's 98-analysis golden dataset
+
+## Capability Details
+
+### backup
+**Keywords:** golden dataset, backup, export, json backup, version control data
+**Solves:**
+- How do I backup the golden dataset?
+- Export analyses to JSON for version control
+- Protect critical test datasets
+- Create portable database snapshots
+
+### restore
+**Keywords:** restore dataset, import analyses, regenerate embeddings, disaster recovery, new environment
+**Solves:**
+- How do I restore from backup?
+- Import golden dataset to new environment
+- Regenerate embeddings after restore
+- Disaster recovery procedures
+
+### validation
+**Keywords:** verify dataset, url contract, data integrity, validate backup, placeholder urls
+**Solves:**
+- How do I validate dataset integrity?
+- Check URL contracts (no placeholders)
+- Verify embeddings exist
+- Detect orphaned chunks
+
+### ci-cd-automation
+**Keywords:** automated backup, github actions, ci cd backup, scheduled backup
+**Solves:**
+- How do I automate dataset backups?
+- Set up GitHub Actions for weekly backups
+- Commit backups to git automatically
+- CI/CD integration patterns
+
+### disaster-recovery
+**Keywords:** disaster recovery, accidental deletion, migration failure, rollback
+**Solves:**
+- What if I accidentally delete the dataset?
+- Database migration gone wrong
+- Restore after data corruption
+- Rollback procedures
+
+### skillforge-golden-dataset
+**Keywords:** skillforge, 98 analyses, 415 chunks, retrieval evaluation, real world
+**Solves:**
+- What is SkillForge's golden dataset?
+- How does SkillForge protect test data?
+- Real-world backup/restore examples
+- Production golden dataset stats

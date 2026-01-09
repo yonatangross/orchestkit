@@ -1,6 +1,8 @@
 ---
 name: edge-computing-patterns
 description: Use when deploying to Cloudflare Workers, Vercel Edge, or Deno Deploy. Covers edge middleware, streaming, runtime constraints, and globally distributed low-latency patterns.
+context: fork
+agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub
 tags: [edge, cloudflare, vercel, deno, serverless, 2025]
@@ -231,3 +233,62 @@ async function handleRequest(request: Request) {
 - [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [Vercel Edge Functions](https://vercel.com/docs/functions/edge-functions)
 - [Deno Deploy](https://deno.com/deploy/docs)
+
+## Capability Details
+
+### cloudflare-workers
+**Keywords:** cloudflare, workers, kv, durable objects, r2, wrangler
+**Solves:**
+- How do I deploy to Cloudflare Workers?
+- Cloudflare KV storage patterns
+- Durable Objects for stateful edge
+- Wrangler CLI usage and configuration
+
+### vercel-edge
+**Keywords:** vercel edge, edge functions, edge middleware, geolocation, next.js
+**Solves:**
+- How do I use Vercel Edge Functions?
+- Edge middleware patterns (auth, A/B testing)
+- Geo-based routing and localization
+- Edge streaming responses
+
+### runtime-differences
+**Keywords:** edge runtime, web apis, node.js compatibility, polyfills
+**Solves:**
+- What Node.js APIs are NOT available at edge?
+- Edge-compatible alternatives to Node APIs
+- How to polyfill crypto, base64, buffers
+- Package compatibility for edge runtimes
+
+### edge-caching
+**Keywords:** edge cache, cdn, cache-control, stale-while-revalidate, invalidation
+**Solves:**
+- How do I cache at the edge?
+- CDN caching strategies and headers
+- Stale-while-revalidate patterns
+- Cache invalidation strategies
+- Personalization at edge
+
+### edge-function-template
+**Keywords:** edge function, template, boilerplate, production-ready
+**Solves:**
+- How do I structure an edge function?
+- Production-ready edge function template
+- Error handling and validation patterns
+- CORS, rate limiting, caching setup
+
+### edge-middleware-template
+**Keywords:** middleware, next.js, authentication, a/b testing
+**Solves:**
+- How do I write Next.js edge middleware?
+- Authentication middleware patterns
+- A/B testing and feature flags
+- Geolocation routing middleware
+
+### deployment-checklist
+**Keywords:** deployment, checklist, production, monitoring
+**Solves:**
+- What should I check before deploying to edge?
+- Edge deployment best practices
+- Production readiness checklist
+- Monitoring and debugging setup

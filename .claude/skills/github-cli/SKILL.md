@@ -241,3 +241,53 @@ For specific capabilities, see:
 5. **Link issues in PRs** - `Closes #123`, `Fixes #456`
 6. **Add verification checklists** - Track test plan completion
 7. **Never commit to dev/main directly** - Always use feature branches + PRs
+
+## Capability Details
+
+### issue-management
+**Keywords:** gh issue, create issue, issue labels, milestone, assignee, bulk issues
+**Solves:**
+- How do I create a GitHub issue?
+- Add labels to multiple issues
+- Link issue to milestone
+- Create issue from template
+
+### pr-workflows
+**Keywords:** gh pr, pull request, create PR, review PR, merge, auto-merge, pr checks
+**Solves:**
+- How do I create a PR with gh?
+- Wait for PR checks to pass
+- Auto-merge when approved
+- Request PR review
+
+### projects-v2
+**Keywords:** gh project, project board, custom fields, Status, Priority, Sprint, project views
+**Solves:**
+- How do I add issue to project board?
+- Set project Status field
+- Move item to In Progress
+- Query project items
+
+### graphql-api
+**Keywords:** gh api graphql, GraphQL query, custom query, bulk operations, pagination
+**Solves:**
+- How do I run GraphQL queries with gh?
+- Get all open issues with custom fields
+- Bulk update project items
+- Complex GitHub API queries
+
+### automation-patterns
+**Keywords:** gh automation, gh alias, bulk operations, jq, scripting, retry, rate limit
+**Solves:**
+- Create reusable gh aliases
+- Handle rate limits in scripts
+- Bulk close stale issues
+- Automated workflow scripts
+
+### skillforge-workflow
+**Keywords:** SkillForge, feature branch, conventional commits, PR template, dev branch
+**Solves:**
+- SkillForge branch naming convention
+- Create issue and feature branch
+- SkillForge PR workflow
+- Project field IDs for SkillForge

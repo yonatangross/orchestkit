@@ -1,6 +1,7 @@
 ---
 name: react-server-components-framework
 description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
+agent: frontend-ui-developer
 version: 1.3.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, 2026]
@@ -602,3 +603,79 @@ After mastering React Server Components:
 2. Use **Type Safety & Validation** skill for tRPC integration
 3. Apply **Edge Computing Patterns** skill for global deployment
 4. Reference **Performance Optimization** skill for Core Web Vitals
+
+## Capability Details
+
+### react-19-patterns
+**Keywords:** react 19, React.FC, forwardRef, useActionState, useFormStatus, useOptimistic, function declaration
+**Solves:**
+- How do I replace React.FC in React 19?
+- forwardRef replacement pattern
+- useActionState vs useFormState
+- React 19 component declaration best practices
+- Modernize React components for 2025
+
+### use-hook-suspense
+**Keywords:** use(), use hook, suspense, promise, data fetching, promise cache, cachePromise
+**Solves:**
+- How do I use the use() hook in React 19?
+- Suspense-native data fetching pattern
+- Promise caching to prevent infinite loops
+- When to use use() vs TanStack Query
+- use() hook infinite loop fix
+
+### optimistic-updates-async
+**Keywords:** useOptimistic, useTransition, optimistic update, instant ui, auto rollback, chat, messages
+**Solves:**
+- How to show instant UI updates before API responds?
+- useOptimistic with useTransition pattern
+- Optimistic updates for chat/messaging
+- Auto-rollback on API failure
+- Temp ID pattern for optimistic items
+
+### rsc-patterns
+**Keywords:** rsc, server component, client component, use client, use server
+**Solves:**
+- When to use server vs client components?
+- RSC boundaries and patterns
+- Server component best practices
+
+### server-actions
+**Keywords:** server action, form action, use server, mutation
+**Solves:**
+- How do I create a server action?
+- Form handling with server actions
+- Mutations in Next.js
+
+### data-fetching
+**Keywords:** fetch, data fetching, async component, loading, suspense
+**Solves:**
+- How do I fetch data in RSC?
+- Async server components
+- Suspense and loading states
+
+### streaming-ssr
+**Keywords:** streaming, ssr, suspense boundary, loading ui
+**Solves:**
+- How do I stream server content?
+- Progressive loading patterns
+- Streaming SSR setup
+
+### caching
+**Keywords:** cache, revalidate, static, dynamic, isr
+**Solves:**
+- How do I cache in Next.js 15?
+- Revalidation strategies
+- Static vs dynamic rendering
+
+### tanstack-router-patterns
+**Keywords:** tanstack router, react router, vite, spa, client rendering, prefetch, route loader, zustand, virtualization
+**Solves:**
+- How do I use React 19 features without Next.js?
+- TanStack Router prefetching setup
+- useOptimistic in client-rendered apps
+- useActionState without server actions
+- Route-based data fetching with TanStack Query
+- SSE event handling with Zustand
+- List virtualization with @tanstack/react-virtual
+- assertNever exhaustive type checking

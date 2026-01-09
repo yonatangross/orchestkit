@@ -1,6 +1,8 @@
 ---
 name: resilience-patterns
 description: Use when building fault-tolerant systems with circuit breakers, bulkheads, or retry logic. Provides resilience patterns for LLM integrations, distributed workflows, and cascade failure protection.
+context: fork
+agent: backend-system-architect
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [resilience, circuit-breaker, bulkhead, retry, fault-tolerance]
@@ -242,3 +244,40 @@ Patterns specific to LLM API integrations.
 3. **Graceful Degradation**: Always have a fallback, even if partial
 4. **Health Endpoints**: Separate health check from circuit state
 5. **Chaos Testing**: Regularly test failure scenarios in staging
+
+## Capability Details
+
+### circuit-breaker
+**Keywords:** circuit breaker, failure threshold, cascade failure, trip, half-open
+**Solves:**
+- Prevent cascade failures when external services fail
+- Automatically recover when services come back online
+- Fail fast instead of waiting for timeouts
+
+### bulkhead
+**Keywords:** bulkhead, isolation, semaphore, thread pool, resource pool, tier
+**Solves:**
+- Isolate failures to prevent entire system crashes
+- Prioritize critical operations over optional ones
+- Limit concurrent requests to protect resources
+
+### retry-strategies
+**Keywords:** retry, backoff, exponential, jitter, thundering herd
+**Solves:**
+- Handle transient failures automatically
+- Avoid overwhelming recovering services
+- Classify errors as retryable vs non-retryable
+
+### llm-resilience
+**Keywords:** LLM, fallback, model, token budget, rate limit, context length
+**Solves:**
+- Handle LLM API rate limits gracefully
+- Fall back to alternative models when primary fails
+- Manage token budgets to prevent context overflow
+
+### error-classification
+**Keywords:** error, retryable, transient, permanent, classification
+**Solves:**
+- Determine which errors should be retried
+- Categorize errors by severity and recoverability
+- Map HTTP status codes to resilience actions

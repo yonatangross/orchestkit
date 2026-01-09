@@ -1,6 +1,8 @@
 ---
 name: langgraph-checkpoints
 description: LangGraph checkpointing and persistence. Use when implementing fault-tolerant workflows, resuming interrupted executions, debugging with state history, or avoiding re-running expensive operations.
+context: fork
+agent: workflow-architect
 ---
 
 # LangGraph Checkpointing
@@ -217,3 +219,40 @@ workflow.add_node("agent", agent_with_memory)
 - `langgraph-state` - State design for checkpointing
 - `langgraph-human-in-loop` - Interrupt patterns
 - `database-schema-designer` - PostgreSQL setup
+
+## Capability Details
+
+### checkpoint-saving
+**Keywords:** save checkpoint, checkpoint, persist state, save state
+**Solves:**
+- Save workflow state at key points
+- Implement checkpoint strategies
+- Handle checkpoint serialization
+
+### checkpoint-loading
+**Keywords:** load checkpoint, restore, resume, recovery
+**Solves:**
+- Resume workflows from checkpoints
+- Implement state recovery
+- Handle checkpoint versioning
+
+### memory-backends
+**Keywords:** memory backend, MemorySaver, SqliteSaver, PostgresSaver
+**Solves:**
+- Configure checkpoint storage backends
+- Choose between memory/SQLite/Postgres
+- Implement custom checkpoint storage
+
+### async-checkpoints
+**Keywords:** async checkpoint, AsyncSqliteSaver, async persistence
+**Solves:**
+- Implement async checkpoint operations
+- Handle concurrent checkpoint access
+- Optimize checkpoint performance
+
+### conversation-history
+**Keywords:** conversation, history, message history, thread
+**Solves:**
+- Persist conversation history
+- Implement thread-based checkpoints
+- Manage conversation state

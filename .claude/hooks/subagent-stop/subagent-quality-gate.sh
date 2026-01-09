@@ -2,6 +2,11 @@
 set -euo pipefail
 # Subagent Quality Gate - Validates subagent output quality
 # Hook: SubagentStop
+# CC 2.1.2 Compliant: includes continue field in all outputs
+
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"
 
@@ -21,8 +26,10 @@ if [[ -n "$ERROR" && "$ERROR" != "null" ]]; then
   if [[ -f "$METRICS_FILE" ]]; then
     ERRORS=$(jq -r '.errors // 0' "$METRICS_FILE")
     jq ".errors = $((ERRORS + 1))" "$METRICS_FILE" > "${METRICS_FILE}.tmp" 2>/dev/null
-    mv "${METRICS_FILE}.tmp" "$METRICS_FILE" 2>/dev/null
+    mv "${METRICS_FILE}.tmp" "$METRICS_FILE" 2>/dev/null || true
   fi
 fi
 
+# Output with CC 2.1.2 compliance
+echo '{"systemMessage":"Subagent quality checked","continue":true}'
 exit 0

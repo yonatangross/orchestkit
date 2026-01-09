@@ -1,0 +1,170 @@
+#!/bin/bash
+# Coordination Decisions CLI - Query and manage decision log
+# Usage: coord-decisions [list|query|add] [options]
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../lib/coordination.sh"
+
+COMMAND="${1:-list}"
+
+show_usage() {
+  echo "Usage: coord-decisions [command] [options]"
+  echo ""
+  echo "Commands:"
+  echo "  list [--category=<cat>] [--limit=N]"
+  echo "      List recent decisions"
+  echo ""
+  echo "  query <decision-id>"
+  echo "      Show details of a specific decision"
+  echo ""
+  echo "  add --category=<cat> --title=<title> --description=<desc> [--scope=<scope>]"
+  echo "      Add a new decision"
+  echo ""
+  echo "Categories:"
+  echo "  architecture, api-design, database-schema, security,"
+  echo "  performance, testing, workflow, ui-pattern, integration"
+  echo ""
+  echo "Examples:"
+  echo "  coord-decisions list --category=api-design --limit=5"
+  echo "  coord-decisions query DEC-20260108-0001"
+  echo "  coord-decisions add --category=architecture \\"
+  echo "    --title=\"Use microservices\" \\"
+  echo "    --description=\"Split monolith into services\" \\"
+  echo "    --scope=system"
+  exit 1
+}
+
+coord_init
+
+case "${COMMAND}" in
+  list)
+    CATEGORY=""
+    LIMIT=10
+
+    # Parse arguments
+    shift
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --category=*)
+          CATEGORY="${1#*=}"
+          shift
+          ;;
+        --limit=*)
+          LIMIT="${1#*=}"
+          shift
+          ;;
+        *)
+          echo "Unknown option: $1" >&2
+          show_usage
+          ;;
+      esac
+    done
+
+    echo "Recent Decisions:"
+    echo "================="
+    echo ""
+
+    coord_query_decisions "${CATEGORY}" "${LIMIT}" | \
+      jq -r '.[] |
+        "[\(.decision_id)] \(.title)\n" +
+        "  Category: \(.category)\n" +
+        "  Made At: \(.timestamp)\n" +
+        "  Status: \(.status)\n" +
+        "  Scope: \(.impact.scope // "unknown")\n" +
+        (if .description then "  Description: \(.description)\n" else "" end) +
+        "\n"'
+    ;;
+
+  query)
+    DECISION_ID="${2:-}"
+    if [[ -z "${DECISION_ID}" ]]; then
+      echo "Error: Decision ID required" >&2
+      show_usage
+    fi
+
+    jq --arg did "${DECISION_ID}" \
+       '.decisions[] | select(.decision_id == $did)' \
+       "${DECISIONS_FILE}" | \
+      jq -r '"Decision: \(.decision_id)\n" +
+             "Title: \(.title)\n" +
+             "Category: \(.category)\n" +
+             "Status: \(.status)\n" +
+             "Made At: \(.timestamp)\n" +
+             "Made By: \(.made_by.instance_id)\n" +
+             (if .made_by.agent_role then "Agent Role: \(.made_by.agent_role)\n" else "" end) +
+             "\nDescription:\n\(.description)\n" +
+             (if .context then "\nContext:\n" +
+               (if .context.problem then "  Problem: \(.context.problem)\n" else "" end) +
+               (if .context.rationale then "  Rationale: \(.context.rationale)\n" else "" end) +
+               (if .context.alternatives_considered then
+                 "  Alternatives:\n" +
+                 (.context.alternatives_considered | map("    - \(.)") | join("\n")) + "\n"
+               else "" end)
+             else "" end) +
+             "\nImpact:\n" +
+             "  Scope: \(.impact.scope // "unknown")\n" +
+             (if .impact.files_affected then
+               "  Files Affected:\n" +
+               (.impact.files_affected | map("    - \(.)") | join("\n")) + "\n"
+             else "" end)'
+    ;;
+
+  add)
+    # Parse arguments
+    CATEGORY=""
+    TITLE=""
+    DESCRIPTION=""
+    SCOPE="module"
+
+    shift
+    while [[ $# -gt 0 ]]; do
+      case "$1" in
+        --category=*)
+          CATEGORY="${1#*=}"
+          shift
+          ;;
+        --title=*)
+          TITLE="${1#*=}"
+          shift
+          ;;
+        --description=*)
+          DESCRIPTION="${1#*=}"
+          shift
+          ;;
+        --scope=*)
+          SCOPE="${1#*=}"
+          shift
+          ;;
+        *)
+          echo "Unknown option: $1" >&2
+          show_usage
+          ;;
+      esac
+    done
+
+    if [[ -z "${CATEGORY}" ]] || [[ -z "${TITLE}" ]] || [[ -z "${DESCRIPTION}" ]]; then
+      echo "Error: --category, --title, and --description are required" >&2
+      show_usage
+    fi
+
+    # Load instance ID if exists
+    if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
+      source "${CLAUDE_PROJECT_DIR}/.claude/.instance_env"
+      export INSTANCE_ID="${CLAUDE_INSTANCE_ID}"
+    else
+      INSTANCE_ID="claude-manual-$(date -u +%Y%m%d-%H%M%S)-$(openssl rand -hex 4)"
+    fi
+
+    DECISION_ID=$(coord_log_decision "${CATEGORY}" "${TITLE}" "${DESCRIPTION}" "${SCOPE}")
+    echo "Decision logged: ${DECISION_ID}"
+    ;;
+
+  *)
+    echo "Error: Unknown command '${COMMAND}'" >&2
+    show_usage
+    ;;
+esac
+
+exit 0

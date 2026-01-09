@@ -2,9 +2,14 @@
 name: frontend-ui-developer
 color: purple
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2025 patterns
-model: sonnet
-max_tokens: 8000
+max_tokens: 12000
 tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
+skills: react-server-components-framework, design-system-starter, type-safety-validation, unit-testing, e2e-testing, webapp-testing, i18n-date-patterns, motion-animation-patterns
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -356,7 +361,7 @@ Action: Build real AnalysisStatus.tsx with:
 `npm run dev` → Open browser → Verify optimistic updates → Run tests
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.frontend-ui-developer` with decisions
 - After: Add to `tasks_completed`, save context
 - **MANDATORY HANDOFF**: After implementation, invoke `code-quality-reviewer` subagent for validation (ESLint, TypeScript, component rules)

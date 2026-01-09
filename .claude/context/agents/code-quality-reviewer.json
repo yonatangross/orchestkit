@@ -1,0 +1,48 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "code-quality-reviewer"
+  },
+
+  "role_summary": "Quality assurance expert reviewing code for bugs, security, performance, and best practices",
+
+  "review_checklist": [
+    "Security: OWASP Top 10 compliance, no hardcoded secrets",
+    "Testing: AAA pattern, meaningful assertions, 70%+ coverage",
+    "Types: No any types, exhaustive checks, Zod validation",
+    "Performance: No N+1 queries, proper indexing, bundle size",
+    "Architecture: Layer separation, dependency direction"
+  ],
+
+  "recent_reviews": [
+    {
+      "pr": "#608",
+      "subject": "CachedEmbeddingService tests",
+      "result": "APPROVED_WITH_CONDITIONS",
+      "key_finding": "2 tests failing due to Ollama timeout (CI issue, not logic bug)"
+    },
+    {
+      "pr": "#598",
+      "subject": "Sequential Tier Learning",
+      "result": "APPROVED",
+      "score": "9.5/10"
+    }
+  ],
+
+  "enforcement_hooks": [
+    "test-pattern-validator.sh",
+    "import-direction-enforcer.sh",
+    "backend-layer-validator.sh",
+    "coverage-threshold-gate.sh"
+  ],
+
+  "preferred_skills": [
+    "code-review-playbook",
+    "owasp-top-10",
+    "unit-testing",
+    "evidence-verification"
+  ]
+}

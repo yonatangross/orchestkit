@@ -9,7 +9,7 @@ Deep exploration using 14-16 parallel agents with system design first approach.
 > **📋 OUTPUT POLICY**: All agents follow `.claude/policies/agent-output-policy.md`
 > - Tier 1 (Default): Return analysis inline - NO file creation
 > - Tier 3 (Patterns): Only with explicit user approval
-> - Tier 4 (Decisions): Update shared-context.json after synthesis
+> - Tier 4 (Decisions): Update session/state.json (Context Protocol 2.0) after synthesis
 
 ## Phase 0: System Design Interrogation (NEW)
 

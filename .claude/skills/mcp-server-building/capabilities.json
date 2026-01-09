@@ -1,0 +1,29 @@
+{
+  "$schema": "../../schemas/skill-capabilities.schema.json",
+  "name": "mcp-server-building",
+  "version": "1.0.0",
+  "description": "Building MCP (Model Context Protocol) servers for Claude extensibility with custom tools and resources",
+  "capabilities": [
+    "mcp-server-architecture",
+    "tool-definition",
+    "resource-handling",
+    "transport-protocols"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "mcp.*server",
+      "model.*context.*protocol",
+      "claude.*tools"
+    ],
+    "medium_confidence": [
+      "custom.*tools",
+      "tool.*building",
+      "claude.*extension"
+    ]
+  },
+  "integrates_with": [
+    "api-design-framework",
+    "fastapi-advanced"
+  ],
+  "agent": "backend-system-architect"
+}

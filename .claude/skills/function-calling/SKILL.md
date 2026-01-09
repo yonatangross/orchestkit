@@ -1,6 +1,7 @@
 ---
 name: function-calling
 description: LLM function calling and tool use patterns. Use when enabling LLMs to call external tools, defining tool schemas, implementing tool execution loops, or getting structured output from LLMs.
+agent: llm-integrator
 ---
 
 # Function Calling
@@ -186,3 +187,40 @@ response = await llm.chat(
 - `agent-loops` - Multi-step tool use with reasoning
 - `llm-streaming` - Streaming with tool calls
 - `structured-output` - Complex output schemas
+
+## Capability Details
+
+### tool-definition
+**Keywords:** tool, function, define tool, tool schema, function schema
+**Solves:**
+- Define tools with clear descriptions
+- Create JSON schemas for tool parameters
+- Document tool behavior for LLM
+
+### tool-execution-loop
+**Keywords:** execution loop, tool call, agent loop, run tool
+**Solves:**
+- Implement tool execution loops
+- Handle multiple tool calls
+- Process tool results
+
+### structured-output
+**Keywords:** structured output, JSON output, typed response, response schema
+**Solves:**
+- Get structured JSON from LLM
+- Enforce output schemas
+- Parse and validate responses
+
+### parallel-tool-calls
+**Keywords:** parallel, concurrent, multiple tools, batch tools
+**Solves:**
+- Execute multiple tools in parallel
+- Handle concurrent tool results
+- Optimize tool call latency
+
+### strict-mode-schemas
+**Keywords:** strict mode, strict schema, additionalProperties, required fields
+**Solves:**
+- Enforce strict JSON schemas
+- Prevent extra fields in output
+- Ensure schema compliance

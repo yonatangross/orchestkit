@@ -1,0 +1,141 @@
+{
+  "_meta": {
+    "description": "Security attack payloads for testing hook vulnerabilities",
+    "version": "1.0.0",
+    "warning": "These payloads are for TESTING ONLY - never use in production"
+  },
+  "path_traversal": {
+    "basic": [
+      "../../../etc/passwd",
+      "..\\..\\..\\etc\\passwd",
+      "....//....//....//etc/passwd",
+      "./.././.././../etc/passwd"
+    ],
+    "encoded": [
+      "..%2F..%2F..%2Fetc%2Fpasswd",
+      "..%252F..%252F..%252Fetc%252Fpasswd",
+      "%2e%2e/%2e%2e/%2e%2e/etc/passwd",
+      "..%c0%af..%c0%af..%c0%afetc%c0%afpasswd"
+    ],
+    "null_byte": [
+      "/tmp/safe.txt\u0000/etc/passwd",
+      "valid.txt%00.jpg",
+      "file.txt\\x00malicious"
+    ],
+    "symlink_targets": [
+      "/etc/passwd",
+      "/etc/shadow",
+      "/root/.ssh/id_rsa",
+      "/var/log/auth.log"
+    ]
+  },
+  "command_injection": {
+    "basic": [
+      "git status; rm -rf /",
+      "git status && whoami",
+      "git status || cat /etc/passwd",
+      "git status | cat /etc/passwd"
+    ],
+    "subshell": [
+      "$(touch /tmp/pwned)",
+      "$(cat /etc/passwd)",
+      "$(whoami > /tmp/pwned)",
+      "x$(id)x"
+    ],
+    "backtick": [
+      "`touch /tmp/pwned`",
+      "`whoami`",
+      "git `id`",
+      "test `cat /etc/passwd`"
+    ],
+    "newline": [
+      "git status\nrm -rf /",
+      "safe\n$(touch /tmp/pwned)",
+      "valid\n`whoami`"
+    ],
+    "variable_expansion": [
+      "${IFS}cat${IFS}/etc/passwd",
+      "$PATH",
+      "${HOME}/.ssh/id_rsa",
+      "$(env)"
+    ]
+  },
+  "jq_injection": {
+    "debug_function": [
+      ".tool_input) | debug | (.",
+      "debug | .",
+      ". | debug"
+    ],
+    "recursive_descent": [
+      ".. | objects | select(.api_key)",
+      ".. | strings | select(contains(\"password\"))",
+      "[.. | objects | to_entries[] | select(.key | test(\"secret|key|password\"))]"
+    ],
+    "data_exfiltration": [
+      "[\"secret\"][]",
+      ".config.database.password // \"not found\"",
+      "keys | map(select(test(\"secret|password|key\")))"
+    ],
+    "alternative_operators": [
+      ".config.db_host as $x | $x",
+      "try .secret catch \"blocked\"",
+      ". as $root | $root.hidden_field"
+    ]
+  },
+  "input_validation_bypass": {
+    "extra_spaces": [
+      "rm  -rf  /",
+      "git   push   --force",
+      "  rm -rf /  "
+    ],
+    "newlines_in_command": [
+      "rm\n-rf\n/",
+      "git\npush\n--force"
+    ],
+    "case_variations": [
+      "RM -RF /",
+      "Git Push --Force",
+      "GIT PUSH ORIGIN MAIN --FORCE"
+    ],
+    "unicode_tricks": [
+      "rm\u200b-rf\u200b/",
+      "gi\u200bt push",
+      "rm -rf \uff0f"
+    ]
+  },
+  "regex_redos": {
+    "patterns": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!",
+      "(a+)+$",
+      "((a+)+)+$",
+      "^(([a-z])+.)+[A-Z]([a-z])+$"
+    ],
+    "test_inputs": [
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa!",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaX"
+    ]
+  },
+  "environment_injection": {
+    "shell_vars": [
+      "CLAUDE_PROJECT_DIR=../../../",
+      "PATH=/tmp/malicious:$PATH",
+      "HOME=/tmp/fakehome"
+    ],
+    "ld_preload": [
+      "LD_PRELOAD=/tmp/malicious.so",
+      "LD_LIBRARY_PATH=/tmp/malicious"
+    ]
+  },
+  "temp_file_attacks": {
+    "predictable_names": [
+      "/tmp/hook-12345",
+      "/tmp/claude-session-*",
+      "/var/tmp/test"
+    ],
+    "race_conditions": {
+      "description": "Create file, then symlink before write",
+      "target": "/tmp/test-file",
+      "malicious_link": "/etc/passwd"
+    }
+  }
+}

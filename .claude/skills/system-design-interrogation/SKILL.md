@@ -1,10 +1,23 @@
 ---
 name: system-design-interrogation
 description: Use when planning system architecture to ensure nothing is missed. Provides structured questions covering scalability, security, data, and operational dimensions before implementation.
+context: fork
+agent: system-design-reviewer
 version: 1.0.0
 ---
 
 # System Design Interrogation
+
+## Overview
+
+Structured questioning framework to ensure nothing is missed when planning system architecture, covering scalability, security, data, and operational dimensions.
+
+## When to Use
+
+- Before starting complex system implementations
+- Planning new features with architectural implications
+- Reviewing existing designs for gaps
+- Preparing for technical design reviews
 
 ## The Problem
 
@@ -267,3 +280,39 @@ Tests should cover:
 ---
 
 **Version:** 1.0.0 (December 2025)
+## Capability Details
+
+### scale-assessment
+**Keywords:** scale, load, traffic, users, concurrent, throughput
+**Solves:**
+- How many users will this feature serve?
+- What's the expected request rate?
+- How does this scale with data growth?
+
+### data-architecture
+**Keywords:** data, storage, database, schema, migration, structure
+**Solves:**
+- Where should this data live?
+- What's the access pattern?
+- How does this affect existing schemas?
+
+### security-considerations
+**Keywords:** security, auth, permission, tenant, isolation, attack
+**Solves:**
+- What are the security implications?
+- How is tenant isolation maintained?
+- What attack vectors exist?
+
+### coherence-validation
+**Keywords:** coherence, consistency, contract, interface, integration
+**Solves:**
+- How does this fit the existing architecture?
+- What contracts need updating?
+- Are frontend/backend aligned?
+
+### ux-impact
+**Keywords:** ux, user experience, latency, feedback, error
+**Solves:**
+- What's the user experience impact?
+- How long will users wait?
+- What feedback do they get?

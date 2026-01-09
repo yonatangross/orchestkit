@@ -2,9 +2,13 @@
 name: ux-researcher
 color: pink
 description: User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis
-model: sonnet
 max_tokens: 16000
 tools: Write, Read, WebSearch, Grep, Glob
+skills: design-system-starter
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -231,7 +235,7 @@ Enter query → Wait → Scan results → Refine → Find result
 7. Return structured research report
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.ux-researcher` with research findings
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

@@ -1,111 +1,198 @@
-# Context Window Initialization Protocol
+# Context Engineering 2.0 - Initialization Protocol
 
-**Version:** 1.0
-**Purpose:** Ensure Claude understands project state at the start of every conversation
-
----
-
-## When to Execute This Protocol
-
-**Execute these steps ONLY when starting work on a NEW task or when context is needed:**
-
-- Starting a new feature or bugfix
-- Switching between different areas of the codebase
-- Need to understand project state and recent work
-
-**DO NOT read these files on every request** - only when context is actually needed.
+**Version:** 2.0.0
+**Purpose:** Attention-aware, tiered context loading for optimal LLM performance
 
 ---
 
-## Step 1: Understand Current Project State (Read When Needed)
+## Architecture Overview
 
-When starting work on a task, consider reading these files **if relevant**:
-
-| Priority | File | What You'll Learn | When to Read |
-|----------|------|-------------------|--------------|
-| 1 | `docs/CURRENT_STATUS.md` | Sprint progress, completed issues, what's in progress, blockers | If working on sprint items or need to know blockers |
-| 2 | `docs/ROADMAP.md` | Overall project phases, tech stack, detailed task breakdown | If need full project context or architecture understanding |
-| 3 | `.claude/context/shared-context.json` | Decisions, patterns, and context from previous sessions | If working on related tasks or need previous decisions |
-
-**Only read files that are relevant to the current task** - don't read all three automatically.
-
----
-
-## Step 2: Review Active Work (IF WORKING ON TASKS)
-
-Based on the domain of work, read the relevant task breakdown:
-
-| Domain | File to Read |
-|--------|--------------|
-| Backend development | `docs/YONATAN_BACKEND_TASKS.md` |
-| Frontend development | `docs/ARIE_FRONTEND_TASKS.md` |
-| Frontend-Backend integration | `docs/INTEGRATION_POINTS.md` |
-| Architecture questions | `docs/ARCHITECTURE.md` |
-| Frontend patterns | `docs/FRONTEND_ARCHITECTURE.md` |
-
----
-
-## Step 3: Check Recent Changes (RECOMMENDED)
-
-Run these git commands to understand recent activity:
-
-```bash
-git log --oneline -10  # Recent commits
-git status             # Uncommitted changes
-git branch             # Current branch
+```
+.claude/context/
+├── identity.json              # START position - Always loaded (~200 tokens)
+├── session/
+│   └── state.json             # END position - Current task (~500 tokens)
+├── knowledge/
+│   ├── index.json             # START position - Discovery layer (~150 tokens)
+│   ├── decisions/active.json  # START position - On-demand (~400 tokens)
+│   ├── patterns/established.json  # MIDDLE position - On-demand (~300 tokens)
+│   └── blockers/current.json  # END position - If non-empty (~150 tokens)
+├── agents/
+│   └── {agent_id}.json        # MIDDLE position - Per-agent (~300 tokens)
+└── archive/                   # Never auto-loaded
 ```
 
 ---
 
-## Quick Reference - Key Documentation Files
+## Attention Positioning
 
-| Doc | Purpose | Read When |
-|-----|---------|-----------|
-| `docs/CURRENT_STATUS.md` | Sprint status, blockers, completed work | **Always first** |
-| `docs/ROADMAP.md` | Tech stack, phases, all tasks | Need full context |
-| `docs/ARCHITECTURE.md` | System diagrams, data flow | Architecture questions |
-| `docs/INTEGRATION_POINTS.md` | API contracts, SSE schemas | Frontend-backend work |
-| `docs/FRONTEND_ARCHITECTURE.md` | Component patterns, folder structure | Frontend work |
-| `docs/PROJECT_SUMMARY.md` | High-level overview | Quick orientation |
-| `docs/USER_STORIES.md` | User requirements, acceptance criteria | Feature work |
+The LLM pays **unequal attention** across the context window:
 
----
+```
+Attention
+Strength   ████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░████████
+           ↑                                                      ↑
+        START              MIDDLE (weakest attention)           END
+```
 
-## Why This Protocol Matters
+### Position Assignments
 
-Without reading these docs, you will lack context about:
-
-1. **What has already been completed** - Avoid duplicate work and re-implementing solved problems
-2. **Current sprint focus and priorities** - Know what's most important right now
-3. **Existing patterns and conventions** - Follow established code patterns
-4. **Known issues and their fixes** - Don't repeat past mistakes
-5. **Integration points** - Understand how frontend and backend connect
-6. **Team assignments** - Know who is working on what (Arie = Frontend, Yonatan = Backend)
+| Position | Attention | Content | When to Load |
+|----------|-----------|---------|--------------|
+| **START** | High | Identity, constraints, critical decisions | Always |
+| **MIDDLE** | Lower | Patterns, agent context, background knowledge | On-demand |
+| **END** | High | Current task, blockers, next steps | Always |
 
 ---
 
-## Context Persistence
+## Automatic Loading (Hooks)
 
-After completing significant work, **always update** `.claude/context/shared-context.json` with:
-- Key decisions made
-- Patterns established
-- Issues discovered
-- Progress updates
+Context loading is **hook-driven**, not manual:
 
-This ensures the next context window has access to your learnings.
+| Hook Event | What Loads | Position |
+|------------|------------|----------|
+| `session_start` | identity.json, knowledge/index.json, session/state.json | START, END |
+| `before_subagent` | agents/{agent_id}.json + relevant patterns | MIDDLE |
+| `after_tool_use` | Budget monitoring, compression if >70% | N/A |
+| `session_end` | Archives session, compresses old decisions | N/A |
 
----
-
-## Checklist for New Context Window
-
-- [ ] Read `docs/CURRENT_STATUS.md`
-- [ ] Read `docs/ROADMAP.md`
-- [ ] Read `.claude/context/shared-context.json`
-- [ ] Check `git log --oneline -10` and `git status`
-- [ ] Read domain-specific docs based on task
-- [ ] Understand current sprint and priorities
-- [ ] Ready to work with full context
+**You do NOT need to manually read context files.** The hooks handle it.
 
 ---
 
-**Last Updated:** November 2024
+## When to Manually Load Context
+
+Only load additional context when **explicitly needed**:
+
+### Load Decisions (on architecture questions)
+```
+Triggers: "why did we", "rationale", "decision", "chose"
+File: knowledge/decisions/active.json
+```
+
+### Load Patterns (on convention questions)
+```
+Triggers: "pattern", "convention", "how do we", "standard"
+File: knowledge/patterns/established.json
+```
+
+### Load Blockers (on issue investigation)
+```
+Triggers: "blocked", "failing", "issue", "problem"
+File: knowledge/blockers/current.json
+```
+
+### Load Agent Context (automatic via hook)
+```
+Triggers: Agent spawn
+File: agents/{agent_id}.json
+```
+
+---
+
+## Token Budget
+
+**Total budget: 2,200 tokens** for context layer
+
+| Layer | Budget | Auto-Load |
+|-------|--------|-----------|
+| Identity | 200 | Always |
+| Knowledge Index | 150 | Always |
+| Session State | 500 | Always |
+| Blockers | 150 | If non-empty |
+| Decisions | 400 | On-demand |
+| Patterns | 300 | On-demand |
+| Agent Context | 500 | On spawn |
+
+### Compression Triggers
+
+- **70% utilization**: Start compression
+- **50% target**: After compression
+- **Preserve always**: Last 3 next_steps, all blockers, current_task
+
+---
+
+## Updating Context
+
+### Session State (automatic)
+Updated by hooks during the session. No manual updates needed.
+
+### Decisions (manual when significant)
+When making an **architectural decision**:
+
+```json
+// Add to knowledge/decisions/active.json
+{
+  "id": "decision-name",
+  "date": "YYYY-MM-DD",
+  "summary": "One-line description",
+  "rationale": "Why this approach",
+  "status": "implemented|planned|deprecated"
+}
+```
+
+### Patterns (rare, on new convention)
+Only when establishing a **new project-wide pattern**:
+
+```json
+// Add to knowledge/patterns/established.json under appropriate category
+{
+  "name": "Pattern Name",
+  "description": "What it is",
+  "enforcement": "How it's enforced (hook, review, etc.)"
+}
+```
+
+### Blockers (when stuck)
+When encountering a **blocking issue**:
+
+```json
+// Add to knowledge/blockers/current.json
+{
+  "id": "blocker-name",
+  "description": "What's blocked and why",
+  "status": "active|investigating|resolved"
+}
+```
+
+---
+
+## Migration from Old System
+
+The old `session/state.json (Context Protocol 2.0)` (1,070 lines) has been archived to:
+```
+archive/sessions/shared-context-pre-refactor.json
+```
+
+**Do NOT use the old file.** The new tiered system provides:
+
+| Old System | New System |
+|------------|------------|
+| 1 file, ~30KB | 7+ files, ~2KB typical load |
+| All-or-nothing loading | Progressive, on-demand |
+| No attention awareness | START/MIDDLE/END positioning |
+| Manual updates | Hook-driven automation |
+| Grows unbounded | Auto-compression at 70% |
+| Same context for all agents | Agent-scoped context |
+
+---
+
+## Quick Reference
+
+### Files That Auto-Load
+- `identity.json` - Always (project identity, constraints)
+- `session/state.json` - Always (current task, next steps)
+- `knowledge/index.json` - Always (what knowledge exists)
+- `knowledge/blockers/current.json` - If non-empty
+
+### Files Loaded On-Demand
+- `knowledge/decisions/active.json` - On architecture keywords
+- `knowledge/patterns/established.json` - On convention keywords
+- `agents/{agent_id}.json` - On agent spawn
+
+### Files Never Auto-Loaded
+- `archive/*` - Historical data, explicit request only
+
+---
+
+**Last Updated:** January 2026 (Context Engineering 2.0 Migration)

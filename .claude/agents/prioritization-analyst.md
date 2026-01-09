@@ -2,9 +2,14 @@
 name: prioritization-analyst
 color: plum
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort
-model: sonnet
 max_tokens: 16000
 tools: Read, Write, Grep, Glob, Bash
+skills: github-cli
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -223,7 +228,7 @@ Task: "Prioritize the Q1 backlog"
 8. Handoff to business-case-builder
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`, receive product-strategist assessment
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`, receive product-strategist assessment
 - During: Update `agent_decisions.prioritization-analyst` with scoring rationale
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

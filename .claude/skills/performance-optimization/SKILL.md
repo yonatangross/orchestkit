@@ -954,3 +954,124 @@ Use Opus 4.5 extended thinking for:
 
 ### v1.0.0 (2025-12-14)
 - Initial skill with database optimization, caching, and profiling
+
+## Capability Details
+
+### database-optimization
+**Keywords:** slow query, n+1, query optimization, explain analyze, index, postgres performance
+**Solves:**
+- How do I optimize slow database queries?
+- Fix N+1 query problems with eager loading
+- Use EXPLAIN ANALYZE to diagnose queries
+- Add missing indexes for performance
+
+### n+1-query-detection
+**Keywords:** n+1, eager loading, selectinload, joinedload, query loops
+**Solves:**
+- How do I detect N+1 queries?
+- Fix N+1 with SQLAlchemy selectinload
+- Convert query loops to single JOINs
+
+### index-selection
+**Keywords:** index, b-tree, gin, hnsw, hash index, index types
+**Solves:**
+- Which index type should I use?
+- B-tree vs GIN vs HNSW comparison
+- Index full-text search columns
+- Vector similarity index selection
+
+### explain-analyze
+**Keywords:** explain analyze, query plan, seq scan, index scan, query cost
+**Solves:**
+- How do I read EXPLAIN ANALYZE output?
+- Identify Seq Scan problems
+- Analyze query execution time
+- Measure buffer cache hit ratio
+
+### caching-strategies
+**Keywords:** cache, redis, cdn, cache-aside, write-through, semantic cache
+**Solves:**
+- How do I implement multi-level caching?
+- Cache-aside vs write-through patterns
+- Semantic cache for LLM responses
+- Cache invalidation strategies
+
+### semantic-cache
+**Keywords:** semantic cache, vector cache, llm cache, embedding cache
+**Solves:**
+- How do I cache LLM responses by similarity?
+- Implement vector-based semantic cache
+- Reduce LLM costs by 70-95%
+- Real-world SkillForge semantic cache
+
+### cache-invalidation
+**Keywords:** cache invalidation, ttl, write-through, event-driven invalidation
+**Solves:**
+- How do I invalidate cached data?
+- TTL vs write-through invalidation
+- Event-driven cache invalidation
+- Cache warming strategies
+
+### frontend-performance
+**Keywords:** bundle size, lazy load, code splitting, tree shaking, lighthouse, web vitals
+**Solves:**
+- How do I reduce frontend bundle size?
+- Implement code splitting with React.lazy()
+- Optimize Lighthouse scores
+- Fix Core Web Vitals issues
+
+### core-web-vitals
+**Keywords:** lcp, inp, cls, core web vitals, ttfb, fid
+**Solves:**
+- How do I improve Core Web Vitals?
+- Optimize LCP (Largest Contentful Paint)
+- Fix CLS (Cumulative Layout Shift)
+- Improve INP (Interaction to Next Paint)
+
+### profiling
+**Keywords:** profile, flame graph, py-spy, chrome devtools, memory leak, cpu bottleneck
+**Solves:**
+- How do I profile my Python backend?
+- Generate flame graphs with py-spy
+- Profile React components with DevTools
+- Find memory leaks in frontend
+
+### bundle-analysis
+**Keywords:** bundle analyzer, vite visualizer, webpack bundle, tree shaking
+**Solves:**
+- How do I analyze bundle size?
+- Use Vite bundle visualizer
+- Identify large dependencies
+- Optimize bundle with tree shaking
+
+### hybrid-search-optimization
+**Keywords:** hybrid search, rrf, fetch multiplier, metadata boosting, search performance
+**Solves:**
+- How do I optimize hybrid search retrieval?
+- Tune RRF fetch multiplier for better coverage
+- Boost search results by metadata
+- Real-world SkillForge retrieval improvements
+
+### llm-caching
+**Keywords:** llm caching, prompt cache, semantic cache, cost reduction
+**Solves:**
+- How do I reduce LLM costs with caching?
+- Multi-level LLM cache hierarchy
+- Claude prompt caching (90% savings)
+- Redis semantic cache (70-85% savings)
+
+### vector-index-selection
+**Keywords:** pgvector, hnsw, ivfflat, vector index, similarity search performance
+**Solves:**
+- How do I choose HNSW vs IVFFlat?
+- Optimize vector search query time
+- Trade-off: indexing speed vs query speed
+- Real-world SkillForge benchmark results
+
+### sse-event-buffering
+**Keywords:** sse, server-sent events, event buffering, race condition, event broadcaster
+**Solves:**
+- How do I prevent SSE race conditions?
+- Buffer events before subscriber connects
+- Fix 'events lost' in real-time updates
+- Real-world SkillForge SSE debugging

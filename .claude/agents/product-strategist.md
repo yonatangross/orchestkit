@@ -2,9 +2,14 @@
 name: product-strategist
 color: purple
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale
-model: sonnet
 max_tokens: 16000
 tools: Read, Write, WebSearch, WebFetch, Grep, Glob, Bash
+skills: brainstorming, github-cli
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -185,7 +190,7 @@ Task: "Should we build a visual workflow builder?"
 8. Handoff to prioritization-analyst
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`, receive market-intelligence report
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`, receive market-intelligence report
 - During: Update `agent_decisions.product-strategist` with strategic decisions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

@@ -1,0 +1,76 @@
+{
+  "$schema": "context://patterns/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_trigger",
+    "triggers": ["pattern", "convention", "standard", "how do we", "approach"],
+    "description": "Established code patterns and conventions"
+  },
+
+  "patterns": {
+    "backend": [
+      {
+        "name": "Clean Architecture",
+        "description": "Ports/adapters pattern with clear layer separation: routers -> services -> repositories -> models",
+        "enforcement": "backend-layer-validator.sh hook"
+      },
+      {
+        "name": "Async SQLAlchemy",
+        "description": "All database operations use async/await with SQLAlchemy 2.0 patterns",
+        "key_imports": ["from sqlalchemy.ext.asyncio import AsyncSession"]
+      },
+      {
+        "name": "Pydantic v2 Schemas",
+        "description": "All API input/output uses Pydantic v2 models with strict validation",
+        "naming": "XxxCreate, XxxUpdate, XxxResponse, XxxInDB"
+      },
+      {
+        "name": "Tenant Isolation",
+        "description": "All queries must include tenant_id filter for multi-tenant safety",
+        "enforcement": "Checked in code review"
+      }
+    ],
+    "frontend": [
+      {
+        "name": "React 19 Function Components",
+        "description": "Use function declarations with explicit Props type, not React.FC",
+        "example": "function Component(props: Props): React.ReactNode"
+      },
+      {
+        "name": "Zod Validation",
+        "description": "All API responses validated with Zod schemas before use",
+        "integration": "React Query + Zod for type-safe data fetching"
+      },
+      {
+        "name": "Feature-Based Structure",
+        "description": "Code organized by feature (analysis/, artifact/, library/) not by type",
+        "enforcement": "project-structure-enforcer.sh hook"
+      }
+    ],
+    "testing": [
+      {
+        "name": "AAA Pattern",
+        "description": "All tests follow Arrange-Act-Assert structure",
+        "enforcement": "test-pattern-validator.sh hook"
+      },
+      {
+        "name": "Coverage Threshold",
+        "description": "Minimum 70% coverage required for backend and frontend",
+        "enforcement": "coverage-threshold-gate.sh hook"
+      }
+    ],
+    "ai_integration": [
+      {
+        "name": "IDs Flow Around LLM",
+        "description": "Database IDs never go into LLM prompts - pass through metadata, join after",
+        "rationale": "Security and context efficiency"
+      },
+      {
+        "name": "Provider Factory",
+        "description": "Use get_llm_provider() and get_embedding_provider() for automatic Ollama/OpenAI switching",
+        "config": "OLLAMA_ENABLED environment variable"
+      }
+    ]
+  }
+}

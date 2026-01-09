@@ -1,6 +1,8 @@
 ---
 name: langgraph-state
 description: LangGraph state management patterns. Use when designing workflow state schemas, using TypedDict vs Pydantic, implementing accumulating state with Annotated operators, or managing shared state across nodes.
+context: fork
+agent: workflow-architect
 ---
 
 # LangGraph State Management
@@ -149,3 +151,40 @@ def node(state: WorkflowState) -> WorkflowState:
 - `langgraph-routing` - Using state for routing decisions
 - `langgraph-checkpoints` - State persistence
 - `type-safety-validation` - Pydantic patterns
+
+## Capability Details
+
+### state-definition
+**Keywords:** StateGraph, TypedDict, state schema, define state
+**Solves:**
+- Define workflow state with TypedDict
+- Create Pydantic state models
+- Structure agent state properly
+
+### state-channels
+**Keywords:** channel, Annotated, state channel, MessageChannel
+**Solves:**
+- Configure state channels for data flow
+- Implement message accumulation
+- Handle channel-based state updates
+
+### state-reducers
+**Keywords:** reducer, add_messages, operator.add, accumulate
+**Solves:**
+- Implement state reducers with Annotated
+- Accumulate messages across nodes
+- Handle state merging strategies
+
+### subgraphs
+**Keywords:** subgraph, nested graph, parent state, child graph
+**Solves:**
+- Compose graphs with subgraphs
+- Pass state between parent and child
+- Implement modular workflow components
+
+### state-persistence
+**Keywords:** persist, state persistence, durable state, save state
+**Solves:**
+- Persist state across executions
+- Implement durable workflows
+- Handle state serialization

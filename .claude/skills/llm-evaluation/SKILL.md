@@ -1,8 +1,16 @@
 ---
 name: llm-evaluation
 description: LLM output evaluation and quality assessment. Use when implementing LLM-as-judge patterns, quality gates for AI outputs, or automated evaluation pipelines.
+context: fork
+agent: llm-integrator
 version: 2.0.0
 tags: [evaluation, llm, quality, ragas, langfuse, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/eval-metrics-collector.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/eval-metrics-collector.sh"
 ---
 
 # LLM Evaluation
@@ -107,3 +115,47 @@ if scores["average"] > 0.7:
 - `quality-gates` - Workflow quality control
 - `langfuse-observability` - Tracking evaluation scores
 - `agent-loops` - Self-correcting with evaluation
+
+## Capability Details
+
+### llm-as-judge
+**Keywords:** LLM judge, judge model, evaluation model, grader LLM
+**Solves:**
+- Use LLM to evaluate other LLM outputs
+- Implement judge prompts for quality
+- Configure evaluation criteria
+
+### ragas-metrics
+**Keywords:** RAGAS, faithfulness, answer relevancy, context precision
+**Solves:**
+- Evaluate RAG with RAGAS metrics
+- Measure faithfulness and relevancy
+- Assess context precision and recall
+
+### hallucination-detection
+**Keywords:** hallucination, factuality, grounded, verify facts
+**Solves:**
+- Detect hallucinations in LLM output
+- Verify factual accuracy
+- Implement grounding checks
+
+### quality-gates
+**Keywords:** quality gate, threshold, pass/fail, evaluation gate
+**Solves:**
+- Implement quality thresholds
+- Block low-quality outputs
+- Configure multi-metric gates
+
+### batch-evaluation
+**Keywords:** batch eval, dataset evaluation, bulk scoring, eval suite
+**Solves:**
+- Evaluate over golden datasets
+- Run batch evaluation pipelines
+- Generate evaluation reports
+
+### pairwise-comparison
+**Keywords:** pairwise, A/B comparison, side-by-side, preference
+**Solves:**
+- Compare two model outputs
+- Implement preference ranking
+- Run A/B evaluations

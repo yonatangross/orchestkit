@@ -3,142 +3,20 @@
   "name": "langfuse-observability",
   "version": "1.0.0",
   "description": "LLM observability with self-hosted Langfuse - tracing, evaluation, monitoring, prompt management, and cost tracking",
-
-  "capabilities": {
-    "distributed-tracing": {
-      "keywords": ["trace", "tracing", "observability", "span", "nested", "parent-child", "observe"],
-      "solves": [
-        "How do I trace LLM calls across my application?",
-        "How to debug slow LLM responses?",
-        "Track execution flow in multi-agent workflows",
-        "Create nested trace spans"
-      ],
-      "reference_file": "SKILL.md#distributed-tracing",
-      "token_cost": 150
-    },
-    "cost-tracking": {
-      "keywords": ["cost", "token usage", "pricing", "budget", "spend", "expense"],
-      "solves": [
-        "How do I track LLM costs?",
-        "Calculate token usage and pricing",
-        "Monitor AI budget and spending",
-        "Track cost per user or session"
-      ],
-      "reference_file": "SKILL.md#token-cost-tracking",
-      "token_cost": 120
-    },
-    "prompt-management": {
-      "keywords": ["prompt version", "prompt template", "prompt control", "prompt registry"],
-      "solves": [
-        "How do I version control prompts?",
-        "Manage prompts in production",
-        "A/B test different prompt versions",
-        "Link prompts to traces"
-      ],
-      "reference_file": "SKILL.md#prompt-management",
-      "token_cost": 130
-    },
-    "llm-evaluation": {
-      "keywords": ["score", "quality", "evaluation", "rating", "assessment", "g-eval"],
-      "solves": [
-        "How do I evaluate LLM output quality?",
-        "Score responses with custom metrics",
-        "Track quality trends over time",
-        "Compare prompt versions by quality"
-      ],
-      "reference_file": "SKILL.md#llm-evaluation-scores",
-      "token_cost": 140
-    },
-    "session-tracking": {
-      "keywords": ["session", "user tracking", "conversation", "group traces"],
-      "solves": [
-        "How do I group related traces?",
-        "Track multi-turn conversations",
-        "Monitor per-user performance",
-        "Organize traces by session"
-      ],
-      "reference_file": "SKILL.md#session-tracking",
-      "token_cost": 100
-    },
-    "langchain-integration": {
-      "keywords": ["langchain", "callback", "handler", "langgraph integration"],
-      "solves": [
-        "How do I integrate Langfuse with LangChain?",
-        "Use CallbackHandler for tracing",
-        "Automatic LangGraph workflow tracing",
-        "LangChain observability setup"
-      ],
-      "reference_file": "SKILL.md#callbackhandler-langchain-integration",
-      "token_cost": 110
-    },
-    "datasets-evaluation": {
-      "keywords": ["dataset", "test set", "evaluation dataset", "benchmark"],
-      "solves": [
-        "How do I create test datasets in Langfuse?",
-        "Run automated evaluations",
-        "Regression testing for LLMs",
-        "Benchmark prompt versions"
-      ],
-      "reference_file": "SKILL.md#datasets-for-evaluation",
-      "token_cost": 120
-    },
-    "ab-testing": {
-      "keywords": ["a/b test", "experiment", "compare prompts", "variant testing"],
-      "solves": [
-        "How do I A/B test prompts?",
-        "Compare two prompt versions",
-        "Experimental prompt evaluation",
-        "Statistical prompt testing"
-      ],
-      "reference_file": "SKILL.md#experimentation-ab-testing-prompts",
-      "token_cost": 100
-    },
-    "monitoring-dashboard": {
-      "keywords": ["dashboard", "analytics", "metrics", "monitoring", "queries"],
-      "solves": [
-        "What are the most expensive traces?",
-        "Average cost by agent type",
-        "Quality score trends",
-        "Custom monitoring queries"
-      ],
-      "reference_file": "SKILL.md#monitoring-dashboard-queries",
-      "token_cost": 90
-    },
-    "skillforge-integration": {
-      "keywords": ["skillforge", "migration", "setup", "workflow integration"],
-      "solves": [
-        "How does SkillForge use Langfuse?",
-        "Migrate from LangSmith to Langfuse",
-        "SkillForge workflow tracing patterns",
-        "Cost tracking per analysis"
-      ],
-      "example_file": "SKILL.md#skillforge-integration",
-      "token_cost": 180
-    },
-    "multi-judge-evaluation": {
-      "keywords": ["multi judge", "g-eval", "multiple evaluators", "ensemble evaluation", "weighted scoring"],
-      "solves": [
-        "How do I use multiple LLM judges to evaluate quality?",
-        "Set up G-Eval criteria evaluation",
-        "Configure weighted scoring across judges",
-        "Wire SkillForge's existing langfuse_evaluators.py"
-      ],
-      "reference_file": "references/multi-judge-evaluation.md",
-      "token_cost": 200
-    },
-    "experiments-api": {
-      "keywords": ["experiment", "dataset", "benchmark", "regression test", "prompt testing"],
-      "solves": [
-        "How do I run experiments across datasets?",
-        "A/B test models and prompts systematically",
-        "Track quality regression over time",
-        "Compare experiment results"
-      ],
-      "reference_file": "references/experiments-api.md",
-      "token_cost": 180
-    }
-  },
-
+  "capabilities": [
+    "ab-testing",
+    "cost-tracking",
+    "datasets-evaluation",
+    "distributed-tracing",
+    "experiments-api",
+    "langchain-integration",
+    "llm-evaluation",
+    "monitoring-dashboard",
+    "multi-judge-evaluation",
+    "prompt-management",
+    "session-tracking",
+    "skillforge-integration"
+  ],
   "triggers": {
     "high_confidence": [
       "langfuse.*setup",
@@ -154,42 +32,11 @@
       "score.*response"
     ]
   },
-
   "integrates_with": [
-    "langgraph-workflows",
-    "ai-native-development",
-    "llm-caching-patterns",
+    "langgraph-state",
+    "llm-evaluation",
+    "semantic-caching",
     "performance-optimization",
     "resilience-patterns"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 507,
-      "use_when": "Skill confirmed relevant - need patterns and best practices"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#<section>",
-      "tokens": "90-180 each",
-      "use_when": "Need specific feature implementation (tracing, costs, prompts, etc.)"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/langfuse/langfuse-python"],
-      "use_when": "Need current Langfuse SDK API patterns"
-    },
-    "observability_access": {
-      "tool": "skillforge-langfuse",
-      "use_when": "Query Langfuse traces, datasets, and prompts from CLI (optional MCP server)"
-    }
-  }
+  ]
 }

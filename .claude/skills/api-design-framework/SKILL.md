@@ -1,9 +1,17 @@
 ---
 name: api-design-framework
 description: Use this skill when designing REST, GraphQL, or gRPC APIs. Provides comprehensive API design patterns, versioning strategies, error handling conventions, authentication approaches, and OpenAPI/AsyncAPI templates. Ensures consistent, well-documented, and developer-friendly APIs across all backend services.
+context: fork
+agent: backend-system-architect
 version: 1.0.0
 author: AI Agent Hub
 tags: [api, rest, graphql, grpc, backend, documentation]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
 ---
 
 # API Design Framework
@@ -911,3 +919,69 @@ export function useCreateUser() {
 - Added ApiError class with structured error handling
 - Added TanStack Query integration examples
 - Updated agent integration notes for frontend patterns
+
+## Capability Details
+
+### rest-design
+**Keywords:** rest, restful, http, endpoint, route, path, resource, CRUD
+**Solves:**
+- How do I design RESTful APIs?
+- REST endpoint patterns and conventions
+- HTTP methods and status codes
+- API versioning and pagination
+
+### endpoint-design
+**Keywords:** endpoint, route, path, resource, CRUD
+**Solves:**
+- How do I structure API endpoints?
+- What's the best URL pattern for this resource?
+- RESTful endpoint naming conventions
+
+### pagination
+**Keywords:** pagination, paginate, paging, offset, cursor, limit
+**Solves:**
+- How do I add pagination to an endpoint?
+- Cursor vs offset pagination
+- Pagination best practices
+
+### versioning
+**Keywords:** version, v1, v2, api version, breaking change
+**Solves:**
+- How do I version my API?
+- When to create a new API version
+- URL vs header versioning
+
+### error-handling
+**Keywords:** error, exception, status code, error response, validation error
+**Solves:**
+- How do I structure error responses?
+- Which HTTP status codes to use
+- Error message best practices
+
+### rate-limiting
+**Keywords:** rate limit, throttle, quota, requests per second, 429
+**Solves:**
+- How do I implement rate limiting?
+- Rate limit headers and responses
+- Tiered rate limiting strategies
+
+### skillforge-api
+**Keywords:** skillforge, analysis api, artifact api, sse endpoint
+**Solves:**
+- How does SkillForge API work?
+- SkillForge endpoint design decisions
+- Real-world API design examples
+
+### authentication
+**Keywords:** auth, authentication, bearer, jwt, oauth, api key
+**Solves:**
+- How do I secure API endpoints?
+- JWT vs API key authentication
+- OAuth2 flow for APIs
+
+### openapi-spec
+**Keywords:** openapi, swagger, api spec, documentation, schema
+**Solves:**
+- How do I document my API?
+- Generate OpenAPI specification
+- API documentation best practices

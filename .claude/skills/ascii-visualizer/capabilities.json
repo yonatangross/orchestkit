@@ -3,65 +3,13 @@
   "name": "ascii-visualizer",
   "version": "1.0.0",
   "description": "ASCII art visualization for architecture diagrams, workflows, progress tracking, and file trees",
-
-  "capabilities": {
-    "architecture-diagrams": {
-      "keywords": ["architecture", "diagram", "system design", "components", "flow"],
-      "solves": [
-        "How do I visualize system architecture?",
-        "Show component relationships with ASCII",
-        "Explain system design visually",
-        "Create architecture diagrams in documentation"
-      ],
-      "reference_file": "references/architecture-diagrams.md",
-      "token_cost": 120
-    },
-    "workflows": {
-      "keywords": ["workflow", "process", "steps", "pipeline", "flowchart"],
-      "solves": [
-        "How do I visualize process flow?",
-        "Show step-by-step workflow with ASCII",
-        "Explain pipeline stages visually",
-        "Document multi-agent workflows"
-      ],
-      "reference_file": "references/workflows.md",
-      "token_cost": 100
-    },
-    "comparisons": {
-      "keywords": ["compare", "vs", "before after", "metrics", "changes"],
-      "solves": [
-        "How do I compare two options visually?",
-        "Show before/after metrics",
-        "Display progress comparison",
-        "Visualize A/B testing results"
-      ],
-      "reference_file": "references/comparisons.md",
-      "token_cost": 100
-    },
-    "file-trees": {
-      "keywords": ["file tree", "directory", "structure", "folder hierarchy"],
-      "solves": [
-        "How do I show directory structure?",
-        "Visualize file hierarchy with ASCII",
-        "Explain codebase organization",
-        "Document project structure"
-      ],
-      "reference_file": "references/file-trees.md",
-      "token_cost": 80
-    },
-    "progress-tracking": {
-      "keywords": ["progress", "status", "completion", "percentage", "metrics"],
-      "solves": [
-        "How do I show progress visually?",
-        "Create progress bars with ASCII",
-        "Display completion status",
-        "Track task completion metrics"
-      ],
-      "reference_file": "references/workflows.md#progress-bars",
-      "token_cost": 80
-    }
-  },
-
+  "capabilities": [
+    "architecture-diagrams",
+    "comparisons",
+    "file-trees",
+    "progress-tracking",
+    "workflows"
+  ],
   "triggers": {
     "high_confidence": [
       "ascii.*diagram",
@@ -77,41 +25,9 @@
       "explain.*visually"
     ]
   },
-
   "integrates_with": [
     "architecture-decision-record",
-    "langgraph-workflows",
+    "multi-agent-orchestration",
     "devops-deployment"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if visualization is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 250,
-      "use_when": "Skill confirmed relevant - need box-drawing patterns and quick examples"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "80-120 each",
-      "use_when": "Need specific visualization patterns (architecture, workflow, comparison, file-tree)"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.md",
-      "tokens": "100-150 each",
-      "use_when": "Ready to generate specific diagram type"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": [],
-      "use_when": "Looking up Unicode box-drawing characters or ASCII art patterns"
-    }
-  }
+  ]
 }

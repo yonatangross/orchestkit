@@ -2,9 +2,7 @@
 set -euo pipefail
 # Git Branch Protection Hook for Claude Code
 # Prevents commits and pushes to dev/main branches
-# Exit code 2 blocks the command; exit code 0 allows it
-
-set -o pipefail
+# CC 2.1.2 Compliant: outputs JSON with continue field
 
 # Read hook input from stdin
 INPUT=$(cat)
@@ -14,7 +12,8 @@ COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
 
 # Check if this is a git command we should protect
 if [[ ! "$COMMAND" =~ ^git ]]; then
-  # Not a git command, allow it
+  # Not a git command, allow it (silent success)
+  echo '{"continue":true}'
   exit 0
 fi
 
@@ -44,10 +43,11 @@ Required workflow:
    gh pr create --base dev
 
 Aborting command to protect $CURRENT_BRANCH branch."
-    echo "$ERROR_MSG" >&2
-    exit 2
+    jq -n --arg msg "$ERROR_MSG" '{systemMessage: $msg, continue: false, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: "Protected branch"}}'
+    exit 0
   fi
 fi
 
 # Allow other git operations (fetch, pull, status, etc.)
+echo '{"systemMessage":"Branch protection checked","continue":true}'
 exit 0

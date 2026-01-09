@@ -1,28 +1,29 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "llm-streaming",
   "version": "1.0.0",
   "description": "LLM streaming response patterns for real-time output",
   "capabilities": [
-    "token-streaming",
-    "sse-responses",
-    "streaming-with-tools",
     "partial-json-parsing",
-    "cancellation"
+    "sse-responses",
+    "stream-cancellation",
+    "streaming-with-tools",
+    "token-streaming"
   ],
-  "triggers": [
-    "streaming",
-    "stream response",
-    "SSE",
-    "real-time",
-    "token by token"
-  ],
-  "antiPatterns": [
-    "buffering entire response",
-    "no timeout on streams",
-    "ignoring stream errors"
-  ],
-  "dependencies": [
-    "function-calling"
-  ],
-  "tags": ["streaming", "llm", "real-time", "2026"]
+  "triggers": {
+    "high_confidence": [
+      "LLM.*streaming",
+      "stream.*response",
+      "SSE"
+    ],
+    "medium_confidence": [
+      "real-time",
+      "token.*stream",
+      "incremental"
+    ]
+  },
+  "integrates_with": [
+    "function-calling",
+    "streaming-api-patterns"
+  ]
 }

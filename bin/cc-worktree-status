@@ -1,0 +1,195 @@
+#!/bin/bash
+# cc-worktree-status: Show status of all active Claude Code worktrees
+#
+# Usage: cc-worktree-status [--json] [--clean]
+#
+# Version: 1.0.0
+# Part of SkillForge Multi-Worktree Coordination System
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
+NC='\033[0m'
+
+# Parse arguments
+JSON_OUTPUT=false
+CLEAN_STALE=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --json)
+            JSON_OUTPUT=true
+            shift
+            ;;
+        --clean)
+            CLEAN_STALE=true
+            shift
+            ;;
+        -h|--help)
+            cat << EOF
+Usage: cc-worktree-status [options]
+
+Show status of all active Claude Code worktrees.
+
+Options:
+  --json    Output as JSON
+  --clean   Clean up stale instances
+  -h, --help  Show this help message
+
+Examples:
+  cc-worktree-status
+  cc-worktree-status --json
+  cc-worktree-status --clean
+EOF
+            exit 0
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# Find coordination directory
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || REPO_ROOT="."
+COORDINATION_DIR="$REPO_ROOT/.claude/coordination"
+
+if [[ ! -f "$COORDINATION_DIR/registry.json" ]]; then
+    if $JSON_OUTPUT; then
+        echo '{"instances":[],"file_locks":[]}'
+    else
+        echo -e "${YELLOW}No coordination registry found${NC}"
+        echo "Run cc-worktree-new to create your first coordinated worktree"
+    fi
+    exit 0
+fi
+
+REGISTRY=$(cat "$COORDINATION_DIR/registry.json")
+STALE_THRESHOLD=$(echo "$REGISTRY" | jq -r '._meta.stale_threshold_seconds // 300')
+NOW=$(date +%s)
+
+# Function to check if instance is stale
+is_stale() {
+    local heartbeat="$1"
+    local hb_epoch
+
+    if [[ "$(uname)" == "Darwin" ]]; then
+        hb_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${heartbeat%%[+-]*}" +%s 2>/dev/null || echo 0)
+    else
+        hb_epoch=$(date -d "$heartbeat" +%s 2>/dev/null || echo 0)
+    fi
+
+    local age=$((NOW - hb_epoch))
+    [[ $age -gt $STALE_THRESHOLD ]]
+}
+
+# Clean stale instances if requested
+if $CLEAN_STALE; then
+    INSTANCES=$(echo "$REGISTRY" | jq -r '.instances | keys[]')
+    CLEANED=0
+
+    for id in $INSTANCES; do
+        heartbeat=$(echo "$REGISTRY" | jq -r --arg id "$id" '.instances[$id].last_heartbeat')
+        if is_stale "$heartbeat"; then
+            REGISTRY=$(echo "$REGISTRY" | jq --arg id "$id" \
+                'del(.instances[$id]) |
+                 .file_locks = (.file_locks | to_entries | map(select(.value.instance_id != $id)) | from_entries)')
+            CLEANED=$((CLEANED + 1))
+        fi
+    done
+
+    if [[ $CLEANED -gt 0 ]]; then
+        echo "$REGISTRY" > "$COORDINATION_DIR/registry.json"
+        echo -e "${GREEN}Cleaned up $CLEANED stale instance(s)${NC}"
+    fi
+fi
+
+# JSON output
+if $JSON_OUTPUT; then
+    echo "$REGISTRY" | jq '{
+        instances: [.instances | to_entries[] | {
+            id: .key,
+            worktree: .value.worktree,
+            branch: .value.branch,
+            task: .value.task,
+            files_locked: .value.files_locked,
+            started: .value.started,
+            last_heartbeat: .value.last_heartbeat
+        }],
+        file_locks: [.file_locks | to_entries[] | {
+            file: .key,
+            locked_by: .value.instance_id,
+            acquired_at: .value.acquired_at,
+            reason: .value.reason
+        }]
+    }'
+    exit 0
+fi
+
+# Pretty output
+INSTANCE_COUNT=$(echo "$REGISTRY" | jq '.instances | length')
+LOCK_COUNT=$(echo "$REGISTRY" | jq '.file_locks | length')
+
+echo ""
+echo -e "${CYAN}╔══════════════════════════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║                      CLAUDE CODE WORKTREE STATUS                                  ║${NC}"
+echo -e "${CYAN}╠══════════════════════════════════════════════════════════════════════════════════╣${NC}"
+echo -e "${CYAN}║${NC}  Instances: ${GREEN}$INSTANCE_COUNT${NC}    File Locks: ${YELLOW}$LOCK_COUNT${NC}                                         ${CYAN}║${NC}"
+echo -e "${CYAN}╠══════════════════════════════════════════════════════════════════════════════════╣${NC}"
+
+if [[ "$INSTANCE_COUNT" -eq 0 ]]; then
+    echo -e "${CYAN}║${NC}  ${DIM}No active instances${NC}                                                            ${CYAN}║${NC}"
+else
+    echo "$REGISTRY" | jq -r '.instances | to_entries[] | "\(.key)|\(.value.branch)|\(.value.task // "-")|\(.value.last_heartbeat)|\(.value.files_locked | length)"' | \
+    while IFS='|' read -r id branch task heartbeat locks; do
+        # Check status
+        if is_stale "$heartbeat"; then
+            STATUS="${RED}STALE${NC}"
+            STATUS_ICON="💀"
+        else
+            STATUS="${GREEN}ACTIVE${NC}"
+            STATUS_ICON="✅"
+        fi
+
+        # Calculate age
+        if [[ "$(uname)" == "Darwin" ]]; then
+            hb_epoch=$(date -j -f "%Y-%m-%dT%H:%M:%S" "${heartbeat%%[+-]*}" +%s 2>/dev/null || echo 0)
+        else
+            hb_epoch=$(date -d "$heartbeat" +%s 2>/dev/null || echo 0)
+        fi
+        age=$((NOW - hb_epoch))
+
+        if [[ $age -lt 60 ]]; then
+            age_str="${age}s ago"
+        elif [[ $age -lt 3600 ]]; then
+            age_str="$((age / 60))m ago"
+        else
+            age_str="$((age / 3600))h ago"
+        fi
+
+        echo -e "${CYAN}║${NC}                                                                                  ${CYAN}║${NC}"
+        echo -e "${CYAN}║${NC}  $STATUS_ICON ${BLUE}$id${NC}"
+        echo -e "${CYAN}║${NC}     Branch: ${YELLOW}$branch${NC}"
+        echo -e "${CYAN}║${NC}     Task:   ${task:0:50}"
+        echo -e "${CYAN}║${NC}     Status: $STATUS  │  Last seen: ${DIM}$age_str${NC}  │  Locks: ${YELLOW}$locks${NC}"
+        echo -e "${CYAN}╟──────────────────────────────────────────────────────────────────────────────────╢${NC}"
+    done
+fi
+
+# Show file locks
+if [[ "$LOCK_COUNT" -gt 0 ]]; then
+    echo -e "${CYAN}║${NC}                                                                                  ${CYAN}║${NC}"
+    echo -e "${CYAN}║${NC}  ${YELLOW}FILE LOCKS:${NC}                                                                     ${CYAN}║${NC}"
+    echo "$REGISTRY" | jq -r '.file_locks | to_entries[] | "  \(.value.instance_id) → \(.key)"' | \
+    while read -r line; do
+        printf "${CYAN}║${NC}  %-78s ${CYAN}║${NC}\n" "$line"
+    done
+fi
+
+echo -e "${CYAN}╚══════════════════════════════════════════════════════════════════════════════════╝${NC}"
+echo ""

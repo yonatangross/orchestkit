@@ -3,141 +3,19 @@
   "name": "evidence-verification",
   "version": "1.0.0",
   "description": "Exit code validation, test result capture, build log analysis, evidence templates, and proof-based task completion",
-
-  "capabilities": {
-    "exit-code-validation": {
-      "keywords": ["exit code", "return code", "success", "failure", "status", "$?", "exit 0", "non-zero"],
-      "solves": [
-        "How do I verify command succeeded?",
-        "Check exit codes for evidence (0 = pass)",
-        "Validate build/test success with exit codes",
-        "Capture command exit status in evidence"
-      ],
-      "template_file": "templates/evidence-checklist.md",
-      "token_cost": 100
-    },
-    "test-evidence": {
-      "keywords": ["test results", "test output", "coverage report", "test evidence", "jest", "pytest", "test suite", "passed", "failed"],
-      "solves": [
-        "How do I capture test evidence?",
-        "Record test results in shared context",
-        "Prove tests passed with exit code 0",
-        "Document test coverage percentage",
-        "Capture passed/failed/skipped counts"
-      ],
-      "template_file": "templates/test-evidence.md",
-      "token_cost": 120
-    },
-    "build-evidence": {
-      "keywords": ["build log", "build output", "compile", "bundle", "webpack", "vite", "cargo build", "npm build"],
-      "solves": [
-        "How do I capture build evidence?",
-        "Record build success with exit code",
-        "Verify compilation without errors",
-        "Document build artifacts created",
-        "Track build duration and warnings"
-      ],
-      "template_file": "templates/build-evidence.md",
-      "token_cost": 100
-    },
-    "code-quality-evidence": {
-      "keywords": ["linter", "lint", "eslint", "ruff", "type check", "mypy", "typescript", "code quality", "warnings", "errors"],
-      "solves": [
-        "How do I capture code quality evidence?",
-        "Run linter and capture results",
-        "Execute type checker and record errors",
-        "Document linter errors and warnings count",
-        "Prove code quality checks passed"
-      ],
-      "template_file": "templates/evidence-checklist.md",
-      "token_cost": 110
-    },
-    "deployment-evidence": {
-      "keywords": ["deployment", "deploy", "production", "staging", "health check", "rollback", "deployment status"],
-      "solves": [
-        "How do I verify deployment succeeded?",
-        "Check health endpoints after deploy",
-        "Verify application started successfully",
-        "Document deployment status and environment",
-        "Confirm rollback capability exists"
-      ],
-      "reference_file": "SKILL.md#deployment-evidence",
-      "token_cost": 130
-    },
-    "security-scan-evidence": {
-      "keywords": ["security", "vulnerability", "npm audit", "pip-audit", "security scan", "cve", "critical vulnerabilities"],
-      "solves": [
-        "How do I capture security scan results?",
-        "Run npm audit or pip-audit",
-        "Document critical vulnerabilities found",
-        "Record security scan exit code",
-        "Prove no critical security issues"
-      ],
-      "reference_file": "SKILL.md#security-evidence",
-      "token_cost": 100
-    },
-    "evidence-storage": {
-      "keywords": ["shared context", "context.json", "evidence storage", "record evidence", "save results", "quality_evidence"],
-      "solves": [
-        "How do I store evidence in context?",
-        "Update shared-context.json with results",
-        "Structure evidence data properly",
-        "Add timestamp to evidence records",
-        "Link to evidence log files"
-      ],
-      "reference_file": "SKILL.md#evidence-storage",
-      "token_cost": 140
-    },
-    "combined-evidence-report": {
-      "keywords": ["evidence report", "task completion", "verification summary", "proof of completion", "comprehensive evidence"],
-      "solves": [
-        "How do I create complete evidence report?",
-        "Combine test, build, and quality evidence",
-        "Create task completion evidence summary",
-        "Document all verification checks run",
-        "Provide comprehensive proof of completion"
-      ],
-      "template_file": "templates/evidence-checklist.md",
-      "token_cost": 150
-    },
-    "evidence-collection-workflow": {
-      "keywords": ["evidence workflow", "verification steps", "evidence protocol", "collection process", "verification checklist"],
-      "solves": [
-        "What steps to collect evidence?",
-        "Follow evidence collection protocol",
-        "Run all necessary verification checks",
-        "Complete evidence checklist before marking done",
-        "Ensure minimum evidence requirements met"
-      ],
-      "reference_file": "SKILL.md#evidence-collection-protocol",
-      "token_cost": 160
-    },
-    "quality-standards": {
-      "keywords": ["quality standards", "minimum requirements", "production-grade", "gold standard", "evidence thresholds"],
-      "solves": [
-        "What evidence is required to pass?",
-        "Understand minimum vs production-grade standards",
-        "Meet gold standard evidence requirements",
-        "Know when evidence is sufficient",
-        "Validate evidence meets project standards"
-      ],
-      "reference_file": "SKILL.md#quality-standards",
-      "token_cost": 120
-    },
-    "evidence-pitfalls": {
-      "keywords": ["evidence mistakes", "common errors", "skip evidence", "fake evidence", "ignore failures"],
-      "solves": [
-        "What evidence mistakes to avoid?",
-        "Never skip evidence collection",
-        "Don't fake evidence results",
-        "Don't ignore failed evidence",
-        "Always re-collect after changes"
-      ],
-      "reference_file": "SKILL.md#common-pitfalls",
-      "token_cost": 90
-    }
-  },
-
+  "capabilities": [
+    "build-evidence",
+    "code-quality-evidence",
+    "combined-evidence-report",
+    "deployment-evidence",
+    "evidence-collection-workflow",
+    "evidence-pitfalls",
+    "evidence-storage",
+    "exit-code-validation",
+    "quality-standards",
+    "security-scan-evidence",
+    "test-evidence"
+  ],
   "triggers": {
     "high_confidence": [
       "verify.*success",
@@ -155,47 +33,9 @@
       "verification"
     ]
   },
-
   "integrates_with": [
     "quality-gates",
     "code-review-playbook",
-    "testing-strategy-builder"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if evidence verification is needed"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "use_when": "Skill confirmed relevant - need evidence collection philosophy and core concepts"
-    },
-    "tier_3_specific": {
-      "files": "templates/*.md",
-      "tokens": "90-160 each",
-      "use_when": "Need specific evidence template for tests, builds, or deployments"
-    },
-    "tier_4_generate": {
-      "files": "examples/*.md",
-      "tokens": "100-200 each",
-      "use_when": "Need real-world evidence collection examples"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/jestjs/jest", "/pytest-dev/pytest", "/eslint/eslint", "/microsoft/TypeScript"],
-      "use_when": "Need current testing framework or linter command syntax"
-    }
-  },
-
-  "auto_trigger": {
-    "on_agent": "code-quality-reviewer",
-    "when": "after running tests/builds/linters",
-    "action": "capture exit codes and results in shared context"
-  }
+    "test-standards-enforcer"
+  ]
 }

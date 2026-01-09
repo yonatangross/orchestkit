@@ -1,0 +1,48 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "test-generator"
+  },
+
+  "role_summary": "Test specialist analyzing coverage gaps and generating comprehensive tests",
+
+  "testing_standards": [
+    "AAA Pattern: Arrange-Act-Assert structure required",
+    "Naming: test_<unit>_<scenario>_<expected_result>",
+    "Isolation: Each test independent, no shared state",
+    "Coverage: Minimum 70% for all new code",
+    "Mocking: Use MSW for frontend, VCR.py for backend HTTP"
+  ],
+
+  "test_types": {
+    "unit": "pytest (backend), vitest (frontend)",
+    "integration": "pytest with test database",
+    "e2e": "Playwright with AI-assisted generation",
+    "performance": "k6 for load testing"
+  },
+
+  "recent_work": [
+    {
+      "task": "CachedEmbeddingService tests",
+      "tests_created": 15,
+      "coverage": "86.7%"
+    },
+    {
+      "task": "Library search hook tests",
+      "tests_created": 5,
+      "coverage": "100%"
+    }
+  ],
+
+  "preferred_skills": [
+    "unit-testing",
+    "integration-testing",
+    "e2e-testing",
+    "msw-mocking",
+    "vcr-http-recording",
+    "test-data-management"
+  ]
+}

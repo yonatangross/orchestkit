@@ -2,9 +2,14 @@
 name: database-engineer
 color: emerald
 description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes
-model: sonnet
 max_tokens: 16000
 tools: Bash, Read, Write, Edit, Grep, Glob
+skills: database-schema-designer, pgvector-search, performance-optimization
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 
 ## Directive
@@ -131,7 +136,7 @@ def downgrade():
 5. Return: `{before_ms: 150, after_ms: 8, indexes_added: 2}`
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.database-engineer` with schema decisions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

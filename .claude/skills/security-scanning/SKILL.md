@@ -1,6 +1,19 @@
 ---
 name: security-scanning
 description: Automated security scanning for dependencies and code. Use when running npm audit, pip-audit, Semgrep, secret detection, or integrating security checks into CI/CD.
+context: fork
+agent: security-auditor
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash  # For running security scanners only
+hooks:
+  PostToolUse:
+    - matcher: Bash
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/redact-secrets.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
 ---
 
 # Security Scanning
@@ -204,3 +217,33 @@ context.quality_evidence.security_scan = {
 - `owasp-top-10` - Vulnerability context
 - `devops-deployment` - CI/CD integration
 - `code-review-playbook` - Review process
+
+## Capability Details
+
+### dependency-scanning
+**Keywords:** npm audit, pip-audit, dependency, vulnerability
+**Solves:**
+- Scan npm dependencies
+- Audit Python packages
+- Find vulnerable dependencies
+
+### secret-detection
+**Keywords:** secret, credential, api key, trufflehog, gitleaks
+**Solves:**
+- Detect secrets in code
+- Scan for API keys
+- Find exposed credentials
+
+### api-security-audit
+**Keywords:** api, audit, security, example
+**Solves:**
+- API security audit example
+- Security review checklist
+- Real audit walkthrough
+
+### audit-template
+**Keywords:** template, audit, report, security
+**Solves:**
+- Security audit template
+- Audit report structure
+- Copy-paste audit format

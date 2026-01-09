@@ -2,231 +2,27 @@
   "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "design-system-starter",
   "version": "1.0.0",
-  "description": "Comprehensive design system patterns, design token structures, component architecture, accessibility guidelines, and theming strategies",
-
-  "capabilities": {
-    "design-tokens": {
-      "keywords": ["design tokens", "css variables", "theme", "colors", "spacing", "typography scale", "primitive tokens", "semantic tokens"],
-      "solves": [
-        "How do I create a design token system?",
-        "Define color palette with primitive and semantic tokens",
-        "Set up typography and spacing scales",
-        "Convert Figma tokens to CSS variables"
-      ],
-      "template_file": "templates/design-tokens-template.json",
-      "token_cost": 200
-    },
-    "color-system": {
-      "keywords": ["color palette", "primitive colors", "semantic colors", "color contrast", "wcag contrast", "color tokens"],
-      "solves": [
-        "How do I create an accessible color system?",
-        "Define 50-950 primitive color scales",
-        "Map semantic colors to brand/text/background",
-        "Ensure WCAG 2.1 AA contrast ratios"
-      ],
-      "reference_file": "references/component-examples.md",
-      "token_cost": 150
-    },
-    "typography-scale": {
-      "keywords": ["typography", "font scale", "font family", "font weight", "line height", "letter spacing", "type scale"],
-      "solves": [
-        "How do I define a typography scale?",
-        "Set up font families and fallbacks",
-        "Create responsive font sizing",
-        "Define font weights and line heights"
-      ],
-      "reference_file": "references/component-examples.md",
-      "token_cost": 120
-    },
-    "spacing-system": {
-      "keywords": ["spacing", "spacing scale", "padding", "margin", "gap", "4px grid", "8px grid"],
-      "solves": [
-        "How do I create a spacing system?",
-        "Define 4px or 8px base spacing scale",
-        "Set up component-specific spacing tokens",
-        "Implement consistent layout spacing"
-      ],
-      "reference_file": "references/component-examples.md",
-      "token_cost": 100
-    },
-    "component-architecture": {
-      "keywords": ["component library", "atomic design", "atoms", "molecules", "organisms", "compound components", "variants", "composition"],
-      "solves": [
-        "How do I structure a component library?",
-        "Apply atomic design methodology",
-        "Create compound component patterns",
-        "Design component variant systems"
-      ],
-      "reference_file": "references/component-examples.md",
-      "token_cost": 250
-    },
-    "component-api-design": {
-      "keywords": ["component props", "api design", "prop naming", "polymorphic components", "composition pattern", "component interface"],
-      "solves": [
-        "How do I design component APIs?",
-        "Create predictable prop naming conventions",
-        "Implement polymorphic component patterns",
-        "Design composable component interfaces"
-      ],
-      "reference_file": "references/component-examples.md",
-      "token_cost": 180
-    },
-    "button-component": {
-      "keywords": ["button", "button variants", "button sizes", "button states", "loading state", "disabled button"],
-      "solves": [
-        "How do I build a button component?",
-        "Create button variants (primary, secondary, outline, ghost)",
-        "Implement button sizes and states",
-        "Add loading and disabled states"
-      ],
-      "reference_file": "references/component-examples.md#button-component",
-      "token_cost": 150
-    },
-    "form-components": {
-      "keywords": ["form", "input", "label", "error message", "form field", "validation", "form validation"],
-      "solves": [
-        "How do I build form components?",
-        "Create FormField molecule pattern",
-        "Implement input variants and states",
-        "Add validation and error handling"
-      ],
-      "reference_file": "references/component-examples.md#form-components",
-      "token_cost": 180
-    },
-    "card-component": {
-      "keywords": ["card", "card component", "compound component", "card header", "card footer", "card composition"],
-      "solves": [
-        "How do I build a card component?",
-        "Implement compound component pattern",
-        "Create Card.Header, Card.Body, Card.Footer",
-        "Design flexible card compositions"
-      ],
-      "reference_file": "references/component-examples.md#card-component",
-      "token_cost": 140
-    },
-    "accessibility": {
-      "keywords": ["a11y", "accessibility", "wcag", "aria", "screen reader", "keyboard navigation", "focus management", "aria-label", "aria-expanded"],
-      "solves": [
-        "How do I make components accessible?",
-        "Implement WCAG 2.1 Level AA compliance",
-        "Add proper ARIA attributes",
-        "Ensure keyboard navigation support",
-        "Implement focus management patterns"
-      ],
-      "reference_file": "references/component-examples.md#accessibility",
-      "token_cost": 200
-    },
-    "keyboard-navigation": {
-      "keywords": ["keyboard", "keyboard navigation", "focus trap", "tab order", "keyboard shortcuts", "escape key"],
-      "solves": [
-        "How do I implement keyboard navigation?",
-        "Create focus trap for modals",
-        "Define keyboard shortcuts",
-        "Handle Enter, Escape, Arrow keys"
-      ],
-      "reference_file": "references/component-examples.md#keyboard-navigation",
-      "token_cost": 130
-    },
-    "dark-mode": {
-      "keywords": ["dark mode", "theme switching", "color scheme", "light dark", "css variables", "theme provider", "prefers-color-scheme"],
-      "solves": [
-        "How do I implement dark mode?",
-        "Create theme switching with CSS variables",
-        "Implement Tailwind dark mode classes",
-        "Use ThemeProvider for styled-components",
-        "Respect prefers-color-scheme media query"
-      ],
-      "reference_file": "references/component-examples.md#dark-mode",
-      "token_cost": 160
-    },
-    "modal-dialog": {
-      "keywords": ["modal", "dialog", "overlay", "portal", "focus trap", "modal state", "close modal"],
-      "solves": [
-        "How do I build a modal component?",
-        "Implement portal rendering",
-        "Add focus trap and keyboard handling",
-        "Create modal overlay and backdrop",
-        "Handle modal open/close state"
-      ],
-      "reference_file": "references/component-examples.md#modal-component",
-      "token_cost": 170
-    },
-    "documentation": {
-      "keywords": ["documentation", "component docs", "storybook", "docusaurus", "prop table", "usage examples"],
-      "solves": [
-        "How do I document components?",
-        "Create component documentation template",
-        "Set up Storybook stories",
-        "Write prop tables and examples"
-      ],
-      "template_file": "templates/component-template.tsx",
-      "token_cost": 140
-    },
-    "design-system-workflow": {
-      "keywords": ["design system workflow", "adoption", "migration", "versioning", "changelog", "design tokens workflow"],
-      "solves": [
-        "How do I adopt a design system?",
-        "Create migration guides for teams",
-        "Version design system semantically",
-        "Run design system workshops"
-      ],
-      "reference_file": "checklists/design-system-checklist.md",
-      "token_cost": 180
-    }
-  },
-
+  "description": "Design system patterns: tokens, component architecture, accessibility, theming",
+  "capabilities": [
+    "accessibility",
+    "component-architecture",
+    "design-tokens",
+    "theming"
+  ],
   "triggers": {
     "high_confidence": [
       "design.*system",
       "component.*library",
-      "design.*tokens",
-      "theme.*setup",
-      "create.*button",
-      "build.*form.*components"
+      "design.*tokens"
     ],
     "medium_confidence": [
       "color.*palette",
-      "typography.*scale",
       "dark.*mode",
-      "accessibility",
       "a11y"
     ]
   },
-
   "integrates_with": [
     "react-server-components-framework",
-    "type-safety-validation",
-    "testing-strategy-builder"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if design system skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "use_when": "Skill confirmed relevant - need design system philosophy and core concepts"
-    },
-    "tier_3_specific": {
-      "files": "references/*.md",
-      "tokens": "120-250 each",
-      "use_when": "Need specific component implementations or patterns"
-    },
-    "tier_4_generate": {
-      "files": "templates/*.json, templates/*.tsx",
-      "tokens": "140-200 each",
-      "use_when": "Ready to generate design tokens or component code"
-    }
-  },
-
-  "mcp_tools": {
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/tailwindlabs/tailwindcss", "/shadcn-ui/ui", "/radix-ui/primitives"],
-      "use_when": "Need current design system framework patterns or component implementations"
-    }
-  }
+    "type-safety-validation"
+  ]
 }

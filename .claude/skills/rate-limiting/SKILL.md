@@ -1,8 +1,16 @@
 ---
 name: rate-limiting
 description: API rate limiting with token bucket, sliding window, and Redis distributed patterns. Use when protecting APIs from abuse, implementing tiered limits, or scaling rate limiting across instances.
+context: fork
+agent: backend-system-architect
 version: 1.0.0
 tags: [rate-limiting, redis, token-bucket, fastapi, security, 2026]
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
 ---
 
 # Rate Limiting Patterns
@@ -261,3 +269,29 @@ async def admin_endpoint():  # No rate limit = vulnerable
 - `auth-patterns` - Authentication integration
 - `resilience-patterns` - Circuit breakers
 - `observability-monitoring` - Rate limit metrics
+
+## Capability Details
+
+### token-bucket
+**Keywords:** token bucket, rate limit, burst, capacity
+**Solves:**
+- How do I implement token bucket rate limiting?
+- Allow bursts while limiting rate
+
+### sliding-window
+**Keywords:** sliding window, moving window, rate limit
+**Solves:**
+- How to implement precise rate limiting?
+- Avoid fixed window edge cases
+
+### slowapi-redis
+**Keywords:** slowapi, fastapi rate limit, redis limiter
+**Solves:**
+- How to add rate limiting to FastAPI?
+- Distributed rate limiting
+
+### tiered-limits
+**Keywords:** tiered, user tier, free pro enterprise
+**Solves:**
+- Different rate limits per subscription tier
+- User-based rate limiting

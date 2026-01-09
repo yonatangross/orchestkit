@@ -1,7 +1,12 @@
 #!/bin/bash
 set -euo pipefail
 # CI Simulation Hook - Reminds to run CI checks before commits
+# CC 2.1.2 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (Bash)
+
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
 
 source "$(dirname "$0")/../../_lib/common.sh"
 
@@ -9,6 +14,8 @@ COMMAND=$(get_field '.tool_input.command')
 
 # Only trigger for git commit commands
 if [[ ! "$COMMAND" =~ git\ commit ]]; then
+  # CC 2.1.2 Compliant: always output JSON with continue field
+  echo '{"continue": true}'
   exit 0
 fi
 
@@ -22,15 +29,16 @@ if [[ -f "$CI_MARKER" ]]; then
   MARKER_AGE=$(($(date +%s) - $(stat -f %m "$CI_MARKER" 2>/dev/null || stat -c %Y "$CI_MARKER" 2>/dev/null)))
   if [[ $MARKER_AGE -lt $MARKER_AGE_LIMIT ]]; then
     # CI checks were run recently, allow commit
+    echo '{"systemMessage":"CI checks recently run","continue":true}'
     exit 0
   fi
 fi
 
 # Show reminder (don't block, just inform)
 cat >&2 << 'EOF'
-╔══════════════════════════════════════════════════════════════════════════════╗
-║  💡 REMINDER: Run CI checks before committing                                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
++------------------------------------------------------------------------------+
+|  REMINDER: Run CI checks before committing                                   |
++------------------------------------------------------------------------------+
 
 Backend:
   poetry run ruff format --check app/
@@ -46,4 +54,6 @@ To mark checks as run: touch /tmp/claude-ci-checks-run
 
 EOF
 
+# Output systemMessage for user visibility
+echo '{"systemMessage":"CI simulation checked","continue":true}'
 exit 0

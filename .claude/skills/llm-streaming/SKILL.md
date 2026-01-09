@@ -1,6 +1,7 @@
 ---
 name: llm-streaming
 description: LLM streaming response patterns. Use when implementing real-time token streaming, Server-Sent Events for AI responses, or streaming with tool calls.
+agent: llm-integrator
 ---
 
 # LLM Streaming
@@ -205,3 +206,40 @@ async def stream_with_backpressure(prompt: str, max_buffer: int = 100):
 - `streaming-api-patterns` - SSE/WebSocket deep dive
 - `function-calling` - Tool calls in streams
 - `react-streaming-ui` - React streaming components
+
+## Capability Details
+
+### token-streaming
+**Keywords:** streaming, token, stream response, real-time, incremental
+**Solves:**
+- Stream tokens as they're generated
+- Display real-time LLM output
+- Reduce time to first byte
+
+### sse-responses
+**Keywords:** SSE, Server-Sent Events, event stream, text/event-stream
+**Solves:**
+- Implement SSE for streaming
+- Handle SSE reconnection
+- Parse SSE event data
+
+### streaming-with-tools
+**Keywords:** stream tools, tool streaming, function call stream
+**Solves:**
+- Stream responses with tool calls
+- Handle partial tool call data
+- Coordinate streaming and tool execution
+
+### partial-json-parsing
+**Keywords:** partial JSON, incremental parse, streaming JSON
+**Solves:**
+- Parse JSON as it streams
+- Handle incomplete JSON safely
+- Display partial structured data
+
+### stream-cancellation
+**Keywords:** cancel, abort, stop stream, AbortController
+**Solves:**
+- Cancel ongoing streams
+- Handle user interrupts
+- Clean up stream resources

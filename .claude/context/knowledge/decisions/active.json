@@ -1,0 +1,58 @@
+{
+  "$schema": "context://decisions/v1",
+  "_meta": {
+    "position": "START",
+    "token_budget": 400,
+    "auto_load": "on_trigger",
+    "triggers": ["decision", "why", "rationale", "chose", "trade-off"],
+    "compress_after_days": 30,
+    "archive_to": "../archive/decisions/",
+    "description": "Recent architectural decisions - loaded on relevant keywords"
+  },
+
+  "decisions": [
+    {
+      "id": "context-engineering-2.0",
+      "date": "2026-01-08",
+      "summary": "Migrated to tiered context system with attention-aware positioning",
+      "rationale": "Old shared-context.json was 1070 lines, loaded entirely, causing 'lost in the middle' attention problems. New system uses progressive loading, hook-driven auto-management, and explicit START/MIDDLE/END positioning.",
+      "status": "implemented",
+      "impact": "high"
+    },
+    {
+      "id": "react-19-adoption",
+      "date": "2025-12-26",
+      "summary": "Adopted React 19 patterns: function declarations replace React.FC, useOptimistic/useActionState/useFormStatus hooks",
+      "rationale": "React.FC deprecated (no longer includes children), new hooks provide automatic rollback, single source of truth for forms, and cleaner code.",
+      "status": "implemented",
+      "impact": "high",
+      "files_affected": 53
+    },
+    {
+      "id": "ollama-ci-integration",
+      "date": "2025-12-29",
+      "summary": "Use Ollama for CI with self-hosted M4 Max runner to reduce costs by 93%",
+      "rationale": "API costs were $400/mo. Self-hosted runner with Ollama costs ~$28/mo (electricity). Models: deepseek-r1:70b (reasoning), qwen2.5-coder:32b (coding), nomic-embed-text (embeddings).",
+      "status": "implemented",
+      "impact": "high",
+      "cost_savings": "93%"
+    },
+    {
+      "id": "progressive-skill-loading",
+      "date": "2026-01-05",
+      "summary": "4-tier progressive loading for skills: discovery (100 tokens) -> overview (500) -> specific (200) -> generate (300)",
+      "rationale": "Token efficiency - only load what's needed when needed. capabilities.json for discovery, SKILL.md for patterns, references/ for details, templates/ for code generation.",
+      "status": "implemented",
+      "impact": "high"
+    },
+    {
+      "id": "sequential-tier-learning",
+      "date": "2025-12-28",
+      "summary": "LangGraph workflow with compressed tier summaries reduces token overhead by 15-30%",
+      "rationale": "Pure Python compression (no LLM calls) for fast, deterministic summarization. Clean separation of concerns with dedicated aggregation nodes.",
+      "status": "implemented",
+      "impact": "medium",
+      "pr": "#598"
+    }
+  ]
+}

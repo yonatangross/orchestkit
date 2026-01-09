@@ -1,0 +1,52 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "frontend-ui-developer"
+  },
+
+  "role_summary": "Frontend developer building React 19/TypeScript components with modern patterns",
+
+  "relevant_patterns": [
+    "React 19 function declarations (NOT React.FC)",
+    "useOptimistic for optimistic updates with automatic rollback",
+    "useActionState for form state management",
+    "Zod schemas for API response validation",
+    "Feature-based folder structure (not type-based)"
+  ],
+
+  "recent_work": [
+    {
+      "task": "React 19 modernization",
+      "commit": "827c323e",
+      "status": "complete",
+      "key_insight": "47 components converted from React.FC to function declarations"
+    },
+    {
+      "task": "Library search integration",
+      "status": "complete",
+      "key_insight": "React Query + server-side search with mode toggle"
+    }
+  ],
+
+  "active_concerns": [
+    "Completed analysis dashboard has spatial imbalance (53% wasted space)",
+    "Option A recommended: Remove inline artifact preview"
+  ],
+
+  "preferred_skills": [
+    "react-server-components-framework",
+    "type-safety-validation",
+    "design-system-starter",
+    "e2e-testing",
+    "msw-mocking"
+  ],
+
+  "key_files": [
+    "frontend/src/features/",
+    "frontend/src/shared/components/",
+    "frontend/src/hooks/"
+  ]
+}

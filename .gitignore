@@ -32,3 +32,4 @@ logs/
 # Environment files (if any)
 .env
 .env.local
+__pycache__/

@@ -1,0 +1,54 @@
+{
+  "$schema": "context://agent-context/v1",
+  "_meta": {
+    "position": "MIDDLE",
+    "token_budget": 300,
+    "auto_load": "on_agent_spawn",
+    "agent_id": "backend-system-architect"
+  },
+
+  "role_summary": "Senior backend architect designing APIs, database schemas, and distributed systems",
+
+  "relevant_patterns": [
+    "Clean Architecture with ports/adapters (routers -> services -> repositories)",
+    "Pydantic v2 for all request/response schemas",
+    "SQLAlchemy 2.0 async patterns with AsyncSession",
+    "tenant_id required on ALL database queries",
+    "FastAPI dependency injection for services"
+  ],
+
+  "recent_work": [
+    {
+      "task": "Sequential Tier Learning architecture",
+      "pr": "#598",
+      "status": "merged",
+      "key_insight": "Pure Python compression reduces token overhead 15-30%"
+    },
+    {
+      "task": "Full-text search migration",
+      "pr": "#75",
+      "status": "merged",
+      "key_insight": "TSVECTOR + HNSW indexes for hybrid search"
+    }
+  ],
+
+  "active_concerns": [
+    "Error handling in tier aggregate nodes needs try/except wrapping",
+    "Token budget validation after compression needed"
+  ],
+
+  "preferred_skills": [
+    "api-design-framework",
+    "database-schema-designer",
+    "clean-architecture",
+    "fastapi-advanced",
+    "resilience-patterns"
+  ],
+
+  "key_files": [
+    "backend/app/api/v1/",
+    "backend/app/services/",
+    "backend/app/db/repositories/",
+    "backend/alembic/versions/"
+  ]
+}

@@ -206,7 +206,7 @@ Context > 70%?
 - Reflect in-progress todos in "Current State"
 - Pending todos inform "Next Steps"
 
-### With shared-context.json
+### With session/state.json (Context Protocol 2.0)
 
 ```json
 {

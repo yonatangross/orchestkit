@@ -348,7 +348,7 @@ class CompressionProbes:
 
 ## Integration with SkillForge
 
-### In shared-context.json
+### In session/state.json (Context Protocol 2.0)
 
 ```json
 {
@@ -465,3 +465,26 @@ def compress_and_update_todos(
 **Version:** 1.0.0 (January 2026)
 **Key Principle:** Optimize for tokens-per-task, not tokens-per-request
 **Recommended Strategy:** Anchored Iterative Summarization with probe-based evaluation
+
+## Capability Details
+
+### anchored-summarization
+**Keywords:** compress, summarize history, context too long, anchored summary
+**Solves:**
+- Reduce context size while preserving critical information
+- Implement structured compression with required sections
+- Maintain session intent and decisions through compression
+
+### compression-triggers
+**Keywords:** token limit, running out of context, when to compress
+**Solves:**
+- Determine when to trigger compression (70% utilization)
+- Set compression targets (50% utilization)
+- Preserve last 5 messages uncompressed
+
+### probe-evaluation
+**Keywords:** evaluate compression, test compression, probe
+**Solves:**
+- Validate compression quality with functional probes
+- Test information preservation after compression
+- Achieve >90% probe pass rate

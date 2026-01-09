@@ -3,54 +3,26 @@
   "name": "security-scanning",
   "version": "1.0.0",
   "description": "Automated security scanning for dependencies, code, and secrets",
-
-  "capabilities": {
-    "dependency-scanning": {
-      "keywords": ["npm audit", "pip-audit", "dependency", "vulnerability"],
-      "solves": [
-        "Scan npm dependencies",
-        "Audit Python packages",
-        "Find vulnerable dependencies"
-      ],
-      "reference_file": "SKILL.md#dependency-scanning",
-      "token_cost": 120
-    },
-    "secret-detection": {
-      "keywords": ["secret", "credential", "api key", "trufflehog", "gitleaks"],
-      "solves": [
-        "Detect secrets in code",
-        "Scan for API keys",
-        "Find exposed credentials"
-      ],
-      "reference_file": "SKILL.md#secret-detection",
-      "token_cost": 100
-    },
-    "api-security-audit": {
-      "keywords": ["api", "audit", "security", "example"],
-      "solves": [
-        "API security audit example",
-        "Security review checklist",
-        "Real audit walkthrough"
-      ],
-      "example_file": "examples/api-security-audit.md",
-      "token_cost": 250
-    },
-    "audit-template": {
-      "keywords": ["template", "audit", "report", "security"],
-      "solves": [
-        "Security audit template",
-        "Audit report structure",
-        "Copy-paste audit format"
-      ],
-      "template_file": "templates/security-audit-template.md",
-      "token_cost": 200
-    }
-  },
-
+  "capabilities": [
+    "api-security-audit",
+    "audit-template",
+    "dependency-scanning",
+    "secret-detection"
+  ],
   "triggers": {
-    "high_confidence": ["security.*scan", "npm.*audit", "secret.*detect"],
-    "medium_confidence": ["vulnerability.*scan", "dependency.*check"]
+    "high_confidence": [
+      "security.*scan",
+      "npm.*audit",
+      "secret.*detect"
+    ],
+    "medium_confidence": [
+      "vulnerability.*scan",
+      "dependency.*check"
+    ]
   },
-
-  "integrates_with": ["owasp-top-10", "auth-patterns", "input-validation"]
+  "integrates_with": [
+    "owasp-top-10",
+    "auth-patterns",
+    "input-validation"
+  ]
 }

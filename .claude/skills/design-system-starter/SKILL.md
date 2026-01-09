@@ -1,6 +1,8 @@
 ---
 name: design-system-starter
 description: Use this skill when creating or evolving design systems for applications. Provides design token structures, component architecture patterns, documentation templates, and accessibility guidelines. Ensures consistent, scalable, and accessible UI design across products.
+context: fork
+agent: rapid-ui-designer
 version: 1.0.0
 author: AI Agent Hub
 tags: [design-system, ui, components, design-tokens, accessibility, frontend]
@@ -616,3 +618,33 @@ When creating a new design system:
 **Skill Version**: 1.0.0
 **Last Updated**: 2025-10-31
 **Maintained by**: AI Agent Hub Team
+
+## Capability Details
+
+### design-tokens
+**Keywords:** design tokens, css variables, theme, colors, spacing
+**Solves:**
+- Create design token system
+- Color palette
+- Typography scale
+
+### component-architecture
+**Keywords:** component library, atomic design, atoms, molecules
+**Solves:**
+- Structure component library
+- Compound components
+- Variants
+
+### accessibility
+**Keywords:** a11y, wcag, aria, keyboard navigation, focus
+**Solves:**
+- WCAG 2.1 AA compliance
+- ARIA attributes
+- Keyboard support
+
+### theming
+**Keywords:** theme, dark mode, light mode, color scheme
+**Solves:**
+- Implement dark/light mode
+- Theme switching
+- CSS custom properties

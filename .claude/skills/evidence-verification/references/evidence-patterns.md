@@ -757,7 +757,7 @@ git commit -m "feat: add new feature"
 
 ## Integration with Context System
 
-Store evidence in `.claude/context/shared-context.json`:
+Store evidence in `.claude/context/session/state.json (Context Protocol 2.0)`:
 
 ```json
 {

@@ -2,9 +2,13 @@
 name: rapid-ui-designer
 color: cyan
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation
-model: sonnet
 max_tokens: 16000
 tools: Write, Read, Grep, Glob
+skills: design-system-starter
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -257,7 +261,7 @@ Task: "Design a notification card component"
 6. Return structured specification
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.rapid-ui-designer` with design decisions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

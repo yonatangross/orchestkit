@@ -2,9 +2,13 @@
 name: business-case-builder
 color: indigo
 description: Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale
-model: sonnet
 max_tokens: 16000
 tools: Read, Write, WebSearch, Grep, Glob, Bash
+skills: brainstorming, github-cli
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -233,7 +237,7 @@ Task: "Build business case for the workflow builder"
 8. Handoff to requirements-translator
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`, receive prioritization report
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`, receive prioritization report
 - During: Update `agent_decisions.business-case-builder` with financial assumptions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

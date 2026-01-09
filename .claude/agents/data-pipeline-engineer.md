@@ -2,9 +2,13 @@
 name: data-pipeline-engineer
 color: emerald
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale
-model: sonnet
 max_tokens: 16000
 tools: Bash, Read, Write, Edit, Grep, Glob
+skills: embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, golden-dataset-curation, golden-dataset-validation
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -141,7 +145,7 @@ Task: "Regenerate embeddings for the golden dataset"
 ```
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.data-pipeline-engineer` with pipeline config
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers
@@ -149,4 +153,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** ai-native-development (embeddings section), pgvector-search, golden-dataset-management, context-engineering (RAG context optimization, retrieval layer management)
+- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering

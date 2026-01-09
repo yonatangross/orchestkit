@@ -6,16 +6,20 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/git-branch-protection.sh",
-            "statusMessage": "Checking branch protection..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/issue-docs-requirement.sh"
-          },
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/git-branch-protection.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Read|Glob|Grep",
+        "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/bash/ci-simulation.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/input-mod/path-normalizer.sh"
           }
         ]
       },
@@ -24,14 +28,29 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-edit/file-guard.sh",
-            "statusMessage": "Checking file permissions..."
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/write-dispatcher.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/backend-file-naming.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/structure-location-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/test-location-validator.sh"
           }
         ]
       },
       {
         "matcher": "Task",
         "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/task/context-gate.sh"
+          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/pretool/task/subagent-validator.sh"
@@ -81,15 +100,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/audit-logger.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/session-metrics.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/error-tracker.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/posttool/dispatcher.sh"
           }
         ]
       }
@@ -128,11 +139,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/context-injector.sh"
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/todo-enforcer.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/prompt/prompt-dispatcher.sh"
           }
         ]
       }
@@ -142,12 +149,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/session-context-loader.sh",
-            "statusMessage": "Loading session context..."
-          },
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/session-env-setup.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/startup-dispatcher.sh"
           }
         ]
       }
@@ -155,6 +157,10 @@
     "SessionEnd": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/coordination-cleanup.sh"
+          },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/lifecycle/session-metrics-summary.sh"
@@ -171,11 +177,53 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/task-completion-check.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/stop-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/auto-save-context.sh"
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/coverage-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/design-decision-saver.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/evidence-collector.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/review-summary-generator.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/security-summary.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/eval-metrics-collector.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/model-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-resource-allocator.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/subagent-context-stager.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-start/agent-context-loader.sh"
           }
         ]
       }
@@ -185,11 +233,39 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent/output-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent/context-publisher.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent/handoff-preparer.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent/feedback-loop.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/agent/auto-spawn-quality.sh"
+          },
+          {
+            "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-stop/subagent-completion-tracker.sh"
           },
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/subagent-stop/subagent-quality-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/coverage-threshold-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/merge-readiness-checker.sh"
           }
         ]
       }

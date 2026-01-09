@@ -53,3 +53,45 @@ Create clear ASCII visualizations for explaining complex concepts.
 ```
 
 See `references/` for complete patterns.
+
+## Capability Details
+
+### architecture-diagrams
+**Keywords:** architecture, diagram, system design, components, flow
+**Solves:**
+- How do I visualize system architecture?
+- Show component relationships with ASCII
+- Explain system design visually
+- Create architecture diagrams in documentation
+
+### workflows
+**Keywords:** workflow, process, steps, pipeline, flowchart
+**Solves:**
+- How do I visualize process flow?
+- Show step-by-step workflow with ASCII
+- Explain pipeline stages visually
+- Document multi-agent workflows
+
+### comparisons
+**Keywords:** compare, vs, before after, metrics, changes
+**Solves:**
+- How do I compare two options visually?
+- Show before/after metrics
+- Display progress comparison
+- Visualize A/B testing results
+
+### file-trees
+**Keywords:** file tree, directory, structure, folder hierarchy
+**Solves:**
+- How do I show directory structure?
+- Visualize file hierarchy with ASCII
+- Explain codebase organization
+- Document project structure
+
+### progress-tracking
+**Keywords:** progress, status, completion, percentage, metrics
+**Solves:**
+- How do I show progress visually?
+- Create progress bars with ASCII
+- Display completion status
+- Track task completion metrics

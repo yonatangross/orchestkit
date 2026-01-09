@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "skill-capabilities.schema.json",
   "title": "Skill Capabilities",
-  "description": "Schema for skill capability indexes enabling progressive loading and semantic discovery",
+  "description": "Schema for skill capability indexes enabling progressive loading and semantic discovery. Supports both slim array format (recommended) and legacy object format.",
   "type": "object",
   "required": ["name", "version", "description", "capabilities"],
   "properties": {
@@ -25,11 +25,21 @@
       "description": "Brief description of what this skill provides"
     },
     "capabilities": {
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/definitions/capability"
-      },
-      "description": "Map of capability name to capability definition"
+      "oneOf": [
+        {
+          "type": "array",
+          "items": { "type": "string" },
+          "maxItems": 20,
+          "description": "Array of capability names (slim format, recommended for Tier 1)"
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/capability"
+          },
+          "description": "Map of capability name to capability definition (legacy format)"
+        }
+      ]
     },
     "triggers": {
       "type": "object",
@@ -50,63 +60,6 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Other skills this skill commonly works with"
-    },
-    "progressive_loading": {
-      "type": "object",
-      "properties": {
-        "tier_1_discovery": {
-          "$ref": "#/definitions/loading_tier"
-        },
-        "tier_2_overview": {
-          "$ref": "#/definitions/loading_tier"
-        },
-        "tier_3_specific": {
-          "$ref": "#/definitions/loading_tier"
-        },
-        "tier_4_generate": {
-          "$ref": "#/definitions/loading_tier"
-        },
-        "tier_4_scanning": {
-          "$ref": "#/definitions/loading_tier"
-        }
-      }
-    },
-    "auto_trigger": {
-      "type": "object",
-      "properties": {
-        "on_agent": {
-          "type": "string",
-          "description": "Agent that auto-triggers this skill"
-        },
-        "when": {
-          "type": "string",
-          "description": "Condition for auto-triggering"
-        },
-        "action": {
-          "type": "string",
-          "description": "What to load when triggered"
-        }
-      }
-    },
-    "mcp_tools": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "object",
-        "properties": {
-          "tool": { "type": "string" },
-          "library_ids": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "commands": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
-          "use_when": { "type": "string" },
-          "evidence_capture": { "type": "boolean" }
-        },
-        "required": ["tool"]
-      }
     }
   },
   "definitions": {
@@ -141,37 +94,6 @@
         "token_cost": {
           "type": "integer",
           "description": "Estimated token cost to load this capability"
-        }
-      }
-    },
-    "loading_tier": {
-      "type": "object",
-      "properties": {
-        "file": {
-          "type": "string",
-          "description": "File to load at this tier"
-        },
-        "files": {
-          "type": "string",
-          "description": "Glob pattern for files at this tier"
-        },
-        "sections": {
-          "oneOf": [
-            { "type": "string" },
-            { "type": "array", "items": { "type": "string" } }
-          ],
-          "description": "Specific sections to load from SKILL.md"
-        },
-        "tokens": {
-          "oneOf": [
-            { "type": "integer" },
-            { "type": "string" }
-          ],
-          "description": "Token cost (number or range like '100-200 each')"
-        },
-        "use_when": {
-          "type": "string",
-          "description": "When to use this loading tier"
         }
       }
     }

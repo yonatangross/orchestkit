@@ -1,6 +1,14 @@
 ---
 name: integration-testing
 description: Integration testing patterns for APIs and components. Use when testing component interactions, API endpoints with test databases, or service layer integration.
+context: fork
+agent: test-generator
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
 ---
 
 # Integration Testing
@@ -145,3 +153,26 @@ test('form submits and shows success', async () => {
 - `unit-testing` - Isolated tests
 - `msw-mocking` - Network mocking
 - `e2e-testing` - Full flow testing
+
+## Capability Details
+
+### api-testing
+**Keywords:** api, endpoint, httpx, testclient
+**Solves:**
+- Test FastAPI endpoints
+- Integration test patterns
+- API contract testing
+
+### database-testing
+**Keywords:** database, fixture, transaction, rollback
+**Solves:**
+- Test database operations
+- Use transaction rollback
+- Create test fixtures
+
+### test-plan-template
+**Keywords:** plan, template, strategy, coverage
+**Solves:**
+- Integration test plan template
+- Coverage strategy
+- Test organization

@@ -3,174 +3,23 @@
   "name": "performance-optimization",
   "version": "1.0.0",
   "description": "Full-stack performance analysis, optimization patterns, caching strategies, and profiling with real-world SkillForge examples",
-
-  "capabilities": {
-    "database-optimization": {
-      "keywords": ["slow query", "n+1", "query optimization", "explain analyze", "index", "postgres performance"],
-      "solves": [
-        "How do I optimize slow database queries?",
-        "Fix N+1 query problems with eager loading",
-        "Use EXPLAIN ANALYZE to diagnose queries",
-        "Add missing indexes for performance"
-      ],
-      "reference_file": "SKILL.md#database-query-optimization-deep-dive",
-      "token_cost": 220
-    },
-    "n+1-query-detection": {
-      "keywords": ["n+1", "eager loading", "selectinload", "joinedload", "query loops"],
-      "solves": [
-        "How do I detect N+1 queries?",
-        "Fix N+1 with SQLAlchemy selectinload",
-        "Convert query loops to single JOINs"
-      ],
-      "reference_file": "SKILL.md#n-1-query-detection",
-      "token_cost": 150
-    },
-    "index-selection": {
-      "keywords": ["index", "b-tree", "gin", "hnsw", "hash index", "index types"],
-      "solves": [
-        "Which index type should I use?",
-        "B-tree vs GIN vs HNSW comparison",
-        "Index full-text search columns",
-        "Vector similarity index selection"
-      ],
-      "reference_file": "SKILL.md#index-selection-strategies",
-      "token_cost": 180
-    },
-    "explain-analyze": {
-      "keywords": ["explain analyze", "query plan", "seq scan", "index scan", "query cost"],
-      "solves": [
-        "How do I read EXPLAIN ANALYZE output?",
-        "Identify Seq Scan problems",
-        "Analyze query execution time",
-        "Measure buffer cache hit ratio"
-      ],
-      "reference_file": "SKILL.md#explain-analyze-deep-dive",
-      "token_cost": 160
-    },
-    "caching-strategies": {
-      "keywords": ["cache", "redis", "cdn", "cache-aside", "write-through", "semantic cache"],
-      "solves": [
-        "How do I implement multi-level caching?",
-        "Cache-aside vs write-through patterns",
-        "Semantic cache for LLM responses",
-        "Cache invalidation strategies"
-      ],
-      "reference_file": "SKILL.md#advanced-caching-strategies",
-      "token_cost": 200
-    },
-    "semantic-cache": {
-      "keywords": ["semantic cache", "vector cache", "llm cache", "embedding cache"],
-      "solves": [
-        "How do I cache LLM responses by similarity?",
-        "Implement vector-based semantic cache",
-        "Reduce LLM costs by 70-95%",
-        "Real-world SkillForge semantic cache"
-      ],
-      "reference_file": "SKILL.md#semantic-cache-vector-search",
-      "token_cost": 170
-    },
-    "cache-invalidation": {
-      "keywords": ["cache invalidation", "ttl", "write-through", "event-driven invalidation"],
-      "solves": [
-        "How do I invalidate cached data?",
-        "TTL vs write-through invalidation",
-        "Event-driven cache invalidation",
-        "Cache warming strategies"
-      ],
-      "reference_file": "SKILL.md#cache-invalidation-strategies",
-      "token_cost": 150
-    },
-    "frontend-performance": {
-      "keywords": ["bundle size", "lazy load", "code splitting", "tree shaking", "lighthouse", "web vitals"],
-      "solves": [
-        "How do I reduce frontend bundle size?",
-        "Implement code splitting with React.lazy()",
-        "Optimize Lighthouse scores",
-        "Fix Core Web Vitals issues"
-      ],
-      "reference_file": "SKILL.md#frontend-optimization",
-      "token_cost": 180
-    },
-    "core-web-vitals": {
-      "keywords": ["lcp", "inp", "cls", "core web vitals", "ttfb", "fid"],
-      "solves": [
-        "How do I improve Core Web Vitals?",
-        "Optimize LCP (Largest Contentful Paint)",
-        "Fix CLS (Cumulative Layout Shift)",
-        "Improve INP (Interaction to Next Paint)"
-      ],
-      "reference_file": "SKILL.md#performance-targets",
-      "token_cost": 140
-    },
-    "profiling": {
-      "keywords": ["profile", "flame graph", "py-spy", "chrome devtools", "memory leak", "cpu bottleneck"],
-      "solves": [
-        "How do I profile my Python backend?",
-        "Generate flame graphs with py-spy",
-        "Profile React components with DevTools",
-        "Find memory leaks in frontend"
-      ],
-      "reference_file": "SKILL.md#profiling-tools-techniques",
-      "token_cost": 190
-    },
-    "bundle-analysis": {
-      "keywords": ["bundle analyzer", "vite visualizer", "webpack bundle", "tree shaking"],
-      "solves": [
-        "How do I analyze bundle size?",
-        "Use Vite bundle visualizer",
-        "Identify large dependencies",
-        "Optimize bundle with tree shaking"
-      ],
-      "reference_file": "SKILL.md#bundle-analysis",
-      "token_cost": 130
-    },
-    "hybrid-search-optimization": {
-      "keywords": ["hybrid search", "rrf", "fetch multiplier", "metadata boosting", "search performance"],
-      "solves": [
-        "How do I optimize hybrid search retrieval?",
-        "Tune RRF fetch multiplier for better coverage",
-        "Boost search results by metadata",
-        "Real-world SkillForge retrieval improvements"
-      ],
-      "example_file": "SKILL.md#example-1-hybrid-search-optimization",
-      "token_cost": 200
-    },
-    "llm-caching": {
-      "keywords": ["llm caching", "prompt cache", "semantic cache", "cost reduction"],
-      "solves": [
-        "How do I reduce LLM costs with caching?",
-        "Multi-level LLM cache hierarchy",
-        "Claude prompt caching (90% savings)",
-        "Redis semantic cache (70-85% savings)"
-      ],
-      "example_file": "SKILL.md#example-2-llm-response-caching",
-      "token_cost": 180
-    },
-    "vector-index-selection": {
-      "keywords": ["pgvector", "hnsw", "ivfflat", "vector index", "similarity search performance"],
-      "solves": [
-        "How do I choose HNSW vs IVFFlat?",
-        "Optimize vector search query time",
-        "Trade-off: indexing speed vs query speed",
-        "Real-world SkillForge benchmark results"
-      ],
-      "example_file": "SKILL.md#example-3-vector-index-selection",
-      "token_cost": 170
-    },
-    "sse-event-buffering": {
-      "keywords": ["sse", "server-sent events", "event buffering", "race condition", "event broadcaster"],
-      "solves": [
-        "How do I prevent SSE race conditions?",
-        "Buffer events before subscriber connects",
-        "Fix 'events lost' in real-time updates",
-        "Real-world SkillForge SSE debugging"
-      ],
-      "example_file": "SKILL.md#example-4-sse-event-buffering",
-      "token_cost": 160
-    }
-  },
-
+  "capabilities": [
+    "bundle-analysis",
+    "cache-invalidation",
+    "caching-strategies",
+    "core-web-vitals",
+    "database-optimization",
+    "explain-analyze",
+    "frontend-performance",
+    "hybrid-search-optimization",
+    "index-selection",
+    "llm-caching",
+    "n+1-query-detection",
+    "profiling",
+    "semantic-cache",
+    "sse-event-buffering",
+    "vector-index-selection"
+  ],
   "triggers": {
     "high_confidence": [
       "optimize.*performance",
@@ -190,50 +39,10 @@
       "memory.*leak"
     ]
   },
-
   "integrates_with": [
     "database-schema-designer",
     "observability-monitoring",
     "pgvector-search",
-    "llm-caching-patterns"
-  ],
-
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 100,
-      "use_when": "Initial task analysis - determine if skill is relevant"
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 600,
-      "use_when": "Skill confirmed relevant - need optimization targets and bottleneck categories"
-    },
-    "tier_3_specific": {
-      "files": "SKILL.md#section",
-      "tokens": "130-220 each",
-      "use_when": "Need specific optimization (e.g., N+1 fixes, caching patterns)"
-    },
-    "tier_4_examples": {
-      "files": "SKILL.md#real-world-skillforge-examples",
-      "tokens": "160-200 each",
-      "use_when": "Ready to implement with proven patterns"
-    }
-  },
-
-  "mcp_tools": {
-    "database_analysis": {
-      "tool": "skillforge-postgres-dev",
-      "use_when": "Query analysis and EXPLAIN ANALYZE needed"
-    },
-    "browser_testing": {
-      "tool": "playwright",
-      "use_when": "Lighthouse/performance testing needed"
-    },
-    "documentation_lookup": {
-      "tool": "context7",
-      "library_ids": ["/vercel/next.js", "/vitejs/vite"],
-      "use_when": "Need current framework performance best practices"
-    }
-  }
+    "semantic-caching"
+  ]
 }

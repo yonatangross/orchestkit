@@ -2,9 +2,13 @@
 name: metrics-architect
 color: orchid
 description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses
-model: sonnet
 max_tokens: 16000
 tools: Read, Write, Grep, Glob, Bash
+skills: langfuse-observability
+hooks:
+  Stop:
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
+    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
 
 ## Directive
@@ -280,7 +284,7 @@ Task: "Define success metrics for the workflow builder"
 9. Handoff to technical implementation (ux-researcher, backend-system-architect)
 
 ## Context Protocol
-- Before: Read `.claude/context/shared-context.json`, receive requirements
+- Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`, receive requirements
 - During: Update `agent_decisions.metrics-architect` with metrics definitions
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers

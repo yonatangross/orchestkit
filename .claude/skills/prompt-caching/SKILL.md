@@ -1,6 +1,8 @@
 ---
 name: prompt-caching
 description: Provider-native prompt caching for Claude and OpenAI. Use when optimizing LLM costs with cache breakpoints, caching system prompts, or reducing token costs for repeated prefixes.
+context: fork
+agent: llm-integrator
 ---
 
 # Prompt Caching
@@ -201,3 +203,26 @@ messages = [
 - `semantic-caching` - Redis similarity caching
 - `cache-cost-tracking` - Cost monitoring
 - `llm-streaming` - Streaming with caching
+
+## Capability Details
+
+### anthropic-caching
+**Keywords:** anthropic, claude, cache_control, ephemeral
+**Solves:**
+- Use Anthropic prompt caching
+- Set cache breakpoints
+- Reduce API costs
+
+### openai-caching
+**Keywords:** openai, gpt, cached_tokens, automatic
+**Solves:**
+- Use OpenAI prompt caching
+- Structure prompts for cache hits
+- Monitor cache effectiveness
+
+### wrapper-template
+**Keywords:** wrapper, template, implementation, python
+**Solves:**
+- Prompt cache wrapper template
+- Python implementation
+- Drop-in caching layer

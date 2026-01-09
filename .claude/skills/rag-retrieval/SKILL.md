@@ -1,6 +1,8 @@
 ---
 name: rag-retrieval
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, constructing context from retrieved documents, adding citations, or implementing hybrid search.
+context: fork
+agent: data-pipeline-engineer
 ---
 
 # RAG Retrieval
@@ -185,8 +187,50 @@ Evaluate:
 - Temperature too high (hallucinations)
 - Single retrieval method (misses keyword matches)
 
+## Advanced Patterns
+
+See `references/advanced-rag.md` for:
+- **HyDE Integration**: Hypothetical document embeddings for vocabulary mismatch
+- **Agentic RAG**: Multi-step retrieval with tool use
+- **Self-RAG**: LLM decides when to retrieve and validates outputs
+- **Corrective RAG**: Evaluate retrieval quality and correct if needed
+- **Pipeline Composition**: Combine HyDE + Hybrid + Rerank
+
 ## Related Skills
 
 - `embeddings` - Creating vectors for retrieval
-- `pgvector-search` - Hybrid search with PostgreSQL
-- `hyde-search` - Hypothetical document embeddings
+- `hyde-retrieval` - Hypothetical document embeddings
+- `query-decomposition` - Multi-concept query handling
+- `reranking-patterns` - Cross-encoder and LLM reranking
+- `contextual-retrieval` - Anthropic's context-prepending technique
+- `langgraph-functional` - Building agentic RAG workflows
+
+## Capability Details
+
+### retrieval-patterns
+**Keywords:** retrieval, context, chunks, relevance
+**Solves:**
+- Retrieve relevant context for LLM
+- Implement RAG pipeline
+- Optimize retrieval quality
+
+### hybrid-search
+**Keywords:** hybrid, bm25, vector, fusion
+**Solves:**
+- Combine keyword and semantic search
+- Implement reciprocal rank fusion
+- Balance precision and recall
+
+### chatbot-example
+**Keywords:** chatbot, rag, example, typescript
+**Solves:**
+- Build RAG chatbot example
+- TypeScript implementation
+- End-to-end RAG pipeline
+
+### pipeline-template
+**Keywords:** pipeline, template, implementation, starter
+**Solves:**
+- RAG pipeline starter template
+- Production-ready code
+- Copy-paste implementation

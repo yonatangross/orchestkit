@@ -1,28 +1,30 @@
 {
+  "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "langgraph-checkpoints",
   "version": "1.0.0",
   "description": "LangGraph checkpointing and persistence patterns",
   "capabilities": [
-    "checkpoint-saving",
-    "checkpoint-loading",
-    "memory-backends",
     "async-checkpoints",
-    "conversation-history"
+    "checkpoint-loading",
+    "checkpoint-saving",
+    "conversation-history",
+    "memory-backends"
   ],
-  "triggers": [
-    "checkpoint",
-    "persistence",
-    "memory",
-    "conversation history",
-    "state recovery"
-  ],
-  "antiPatterns": [
-    "no checkpoint cleanup",
-    "synchronous checkpoints for large state",
-    "missing error handling"
-  ],
-  "dependencies": [
-    "langgraph-state"
-  ],
-  "tags": ["langgraph", "checkpoints", "persistence", "2026"]
+  "triggers": {
+    "high_confidence": [
+      "LangGraph.*checkpoint",
+      "checkpoint.*persist",
+      "MemorySaver"
+    ],
+    "medium_confidence": [
+      "checkpoint",
+      "persistence",
+      "state recovery",
+      "conversation history"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-state",
+    "langgraph-human-in-loop"
+  ]
 }

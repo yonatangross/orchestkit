@@ -1,0 +1,497 @@
+{
+  "scan_summary": {
+    "files_scanned": 60,
+    "lines_of_code": 5000,
+    "vulnerabilities_found": 19,
+    "critical": 3,
+    "high": 8,
+    "medium": 6,
+    "low": 2,
+    "scan_date": "2026-01-08",
+    "scanner": "Security Auditor Agent"
+  },
+  "critical": [
+    {
+      "id": "HOOK-SEC-001",
+      "type": "JQ_FILTER_INJECTION",
+      "file": ".claude/hooks/_lib/common.sh",
+      "line": 45,
+      "severity": "CRITICAL",
+      "code": "echo \"$input\" | jq -r \"$filter // \\\"\\\"\" 2>/dev/null",
+      "vulnerability": "get_field() passes user-controlled filter strings directly to jq without validation. Attacker can inject arbitrary jq commands.",
+      "attack_example": "get_field '.tool_input) | debug | (.' leads to: jq -r '.tool_input) | debug | (. // \"\"'",
+      "affected_hooks": [
+        "pretool/bash/error-pattern-warner.sh",
+        "pretool/write-edit/file-guard.sh",
+        "pretool/mcp/memory-validator.sh",
+        "posttool/audit-logger.sh",
+        "pretool/task/context-gate.sh",
+        "subagent-stop/subagent-quality-gate.sh",
+        "notification/desktop.sh",
+        "notification/sound.sh"
+      ],
+      "owasp": "A03:2021 - Injection",
+      "test_cases": 4,
+      "fix": "Add validation to reject jq filters containing: | debug | limit | recurse | env. Document that ONLY static filter strings are allowed.",
+      "fix_complexity": "LOW",
+      "priority": 1
+    },
+    {
+      "id": "HOOK-SEC-002",
+      "type": "PATH_TRAVERSAL",
+      "file": ".claude/hooks/permission/auto-approve-project-writes.sh",
+      "line": 18,
+      "severity": "CRITICAL",
+      "code": "if [[ \"$FILE_PATH\" == \"$CLAUDE_PROJECT_DIR\"* ]]; then",
+      "vulnerability": "Path comparison uses string prefix matching without symlink resolution. Attacker can use ../ sequences or symlinks to escape project directory.",
+      "attack_example": "FILE_PATH='../../../etc/passwd' bypasses string check. Symlink to /etc from within project allows writing system files.",
+      "affected_hooks": [
+        "permission/auto-approve-project-writes.sh",
+        "permission/auto-approve-readonly.sh",
+        "pretool/input-mod/path-normalizer.sh",
+        "pretool/write-edit/file-guard.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 6,
+      "fix": "Use 'realpath -e' to resolve symlinks and normalize paths. Store canonical path. Re-validate immediately before file operation. Check that canonical path starts with CLAUDE_PROJECT_DIR.",
+      "fix_complexity": "MEDIUM",
+      "priority": 2
+    },
+    {
+      "id": "HOOK-SEC-003",
+      "type": "SYMLINK_TOCTOU_RACE",
+      "file": ".claude/hooks/pretool/write-edit/file-guard.sh",
+      "line": 16,
+      "severity": "CRITICAL",
+      "code": "REAL_PATH=$(readlink -f \"$FILE_PATH\" 2>/dev/null || echo \"$FILE_PATH\")",
+      "vulnerability": "Symlink resolved at check time, but file can be modified between check (T1) and write (T2). Time-of-Check Time-of-Use (TOCTOU) race condition.",
+      "attack_example": "Check passes on safe file. Before write: attacker replaces with symlink to /etc/shadow. Write succeeds to wrong file.",
+      "affected_hooks": [
+        "pretool/write-edit/file-guard.sh",
+        "permission/auto-approve-project-writes.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 1,
+      "fix": "Re-validate path immediately before write operation. Use atomic operations where possible. Consider using open(O_EXCL) to prevent race.",
+      "fix_complexity": "MEDIUM",
+      "priority": 3
+    }
+  ],
+  "high": [
+    {
+      "id": "HOOK-SEC-004",
+      "type": "COMMAND_INJECTION",
+      "file": ".claude/hooks/_orchestration/chain-executor.sh",
+      "line": 55,
+      "severity": "HIGH",
+      "code": "output=$(timeout \"${timeout}s\" bash \"$hook_script\" < \"$input_file\" 2>&1) || exit_code=$?",
+      "vulnerability": "hook_script path not validated. If contains $(malicious), executes in subshell. Unsafe bash execution.",
+      "attack_example": "hook_script='test.sh; echo injected; #' results in: bash 'test.sh; echo injected; #'",
+      "affected_hooks": [
+        "chain-executor.sh",
+        "skill/test-runner.sh"
+      ],
+      "owasp": "A03:2021 - Injection",
+      "test_cases": 5,
+      "fix": "Always quote variable expansions: \\\"$var\\\" not $var. Validate hook_script is a safe path. Use [[ ]] for pattern matching.",
+      "fix_complexity": "MEDIUM",
+      "priority": 4
+    },
+    {
+      "id": "HOOK-SEC-005",
+      "type": "UNSAFE_MKTEMP",
+      "file": ".claude/hooks/_orchestration/chain-executor.sh",
+      "line": 46,
+      "severity": "HIGH",
+      "code": "local input_file=$(mktemp)",
+      "vulnerability": "mktemp output not validated. No explicit temp directory. Race condition: file created, another process writes before script reads.",
+      "attack_example": "Attacker pre-creates /tmp/tmp.XXXXX as symlink to /etc/passwd. mktemp returns existing file. Script writes to system file.",
+      "affected_hooks": [
+        "chain-executor.sh",
+        "agent/context-publisher.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 4,
+      "fix": "Use mktemp -d for explicit directory. Validate mktemp succeeded: [[ -f \\\"$TEMP\\\" ]]. Add cleanup in trap. Use explicit permissions: mktemp -p /tmp.",
+      "fix_complexity": "LOW",
+      "priority": 5
+    },
+    {
+      "id": "HOOK-SEC-006",
+      "type": "INPUT_VALIDATION_BYPASS",
+      "file": ".claude/hooks/pretool/bash/bash-defaults.sh",
+      "line": 33,
+      "severity": "HIGH",
+      "code": "if [[ \"$cmd\" == *\"$pattern\"* ]]; then return 0; fi",
+      "vulnerability": "Glob pattern matching bypassed by: extra spaces 'rm  -rf  /', newlines 'rm\\n-rf\\n/', case variation 'RM -RF /'. Patterns incomplete - missing curl|bash, wget|bash, etc.",
+      "attack_example": "Pattern: 'rm -rf /' bypassed by 'rm  -rf  /' (extra spaces) or 'RM -RF /' (uppercase)",
+      "affected_hooks": [
+        "pretool/bash/bash-defaults.sh",
+        "pretool/bash/error-pattern-warner.sh"
+      ],
+      "owasp": "A03:2021 - Injection",
+      "test_cases": 5,
+      "fix": "Normalize input: tr -s ' ' (remove extra spaces), tr '[:upper:]' '[:lower:]' (lowercase). Use regex not glob: [[ \\\"$cmd\\\" =~ pattern ]]. Add missing patterns: curl|bash, python -c, find -exec.",
+      "fix_complexity": "LOW",
+      "priority": 6
+    },
+    {
+      "id": "HOOK-SEC-007",
+      "type": "REGEX_INJECTION_REDOS",
+      "file": ".claude/hooks/skill/di-pattern-enforcer.sh",
+      "line": 31,
+      "severity": "HIGH",
+      "code": "if echo \"$CONTENT\" | grep -qE \"=\\s*[A-Z][a-zA-Z]*Service\\s*\\(\\s*\\)\" 2>/dev/null; then",
+      "vulnerability": "User-controlled input matched against complex regex patterns. Risk of ReDoS (Regex Denial of Service). Pattern: (.*){10} with large input causes exponential backtracking.",
+      "attack_example": "Large file (100KB) with pattern (.*){10} causes regex engine to hang for >5 seconds, consuming 100% CPU",
+      "affected_hooks": [
+        "skill/di-pattern-enforcer.sh",
+        "skill/test-location-validator.sh",
+        "skill/backend-layer-validator.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 2,
+      "fix": "Avoid nested quantifiers: (.*)*. Use atomic grouping (?>...). Test patterns against large inputs. Add timeout: timeout 1s grep -E pattern.",
+      "fix_complexity": "MEDIUM",
+      "priority": 7
+    },
+    {
+      "id": "HOOK-SEC-008",
+      "type": "FILE_PERMISSION_BYPASS",
+      "file": ".claude/hooks/_lib/common.sh",
+      "line": 160,
+      "severity": "HIGH",
+      "code": "echo \"[$timestamp] [$hook_name] $msg\" >> \"$logfile\"",
+      "vulnerability": "Log files created with default umask (0644 - world-readable). Could contain sensitive information. No explicit permission setting.",
+      "attack_example": "Log file contains API keys, tokens, passwords. Other users on system can read: cat ~/.claude/logs/hooks.log",
+      "affected_hooks": [
+        "_lib/common.sh (log_hook)",
+        "posttool/audit-logger.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 1,
+      "fix": "Set explicit permissions: chmod 0600 \\\"$logfile\\\" immediately after creation. Use umask 0077 for sensitive files.",
+      "fix_complexity": "LOW",
+      "priority": 8
+    },
+    {
+      "id": "HOOK-SEC-009",
+      "type": "UNSAFE_XARGS_CLEANUP",
+      "file": ".claude/hooks/lifecycle/session-cleanup.sh",
+      "line": 28,
+      "severity": "HIGH",
+      "code": "cd \"$ARCHIVE_DIR\" && ls -t | tail -n +21 | xargs rm -f 2>/dev/null",
+      "vulnerability": "xargs without -0 doesn't handle filenames with spaces. Directory traversal: if ARCHIVE_DIR world-writable and contains ../ paths, could delete system files.",
+      "attack_example": "Files: 'my file 1', 'my file 2' - xargs splits on spaces. Attacker creates ../../etc/passwd - xargs rm -f might attempt deletion.",
+      "affected_hooks": [
+        "lifecycle/session-cleanup.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 3,
+      "fix": "Use: find \\\"$ARCHIVE_DIR\\\" -maxdepth 1 -type f -mtime +N -delete. Or: xargs -0 with null delimiters. Validate ARCHIVE_DIR before cleanup.",
+      "fix_complexity": "LOW",
+      "priority": 9
+    },
+    {
+      "id": "HOOK-SEC-010",
+      "type": "ENVIRONMENT_VARIABLE_INJECTION",
+      "file": ".claude/hooks/_lib/common.sh",
+      "line": 18,
+      "severity": "HIGH",
+      "code": "HOOK_LOG_DIR=\"${CLAUDE_PROJECT_DIR:-.}/.claude/logs\"",
+      "vulnerability": "CLAUDE_PROJECT_DIR and PATH environment variables not validated. Attacker can set CLAUDE_PROJECT_DIR to arbitrary location. PATH can be hijacked to execute malicious versions of git, jq.",
+      "attack_example": "export CLAUDE_PROJECT_DIR=/tmp/evil - hook writes logs to attacker-controlled location. export PATH=/tmp/evil_bin:$PATH - attacker's jq executed instead.",
+      "affected_hooks": [
+        "_lib/common.sh",
+        "All hooks sourcing common.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 2,
+      "fix": "Validate CLAUDE_PROJECT_DIR before use. Use absolute paths for critical commands: /usr/bin/jq. Validate PATH doesn't contain unexpected locations.",
+      "fix_complexity": "MEDIUM",
+      "priority": 10
+    },
+    {
+      "id": "HOOK-SEC-011",
+      "type": "UNSAFE_CD_COMMAND",
+      "file": ".claude/hooks/skill/test-runner.sh",
+      "line": 14,
+      "severity": "HIGH",
+      "code": "cd \"$(dirname \"$FILE\")\" 2>/dev/null || true",
+      "vulnerability": "dirname output not validated. If FILE contains command injection: FILE='/tmp/; rm -rf /; #', dirname returns malicious path.",
+      "attack_example": "FILE='$(touch /tmp/pwned)_test.py' results in: cd \\\"$(touch /tmp/pwned)_test.py\\\" which executes touch",
+      "affected_hooks": [
+        "skill/test-runner.sh"
+      ],
+      "owasp": "A03:2021 - Injection",
+      "test_cases": 1,
+      "fix": "Validate FILE path before dirname. Quote: cd \\\"$(dirname \\\"$FILE\\\")\\\" . Avoid command substitution in directory operations.",
+      "fix_complexity": "LOW",
+      "priority": 11
+    }
+  ],
+  "medium": [
+    {
+      "id": "HOOK-SEC-012",
+      "type": "REGEX_REDOS_CATASTROPHIC",
+      "file": ".claude/hooks/skill/test-location-validator.sh",
+      "line": 17,
+      "severity": "MEDIUM",
+      "code": "if [[ \"$FILE_PATH\" =~ \\\\.(test|spec)\\\\.(ts|tsx|js|jsx)$ ]]; then",
+      "vulnerability": "While individual patterns are safe, multiple nested patterns could cause catastrophic backtracking on large inputs.",
+      "attack_example": "Pattern: ^([a-zA-Z0-9_-]+)*$ with 50,000 character input causes exponential backtracking",
+      "affected_hooks": [
+        "skill/test-location-validator.sh",
+        "skill/import-direction-enforcer.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 2,
+      "fix": "Simplify patterns. Avoid nested quantifiers. Add timeout: timeout 1 [[ ... ]]. Test against large inputs.",
+      "fix_complexity": "LOW",
+      "priority": 12
+    },
+    {
+      "id": "HOOK-SEC-013",
+      "type": "JQ_RULES_FILE_INJECTION",
+      "file": ".claude/hooks/pretool/bash/error-pattern-warner.sh",
+      "line": 52,
+      "severity": "MEDIUM",
+      "code": "while IFS= read -r rule; do\n  pattern=$(echo \"$rule\" | jq -r '.pattern // empty')",
+      "vulnerability": "Rules file pattern field not validated. Could contain malicious regex. jq reads untrusted JSON.",
+      "attack_example": "Rules file with pattern: '(.+)*(.+)*(.+)*$' causes ReDoS when matched against large input",
+      "affected_hooks": [
+        "pretool/bash/error-pattern-warner.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 1,
+      "fix": "Validate rules file before use: jq empty rules.json. Add timeout to pattern matching. Sanitize pattern field.",
+      "fix_complexity": "LOW",
+      "priority": 13
+    },
+    {
+      "id": "HOOK-SEC-014",
+      "type": "TEMP_FILE_CLEANUP_LEAK",
+      "file": ".claude/hooks/_orchestration/chain-executor.sh",
+      "line": 65,
+      "severity": "MEDIUM",
+      "code": "rm -f \"$input_file\"",
+      "vulnerability": "Cleanup happens but without explicit error handling. If rm fails, temp file remains. Multiple hooks call mktemp - accumulation risk.",
+      "attack_example": "Hook called 1000 times - creates 1000 orphaned temp files in /tmp, accumulating over time",
+      "affected_hooks": [
+        "chain-executor.sh",
+        "agent/context-publisher.sh"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 1,
+      "fix": "Use trap for cleanup: trap 'rm -f \\\"$TEMP\\\"' EXIT. Validate cleanup succeeded. Monitor /tmp for orphaned files.",
+      "fix_complexity": "LOW",
+      "priority": 14
+    },
+    {
+      "id": "HOOK-SEC-015",
+      "type": "INFORMATION_DISCLOSURE_LOGS",
+      "file": ".claude/hooks/posttool/audit-logger.sh",
+      "line": 33,
+      "severity": "MEDIUM",
+      "code": "DETAILS=$(get_field '.tool_input.command' | head -c 100)",
+      "vulnerability": "Audit log truncates at 100 chars but doesn't redact sensitive patterns. API keys, tokens, passwords could be logged in plaintext.",
+      "attack_example": "Bash command: 'git push origin main --token=sk_live_xxx' logs full token. Or: 'curl -H Authorization: Bearer TOKEN'",
+      "affected_hooks": [
+        "posttool/audit-logger.sh",
+        "posttool/error-tracker.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 2,
+      "fix": "Redact before logging: echo \\\"$cmd\\\" | sed 's/--token=[^ ]*/--token=REDACTED/g'. Use grep to detect patterns: (?i)(api[_-]?key|secret|password|token).",
+      "fix_complexity": "LOW",
+      "priority": 15
+    },
+    {
+      "id": "HOOK-SEC-016",
+      "type": "PERMISSION_WHITELIST_BYPASS",
+      "file": ".claude/hooks/permission/auto-approve-safe-bash.sh",
+      "line": 45,
+      "severity": "MEDIUM",
+      "code": "if [[ \"$COMMAND\" =~ $pattern ]]; then",
+      "vulnerability": "Pattern matching allows substring match. Pattern '^git (status|log)' matches 'git status; rm -rf /'",
+      "attack_example": "Whitelist: '^git (status|log)' Bypass: 'git status; echo hacked' - semicolon allows chaining",
+      "affected_hooks": [
+        "permission/auto-approve-safe-bash.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 2,
+      "fix": "Validate entire command, not just prefix. Reject special characters: ; | & $ ` \\\\. Use exact pattern: '^git (status|log)$' with end anchor.",
+      "fix_complexity": "LOW",
+      "priority": 16
+    },
+    {
+      "id": "HOOK-SEC-017",
+      "type": "CONTEXT_FILE_PERMISSIONS",
+      "file": ".claude/hooks/agent/context-publisher.sh",
+      "line": 18,
+      "severity": "MEDIUM",
+      "code": "echo '{...}' > \"$CONTEXT_FILE\"",
+      "vulnerability": "Context file created without explicit permissions. Could contain sensitive agent decisions, session IDs, tokens.",
+      "attack_example": "shared-context.json world-readable contains: API keys, authentication tokens, internal system decisions",
+      "affected_hooks": [
+        "agent/context-publisher.sh"
+      ],
+      "owasp": "A01:2021 - Broken Access Control",
+      "test_cases": 1,
+      "fix": "Create with restricted permissions: umask 0077 before write. Or: touch -m 0600 file before jq write.",
+      "fix_complexity": "LOW",
+      "priority": 17
+    }
+  ],
+  "low": [
+    {
+      "id": "HOOK-SEC-018",
+      "type": "ERROR_INFORMATION_DISCLOSURE",
+      "file": ".claude/hooks/pretool/input-mod/path-normalizer.sh",
+      "line": 59,
+      "severity": "LOW",
+      "code": "echo \"[path-normalizer] Normalized $param_name: $original_path -> $normalized_path\" >&2",
+      "vulnerability": "Error messages reveal full file paths. Could leak internal project structure, system paths.",
+      "attack_example": "Error output: '[path-normalizer] Normalized file_path: /home/user/projects/skillforge/.claude/hooks/...'",
+      "affected_hooks": [
+        "pretool/input-mod/path-normalizer.sh",
+        "Multiple error message outputs"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 1,
+      "fix": "Use generic error messages. Avoid leaking paths. Log full details to restricted log file only.",
+      "fix_complexity": "LOW",
+      "priority": 18
+    },
+    {
+      "id": "HOOK-SEC-019",
+      "type": "MISSING_DOCUMENTATION",
+      "file": ".claude/hooks/_lib/common.sh",
+      "line": 38,
+      "severity": "LOW",
+      "code": "# SECURITY (ME-002): This function passes the first argument directly to jq.",
+      "vulnerability": "Security guidelines document exists but may not be enforced. No formal security training for hook developers.",
+      "attack_example": "Developer unknowingly passes user input to get_field(): get_field \\\"$user_controlled_filter\\\"",
+      "affected_hooks": [
+        "All hooks"
+      ],
+      "owasp": "A05:2021 - Security Misconfiguration",
+      "test_cases": 1,
+      "fix": "Create SECURITY.md with clear examples of: Safe vs Unsafe patterns. Code review checklist. Security testing requirements.",
+      "fix_complexity": "LOW",
+      "priority": 19
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "category": "CRITICAL",
+      "recommendation": "Add jq filter validation function to reject filters containing: | debug | limit | recurse | env | $__",
+      "effort_hours": 2,
+      "files": [".claude/hooks/_lib/common.sh"],
+      "test_cases": ["HOOK-SEC-001"]
+    },
+    {
+      "priority": 2,
+      "category": "CRITICAL",
+      "recommendation": "Implement canonical path checking using 'realpath -e' for all file operations. Validate against CLAUDE_PROJECT_DIR boundary.",
+      "effort_hours": 4,
+      "files": [
+        ".claude/hooks/permission/auto-approve-project-writes.sh",
+        ".claude/hooks/pretool/write-edit/file-guard.sh",
+        ".claude/hooks/permission/auto-approve-readonly.sh"
+      ],
+      "test_cases": ["HOOK-SEC-002", "HOOK-SEC-003"]
+    },
+    {
+      "priority": 3,
+      "category": "CRITICAL",
+      "recommendation": "Add re-validation of file paths immediately before write operations to prevent TOCTOU attacks.",
+      "effort_hours": 2,
+      "files": [".claude/hooks/pretool/write-edit/file-guard.sh"],
+      "test_cases": ["HOOK-SEC-003"]
+    },
+    {
+      "priority": 4,
+      "category": "HIGH",
+      "recommendation": "Always quote variable expansions. Use [[ ]] for pattern matching. Validate hook_script paths.",
+      "effort_hours": 3,
+      "files": [
+        ".claude/hooks/_orchestration/chain-executor.sh",
+        ".claude/hooks/skill/test-runner.sh"
+      ],
+      "test_cases": ["HOOK-SEC-004"]
+    },
+    {
+      "priority": 5,
+      "category": "HIGH",
+      "recommendation": "Improve mktemp usage: validate output, use -d for directories, add cleanup in trap, explicit permissions.",
+      "effort_hours": 2,
+      "files": [
+        ".claude/hooks/_orchestration/chain-executor.sh",
+        ".claude/hooks/agent/context-publisher.sh"
+      ],
+      "test_cases": ["HOOK-SEC-005"]
+    },
+    {
+      "priority": 6,
+      "category": "HIGH",
+      "recommendation": "Normalize input before validation: remove extra spaces, convert to lowercase, remove newlines. Use regex not glob patterns.",
+      "effort_hours": 3,
+      "files": [".claude/hooks/pretool/bash/bash-defaults.sh"],
+      "test_cases": ["HOOK-SEC-006"]
+    },
+    {
+      "priority": 7,
+      "category": "HIGH",
+      "recommendation": "Add timeout protection for regex operations. Test patterns against large inputs for catastrophic backtracking.",
+      "effort_hours": 2,
+      "files": [
+        ".claude/hooks/skill/di-pattern-enforcer.sh",
+        ".claude/hooks/skill/backend-layer-validator.sh"
+      ],
+      "test_cases": ["HOOK-SEC-007"]
+    },
+    {
+      "priority": 8,
+      "category": "HIGH",
+      "recommendation": "Set explicit file permissions (0600) for all log files. Use umask 0077 for sensitive operations.",
+      "effort_hours": 1,
+      "files": [".claude/hooks/_lib/common.sh"],
+      "test_cases": ["HOOK-SEC-008"]
+    },
+    {
+      "priority": 9,
+      "category": "HIGH",
+      "recommendation": "Replace xargs with find -delete or use xargs -0. Validate ARCHIVE_DIR before cleanup operations.",
+      "effort_hours": 1,
+      "files": [".claude/hooks/lifecycle/session-cleanup.sh"],
+      "test_cases": ["HOOK-SEC-009"]
+    },
+    {
+      "priority": 10,
+      "category": "HIGH",
+      "recommendation": "Validate CLAUDE_PROJECT_DIR and PATH environment variables. Use absolute paths for critical commands.",
+      "effort_hours": 2,
+      "files": [".claude/hooks/_lib/common.sh"],
+      "test_cases": ["HOOK-SEC-010"]
+    }
+  ],
+  "dependencies": {
+    "vulnerable": [],
+    "outdated": []
+  },
+  "secrets_detected": [],
+  "testing_requirements": {
+    "total_test_cases": 35,
+    "unit_tests": 8,
+    "integration_tests": 5,
+    "security_tests": 35,
+    "recommended_cadence": {
+      "unit": "On every commit",
+      "integration": "On every pull request",
+      "security": "Weekly or before release",
+      "penetration": "Quarterly"
+    }
+  }
+}

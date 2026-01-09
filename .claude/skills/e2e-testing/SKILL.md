@@ -1,8 +1,19 @@
 ---
 name: e2e-testing
 description: End-to-end testing with Playwright 1.57+. Use when testing critical user journeys, browser automation, cross-browser testing, AI-assisted test generation, or validating complete application flows.
-version: 1.2.0
+version: 2.0.0
 tags: [playwright, e2e, testing, ai-agents, 2026]
+context: fork
+agent: test-generator
+hooks:
+  PostToolUse:
+    - matcher: Write
+      command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+  Stop:
+    - command: |
+        echo "::group::E2E Test Summary"
+        echo "Playwright tests generated - run with: npx playwright test"
+        echo "::endgroup::"
 ---
 
 # E2E Testing with Playwright 1.57+
@@ -133,3 +144,47 @@ await expect(page.getByRole('alert')).toBeVisible();
 - `webapp-testing` - Autonomous test agents
 - `performance-testing` - Load testing
 - `llm-testing` - Testing AI/LLM components
+
+## Capability Details
+
+### semantic-locators
+**Keywords:** getByRole, getByLabel, getByText, semantic, locator
+**Solves:**
+- Use accessibility-based locators
+- Avoid brittle CSS/XPath selectors
+- Write resilient element queries
+
+### visual-regression
+**Keywords:** visual regression, screenshot, snapshot, visual diff
+**Solves:**
+- Capture and compare visual snapshots
+- Detect unintended UI changes
+- Configure threshold tolerances
+
+### cross-browser-testing
+**Keywords:** cross browser, chromium, firefox, webkit, browser matrix
+**Solves:**
+- Run tests across multiple browsers
+- Configure browser-specific settings
+- Handle browser differences
+
+### ai-test-generation
+**Keywords:** AI test, generate test, autonomous, test agent, planner
+**Solves:**
+- Generate tests from user journeys
+- Use AI agents for test planning
+- Create comprehensive test coverage
+
+### ai-test-healing
+**Keywords:** test healing, self-heal, auto-fix, resilient test
+**Solves:**
+- Automatically fix broken selectors
+- Adapt tests to UI changes
+- Reduce test maintenance
+
+### authentication-state
+**Keywords:** auth state, storage state, login once, reuse session
+**Solves:**
+- Persist authentication across tests
+- Avoid repeated login flows
+- Share auth state between tests

