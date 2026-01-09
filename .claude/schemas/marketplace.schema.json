@@ -1,23 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://skillforge.dev/schemas/marketplace.schema.json",
-  "title": "SkillForge Marketplace Plugin Schema",
-  "description": "Schema for validating marketplace.json plugin registry entries",
+  "title": "Claude Code Marketplace Schema",
+  "description": "Schema for validating marketplace.json plugin registry entries (compatible with Claude Code)",
   "type": "object",
   "required": ["name", "version", "plugins"],
   "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
     "name": {
       "type": "string",
-      "description": "Plugin package name",
+      "description": "Marketplace name",
       "pattern": "^[a-z0-9-]+$"
-    },
-    "displayName": {
-      "type": "string",
-      "description": "Human-readable display name"
-    },
-    "owner": {
-      "type": "string",
-      "description": "GitHub username or organization"
     },
     "version": {
       "type": "string",
@@ -26,100 +22,69 @@
     },
     "description": {
       "type": "string",
-      "description": "Brief description of the plugin"
+      "description": "Brief description of the marketplace"
     },
-    "repository": {
-      "type": "string",
-      "format": "uri",
-      "description": "GitHub repository URL"
-    },
-    "license": {
-      "type": "string",
-      "description": "SPDX license identifier"
-    },
-    "strict": {
-      "type": "boolean",
-      "description": "Whether to enforce strict skill matching",
-      "default": false
+    "owner": {
+      "type": "object",
+      "description": "Marketplace owner information",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Owner name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Owner email"
+        }
+      },
+      "required": ["name"]
     },
     "plugins": {
       "type": "array",
-      "description": "Available plugin bundles",
+      "description": "Available plugins in this marketplace",
       "items": {
         "type": "object",
-        "required": ["name", "skills"],
+        "required": ["name", "source"],
         "properties": {
           "name": {
             "type": "string",
-            "description": "Bundle name for installation",
+            "description": "Plugin name for installation",
             "pattern": "^[a-z0-9-]+$"
           },
           "description": {
             "type": "string",
-            "description": "Bundle description"
+            "description": "Plugin description"
           },
-          "skills": {
-            "type": "array",
-            "description": "List of skill names or ['*'] for all",
-            "items": {
-              "type": "string"
+          "version": {
+            "type": "string",
+            "description": "Plugin version",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "author": {
+            "type": "object",
+            "description": "Plugin author information",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Author name"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "description": "Author email"
+              }
             }
           },
-          "includes_agents": {
-            "type": "boolean",
-            "description": "Whether this bundle includes agents",
-            "default": false
+          "source": {
+            "type": "string",
+            "description": "Relative path to plugin directory (e.g., './' or './plugins/my-plugin')"
           },
-          "includes_commands": {
-            "type": "boolean",
-            "description": "Whether this bundle includes commands",
-            "default": false
-          },
-          "includes_hooks": {
-            "type": "boolean",
-            "description": "Whether this bundle includes hooks",
-            "default": false
+          "category": {
+            "type": "string",
+            "description": "Plugin category",
+            "enum": ["development", "productivity", "learning", "security", "testing", "devops"]
           }
-        }
-      }
-    },
-    "features": {
-      "type": "object",
-      "description": "Plugin feature summary",
-      "properties": {
-        "agents": {
-          "type": "integer",
-          "description": "Number of agents"
-        },
-        "commands": {
-          "type": "integer",
-          "description": "Number of commands"
-        },
-        "hooks": {
-          "type": "integer",
-          "description": "Number of hooks"
-        },
-        "progressive_loading": {
-          "type": "boolean",
-          "description": "Whether skills use progressive loading"
-        },
-        "capabilities_json": {
-          "type": "boolean",
-          "description": "Whether skills have capabilities.json"
-        }
-      }
-    },
-    "installation": {
-      "type": "object",
-      "description": "Example installation commands",
-      "properties": {
-        "full": {
-          "type": "string",
-          "description": "Command to install full plugin"
-        },
-        "category": {
-          "type": "string",
-          "description": "Example command to install a category"
         }
       }
     }
