@@ -225,17 +225,6 @@ assert_log_contains() {
 }
 
 # Assert JSON is valid
-# Usage: assert_valid_json "$string"
-assert_valid_json() {
-  local string="$1"
-
-  if echo "$string" | jq empty 2>/dev/null; then
-    return 0
-  else
-    echo -e "${RED}ASSERTION FAILED${NC}: Invalid JSON" >&2
-    return 1
-  fi
-}
 
 # Assert JSON field equals value
 # Usage: assert_json_field "$json" ".field" "expected_value"
@@ -626,3 +615,18 @@ wait_for() {
 
 # Initialize test environment on source
 setup_test_env
+
+# Strip ANSI escape codes from string
+# Usage: strip_ansi "$string"
+strip_ansi() {
+  local string="$1"
+  echo "$string" | sed 's/\x1B\[[0-9;]*[mK]//g' 2>/dev/null || echo "$string"
+}
+
+# Fail with message
+# Usage: fail "message"
+fail() {
+  local message="${1:-Test failed}"
+  echo -e "${RED}FAIL${NC}: $message" >&2
+  return 1
+}
