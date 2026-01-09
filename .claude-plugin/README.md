@@ -36,7 +36,7 @@ Once PRs are merged, these commands will work:
 
 | Bundle | Skills | Description |
 |--------|--------|-------------|
-| `complete` | 78 | Full toolkit with 20 agents, 12 commands, 92 hooks |
+| `complete` | 78 | Full toolkit with 20 agents, 12 commands, 90 hooks |
 | `ai-development` | 23 | RAG, embeddings, LangGraph, caching |
 | `backend` | 12 | APIs, databases, streaming, resilience |
 | `frontend` | 6 | React 19, RSC, animations, edge |
