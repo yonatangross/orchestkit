@@ -5,6 +5,29 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.6] - 2026-01-09
+
+### Fixed
+
+**Skill Template Literal Bash Parsing**
+- Fixed 13 SKILL.md files containing JavaScript template literals that caused bash parsing errors
+- Replaced backtick template strings with string concatenation to prevent Claude Code Skill tool crashes
+- Major refactor of `edge-computing-patterns` skill to reference-based architecture
+- Affected skills: api-design-framework, edge-computing-patterns, github-cli, i18n-date-patterns,
+  input-validation, llm-streaming, mcp-server-building, motion-animation-patterns,
+  observability-monitoring, performance-optimization, react-server-components-framework,
+  streaming-api-patterns, type-safety-validation
+
+### Changed
+
+**CI/CD Improvements**
+- Enhanced `version-check.yml` to **block** PRs without version bump (was warn-only)
+- Added CHANGELOG.md validation - PRs must include changelog entry for new version
+- Updated `bump-version.sh` to auto-generate CHANGELOG template entry
+- `bump-version.sh` now updates CLAUDE.md version references
+
+---
+
 ## [4.6.5] - 2026-01-09
 
 ### Changed

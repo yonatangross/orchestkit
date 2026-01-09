@@ -1,4 +1,4 @@
-name: Version Check
+name: Version & Changelog Check
 
 on:
   pull_request:
@@ -10,8 +10,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  check-version:
-    name: Check Version Bump
+  check-version-and-changelog:
+    name: Check Version Bump & Changelog
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,27 +33,63 @@ jobs:
           echo "version=$MAIN_VERSION" >> $GITHUB_OUTPUT
           echo "Main branch version: $MAIN_VERSION"
 
-      - name: Compare versions
-        id: compare
+      - name: Check version bumped
+        id: version_check
         run: |
           PR_VERSION="${{ steps.pr_version.outputs.version }}"
           MAIN_VERSION="${{ steps.main_version.outputs.version }}"
 
           if [[ "$PR_VERSION" == "$MAIN_VERSION" ]]; then
-            echo "needs_bump=true" >> $GITHUB_OUTPUT
-            echo "::warning::Version not bumped! Current: $MAIN_VERSION"
+            echo "bumped=false" >> $GITHUB_OUTPUT
+            echo "::error::Version not bumped! Current: $MAIN_VERSION"
           else
-            echo "needs_bump=false" >> $GITHUB_OUTPUT
-            echo "Version bumped: $MAIN_VERSION -> $PR_VERSION"
+            echo "bumped=true" >> $GITHUB_OUTPUT
+            echo "✅ Version bumped: $MAIN_VERSION -> $PR_VERSION"
           fi
 
-      - name: Comment on PR if version not bumped
-        if: steps.compare.outputs.needs_bump == 'true'
+      - name: Check CHANGELOG updated
+        id: changelog_check
+        run: |
+          if git diff origin/main --name-only | grep -q "CHANGELOG.md"; then
+            echo "updated=true" >> $GITHUB_OUTPUT
+            echo "✅ CHANGELOG.md has been updated"
+          else
+            echo "updated=false" >> $GITHUB_OUTPUT
+            echo "::error::CHANGELOG.md not updated"
+          fi
+
+      - name: Validate CHANGELOG entry matches version
+        id: changelog_version_check
+        if: steps.version_check.outputs.bumped == 'true' && steps.changelog_check.outputs.updated == 'true'
+        run: |
+          PR_VERSION="${{ steps.pr_version.outputs.version }}"
+
+          # Check if CHANGELOG has entry for this version
+          if grep -q "^\## \[$PR_VERSION\]" CHANGELOG.md; then
+            echo "matches=true" >> $GITHUB_OUTPUT
+            echo "✅ CHANGELOG.md has entry for version $PR_VERSION"
+          else
+            echo "matches=false" >> $GITHUB_OUTPUT
+            echo "::error::CHANGELOG.md missing entry for version $PR_VERSION"
+          fi
+
+      - name: Comment on PR with issues
+        if: steps.version_check.outputs.bumped == 'false' || steps.changelog_check.outputs.updated == 'false' || steps.changelog_version_check.outputs.matches == 'false'
         uses: actions/github-script@v7
         with:
           script: |
             const prVersion = '${{ steps.pr_version.outputs.version }}';
             const mainVersion = '${{ steps.main_version.outputs.version }}';
+            const versionBumped = '${{ steps.version_check.outputs.bumped }}' === 'true';
+            const changelogUpdated = '${{ steps.changelog_check.outputs.updated }}' === 'true';
+            const changelogMatches = '${{ steps.changelog_version_check.outputs.matches }}' === 'true';
+
+            let issues = [];
+            if (!versionBumped) issues.push('❌ Version not bumped');
+            if (!changelogUpdated) issues.push('❌ CHANGELOG.md not updated');
+            if (versionBumped && changelogUpdated && !changelogMatches) {
+              issues.push('❌ CHANGELOG.md missing entry for new version');
+            }
 
             // Check if we already commented
             const comments = await github.rest.issues.listComments({
@@ -63,25 +99,53 @@ jobs:
             });
 
             const botComment = comments.data.find(c =>
-              c.user.type === 'Bot' && c.body.includes('Version Bump Reminder')
+              c.user.type === 'Bot' && c.body.includes('Version & Changelog Check')
             );
 
-            if (!botComment) {
+            const body = `## 🚫 Version & Changelog Check Failed
+
+            ${issues.join('\n')}
+
+            ---
+
+            **To fix, run:**
+            \`\`\`bash
+            ./bin/bump-version.sh patch   # For bug fixes
+            ./bin/bump-version.sh minor   # For new features
+            ./bin/bump-version.sh major   # For breaking changes
+            \`\`\`
+
+            This will:
+            1. Bump version in all config files
+            2. Update CLAUDE.md version reference
+            3. Add a template entry to CHANGELOG.md
+
+            Then fill in the CHANGELOG entry with your changes and commit.`;
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: `## 📦 Version Bump Reminder
-
-            The version has not been bumped from \`${mainVersion}\`.
-
-            **To bump the version, run:**
-            \`\`\`bash
-            ./bin/bump-version.sh patch   # For bug fixes (4.6.5 -> 4.6.6)
-            ./bin/bump-version.sh minor   # For new features (4.6.5 -> 4.7.0)
-            ./bin/bump-version.sh major   # For breaking changes (4.6.5 -> 5.0.0)
-            \`\`\`
-
-            Then update \`CHANGELOG.md\` with your changes.`
+                body: body
               });
             }
+
+      - name: Fail if checks not passed
+        if: steps.version_check.outputs.bumped == 'false' || steps.changelog_check.outputs.updated == 'false'
+        run: |
+          echo "::error::PR blocked: Version must be bumped and CHANGELOG.md must be updated"
+          exit 1
+
+      - name: Fail if CHANGELOG entry missing
+        if: steps.version_check.outputs.bumped == 'true' && steps.changelog_check.outputs.updated == 'true' && steps.changelog_version_check.outputs.matches == 'false'
+        run: |
+          echo "::error::PR blocked: CHANGELOG.md must have entry for version ${{ steps.pr_version.outputs.version }}"
+          exit 1
