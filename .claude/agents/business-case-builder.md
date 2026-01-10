@@ -1,5 +1,6 @@
 ---
 name: business-case-builder
+model_preference: sonnet
 color: indigo
 description: Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale
 max_tokens: 16000

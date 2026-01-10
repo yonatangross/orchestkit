@@ -1,5 +1,6 @@
 ---
 name: test-generator
+model_preference: sonnet
 color: green
 description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions
 max_tokens: 16000

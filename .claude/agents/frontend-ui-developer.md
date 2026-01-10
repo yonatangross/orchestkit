@@ -1,5 +1,6 @@
 ---
 name: frontend-ui-developer
+model_preference: sonnet
 color: purple
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2025 patterns
 max_tokens: 12000

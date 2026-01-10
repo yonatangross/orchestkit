@@ -63,7 +63,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.2 (CC 2.1.2 agent_type support)
+- **Claude Code**: >= 2.1.3 (CC 2.1.3 agent_type support)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure)
 
 ### Expected Application Stack (Skills Support)
@@ -470,8 +470,8 @@ ls .claude/agents/
 
 ## Version Information
 
-- **Current Version**: 4.6.6 (as of 2026-01-09)
-- **Claude Code Requirement**: >= 2.1.2
+- **Current Version**: 4.7.0 (as of 2026-01-10)
+- **Claude Code Requirement**: >= 2.1.3
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
@@ -510,4 +510,4 @@ tail -f .claude/hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-09 (v4.6.7 - MCPs opt-in via configure)
+**Last Updated**: 2026-01-10 (v4.7.0 - MCPs opt-in via configure)

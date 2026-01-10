@@ -1,5 +1,6 @@
 ---
 name: system-design-reviewer
+model_preference: opus
 color: cyan
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written
 max_tokens: 16000

@@ -1,5 +1,6 @@
 ---
 name: llm-integrator
+model_preference: sonnet
 color: orange
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies
 max_tokens: 16000

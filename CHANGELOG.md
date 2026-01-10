@@ -5,6 +5,69 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.7.0] - 2026-01-10
+
+### Added
+
+**Claude Code 2.1.3 Full Overhaul Release**
+
+This release fully leverages Claude Code 2.1.3 features for a comprehensive upgrade.
+
+**New Health Diagnostics Skill**
+- `/skf:doctor` - Comprehensive health check command
+- Permission rules analysis (unreachable rules detection - CC 2.1.3 feature)
+- Hook health validation (executable permissions, dispatcher references)
+- Schema compliance checks
+- Coordination system integrity verification
+- Context budget monitoring
+
+**Quality Gate Hooks (10-Minute Timeout)**
+- `full-test-suite.sh` - Runs complete test suite on conversation stop
+- `security-scan-aggregator.sh` - Aggregates npm audit, pip-audit, semgrep results
+- `llm-code-review.sh` - AI-powered code review for uncommitted changes
+- All new hooks use 600,000ms timeout (CC 2.1.3 feature)
+
+**Team Permission Profiles**
+- `.claude/permissions/profiles/` - Shareable permission configurations
+- `secure.json` - Minimal permissions for solo development
+- `team.json` - Standard team permissions
+- `enterprise.json` - Strict enterprise permissions
+- `/skf:apply-permissions` - Apply profiles to settings.json
+
+**Release Channel Documentation**
+- `.claude/docs/release-channels.md` - Stable vs latest channel guidance
+- CC version compatibility matrix
+- Feature availability by version
+
+### Changed
+
+**Version Requirements**
+- Claude Code requirement: `>=2.1.3` (was `>=2.1.2`)
+- Plugin version: 4.7.0
+- Engine specification added to plugin.json
+
+**Agent Model Optimization**
+- Added `model_preference` to all 20 agent definitions
+- Complex reasoning agents (workflow-architect, backend-system-architect, system-design-reviewer): opus
+- Balanced task agents: sonnet
+- Fast routing agents: haiku
+- CC 2.1.3 fixes sub-agent model selection
+
+**Documentation Updates**
+- README.md: Added CC 2.1.3+ compatibility badge
+- CLAUDE.md: Updated version requirements
+- Skill count: 79 (added doctor skill)
+- Hook count: 93 (added quality gate hooks)
+
+### Deprecated
+
+**Commands Directory**
+- 12 commands in `.claude/commands/` now have deprecation notices
+- Commands continue to work for backwards compatibility
+- Future versions will migrate to unified skills namespace
+
+---
+
 ## [4.6.7] - 2026-01-09
 
 ### Changed

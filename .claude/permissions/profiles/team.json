@@ -1,0 +1,78 @@
+{
+  "$schema": "../../../schemas/permission-profile.schema.json",
+  "name": "team",
+  "version": "1.0.0",
+  "description": "Standard team permissions for collaborative development",
+  "auto_approve": {
+    "tools": ["Read", "Glob", "Grep", "WebFetch", "WebSearch"],
+    "paths": [
+      "$PROJECT/**",
+      "!$PROJECT/.env*",
+      "!$PROJECT/**/secrets/**"
+    ],
+    "bash_commands": [
+      "git status",
+      "git diff",
+      "git log",
+      "git branch",
+      "git checkout",
+      "git add",
+      "git commit",
+      "git push",
+      "git pull",
+      "npm install",
+      "npm test",
+      "npm run *",
+      "yarn install",
+      "yarn test",
+      "pnpm install",
+      "pnpm test",
+      "pip install",
+      "pytest",
+      "python -m pytest",
+      "ls",
+      "pwd",
+      "cat",
+      "head",
+      "tail",
+      "grep",
+      "find",
+      "mkdir",
+      "touch"
+    ]
+  },
+  "require_approval": {
+    "tools": ["Write", "Edit"],
+    "paths": [
+      "**/config/**",
+      "**/.env*",
+      "**/settings.*",
+      "**/package.json",
+      "**/requirements.txt"
+    ],
+    "bash_patterns": [
+      "rm *",
+      "mv *",
+      "cp *"
+    ]
+  },
+  "deny": {
+    "paths": [
+      "**/credentials*",
+      "**/*.pem",
+      "**/*.key",
+      "**/secrets/**",
+      "**/.ssh/**"
+    ],
+    "bash_patterns": [
+      "rm -rf /",
+      "rm -rf ~",
+      "sudo *",
+      "chmod 777",
+      "> /dev/*",
+      "curl * | sh",
+      "wget * | sh"
+    ]
+  },
+  "notes": "Balanced profile for team development. Auto-approves most dev operations, protects sensitive files."
+}

@@ -1,5 +1,6 @@
 ---
 name: requirements-translator
+model_preference: sonnet
 color: magenta
 description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff
 max_tokens: 16000

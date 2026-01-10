@@ -1,5 +1,6 @@
 ---
 name: ux-researcher
+model_preference: haiku
 color: pink
 description: User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis
 max_tokens: 16000

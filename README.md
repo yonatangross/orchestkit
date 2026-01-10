@@ -10,7 +10,8 @@
 
 <p align="center">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin"><img src="https://img.shields.io/github/stars/yonatangross/skillforge-claude-plugin?style=flat-square" alt="GitHub Stars"></a>
-  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.6.7-green?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.7.0-green?style=flat-square" alt="Version"></a>
+  <img src="https://img.shields.io/badge/CC-≥2.1.3-blue?style=flat-square" alt="Claude Code 2.1.3+">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml"><img src="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple?style=flat-square" alt="License"></a>
   <a href="https://github.com/anthropics/claude-plugins-official/pull/86"><img src="https://img.shields.io/badge/anthropic--official-pending-yellow?style=flat-square" alt="Anthropic Official"></a>
@@ -18,7 +19,7 @@
 </p>
 
 <p align="center">
-  78 skills | 12 commands | 20 agents | 90 hooks | 4 tiers
+  79 skills | 20 agents | 93 hooks | 4 tiers
 </p>
 
 ---
@@ -263,13 +264,13 @@ SkillForge uses a **token-efficient progressive loading** system via `capabiliti
 | (~100 tokens)        |     | (~500 tokens)     |     | (~200 tokens)    |
 | capabilities.json    |     | SKILL.md          |     | references/*.md  |
 +----------------------+     +-------------------+     +------------------+
-                                                                |
-                                                                v
-                                                       +------------------+
-                                                       | Tier 4: Generate |
-                                                       | (~300 tokens)    |
-                                                       | templates/*      |
-                                                       +------------------+
+                                                               |
+                                                               v
+                                                      +------------------+
+                                                      | Tier 4: Generate |
+                                                      | (~300 tokens)    |
+                                                      | templates/*      |
+                                                      +------------------+
 ```
 
 ### How It Works
@@ -327,13 +328,13 @@ SkillForge commands work **without MCPs**, but these optional integrations enhan
 
 MCPs are **opt-in**. Configure them via the wizard:
 
-\`\`\`bash
+```bash
 /skf:configure
-\`\`\`
+```
 
-Or manually create \`.mcp.json\` in your project:
+Or manually create `.mcp.json` in your project:
 
-\`\`\`json
+```json
 {
   "mcpServers": {
     "context7": {
@@ -342,17 +343,17 @@ Or manually create \`.mcp.json\` in your project:
     }
   }
 }
-\`\`\`
+```
 
 ### Example: Using Context7 for Current Docs
 
-\`\`\`python
+```python
 # If context7 MCP is installed, skills can query for latest patterns
 mcp__context7__query-docs(
   libraryId="/langchain-ai/langgraph",
   query="How to implement supervisor-worker pattern"
 )
-\`\`\`
+```
 
 ---
 ## Security

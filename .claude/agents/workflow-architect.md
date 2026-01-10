@@ -1,5 +1,6 @@
 ---
 name: workflow-architect
+model_preference: opus
 color: blue
 description: Multi-agent workflow specialist who designs LangGraph pipelines, implements supervisor-worker patterns, manages state and checkpointing, and orchestrates RAG retrieval flows for complex AI systems
 max_tokens: 32000

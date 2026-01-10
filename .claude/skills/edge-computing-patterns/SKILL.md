@@ -180,3 +180,25 @@ Access request.cf.country (Cloudflare) or request.geo (Vercel) for location-base
 - Edge deployment best practices
 - Production readiness checklist
 - Monitoring and debugging setup
+
+## Quick Example
+
+```typescript
+// Cloudflare Worker - Basic fetch handler
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Geo-based routing
+    const country = request.cf?.country || 'US';
+
+    // Edge caching
+    const cacheKey = url.pathname + "-" + country;
+    const cached = await caches.default.match(cacheKey);
+    if (cached) return cached;
+
+    const response = await fetch(request);
+    return response;
+  }
+}
+```
