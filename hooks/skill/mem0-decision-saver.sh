@@ -134,7 +134,6 @@ EOF
     cat << HOOK_EOF
 {
   "continue": true,
-  "stopReason": null,
   "systemMessage": $(echo "$system_message" | jq -Rs .)
 }
 HOOK_EOF

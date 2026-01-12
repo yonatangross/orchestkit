@@ -127,7 +127,6 @@ main() {
     cat << EOF
 {
   "continue": true,
-  "stopReason": null,
   "systemMessage": $(echo "$system_message" | jq -Rs .)
 }
 EOF
