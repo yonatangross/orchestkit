@@ -15,7 +15,15 @@ else
 fi
 
 # Log directory
-HOOK_LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
+# Plugin root - where the plugin is installed
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-.}}"
+
+# Log directory
+if [[ -n "${CLAUDE_PLUGIN_ROOT:-}" ]]; then
+  HOOK_LOG_DIR="${HOME}/.claude/logs/skf"
+else
+  HOOK_LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
+fi
 mkdir -p "$HOOK_LOG_DIR" 2>/dev/null
 
 # Hook input caching
@@ -296,7 +304,7 @@ export -f init_hook_input read_hook_input get_field get_tool_name get_session_id
 # -----------------------------------------------------------------------------
 
 # Config loader path
-CONFIG_LOADER="${CLAUDE_PROJECT_DIR:-.}/.claude/scripts/config-loader.sh"
+CONFIG_LOADER="${PLUGIN_ROOT}/.claude/scripts/config-loader.sh"
 
 # Check if hook is enabled based on config
 # Usage: is_hook_enabled_by_config "hook-name.sh"
