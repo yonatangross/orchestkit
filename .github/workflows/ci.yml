@@ -153,7 +153,7 @@ jobs:
   # STAGE 6: Compliance Tests (NEW)
   # ============================================================================
   compliance-tests:
-    name: CC 2.1.2 Compliance
+    name: CC 2.1.4 Compliance
     needs: lint
     runs-on: ubuntu-latest
     steps:
@@ -164,7 +164,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Run CC 2.1.2 compliance tests
+      - name: Run CC 2.1.4 compliance tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/compliance/test-cc-212-compliance.sh
