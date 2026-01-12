@@ -86,7 +86,7 @@ bin/                     # CLI utilities and scripts
 ```bash
 # Install from marketplace
 /plugin marketplace add yonatangross/skillforge-claude-plugin
-/plugin install skf@complete
+/plugin install skf
 
 # Or clone manually
 git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge

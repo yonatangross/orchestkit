@@ -26,6 +26,7 @@
 
 > **Transform Claude Code into a full-stack AI development powerhouse.** From RAG pipelines to React 19 patterns, from database schemas to security audits - everything you need to build production-grade applications with AI assistance.
 
+
 ## Quick Start
 
 ### From Marketplace (Pending Approval)
@@ -36,13 +37,8 @@
 # Step 1: Add the marketplace
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
-# Step 2: Install (default = complete with everything)
-/plugin install @skillforge                    # Everything (90 skills, 20 agents)
-
-# Or choose a lighter tier:
-/plugin install @skillforge/standard           # All skills, no agents
-/plugin install @skillforge/lite               # 10 essential skills only
-/plugin install @skillforge/hooks-only         # Just safety hooks
+# Step 2: Install
+/plugin install skf
 ```
 
 ### From GitHub (Manual)
@@ -59,7 +55,7 @@ cp -r skillforge-claude-plugin/.claude your-project/.claude
 
 ### Configuration
 
-Customize your installation anytime:
+After installation, configure your tier and preferences:
 
 ```bash
 /skf:configure
@@ -72,7 +68,7 @@ Interactive wizard to:
 - Configure hooks
 - Enable MCP integrations (optional)
 
-Config: `~/.claude/plugins/skillforge/config.json`
+Config stored in: `~/.claude/plugins/skillforge/config.json`
 
 ---
 
