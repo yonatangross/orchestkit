@@ -1,5 +1,6 @@
 ---
 name: database-engineer
+model_preference: sonnet
 color: emerald
 description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes
 max_tokens: 16000

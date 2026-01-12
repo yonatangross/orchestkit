@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../schemas/permission-profile.schema.json",
+  "name": "secure",
+  "version": "1.0.0",
+  "description": "Minimal permissions for solo development with maximum safety",
+  "auto_approve": {
+    "tools": ["Read", "Glob", "Grep"],
+    "paths": [
+      "$PROJECT/.claude/**",
+      "$PROJECT/src/**",
+      "$PROJECT/tests/**"
+    ],
+    "bash_commands": [
+      "git status",
+      "git diff",
+      "git log",
+      "ls",
+      "pwd",
+      "cat"
+    ]
+  },
+  "require_approval": {
+    "tools": ["Write", "Edit", "Bash"],
+    "paths": ["**/*"],
+    "bash_patterns": ["*"]
+  },
+  "deny": {
+    "paths": [
+      "**/.env*",
+      "**/credentials*",
+      "**/*.pem",
+      "**/*.key",
+      "**/secrets/**"
+    ],
+    "bash_patterns": [
+      "rm -rf",
+      "sudo *",
+      "chmod 777",
+      "> /dev/*"
+    ]
+  },
+  "notes": "Most restrictive profile. Requires approval for all writes and most bash commands."
+}

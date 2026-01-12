@@ -1,5 +1,6 @@
 ---
 name: security-layer-auditor
+model_preference: haiku
 color: red
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection
 max_tokens: 16000

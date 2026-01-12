@@ -1,5 +1,6 @@
 ---
 name: metrics-architect
+model_preference: sonnet
 color: orchid
 description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses
 max_tokens: 16000

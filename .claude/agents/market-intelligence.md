@@ -1,5 +1,6 @@
 ---
 name: market-intelligence
+model_preference: sonnet
 color: violet
 description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy
 max_tokens: 16000

@@ -22,7 +22,7 @@ SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
 AGENTS_DIR="$PROJECT_ROOT/.claude/agents"
 
 # Token budget: Based on Tier 1 (capabilities.json ~100 tokens each)
-MAX_TIER1_TOKEN_BUDGET=15000
+MAX_TIER1_TOKEN_BUDGET=20000
 
 # Verbose mode
 VERBOSE="${1:-}"

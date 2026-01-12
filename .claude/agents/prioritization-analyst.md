@@ -1,5 +1,6 @@
 ---
 name: prioritization-analyst
+model_preference: sonnet
 color: plum
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort
 max_tokens: 16000

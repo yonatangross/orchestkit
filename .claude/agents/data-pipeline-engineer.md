@@ -1,5 +1,6 @@
 ---
 name: data-pipeline-engineer
+model_preference: sonnet
 color: emerald
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale
 max_tokens: 16000

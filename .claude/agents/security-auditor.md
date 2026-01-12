@@ -1,5 +1,6 @@
 ---
 name: security-auditor
+model_preference: haiku
 color: red
 description: Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps
 max_tokens: 12000

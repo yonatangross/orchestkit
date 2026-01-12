@@ -39,7 +39,11 @@ archive_session() {
         return
     fi
 
-    local session_id=$(jq -r '.session_id // "unknown"' "$session_file")
+    local session_id=$(jq -r '.session_id // empty' "$session_file")
+    # Use timestamp-based naming if session_id is missing/null
+    if [[ -z "$session_id" || "$session_id" == "null" ]]; then
+        session_id="session-$(date +%Y%m%d-%H%M%S)"
+    fi
     local archive_dir="$CONTEXT_DIR/archive/sessions"
     mkdir -p "$archive_dir"
 

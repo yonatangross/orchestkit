@@ -1,5 +1,6 @@
 ---
 name: rapid-ui-designer
+model_preference: haiku
 color: cyan
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation
 max_tokens: 16000

@@ -1,5 +1,6 @@
 ---
 name: code-quality-reviewer
+model_preference: sonnet
 color: green
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns
 max_tokens: 12000

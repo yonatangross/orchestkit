@@ -1,5 +1,6 @@
 ---
 name: debug-investigator
+model_preference: sonnet
 color: orange
 description: Debug specialist who performs systematic root cause analysis on bugs and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs, and produces actionable fix recommendations
 max_tokens: 16000

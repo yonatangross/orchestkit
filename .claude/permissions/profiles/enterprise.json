@@ -1,0 +1,60 @@
+{
+  "$schema": "../../../schemas/permission-profile.schema.json",
+  "name": "enterprise",
+  "version": "1.0.0",
+  "description": "Strict enterprise permissions with audit logging and restricted operations",
+  "auto_approve": {
+    "tools": ["Read", "Glob", "Grep"],
+    "paths": [
+      "$PROJECT/src/**",
+      "$PROJECT/tests/**",
+      "$PROJECT/docs/**",
+      "$PROJECT/.claude/**"
+    ],
+    "bash_commands": [
+      "git status",
+      "git diff",
+      "git log",
+      "ls",
+      "pwd"
+    ]
+  },
+  "require_approval": {
+    "tools": ["Write", "Edit", "Bash", "WebFetch", "WebSearch"],
+    "paths": ["**/*"],
+    "bash_patterns": ["*"]
+  },
+  "deny": {
+    "paths": [
+      "**/.env*",
+      "**/credentials*",
+      "**/*.pem",
+      "**/*.key",
+      "**/secrets/**",
+      "**/.ssh/**",
+      "**/production/**",
+      "**/prod/**",
+      "**/.aws/**",
+      "**/.gcp/**"
+    ],
+    "bash_patterns": [
+      "rm *",
+      "sudo *",
+      "chmod *",
+      "chown *",
+      "curl * | *",
+      "wget * | *",
+      "docker *",
+      "kubectl *",
+      "aws *",
+      "gcloud *"
+    ]
+  },
+  "audit": {
+    "enabled": true,
+    "log_all_tool_calls": true,
+    "log_all_bash_commands": true,
+    "retention_days": 90
+  },
+  "notes": "Most restrictive profile for enterprise environments. All operations audited. Cloud CLI tools blocked."
+}

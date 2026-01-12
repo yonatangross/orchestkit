@@ -6,6 +6,10 @@
 # Declared counts come from plugin.json description string
 # Actual counts come from counting actual files
 #
+# Note: Commands were migrated to skills in v4.7.0, so command validation
+# is skipped. The "12 commands" in the description refers to command-type
+# skills (commit, configure, explore, etc.) which are part of the 90 skills count.
+#
 # Exit codes:
 #   0 - All counts match
 #   1 - One or more counts mismatch
@@ -20,7 +24,6 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # =============================================================================
 ACTUAL_SKILLS=$(find "$PROJECT_ROOT/.claude/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_AGENTS=$(find "$PROJECT_ROOT/.claude/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_COMMANDS=$(find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_HOOKS=$(find "$PROJECT_ROOT/.claude/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
 
 # =============================================================================
@@ -33,16 +36,14 @@ if [[ ! -f "$PLUGIN_JSON" ]]; then
 fi
 
 # Extract description and parse counts from it
-# Format: "... with 78 skills, 12 commands, 20 agents..., 90 hooks..."
+# Format: "... with 90 skills (78 knowledge + 12 commands), 20 agents, 96 hooks..."
 DESCRIPTION=$(jq -r '.description' "$PLUGIN_JSON")
 
 # Parse counts from description using regex
-# Skills: "N skills"
+# Skills: "N skills" (total including command-type skills)
 DECLARED_SKILLS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ skills' | grep -oE '[0-9]+' || echo "0")
 # Agents: "N agents"
 DECLARED_AGENTS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ agents' | grep -oE '[0-9]+' || echo "0")
-# Commands: "N commands"
-DECLARED_COMMANDS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ commands' | grep -oE '[0-9]+' || echo "0")
 # Hooks: "N hooks"
 DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ hooks' | grep -oE '[0-9]+' || echo "0")
 
@@ -59,7 +60,7 @@ if [[ "$ACTUAL_SKILLS" != "$DECLARED_SKILLS" ]]; then
     echo "❌ Skills: declared $DECLARED_SKILLS, actual $ACTUAL_SKILLS"
     ERRORS=$((ERRORS + 1))
 else
-    echo "✓ Skills: $ACTUAL_SKILLS"
+    echo "✓ Skills: $ACTUAL_SKILLS (includes command-type skills)"
 fi
 
 if [[ "$ACTUAL_AGENTS" != "$DECLARED_AGENTS" ]]; then
@@ -67,13 +68,6 @@ if [[ "$ACTUAL_AGENTS" != "$DECLARED_AGENTS" ]]; then
     ERRORS=$((ERRORS + 1))
 else
     echo "✓ Agents: $ACTUAL_AGENTS"
-fi
-
-if [[ "$ACTUAL_COMMANDS" != "$DECLARED_COMMANDS" ]]; then
-    echo "❌ Commands: declared $DECLARED_COMMANDS, actual $ACTUAL_COMMANDS"
-    ERRORS=$((ERRORS + 1))
-else
-    echo "✓ Commands: $ACTUAL_COMMANDS"
 fi
 
 if [[ "$ACTUAL_HOOKS" != "$DECLARED_HOOKS" ]]; then
@@ -87,7 +81,7 @@ echo ""
 if [[ $ERRORS -gt 0 ]]; then
     echo "Validation FAILED: $ERRORS mismatches found"
     echo ""
-    echo "Run 'bin/update-counts.sh' to fix"
+    echo "To fix: Update plugin.json description to match actual counts"
     exit 1
 else
     echo "Validation PASSED: All counts match"

@@ -202,6 +202,21 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/skill/eval-metrics-collector.sh"
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/full-test-suite.sh",
+            "timeout": 600000
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/security-scan-aggregator.sh",
+            "timeout": 600000
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/stop/llm-code-review.sh",
+            "timeout": 600000
           }
         ]
       }

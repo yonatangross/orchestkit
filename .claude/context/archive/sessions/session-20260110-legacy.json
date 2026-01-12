@@ -1,0 +1,43 @@
+{
+  "session_id": null,
+  "started": "2026-01-09T13:21:05+02:00",
+  "current_task": {
+    "description": "No active task",
+    "status": "pending"
+  },
+  "next_steps": [],
+  "blockers": [],
+  "_compressed": true,
+  "_compressed_at": "2026-01-10T15:16:02Z",
+  "_original_files_touched": 0,
+  "_original_decisions": 0,
+  "$schema": "context://session/v1",
+  "_meta": {
+    "position": "END",
+    "token_budget": 500,
+    "auto_load": "always",
+    "compress": "on_threshold",
+    "description": "Session state and progress - ALWAYS loaded at END of context"
+  },
+  "last_activity": "2026-01-10T15:30:52Z",
+  "tasks_completed": [
+    {
+      "agent": "unknown",
+      "timestamp": "2026-01-10T15:30:50Z",
+      "summary": "{\"session_id\":\"bdfd4f56-e26b-4a82-aeb9-dac16575bd53\",\"transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/bdfd4f56-e26b-4a82-aeb9-dac16575bd53.js..."
+    },
+    {
+      "agent": "unknown",
+      "timestamp": "2026-01-10T15:30:50Z",
+      "summary": "{\"session_id\":\"bdfd4f56-e26b-4a82-aeb9-dac16575bd53\",\"transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/bdfd4f56-e26b-4a82-aeb9-dac16575bd53.js..."
+    },
+    {
+      "agent": "unknown",
+      "timestamp": "2026-01-10T15:30:52Z",
+      "summary": "{\"session_id\":\"bdfd4f56-e26b-4a82-aeb9-dac16575bd53\",\"transcript_path\":\"/Users/yonatangross/.claude/projects/-Users-yonatangross-coding-skillforge-claude-plugin/bdfd4f56-e26b-4a82-aeb9-dac16575bd53.js..."
+    }
+  ],
+  "active_agent": null,
+  "ended": "2026-01-10T15:31:47Z",
+  "archived": true
+}

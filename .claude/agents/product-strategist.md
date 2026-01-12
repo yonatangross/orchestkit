@@ -1,5 +1,6 @@
 ---
 name: product-strategist
+model_preference: sonnet
 color: purple
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale
 max_tokens: 16000
