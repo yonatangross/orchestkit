@@ -6,6 +6,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [4.7.3] - 2026-01-12
+
+### Fixed
+
+**Plugin Installation Compatibility**
+- Fixed hooks not working when installed via `/plugin install` in other repositories
+- Changed all hook paths in `settings.json` from `$CLAUDE_PROJECT_DIR` to `${CLAUDE_PLUGIN_ROOT}`
+- Updated `common.sh` with `PLUGIN_ROOT` variable that handles both plugin and project-scoped modes
+- Restored root-level symlinks (`skills`, `hooks`, `agents`) - **required for plugin discovery**
+  - Note: v4.7.1 incorrectly removed these; they ARE needed for `/plugin install` to work
+  - Project-scoped installation (copying `.claude/`) still works without symlinks
+
+### Added
+
+**Installation Validation Tests**
+- `tests/integration/test-plugin-installation.sh` - Validates plugin structure:
+  - Root-level symlinks exist and point to valid directories
+  - `settings.json` uses `${CLAUDE_PLUGIN_ROOT}` (not `$CLAUDE_PROJECT_DIR`)
+  - Skills are discoverable
+  - Hooks are executable
+  - Version consistency across manifest files
+
+---
+
 ## [4.7.2] - 2026-01-12
 
 ### Fixed

@@ -440,7 +440,8 @@ $CLAUDE_PROJECT_DIR/.claude/
 
 ### Environment Variables
 ```bash
-CLAUDE_PROJECT_DIR=/Users/yonatangross/coding/skillforge-claude-plugin
+CLAUDE_PROJECT_DIR=<path-to-user-project>
+CLAUDE_PLUGIN_ROOT=<path-to-cached-plugin>  # Set when installed via /plugin install
 CLAUDE_SESSION_ID=<session-uuid>
 CLAUDE_AGENT_ID=<agent-id-if-subagent>
 ```
@@ -470,7 +471,7 @@ ls .claude/agents/
 
 ## Version Information
 
-- **Current Version**: 4.7.2 (as of 2026-01-12)
+- **Current Version**: 4.7.3 (as of 2026-01-12)
 - **Claude Code Requirement**: >= 2.1.4
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -510,4 +511,4 @@ tail -f .claude/hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-12 (v4.7.2 - MCPs opt-in via configure)
+**Last Updated**: 2026-01-12 (v4.7.3 - MCPs opt-in via configure)

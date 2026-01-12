@@ -198,6 +198,7 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
 
     run_test "Hook Chain Integration" "$SCRIPT_DIR/integration/test-hook-chains.sh" || true
     run_test "Context System Integration" "$SCRIPT_DIR/integration/test-context-system.sh" || true
+    run_test "Plugin Installation Validation" "$SCRIPT_DIR/integration/test-plugin-installation.sh" || true
 fi
 
 # ============================================================
