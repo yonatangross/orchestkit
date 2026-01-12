@@ -813,6 +813,118 @@
         "scope": "local"
       },
       "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0058",
+      "timestamp": "2026-01-12T18:40:19Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184019-89c2f815"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0059",
+      "timestamp": "2026-01-12T18:40:56Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184056-412e9ad6"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0060",
+      "timestamp": "2026-01-12T18:41:03Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184102-16f47c6f"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0061",
+      "timestamp": "2026-01-12T18:41:12Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184112-702391d9"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0062",
+      "timestamp": "2026-01-12T18:41:35Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184135-560fae8d"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0063",
+      "timestamp": "2026-01-12T18:42:38Z",
+      "made_by": {
+        "instance_id": "claude-20260112-184238-a0e3d588"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0064",
+      "timestamp": "2026-01-12T18:51:28Z",
+      "made_by": {
+        "instance_id": "claude-20260112-185128-8de13eb7"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0065",
+      "timestamp": "2026-01-12T18:51:35Z",
+      "made_by": {
+        "instance_id": "claude-20260112-185135-b1c38cdb"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
     }
   ]
 }
