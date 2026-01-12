@@ -1,6 +1,6 @@
 {
   "name": "skf",
-  "version": "4.7.3",
+  "version": "4.7.4",
   "engines": {
     "claude-code": ">=2.1.4"
   },

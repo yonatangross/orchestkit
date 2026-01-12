@@ -785,6 +785,34 @@
         "scope": "local"
       },
       "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0056",
+      "timestamp": "2026-01-12T06:35:19Z",
+      "made_by": {
+        "instance_id": "claude-20260112-063519-29d1117c"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260112-0057",
+      "timestamp": "2026-01-12T07:02:03Z",
+      "made_by": {
+        "instance_id": "claude-20260112-070203-2cae69d1"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
     }
   ]
 }

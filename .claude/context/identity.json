@@ -12,7 +12,7 @@
     "name": "SkillForge",
     "display_name": "SkillForge Complete",
     "type": "Claude Code Plugin Ecosystem",
-    "version": "4.7.3",
+    "version": "4.7.4",
     "repository": "https://github.com/yonatangross/skillforge-claude-plugin"
   },
 

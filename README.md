@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin"><img src="https://img.shields.io/github/stars/yonatangross/skillforge-claude-plugin?style=flat-square" alt="GitHub Stars"></a>
-  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.7.3-green?style=flat-square" alt="Version"></a>
+  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.7.4-green?style=flat-square" alt="Version"></a>
   <img src="https://img.shields.io/badge/CC-≥2.1.4-blue?style=flat-square" alt="Claude Code 2.1.3+">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml"><img src="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple?style=flat-square" alt="License"></a>
@@ -26,6 +26,7 @@
 
 > **Transform Claude Code into a full-stack AI development powerhouse.** From RAG pipelines to React 19 patterns, from database schemas to security audits - everything you need to build production-grade applications with AI assistance.
 
+
 ## Quick Start
 
 ### From Marketplace (Pending Approval)
@@ -36,13 +37,8 @@
 # Step 1: Add the marketplace
 /plugin marketplace add yonatangross/skillforge-claude-plugin
 
-# Step 2: Install (default = complete with everything)
-/plugin install @skillforge                    # Everything (90 skills, 20 agents)
-
-# Or choose a lighter tier:
-/plugin install @skillforge/standard           # All skills, no agents
-/plugin install @skillforge/lite               # 10 essential skills only
-/plugin install @skillforge/hooks-only         # Just safety hooks
+# Step 2: Install
+/plugin install skf
 ```
 
 ### From GitHub (Manual)
@@ -59,7 +55,7 @@ cp -r skillforge-claude-plugin/.claude your-project/.claude
 
 ### Configuration
 
-Customize your installation anytime:
+After installation, configure your tier and preferences:
 
 ```bash
 /skf:configure
@@ -72,7 +68,7 @@ Interactive wizard to:
 - Configure hooks
 - Enable MCP integrations (optional)
 
-Config: `~/.claude/plugins/skillforge/config.json`
+Config stored in: `~/.claude/plugins/skillforge/config.json`
 
 ---
 

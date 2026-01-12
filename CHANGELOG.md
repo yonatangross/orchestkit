@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [4.7.4] - 2026-01-12
+### Fixed
+
+**Documentation**
+- Fixed plugin installation commands in README.md and CLAUDE.md
+  - Removed non-existent tier-specific install commands (`@skillforge/standard`, etc.)
+  - Use correct plugin name: `/plugin install skf`
+  - Direct users to `/skf:configure` for tier selection after installation
+
+**Skill Version Consistency**
+- brainstorming: Fixed version mismatch (1.0.0 → 2.0.0), corrected template path reference
+- api-design-framework: Aligned version (1.0.0 → 1.1.0) with changelog
+- e2e-testing: Aligned capabilities.json version (1.2.0 → 2.0.0) with SKILL.md
+- webapp-testing: Aligned SKILL.md version (1.0.0 → 1.1.0), updated year tag to 2026
+- github-cli: Bumped version (1.0.0 → 2.0.0) for upcoming feature additions
+- unit-testing: Updated Jest API to Vitest (`jest.clearAllMocks` → `vi.clearAllMocks`)
+
+**CI Workflow**
+- Fixed hook path validation in plugin-validation.yml to handle `${CLAUDE_PLUGIN_ROOT}` pattern
+
+---
+
+
 ## [4.7.3] - 2026-01-12
 
 ### Fixed
@@ -31,8 +54,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [4.7.2] - 2026-01-12
-
-### Fixed
 
 **Version Alignment**
 - Synchronized version to 4.7.2 across all files (plugin.json, .claude-plugin/, CLAUDE.md, README.md, identity.json)
@@ -139,8 +160,6 @@ This release fully leverages Claude Code 2.1.3 features for a comprehensive upgr
 
 ## [4.6.6] - 2026-01-09
 
-### Fixed
-
 **Skill Template Literal Bash Parsing**
 - Fixed 13 SKILL.md files containing JavaScript template literals that caused bash parsing errors
 - Replaced backtick template strings with string concatenation to prevent Claude Code Skill tool crashes
@@ -177,16 +196,12 @@ This release fully leverages Claude Code 2.1.3 features for a comprehensive upgr
 - Subagent validator now scans `.claude/agents/` directory for valid types
 - Handles namespaced agent types (e.g., `skf:agent-name`)
 
-### Fixed
-
 - Updated author email to `yonatan2gross@gmail.com`
 - Changed author from "SkillForge Team" to "Yonatan Gross"
 
 ---
 
 ## [4.6.4] - 2026-01-09
-
-### Fixed
 
 **Marketplace Schema Compatibility**
 - Rewrote `.claude-plugin/marketplace.json` to match official Anthropic schema
@@ -230,8 +245,6 @@ This release fully leverages Claude Code 2.1.3 features for a comprehensive upgr
 - Updated agent markdown files with new skill references
 - All new skills follow slim Tier 1/Tier 2 format with proper schema validation
 
-### Fixed
-
 - capabilities.json files now include required `$schema`, `description`, and `capabilities` fields
 - SKILL.md files now include required "When to Use" sections
 
@@ -255,8 +268,6 @@ This release fully leverages Claude Code 2.1.3 features for a comprehensive upgr
 
 - Claude Code requirement updated from `>=2.1.0` to `>=2.1.2`
 - Migrated deprecated `shared-context.json` → Context 2.0 (`session/state.json`)
-
-### Fixed
 
 - Placeholder values (XXX KB) in `evidence-verification/SKILL.md` now show realistic sizes (245 KB, 18 KB)
 
@@ -396,8 +407,6 @@ This release fully leverages Claude Code 2.1.1 capabilities, upgrading the plugi
 - All agents now have Stop hooks for validation and context publishing
 - All skills now have PostToolUse and Stop event hooks
 
-### Fixed
-
 - Agent pipeline sequencing now properly chains 10 pipeline agents
 - MCP tool permissions now use proper wildcard syntax
 - Hook execution order guaranteed through chain orchestration
@@ -405,8 +414,6 @@ This release fully leverages Claude Code 2.1.1 capabilities, upgrading the plugi
 ---
 
 ## [4.4.1] - 2026-01-08
-
-### Fixed
 
 #### Version Consistency
 - Updated `plugin.json` version from 1.0.0 to 4.4.1
