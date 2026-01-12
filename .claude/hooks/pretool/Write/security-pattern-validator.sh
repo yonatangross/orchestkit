@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Security Pattern Validator - LLM-powered validation hook
 # Detects security anti-patterns before write
-# CC 2.1.3 Feature: Uses 10-minute timeout for comprehensive analysis
+# CC 2.1.4+ Compliant: includes continue field in all outputs
 
 set -euo pipefail
 
@@ -10,6 +10,7 @@ FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_INPUT_CONTENT:-}"
 
 if [[ -z "$FILE_PATH" ]]; then
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -20,6 +21,7 @@ case "$FILE_PATH" in
         ;;
     *)
         # Non-code files - skip
+        echo '{"continue": true, "suppressOutput": true}'
         exit 0
         ;;
 esac
@@ -28,12 +30,12 @@ esac
 SECURITY_ISSUES=()
 
 # Check for hardcoded secrets patterns
-if echo "$CONTENT" | grep -qiE "(api[_-]?key|password|secret|token)\s*[=:]\s*['\"][^'\"]+['\"]"; then
+if echo "$CONTENT" | grep -qiE "(api[_-]?key|password|secret|token)\s*[=:]\s*['"][^'"]+['"]"; then
     SECURITY_ISSUES+=("Potential hardcoded secret detected")
 fi
 
 # Check for SQL injection patterns (raw string concatenation in queries)
-if echo "$CONTENT" | grep -qE "execute\s*\(\s*['\"].*\+|f['\"].*SELECT.*\{"; then
+if echo "$CONTENT" | grep -qE "execute\s*\(\s*['"].*\+|f['"].*SELECT.*\{"; then
     SECURITY_ISSUES+=("Potential SQL injection vulnerability")
 fi
 
@@ -57,16 +59,18 @@ if [[ ${#SECURITY_ISSUES[@]} -gt 0 ]]; then
         echo "  - $issue" >> "$LOG_DIR/security-validator.log"
     done
 
-    # Output warning to stderr (visible to user)
-    echo "⚠️  Security warnings for $FILE_PATH:" >&2
+    # Build warning message for output
+    WARNING_MSG="Security warnings for $FILE_PATH: "
     for issue in "${SECURITY_ISSUES[@]}"; do
-        echo "   - $issue" >&2
+        WARNING_MSG+="$issue; "
     done
 
-    # Don't block - just warn
+    # Output with warning in systemMessage
+    jq -n --arg msg "$WARNING_MSG" '{continue: true, suppressOutput: false, systemMessage: ("⚠️ " + $msg)}'
     exit 0
 else
     echo "[$(date -Iseconds)] SECURITY_OK: $FILE_PATH" >> "$LOG_DIR/security-validator.log"
 fi
 
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

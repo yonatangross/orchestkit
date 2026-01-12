@@ -2,7 +2,7 @@
   "name": "skf",
   "version": "4.7.0",
   "engines": {
-    "claude-code": ">=2.1.3"
+    "claude-code": ">=2.1.4"
   },
   "description": "Comprehensive AI-assisted development toolkit with 90 skills (78 knowledge + 12 commands), 20 agents, 96 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "author": {

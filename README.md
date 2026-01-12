@@ -11,7 +11,7 @@
 <p align="center">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin"><img src="https://img.shields.io/github/stars/yonatangross/skillforge-claude-plugin?style=flat-square" alt="GitHub Stars"></a>
   <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.7.0-green?style=flat-square" alt="Version"></a>
-  <img src="https://img.shields.io/badge/CC-≥2.1.3-blue?style=flat-square" alt="Claude Code 2.1.3+">
+  <img src="https://img.shields.io/badge/CC-≥2.1.4-blue?style=flat-square" alt="Claude Code 2.1.3+">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml"><img src="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple?style=flat-square" alt="License"></a>
   <a href="https://github.com/anthropics/claude-plugins-official/pull/86"><img src="https://img.shields.io/badge/anthropic--official-pending-yellow?style=flat-square" alt="Anthropic Official"></a>

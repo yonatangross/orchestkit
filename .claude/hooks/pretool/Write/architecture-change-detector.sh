@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Architecture Change Detector - LLM-powered validation hook
 # Detects breaking architectural changes before write
-# CC 2.1.3 Feature: Uses 10-minute timeout for LLM analysis
+# CC 2.1.4+ Compliant: includes continue field in all outputs
 
 set -euo pipefail
 
@@ -10,6 +10,7 @@ FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 
 if [[ -z "$FILE_PATH" ]]; then
     # No file path, allow write
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -20,6 +21,7 @@ case "$FILE_PATH" in
         ;;
     *)
         # Non-architectural files - skip
+        echo '{"continue": true, "suppressOutput": true}'
         exit 0
         ;;
 esac
@@ -27,6 +29,7 @@ esac
 # Check if file exists (new file vs modification)
 if [[ ! -f "$FILE_PATH" ]]; then
     # New file - allow without analysis
+    echo '{"continue": true, "suppressOutput": true}'
     exit 0
 fi
 
@@ -51,4 +54,5 @@ mkdir -p "$LOG_DIR"
 echo "[$(date -Iseconds)] ARCH_DETECT: $FILE_PATH (patterns=$HAS_PATTERNS)" >> "$LOG_DIR/architecture-detector.log"
 
 # Allow write - detection is informational only
+echo '{"continue": true, "suppressOutput": true}'
 exit 0

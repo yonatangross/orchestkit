@@ -1,7 +1,7 @@
 # Claude Code Release Channels
 
 **Version:** 1.0.0
-**Requires:** Claude Code >= 2.1.3
+**Requires:** Claude Code >= 2.1.4
 
 ## Overview
 
@@ -47,14 +47,14 @@ Claude Code 2.1.3 introduced a release channel toggle allowing users to switch b
 # Check current Claude Code version
 claude --version
 
-# Expected: Claude Code v2.1.3 or higher
+# Expected: Claude Code v2.1.4 or higher
 ```
 
 ## SkillForge Channel Requirements
 
 | SkillForge Version | Min CC Version | Recommended Channel |
 |-------------------|----------------|---------------------|
-| 4.7.0+ | 2.1.3 | stable |
+| 4.7.0+ | 2.1.4 | stable |
 | 4.6.x | 2.1.2 | stable |
 | 4.5.x | 2.0.0 | stable |
 
