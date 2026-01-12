@@ -236,7 +236,7 @@ test_file_lock_check_allows_unlocked_file() {
     export TOOL_INPUT='{"file_path": "'"$test_file"'"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -262,7 +262,7 @@ test_file_lock_check_blocks_locked_file() {
     export TOOL_INPUT='{"file_path": "'"$test_file"'"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -285,7 +285,7 @@ test_file_lock_check_skips_coordination_files() {
     export TOOL_INPUT='{"file_path": ".claude/coordination/work-registry.json"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -308,7 +308,7 @@ test_file_lock_check_handles_empty_input() {
     export TOOL_INPUT=""
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -334,7 +334,7 @@ test_multi_instance_lock_passes_without_db() {
 
     local input='{"tool_name": "Write", "file_path": "test.txt"}'
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/multi-instance-lock.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -357,7 +357,7 @@ test_multi_instance_lock_passes_without_identity() {
 
     local input='{"tool_name": "Write", "file_path": "test.txt"}'
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/multi-instance-lock.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -380,7 +380,7 @@ test_multi_instance_lock_ignores_non_write_tools() {
 
     local input='{"tool_name": "Read", "file_path": "test.txt"}'
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/multi-instance-lock.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -404,7 +404,7 @@ test_multi_instance_lock_acquires_lock() {
 
     local input='{"tool_name": "Write", "file_path": "newfile.txt"}'
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/multi-instance-lock.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -426,7 +426,7 @@ test_multi_instance_lock_acquires_lock() {
 
 test_multi_instance_lock_detects_conflict() {
     # Test that the hook has conflict detection logic
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/multi-instance-lock.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -450,7 +450,7 @@ test_multi_instance_lock_detects_conflict() {
 describe "PreToolUse Write/file-lock-check.sh Tests"
 
 test_write_hook_exists() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/Write/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/Write/file-lock-check.sh"
     if [[ -f "$hook_path" ]]; then
         assert_file_exists "$hook_path"
     else
@@ -460,7 +460,7 @@ test_write_hook_exists() {
 
 test_write_hook_has_fallback() {
     # Test that hook has fallback when coordination lib is missing
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/Write/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/Write/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Write hook not found"
@@ -481,8 +481,8 @@ test_write_hook_blocks_locked_file() {
     setup_coordination_mock
 
     # Create mock _lib/coordination.sh with required functions
-    mkdir -p "$TEMP_DIR/.claude/hooks/_lib"
-    cat > "$TEMP_DIR/.claude/hooks/_lib/coordination.sh" << 'EOF'
+    mkdir -p "$TEMP_DIR/hooks/_lib"
+    cat > "$TEMP_DIR/hooks/_lib/coordination.sh" << 'EOF'
 is_file_locked() {
     echo "true|other-instance"
 }
@@ -497,7 +497,7 @@ acquire_file_lock() {
 }
 EOF
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/Write/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/Write/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Write hook not found"
@@ -521,7 +521,7 @@ EOF
 describe "PreToolUse Edit/file-lock-check.sh Tests"
 
 test_edit_hook_exists() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/Edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/Edit/file-lock-check.sh"
     if [[ -f "$hook_path" ]]; then
         assert_file_exists "$hook_path"
     else
@@ -530,7 +530,7 @@ test_edit_hook_exists() {
 }
 
 test_edit_hook_handles_empty_file_path() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/Edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/Edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Edit hook not found"
@@ -547,8 +547,8 @@ test_edit_hook_handles_empty_file_path() {
 }
 
 test_edit_hook_structure_matches_write_hook() {
-    local write_hook="$PROJECT_ROOT/.claude/hooks/pretool/Write/file-lock-check.sh"
-    local edit_hook="$PROJECT_ROOT/.claude/hooks/pretool/Edit/file-lock-check.sh"
+    local write_hook="$PROJECT_ROOT/hooks/pretool/Write/file-lock-check.sh"
+    local edit_hook="$PROJECT_ROOT/hooks/pretool/Edit/file-lock-check.sh"
 
     if [[ ! -f "$write_hook" ]] || [[ ! -f "$edit_hook" ]]; then
         skip "One or both hooks not found"
@@ -571,7 +571,7 @@ test_edit_hook_structure_matches_write_hook() {
 describe "PostToolUse write-edit/file-lock-release.sh Tests"
 
 test_lock_release_hook_exists() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/write-edit/file-lock-release.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/write-edit/file-lock-release.sh"
     if [[ -f "$hook_path" ]]; then
         assert_file_exists "$hook_path"
     else
@@ -586,7 +586,7 @@ test_lock_release_handles_empty_input() {
     export TOOL_INPUT=""
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/write-edit/file-lock-release.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/write-edit/file-lock-release.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Lock release hook not found"
@@ -611,7 +611,7 @@ test_lock_release_keeps_lock_on_error() {
     export TOOL_NAME="Write"
     export TOOL_ERROR="Simulated error"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/write-edit/file-lock-release.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/write-edit/file-lock-release.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Lock release hook not found"
@@ -640,7 +640,7 @@ test_lock_release_skips_coordination_files() {
     export TOOL_NAME="Write"
     export TOOL_ERROR=""
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/write-edit/file-lock-release.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/write-edit/file-lock-release.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Lock release hook not found"
@@ -661,7 +661,7 @@ test_lock_release_skips_coordination_files() {
 describe "PostToolUse Write/release-lock-on-commit.sh Tests"
 
 test_release_on_commit_hook_exists() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/Write/release-lock-on-commit.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/Write/release-lock-on-commit.sh"
     if [[ -f "$hook_path" ]]; then
         assert_file_exists "$hook_path"
     else
@@ -670,7 +670,7 @@ test_release_on_commit_hook_exists() {
 }
 
 test_release_on_commit_exits_cleanly() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/Write/release-lock-on-commit.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/Write/release-lock-on-commit.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Release on commit hook not found"
@@ -685,7 +685,7 @@ test_release_on_commit_exits_cleanly() {
 }
 
 test_release_on_commit_sources_coordination_lib() {
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/Write/release-lock-on-commit.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/Write/release-lock-on-commit.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Release on commit hook not found"
@@ -717,7 +717,7 @@ test_conflict_detection_different_instances() {
     export TOOL_INPUT='{"file_path": "shared-file.txt"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -743,7 +743,7 @@ test_same_instance_can_reacquire_lock() {
     export TOOL_INPUT='{"file_path": "our-file.txt"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -822,7 +822,7 @@ test_special_characters_in_path() {
     export TOOL_INPUT='{"file_path": "'"$test_file"'"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -845,7 +845,7 @@ test_nested_directory_path() {
     export TOOL_INPUT='{"file_path": "'"$test_file"'"}'
     export TOOL_NAME="Write"
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -861,7 +861,7 @@ test_nested_directory_path() {
 
 test_concurrent_lock_prevention() {
     # This test verifies that the locking mechanism uses atomic operations
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -899,7 +899,7 @@ describe "Hook Output Schema Compliance Tests"
 
 test_pretool_output_has_decision_fields() {
     # Test that hook output includes proper schema fields
-    local hook_path="$PROJECT_ROOT/.claude/hooks/pretool/write-edit/file-lock-check.sh"
+    local hook_path="$PROJECT_ROOT/hooks/pretool/write-edit/file-lock-check.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"
@@ -923,7 +923,7 @@ test_posttool_no_output() {
     export TOOL_NAME="Write"
     export TOOL_ERROR=""
 
-    local hook_path="$PROJECT_ROOT/.claude/hooks/posttool/write-edit/file-lock-release.sh"
+    local hook_path="$PROJECT_ROOT/hooks/posttool/write-edit/file-lock-release.sh"
 
     if [[ ! -f "$hook_path" ]]; then
         skip "Hook not found"

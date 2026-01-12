@@ -26,10 +26,10 @@ fi
 # =============================================================================
 # COUNT ACTUAL COMPONENTS (filesystem = source of truth)
 # =============================================================================
-SKILLS=$(find "$PROJECT_ROOT/.claude/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' ')
-AGENTS=$(find "$PROJECT_ROOT/.claude/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+SKILLS=$(find "$PROJECT_ROOT/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' ')
+AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 COMMANDS=$(find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-HOOKS=$(find "$PROJECT_ROOT/.claude/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
 
 echo "Current counts (from filesystem):"
 echo "  Skills:   $SKILLS"

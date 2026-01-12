@@ -60,3 +60,4 @@ HOOK_SECURITY_*.txt
 
 # Local settings (user-specific)
 .claude/settings.local.json.claude/coordination/decision-log.json
+.mypy_cache

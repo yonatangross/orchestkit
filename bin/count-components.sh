@@ -16,12 +16,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Count skills (directories with capabilities.json)
 count_skills() {
-    find "$PROJECT_ROOT/.claude/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' '
+    find "$PROJECT_ROOT/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' '
 }
 
 # Count agents (markdown files in agents dir)
 count_agents() {
-    find "$PROJECT_ROOT/.claude/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
 }
 
 # Count commands (markdown files in commands dir)
@@ -31,7 +31,7 @@ count_commands() {
 
 # Count hooks (shell scripts in hooks dir, excluding _lib)
 count_hooks() {
-    find "$PROJECT_ROOT/.claude/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' '
+    find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' '
 }
 
 # Count hook entries in settings.json (alternative method)

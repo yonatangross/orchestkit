@@ -92,7 +92,7 @@ bin/                     # CLI utilities and scripts
 git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge
 
 # Verify installation
-ls ~/.claude/plugins/skillforge/.claude/skills
+ls ~/.claude/plugins/skillforge/skills
 ```
 
 ### Testing
@@ -471,7 +471,7 @@ ls .claude/agents/
 
 ## Version Information
 
-- **Current Version**: 4.7.4 (as of 2026-01-12)
+- **Current Version**: 4.8.0 (as of 2026-01-12)
 - **Claude Code Requirement**: >= 2.1.4
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -511,4 +511,4 @@ tail -f .claude/hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-12 (v4.7.4)
+**Last Updated**: 2026-01-12 (v4.8.0)

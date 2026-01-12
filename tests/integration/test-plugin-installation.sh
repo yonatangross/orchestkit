@@ -174,7 +174,7 @@ echo ""
 # =============================================================================
 echo "--- Test 6: common.sh plugin compatibility ---"
 
-COMMON_SH="$PLUGIN_ROOT/.claude/hooks/_lib/common.sh"
+COMMON_SH="$PLUGIN_ROOT/hooks/_lib/common.sh"
 if [[ -f "$COMMON_SH" ]]; then
   if grep -q 'PLUGIN_ROOT=' "$COMMON_SH"; then
     pass "common.sh defines PLUGIN_ROOT variable"

@@ -88,7 +88,7 @@ if command -v shellcheck &>/dev/null; then
             # Warnings are acceptable but noted
             ((shell_warnings++)) || true
         fi
-    done < <(find "$PROJECT_ROOT/.claude/hooks" -name "*.sh" -print0 2>/dev/null)
+    done < <(find "$PROJECT_ROOT/hooks" -name "*.sh" -print0 2>/dev/null)
 
     if [ "$shell_errors" -eq 0 ]; then
         pass "All shell scripts pass shellcheck"
@@ -121,7 +121,7 @@ while IFS= read -r -d '' file; do
         fail "Missing \$schema: $file"
         ((caps_without_schema++)) || true
     fi
-done < <(find "$PROJECT_ROOT/.claude/skills" -name "capabilities.json" -print0 2>/dev/null)
+done < <(find "$PROJECT_ROOT/skills" -name "capabilities.json" -print0 2>/dev/null)
 
 if [ "$caps_without_schema" -eq 0 ]; then
     pass "All $caps_with_schema capabilities.json files have \$schema"
@@ -140,7 +140,7 @@ echo "────────────────────────�
 incomplete_skills=0
 complete_skills=0
 
-for skill_dir in "$PROJECT_ROOT/.claude/skills"/*; do
+for skill_dir in "$PROJECT_ROOT/skills"/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
         has_tier1=false

@@ -196,7 +196,7 @@ test_count_accuracy() {
     log_section "Verifying Count Accuracy"
 
     # Count skills manually
-    local actual_skills=$(find "${PROJECT_ROOT}/.claude/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' ')
+    local actual_skills=$(find "${PROJECT_ROOT}/skills" -name "capabilities.json" -type f 2>/dev/null | wc -l | tr -d ' ')
     local reported_skills=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.skills')
 
     if [[ "$actual_skills" -eq "$reported_skills" ]]; then
@@ -206,7 +206,7 @@ test_count_accuracy() {
     fi
 
     # Count agents manually
-    local actual_agents=$(find "${PROJECT_ROOT}/.claude/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+    local actual_agents=$(find "${PROJECT_ROOT}/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
     local reported_agents=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.agents')
 
     if [[ "$actual_agents" -eq "$reported_agents" ]]; then
@@ -226,7 +226,7 @@ test_count_accuracy() {
     fi
 
     # Count hooks manually (sh files excluding _lib)
-    local actual_hooks=$(find "${PROJECT_ROOT}/.claude/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+    local actual_hooks=$(find "${PROJECT_ROOT}/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
     local reported_hooks=$("${PROJECT_ROOT}/bin/count-components.sh" --json | jq '.hooks')
 
     if [[ "$actual_hooks" -eq "$reported_hooks" ]]; then

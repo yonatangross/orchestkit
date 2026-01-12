@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/.claude/hooks/skill"
+HOOKS_DIR="$PROJECT_ROOT/hooks/skill"
 
 # ============================================================================
 # SKILL VALIDATION HOOKS

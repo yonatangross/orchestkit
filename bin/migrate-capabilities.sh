@@ -16,7 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
-SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
+SKILLS_DIR="$PROJECT_ROOT/skills"
 
 # Colors
 RED='\033[0;31m'

@@ -63,7 +63,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_1"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_1")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/duplicate-code-detector.sh" 2>&1 || echo "EXIT_CODE=$?")
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/duplicate-code-detector.sh" 2>&1 || echo "EXIT_CODE=$?")
 EXIT_CODE=$(echo "$OUTPUT" | grep -oE "EXIT_CODE=[0-9]+" | cut -d= -f2 || echo "0")
 
 # Should pass for single file without duplicates
@@ -83,7 +83,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_2"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_2")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/duplicate-code-detector.sh" 2>&1 || true)
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/duplicate-code-detector.sh" 2>&1 || true)
 assert_output_contains "COPY-PASTE" "$OUTPUT" "Detects repeated code blocks"
 
 # =============================================================================
@@ -103,7 +103,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_3"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_3")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
 EXIT_CODE=$(echo "$OUTPUT" | grep -oE "EXIT_CODE=[0-9]+" | cut -d= -f2 || echo "0")
 
 assert_exit_code 1 ${EXIT_CODE:-0} "Blocks React.FC pattern"
@@ -122,7 +122,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_4"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_4")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
 assert_output_contains "Zod" "$OUTPUT" "Detects missing Zod validation"
 
 # Test 2.3: Should pass correct pattern
@@ -141,7 +141,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_5"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_5")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || true)
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || true)
 EXIT_CODE=$?
 
 assert_exit_code 0 $EXIT_CODE "Passes with correct patterns"
@@ -167,7 +167,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_6"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_6")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/cross-instance-test-validator.sh" 2>&1 || echo "EXIT_CODE=$?")
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/cross-instance-test-validator.sh" 2>&1 || echo "EXIT_CODE=$?")
 EXIT_CODE=$(echo "$OUTPUT" | grep -oE "EXIT_CODE=[0-9]+" | cut -d= -f2 || echo "1")
 
 assert_exit_code 1 ${EXIT_CODE:-1} "Blocks when test file missing"
@@ -193,7 +193,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_7"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_7")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/cross-instance-test-validator.sh" 2>&1 || true)
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/cross-instance-test-validator.sh" 2>&1 || true)
 EXIT_CODE=$?
 
 # Should still warn about coverage, but not block
@@ -222,7 +222,7 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_8"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_8")"
 
-OUTPUT=$("$PROJECT_ROOT/.claude/hooks/skill/merge-conflict-predictor.sh" 2>&1 || true)
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/merge-conflict-predictor.sh" 2>&1 || true)
 EXIT_CODE=$?
 
 assert_exit_code 0 $EXIT_CODE "Never blocks (warning only)"

@@ -6,11 +6,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/bash-dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/bash-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/bash/git-branch-protection.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/bash/git-branch-protection.sh"
           }
         ]
       },
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/input-mod/path-normalizer.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/input-mod/path-normalizer.sh"
           }
         ]
       },
@@ -28,19 +28,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/write-dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/write-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/backend-file-naming.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/backend-file-naming.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/structure-location-validator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/structure-location-validator.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/test-location-validator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/test-location-validator.sh"
           }
         ]
       },
@@ -49,11 +49,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/task/context-gate.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/task/context-gate.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/task/subagent-validator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/task/subagent-validator.sh"
           }
         ]
       },
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/skill/skill-tracker.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/skill/skill-tracker.sh"
           }
         ]
       },
@@ -71,7 +71,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/mcp/context7-tracker.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/mcp/context7-tracker.sh"
           }
         ]
       },
@@ -80,7 +80,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/mcp/memory-validator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/mcp/memory-validator.sh"
           }
         ]
       },
@@ -89,7 +89,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/pretool/mcp/playwright-safety.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/pretool/mcp/playwright-safety.sh"
           }
         ]
       }
@@ -100,7 +100,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/posttool/dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/posttool/dispatcher.sh"
           }
         ]
       }
@@ -111,7 +111,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/permission/auto-approve-readonly.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/permission/auto-approve-readonly.sh"
           }
         ]
       },
@@ -120,7 +120,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/permission/auto-approve-safe-bash.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/permission/auto-approve-safe-bash.sh"
           }
         ]
       },
@@ -129,7 +129,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/permission/auto-approve-project-writes.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/permission/auto-approve-project-writes.sh"
           }
         ]
       }
@@ -139,7 +139,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/prompt/prompt-dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/prompt/prompt-dispatcher.sh"
           }
         ]
       }
@@ -149,7 +149,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/lifecycle/startup-dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/lifecycle/startup-dispatcher.sh"
           }
         ]
       }
@@ -159,15 +159,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/lifecycle/coordination-cleanup.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/lifecycle/coordination-cleanup.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/lifecycle/session-metrics-summary.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/lifecycle/session-metrics-summary.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/lifecycle/session-cleanup.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/lifecycle/session-cleanup.sh"
           }
         ]
       }
@@ -177,45 +177,45 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/stop/stop-dispatcher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/stop/stop-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/coverage-check.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/coverage-check.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/design-decision-saver.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/design-decision-saver.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/evidence-collector.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/evidence-collector.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/review-summary-generator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/review-summary-generator.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/security-summary.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/security-summary.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/eval-metrics-collector.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/eval-metrics-collector.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/stop/full-test-suite.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/stop/full-test-suite.sh",
             "timeout": 600000
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/stop/security-scan-aggregator.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/stop/security-scan-aggregator.sh",
             "timeout": 600000
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/stop/llm-code-review.sh",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/stop/llm-code-review.sh",
             "timeout": 600000
           }
         ]
@@ -226,19 +226,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-start/model-enforcer.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-start/model-enforcer.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-start/subagent-resource-allocator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-start/subagent-resource-allocator.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-start/subagent-context-stager.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-start/subagent-context-stager.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-start/agent-context-loader.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-start/agent-context-loader.sh"
           }
         ]
       }
@@ -248,39 +248,39 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/agent/output-validator.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/agent/output-validator.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/agent/context-publisher.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/agent/context-publisher.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/agent/handoff-preparer.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/agent/handoff-preparer.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/agent/feedback-loop.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/agent/feedback-loop.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/agent/auto-spawn-quality.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/agent/auto-spawn-quality.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-stop/subagent-completion-tracker.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-stop/subagent-completion-tracker.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/subagent-stop/subagent-quality-gate.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/subagent-stop/subagent-quality-gate.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/coverage-threshold-gate.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/coverage-threshold-gate.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/skill/merge-readiness-checker.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/skill/merge-readiness-checker.sh"
           }
         ]
       }
@@ -290,11 +290,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/notification/desktop.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/notification/desktop.sh"
           },
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/.claude/hooks/notification/sound.sh"
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/hooks/notification/sound.sh"
           }
         ]
       }

@@ -89,7 +89,7 @@ trap "rm -f $RESULTS_FILE" EXIT
 
 # Make all test scripts executable
 find "$SCRIPT_DIR" -name "*.sh" -exec chmod +x {} \;
-find "$PROJECT_ROOT/.claude/hooks" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+find "$PROJECT_ROOT/hooks" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 
 # Export for hooks
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"

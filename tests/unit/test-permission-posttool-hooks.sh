@@ -15,7 +15,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/.claude/hooks"
+HOOKS_DIR="$PROJECT_ROOT/hooks"
 
 # ============================================================================
 # PERMISSION HOOKS - auto-approve-project-writes.sh

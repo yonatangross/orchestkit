@@ -18,8 +18,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
 
 # Configuration - use directories directly
-SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
-AGENTS_DIR="$PROJECT_ROOT/.claude/agents"
+SKILLS_DIR="$PROJECT_ROOT/skills"
+AGENTS_DIR="$PROJECT_ROOT/agents"
 
 # Token budget: Based on Tier 1 (capabilities.json ~100 tokens each)
 MAX_TIER1_TOKEN_BUDGET=20000

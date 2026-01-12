@@ -43,7 +43,7 @@ test_empty_env_vars() {
     export CLAUDE_PROJECT_DIR=""
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/posttool/coordination-heartbeat.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/posttool/coordination-heartbeat.sh" 2>/dev/null) || output=""
 
     if [[ -z "$output" ]]; then
         log_fail "Empty output with empty CLAUDE_PROJECT_DIR"
@@ -64,7 +64,7 @@ test_missing_claude_dir() {
     export CLAUDE_PROJECT_DIR="/tmp/nonexistent-project-$$"
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/lifecycle/coordination-init.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/lifecycle/coordination-init.sh" 2>/dev/null) || output=""
 
     if [[ -z "$output" ]]; then
         log_fail "Empty output with missing .claude dir"
@@ -87,7 +87,7 @@ test_special_chars_in_paths() {
     export TOOL_INPUT='{"file_path": "/tmp/test file with spaces & special!chars.txt"}'
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles special characters in file paths"
@@ -105,7 +105,7 @@ test_unicode_input() {
     export TOOL_INPUT='{"file_path": "/tmp/测试文件.txt", "content": "日本語テスト"}'
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles Unicode in tool input"
@@ -131,7 +131,7 @@ test_long_path() {
     export TOOL_INPUT="{\"file_path\": \"$long_path\"}"
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles very long file paths"
@@ -149,7 +149,7 @@ test_null_bytes() {
     export TOOL_INPUT=$'{"file_path": "/tmp/test\x00file.txt"}'
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles null bytes in input"
@@ -173,7 +173,7 @@ test_concurrent_execution() {
     # Run 5 instances in parallel
     local pids=()
     for i in {1..5}; do
-        bash "${PROJECT_ROOT}/.claude/hooks/posttool/coordination-heartbeat.sh" > "/tmp/hook-output-$i.txt" 2>&1 &
+        bash "${PROJECT_ROOT}/hooks/posttool/coordination-heartbeat.sh" > "/tmp/hook-output-$i.txt" 2>&1 &
         pids+=($!)
     done
 
@@ -209,7 +209,7 @@ test_empty_json_input() {
     export TOOL_INPUT='{}'
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles empty JSON object input"
@@ -227,7 +227,7 @@ test_json_array_input() {
     export TOOL_INPUT='["/tmp/file1.txt", "/tmp/file2.txt"]'
 
     local output=""
-    output=$(bash "${PROJECT_ROOT}/.claude/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
+    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
 
     if echo "$output" | jq . >/dev/null 2>&1; then
         log_pass "Handles JSON array input"
