@@ -5,6 +5,24 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.7.1] - 2026-01-12
+
+### Removed
+
+**Deprecated Files Cleanup**
+- `.claude-plugin/` directory - outdated duplicate of root `plugin.json` (was v4.6.7)
+- `plugin-metadata.json` - 97KB outdated duplicate file
+- Root-level symlinks (`agents`, `commands`, `hooks`, `skills`) - canonical paths are inside `.claude/`
+
+### Changed
+
+**Documentation Updates**
+- `CONTRIBUTING.md` - rewritten to reflect current architecture:
+  - 4-tier progressive skill loading structure
+  - CC 2.1.4+ hook JSON output requirements
+  - Updated project structure and paths
+  - Removed obsolete `.claude-plugin/` references
+
 ## [4.7.0] - 2026-01-10
 
 ### Added
