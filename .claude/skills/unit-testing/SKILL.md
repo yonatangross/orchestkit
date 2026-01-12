@@ -54,7 +54,7 @@ describe('UserService', () => {
 
   afterEach(() => {
     // Clean up
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 });
 ```

@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "api-design-framework",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Comprehensive API design patterns, versioning strategies, error handling conventions, and OpenAPI templates",
   "capabilities": [
     "authentication",

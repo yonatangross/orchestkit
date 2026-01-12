@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "brainstorming",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Structured Socratic questioning, alternative exploration, and incremental validation for idea refinement",
   "capabilities": [
     "design-documentation",

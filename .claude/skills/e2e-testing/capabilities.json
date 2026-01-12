@@ -1,7 +1,7 @@
 {
   "$schema": "../../schemas/skill-capabilities.schema.json",
   "name": "e2e-testing",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "End-to-end testing with Playwright 1.57+ including AI agents for test generation and healing",
   "capabilities": [
     "ai-test-generation",
