@@ -1,17 +1,23 @@
 ---
 name: security-layer-auditor
-model_preference: haiku
-color: red
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection
-max_tokens: 16000
-tools: Bash, Read, Grep, Glob
-skills: owasp-top-10, security-scanning, auth-patterns, input-validation
+model: haiku
+color: red
+tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+skills:
+  - owasp-top-10
+  - security-scanning
+  - auth-patterns
+  - input-validation
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 # Security Layer Auditor Agent
 
 ## Directive

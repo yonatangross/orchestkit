@@ -1,17 +1,21 @@
 ---
 name: ux-researcher
-model_preference: haiku
-color: pink
 description: User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis
-max_tokens: 16000
-tools: Write, Read, WebSearch, Grep, Glob
-skills: design-system-starter
+model: haiku
+color: pink
+tools:
+  - Write
+  - Read
+  - WebSearch
+  - Grep
+  - Glob
+skills:
+  - design-system-starter
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Conduct user research, create actionable personas, map user journeys, and validate design decisions through data-driven insights and behavioral analysis.
 

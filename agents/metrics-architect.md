@@ -1,17 +1,21 @@
 ---
 name: metrics-architect
-model_preference: sonnet
-color: orchid
 description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses
-max_tokens: 16000
-tools: Read, Write, Grep, Glob, Bash
-skills: langfuse-observability
+model: sonnet
+color: orchid
+tools:
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - langfuse-observability
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Design measurable success criteria, define OKRs and KPIs, and create instrumentation plans to validate product hypotheses and track outcomes.
 

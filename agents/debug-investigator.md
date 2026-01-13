@@ -1,17 +1,20 @@
 ---
 name: debug-investigator
-model_preference: sonnet
-color: orange
 description: Debug specialist who performs systematic root cause analysis on bugs and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs, and produces actionable fix recommendations
-max_tokens: 16000
-tools: Bash, Read, Grep, Glob
-skills: observability-monitoring
+model: sonnet
+color: orange
+tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+skills:
+  - observability-monitoring
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.
 

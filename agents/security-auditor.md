@@ -1,18 +1,22 @@
 ---
 name: security-auditor
-model_preference: haiku
-color: red
 description: Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps
-max_tokens: 12000
-tools: Bash, Read, Grep, Glob
-skills: owasp-top-10, security-scanning
+model: haiku
+color: red
+tools:
+  - Bash
+  - Read
+  - Grep
+  - Glob
+skills:
+  - owasp-top-10
+  - security-scanning
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
 

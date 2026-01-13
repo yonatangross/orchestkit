@@ -1,18 +1,31 @@
 ---
 name: frontend-ui-developer
-model_preference: sonnet
-color: purple
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2025 patterns
-max_tokens: 12000
-tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
-skills: react-server-components-framework, design-system-starter, type-safety-validation, unit-testing, e2e-testing, webapp-testing, i18n-date-patterns, motion-animation-patterns
+model: sonnet
+color: purple
+tools:
+  - Read
+  - Edit
+  - MultiEdit
+  - Write
+  - Bash
+  - Grep
+  - Glob
+skills:
+  - react-server-components-framework
+  - design-system-starter
+  - type-safety-validation
+  - unit-testing
+  - e2e-testing
+  - webapp-testing
+  - i18n-date-patterns
+  - motion-animation-patterns
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 

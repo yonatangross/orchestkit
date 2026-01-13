@@ -1,18 +1,29 @@
 ---
 name: test-generator
-model_preference: sonnet
-color: green
 description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions
-max_tokens: 16000
-tools: Bash, Read, Write, Edit, Grep, Glob
-skills: unit-testing, integration-testing, e2e-testing, msw-mocking, vcr-http-recording, webapp-testing, performance-testing
+model: sonnet
+color: green
+tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+skills:
+  - unit-testing
+  - integration-testing
+  - e2e-testing
+  - msw-mocking
+  - vcr-http-recording
+  - webapp-testing
+  - performance-testing
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 

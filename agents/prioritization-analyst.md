@@ -1,18 +1,22 @@
 ---
 name: prioritization-analyst
-model_preference: sonnet
-color: plum
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort
-max_tokens: 16000
-tools: Read, Write, Grep, Glob, Bash
-skills: github-cli
+model: sonnet
+color: plum
+tools:
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - github-cli
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.
 

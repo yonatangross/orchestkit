@@ -1,18 +1,27 @@
 ---
 name: code-quality-reviewer
-model_preference: sonnet
-color: green
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns
-max_tokens: 12000
-tools: Read, Bash, Grep, Glob
-skills: code-review-playbook, owasp-top-10, unit-testing, integration-testing, evidence-verification, webapp-testing, resilience-patterns
+model: sonnet
+color: green
+tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
+skills:
+  - code-review-playbook
+  - owasp-top-10
+  - unit-testing
+  - integration-testing
+  - evidence-verification
+  - webapp-testing
+  - resilience-patterns
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.
 

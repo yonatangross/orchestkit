@@ -1,18 +1,22 @@
 ---
 name: requirements-translator
-model_preference: sonnet
-color: magenta
 description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff
-max_tokens: 16000
-tools: Read, Write, Grep, Glob, Bash
-skills: github-cli
+model: sonnet
+color: magenta
+tools:
+  - Read
+  - Write
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - github-cli
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Transform ambiguous product ideas into clear, actionable requirements with user stories, acceptance criteria, and defined scope boundaries.
 

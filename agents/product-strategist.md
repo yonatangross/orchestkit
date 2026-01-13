@@ -1,18 +1,25 @@
 ---
 name: product-strategist
-model_preference: sonnet
-color: purple
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale
-max_tokens: 16000
-tools: Read, Write, WebSearch, WebFetch, Grep, Glob, Bash
-skills: brainstorming, github-cli
+model: sonnet
+color: purple
+tools:
+  - Read
+  - Write
+  - WebSearch
+  - WebFetch
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - brainstorming
+  - github-cli
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.
 

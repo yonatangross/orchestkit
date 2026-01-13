@@ -1,17 +1,31 @@
 ---
 name: data-pipeline-engineer
-model_preference: sonnet
-color: emerald
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale
-max_tokens: 16000
-tools: Bash, Read, Write, Edit, Grep, Glob
-skills: embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, golden-dataset-curation, golden-dataset-validation
+model: sonnet
+color: emerald
+tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+skills:
+  - embeddings
+  - rag-retrieval
+  - hyde-retrieval
+  - query-decomposition
+  - reranking-patterns
+  - contextual-retrieval
+  - pgvector-search
+  - golden-dataset-management
+  - golden-dataset-curation
+  - golden-dataset-validation
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
 

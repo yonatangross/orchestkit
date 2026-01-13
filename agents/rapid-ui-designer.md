@@ -1,17 +1,20 @@
 ---
 name: rapid-ui-designer
-model_preference: haiku
-color: cyan
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation
-max_tokens: 16000
-tools: Write, Read, Grep, Glob
-skills: design-system-starter
+model: haiku
+color: cyan
+tools:
+  - Write
+  - Read
+  - Grep
+  - Glob
+skills:
+  - design-system-starter
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Create rapid UI prototypes with Tailwind CSS, establish design systems with tokens, and produce implementation-ready component specifications with accessibility compliance.
 

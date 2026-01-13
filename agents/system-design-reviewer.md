@@ -1,17 +1,23 @@
 ---
 name: system-design-reviewer
-model_preference: opus
-color: cyan
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written
-max_tokens: 16000
-tools: Read, Grep, Glob, Bash
-skills: architecture-decision-record, owasp-top-10, security-scanning, performance-optimization
+model: opus
+color: cyan
+tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - architecture-decision-record
+  - owasp-top-10
+  - security-scanning
+  - performance-optimization
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 # System Design Reviewer Agent
 
 ## Directive

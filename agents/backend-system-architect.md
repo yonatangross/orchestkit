@@ -1,18 +1,36 @@
 ---
 name: backend-system-architect
-model_preference: opus
-color: yellow
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns
-max_tokens: 16000
-tools: Read, Edit, MultiEdit, Write, Bash, Grep, Glob
-skills: api-design-framework, database-schema-designer, owasp-top-10, streaming-api-patterns, observability-monitoring, performance-optimization, devops-deployment, golden-dataset-management, edge-computing-patterns, github-cli, resilience-patterns, langgraph-supervisor, mcp-server-building
+model: opus
+color: yellow
+tools:
+  - Read
+  - Edit
+  - MultiEdit
+  - Write
+  - Bash
+  - Grep
+  - Glob
+skills:
+  - api-design-framework
+  - database-schema-designer
+  - owasp-top-10
+  - streaming-api-patterns
+  - observability-monitoring
+  - performance-optimization
+  - devops-deployment
+  - golden-dataset-management
+  - edge-computing-patterns
+  - github-cli
+  - resilience-patterns
+  - langgraph-supervisor
+  - mcp-server-building
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.
 

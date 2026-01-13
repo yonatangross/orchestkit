@@ -1,17 +1,29 @@
 ---
 name: llm-integrator
-model_preference: sonnet
-color: orange
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies
-max_tokens: 16000
-tools: Bash, Read, Write, Edit, Grep, Glob, WebFetch
-skills: function-calling, llm-streaming, streaming-api-patterns, prompt-caching, semantic-caching, langfuse-observability, resilience-patterns
+model: sonnet
+color: orange
+tools:
+  - Bash
+  - Read
+  - Write
+  - Edit
+  - Grep
+  - Glob
+  - WebFetch
+skills:
+  - function-calling
+  - llm-streaming
+  - streaming-api-patterns
+  - prompt-caching
+  - semantic-caching
+  - langfuse-observability
+  - resilience-patterns
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
 ---
-
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 

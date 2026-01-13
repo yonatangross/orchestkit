@@ -1,18 +1,24 @@
 ---
 name: market-intelligence
-model_preference: sonnet
-color: violet
 description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy
-max_tokens: 16000
-tools: Read, Write, WebSearch, WebFetch, Grep, Glob, Bash
-skills: github-cli
+model: sonnet
+color: violet
+tools:
+  - Read
+  - Write
+  - WebSearch
+  - WebFetch
+  - Grep
+  - Glob
+  - Bash
+skills:
+  - github-cli
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
-
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
 
