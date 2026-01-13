@@ -1,7 +1,7 @@
 ---
 name: commit
 description: Smart git commit with validation, conventional format, and branch protection
-context: fork
+context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [git, commit, version-control, conventional-commits]

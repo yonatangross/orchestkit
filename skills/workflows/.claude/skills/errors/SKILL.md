@@ -1,7 +1,7 @@
 ---
 name: errors
 description: Error pattern analysis and troubleshooting for Claude Code sessions
-context: fork
+context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [errors, debugging, troubleshooting, patterns]

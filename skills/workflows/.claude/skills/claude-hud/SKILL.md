@@ -1,3 +1,12 @@
+---
+name: claude-hud
+description: Configure Claude Code statusline with context window monitoring using CC 2.1.6 fields
+context: inherit
+version: 1.0.0
+author: SkillForge
+tags: [statusline, hud, context, monitoring, cc216]
+---
+
 # Claude HUD - Status Line Configuration
 
 Configure Claude Code's statusline to display real-time context window usage and session information using CC 2.1.6 fields.
