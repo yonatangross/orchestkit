@@ -1,6 +1,7 @@
 #!/bin/bash
 # Bash PreToolUse Dispatcher - Combines defaults, protection, and validation
-# CC 2.1.2 Compliant: silent on success, visible on failure
+# CC 2.1.6 Compliant: silent on success, visible on failure
+# Includes line continuation normalization (CC 2.1.6 security fix)
 set -euo pipefail
 
 _HOOK_INPUT=$(cat)
@@ -20,6 +21,14 @@ COORDINATION_DB="${CLAUDE_PROJECT_DIR:-.}/.claude/coordination/.claude.db"
 COMMAND=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.command // ""')
 TIMEOUT=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.timeout // "null"')
 DESCRIPTION=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.description // ""')
+
+# CC 2.1.6 Security: Normalize line continuations before pattern matching
+# This prevents bypass attempts using backslash-newline sequences
+# Example: "git \
+#           commit" becomes "git commit"
+COMMAND_NORMALIZED=$(echo "$COMMAND" | sed -E 's/\\[[:space:]]*[\r\n]+//g' | tr '\n' ' ' | tr -s ' ')
+# Use normalized command for security checks
+COMMAND_FOR_CHECK="$COMMAND_NORMALIZED"
 
 WARNINGS=()
 
@@ -63,6 +72,7 @@ if [[ -f "$RULES_FILE" ]]; then
 fi
 
 # 1. Dangerous command check (patterns loaded from external file or inline)
+# Uses COMMAND_FOR_CHECK (normalized) to prevent bypass via line continuation
 source "$SCRIPT_DIR/bash/dangerous-patterns.sh" 2>/dev/null || {
   # Fallback: define patterns inline if file doesn't exist
   DANGEROUS_PATTERNS=(
@@ -75,35 +85,37 @@ source "$SCRIPT_DIR/bash/dangerous-patterns.sh" 2>/dev/null || {
 }
 
 for pattern in "${DANGEROUS_PATTERNS[@]}"; do
-  if [[ "$COMMAND" == *"$pattern"* ]]; then
+  if [[ "$COMMAND_FOR_CHECK" == *"$pattern"* ]]; then
     block "Dangerous" "Command matches dangerous pattern: $pattern"
   fi
 done
 
 # 2. Git branch protection
+# Uses COMMAND_FOR_CHECK (normalized) to prevent bypass via line continuation
 PROTECTED_BRANCHES=("main" "master" "production" "prod")
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
 
-if [[ "$COMMAND" =~ ^git\ push.*--force ]] || [[ "$COMMAND" =~ ^git\ push.*-f ]]; then
+if [[ "$COMMAND_FOR_CHECK" =~ ^git\ push.*--force ]] || [[ "$COMMAND_FOR_CHECK" =~ ^git\ push.*-f ]]; then
   for branch in "${PROTECTED_BRANCHES[@]}"; do
-    if [[ "$COMMAND" == *"$branch"* ]] || [[ "$CURRENT_BRANCH" == "$branch" ]]; then
+    if [[ "$COMMAND_FOR_CHECK" == *"$branch"* ]] || [[ "$CURRENT_BRANCH" == "$branch" ]]; then
       block "Git" "Force push to protected branch '$branch' is not allowed"
     fi
   done
 fi
 
 # 3. CI simulation reminder (only for git commit)
-if [[ "$COMMAND" =~ git\ commit ]]; then
+# Uses COMMAND_FOR_CHECK to detect commit commands even with line continuation
+if [[ "$COMMAND_FOR_CHECK" =~ git\ commit ]]; then
   run_hook "CIReminder" "$SCRIPT_DIR/bash/ci-simulation.sh"
 fi
 
 # 4. Issue docs requirement (for issue branches)
-if [[ "$COMMAND" =~ git\ checkout\ -b\ issue/ ]]; then
+if [[ "$COMMAND_FOR_CHECK" =~ git\ checkout\ -b\ issue/ ]]; then
   run_hook "IssueDocs" "$SCRIPT_DIR/bash/issue-docs-requirement.sh"
 fi
 
 # 5. Multi-instance quality gate (last, only for commits + multi-instance)
-if [[ "$COMMAND" =~ git\ commit ]] && [[ -f "$COORDINATION_DB" ]]; then
+if [[ "$COMMAND_FOR_CHECK" =~ git\ commit ]] && [[ -f "$COORDINATION_DB" ]]; then
   run_hook "QualityGate" "$SCRIPT_DIR/bash/multi-instance-quality-gate.sh"
 fi
 
@@ -112,7 +124,8 @@ if [[ "$TIMEOUT" == "null" ]]; then
   TIMEOUT=120000
 fi
 
-# Build updated params
+# Build updated params - use original COMMAND to preserve user intent
+# The normalization is only for security checking, not execution
 UPDATED_PARAMS=$(jq -n \
   --arg command "$COMMAND" \
   --argjson timeout "$TIMEOUT" \
