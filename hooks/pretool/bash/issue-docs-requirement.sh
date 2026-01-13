@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Issue Documentation Requirement Hook for Claude Code
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Ensures docs/issues/<issue-num>-*/README.md exists before creating issue branches
 # Exit code 2 blocks the command; exit code 0 allows it
 

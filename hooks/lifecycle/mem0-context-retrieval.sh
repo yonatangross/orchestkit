@@ -1,7 +1,7 @@
 #!/bin/bash
 # Mem0 Context Retrieval - Loads relevant memories at session start
 # Hook: SessionStart
-# CC 2.1.2 Compliant - Works across any repository
+# CC 2.1.6 Compliant - Works across any repository
 #
 # This hook checks for pending memory sync from previous sessions and
 # provides guidance on using Mem0 for context retrieval.
@@ -17,7 +17,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Check for HOOK_INPUT from parent dispatcher (CC 2.1.2 format)
+# Check for HOOK_INPUT from parent dispatcher (CC 2.1.6 format)
 if [[ -n "${HOOK_INPUT:-}" ]]; then
   _HOOK_INPUT="$HOOK_INPUT"
 fi
@@ -138,7 +138,7 @@ elif has_valid_pending_sync "$PENDING_SYNC_GLOBAL"; then
 fi
 
 # -----------------------------------------------------------------------------
-# Output CC 2.1.2 Compliant JSON
+# Output CC 2.1.6 Compliant JSON
 # -----------------------------------------------------------------------------
 
 if [[ -n "$PENDING_FILE" ]]; then

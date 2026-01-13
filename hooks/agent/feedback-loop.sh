@@ -3,7 +3,7 @@
 # Trigger: SubagentStop - fires when any agent completes
 # Purpose: Captures agent completion context, routes findings to relevant downstream agents, logs to decision-log.json
 #
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 
 set -euo pipefail
 
@@ -276,7 +276,7 @@ main() {
         echo "Summary: $summary"
     } >> "$FEEDBACK_LOG"
 
-    # Output CC 2.1.2 compliant JSON
+    # Output CC 2.1.6 compliant JSON
     if [[ -n "$downstream_agents" ]]; then
         jq -n --arg agents "$downstream_agents" \
             '{systemMessage: "Feedback loop: routed to \($agents)", continue: true}'

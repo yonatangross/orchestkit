@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs on Stop for evidence-verification skill
 # Collects verification evidence
-# CC 2.1.2 Compliant - Context Protocol 2.0
+# CC 2.1.6 Compliant - Context Protocol 2.0
 
 echo "::group::Evidence Collection Summary"
 echo ""

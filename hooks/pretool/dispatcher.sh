@@ -1,6 +1,6 @@
 #!/bin/bash
 # PreToolUse Dispatcher - Runs all pre-tool checks and outputs combined status
-# CC 2.1.2 Compliant: silent on success, visible on failure/warning
+# CC 2.1.6 Compliant: silent on success, visible on failure/warning
 # Consolidates multiple hooks into single message
 set -euo pipefail
 

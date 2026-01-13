@@ -1,6 +1,6 @@
 #!/bin/bash
 # Write/Edit PreToolUse Dispatcher - Combines path, headers, guard, lock, and validation checks
-# CC 2.1.2 Compliant: silent on success, visible on failure
+# CC 2.1.6 Compliant: silent on success, visible on failure
 set -euo pipefail
 
 _HOOK_INPUT=$(cat)

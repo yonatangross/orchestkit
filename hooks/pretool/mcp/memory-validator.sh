@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Memory Validator - Warns on destructive memory operations
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (mcp__memory__*)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -27,7 +27,7 @@ Relations: ${RELATIONS:-N/A}
 This operation cannot be undone."
 fi
 
-# CC 2.1.2 Compliant: JSON output without ANSI colors
+# CC 2.1.6 Compliant: JSON output without ANSI colors
 # (Colors in JSON break JSON parsing)
 echo '{"continue": true, "suppressOutput": true}'
 exit 0

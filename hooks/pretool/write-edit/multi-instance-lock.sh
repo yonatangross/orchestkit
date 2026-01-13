@@ -1,6 +1,6 @@
 #!/bin/bash
 # Multi-Instance File Lock Hook
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Acquires file locks before Write/Edit operations to prevent conflicts
 # Version: 1.0.0
 

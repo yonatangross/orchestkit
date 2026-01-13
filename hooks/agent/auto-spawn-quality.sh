@@ -4,7 +4,7 @@
 # Purpose: Auto-spawns code-quality-reviewer after test-generator completes,
 #          Auto-spawns security-auditor on sensitive file changes (.env, auth, secrets)
 #
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 
 set -euo pipefail
 
@@ -253,7 +253,7 @@ main() {
             echo "Session: $SESSION_ID"
         } >> "$SPAWN_LOG"
 
-        # Output CC 2.1.2 compliant JSON with spawn suggestion
+        # Output CC 2.1.6 compliant JSON with spawn suggestion
         jq -n \
             --arg target "$spawn_target" \
             --arg reason "$spawn_reason" \

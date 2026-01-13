@@ -1,6 +1,6 @@
 #!/bin/bash
 # multi-claude-verifier.sh - Automates multi-Claude verification workflows
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 #
 # Purpose:
 # 1. Auto-spawn code-quality-reviewer after test-generator completes

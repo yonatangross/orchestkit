@@ -1,6 +1,6 @@
 #!/bin/bash
 # UserPromptSubmit Dispatcher - Runs all prompt hooks and outputs combined status
-# CC 2.1.2 Compliant: silent on success, visible on failure
+# CC 2.1.6 Compliant: silent on success, visible on failure
 # Consolidates: context-injector, todo-enforcer
 set -euo pipefail
 

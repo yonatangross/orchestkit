@@ -1,7 +1,7 @@
 #!/bin/bash
 # Coordination Heartbeat - Update heartbeat after each tool use
 # Hook: PostToolUse (*)
-# CC 2.1.2 Compliant: ensures JSON output on all code paths
+# CC 2.1.6 Compliant: ensures JSON output on all code paths
 
 set -euo pipefail
 

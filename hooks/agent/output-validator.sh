@@ -76,7 +76,7 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
     echo "$OUTPUT"
 } > "$LOG_FILE"
 
-# CC 2.1.2 compliant: Always output JSON with continue field
+# CC 2.1.6 compliant: Always output JSON with continue field
 if [ "$VALIDATION_STATUS" = "failed" ]; then
     jq -n --arg msg "$SYSTEM_MESSAGE" '{systemMessage: $msg, continue: false}'
     exit 0

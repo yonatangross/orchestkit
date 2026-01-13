@@ -1,6 +1,6 @@
 #!/bin/bash
 # path-normalizer.sh - Normalizes file paths to absolute paths for Read/Write/Edit/Glob/Grep tools
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Part of SkillForge Claude Plugin v4.6.0
 
 set -euo pipefail

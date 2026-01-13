@@ -2,7 +2,7 @@
 # ============================================================================
 # Pretool Hooks Comprehensive Tests
 # ============================================================================
-# Tests all pretool hook categories for CC 2.1.2 compliance
+# Tests all pretool hook categories for CC 2.1.6 compliance
 # ============================================================================
 
 set -euo pipefail

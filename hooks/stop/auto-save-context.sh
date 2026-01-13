@@ -2,7 +2,7 @@
 set -euo pipefail
 # Auto-Save Context - Saves session context before stop
 # Hook: Stop
-# CC 2.1.2 Compliant - Context Protocol 2.0
+# CC 2.1.6 Compliant - Context Protocol 2.0
 #
 # Ensures state.json always has required fields:
 # - $schema: For schema validation
@@ -64,6 +64,6 @@ else
     log_hook "Created new session state (Protocol 2.0 compliant)"
 fi
 
-# Output CC 2.1.2 compliant response
+# Output CC 2.1.6 compliant response
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

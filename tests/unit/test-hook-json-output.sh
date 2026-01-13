@@ -2,7 +2,7 @@
 # Unit tests for hook JSON output compliance
 # Verifies all hooks output valid JSON in all code paths
 #
-# CC 2.1.2 Requirement: Hooks must always output valid JSON to stdout
+# CC 2.1.6 Requirement: Hooks must always output valid JSON to stdout
 # The T.replaceAll error occurs when hooks output undefined/null/empty
 
 set -euo pipefail
@@ -193,7 +193,7 @@ test_hook_trap_on_exit() {
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
     echo "║          Hook JSON Output Compliance Tests                    ║"
-    echo "║          CC 2.1.2 T.replaceAll Prevention                     ║"
+    echo "║          CC 2.1.6 T.replaceAll Prevention                     ║"
     echo "╚═══════════════════════════════════════════════════════════════╝"
 
     # Hooks that were fixed (P0 + P1)

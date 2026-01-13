@@ -1,6 +1,6 @@
 #!/bin/bash
 # PostToolUse Dispatcher - Runs all post-tool checks and outputs combined status
-# CC 2.1.2 Compliant: silent on success, visible on failure/warning
+# CC 2.1.6 Compliant: silent on success, visible on failure/warning
 set -euo pipefail
 
 _HOOK_INPUT=$(cat)

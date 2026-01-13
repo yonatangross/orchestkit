@@ -1,6 +1,6 @@
 #!/bin/bash
 # handoff-preparer.sh - Prepares context for handoff to next agent in pipeline
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 
 set -euo pipefail
 
@@ -197,6 +197,6 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
     echo "Next Steps: $SUGGESTIONS"
 } > "$LOG_FILE" 2>/dev/null || true
 
-# Output CC 2.1.2 compliant JSON
+# Output CC 2.1.6 compliant JSON
 echo '{"continue":true}'
 exit 0

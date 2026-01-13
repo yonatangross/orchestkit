@@ -188,7 +188,7 @@ Hooks provide lifecycle automation for Claude Code.
    set -euo pipefail
    ```
 
-2. **CC 2.1.4+ JSON output** (for pretool hooks):
+2. **CC 2.1.6 JSON output** (for pretool hooks):
    ```bash
    echo '{"continue": true, "suppressOutput": true}'
    exit 0

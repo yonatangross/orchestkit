@@ -1,7 +1,7 @@
 #!/bin/bash
 # Coordination Initialization - Register instance at session start
 # Hook: SessionStart
-# CC 2.1.2 Compliant: ensures JSON output on all code paths
+# CC 2.1.6 Compliant: ensures JSON output on all code paths
 
 set -euo pipefail
 

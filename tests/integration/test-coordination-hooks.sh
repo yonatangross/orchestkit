@@ -2,7 +2,7 @@
 # Integration tests for coordination hooks
 # Tests that hooks work correctly with the coordination system
 #
-# CC 2.1.2 Requirement: All hooks must output valid JSON
+# CC 2.1.6 Requirement: All hooks must output valid JSON
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"

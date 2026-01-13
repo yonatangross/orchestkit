@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://skillforge.dev/schemas/hook-output.schema.json",
-  "title": "Claude Code 2.1.2 Hook Output Schema",
+  "title": "Claude Code 2.1.6 Hook Output Schema",
   "description": "Validates hook output format for CC 2.1.2 compliance",
   "type": "object",
   "required": ["continue"],

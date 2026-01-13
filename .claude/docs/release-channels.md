@@ -1,7 +1,7 @@
 # Claude Code Release Channels
 
 **Version:** 1.0.0
-**Requires:** Claude Code >= 2.1.4
+**Requires:** Claude Code >= 2.1.6
 
 ## Overview
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # File Lock Check - PreToolUse Hook for Edit
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Prevents editing files locked by other Claude Code instances
 #
 # BLOCKS: When file is locked by another active instance

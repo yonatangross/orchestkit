@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ============================================================================
-# Claude Code 2.1.2 Compliance Test
+# Claude Code 2.1.6 Compliance Test
 # ============================================================================
-# Verifies all hooks output valid JSON conforming to CC 2.1.2 specification:
+# Verifies all hooks output valid JSON conforming to CC 2.1.6 specification:
 # - Must output valid JSON
 # - Must include "continue" field (boolean)
 # - Permission hooks must include permissionDecision field
@@ -33,7 +33,7 @@ skip() { echo -e "  ${YELLOW}○${NC} $1 (skipped)"; ((SKIP_COUNT++)) || true; }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Claude Code 2.1.2 Compliance Tests"
+echo "  Claude Code 2.1.6 Compliance Tests"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -128,7 +128,7 @@ if [ -d "$HOOKS_DIR/permission" ]; then
             output=$(echo "$PERMISSION_INPUT" | bash "$hook_file" 2>/dev/null) || true
 
             if echo "$output" | jq empty 2>/dev/null; then
-                # Check for permissionDecision field (CC 2.1.2 requirement)
+                # Check for permissionDecision field (CC 2.1.6 requirement)
                 has_decision=$(echo "$output" | jq -e '.hookSpecificOutput.permissionDecision // .permissionDecision' 2>/dev/null) || has_decision=""
 
                 if [ -n "$has_decision" ]; then
@@ -234,7 +234,7 @@ echo ""
 echo "▶ Test 6: Exit Code Compliance"
 echo "────────────────────────────────────────"
 
-# CC 2.1.2: Exit 0 = success, non-zero = error
+# CC 2.1.6: Exit 0 = success, non-zero = error
 # Test that hooks don't exit with unexpected codes
 
 test_exit_code() {
@@ -270,7 +270,7 @@ echo ""
 # Summary
 # ============================================================================
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  CC 2.1.2 Compliance Results"
+echo "  CC 2.1.6 Compliance Results"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo -e "  ${GREEN}Passed:${NC}  $PASS_COUNT"

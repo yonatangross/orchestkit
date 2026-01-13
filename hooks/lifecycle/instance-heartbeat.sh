@@ -1,7 +1,7 @@
 #!/bin/bash
 # Instance Heartbeat - Lifecycle Hook
 # Updates heartbeat timestamp and cleans up stale instances
-# CC 2.1.2 Compliant: ensures JSON output on all code paths
+# CC 2.1.6 Compliant: ensures JSON output on all code paths
 #
 # Runs periodically to:
 # 1. Update this instance's heartbeat

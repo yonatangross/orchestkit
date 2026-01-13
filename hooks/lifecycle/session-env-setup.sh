@@ -2,10 +2,10 @@
 set -euo pipefail
 # Session Environment Setup - Initializes session environment
 # Hook: SessionStart
-# CC 2.1.2 Compliant - Supports agent_type field
+# CC 2.1.6 Compliant - Supports agent_type field
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
-# Also check for HOOK_INPUT from parent dispatcher (CC 2.1.2 format)
+# Also check for HOOK_INPUT from parent dispatcher (CC 2.1.6 format)
 if [[ -n "${HOOK_INPUT:-}" ]]; then
   _HOOK_INPUT="$HOOK_INPUT"
 else
@@ -44,7 +44,7 @@ EOF
   log_hook "Initialized session metrics"
 fi
 
-# Update session state with agent_type (CC 2.1.2 feature)
+# Update session state with agent_type (CC 2.1.6 feature)
 SESSION_STATE="$CLAUDE_PROJECT_DIR/.claude/context/session/state.json"
 if [[ -f "$SESSION_STATE" ]] && [[ -n "$AGENT_TYPE" ]]; then
   # Update session state with agent_type using jq

@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Context Gate - Pre-Tool Hook for Task
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Prevents context overflow by limiting concurrent background agents
 #
 # Strategy:
@@ -176,7 +176,7 @@ Proceeding with: $subagent_type - $description
   # Allow the agent to proceed
   log_hook "Context gate passed: $subagent_type"
 
-  # CC 2.1.2 Compliant: JSON output without ANSI colors
+  # CC 2.1.6 Compliant: JSON output without ANSI colors
   # (Colors in JSON break JSON parsing)
   echo '{"continue": true, "suppressOutput": true}'
   exit 0

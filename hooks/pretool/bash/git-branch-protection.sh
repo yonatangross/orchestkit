@@ -2,7 +2,7 @@
 set -euo pipefail
 # Git Branch Protection Hook for Claude Code
 # Prevents commits and pushes to dev/main branches
-# CC 2.1.2 Compliant: outputs JSON with continue field
+# CC 2.1.6 Compliant: outputs JSON with continue field
 
 # Read hook input from stdin
 INPUT=$(cat)

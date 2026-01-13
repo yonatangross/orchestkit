@@ -33,7 +33,7 @@ test_agent_context_loader_outputs_valid_json() {
 
     if [[ -n "$output" ]]; then
         assert_valid_json "$output"
-        # Should have continue field for CC 2.1.2
+        # Should have continue field for CC 2.1.6
         if echo "$output" | jq -e 'has("continue")' >/dev/null 2>&1; then
             return 0
         fi

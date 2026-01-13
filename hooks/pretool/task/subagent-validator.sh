@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Subagent Validator - Source of truth for subagent tracking
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (Task)
 #
 # This is the ONLY place we track subagent usage because:
@@ -70,7 +70,7 @@ fi
 # Silent on success - only log to file, no stderr output
 log_hook "Spawning $SUBAGENT_TYPE agent: $DESCRIPTION"
 
-# CC 2.1.2 Compliant: JSON output without ANSI colors
+# CC 2.1.6 Compliant: JSON output without ANSI colors
 # (Colors in JSON break JSON parsing)
 echo '{"continue": true, "suppressOutput": true}'
 exit 0

@@ -1,7 +1,7 @@
 #!/bin/bash
 # SessionStart Dispatcher - Runs all startup hooks and outputs combined status
-# CC 2.1.2 Compliant: silent on success, visible on failure
-# Supports agent_type field from CC 2.1.2 --agent flag
+# CC 2.1.6 Compliant: silent on success, visible on failure
+# Supports agent_type field from CC 2.1.6 --agent flag
 # Consolidates: coordination-init, session-context-loader, session-env-setup
 set -euo pipefail
 
@@ -12,12 +12,12 @@ WARNINGS=()
 YELLOW=$'\033[33m'
 RESET=$'\033[0m'
 
-# Read and parse hook input (CC 2.1.2 format)
+# Read and parse hook input (CC 2.1.6 format)
 # Capture stdin BEFORE any subshell operations
 HOOK_INPUT=$(cat)
 export HOOK_INPUT
 
-# Extract agent_type from hook input (CC 2.1.2 feature)
+# Extract agent_type from hook input (CC 2.1.6 feature)
 # agent_type is provided when Claude Code is started with --agent flag
 AGENT_TYPE=""
 if command -v jq >/dev/null 2>&1 && [[ -n "$HOOK_INPUT" ]]; then

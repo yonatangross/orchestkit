@@ -31,7 +31,7 @@ test_context_injector_adds_context() {
 
     if [[ -n "$output" ]]; then
         assert_valid_json "$output"
-        # Check for continue field (CC 2.1.2)
+        # Check for continue field (CC 2.1.6)
         if echo "$output" | jq -e 'has("continue")' >/dev/null 2>&1; then
             return 0
         fi

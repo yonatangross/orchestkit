@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # CI Simulation Hook - Reminds to run CI checks before commits
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Hook: PreToolUse (Bash)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -14,7 +14,7 @@ COMMAND=$(get_field '.tool_input.command')
 
 # Only trigger for git commit commands
 if [[ ! "$COMMAND" =~ git\ commit ]]; then
-  # CC 2.1.2 Compliant: always output JSON with continue field
+  # CC 2.1.6 Compliant: always output JSON with continue field
   echo '{"continue": true, "suppressOutput": true}'
   exit 0
 fi

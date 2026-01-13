@@ -2,7 +2,7 @@
 # ============================================================================
 # Pretool Skill Hooks Unit Tests
 # ============================================================================
-# Tests Skill-related pretool hooks for CC 2.1.2 compliance
+# Tests Skill-related pretool hooks for CC 2.1.6 compliance
 # ============================================================================
 
 set -euo pipefail

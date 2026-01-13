@@ -2,7 +2,7 @@
 set -euo pipefail
 # Subagent Context Stager - Stages relevant context files for subagent
 # Hook: SubagentStart
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 #
 # This hook:
 # 1. Checks if there are active todos from session state
@@ -98,7 +98,7 @@ if [[ "$TASK_DESCRIPTION" =~ (issue|#[0-9]+|bug|fix) ]]; then
   fi
 fi
 
-# === RETURN SYSTEM MESSAGE (CC 2.1.2 Compliant) ===
+# === RETURN SYSTEM MESSAGE (CC 2.1.6 Compliant) ===
 
 if [[ -n "$STAGED_CONTEXT" ]]; then
   SYSTEM_MESSAGE="$STAGED_CONTEXT\nTask: $TASK_DESCRIPTION\nSubagent: $SUBAGENT_TYPE"

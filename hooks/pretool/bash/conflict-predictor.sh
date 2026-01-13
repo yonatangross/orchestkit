@@ -1,6 +1,6 @@
 #!/bin/bash
 # Conflict Predictor - PreToolUse Hook for Bash
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Warns before git commit if potential conflicts exist with other worktrees
 #
 # Triggers on: git commit commands

@@ -1,7 +1,7 @@
 #!/bin/bash
 # context-publisher.sh - Publishes agent decisions to context
 # Hook: AgentStop
-# CC 2.1.2 Compliant - Context Protocol 2.0
+# CC 2.1.6 Compliant - Context Protocol 2.0
 
 set -e
 
@@ -112,6 +112,6 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
     echo "$OUTPUT"
 } > "$LOG_FILE" 2>/dev/null || true
 
-# CC 2.1.2 compliant output
+# CC 2.1.6 compliant output
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

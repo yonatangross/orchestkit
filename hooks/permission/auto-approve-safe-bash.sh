@@ -2,7 +2,7 @@
 set -euo pipefail
 # Auto-Approve Safe Bash - Automatically approves safe bash commands
 # Hook: PermissionRequest (Bash)
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
 _HOOK_INPUT=$(cat)

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs on Stop for brainstorming skill
 # Reminds to save design decisions to context
-# CC 2.1.2 Compliant - Context Protocol 2.0
+# CC 2.1.6 Compliant - Context Protocol 2.0
 
 echo "::group::Brainstorming Complete"
 echo ""

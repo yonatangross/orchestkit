@@ -1,7 +1,7 @@
 #!/bin/bash
 # Cleanup Instance - Stop Hook
 # Releases all locks and unregisters instance when Claude Code exits
-# CC 2.1.2 Compliant: ensures JSON output on all code paths
+# CC 2.1.6 Compliant: ensures JSON output on all code paths
 #
 # Version: 1.0.1
 # Part of Multi-Worktree Coordination System

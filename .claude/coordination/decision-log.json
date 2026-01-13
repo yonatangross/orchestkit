@@ -1107,6 +1107,34 @@
         "scope": "local"
       },
       "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260113-0079",
+      "timestamp": "2026-01-13T06:21:22Z",
+      "made_by": {
+        "instance_id": "claude-20260113-062122-1074728c"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
+    },
+    {
+      "decision_id": "DEC-20260113-0080",
+      "timestamp": "2026-01-13T06:38:01Z",
+      "made_by": {
+        "instance_id": "claude-20260113-063801-6cf4e18e"
+      },
+      "category": "architecture",
+      "title": "Session started",
+      "description": "New Claude Code session initiated",
+      "impact": {
+        "scope": "local"
+      },
+      "status": "accepted"
     }
   ]
 }

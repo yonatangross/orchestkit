@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # multi-instance-quality-gate.sh
-# CC 2.1.2 Compliant: includes continue field in all outputs
+# CC 2.1.6 Compliant: includes continue field in all outputs
 # Pre-commit quality gate for multi-instance Claude Code environments
 # =============================================================================
 set -euo pipefail
