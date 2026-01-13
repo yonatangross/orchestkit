@@ -13,10 +13,19 @@
       "description": "Complex reasoning and architectural decision support",
       "disabled": true
     },
+    "mem0": {
+      "command": "npx",
+      "args": ["-y", "mem0-mcp"],
+      "description": "Cloud semantic memory - AI-powered recall of decisions and patterns across sessions",
+      "env": {
+        "MEM0_API_KEY": "${MEM0_API_KEY}"
+      },
+      "disabled": true
+    },
     "memory": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-memory"],
-      "description": "Cross-session memory and context persistence",
+      "description": "Local file-based memory - simple key-value storage in .claude/memory/",
       "env": {
         "MEMORY_FILE": ".claude/memory/memory.json"
       },

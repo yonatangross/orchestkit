@@ -5,12 +5,28 @@ Commands work without them - MCPs just add extra capabilities.
 
 ## Available MCPs
 
-| MCP | Purpose | Enhances |
-|-----|---------|----------|
-| **context7** | Up-to-date library documentation | /implement, /verify, /review-pr |
-| **sequential-thinking** | Structured reasoning for complex problems | /brainstorm, /implement |
-| **memory** | Cross-session knowledge persistence | /brainstorm, /explore, /fix-issue |
-| **playwright** | Browser automation for E2E testing | /verify, browser-content-capture skill |
+| MCP | Purpose | Storage | Enhances |
+|-----|---------|---------|----------|
+| **context7** | Up-to-date library docs | Cloud (Upstash) | /implement, /verify, /review-pr |
+| **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
+| **mem0** | Semantic memory | Cloud (mem0.ai) | Session continuity, decisions |
+| **memory** | Simple key-value storage | Local file | Quick notes, preferences |
+| **playwright** | Browser automation | Local | /verify, content capture |
+
+## Memory Options: mem0 vs memory
+
+| Feature | mem0 | memory |
+|---------|------|--------|
+| **Storage** | Cloud (mem0.ai) | Local file |
+| **Search** | Semantic/AI-powered | Exact match |
+| **Scope** | Per-project, organized | Single file |
+| **Setup** | Needs API key | Zero config |
+| **Use case** | Long-term decisions | Quick notes |
+
+**Recommendation:**
+- Use **mem0** for important decisions, patterns, architecture choices
+- Use **memory** for quick preferences and simple notes
+- Both can be enabled simultaneously
 
 ## Default State
 
@@ -27,48 +43,63 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
     "context7": {
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"],
-      "description": "Up-to-date documentation for frameworks and libraries",
       "disabled": false
     },
     "sequential-thinking": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-sequential-thinking"],
-      "description": "Complex reasoning and architectural decision support",
       "disabled": true
+    },
+    "mem0": {
+      "command": "npx",
+      "args": ["-y", "mem0-mcp"],
+      "env": { "MEM0_API_KEY": "${MEM0_API_KEY}" },
+      "disabled": false
     },
     "memory": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-memory"],
-      "description": "Cross-session memory and context persistence",
-      "env": {
-        "MEMORY_FILE": ".claude/memory/memory.json"
-      },
-      "disabled": true
+      "env": { "MEMORY_FILE": ".claude/memory/memory.json" },
+      "disabled": false
     },
     "playwright": {
       "command": "npx",
       "args": ["-y", "@anthropics/mcp-server-playwright"],
-      "description": "Browser automation for e2e testing and content capture",
       "disabled": true
     }
   }
 }
 ```
 
-## Without MCPs
-
-If user selects "None":
-- Keep all MCPs disabled (no changes to `.mcp.json`)
-- Commands will work with reduced functionality
-- User can run `/configure` again later to enable MCPs
-
 ## MCP Dependencies
-
-Some MCPs require external setup:
 
 | MCP | Requirements |
 |-----|-------------|
-| context7 | None (npm package) |
-| sequential-thinking | None (npm package) |
-| memory | Creates `.claude/memory/` directory |
+| context7 | None |
+| sequential-thinking | None |
+| mem0 | `MEM0_API_KEY` environment variable |
+| memory | None (creates `.claude/memory/` automatically) |
 | playwright | Installs browsers on first use |
+
+## Mem0 Setup
+
+1. Get API key from [mem0.ai](https://mem0.ai)
+2. Set environment variable: `export MEM0_API_KEY=your-key`
+3. Enable in `.mcp.json`
+
+## Plugin Integration
+
+SkillForge hooks integrate with these MCPs:
+
+| Hook | MCP Used | Purpose |
+|------|----------|---------|
+| `mem0-context-retrieval.sh` | mem0 | Load previous session context |
+| `mem0-pre-compaction-sync.sh` | mem0 | Save decisions before session end |
+| Skills use | context7 | Fetch current library docs |
+
+## Without MCPs
+
+Commands still work - MCPs just enhance them:
+- `/implement` works, but without latest library docs (context7)
+- Session continuity works via local files, not semantic search (mem0)
+- Browser testing requires manual setup (playwright)
