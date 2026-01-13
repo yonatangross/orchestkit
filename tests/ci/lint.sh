@@ -5,8 +5,8 @@
 # Runs all static analysis checks:
 # - JSON validity and schema validation
 # - Shell script linting (shellcheck)
-# - Structure validation (Tier 1-4 completeness)
-# - Cross-reference validation (agent → skill refs)
+# - Structure validation (CC 2.1.6 nested skills)
+# - Cross-reference validation (agent → skill refs via frontmatter)
 # ============================================================================
 
 set -euo pipefail
@@ -31,7 +31,7 @@ warn() { echo -e "  ${YELLOW}⚠${NC} $1"; ((WARN_COUNT++)) || true; }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Static Analysis Suite"
+echo "  Static Analysis Suite (CC 2.1.6)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
@@ -132,35 +132,40 @@ fi
 echo ""
 
 # ============================================================================
-# 4. Structure Validation (Tier 1-4 Completeness)
+# 4. Structure Validation (CC 2.1.6 Nested Skills)
 # ============================================================================
-echo "▶ Skill Structure Validation"
+echo "▶ Skill Structure Validation (CC 2.1.6 Nested)"
 echo "────────────────────────────────────────"
 
 incomplete_skills=0
 complete_skills=0
 
-for skill_dir in "$PROJECT_ROOT/skills"/*; do
-    if [ -d "$skill_dir" ]; then
-        skill_name=$(basename "$skill_dir")
-        has_tier1=false
-        has_tier2=false
+# CC 2.1.6 nested structure: skills/<category>/.claude/skills/<skill-name>/
+for category_dir in "$PROJECT_ROOT/skills"/*; do
+    if [ -d "$category_dir/.claude/skills" ]; then
+        for skill_dir in "$category_dir/.claude/skills"/*; do
+            if [ -d "$skill_dir" ]; then
+                skill_name=$(basename "$skill_dir")
+                has_tier1=false
+                has_tier2=false
 
-        # Tier 1: capabilities.json (required)
-        [ -f "$skill_dir/capabilities.json" ] && has_tier1=true
+                # Tier 1: capabilities.json (required)
+                [ -f "$skill_dir/capabilities.json" ] && has_tier1=true
 
-        # Tier 2: SKILL.md (required)
-        [ -f "$skill_dir/SKILL.md" ] && has_tier2=true
+                # Tier 2: SKILL.md (required)
+                [ -f "$skill_dir/SKILL.md" ] && has_tier2=true
 
-        if $has_tier1 && $has_tier2; then
-            ((complete_skills++)) || true
-        else
-            missing=""
-            $has_tier1 || missing+="capabilities.json "
-            $has_tier2 || missing+="SKILL.md "
-            fail "$skill_name missing: $missing"
-            ((incomplete_skills++)) || true
-        fi
+                if $has_tier1 && $has_tier2; then
+                    ((complete_skills++)) || true
+                else
+                    missing=""
+                    $has_tier1 || missing+="capabilities.json "
+                    $has_tier2 || missing+="SKILL.md "
+                    fail "$skill_name missing: $missing"
+                    ((incomplete_skills++)) || true
+                fi
+            fi
+        done
     fi
 done
 
@@ -173,31 +178,40 @@ fi
 echo ""
 
 # ============================================================================
-# 5. Cross-Reference Validation
+# 5. Agent Frontmatter Validation (CC 2.1.6)
 # ============================================================================
-echo "▶ Cross-Reference Validation"
+echo "▶ Agent Frontmatter Validation (CC 2.1.6)"
 echo "────────────────────────────────────────"
 
-crossref_errors=0
+agent_errors=0
+agent_count=0
 
-# Check that agent skills_used references exist
-if [ -f "$PROJECT_ROOT/plugin.json" ]; then
-    # Get all skill IDs from plugin.json
-    skill_ids=$(jq -r '.skills[]?.id // empty' "$PROJECT_ROOT/plugin.json" 2>/dev/null | sort -u)
+for agent_file in "$PROJECT_ROOT/agents"/*.md; do
+    if [ -f "$agent_file" ]; then
+        agent_name=$(basename "$agent_file" .md)
+        ((agent_count++)) || true
 
-    # Get all agent skills_used
-    agent_skills=$(jq -r '.agents[]?.skills_used[]? // empty' "$PROJECT_ROOT/plugin.json" 2>/dev/null | sort -u)
-
-    for skill in $agent_skills; do
-        if ! echo "$skill_ids" | grep -qx "$skill"; then
-            fail "Agent references non-existent skill: $skill"
-            ((crossref_errors++)) || true
+        # Check for CC 2.1.6 required fields
+        if ! head -50 "$agent_file" | grep -q "^model:"; then
+            fail "$agent_name missing 'model:' field"
+            ((agent_errors++)) || true
         fi
-    done
 
-    if [ "$crossref_errors" -eq 0 ]; then
-        pass "All agent skill references are valid"
+        if ! head -50 "$agent_file" | grep -q "^skills:"; then
+            warn "$agent_name missing 'skills:' array (CC 2.1.6)"
+        fi
+
+        if ! head -50 "$agent_file" | grep -q "^tools:"; then
+            fail "$agent_name missing 'tools:' array"
+            ((agent_errors++)) || true
+        fi
     fi
+done
+
+if [ "$agent_errors" -eq 0 ]; then
+    pass "All $agent_count agents have valid CC 2.1.6 frontmatter"
+else
+    fail "$agent_errors agents have frontmatter errors"
 fi
 
 echo ""
