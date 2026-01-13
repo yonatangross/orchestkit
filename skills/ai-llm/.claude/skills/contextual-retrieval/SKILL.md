@@ -3,6 +3,8 @@ name: contextual-retrieval
 description: Anthropic's Contextual Retrieval technique for improved RAG. Use when chunks lose context during retrieval, implementing hybrid BM25+vector search, or reducing retrieval failures.
 context: fork
 agent: data-pipeline-engineer
+version: 1.0.0
+author: SkillForge
 ---
 # Contextual Retrieval
 Prepend situational context to chunks before embedding to preserve document-level meaning.

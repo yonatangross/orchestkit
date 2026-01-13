@@ -11,6 +11,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
+author: SkillForge
 ---
 
 # Rate Limiting Patterns

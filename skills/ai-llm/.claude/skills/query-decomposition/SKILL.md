@@ -3,6 +3,8 @@ name: query-decomposition
 description: Query decomposition for multi-concept retrieval. Use when handling complex queries spanning multiple topics, implementing multi-hop retrieval, or improving coverage for compound questions.
 context: fork
 agent: data-pipeline-engineer
+version: 1.0.0
+author: SkillForge
 ---
 
 # Query Decomposition

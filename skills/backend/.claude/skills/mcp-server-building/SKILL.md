@@ -3,6 +3,8 @@ name: mcp-server-building
 description: Building MCP (Model Context Protocol) servers for Claude extensibility. Use when creating custom tools, integrating external services, or extending Claude's capabilities.
 context: fork
 agent: backend-system-architect
+version: 1.0.0
+author: SkillForge
 ---
 # MCP Server Building
 Build custom MCP servers to extend Claude with tools, resources, and prompts.

@@ -3,6 +3,8 @@ name: langgraph-state
 description: LangGraph state management patterns. Use when designing workflow state schemas, using TypedDict vs Pydantic, implementing accumulating state with Annotated operators, or managing shared state across nodes.
 context: fork
 agent: workflow-architect
+version: 1.0.0
+author: SkillForge
 ---
 
 # LangGraph State Management

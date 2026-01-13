@@ -3,6 +3,8 @@ name: mem0-memory
 description: Long-term semantic memory across sessions using Mem0. Use when persisting decisions, patterns, or context that should survive session boundaries.
 context: fork
 agent: any
+version: 1.0.0
+author: SkillForge
 ---
 
 # Mem0 Memory Management

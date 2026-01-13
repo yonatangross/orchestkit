@@ -6,6 +6,8 @@ agent: product-strategist
 hooks:
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
+version: 1.0.0
+author: SkillForge
 ---
 
 # Brainstorming Ideas Into Designs

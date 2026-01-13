@@ -3,6 +3,8 @@ name: multi-agent-orchestration
 description: Multi-agent coordination and synthesis patterns. Use when orchestrating multiple specialized agents, implementing fan-out/fan-in workflows, or synthesizing outputs from parallel agents.
 context: fork
 agent: workflow-architect
+version: 1.0.0
+author: SkillForge
 ---
 
 # Multi-Agent Orchestration

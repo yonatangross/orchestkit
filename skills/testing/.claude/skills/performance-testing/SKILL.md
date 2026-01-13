@@ -9,6 +9,8 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
+version: 1.0.0
+author: SkillForge
 ---
 
 # Performance Testing

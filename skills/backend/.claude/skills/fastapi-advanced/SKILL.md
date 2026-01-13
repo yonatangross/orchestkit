@@ -11,6 +11,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
+author: SkillForge
 ---
 
 # FastAPI Advanced Patterns (2026)

@@ -3,6 +3,8 @@ name: llm-streaming
 description: LLM streaming response patterns. Use when implementing real-time token streaming, Server-Sent Events for AI responses, or streaming with tool calls.
 context: fork
 agent: llm-integrator
+version: 1.0.0
+author: SkillForge
 ---
 
 # LLM Streaming

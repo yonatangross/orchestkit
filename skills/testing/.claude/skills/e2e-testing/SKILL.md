@@ -14,6 +14,7 @@ hooks:
         echo "::group::E2E Test Summary"
         echo "Playwright tests generated - run with: npx playwright test"
         echo "::endgroup::"
+author: SkillForge
 ---
 
 # E2E Testing with Playwright 1.57+

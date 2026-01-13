@@ -6,6 +6,7 @@ version: 1.1.0
 category: Quality & Optimization
 agents: [backend-system-architect, frontend-ui-developer, code-quality-reviewer]
 keywords: [performance, optimization, speed, latency, throughput, caching, profiling, bundle, Core Web Vitals, react-19, virtualization, code-splitting, tree-shaking]
+author: SkillForge
 ---
 
 # Performance Optimization Skill

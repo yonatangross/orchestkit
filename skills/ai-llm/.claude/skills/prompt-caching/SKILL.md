@@ -3,6 +3,8 @@ name: prompt-caching
 description: Provider-native prompt caching for Claude and OpenAI. Use when optimizing LLM costs with cache breakpoints, caching system prompts, or reducing token costs for repeated prefixes.
 context: fork
 agent: llm-integrator
+version: 1.0.0
+author: SkillForge
 ---
 
 # Prompt Caching

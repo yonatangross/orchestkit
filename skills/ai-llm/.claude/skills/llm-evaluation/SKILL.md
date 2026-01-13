@@ -11,6 +11,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/eval-metrics-collector.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/eval-metrics-collector.sh"
+author: SkillForge
 ---
 
 # LLM Evaluation

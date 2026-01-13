@@ -3,6 +3,8 @@ name: reranking-patterns
 description: Reranking patterns for improving search precision. Use when implementing cross-encoder reranking, LLM-based relevance scoring, or improving retrieval quality in RAG pipelines.
 context: fork
 agent: data-pipeline-engineer
+version: 1.0.0
+author: SkillForge
 ---
 
 # Reranking Patterns

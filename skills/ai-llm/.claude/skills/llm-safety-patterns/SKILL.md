@@ -4,6 +4,7 @@ description: Use when securing LLM integrations against prompt injection, halluc
 context: fork
 agent: security-auditor
 version: 1.0.0
+author: SkillForge
 ---
 
 # LLM Safety Patterns

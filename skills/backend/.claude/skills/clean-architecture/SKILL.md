@@ -11,6 +11,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/design-decision-saver.sh"
+author: SkillForge
 ---
 
 # Clean Architecture Patterns

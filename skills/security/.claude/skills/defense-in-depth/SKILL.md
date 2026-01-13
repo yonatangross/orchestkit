@@ -14,6 +14,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/redact-secrets.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/security-summary.sh"
+author: SkillForge
 ---
 
 # Defense in Depth for AI Systems

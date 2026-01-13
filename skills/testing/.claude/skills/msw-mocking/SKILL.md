@@ -11,6 +11,7 @@ hooks:
       command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/test-runner.sh"
   Stop:
     - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/skill/coverage-check.sh"
+author: SkillForge
 ---
 
 # MSW (Mock Service Worker) 2.x

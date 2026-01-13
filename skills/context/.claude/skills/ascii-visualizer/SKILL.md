@@ -4,6 +4,7 @@ description: Use when visualizing architecture, data flows, or system diagrams i
 version: 1.0.0
 context: inherit
 tags: [ascii, visualization, diagrams, architecture, 2025]
+author: SkillForge
 ---
 
 # ASCII Visualizer Skill

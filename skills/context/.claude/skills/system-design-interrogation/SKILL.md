@@ -4,6 +4,7 @@ description: Use when planning system architecture to ensure nothing is missed. 
 context: fork
 agent: system-design-reviewer
 version: 1.0.0
+author: SkillForge
 ---
 
 # System Design Interrogation
