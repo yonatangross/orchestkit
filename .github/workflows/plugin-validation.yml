@@ -71,7 +71,7 @@ jobs:
       - name: Make scripts executable
         run: |
           chmod +x tests/**/*.sh
-          find .claude/hooks -name "*.sh" -exec chmod +x {} \;
+          find hooks -name "*.sh" -exec chmod +x {} \;
 
       - name: Run Hook Unit Tests
         run: ./tests/unit/test-hooks-unit.sh --verbose
@@ -90,7 +90,7 @@ jobs:
       - name: Make scripts executable
         run: |
           chmod +x tests/**/*.sh
-          find .claude/hooks -name "*.sh" -exec chmod +x {} \;
+          find hooks -name "*.sh" -exec chmod +x {} \;
 
       - name: Run Hook Chain Tests
         run: ./tests/integration/test-hook-chains.sh --verbose
@@ -185,33 +185,50 @@ jobs:
 
       - name: Validate skill structure
         run: |
-          echo "Validating skills..."
+          echo "Validating skills (CC 2.1.6 nested structure)..."
 
-          skills_dir=".claude/skills"
-          if [[ ! -d "$skills_dir" ]]; then
+          # CC 2.1.6 structure: skills/<category>/.claude/skills/<skill-name>/
+          if [[ ! -d "skills" ]]; then
             echo "No skills directory found"
             exit 0
           fi
 
           errors=0
-          for skill_dir in "$skills_dir"/*/; do
-            skill_name=$(basename "$skill_dir")
-            echo "Checking skill: $skill_name"
+          skill_count=0
 
-            # Check for required SKILL.md
-            if [[ ! -f "$skill_dir/SKILL.md" ]]; then
-              echo "  ERROR: Missing SKILL.md"
-              errors=$((errors + 1))
+          for category_dir in skills/*/; do
+            [[ -d "$category_dir" ]] || continue
+            category=$(basename "$category_dir")
+
+            # Check for .claude/skills subdirectory (CC 2.1.6 pattern)
+            nested_dir="$category_dir.claude/skills"
+            if [[ ! -d "$nested_dir" ]]; then
+              echo "  WARN: Category $category missing .claude/skills/"
+              continue
             fi
 
-            # Check for capabilities.json if it exists
-            if [[ -f "$skill_dir/capabilities.json" ]]; then
-              if ! jq empty "$skill_dir/capabilities.json" 2>/dev/null; then
-                echo "  ERROR: Invalid capabilities.json"
+            for skill_dir in "$nested_dir"/*/; do
+              [[ -d "$skill_dir" ]] || continue
+              skill_name=$(basename "$skill_dir")
+              skill_count=$((skill_count + 1))
+
+              # Check for required SKILL.md
+              if [[ ! -f "$skill_dir/SKILL.md" ]]; then
+                echo "  ERROR: $category/$skill_name missing SKILL.md"
                 errors=$((errors + 1))
               fi
-            fi
+
+              # Check for capabilities.json (required for progressive loading)
+              if [[ -f "$skill_dir/capabilities.json" ]]; then
+                if ! jq empty "$skill_dir/capabilities.json" 2>/dev/null; then
+                  echo "  ERROR: $category/$skill_name invalid capabilities.json"
+                  errors=$((errors + 1))
+                fi
+              fi
+            done
           done
+
+          echo "Validated $skill_count skills"
 
           if [[ $errors -gt 0 ]]; then
             echo "Found $errors skill errors"

@@ -45,7 +45,7 @@ DECLARED_SKILLS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ skills' | grep -oE '[0-
 # Agents: "N agents"
 DECLARED_AGENTS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ agents' | grep -oE '[0-9]+' || echo "0")
 # Hooks: "N hooks"
-DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ hooks' | grep -oE '[0-9]+' || echo "0")
+DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+[^0-9]*hooks' | grep -oE '[0-9]+' || echo "0")
 
 # =============================================================================
 # VALIDATION

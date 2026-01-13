@@ -19,12 +19,34 @@
 </p>
 
 <p align="center">
-  92 skills | 10 categories | 20 agents | 93 hooks (23 registered) | 4 tiers
+  92 skills | 10 categories | 20 agents | 90 hooks (24 registered) | 4 tiers
 </p>
 
 ---
 
 > **Transform Claude Code into a full-stack AI development powerhouse.** From RAG pipelines to React 19 patterns, from database schemas to security audits - everything you need to build production-grade applications with AI assistance.
+
+
+---
+
+## About SkillForge
+
+SkillForge transforms Claude Code into a comprehensive AI development platform by providing:
+
+- **92 Skills**: Reusable knowledge modules organized in 10 categories that load on-demand
+- **20 Agents**: Specialized AI personas with domain expertise and pre-loaded skills  
+- **90 Hooks**: Lifecycle automation for safety, auditing, and quality gates (24 registered via dispatchers)
+- **Progressive Loading**: Token-efficient system that loads only what's needed (~300-800 tokens vs 5000+)
+
+### Why SkillForge?
+
+| Without SkillForge | With SkillForge |
+|-------------------|-----------------|
+| Manual context management | Automatic progressive loading |
+| Generic AI responses | Domain-expert agents (FastAPI, React 19, LangGraph) |
+| No guardrails | 90 hooks for safety, auditing, quality gates |
+| Single-threaded | Parallel agent execution (fan-out/fan-in) |
+| Context overload | Token-efficient (~70% savings) |
 
 ## What's New in v4.11.0 (Hook Consolidation)
 
@@ -82,20 +104,139 @@ cp -r skillforge-claude-plugin/skills/ai-llm your-project/
 
 ### Configuration
 
-After installation, configure your tier and preferences:
+#### Interactive Wizard (Recommended)
 
 ```bash
 /skf:configure
 ```
 
-Interactive wizard to:
-- Choose preset (complete/standard/lite/hooks-only)
-- Toggle skill categories
-- Enable/disable agents
-- Configure hooks
-- Enable MCP integrations (optional)
+The wizard guides you through:
 
-Config stored in: `~/.claude/plugins/skillforge/config.json`
+1. **Preset Selection**: Choose your starting point
+   - `complete` - All 92 skills, 20 agents, full hooks (default)
+   - `standard` - All skills, no auto-agents, full hooks
+   - `lite` - Essential skills only, minimal context
+   - `hooks-only` - Safety guardrails only
+
+2. **Skill Categories**: Toggle categories on/off based on your stack
+3. **Agent Configuration**: Enable/disable specific agents
+4. **Hook Settings**: Customize safety and quality hooks
+5. **MCP Setup**: Enable optional MCP integrations
+
+#### Configuration File
+
+Settings stored in `~/.claude/plugins/skillforge/config.json`:
+
+```json
+{
+  "preset": "complete",
+  "skills": {
+    "ai-llm": true,
+    "langgraph": true,
+    "backend": true,
+    "frontend": true,
+    "testing": true,
+    "security": true,
+    "devops": true,
+    "workflows": true,
+    "quality": true,
+    "context": true
+  },
+  "agents": { "enabled": true, "allowed": ["*"] },
+  "hooks": { "git_branch_protection": true, "file_guard": true }
+}
+```
+
+#### Per-Project Overrides
+
+Create `.claude/skillforge.json` in your project root:
+
+```json
+{
+  "skills": { "langgraph": false },
+  "agents": { "allowed": ["backend-system-architect", "database-engineer"] }
+}
+```
+
+
+---
+
+## Claude Code Integration (CC 2.1.6+)
+
+SkillForge leverages Claude Code 2.1.6+ features for optimal performance.
+
+### Spawning Agents
+
+Agents are spawned using the `Task` tool with `subagent_type`:
+
+```python
+# Spawn a single agent
+Task(
+    subagent_type="skf:backend-system-architect",
+    prompt="Design the user authentication API"
+)
+```
+
+### Parallel Execution (Fan-Out)
+
+Launch multiple agents simultaneously by making multiple tool calls in a single message:
+
+```python
+# These run concurrently - 3x faster than sequential
+Task(subagent_type="skf:frontend-ui-developer", prompt="Build dashboard UI")
+Task(subagent_type="skf:backend-system-architect", prompt="Build dashboard API")  
+Task(subagent_type="skf:database-engineer", prompt="Design dashboard schema")
+```
+
+### Context Modes
+
+Control how agents share context via frontmatter:
+
+| Mode | Behavior | Use Case |
+|------|----------|----------|
+| `fork` | Isolated context (default) | Complex multi-step operations |
+| `inherit` | Share parent context | Quick utilities, saves tokens |
+| `none` | No context management | Stateless coordination |
+
+```yaml
+---
+name: my-agent
+context: fork  # isolated context
+---
+```
+
+### Model Selection
+
+Agents specify preferred models for cost/performance tradeoffs:
+
+| Model | Best For | Cost |
+|-------|----------|------|
+| `opus` | Complex reasoning, architecture design | $$$ |
+| `sonnet` | Balanced tasks, implementation (default) | $$ |
+| `haiku` | Fast routing, simple validation | $ |
+
+```yaml
+---
+name: security-auditor
+model: haiku  # Fast scanning, low cost
+---
+```
+
+### Skills Auto-Injection
+
+CC 2.1.6 automatically injects skills listed in agent frontmatter:
+
+```yaml
+---
+name: backend-system-architect
+skills:
+  - api-design-framework
+  - clean-architecture
+  - fastapi-advanced
+---
+```
+
+When this agent spawns, all three skills are automatically available - no manual loading required.
 
 ---
 
@@ -115,6 +256,8 @@ After installation, skills load automatically based on task context.
 ## Skill Categories
 
 ### AI & LLM (`ai-llm/` - 19 skills)
+
+**Focus:** Building AI-powered applications with RAG pipelines, embeddings, multi-agent orchestration, and cost optimization through caching.
 
 | Skill | Description |
 |-------|-------------|
@@ -140,6 +283,8 @@ After installation, skills load automatically based on task context.
 
 ### LangGraph (`langgraph/` - 7 skills)
 
+**Focus:** State machines, conditional routing, parallel execution, checkpointing, and human-in-the-loop workflows using LangGraph.
+
 | Skill | Description |
 |-------|-------------|
 | `langgraph-state` | State management and persistence in LangGraph |
@@ -151,6 +296,8 @@ After installation, skills load automatically based on task context.
 | `langgraph-functional` | @entrypoint/@task decorator API for modern workflows |
 
 ### Backend (`backend/` - 15 skills)
+
+**Focus:** FastAPI patterns, clean architecture, databases, API design, caching strategies, and resilience patterns.
 
 | Skill | Description |
 |-------|-------------|
@@ -172,6 +319,8 @@ After installation, skills load automatically based on task context.
 
 ### Frontend (`frontend/` - 6 skills)
 
+**Focus:** React 19, Server Components, Next.js App Router, animations, i18n, and performance optimization.
+
 | Skill | Description |
 |-------|-------------|
 | `react-server-components-framework` | Next.js 16 App Router, RSC patterns, Server Actions, React 19 |
@@ -182,6 +331,8 @@ After installation, skills load automatically based on task context.
 | `edge-computing-patterns` | Cloudflare Workers, Vercel Edge, Deno Deploy patterns |
 
 ### Testing (`testing/` - 9 skills)
+
+**Focus:** Unit, integration, E2E testing with Playwright, API mocking with MSW, and HTTP recording with VCR.
 
 | Skill | Description |
 |-------|-------------|
@@ -197,6 +348,8 @@ After installation, skills load automatically based on task context.
 
 ### Security (`security/` - 5 skills)
 
+**Focus:** OWASP Top 10, authentication patterns, input validation, security scanning, and defense-in-depth architecture.
+
 | Skill | Description |
 |-------|-------------|
 | `owasp-top-10` | OWASP Top 10 mitigations with code examples |
@@ -207,6 +360,8 @@ After installation, skills load automatically based on task context.
 
 ### DevOps (`devops/` - 4 skills)
 
+**Focus:** CI/CD pipelines, observability, monitoring, GitHub CLI workflows, and deployment automation.
+
 | Skill | Description |
 |-------|-------------|
 | `devops-deployment` | CI/CD pipelines, Docker, Kubernetes, Terraform patterns |
@@ -215,6 +370,8 @@ After installation, skills load automatically based on task context.
 | `run-tests` | Test execution and reporting |
 
 ### Workflows (`workflows/` - 13 skills)
+
+**Focus:** Git operations, PR workflows, implementation patterns, codebase exploration, and development automation.
 
 | Skill | Description |
 |-------|-------------|
@@ -233,6 +390,8 @@ After installation, skills load automatically based on task context.
 
 ### Quality (`quality/` - 8 skills)
 
+**Focus:** Quality gates, code review, golden dataset management, architecture decisions, and evidence verification.
+
 | Skill | Description |
 |-------|-------------|
 | `quality-gates` | Automated quality enforcement, CI integration |
@@ -245,6 +404,8 @@ After installation, skills load automatically based on task context.
 | `architecture-decision-record` | ADR templates, decision documentation |
 
 ### Context (`context/` - 6 skills)
+
+**Focus:** Context management, compression, brainstorming, system design interrogation, and multi-worktree coordination.
 
 | Skill | Description |
 |-------|-------------|
@@ -422,7 +583,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 93 hooks (23 registered via dispatcher pattern) have been security-audited and follow these standards:
+All 90 hooks (24 registered via dispatcher pattern) have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
@@ -448,7 +609,7 @@ All 93 hooks (23 registered via dispatcher pattern) have been security-audited a
 .claude/
 +-- agents/                    # 20 specialized agents
 +-- commands/                  # 12 slash commands
-+-- hooks/                     # 93 hooks (23 registered)
++-- hooks/                     # 90 hooks (24 registered)
 +-- schemas/                   # JSON schemas
 +-- scripts/                   # Utility scripts
 
