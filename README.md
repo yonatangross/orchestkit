@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  91 skills | 10 categories | 20 agents | 96 hooks | 4 tiers
+  92 skills | 10 categories | 20 agents | 95 hooks | 4 tiers
 </p>
 
 ---
@@ -28,7 +28,7 @@
 
 ## What's New in v4.9.0 (CC 2.1.6 Integration)
 
-- **Nested Skills Structure**: 91 skills organized into 10 category-based directories using CC 2.1.6's `.claude/skills/` auto-discovery pattern
+- **Nested Skills Structure**: 92 skills organized into 10 category-based directories using CC 2.1.6's `.claude/skills/` auto-discovery pattern
 - **Context Window HUD**: Real-time context usage monitoring with statusline integration
 - **Enhanced Security**: Line continuation bypass fix and improved bash validation
 - **Category Portability**: Copy any skill category to your project and CC auto-discovers it
@@ -418,7 +418,7 @@ mcp__context7__query-docs(
 
 ### Hook Auditing
 
-All 96 hooks have been security-audited and follow these standards:
+All 95 hooks have been security-audited and follow these standards:
 
 - **Strict mode enabled**: `set -euo pipefail` in all bash hooks
 - **Input validation**: All hook inputs are validated via JSON schema
@@ -448,7 +448,7 @@ All 96 hooks have been security-audited and follow these standards:
 +-- schemas/                   # JSON schemas
 +-- scripts/                   # Utility scripts
 
-skills/                        # 91 skills in 10 categories
+skills/                        # 92 skills in 10 categories
 +-- ai-llm/
 |   +-- .claude/skills/
 |       +-- rag-retrieval/

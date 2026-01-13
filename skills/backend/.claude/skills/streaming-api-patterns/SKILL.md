@@ -1,6 +1,7 @@
 ---
 name: streaming-api-patterns
 description: Use when building real-time features with SSE, WebSockets, or streaming APIs. Covers backpressure handling, reconnection strategies, and LLM token streaming patterns.
+context: fork
 agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub

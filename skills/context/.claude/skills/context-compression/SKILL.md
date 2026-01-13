@@ -1,6 +1,7 @@
 ---
 name: context-compression
 description: Use when conversation context is too long, hitting token limits, or responses are degrading. Compresses history while preserving critical information using anchored summarization and probe-based validation.
+context: fork
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [context, compression, summarization, memory, optimization, 2026]

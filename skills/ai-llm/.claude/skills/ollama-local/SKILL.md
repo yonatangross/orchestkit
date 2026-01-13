@@ -1,6 +1,7 @@
 ---
 name: ollama-local
 description: Local LLM inference with Ollama. Use when setting up local models for development, CI pipelines, or cost reduction. Covers model selection, LangChain integration, and performance tuning.
+context: fork
 agent: llm-integrator
 ---
 

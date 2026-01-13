@@ -66,3 +66,6 @@ HOOK_SECURITY_*.txt
 .mem0-sync-pending
 
 .mypy_cache
+# Local instance files
+.instance/
+.claude/coordination/.claude.db

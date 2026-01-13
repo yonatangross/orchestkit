@@ -1,6 +1,7 @@
 ---
 name: function-calling
 description: LLM function calling and tool use patterns. Use when enabling LLMs to call external tools, defining tool schemas, implementing tool execution loops, or getting structured output from LLMs.
+context: fork
 agent: llm-integrator
 ---
 

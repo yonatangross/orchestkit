@@ -1,6 +1,7 @@
 ---
 name: Performance Optimization
 description: Use when application is slow, bundle is too large, or investigating performance issues. Covers profiling, React concurrent features, bundle analysis, and optimization patterns.
+context: fork
 version: 1.1.0
 category: Quality & Optimization
 agents: [backend-system-architect, frontend-ui-developer, code-quality-reviewer]
