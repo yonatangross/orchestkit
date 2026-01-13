@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **91 skills**: Reusable knowledge modules in 10 category-based directories (CC 2.1.6 nested structure)
-- **20 agents**: Specialized AI personas for product thinking, system architecture, code quality, and more
+- **92 skills**: Reusable knowledge modules in 10 category-based directories (CC 2.1.6 nested structure)
+- **20 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **12 commands**: Pre-configured workflows for common development tasks
-- **96 hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
+- **95 hooks**: Lifecycle automation for sessions, tools, permissions, and quality gates
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -23,11 +23,11 @@ This document provides essential context for Claude Code when working with the S
 
 ```
 .claude/
-├── agents/              # 20 specialized AI agent personas (product + technical)
+├── agents/              # 20 specialized AI agent personas (CC 2.1.6 native format)
 ├── commands/            # 11 pre-configured development workflows
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 96 lifecycle hooks for automation
+├── hooks/               # 95 lifecycle hooks for automation
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -42,7 +42,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-skills/                  # 91 skills in CC 2.1.6 nested structure
+skills/                  # 92 skills in CC 2.1.6 nested structure
 ├── ai-llm/.claude/skills/       # (19) RAG, embeddings, agents, caching
 ├── langgraph/.claude/skills/    # (7)  LangGraph workflows
 ├── backend/.claude/skills/      # (15) FastAPI, architecture, databases
@@ -50,7 +50,7 @@ skills/                  # 91 skills in CC 2.1.6 nested structure
 ├── testing/.claude/skills/      # (9)  Unit, integration, E2E, mocking
 ├── security/.claude/skills/     # (5)  OWASP, auth, validation
 ├── devops/.claude/skills/       # (4)  CI/CD, observability
-├── workflows/.claude/skills/    # (12) Git, PR, implementation
+├── workflows/.claude/skills/    # (13) Git, PR, implementation, HUD
 ├── quality/.claude/skills/      # (8)  Quality gates, reviews
 └── context/.claude/skills/      # (6)  Context management, planning
 
@@ -78,7 +78,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.6 (CC 2.1.6 nested skills, context HUD, security fixes)
+- **Claude Code**: >= 2.1.6 (CC 2.1.6 nested skills, native agent skills, context HUD, security fixes)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure)
 
 ### Expected Application Stack (Skills Support)
@@ -107,7 +107,7 @@ bin/                     # CLI utilities and scripts
 git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge
 
 # Verify installation - check nested structure
-ls ~/.claude/plugins/skillforge/skills/*/. claude/skills/
+ls ~/.claude/plugins/skillforge/skills/*/.claude/skills/
 ```
 
 ### Testing
@@ -261,17 +261,52 @@ release_lock "decision-log"
 - `.claude/coordination/work-registry.json`
 - `.claude/context/shared-context.json` (deprecated - use Context 2.0)
 
-### 4. Agent Handoff Pattern
-When delegating to specialized agents:
-```markdown
-1. Read `agents/{agent-id}.md` for capabilities
-2. Check `plugin.json` for agent skills_used
-3. Load required skills BEFORE spawning agent
-4. Use Task tool with proper context
-5. Validate output against agent's success criteria
+### 4. Agent Spawning (CC 2.1.6 Native)
+Agents use CC 2.1.6 native frontmatter with automatic skill injection:
+
+```yaml
+# agents/my-agent.md
+---
+name: my-agent
+description: What this agent does...
+model: sonnet  # or opus, haiku, inherit
+color: blue
+tools:
+  - Read
+  - Write
+  - Bash
+skills:  # CC 2.1.6 auto-injects these at spawn time
+  - api-design-framework
+  - database-schema-designer
+---
+
+Agent system prompt and instructions...
 ```
 
-### 5. Context Protocol 2.0
+When spawning agents:
+```markdown
+1. Read `agents/{agent-id}.md` to understand capabilities
+2. Skills are auto-injected by CC 2.1.6 (no manual loading needed!)
+3. Use Task tool with subagent_type matching the agent name
+4. Validate output against agent's success criteria
+```
+
+### 5. Skill Context Modes (CC 2.1.6)
+Skills can specify how they share context:
+
+```yaml
+# In SKILL.md frontmatter
+context: fork     # Isolated context (default) - full separation
+context: inherit  # Share parent context - saves tokens for utilities
+context: none     # No context management
+```
+
+**When to use each:**
+- `fork`: Complex multi-step operations that shouldn't pollute main context
+- `inherit`: Quick utilities (commit, configure, doctor) that benefit from shared state
+- `none`: Stateless coordination tools
+
+### 6. Context Protocol 2.0
 **New Tiered Structure** (as of v4.6.0):
 ```
 .claude/context/
@@ -290,7 +325,7 @@ When delegating to specialized agents:
 - MIDDLE: Patterns, agent context (medium attention)
 - END: Blockers, session state (recent context)
 
-### 6. Git Branch Protection
+### 7. Git Branch Protection
 **CRITICAL**: The git-branch-protection hook **blocks** commits to `dev` and `main`:
 ```bash
 # This will FAIL:
@@ -303,7 +338,7 @@ git commit -m "changes"  # ALLOWED
 gh pr create  # Merge via PR
 ```
 
-### 7. Quality Gates
+### 8. Quality Gates
 Subagent completion triggers quality gates:
 - Test coverage >= 70% (configurable)
 - Security scans pass
@@ -312,7 +347,7 @@ Subagent completion triggers quality gates:
 
 Configure in `hooks/subagent-stop/subagent-quality-gate.sh`
 
-### 8. Context Window Monitoring (CC 2.1.6)
+### 9. Context Window Monitoring (CC 2.1.6)
 Use the statusline to monitor context usage:
 ```
 [CTX: 45%] ████████░░░░░░░░ - GREEN: Plenty of room
@@ -347,7 +382,7 @@ Use `/skf:claude-hud` to configure statusline display.
 ### Agent Boundaries
 - **DO NOT** use backend-system-architect for frontend code
 - **DO NOT** use workflow-architect for API design (that's backend-system-architect)
-- **DO NOT** spawn agents without checking `plugin.json` capabilities
+- **DO NOT** spawn agents without reading their agent markdown first
 
 ### Security Violations
 - **DO NOT** auto-approve writes outside `$CLAUDE_PROJECT_DIR`
@@ -391,22 +426,46 @@ touch skills/backend/.claude/skills/my-skill/references/impl.md # Tier 3
 ./bin/test-progressive-load.sh my-skill
 ```
 
-### 2. Creating a New Agent
+### 2. Creating a New Agent (CC 2.1.6 Format)
 ```bash
-# Step 1: Create agent markdown
-cat > agents/my-agent.md <<EOF
-# My Agent
-[Agent definition following template]
+# Step 1: Create agent markdown with CC 2.1.6 native frontmatter
+cat > agents/my-agent.md << 'EOF'
+---
+name: my-agent
+description: What this agent does and when to use it
+model: sonnet
+color: cyan
+tools:
+  - Read
+  - Write
+  - Bash
+  - Grep
+skills:
+  - skill-one
+  - skill-two
+  - skill-three
+---
+
+## Directive
+Clear instruction for what this agent does.
+
+## Auto Mode
+Activates for: keyword1, keyword2, pattern
+
+## Concrete Objectives
+1. First objective
+2. Second objective
+
+## Task Boundaries
+**DO:** List what this agent should do
+**DON'T:** List what other agents handle
 EOF
 
-# Step 2: Update plugin.json
-# Add to "agents" array with triggers, capabilities, skills_used
+# Step 2: Test agent spawning
+# Use Task tool with subagent_type: "my-agent"
 
-# Step 3: Test agent spawning
-# Use Task tool with: "spawn my-agent to do X"
-
-# Step 4: Validate handoffs
-# Check that agent loads required skills
+# Step 3: Validate agent loads skills correctly
+# CC 2.1.6 automatically injects skills from frontmatter
 ```
 
 ### 3. Implementing a Security Hook
@@ -469,6 +528,9 @@ hooks/logs/
 
 # Skills (CC 2.1.6 nested structure)
 skills/<category>/.claude/skills/<skill-name>/
+
+# Agents (CC 2.1.6 native format)
+agents/<agent-name>.md
 ```
 
 ### Environment Variables
@@ -516,7 +578,7 @@ ls agents/
 | `testing` | 9 | Unit, integration, E2E, mocking, data management |
 | `security` | 5 | OWASP, auth, validation, defense-in-depth |
 | `devops` | 4 | CI/CD, observability, GitHub CLI |
-| `workflows` | 12 | Git, PR, implementation, exploration, verification |
+| `workflows` | 13 | Git, PR, implementation, exploration, HUD |
 | `quality` | 8 | Quality gates, reviews, golden datasets |
 | `context` | 6 | Compression, engineering, brainstorming, planning |
 
@@ -524,9 +586,10 @@ ls agents/
 
 ## Version Information
 
-- **Current Version**: 4.9.0 (as of 2026-01-13)
+- **Current Version**: 4.10.0 (as of 2026-01-13)
 - **Claude Code Requirement**: >= 2.1.6
 - **Skills Structure**: CC 2.1.6 nested (.claude/skills/ pattern)
+- **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
@@ -562,7 +625,8 @@ tail -f hooks/logs/*.log
 3. **Permission denied**: Check auto-approval hooks in `hooks/permission/`
 4. **Lock timeout**: Run `.claude/coordination/lib/coordination.sh cleanup`
 5. **Context budget exceeded**: Use progressive loading, don't load entire directories
+6. **Agent skills not injected**: Verify agent uses CC 2.1.6 frontmatter with `skills:` array
 
 ---
 
-**Last Updated**: 2026-01-13 (v4.9.0 - CC 2.1.6 Integration)
+**Last Updated**: 2026-01-13 (v4.10.0 - CC 2.1.6 Native Agent Skills)
