@@ -4,7 +4,7 @@
   "engines": {
     "claude-code": ">=2.1.6"
   },
-  "description": "Comprehensive AI-assisted development toolkit with 92 skills, 20 agents, 95 hooks, progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 92 skills, 20 agents, 23 consolidated hooks (dispatcher pattern), progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -43,20 +43,23 @@
         ]
       },
       {
-        "matcher": "Read|Glob|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/input-mod/path-normalizer.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/write-dispatcher.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/backend-file-naming.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/structure-location-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/test-location-validator.sh"
           }
         ]
       },
@@ -81,38 +84,11 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/skill/skill-tracker.sh"
           }
         ]
-      },
-      {
-        "matcher": "mcp__context7__.*|mcp__plugin_skf_context7__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/context7-tracker.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__memory__.*|mcp__mem0__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/memory-validator.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__playwright__.*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/playwright-safety.sh"
-          }
-        ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": ".*",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -166,10 +142,6 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/startup-dispatcher.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/mem0-context-retrieval.sh"
           }
         ]
       }
@@ -179,11 +151,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/coordination-cleanup.sh"
-          },
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-cleanup.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-end-dispatcher.sh"
           }
         ]
       }
@@ -193,21 +161,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/mem0-pre-compaction-sync.sh"
-          },
-          {
-            "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/stop-dispatcher.sh"
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/full-test-suite.sh",
-            "timeout": 600
-          },
-          {
-            "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/security-scan-aggregator.sh",
-            "timeout": 600
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/skill-dispatcher.sh"
           }
         ]
       }
@@ -225,6 +183,10 @@
     "SubagentStop": [
       {
         "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/agent/agent-dispatcher.sh"
+          },
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/subagent-completion-tracker.sh"
