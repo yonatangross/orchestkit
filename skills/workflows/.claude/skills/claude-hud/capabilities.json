@@ -1,0 +1,37 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "claude-hud",
+  "version": "1.0.0",
+  "description": "Configure Claude Code statusline with context window monitoring using CC 2.1.6 fields",
+  "capabilities": {
+    "setup": {
+      "keywords": ["statusline", "hud", "context monitor", "context display"],
+      "solves": ["How do I see my context usage?", "How do I monitor context window?"],
+      "reference_file": "SKILL.md#quick-setup",
+      "token_cost": 150
+    },
+    "configure": {
+      "keywords": ["statusline config", "hud config", "customize display"],
+      "solves": ["How do I customize the statusline?", "What fields can I display?"],
+      "reference_file": "SKILL.md#configuration-options",
+      "token_cost": 200
+    },
+    "thresholds": {
+      "keywords": ["context threshold", "warning level", "context alert"],
+      "solves": ["When should I compact context?", "How do I set context warnings?"],
+      "reference_file": "SKILL.md#visual-states",
+      "token_cost": 100
+    }
+  },
+  "triggers": {
+    "high_confidence": ["statusline", "hud", "context.*display", "context.*monitor"],
+    "medium_confidence": ["token.*usage", "context.*window", "usage.*display"]
+  },
+  "progressive_loading": {
+    "tier_1_discovery": { "file": "capabilities.json", "tokens": 110 },
+    "tier_2_overview": { "file": "SKILL.md", "tokens": 400 },
+    "tier_3_specific": { "file": "references/statusline-fields.md", "tokens": 200 }
+  },
+  "related_skills": ["context-compression", "context-engineering"],
+  "cc_version": ">=2.1.6"
+}

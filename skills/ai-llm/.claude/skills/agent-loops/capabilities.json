@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "agent-loops",
+  "version": "1.0.0",
+  "description": "ReAct and tool-use patterns for agentic LLM loops",
+  "capabilities": [
+    "react-loop",
+    "tool-use",
+    "workflow-template"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "react.*pattern",
+      "agent.*loop",
+      "reason.*act"
+    ],
+    "medium_confidence": [
+      "iterative.*agent",
+      "tool.*loop"
+    ]
+  },
+  "integrates_with": [
+    "function-calling",
+    "llm-streaming",
+    "multi-agent-orchestration"
+  ]
+}

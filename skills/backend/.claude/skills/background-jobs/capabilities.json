@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "background-jobs",
+  "version": "1.0.0",
+  "description": "Async task processing with Celery, ARQ, and Redis for Python",
+  "capabilities": [
+    "arq-tasks",
+    "celery-tasks",
+    "celery-workflows",
+    "periodic-tasks"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "celery",
+      "arq",
+      "background.?task",
+      "job.?queue",
+      "worker"
+    ],
+    "medium_confidence": [
+      "async.?task",
+      "queue",
+      "scheduled",
+      "periodic",
+      "offload"
+    ]
+  },
+  "integrates_with": [
+    "caching-strategies",
+    "observability-monitoring",
+    "resilience-patterns"
+  ]
+}

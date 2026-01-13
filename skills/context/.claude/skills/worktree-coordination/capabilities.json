@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "worktree-coordination",
+  "version": "1.0.0",
+  "description": "Multi-instance coordination for parallel Claude Code development across git worktrees",
+  "capabilities": [
+    "conflict-prevention",
+    "decision-sync",
+    "file-locking",
+    "status-check"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "worktree",
+      "other instance",
+      "locked by",
+      "file conflict",
+      "parallel development"
+    ],
+    "medium_confidence": [
+      "multiple claude",
+      "coordination",
+      "who is working on"
+    ]
+  },
+  "integrates_with": [
+    "github-cli"
+  ]
+}

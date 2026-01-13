@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "add-golden",
+  "version": "1.0.0",
+  "description": "Curate and add documents to the golden dataset with multi-agent validation",
+  "capabilities": [
+    "content-curation",
+    "quality-evaluation",
+    "difficulty-classification",
+    "domain-tagging",
+    "query-generation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "add.*golden",
+      "curate.*document",
+      "add.*dataset",
+      "golden.*dataset"
+    ],
+    "medium_confidence": [
+      "add.*test.*data",
+      "curate.*content",
+      "evaluation.*dataset"
+    ]
+  },
+  "integrates_with": [
+    "golden-dataset-curation",
+    "golden-dataset-management",
+    "golden-dataset-validation"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 700
+    },
+    "tier_3_references": {
+      "quality-scoring": {
+        "file": "references/quality-scoring.md",
+        "tokens": 200
+      }
+    }
+  }
+}

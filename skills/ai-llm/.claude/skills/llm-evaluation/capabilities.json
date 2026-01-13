@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "llm-evaluation",
+  "version": "2.0.0",
+  "description": "LLM output evaluation and quality assessment with RAGAS metrics and LLM-as-judge patterns",
+  "capabilities": [
+    "batch-evaluation",
+    "hallucination-detection",
+    "llm-as-judge",
+    "pairwise-comparison",
+    "quality-gates",
+    "ragas-metrics"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "LLM.*eval",
+      "RAGAS",
+      "faithfulness",
+      "hallucination"
+    ],
+    "medium_confidence": [
+      "evaluate LLM",
+      "quality gate",
+      "LLM judge",
+      "answer relevancy"
+    ]
+  },
+  "integrates_with": [
+    "quality-gates",
+    "langfuse-observability",
+    "agent-loops"
+  ]
+}

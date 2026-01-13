@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "design-system-starter",
+  "version": "1.0.0",
+  "description": "Design system patterns: tokens, component architecture, accessibility, theming",
+  "capabilities": [
+    "accessibility",
+    "component-architecture",
+    "design-tokens",
+    "theming"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "design.*system",
+      "component.*library",
+      "design.*tokens"
+    ],
+    "medium_confidence": [
+      "color.*palette",
+      "dark.*mode",
+      "a11y"
+    ]
+  },
+  "integrates_with": [
+    "react-server-components-framework",
+    "type-safety-validation"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "resilience-patterns",
+  "version": "1.0.0",
+  "description": "Production-grade resilience patterns for distributed systems and LLM workflows",
+  "capabilities": [
+    "bulkhead",
+    "circuit-breaker",
+    "error-classification",
+    "llm-resilience",
+    "retry-strategies"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "circuit.*breaker",
+      "retry.*backoff",
+      "bulkhead.*pattern"
+    ],
+    "medium_confidence": [
+      "resilience",
+      "fault.*toleran"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-supervisor",
+    "langfuse-observability",
+    "llm-streaming"
+  ]
+}

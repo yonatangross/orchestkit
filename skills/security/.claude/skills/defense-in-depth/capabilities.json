@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "defense-in-depth",
+  "version": "1.0.0",
+  "description": "Multi-layer security architecture for AI systems with 8 validation layers from edge to storage",
+  "capabilities": [
+    "8-layer-architecture",
+    "audit-logging",
+    "request-context",
+    "tenant-isolation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "defense.*depth",
+      "security.*layer",
+      "8.*layer",
+      "validation.*layer"
+    ],
+    "medium_confidence": [
+      "secure.*api",
+      "multi.*layer",
+      "protection"
+    ]
+  },
+  "integrates_with": [
+    "owasp-top-10",
+    "llm-safety-patterns",
+    "observability-monitoring"
+  ]
+}

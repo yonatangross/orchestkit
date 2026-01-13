@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "llm-streaming",
+  "version": "1.0.0",
+  "description": "LLM streaming response patterns for real-time output",
+  "capabilities": [
+    "partial-json-parsing",
+    "sse-responses",
+    "stream-cancellation",
+    "streaming-with-tools",
+    "token-streaming"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "LLM.*streaming",
+      "stream.*response",
+      "SSE"
+    ],
+    "medium_confidence": [
+      "real-time",
+      "token.*stream",
+      "incremental"
+    ]
+  },
+  "integrates_with": [
+    "function-calling",
+    "streaming-api-patterns"
+  ]
+}

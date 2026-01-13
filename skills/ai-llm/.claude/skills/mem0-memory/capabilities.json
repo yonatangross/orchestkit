@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "mem0-memory",
+  "version": "1.0.0",
+  "description": "Manage long-term memory across sessions using Mem0",
+  "capabilities": [
+    "memory-add",
+    "memory-search",
+    "memory-list",
+    "memory-delete"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "memory",
+      "remember",
+      "recall",
+      "forget"
+    ],
+    "medium_confidence": [
+      "what did we",
+      "last time",
+      "previous session"
+    ]
+  },
+  "integrates_with": [
+    "context-compression",
+    "worktree-coordination"
+  ]
+}

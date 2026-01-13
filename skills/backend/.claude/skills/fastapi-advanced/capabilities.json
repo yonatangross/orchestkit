@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "fastapi-advanced",
+  "version": "1.0.0",
+  "description": "FastAPI 2026 advanced patterns: lifespan, dependencies, middleware, settings",
+  "capabilities": [
+    "dependencies",
+    "health-checks",
+    "lifespan",
+    "middleware",
+    "settings"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "fastapi.?lifespan",
+      "fastapi.?middleware",
+      "fastapi.?depend",
+      "pydantic.?settings"
+    ],
+    "medium_confidence": [
+      "fastapi",
+      "starlette",
+      "async.?python",
+      "uvicorn"
+    ]
+  },
+  "integrates_with": [
+    "clean-architecture",
+    "api-design-framework",
+    "auth-patterns"
+  ]
+}

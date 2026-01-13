@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "query-decomposition",
+  "version": "1.0.0",
+  "description": "Query decomposition for multi-concept retrieval, handling complex queries spanning multiple topics",
+  "capabilities": [
+    "concept-extraction",
+    "multi-hop-retrieval",
+    "parallel-search",
+    "result-fusion"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "query.*decomposition",
+      "multi.*concept",
+      "complex.*query"
+    ],
+    "medium_confidence": [
+      "multi.*hop",
+      "compound.*question",
+      "concept.*extraction"
+    ]
+  },
+  "integrates_with": [
+    "rag-retrieval",
+    "hyde-retrieval",
+    "reranking-patterns"
+  ],
+  "agent": "data-pipeline-engineer"
+}

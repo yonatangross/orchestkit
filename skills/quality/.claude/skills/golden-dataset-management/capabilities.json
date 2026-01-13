@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "golden-dataset-management",
+  "version": "1.0.0",
+  "description": "Backup, restore, and validate golden datasets for AI/ML systems - ensuring test data integrity and preventing catastrophic data loss",
+  "capabilities": [
+    "backup",
+    "ci-cd-automation",
+    "disaster-recovery",
+    "restore",
+    "skillforge-golden-dataset",
+    "validation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "backup.*golden.*dataset",
+      "restore.*test.*data",
+      "validate.*dataset.*integrity",
+      "export.*analyses"
+    ],
+    "medium_confidence": [
+      "protect.*test.*data",
+      "disaster.*recovery",
+      "data.*backup.*strategy",
+      "regenerate.*embeddings"
+    ]
+  },
+  "integrates_with": [
+    "pgvector-search",
+    "llm-evaluation",
+    "devops-deployment"
+  ]
+}

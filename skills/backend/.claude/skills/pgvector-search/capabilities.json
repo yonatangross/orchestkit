@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "pgvector-search",
+  "version": "1.0.0",
+  "description": "Production hybrid search with PGVector HNSW + BM25 using Reciprocal Rank Fusion, metadata filtering, and performance optimization for semantic retrieval",
+  "capabilities": [
+    "common-patterns",
+    "database-schema",
+    "golden-dataset-testing",
+    "hybrid-search-rrf",
+    "indexing-strategies",
+    "keyword-search-bm25",
+    "metadata-boosting",
+    "metadata-filtering",
+    "pre-computed-tsvector",
+    "rrf-algorithm",
+    "search-query-implementation",
+    "semantic-search"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "hybrid.*search",
+      "pgvector.*rrf",
+      "vector.*bm25.*search",
+      "semantic.*keyword.*search",
+      "reciprocal.*rank.*fusion",
+      "implement.*hybrid.*retrieval"
+    ],
+    "medium_confidence": [
+      "vector.*search.*performance",
+      "pgvector.*indexing",
+      "semantic.*search.*optimization",
+      "search.*metadata.*filtering",
+      "hnsw.*ivfflat"
+    ]
+  },
+  "integrates_with": [
+    "embeddings",
+    "database-schema-designer",
+    "performance-optimization"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "configure",
+  "version": "1.0.0",
+  "description": "Interactive SkillForge configuration wizard",
+  "capabilities": [
+    "configuration",
+    "preset-selection",
+    "skill-customization",
+    "agent-customization",
+    "hook-configuration",
+    "mcp-configuration"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "configure.*skillforge",
+      "setup.*skillforge",
+      "customize.*skillforge"
+    ],
+    "medium_confidence": [
+      "configure.*plugin",
+      "settings",
+      "preferences"
+    ]
+  },
+  "integrates_with": [],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 700
+    },
+    "tier_3_references": {
+      "presets": {
+        "file": "references/presets.md",
+        "tokens": 300
+      },
+      "mcp-config": {
+        "file": "references/mcp-config.md",
+        "tokens": 200
+      }
+    }
+  }
+}

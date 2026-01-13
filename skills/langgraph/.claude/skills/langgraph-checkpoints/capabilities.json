@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "langgraph-checkpoints",
+  "version": "1.0.0",
+  "description": "LangGraph checkpointing and persistence patterns",
+  "capabilities": [
+    "async-checkpoints",
+    "checkpoint-loading",
+    "checkpoint-saving",
+    "conversation-history",
+    "memory-backends"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "LangGraph.*checkpoint",
+      "checkpoint.*persist",
+      "MemorySaver"
+    ],
+    "medium_confidence": [
+      "checkpoint",
+      "persistence",
+      "state recovery",
+      "conversation history"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-state",
+    "langgraph-human-in-loop"
+  ]
+}

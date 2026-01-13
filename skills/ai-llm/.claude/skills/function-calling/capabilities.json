@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "function-calling",
+  "version": "2.0.0",
+  "description": "LLM function calling and tool use patterns with strict mode schemas",
+  "capabilities": [
+    "parallel-tool-calls",
+    "strict-mode-schemas",
+    "structured-output",
+    "tool-definition",
+    "tool-execution-loop"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "function.*calling",
+      "tool.*use",
+      "LLM.*tool"
+    ],
+    "medium_confidence": [
+      "structured.*output",
+      "JSON.*schema",
+      "agent.*tool"
+    ]
+  },
+  "integrates_with": [
+    "agent-loops",
+    "llm-streaming"
+  ]
+}

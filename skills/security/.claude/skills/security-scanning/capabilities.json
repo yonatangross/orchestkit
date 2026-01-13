@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "security-scanning",
+  "version": "1.0.0",
+  "description": "Automated security scanning for dependencies, code, and secrets",
+  "capabilities": [
+    "api-security-audit",
+    "audit-template",
+    "dependency-scanning",
+    "secret-detection"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "security.*scan",
+      "npm.*audit",
+      "secret.*detect"
+    ],
+    "medium_confidence": [
+      "vulnerability.*scan",
+      "dependency.*check"
+    ]
+  },
+  "integrates_with": [
+    "owasp-top-10",
+    "auth-patterns",
+    "input-validation"
+  ]
+}

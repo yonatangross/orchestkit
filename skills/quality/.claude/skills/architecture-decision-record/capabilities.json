@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "architecture-decision-record",
+  "version": "1.0.0",
+  "description": "ADR templates, decision documentation, and tradeoff analysis following Nygard format",
+  "capabilities": [
+    "adr-best-practices",
+    "adr-creation",
+    "consequences",
+    "tradeoff-analysis"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "create.*adr",
+      "document.*decision",
+      "architecture.*decision"
+    ],
+    "medium_confidence": [
+      "why.*chose",
+      "decision.*record",
+      "tradeoff"
+    ]
+  },
+  "integrates_with": [
+    "api-design-framework",
+    "database-schema-designer"
+  ]
+}

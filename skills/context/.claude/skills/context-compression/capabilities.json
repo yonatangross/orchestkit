@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "context-compression",
+  "version": "1.0.0",
+  "description": "Compress conversation history while preserving task-critical information using anchored summarization",
+  "capabilities": [
+    "anchored-summarization",
+    "compression-triggers",
+    "probe-evaluation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "context.*too.*long",
+      "compress.*history",
+      "token.*limit"
+    ],
+    "medium_confidence": [
+      "summarize.*conversation",
+      "memory.*management"
+    ]
+  },
+  "integrates_with": [
+    "context-engineering",
+    "multi-agent-orchestration",
+    "observability-monitoring"
+  ]
+}

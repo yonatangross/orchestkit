@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "rag-retrieval",
+  "version": "1.0.0",
+  "description": "Retrieval-Augmented Generation patterns for context-aware LLM responses",
+  "capabilities": [
+    "chatbot-example",
+    "hybrid-search",
+    "pipeline-template",
+    "retrieval-patterns"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "rag.*retrieval",
+      "retrieval.*augmented",
+      "context.*retrieval"
+    ],
+    "medium_confidence": [
+      "semantic.*search.*llm",
+      "vector.*context"
+    ]
+  },
+  "integrates_with": [
+    "embeddings",
+    "pgvector-search",
+    "semantic-caching"
+  ]
+}

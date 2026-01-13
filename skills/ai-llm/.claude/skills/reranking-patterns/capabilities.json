@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "reranking-patterns",
+  "version": "1.0.0",
+  "description": "Reranking patterns for improving search precision using cross-encoders and LLM-based relevance scoring",
+  "capabilities": [
+    "cross-encoder-rerank",
+    "llm-reranking",
+    "cohere-rerank",
+    "multi-signal-scoring"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "rerank",
+      "cross.*encoder",
+      "relevance.*scoring"
+    ],
+    "medium_confidence": [
+      "search.*precision",
+      "result.*ordering",
+      "second.*stage"
+    ]
+  },
+  "integrates_with": [
+    "rag-retrieval",
+    "hyde-retrieval",
+    "query-decomposition"
+  ],
+  "agent": "data-pipeline-engineer"
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "commit",
+  "version": "1.0.0",
+  "description": "Smart git commit with validation, conventional format, and branch protection",
+  "capabilities": [
+    "branch-protection",
+    "conventional-commits",
+    "pre-commit-validation",
+    "commit-message-generation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "commit",
+      "create.*commit",
+      "git.*commit",
+      "stage.*commit"
+    ],
+    "medium_confidence": [
+      "save.*changes",
+      "push.*changes"
+    ]
+  },
+  "integrates_with": [
+    "github-cli",
+    "code-review-playbook"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 90
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 400
+    },
+    "tier_3_references": {
+      "conventional-commits": {
+        "file": "references/conventional-commits.md",
+        "tokens": 150
+      },
+      "recovery": {
+        "file": "references/recovery.md",
+        "tokens": 100
+      }
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "project-structure-enforcer",
+  "version": "1.0.0",
+  "description": "Enforce 2026 folder structure standards with blocking validation for nesting depth and import direction",
+  "capabilities": [
+    "component-location",
+    "folder-structure",
+    "import-direction",
+    "nesting-depth"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "project.*structure",
+      "folder.*organization",
+      "import.*direction"
+    ],
+    "medium_confidence": [
+      "where.*put.*file",
+      "file.*location"
+    ]
+  },
+  "integrates_with": [
+    "clean-architecture",
+    "react-server-components-framework"
+  ]
+}

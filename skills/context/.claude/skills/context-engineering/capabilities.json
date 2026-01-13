@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "context-engineering",
+  "version": "1.0.0",
+  "description": "Master context window optimization through attention mechanics, strategic positioning, and degradation awareness",
+  "capabilities": [
+    "attention-mechanics",
+    "budget-allocation",
+    "context-layers"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "context.*engineering",
+      "attention.*mechanic",
+      "lost.*middle"
+    ],
+    "medium_confidence": [
+      "token.*efficien",
+      "context.*optimi"
+    ]
+  },
+  "integrates_with": [
+    "context-compression",
+    "multi-agent-orchestration",
+    "rag-retrieval",
+    "prompt-caching"
+  ]
+}

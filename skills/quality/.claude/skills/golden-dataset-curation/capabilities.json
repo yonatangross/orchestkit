@@ -1,0 +1,29 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "golden-dataset-curation",
+  "version": "1.0.0",
+  "description": "Quality criteria, workflows, and multi-agent analysis patterns for curating high-quality golden dataset entries",
+  "capabilities": [
+    "content-classification",
+    "difficulty-stratification",
+    "multi-agent-analysis",
+    "quality-evaluation"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "golden.*dataset.*curate",
+      "add.*golden.*document",
+      "quality.*evaluation"
+    ],
+    "medium_confidence": [
+      "curate.*entry",
+      "classify.*content"
+    ]
+  },
+  "integrates_with": [
+    "golden-dataset-management",
+    "golden-dataset-validation",
+    "langfuse-observability",
+    "pgvector-search"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "unit-testing",
+  "version": "1.0.0",
+  "description": "Unit testing patterns with pytest, Vitest, and assertion best practices",
+  "capabilities": [
+    "pytest-patterns",
+    "skillforge-strategy",
+    "test-case-template",
+    "vitest-patterns"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "unit.*test",
+      "pytest.*unit",
+      "vitest.*test"
+    ],
+    "medium_confidence": [
+      "test.*function",
+      "test.*class"
+    ]
+  },
+  "integrates_with": [
+    "integration-testing",
+    "msw-mocking",
+    "test-data-management"
+  ]
+}

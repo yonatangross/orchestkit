@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "system-design-interrogation",
+  "version": "1.0.0",
+  "description": "Systematic questioning framework for system design - ensures all dimensions (scale, security, data, UX) are considered before implementation",
+  "capabilities": [
+    "coherence-validation",
+    "data-architecture",
+    "scale-assessment",
+    "security-considerations",
+    "ux-impact"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "system design",
+      "before implementing",
+      "architecture review",
+      "design review"
+    ],
+    "medium_confidence": [
+      "planning",
+      "how should",
+      "where should",
+      "which approach"
+    ]
+  },
+  "integrates_with": [
+    "defense-in-depth",
+    "brainstorming",
+    "database-schema-designer"
+  ]
+}

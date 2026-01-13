@@ -1,0 +1,33 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "input-validation",
+  "version": "2.0.0",
+  "description": "Input validation and sanitization patterns with Zod v4 and Pydantic",
+  "capabilities": [
+    "allowlist-validation",
+    "error-formatting",
+    "file-validation",
+    "html-sanitization",
+    "schema-validation",
+    "type-coercion"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "input.*validation",
+      "Zod",
+      "Pydantic",
+      "sanitize"
+    ],
+    "medium_confidence": [
+      "validate",
+      "allowlist",
+      "coerce",
+      "schema"
+    ]
+  },
+  "integrates_with": [
+    "owasp-top-10",
+    "auth-patterns",
+    "type-safety-validation"
+  ]
+}

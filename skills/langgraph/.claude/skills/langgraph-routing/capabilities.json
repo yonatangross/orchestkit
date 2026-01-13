@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "langgraph-routing",
+  "version": "1.0.0",
+  "description": "Conditional and semantic routing patterns for LangGraph workflows",
+  "capabilities": [
+    "conditional-routing",
+    "router-template",
+    "semantic-routing"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "semantic.*rout",
+      "conditional.*langgraph",
+      "langgraph.*branch"
+    ],
+    "medium_confidence": [
+      "route.*intent",
+      "decision.*node"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-supervisor",
+    "langgraph-state",
+    "embeddings"
+  ]
+}

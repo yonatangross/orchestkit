@@ -1,0 +1,31 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "e2e-testing",
+  "version": "2.0.0",
+  "description": "End-to-end testing with Playwright 1.57+ including AI agents for test generation and healing",
+  "capabilities": [
+    "ai-test-generation",
+    "ai-test-healing",
+    "authentication-state",
+    "cross-browser-testing",
+    "semantic-locators",
+    "visual-regression"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "e2e.*test",
+      "playwright",
+      "end.to.end"
+    ],
+    "medium_confidence": [
+      "browser.*test",
+      "visual.*regression",
+      "getByRole"
+    ]
+  },
+  "integrates_with": [
+    "integration-testing",
+    "webapp-testing",
+    "performance-testing"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "langfuse-observability",
+  "version": "1.0.0",
+  "description": "LLM observability with self-hosted Langfuse - tracing, evaluation, monitoring, prompt management, and cost tracking",
+  "capabilities": [
+    "ab-testing",
+    "cost-tracking",
+    "datasets-evaluation",
+    "distributed-tracing",
+    "experiments-api",
+    "langchain-integration",
+    "llm-evaluation",
+    "monitoring-dashboard",
+    "multi-judge-evaluation",
+    "prompt-management",
+    "session-tracking",
+    "skillforge-integration"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "langfuse.*setup",
+      "llm.*observability",
+      "trace.*llm",
+      "monitor.*cost",
+      "prompt.*management"
+    ],
+    "medium_confidence": [
+      "track.*tokens",
+      "evaluate.*quality",
+      "ai.*monitoring",
+      "score.*response"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-state",
+    "llm-evaluation",
+    "semantic-caching",
+    "performance-optimization",
+    "resilience-patterns"
+  ]
+}

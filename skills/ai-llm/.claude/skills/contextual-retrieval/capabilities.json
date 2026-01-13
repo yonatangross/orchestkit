@@ -1,0 +1,30 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "contextual-retrieval",
+  "version": "1.0.0",
+  "description": "Anthropic's Contextual Retrieval technique for improved RAG by prepending context to chunks",
+  "capabilities": [
+    "context-generation",
+    "chunk-enrichment",
+    "hybrid-search",
+    "bm25-integration"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "contextual.*retrieval",
+      "context.*prepending",
+      "chunk.*contextualization"
+    ],
+    "medium_confidence": [
+      "anthropic.*retrieval",
+      "bm25.*hybrid",
+      "retrieval.*context"
+    ]
+  },
+  "integrates_with": [
+    "embeddings",
+    "rag-retrieval",
+    "hyde-retrieval"
+  ],
+  "agent": "data-pipeline-engineer"
+}

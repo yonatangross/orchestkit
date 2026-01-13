@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "langgraph-parallel",
+  "version": "1.0.0",
+  "description": "Fan-out/fan-in parallel execution patterns for LangGraph",
+  "capabilities": [
+    "fanin-pattern",
+    "fanout-pattern",
+    "parallel-template"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "parallel.*agent",
+      "fan.*out.*in",
+      "concurrent.*langgraph"
+    ],
+    "medium_confidence": [
+      "parallel.*execution",
+      "multi.*agent.*parallel"
+    ]
+  },
+  "integrates_with": [
+    "langgraph-supervisor",
+    "langgraph-state",
+    "langgraph-checkpoints"
+  ]
+}

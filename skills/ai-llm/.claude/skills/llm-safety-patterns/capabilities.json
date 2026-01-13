@@ -1,0 +1,32 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "llm-safety-patterns",
+  "version": "1.0.0",
+  "description": "Patterns for secure LLM integration - context separation, prompt safety, output validation, and hallucination prevention",
+  "capabilities": [
+    "context-separation",
+    "output-guardrails",
+    "post-llm-attribution",
+    "pre-llm-filtering",
+    "prompt-audit"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "llm.*safety",
+      "prompt.*injection",
+      "hallucination",
+      "context.*separation",
+      "id.*prompt"
+    ],
+    "medium_confidence": [
+      "llm.*security",
+      "prompt.*audit",
+      "output.*validation"
+    ]
+  },
+  "integrates_with": [
+    "defense-in-depth",
+    "owasp-top-10",
+    "llm-evaluation"
+  ]
+}

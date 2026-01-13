@@ -1,0 +1,39 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "explore",
+  "version": "1.0.0",
+  "description": "Deep codebase exploration with parallel specialized agents",
+  "capabilities": [
+    "code-search",
+    "architecture-analysis",
+    "data-flow-tracing",
+    "parallel-exploration"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "explore.*codebase",
+      "find.*code",
+      "how.*does.*work",
+      "where.*is.*defined"
+    ],
+    "medium_confidence": [
+      "search.*for",
+      "locate.*file",
+      "understand.*system"
+    ]
+  },
+  "integrates_with": [
+    "clean-architecture",
+    "react-server-components-framework"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 90
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 500
+    }
+  }
+}

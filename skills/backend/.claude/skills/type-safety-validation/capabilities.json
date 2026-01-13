@@ -1,0 +1,43 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "type-safety-validation",
+  "version": "1.1.0",
+  "description": "End-to-end type safety with Zod, tRPC, Prisma, exhaustive type checking, branded types, and TypeScript 5.7+ features (2025 patterns)",
+  "capabilities": [
+    "branded-types",
+    "exhaustive-types",
+    "implementation-checklist",
+    "prisma-types",
+    "skillforge-integration",
+    "trpc",
+    "ty-type-checker",
+    "typescript-5-features",
+    "zod-schemas"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "zod.*schema",
+      "trpc.*setup",
+      "type.*safe",
+      "validate.*input",
+      "ty.*check",
+      "ty.*error",
+      "assertNever",
+      "exhaustive.*switch",
+      "branded.*type"
+    ],
+    "medium_confidence": [
+      "typescript.*types",
+      "prisma.*types",
+      "api.*contract",
+      "isinstance.*check",
+      "missing.*case",
+      "union.*type",
+      "NewType"
+    ]
+  },
+  "integrates_with": [
+    "api-design-framework",
+    "database-schema-designer"
+  ]
+}

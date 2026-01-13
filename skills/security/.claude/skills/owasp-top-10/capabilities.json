@@ -1,0 +1,27 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "owasp-top-10",
+  "version": "1.0.0",
+  "description": "OWASP Top 10 security vulnerabilities and mitigations",
+  "capabilities": [
+    "access-control",
+    "injection",
+    "owasp-fixes"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "owasp",
+      "sql.*injection",
+      "broken.*access"
+    ],
+    "medium_confidence": [
+      "security.*vulnerability",
+      "xss.*prevent"
+    ]
+  },
+  "integrates_with": [
+    "auth-patterns",
+    "input-validation",
+    "security-scanning"
+  ]
+}

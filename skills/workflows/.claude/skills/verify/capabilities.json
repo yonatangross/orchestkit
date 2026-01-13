@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "verify",
+  "version": "1.0.0",
+  "description": "Comprehensive feature verification with parallel analysis agents",
+  "capabilities": [
+    "code-verification",
+    "test-execution",
+    "security-audit",
+    "best-practices-check",
+    "e2e-verification"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "verify.*branch",
+      "verify.*feature",
+      "check.*branch",
+      "validate.*code"
+    ],
+    "medium_confidence": [
+      "review.*changes",
+      "audit.*code",
+      "check.*quality"
+    ]
+  },
+  "integrates_with": [
+    "code-review-playbook",
+    "security-scanning",
+    "test-standards-enforcer",
+    "type-safety-validation"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 600
+    },
+    "tier_3_references": {
+      "report-template": {
+        "file": "references/report-template.md",
+        "tokens": 200
+      }
+    }
+  }
+}
