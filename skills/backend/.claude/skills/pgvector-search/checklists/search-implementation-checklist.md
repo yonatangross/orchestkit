@@ -572,4 +572,4 @@ for chunk, score in results:
 - **SkillForge Implementation**: `backend/app/db/repositories/chunk_repository.py`
 - **Search Service**: `backend/app/shared/services/search/search_service.py`
 - **Constants**: `backend/app/core/constants.py`
-- **Related Skill**: `.claude/skills/database-schema-designer/`
+- **Related Skill**: `the `database-schema-designer` skill`

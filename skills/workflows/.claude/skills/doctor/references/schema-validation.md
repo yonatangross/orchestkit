@@ -29,10 +29,10 @@ Located in `.claude/schemas/`:
 # Using ajv
 npx ajv validate \
   -s .claude/schemas/skill-capabilities.schema.json \
-  -d .claude/skills/doctor/capabilities.json
+  -d skills/workflows/.claude/skills/doctor/capabilities.json
 
 # Using jq for basic structure check
-jq empty .claude/skills/doctor/capabilities.json
+jq empty skills/workflows/.claude/skills/doctor/capabilities.json
 ```
 
 ## Common Schema Errors
@@ -97,7 +97,7 @@ jq empty .claude/skills/doctor/capabilities.json
 
 ```bash
 # Validate all capabilities.json files
-for f in .claude/skills/*/capabilities.json; do
+for category in skills/*/.claude/skills; do for f in "$category"/*/capabilities.json; do
   npx ajv validate \
     -s .claude/schemas/skill-capabilities.schema.json \
     -d "$f" || echo "INVALID: $f"

@@ -2,7 +2,7 @@
 name: implement
 description: Full-power feature implementation with parallel subagents, skills, and MCPs
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: SkillForge
 tags: [implementation, feature, full-stack, parallel-agents]
 ---
@@ -38,43 +38,50 @@ Break into small, deliverable, testable tasks:
 ### 1b. Research Current Best Practices
 
 ```python
-# PARALLEL - Web searches
-WebSearch("React 19 best practices 2025")
-WebSearch("FastAPI async patterns 2025")
-WebSearch("TypeScript 5.x strict mode 2025")
+# PARALLEL - Web searches (launch all in ONE message)
+WebSearch("React 19 best practices 2026")
+WebSearch("FastAPI async patterns 2026")
+WebSearch("TypeScript 5.x strict mode 2026")
 ```
 
 ### 1c. Context7 Documentation
 
 ```python
-# PARALLEL - Library docs
-mcp__context7__get-library-docs(libraryId="/facebook/react", topic="hooks")
-mcp__context7__get-library-docs(libraryId="/tiangolo/fastapi", topic="dependencies")
+# PARALLEL - Library docs (launch all in ONE message)
+mcp__context7__query-docs(libraryId="/vercel/next.js", query="app router")
+mcp__context7__query-docs(libraryId="/tiangolo/fastapi", query="dependencies")
 ```
 
-## Phase 2: Load Skills
+## Phase 2: Skills Auto-Loading (CC 2.1.6)
 
-```python
-# PARALLEL - Load capability indexes first
-Read(".claude/skills/api-design-framework/capabilities.json")
-Read(".claude/skills/react-server-components-framework/capabilities.json")
-Read(".claude/skills/type-safety-validation/capabilities.json")
-Read(".claude/skills/testing-strategy-builder/capabilities.json")
-```
+**CC 2.1.6 auto-discovers skills** - no manual loading needed!
 
-Then load ONLY specific references needed based on feature type.
+Relevant skills activated automatically based on task:
+- `api-design-framework` - REST/GraphQL patterns
+- `react-server-components-framework` - RSC, Server Actions
+- `type-safety-validation` - Zod, tRPC, Prisma
+- `unit-testing` / `integration-testing` - Test patterns
 
 ## Phase 3: Parallel Architecture Design (5 Agents)
+
+Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 | Agent | Focus |
 |-------|-------|
 | Plan | Architecture planning, dependency graph |
 | backend-system-architect | API, services, database |
 | frontend-ui-developer | Components, state, hooks |
-| ai-ml-engineer | LLM integration (if needed) |
+| llm-integrator | LLM integration (if needed) |
 | ux-researcher | User experience, accessibility |
 
-All 5 agents run in ONE message, then synthesize into unified plan.
+```python
+# PARALLEL - All agents in ONE message
+Task(subagent_type="Plan", prompt="...", run_in_background=True)
+Task(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
+Task(subagent_type="frontend-ui-developer", prompt="...", run_in_background=True)
+Task(subagent_type="llm-integrator", prompt="...", run_in_background=True)
+Task(subagent_type="ux-researcher", prompt="...", run_in_background=True)
+```
 
 ## Phase 4: Parallel Implementation (8 Agents)
 
@@ -84,10 +91,10 @@ All 5 agents run in ONE message, then synthesize into unified plan.
 | backend-system-architect #2 | Database layer |
 | frontend-ui-developer #1 | UI components |
 | frontend-ui-developer #2 | State & API hooks |
-| ai-ml-engineer | AI integration |
+| llm-integrator | AI integration |
 | rapid-ui-designer | Styling |
-| code-quality-reviewer #1 | Test suite |
-| sprint-prioritizer | Progress tracking |
+| test-generator #1 | Test suite |
+| prioritization-analyst | Progress tracking |
 
 ## Phase 5: Integration & Validation (4 Agents)
 
@@ -96,7 +103,7 @@ All 5 agents run in ONE message, then synthesize into unified plan.
 | backend-system-architect | Backend + database integration |
 | frontend-ui-developer | Frontend + API integration |
 | code-quality-reviewer #1 | Full test suite |
-| code-quality-reviewer #2 | Security audit |
+| security-auditor | Security audit |
 
 ## Phase 6: E2E Verification
 
@@ -110,22 +117,25 @@ mcp__playwright__browser_take_screenshot(filename="feature.png")
 
 ## Phase 7: Documentation
 
-Save implementation decisions to memory MCP for future reference.
+Save implementation decisions to memory MCP for future reference:
+
+```python
+mcp__mem0__add-memory(content="Implementation decisions...", userId="project-decisions")
+```
 
 ## Summary
 
 **Total Parallel Agents: 17 across 4 phases**
 
 **MCPs Used:**
-- sequential-thinking (complex reasoning)
 - context7 (library documentation)
-- memory (decision persistence)
+- mem0 (decision persistence)
 - playwright (E2E verification)
 
 **Key Principles:**
 - Tests are NOT optional
-- Parallel when independent
-- Progressive skill loading
+- Parallel when independent (use `run_in_background: true`)
+- CC 2.1.6 auto-loads skills from agent frontmatter
 - Evidence-based completion
 
 ## References

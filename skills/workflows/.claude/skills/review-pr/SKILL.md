@@ -2,7 +2,7 @@
 name: review-pr
 description: Comprehensive PR review with 6-7 parallel specialized agents
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: SkillForge
 tags: [code-review, pull-request, quality, security, testing]
 ---
@@ -43,35 +43,45 @@ Identify:
 - Lines added/removed
 - Affected domains (frontend, backend, AI)
 
-## Phase 2: Load Review Skills
+## Phase 2: Skills Auto-Loading (CC 2.1.6)
 
-```python
-# PARALLEL - Load capabilities
-Read(".claude/skills/code-review-playbook/capabilities.json")
-Read(".claude/skills/security-checklist/capabilities.json")
-Read(".claude/skills/testing-strategy-builder/capabilities.json")
-Read(".claude/skills/type-safety-validation/capabilities.json")
-```
+**CC 2.1.6 auto-discovers skills** - no manual loading needed!
+
+Relevant skills activated automatically:
+- `code-review-playbook` - Review patterns, conventional comments
+- `security-scanning` - OWASP, secrets, dependencies
+- `type-safety-validation` - Zod, TypeScript strict
 
 ## Phase 3: Parallel Code Review (6 Agents)
 
-Launch SIX specialized reviewers in ONE message:
+Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 
 | Agent | Focus Area |
 |-------|-----------|
 | code-quality-reviewer #1 | Readability, complexity, DRY |
 | code-quality-reviewer #2 | Type safety, Zod, Pydantic |
-| code-quality-reviewer #3 | Security, secrets, injection |
-| code-quality-reviewer #4 | Test coverage, edge cases |
+| security-auditor | Security, secrets, injection |
+| test-generator | Test coverage, edge cases |
 | backend-system-architect | API, async, transactions |
 | frontend-ui-developer | React 19, hooks, a11y |
 
+```python
+# PARALLEL - All 6 agents in ONE message
+Task(subagent_type="code-quality-reviewer", prompt="Review readability...", run_in_background=True)
+Task(subagent_type="code-quality-reviewer", prompt="Review type safety...", run_in_background=True)
+Task(subagent_type="security-auditor", prompt="Security audit...", run_in_background=True)
+Task(subagent_type="test-generator", prompt="Test coverage...", run_in_background=True)
+Task(subagent_type="backend-system-architect", prompt="API review...", run_in_background=True)
+Task(subagent_type="frontend-ui-developer", prompt="React review...", run_in_background=True)
+```
+
 ### Optional: AI Code Review
 
-If PR includes AI/ML code, add 7th agent for:
-- Prompt engineering quality
-- LangGraph workflow correctness
-- Token usage optimization
+If PR includes AI/ML code, add 7th agent:
+
+```python
+Task(subagent_type="llm-integrator", prompt="Review LLM patterns...", run_in_background=True)
+```
 
 ## Phase 4: Run Validation
 
@@ -80,7 +90,6 @@ If PR includes AI/ML code, add 7th agent for:
 cd backend
 poetry run ruff format --check app/
 poetry run ruff check app/
-poetry run ty check app/
 poetry run pytest tests/unit/ -v --tb=short
 
 # Frontend

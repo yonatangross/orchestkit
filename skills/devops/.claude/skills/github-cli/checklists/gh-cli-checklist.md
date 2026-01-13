@@ -473,4 +473,4 @@ gh issue status                               # My issue status
 - **GitHub CLI Manual:** https://cli.github.com/manual/
 - **SkillForge Git Workflow:** See `CLAUDE.md`
 - **Conventional Commits:** https://www.conventionalcommits.org/
-- **Example Workflow:** `.claude/skills/github-cli/examples/skillforge-gh-workflow.md`
+- **Example Workflow:** `skills/devops/.claude/skills/github-cli/examples/skillforge-gh-workflow.md`

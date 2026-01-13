@@ -96,7 +96,7 @@ Implement hybrid search combining BM25 and vector similarity.
 - [ ] Metadata boosting for section titles
 
 ## Technical Notes
-See `.claude/skills/pgvector-search/SKILL.md`
+See the `pgvector-search` skill for database search patterns
 EOF
 )" \
   --label "enhancement,backend" \

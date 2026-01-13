@@ -2,117 +2,120 @@
 name: verify
 description: Comprehensive feature verification with parallel analysis agents
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: SkillForge
-tags: [verification, testing, security, code-quality]
+tags: [verification, testing, quality, validation]
 ---
 
-# Verify Feature Branch
+# Verify Feature
 
-Complete verification using subagents, skills, MCPs, and latest best practices.
+Comprehensive verification using parallel specialized agents.
 
 ## When to Use
 
-- Verifying feature branches before merge
-- Running comprehensive code quality checks
-- Security auditing changes
-- Validating against current best practices
+- Verifying completed features
+- Pre-merge validation
+- Quality gate checks
+- End-to-end verification
 
 ## Quick Start
 
 ```bash
-/verify                    # Verify current branch
-/verify issue/123-feature  # Verify specific branch
+/verify authentication flow
+/verify user profile feature
 ```
 
-## Step 1: Analyze Scope
+## Phase 1: Gather Context
 
 ```bash
-# What changed?
-git diff --name-only dev...HEAD
-git log --oneline dev..HEAD
+# Get recent changes
+git diff main --stat
+git log main..HEAD --oneline
+
+# Identify affected areas
+git diff main --name-only | sort -u
 ```
 
-Identify libraries used, patterns implemented, and complexity.
+## Phase 2: Skills Auto-Loading (CC 2.1.6)
 
-## Step 2: Fetch Latest Best Practices
+**CC 2.1.6 auto-discovers skills** - no manual loading needed!
 
-### Web Search
-```python
-WebSearch("React 19 best practices 2025")
-WebSearch("FastAPI security patterns 2025")
-WebSearch("Python CVE security vulnerabilities 2025")
-```
+Relevant skills activated automatically:
+- `code-review-playbook` - Quality patterns
+- `security-scanning` - Security validation
+- `evidence-verification` - Completion proof
 
-### Context7 Documentation
-```python
-mcp__context7__get-library-docs(libraryId="/facebook/react", topic="hooks")
-mcp__context7__get-library-docs(libraryId="/tiangolo/fastapi", topic="dependencies")
-```
+## Phase 3: Parallel Verification (5 Agents)
 
-## Step 3: Load Review Skills
-
-```python
-Read(".claude/skills/code-review-playbook/capabilities.json")
-Read(".claude/skills/security-checklist/capabilities.json")
-Read(".claude/skills/testing-strategy-builder/capabilities.json")
-```
-
-## Step 4: Parallel Code Review (3 Agents)
-
-Launch THREE reviewers in ONE message:
+Launch ALL agents in ONE message with `run_in_background: true`:
 
 | Agent | Focus |
 |-------|-------|
-| code-quality-reviewer #1 | Backend: Ruff, ty, tests |
-| code-quality-reviewer #2 | Frontend: Biome, ESLint, tsc |
-| code-quality-reviewer #3 | Security: OWASP, secrets, deps |
+| code-quality-reviewer | Code quality, patterns |
+| security-auditor | Security compliance |
+| test-generator | Test coverage |
+| backend-system-architect | API correctness |
+| frontend-ui-developer | UI/UX validation |
 
-## Step 5: Run Test Suite
-
-```bash
-# Backend
-cd backend
-poetry run pytest tests/unit/ -v --tb=short \
-  --cov=app --cov-report=term-missing --cov-fail-under=80
-
-# Frontend
-cd frontend
-npm run test -- --coverage
+```python
+# PARALLEL - All 5 agents in ONE message
+Task(subagent_type="code-quality-reviewer", prompt="Verify code quality...", run_in_background=True)
+Task(subagent_type="security-auditor", prompt="Verify security...", run_in_background=True)
+Task(subagent_type="test-generator", prompt="Verify test coverage...", run_in_background=True)
+Task(subagent_type="backend-system-architect", prompt="Verify API...", run_in_background=True)
+Task(subagent_type="frontend-ui-developer", prompt="Verify UI...", run_in_background=True)
 ```
 
-## Step 6: E2E Verification
+## Phase 4: Run Tests
 
-If UI changes, use Playwright MCP:
+```bash
+# Backend tests
+cd backend && poetry run pytest tests/ -v --cov=app --cov-report=term-missing
+
+# Frontend tests
+cd frontend && npm run test -- --coverage
+
+# E2E tests (if available)
+cd e2e && npx playwright test
+```
+
+## Phase 5: Compile Evidence
+
+```markdown
+# Verification Report
+
+## Feature: [Name]
+
+## Test Results
+- Unit Tests: ✅ X/Y passed
+- Integration Tests: ✅ X/Y passed
+- E2E Tests: ✅ X/Y passed
+- Coverage: X%
+
+## Quality Gates
+| Gate | Status |
+|------|--------|
+| Type Safety | ✅/❌ |
+| Security Scan | ✅/❌ |
+| Linting | ✅/❌ |
+| Coverage >= 70% | ✅/❌ |
+
+## Evidence
+- Test output attached
+- Coverage report attached
+- Security scan results attached
+```
+
+## Phase 6: E2E Verification (Optional)
+
+If UI changes, verify with Playwright MCP:
 
 ```python
 mcp__playwright__browser_navigate(url="http://localhost:5173")
 mcp__playwright__browser_snapshot()
-mcp__playwright__browser_take_screenshot(filename="e2e-verification.png")
+mcp__playwright__browser_take_screenshot(filename="verification.png")
 ```
-
-## Step 7: Generate Report
-
-Output structured report:
-
-| Section | Content |
-|---------|---------|
-| Summary | READY / NEEDS ATTENTION / BLOCKED |
-| Code Quality | Lint, types, format checks |
-| Test Results | Pass/fail counts, coverage |
-| Security | Secrets scan, npm/pip audit |
-| Suggestions | Non-blocking improvements |
-| Blockers | Must-fix issues |
-
-## Tools Used
-
-- context7 MCP (library documentation)
-- WebSearch (today's best practices)
-- 3 parallel subagents (backend, frontend, security)
-- Skills (code-review, security, testing)
-- Playwright MCP (E2E verification)
-- Evidence collection (logs, screenshots)
 
 ## References
 
-- [Report Template](references/report-template.md)
+- [Verification Checklist](references/verification-checklist.md)
