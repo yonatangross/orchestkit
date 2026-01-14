@@ -4,7 +4,7 @@
   "engines": {
     "claude-code": ">=2.1.7"
   },
-  "description": "Comprehensive AI-assisted development toolkit with 92 skills, 20 agents, 90 hooks (24 registered via dispatchers), progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 92 skills, 20 agents, 90 hooks (32 registered directly), progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -187,7 +187,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-end-dispatcher.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/coordination-cleanup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-metrics-summary.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-cleanup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/pattern-sync-push.sh"
           }
         ]
       }
@@ -197,11 +209,43 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/stop-dispatcher.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/multi-instance-cleanup.sh"
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/skill-dispatcher.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/cleanup-instance.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/task-completion-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/auto-save-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/coverage-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/design-decision-saver.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/evidence-collector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/mem0-decision-saver.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/mem0-pre-compaction-sync.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/context-compressor.sh"
           }
         ]
       }

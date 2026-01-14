@@ -1,7 +1,8 @@
 #!/bin/bash
 # Multi-Instance Cleanup Hook
 # Runs on session stop to release locks and update instance status
-# Version: 1.0.0
+# CC 2.1.7 Compliant: JSON output on all exit paths
+# Version: 1.1.0
 
 set -euo pipefail
 
@@ -16,15 +17,17 @@ log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] [multi-instance-cleanup] $*" >&2
 }
 
-# Check if coordination is enabled
+# Check if coordination is enabled (self-guard)
 if [[ ! -f "$DB_PATH" ]]; then
     log "No coordination database, skipping cleanup"
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
 # Check if we have instance identity
 if [[ ! -f "$INSTANCE_DIR/id.json" ]]; then
     log "No instance identity, skipping cleanup"
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -38,8 +41,8 @@ stop_heartbeat() {
         local pid
         pid=$(cat "$INSTANCE_DIR/heartbeat.pid")
         if kill -0 "$pid" 2>/dev/null; then
-            log "Stopping heartbeat process (PID: $pid)"
             kill "$pid" 2>/dev/null || true
+            log "Stopped heartbeat process (PID: $pid)"
         fi
         rm -f "$INSTANCE_DIR/heartbeat.pid"
     fi
@@ -47,55 +50,48 @@ stop_heartbeat() {
 
 # Release all locks held by this instance
 release_locks() {
-    local lock_count
-    lock_count=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM file_locks WHERE instance_id = '$INSTANCE_ID'")
+    log "Releasing all locks..."
 
-    if [[ "$lock_count" -gt 0 ]]; then
-        log "Releasing $lock_count file locks..."
+    sqlite3 "$DB_PATH" << EOF
+-- Release all locks held by this instance
+UPDATE file_locks
+SET locked_by = NULL,
+    lock_type = 'none',
+    locked_at = NULL
+WHERE locked_by = '$INSTANCE_ID';
 
-        sqlite3 "$DB_PATH" << EOF
--- Log each lock release
+-- Log lock releases
 INSERT INTO audit_log (instance_id, action_type, target_type, target_id, details)
-SELECT '$INSTANCE_ID', 'lock_release', 'file', file_path, json_object('lock_id', lock_id, 'reason', 'session_end')
+SELECT '$INSTANCE_ID', 'lock_release', 'file', file_path,
+       '{"reason": "session_cleanup", "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}'
 FROM file_locks
-WHERE instance_id = '$INSTANCE_ID';
-
--- Delete file locks
-DELETE FROM file_locks WHERE instance_id = '$INSTANCE_ID';
-
--- Delete region locks
-DELETE FROM region_locks WHERE instance_id = '$INSTANCE_ID';
+WHERE locked_by = '$INSTANCE_ID';
 EOF
-    fi
+
+    log "All locks released"
 }
 
-# Handle incomplete work claims
+# Abandon work claims
 handle_work_claims() {
-    local claim_count
-    claim_count=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM work_claims WHERE instance_id = '$INSTANCE_ID' AND status IN ('claimed', 'in_progress')")
+    log "Handling work claims..."
 
-    if [[ "$claim_count" -gt 0 ]]; then
-        log "Found $claim_count incomplete work claims"
-
-        # Check if we should abandon or just pause
-        # For now, mark as abandoned (could be made configurable)
-        sqlite3 "$DB_PATH" << EOF
+    sqlite3 "$DB_PATH" << EOF
+-- Mark active claims as abandoned
 UPDATE work_claims
 SET status = 'abandoned',
-    updated_at = datetime('now')
+    completed_at = datetime('now')
 WHERE instance_id = '$INSTANCE_ID'
-AND status IN ('claimed', 'in_progress');
+  AND status = 'active';
 
 -- Log abandonment
 INSERT INTO audit_log (instance_id, action_type, target_type, target_id, details)
-SELECT '$INSTANCE_ID', 'work_abandon', 'claim', claim_id, json_object('task', task_description, 'reason', 'session_end')
+SELECT '$INSTANCE_ID', 'claim_abandon', 'work', claim_id,
+       '{"reason": "session_cleanup"}'
 FROM work_claims
-WHERE instance_id = '$INSTANCE_ID'
-AND status = 'abandoned';
+WHERE instance_id = '$INSTANCE_ID' AND status = 'abandoned';
 EOF
 
-        log "Work claims marked as abandoned"
-    fi
+    log "Work claims handled"
 }
 
 # Share any new knowledge discovered this session
@@ -212,6 +208,6 @@ main() {
     log "Multi-instance cleanup completed"
 }
 
-# Output systemMessage for user visibility
+# Output CC 2.1.7 compliant JSON first
 echo '{"continue":true,"suppressOutput":true}'
 main "$@"

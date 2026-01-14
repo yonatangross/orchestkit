@@ -357,9 +357,9 @@ test_full_session_lifecycle() {
         return
     fi
 
-    # Step 3: Session end
+    # Step 3: Session end (use session-cleanup as primary SessionEnd hook)
     local end_output
-    end_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/session-end-dispatcher.sh" 2>/dev/null || echo '{"continue":true}')
+    end_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/session-cleanup.sh" 2>/dev/null || echo '{"continue":true}')
 
     local end_ok
     end_ok=$(echo "$end_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
