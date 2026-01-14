@@ -45,6 +45,7 @@ HOOK_SECURITY_*.txt
 !.claude/context/session/.gitkeep
 .claude/context/handoffs/
 .claude/context/quality_gate_review_evidence.json
+.claude/context/verification-queue/
 
 # Coordination runtime files
 .claude/coordination/IMPLEMENTATION_REPORT.json

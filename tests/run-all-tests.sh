@@ -199,6 +199,16 @@ if [[ "$RUN_INTEGRATION" == "true" ]]; then
     run_test "Hook Chain Integration" "$SCRIPT_DIR/integration/test-hook-chains.sh" || true
     run_test "Context System Integration" "$SCRIPT_DIR/integration/test-context-system.sh" || true
     run_test "Plugin Installation Validation" "$SCRIPT_DIR/integration/test-plugin-installation.sh" || true
+
+    # Mem0 Integration Tests (v4.12.0)
+    run_test "Mem0 Library Tests" "$SCRIPT_DIR/mem0/test-mem0-library.sh" || true
+    run_test "Mem0 Integration Tests" "$SCRIPT_DIR/mem0/test-mem0-integration.sh" || true
+
+    # External Installation Tests (v4.12.0)
+    run_test "External Installation Tests" "$SCRIPT_DIR/external/test-installation.sh" || true
+
+    # Feedback System Tests (v4.12.0)
+    run_test "Feedback System Tests" "$SCRIPT_DIR/feedback/test-feedback-system.sh" || true
 fi
 
 # ============================================================
@@ -213,6 +223,9 @@ if [[ "$RUN_E2E" == "true" ]]; then
     run_test "Progressive Loading E2E" "$SCRIPT_DIR/e2e/test-progressive-loading.sh" || true
     run_test "Agent Lifecycle E2E" "$SCRIPT_DIR/e2e/test-agent-lifecycle.sh" || true
     run_test "Coordination System E2E" "$SCRIPT_DIR/e2e/test-coordination-e2e.sh" || true
+
+    # Agent Lifecycle E2E Tests (v4.12.0)
+    run_test "Agent Lifecycle E2E (New)" "$SCRIPT_DIR/agents/test-agent-lifecycle-e2e.sh" || true
 fi
 
 # ============================================================

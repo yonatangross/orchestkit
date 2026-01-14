@@ -350,7 +350,7 @@ output_silent_success() {
 # Output silent allow - permission hook approves silently
 # Usage: output_silent_allow
 output_silent_allow() {
-  echo '{"decision":{"behavior":"allow"}, "continue": true, "suppressOutput": true}'
+  echo '{"continue": true, "suppressOutput": true, "hookSpecificOutput": {"permissionDecision": "allow"}}'
 }
 
 # Output error message - only use when there's an actual problem
@@ -641,7 +641,7 @@ log_permission_feedback() {
 output_silent_allow_with_feedback() {
   local reason="${1:-auto-approved}"
   log_permission_feedback "allow" "$reason"
-  echo '{"decision":{"behavior":"allow"}, "continue": true, "suppressOutput": true}'
+  echo '{"continue": true, "suppressOutput": true, "hookSpecificOutput": {"permissionDecision": "allow"}}'
 }
 
 # Deny with feedback logging (CC 2.1.7)

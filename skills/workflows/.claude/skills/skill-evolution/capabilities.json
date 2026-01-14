@@ -1,64 +1,13 @@
 {
   "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
-  "id": "skill-evolution",
-  "name": "Skill Evolution Manager",
+  "name": "skill-evolution",
   "version": "1.0.0",
-  "description": "Analyze skill usage patterns, generate improvement suggestions, manage versions, and enable automatic skill evolution based on user behavior",
-  "category": "workflows",
-  "triggers": {
-    "keywords": [
-      "skill evolution",
-      "skill analysis",
-      "skill version",
-      "skill history",
-      "skill rollback",
-      "evolve skill",
-      "improve skill",
-      "skill metrics",
-      "edit patterns",
-      "skill suggestions"
-    ],
-    "contexts": [
-      "skill management",
-      "skill improvement",
-      "version control",
-      "pattern analysis",
-      "skill performance"
-    ],
-    "conditions": [
-      "user wants to analyze skill performance",
-      "user wants to view skill version history",
-      "user wants to rollback a skill",
-      "user wants to apply evolution suggestions",
-      "user wants to review edit patterns"
-    ]
-  },
-  "provides": [
-    "skill usage analysis",
-    "edit pattern detection",
-    "improvement suggestions",
-    "version management",
-    "rollback capability",
-    "evolution reports"
+  "description": "Analyze skill usage patterns and generate improvement suggestions",
+  "capabilities": [
+    "Analyze skill usage patterns and edit frequency",
+    "Generate improvement suggestions based on behavior",
+    "Manage skill versions and rollback",
+    "Track skill performance metrics"
   ],
-  "requires": [],
-  "tokens": {
-    "tier1": 120,
-    "tier2": 800,
-    "tier3": 400,
-    "total": 1320
-  },
-  "tools": [
-    "Bash",
-    "Read",
-    "AskUserQuestion"
-  ],
-  "author": "SkillForge",
-  "tags": [
-    "skill-management",
-    "evolution",
-    "versioning",
-    "analytics",
-    "improvement"
-  ]
+  "triggers": ["skill evolution", "skill analysis", "evolve skill", "skill metrics", "skill rollback"]
 }
