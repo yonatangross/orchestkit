@@ -3,6 +3,11 @@
 # CC 2.1.6 Compliant: silent on success, visible on failure
 # Supports agent_type field from CC 2.1.6 --agent flag
 # Consolidates: coordination-init, session-context-loader, session-env-setup, pattern-sync-pull
+#
+# Performance optimization (2026-01-14):
+# - Coordination is now OPT-IN via CLAUDE_MULTI_INSTANCE=1
+# - Essential hooks run first for faster startup
+# - Multi-instance sqlite operations only when explicitly enabled
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,23 +55,29 @@ run_hook() {
 }
 
 # Run startup hooks in order
+# Performance optimization: coordination is opt-in via CLAUDE_MULTI_INSTANCE=1
 
-# 1. Multi-instance init (first, if SQLite available)
-if command -v sqlite3 >/dev/null 2>&1; then
-  run_hook "MultiInstanceInit" "$SCRIPT_DIR/multi-instance-init.sh"
-fi
-
-run_hook "Coordination" "$SCRIPT_DIR/coordination-init.sh"
+# 1. Essential hooks (always run, fast)
 run_hook "Context" "$SCRIPT_DIR/session-context-loader.sh"
 run_hook "Environment" "$SCRIPT_DIR/session-env-setup.sh"
 
-# 5. Instance heartbeat (only if coordination DB exists)
-COORDINATION_DB="${CLAUDE_PROJECT_DIR:-.}/.claude/coordination/.claude.db"
-if [[ -f "$COORDINATION_DB" ]]; then
-  run_hook "Heartbeat" "$SCRIPT_DIR/instance-heartbeat.sh"
+# 2. Multi-instance coordination (OPT-IN for performance)
+# Enable with: export CLAUDE_MULTI_INSTANCE=1
+# Most users don't need multi-worktree coordination
+if [[ "${CLAUDE_MULTI_INSTANCE:-0}" == "1" ]]; then
+  if command -v sqlite3 >/dev/null 2>&1; then
+    run_hook "MultiInstanceInit" "$SCRIPT_DIR/multi-instance-init.sh"
+  fi
+  run_hook "Coordination" "$SCRIPT_DIR/coordination-init.sh"
+
+  # Instance heartbeat (only if coordination DB exists)
+  COORDINATION_DB="${CLAUDE_PROJECT_DIR:-.}/.claude/coordination/.claude.db"
+  if [[ -f "$COORDINATION_DB" ]]; then
+    run_hook "Heartbeat" "$SCRIPT_DIR/instance-heartbeat.sh"
+  fi
 fi
 
-# 6. Pull global patterns (cross-project sync)
+# 3. Pull global patterns (cross-project sync) - lightweight check
 run_hook "PatternSync" "$SCRIPT_DIR/pattern-sync-pull.sh"
 
 # Build output message based on agent type
