@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/anthropics/claude-code/main/schemas/mcp.schema.json",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "description": "Up-to-date documentation for frameworks and libraries",
+      "disabled": true
+    },
+    "sequential-thinking": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"],
+      "description": "Complex reasoning and architectural decision support",
+      "disabled": true
+    },
+    "mem0": {
+      "command": "uvx",
+      "args": ["mem0-mcp-server"],
+      "description": "Cloud semantic memory (official) - requires MEM0_API_KEY env var and uvx installed",
+      "disabled": true
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "description": "Local file-based memory via knowledge graph",
+      "disabled": true
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp"],
+      "description": "Browser automation for e2e testing and content capture",
+      "disabled": true
+    }
+  }
+}
