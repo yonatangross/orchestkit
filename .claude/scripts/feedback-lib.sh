@@ -157,6 +157,7 @@ EOF
   "learnFromApprovals": true,
   "learnFromAgentOutcomes": true,
   "shareAnonymized": false,
+  "syncGlobalPatterns": true,
   "retentionDays": 90,
   "pausedUntil": null
 }

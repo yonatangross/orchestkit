@@ -38,6 +38,9 @@ run_hook "CoordinationCleanup" "$SCRIPT_DIR/coordination-cleanup.sh"
 run_hook "SessionMetrics" "$SCRIPT_DIR/session-metrics-summary.sh"
 run_hook "SessionCleanup" "$SCRIPT_DIR/session-cleanup.sh"
 
+# Push patterns to global (cross-project sync)
+run_hook "PatternSync" "$SCRIPT_DIR/pattern-sync-push.sh"
+
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")

@@ -2,7 +2,7 @@
 # SessionStart Dispatcher - Runs all startup hooks and outputs combined status
 # CC 2.1.6 Compliant: silent on success, visible on failure
 # Supports agent_type field from CC 2.1.6 --agent flag
-# Consolidates: coordination-init, session-context-loader, session-env-setup
+# Consolidates: coordination-init, session-context-loader, session-env-setup, pattern-sync-pull
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -65,6 +65,9 @@ COORDINATION_DB="${CLAUDE_PROJECT_DIR:-.}/.claude/coordination/.claude.db"
 if [[ -f "$COORDINATION_DB" ]]; then
   run_hook "Heartbeat" "$SCRIPT_DIR/instance-heartbeat.sh"
 fi
+
+# 6. Pull global patterns (cross-project sync)
+run_hook "PatternSync" "$SCRIPT_DIR/pattern-sync-pull.sh"
 
 # Build output message based on agent type
 OUTPUT_MSG=""
