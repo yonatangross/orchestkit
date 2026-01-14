@@ -41,6 +41,7 @@ run_hook() {
 # Run prompt hooks in order
 run_hook "Context" "$SCRIPT_DIR/context-injector.sh"
 run_hook "Todo" "$SCRIPT_DIR/todo-enforcer.sh"
+run_hook "Memory" "$SCRIPT_DIR/memory-context.sh"
 
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
