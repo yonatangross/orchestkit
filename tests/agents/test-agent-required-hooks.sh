@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
-# Test: Validates agents have all required Stop hooks
-# All agents must have output-validator, context-publisher, and handoff-preparer
+# Test: Validates agent hook paths resolve to actual files
+#
+# This test ensures that any hooks defined in agent frontmatter
+# actually exist at the specified paths. Dead/broken hook paths
+# waste tokens and provide no functionality.
+#
+# CC 2.1.7 Compliant
 
 set -euo pipefail
 
@@ -8,40 +13,102 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/agents"
 
-REQUIRED_HOOKS=(
-  "output-validator.sh"
-  "context-publisher.sh"
-  "handoff-preparer.sh"
-)
-
 FAILED=0
+TOTAL_HOOKS=0
+VALID_HOOKS=0
 
-echo "=== Agent Required Hooks Test ==="
+echo "=== Agent Hook Path Validation Test ==="
 echo ""
 
+# Function to resolve hook path variables
+resolve_hook_path() {
+    local hook_path="$1"
+
+    # Replace common variables
+    hook_path="${hook_path//\$\{CLAUDE_PLUGIN_ROOT\}/$REPO_ROOT}"
+    hook_path="${hook_path//\$CLAUDE_PLUGIN_ROOT/$REPO_ROOT}"
+    hook_path="${hook_path//\$\{CLAUDE_PROJECT_DIR\}/$REPO_ROOT}"
+    hook_path="${hook_path//\$CLAUDE_PROJECT_DIR/$REPO_ROOT}"
+
+    # Remove quotes
+    hook_path="${hook_path//\"/}"
+    hook_path="${hook_path//\'/}"
+
+    echo "$hook_path"
+}
+
 for agent_file in "$AGENTS_DIR"/*.md; do
-  agent_name=$(basename "$agent_file" .md)
-  agent_failed=0
+    agent_name=$(basename "$agent_file" .md)
+    agent_errors=0
 
-  for hook in "${REQUIRED_HOOKS[@]}"; do
-    if ! grep -q "$hook" "$agent_file"; then
-      echo "FAIL: $agent_name missing required hook: $hook"
-      agent_failed=1
-      FAILED=1
+    # Extract hook commands from frontmatter (between --- markers)
+    # Look for lines with 'command:' in the hooks section
+    in_frontmatter=false
+    in_hooks=false
+
+    while IFS= read -r line; do
+        # Track frontmatter boundaries
+        if [[ "$line" == "---" ]]; then
+            if [[ "$in_frontmatter" == false ]]; then
+                in_frontmatter=true
+                continue
+            else
+                break  # End of frontmatter
+            fi
+        fi
+
+        # Track hooks section
+        if [[ "$in_frontmatter" == true ]]; then
+            if [[ "$line" =~ ^hooks: ]]; then
+                in_hooks=true
+                continue
+            fi
+
+            # Check if we've left hooks section (non-indented line that's not a hook directive)
+            if [[ "$in_hooks" == true && ! "$line" =~ ^[[:space:]] && -n "$line" ]]; then
+                in_hooks=false
+            fi
+
+            # Extract command paths
+            if [[ "$in_hooks" == true && "$line" =~ command:[[:space:]]*(.+) ]]; then
+                hook_cmd="${BASH_REMATCH[1]}"
+                ((TOTAL_HOOKS++))
+
+                resolved_path=$(resolve_hook_path "$hook_cmd")
+
+                if [[ -f "$resolved_path" ]]; then
+                    ((VALID_HOOKS++))
+                else
+                    echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
+                    echo "      Resolved to: $resolved_path"
+                    agent_errors=1
+                    FAILED=1
+                fi
+            fi
+        fi
+    done < "$agent_file"
+
+    if [[ $agent_errors -eq 0 ]]; then
+        # Count hooks for this agent
+        hook_count=$(grep -c "command:" "$agent_file" 2>/dev/null || echo "0")
+        if [[ $hook_count -gt 0 ]]; then
+            echo "PASS: $agent_name ($hook_count hooks validated)"
+        else
+            echo "PASS: $agent_name (no agent-specific hooks)"
+        fi
     fi
-  done
-
-  if [[ $agent_failed -eq 0 ]]; then
-    echo "PASS: $agent_name has all required hooks"
-  fi
 done
 
 echo ""
+echo "Summary: $VALID_HOOKS/$TOTAL_HOOKS hook paths validated"
+echo ""
 
 if [[ $FAILED -eq 1 ]]; then
-  echo "❌ Agent required hooks test FAILED"
-  exit 1
+    echo "❌ Agent hook path validation FAILED"
+    echo ""
+    echo "Fix: Either create the missing hook files or remove the broken hook references."
+    exit 1
 else
-  echo "✅ All agents have required hooks"
-  exit 0
+    echo "✅ All agent hook paths are valid"
+    exit 0
 fi

@@ -1,6 +1,6 @@
 ---
 name: test-generator
-description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions
+description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions. Activates for test, coverage, unit test, integration test, MSW, VCR, fixture
 model: sonnet
 context: fork
 color: green
@@ -19,17 +19,9 @@ skills:
   - vcr-http-recording
   - webapp-testing
   - performance-testing
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
-
-## Auto Mode
-Activates for: test, coverage, unit test, integration test, pytest, vitest, mock, fixture, MSW, VCR, assertion, test case, edge case, happy path, error handling
 
 ## MCP Tools
 - `mcp__playwright__*` - For E2E test generation and browser automation

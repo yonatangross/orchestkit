@@ -1,6 +1,6 @@
 ---
 name: data-pipeline-engineer
-description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale
+description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
 model: sonnet
 context: fork
 color: emerald
@@ -22,17 +22,9 @@ skills:
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
-
-## Auto Mode
-Activates for: embedding, embeddings, embed, vector index, chunk, chunking, batch process, ETL, data pipeline, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
 
 ## MCP Tools
 - `mcp__postgres-mcp__*` - Vector index operations and data queries

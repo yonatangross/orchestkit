@@ -1,6 +1,6 @@
 ---
 name: market-intelligence
-description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy
+description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.
 model: sonnet
 context: inherit
 color: violet
@@ -14,17 +14,9 @@ tools:
   - Bash
 skills:
   - github-cli
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
-
-## Auto Mode
-Activates for: market research, competitor analysis, TAM, SAM, SOM, market size, competitive landscape, market trends, industry analysis, SWOT, positioning, market opportunity, competitive intelligence
 
 ## MCP Tools
 - `mcp__memory__*` - Persist market intelligence across sessions

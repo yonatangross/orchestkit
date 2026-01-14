@@ -1,6 +1,6 @@
 ---
 name: llm-integrator
-description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies
+description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.
 model: sonnet
 context: fork
 color: orange
@@ -20,17 +20,9 @@ skills:
   - semantic-caching
   - langfuse-observability
   - resilience-patterns
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
-
-## Auto Mode
-Activates for: OpenAI, Anthropic, Claude, GPT, LLM, API, prompt, function calling, tool use, streaming, completion, chat, token, cost, rate limit, fallback, retry, provider, model, system prompt, few-shot, prompt template
 
 ## MCP Tools
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing

@@ -1,6 +1,6 @@
 ---
 name: product-strategist
-description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale
+description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go
 model: sonnet
 context: fork
 color: purple
@@ -15,17 +15,9 @@ tools:
 skills:
   - brainstorming
   - github-cli
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.
-
-## Auto Mode
-Activates for: product strategy, value proposition, should we build, strategic alignment, go/no-go, build vs buy, product vision, roadmap, opportunity assessment, feature validation, strategic decision, product direction
 
 ## MCP Tools
 - `mcp__memory__*` - Persist strategic decisions and rationale

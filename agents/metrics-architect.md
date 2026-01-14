@@ -1,6 +1,6 @@
 ---
 name: metrics-architect
-description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses
+description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.
 model: sonnet
 context: fork
 color: orchid
@@ -12,17 +12,9 @@ tools:
   - Bash
 skills:
   - langfuse-observability
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Design measurable success criteria, define OKRs and KPIs, and create instrumentation plans to validate product hypotheses and track outcomes.
-
-## Auto Mode
-Activates for: metrics, KPI, OKR, success criteria, measurement, analytics, instrumentation, tracking, hypothesis validation, A/B test, experiment, north star, leading indicator, lagging indicator
 
 ## MCP Tools
 - `mcp__memory__*` - Track metrics definitions and targets over time

@@ -1,6 +1,6 @@
 ---
 name: prioritization-analyst
-description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort
+description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.
 model: sonnet
 context: inherit
 color: plum
@@ -12,17 +12,9 @@ tools:
   - Bash
 skills:
   - github-cli
-hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
 ---
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.
-
-## Auto Mode
-Activates for: prioritization, RICE, ICE, WSJF, backlog, what to build next, ranking, scoring, opportunity cost, trade-off, sequencing, roadmap priority, stack rank, feature priority
 
 ## MCP Tools
 - `mcp__memory__*` - Track prioritization decisions over time

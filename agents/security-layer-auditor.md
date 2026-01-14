@@ -1,6 +1,6 @@
 ---
 name: security-layer-auditor
-description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection
+description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers
 model: sonnet
 context: fork
 color: red
@@ -15,10 +15,9 @@ skills:
   - auth-patterns
   - input-validation
 hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
+  PostToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/agent/security-command-audit.sh"
 ---
 # Security Layer Auditor Agent
 
@@ -46,14 +45,6 @@ Before completing, store significant patterns:
 4. Document findings with severity (Critical/High/Medium/Low)
 5. Provide specific remediation code for each finding
 6. Generate a structured audit report
-
-## Auto Mode
-
-This agent is auto-invoked when:
-- Keywords detected: "security audit", "security review", "layer audit", "defense in depth"
-- Before deploying LLM features with sensitive data access
-- After security incidents for root cause analysis
-- When reviewing code that handles PII or multi-tenant data
 
 ## When to Use This Agent
 
@@ -420,4 +411,4 @@ This agent uses:
 
 ---
 
-**Version:** 1.0.1 (January 2026)
+**Version:** 1.0.2 (January 2026)

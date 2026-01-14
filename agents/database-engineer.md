@@ -1,6 +1,6 @@
 ---
 name: database-engineer
-description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes
+description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint
 model: sonnet
 context: fork
 color: emerald
@@ -16,16 +16,12 @@ skills:
   - pgvector-search
   - performance-optimization
 hooks:
-  Stop:
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/output-validator.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/context-publisher.sh"
-    - command: "$CLAUDE_PROJECT_DIR/.claude/hooks/agent/handoff-preparer.sh"
+  PreToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/agent/migration-safety-check.sh"
 ---
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.
-
-## Auto Mode
-Activates for: schema, migration, database, postgres, pgvector, index, constraint, alembic, slow query, EXPLAIN, tsvector, full-text search, HNSW, IVFFlat, foreign key, normalization
 
 ## MCP Tools (Primary)
 - `mcp__pg-aiguide__semantic_search_postgres_docs` - Query PostgreSQL manual
