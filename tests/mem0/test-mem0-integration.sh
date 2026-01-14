@@ -332,9 +332,9 @@ test_full_session_lifecycle() {
     export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
     export HOOK_INPUT='{}'
 
-    # Step 1: Session start
+    # Step 1: Session start (use session-context-loader as primary SessionStart hook)
     local start_output
-    start_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/startup-dispatcher.sh" 2>/dev/null || echo '{"continue":true}')
+    start_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null || echo '{"continue":true}')
 
     local start_ok
     start_ok=$(echo "$start_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")

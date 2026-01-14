@@ -1,6 +1,6 @@
 #!/bin/bash
 # Pattern Sync Pull - SessionStart Hook
-# CC 2.1.6 Compliant: silent on success
+# CC 2.1.7 Compliant: silent on success with suppressOutput
 # Pulls global patterns into project on session start
 #
 # Part of Cross-Project Patterns (#48)
@@ -19,8 +19,8 @@ else
     if [[ -f "$PLUGIN_SYNC_LIB" ]]; then
         source "$PLUGIN_SYNC_LIB"
     else
-        # Library not available - silent pass
-        echo '{"continue": true}'
+        # Library not available - silent pass (CC 2.1.7)
+        echo '{"continue":true,"suppressOutput":true}'
         exit 0
     fi
 fi
@@ -35,7 +35,7 @@ log_hook() {
 # Check if sync is enabled
 if ! is_sync_enabled; then
     log_hook "Global sync disabled, skipping pull"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -47,6 +47,6 @@ else
     log_hook "Failed to pull global patterns"
 fi
 
-# Silent success
-echo '{"continue": true}'
+# Silent success (CC 2.1.7)
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

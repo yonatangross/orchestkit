@@ -106,9 +106,9 @@ test_empty_repo_hooks_run() {
     repo_dir=$(create_test_repo "empty-repo")
     install_plugin_to_repo "$repo_dir"
 
-    # Run startup dispatcher
+    # Run session context loader (primary SessionStart hook)
     local output
-    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/startup-dispatcher.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
+    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -185,9 +185,9 @@ test_existing_claude_no_conflict() {
 
     install_plugin_to_repo "$repo_dir"
 
-    # Run startup
+    # Run session context loader
     local output
-    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/startup-dispatcher.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
+    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -305,7 +305,7 @@ test_monorepo_structure() {
     install_plugin_to_repo "$repo_dir"
 
     local output
-    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/startup-dispatcher.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
+    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -409,7 +409,7 @@ test_missing_dependencies_graceful() {
 
     # Run with minimal environment
     local output
-    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/startup-dispatcher.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
+    output=$(bash "$PLUGIN_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null <<< '{}' || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")

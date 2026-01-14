@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Satisfaction Detector - UserPromptSubmit Hook
-# CC 2.1.6 Compliant: includes continue field in all outputs
+# CC 2.1.7 Compliant: includes continue field and suppressOutput in all outputs
 # Detects user satisfaction signals from conversation patterns
 #
 # Strategy:
@@ -13,7 +13,7 @@ set -euo pipefail
 # - Sampling mode: only analyzes every Nth prompt to reduce overhead
 # - Configure via SATISFACTION_SAMPLE_RATE (default: 3)
 #
-# Version: 1.1.0
+# Version: 1.2.0
 # Part of Feedback System (#57)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -45,7 +45,7 @@ echo "$COUNTER" > "$COUNTER_FILE" 2>/dev/null || true
 
 # Skip if not on sampling interval (for performance)
 if [[ "$SAMPLE_RATE" -gt 1 ]] && (( COUNTER % SAMPLE_RATE != 0 )); then
-  echo '{"continue": true}'
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -62,8 +62,8 @@ else
     if [[ -f "$PLUGIN_FEEDBACK_LIB" ]]; then
         source "$PLUGIN_FEEDBACK_LIB"
     else
-        # feedback-lib not available - silent pass
-        echo '{"continue": true}'
+        # feedback-lib not available - silent pass (CC 2.1.7)
+        echo '{"continue":true,"suppressOutput":true}'
         exit 0
     fi
 fi
@@ -91,19 +91,19 @@ fi
 
 # Skip empty prompts
 if [[ -z "$USER_PROMPT" ]]; then
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
 # Skip very short prompts (likely commands)
 if [[ ${#USER_PROMPT} -lt $MIN_PROMPT_LENGTH ]]; then
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
 # Skip prompts that look like commands (start with /)
 if [[ "$USER_PROMPT" == /* ]]; then
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -128,6 +128,6 @@ if [[ "$SENTIMENT" != "neutral" ]]; then
     log_hook "Detected $SENTIMENT satisfaction signal" 2>/dev/null || true
 fi
 
-# Output CC 2.1.6 compliant JSON (silent success)
-echo '{"continue": true}'
+# Output CC 2.1.7 compliant JSON (silent success)
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

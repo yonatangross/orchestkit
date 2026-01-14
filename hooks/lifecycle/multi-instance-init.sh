@@ -1,9 +1,29 @@
 #!/bin/bash
 # Multi-Instance Coordination Initialization Hook
 # Runs on session start to register this Claude Code instance
-# Version: 1.0.0
+# CC 2.1.7 Compliant: Self-guarding - only runs when CLAUDE_MULTI_INSTANCE=1
+# Version: 1.1.0
 
 set -euo pipefail
+
+# =============================================================================
+# SELF-GUARD: Only run when multi-instance mode is enabled
+# =============================================================================
+if [[ "${CLAUDE_MULTI_INSTANCE:-0}" != "1" ]]; then
+    # Multi-instance not enabled - silent exit (CC 2.1.7)
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+fi
+
+# Check for sqlite3 (required for coordination)
+if ! command -v sqlite3 >/dev/null 2>&1; then
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+fi
+
+# =============================================================================
+# MAIN HOOK LOGIC
+# =============================================================================
 
 # Get the project root (where .claude lives)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -291,7 +311,8 @@ main() {
     # Initialize database
     init_database || {
         log "ERROR: Failed to initialize database"
-        exit 1
+        echo '{"continue":true,"suppressOutput":true}'
+        exit 0
     }
 
     # Cleanup stale instances
@@ -309,7 +330,7 @@ main() {
             # Update heartbeat
             sqlite3 "$DB_PATH" "UPDATE instances SET last_heartbeat = datetime('now'), status = 'active' WHERE instance_id = '$existing_id'"
 
-            echo "INSTANCE_REUSED: $existing_id"
+            echo '{"continue":true,"suppressOutput":true}'
             exit 0
         fi
     fi
@@ -332,10 +353,9 @@ main() {
     check_pending_messages "$instance_id"
 
     log "Multi-instance coordination initialized successfully"
-    echo "INSTANCE_INITIALIZED: $instance_id"
 }
 
-# Run main
-# Output systemMessage for user visibility
-echo '{"continue":true,"suppressOutput":true}'
+# Run main and output CC 2.1.7 compliant JSON
 main "$@"
+echo '{"continue":true,"suppressOutput":true}'
+exit 0

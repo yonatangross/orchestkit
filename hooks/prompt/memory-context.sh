@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 # Memory Context - UserPromptSubmit Hook
-# CC 2.1.6 Compliant: includes continue field in all outputs
+# CC 2.1.7 Compliant: includes continue field and suppressOutput in all outputs
 # Auto-searches mem0 for relevant context based on user prompt
 #
 # Strategy:
@@ -9,7 +9,7 @@ set -euo pipefail
 # - Search mem0 for relevant decisions/patterns
 # - Inject search suggestions into context
 #
-# Version: 1.0.0
+# Version: 1.1.0
 # Part of mem0 Semantic Memory Integration (#40, #46)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -19,8 +19,8 @@ export _HOOK_INPUT
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh" 2>/dev/null || true
 source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null || {
-    # mem0 lib not available - silent pass
-    echo '{"continue": true}'
+    # mem0 lib not available - silent pass (CC 2.1.7)
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -66,7 +66,7 @@ fi
 # Skip if prompt is too short
 if [[ ${#USER_PROMPT} -lt $MIN_PROMPT_LENGTH ]]; then
     log_hook "Prompt too short (${#USER_PROMPT} chars), skipping memory search"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -91,7 +91,7 @@ should_search_memory() {
 # Check if prompt suggests memory search would be valuable
 if ! should_search_memory "$USER_PROMPT"; then
     log_hook "No memory trigger keywords found, skipping"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -101,7 +101,7 @@ fi
 
 if ! is_mem0_available; then
     log_hook "Mem0 not available, skipping memory search"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -137,7 +137,7 @@ SEARCH_TERMS=$(extract_search_terms "$USER_PROMPT")
 
 if [[ -z "$SEARCH_TERMS" ]]; then
     log_hook "No search terms extracted, skipping"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -148,7 +148,7 @@ SYSTEM_MSG="[Memory Context] For relevant past decisions, use mcp__mem0__search_
 
 log_hook "Outputting memory search suggestion for: $SEARCH_TERMS"
 
-# Output CC 2.1.6 compliant JSON
+# Output CC 2.1.7 compliant JSON
 jq -n \
     --arg msg "$SYSTEM_MSG" \
     '{

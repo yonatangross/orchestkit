@@ -1,17 +1,26 @@
 #!/bin/bash
 # Instance Heartbeat - Lifecycle Hook
 # Updates heartbeat timestamp and cleans up stale instances
-# CC 2.1.6 Compliant: ensures JSON output on all code paths
+# CC 2.1.7 Compliant: Self-guarding - only runs when CLAUDE_MULTI_INSTANCE=1
 #
 # Runs periodically to:
 # 1. Update this instance's heartbeat
 # 2. Clean up stale instances (no heartbeat > 5 min)
 # 3. Release orphaned locks
 #
-# Version: 1.0.1
+# Version: 1.1.0
 # Part of Multi-Worktree Coordination System
 
 set -euo pipefail
+
+# =============================================================================
+# SELF-GUARD: Only run when multi-instance mode is enabled
+# =============================================================================
+if [[ "${CLAUDE_MULTI_INSTANCE:-0}" != "1" ]]; then
+    # Multi-instance not enabled - silent exit (CC 2.1.7)
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+fi
 
 # Ensure JSON output on any exit (trap for safety)
 trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT

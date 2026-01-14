@@ -1,9 +1,19 @@
 #!/bin/bash
 # Coordination Initialization - Register instance at session start
 # Hook: SessionStart
-# CC 2.1.6 Compliant: ensures JSON output on all code paths
+# CC 2.1.7 Compliant: Self-guarding - only runs when CLAUDE_MULTI_INSTANCE=1
+# Version: 1.1.0
 
 set -euo pipefail
+
+# =============================================================================
+# SELF-GUARD: Only run when multi-instance mode is enabled
+# =============================================================================
+if [[ "${CLAUDE_MULTI_INSTANCE:-0}" != "1" ]]; then
+    # Multi-instance not enabled - silent exit (CC 2.1.7)
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+fi
 
 # Ensure JSON output on any exit (trap for safety)
 trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT

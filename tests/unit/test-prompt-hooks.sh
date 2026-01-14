@@ -3,7 +3,7 @@
 # Prompt Hooks Unit Tests
 # ============================================================================
 # Tests hooks that run during prompt processing:
-# - prompt/: context injection, todo enforcement
+# - prompt/: context injection, todo enforcement, memory context, satisfaction
 # ============================================================================
 
 set -euo pipefail
@@ -31,25 +31,11 @@ test_context_injector_adds_context() {
 
     if [[ -n "$output" ]]; then
         assert_valid_json "$output"
-        # Check for continue field (CC 2.1.6)
+        # Check for continue field (CC 2.1.7)
         if echo "$output" | jq -e 'has("continue")' >/dev/null 2>&1; then
             return 0
         fi
     fi
-}
-
-test_prompt_dispatcher_routes_correctly() {
-    local hook="$HOOKS_DIR/prompt/prompt-dispatcher.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "prompt-dispatcher.sh not found"
-    fi
-
-    local input='{"prompt":"Build a REST API","role":"user"}'
-    local exit_code
-    echo "$input" | bash "$hook" >/dev/null 2>&1 && exit_code=0 || exit_code=$?
-
-    # Should not crash
-    assert_less_than "$exit_code" 3
 }
 
 test_todo_enforcer_checks_todo_list() {
@@ -65,6 +51,75 @@ test_todo_enforcer_checks_todo_list() {
     if [[ -n "$output" ]]; then
         assert_valid_json "$output"
     fi
+}
+
+test_memory_context_outputs_json() {
+    local hook="$HOOKS_DIR/prompt/memory-context.sh"
+    if [[ ! -f "$hook" ]]; then
+        skip "memory-context.sh not found"
+    fi
+
+    local input='{"prompt":"Add a new feature to the API"}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Check for continue field (CC 2.1.7)
+        echo "$output" | jq -e 'has("continue")' >/dev/null 2>&1
+    fi
+}
+
+test_satisfaction_detector_outputs_json() {
+    local hook="$HOOKS_DIR/prompt/satisfaction-detector.sh"
+    if [[ ! -f "$hook" ]]; then
+        skip "satisfaction-detector.sh not found"
+    fi
+
+    local input='{"prompt":"Thanks, that worked perfectly!"}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Check for continue field (CC 2.1.7)
+        echo "$output" | jq -e 'has("continue")' >/dev/null 2>&1
+    fi
+}
+
+# ============================================================================
+# CC 2.1.7 COMPLIANCE TESTS
+# ============================================================================
+
+describe "CC 2.1.7 Compliance"
+
+test_all_prompt_hooks_have_suppress_output() {
+    local hooks=(
+        "$HOOKS_DIR/prompt/context-injector.sh"
+        "$HOOKS_DIR/prompt/todo-enforcer.sh"
+        "$HOOKS_DIR/prompt/memory-context.sh"
+        "$HOOKS_DIR/prompt/satisfaction-detector.sh"
+    )
+
+    for hook in "${hooks[@]}"; do
+        if [[ -f "$hook" ]]; then
+            # Check that hook outputs suppressOutput:true on silent success
+            grep -q "suppressOutput" "$hook" || {
+                echo "FAIL: $hook missing suppressOutput"
+                return 1
+            }
+        fi
+    done
+}
+
+test_hooks_registered_in_plugin_json() {
+    local plugin_json="$PROJECT_ROOT/plugin.json"
+
+    # Check all 4 prompt hooks are registered individually
+    grep -q "context-injector.sh" "$plugin_json" || return 1
+    grep -q "todo-enforcer.sh" "$plugin_json" || return 1
+    grep -q "memory-context.sh" "$plugin_json" || return 1
+    grep -q "satisfaction-detector.sh" "$plugin_json" || return 1
 }
 
 # ============================================================================

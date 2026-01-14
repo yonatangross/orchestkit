@@ -127,7 +127,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/prompt-dispatcher.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/context-injector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/todo-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/memory-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/satisfaction-detector.sh"
           }
         ]
       }
@@ -137,7 +149,35 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/startup-dispatcher.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-context-loader.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-env-setup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/mem0-context-retrieval.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/pattern-sync-pull.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/analytics-consent-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/multi-instance-init.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/coordination-init.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/instance-heartbeat.sh"
           }
         ]
       }

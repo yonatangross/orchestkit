@@ -80,7 +80,7 @@ it "has trigger keywords array" test_has_trigger_keywords
 it "has minimum prompt length" test_has_min_prompt_length
 it "has should_search_memory function" test_has_should_search_function
 
-describe "Memory Context Hook: CC 2.1.6 Compliance"
+describe "Memory Context Hook: CC 2.1.7 Compliance"
 
 test_memory_context_empty_valid_json() {
     local output
@@ -107,10 +107,16 @@ test_memory_context_long_prompt_with_keyword() {
     echo "$output" | jq -e '.continue == true' >/dev/null
 }
 
+test_memory_context_has_suppress_output() {
+    # CC 2.1.7: All silent exits should have suppressOutput:true
+    grep -q "suppressOutput" "$MEMORY_CONTEXT_HOOK"
+}
+
 it "outputs valid JSON on empty input" test_memory_context_empty_valid_json
 it "includes continue field" test_memory_context_has_continue
 it "passes through short prompts" test_memory_context_short_prompt_passes
 it "handles long prompts with keywords" test_memory_context_long_prompt_with_keyword
+it "has suppressOutput for CC 2.1.7 compliance" test_memory_context_has_suppress_output
 
 # ============================================================================
 # DECISION SYNC SCRIPT TESTS
@@ -198,14 +204,14 @@ it "has format_for_mem0 function" test_has_format_for_mem0
 # INTEGRATION TESTS
 # ============================================================================
 
-describe "Integration: Prompt Dispatcher Registration"
+describe "Integration: Plugin.json Registration"
 
-test_memory_hook_in_dispatcher() {
-    local dispatcher="$PROJECT_ROOT/hooks/prompt/prompt-dispatcher.sh"
-    grep -q "memory-context.sh" "$dispatcher"
+test_memory_hook_in_plugin_json() {
+    local plugin_json="$PROJECT_ROOT/plugin.json"
+    grep -q "memory-context.sh" "$plugin_json"
 }
 
-it "memory hook in prompt dispatcher" test_memory_hook_in_dispatcher
+it "memory hook registered in plugin.json" test_memory_hook_in_plugin_json
 
 describe "Integration: Keyword Detection"
 
