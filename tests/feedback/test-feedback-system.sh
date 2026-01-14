@@ -61,26 +61,26 @@ trap teardown EXIT
 test_start() {
     local name="$1"
     echo -n "  ○ $name... "
-    ((TESTS_RUN++))
+    ((++TESTS_RUN))
 }
 
 test_pass() {
     echo -e "\033[0;32mPASS\033[0m"
-    ((TESTS_PASSED++))
+    ((++TESTS_PASSED))
 }
 
 test_fail() {
     local reason="${1:-}"
     echo -e "\033[0;31mFAIL\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_FAILED++))
+    ((++TESTS_FAILED))
 }
 
 test_skip() {
     local reason="${1:-}"
     echo -e "\033[1;33mSKIP\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_RUN--))  # Don't count skipped tests
+    ((--TESTS_RUN)) || true  # Don't count skipped tests
 }
 
 # =============================================================================
@@ -120,14 +120,14 @@ test_consent_opt_in() {
     source "$consent_manager"
 
     # Opt in
-    if grant_consent 2>/dev/null; then
+    if record_consent 2>/dev/null; then
         if has_consent 2>/dev/null; then
             test_pass
         else
             test_fail "Consent not recorded after opt-in"
         fi
     else
-        test_fail "grant_consent failed"
+        test_fail "record_consent failed"
     fi
 }
 
@@ -144,7 +144,7 @@ test_consent_opt_out() {
     source "$consent_manager"
 
     # First opt in, then opt out
-    grant_consent 2>/dev/null || true
+    record_consent 2>/dev/null || true
 
     if revoke_consent 2>/dev/null; then
         if ! has_consent 2>/dev/null; then
@@ -169,7 +169,7 @@ test_consent_log_created() {
 
     source "$consent_manager"
 
-    grant_consent 2>/dev/null || true
+    record_consent 2>/dev/null || true
 
     local consent_log="$CLAUDE_PROJECT_DIR/.claude/feedback/consent-log.json"
 
@@ -492,7 +492,7 @@ test_metrics_with_consent() {
     source "$feedback_lib"
 
     # Grant consent
-    grant_consent 2>/dev/null || true
+    record_consent 2>/dev/null || true
 
     if type should_collect_metrics &>/dev/null; then
         if should_collect_metrics 2>/dev/null; then

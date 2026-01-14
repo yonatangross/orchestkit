@@ -16,6 +16,10 @@
 
 set -euo pipefail
 
+# Guard against re-sourcing (prevents readonly variable errors)
+[[ -n "${_CONSENT_MANAGER_LOADED:-}" ]] && return 0
+_CONSENT_MANAGER_LOADED=1
+
 # =============================================================================
 # CONSTANTS
 # =============================================================================

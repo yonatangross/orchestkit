@@ -4,6 +4,10 @@
 
 set -euo pipefail
 
+# Guard against re-sourcing (prevents readonly variable errors)
+[[ -n "${_FEEDBACK_LIB_LOADED:-}" ]] && return 0
+_FEEDBACK_LIB_LOADED=1
+
 # =============================================================================
 # CONSTANTS
 # =============================================================================
