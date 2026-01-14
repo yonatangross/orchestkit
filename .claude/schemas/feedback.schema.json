@@ -8,19 +8,40 @@
     "metrics": {
       "type": "object",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-        "updated": { "type": "string", "format": "date-time" },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
         "skills": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "uses": { "type": "integer", "minimum": 0 },
-              "successes": { "type": "integer", "minimum": 0 },
-              "avgEdits": { "type": "number", "minimum": 0 },
-              "lastUsed": { "type": "string", "format": "date" }
+              "uses": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "successes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "avgEdits": {
+                "type": "number",
+                "minimum": 0
+              },
+              "lastUsed": {
+                "type": "string",
+                "format": "date"
+              }
             },
-            "required": ["uses", "successes"]
+            "required": [
+              "uses",
+              "successes"
+            ]
           }
         },
         "hooks": {
@@ -28,11 +49,22 @@
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "triggered": { "type": "integer", "minimum": 0 },
-              "blocked": { "type": "integer", "minimum": 0 },
-              "userOverrides": { "type": "integer", "minimum": 0 }
+              "triggered": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "blocked": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "userOverrides": {
+                "type": "integer",
+                "minimum": 0
+              }
             },
-            "required": ["triggered"]
+            "required": [
+              "triggered"
+            ]
           }
         },
         "agents": {
@@ -40,83 +72,195 @@
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "spawns": { "type": "integer", "minimum": 0 },
-              "successes": { "type": "integer", "minimum": 0 },
-              "avgDuration": { "type": "number", "minimum": 0 }
+              "spawns": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "successes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "avgDuration": {
+                "type": "number",
+                "minimum": 0
+              }
             },
-            "required": ["spawns"]
+            "required": [
+              "spawns"
+            ]
           }
         }
       },
-      "required": ["version", "updated"]
+      "required": [
+        "version",
+        "updated"
+      ]
     },
     "learnedPatterns": {
       "type": "object",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-        "updated": { "type": "string", "format": "date-time" },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
         "permissions": {
           "type": "object",
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "autoApprove": { "type": "boolean" },
-              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-              "samples": { "type": "integer", "minimum": 0 },
-              "lastApproved": { "type": "string", "format": "date-time" },
-              "source": { "type": "string", "description": "Project that contributed this pattern" }
+              "autoApprove": {
+                "type": "boolean"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "lastApproved": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "source": {
+                "type": "string",
+                "description": "Project that contributed this pattern"
+              }
             },
-            "required": ["autoApprove", "confidence", "samples"]
+            "required": [
+              "autoApprove",
+              "confidence",
+              "samples"
+            ]
           }
         },
         "codeStyle": {
           "type": "object",
           "properties": {
-            "asyncPreference": { "type": "string", "enum": ["async/await", "promises", "callbacks"] },
-            "errorHandling": { "type": "string", "enum": ["try-catch", "result-type", "callbacks"] },
-            "typeScriptStrict": { "type": "boolean" }
+            "asyncPreference": {
+              "type": "string",
+              "enum": [
+                "async/await",
+                "promises",
+                "callbacks"
+              ]
+            },
+            "errorHandling": {
+              "type": "string",
+              "enum": [
+                "try-catch",
+                "result-type",
+                "callbacks"
+              ]
+            },
+            "typeScriptStrict": {
+              "type": "boolean"
+            }
           }
         }
       },
-      "required": ["version", "updated"]
+      "required": [
+        "version",
+        "updated"
+      ]
     },
     "preferences": {
       "type": "object",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-        "enabled": { "type": "boolean", "default": true },
-        "learnFromEdits": { "type": "boolean", "default": true },
-        "learnFromApprovals": { "type": "boolean", "default": true },
-        "learnFromAgentOutcomes": { "type": "boolean", "default": true },
-        "shareAnonymized": { "type": "boolean", "default": false },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "learnFromEdits": {
+          "type": "boolean",
+          "default": true
+        },
+        "learnFromApprovals": {
+          "type": "boolean",
+          "default": true
+        },
+        "learnFromAgentOutcomes": {
+          "type": "boolean",
+          "default": true
+        },
+        "shareAnonymized": {
+          "type": "boolean",
+          "default": false
+        },
         "syncGlobalPatterns": {
           "type": "boolean",
           "default": true,
           "description": "Sync learned patterns across projects via ~/.claude/global-patterns.json"
         },
-        "retentionDays": { "type": "integer", "minimum": 1, "maximum": 365, "default": 90 },
-        "pausedUntil": { "type": ["string", "null"], "format": "date-time" }
+        "retentionDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 365,
+          "default": 90
+        },
+        "pausedUntil": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
       },
-      "required": ["version", "enabled"]
+      "required": [
+        "version",
+        "enabled"
+      ]
     },
     "globalPatterns": {
       "type": "object",
       "description": "Cross-project pattern storage at ~/.claude/global-patterns.json",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-        "updated": { "type": "string", "format": "date-time" },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
         "permissions": {
           "type": "object",
           "description": "Auto-approve patterns shared across projects",
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "autoApprove": { "type": "boolean" },
-              "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
-              "samples": { "type": "integer", "minimum": 0 },
-              "source": { "type": "string", "description": "Project that contributed this pattern" }
+              "autoApprove": {
+                "type": "boolean"
+              },
+              "confidence": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "samples": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "source": {
+                "type": "string",
+                "description": "Project that contributed this pattern"
+              }
             },
-            "required": ["autoApprove", "confidence", "samples"]
+            "required": [
+              "autoApprove",
+              "confidence",
+              "samples"
+            ]
           }
         },
         "codeStyle": {
@@ -126,66 +270,139 @@
         "metadata": {
           "type": "object",
           "properties": {
-            "projectCount": { "type": "integer", "minimum": 0 },
-            "lastSync": { "type": "string", "format": "date-time" },
+            "projectCount": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "lastSync": {
+              "type": "string",
+              "format": "date-time"
+            },
             "syncHistory": {
               "type": "array",
               "items": {
                 "type": "object",
                 "properties": {
-                  "project": { "type": "string" },
-                  "timestamp": { "type": "string", "format": "date-time" },
-                  "patternsAdded": { "type": "integer", "minimum": 0 }
+                  "project": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "patternsAdded": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
                 },
-                "required": ["project", "timestamp"]
+                "required": [
+                  "project",
+                  "timestamp"
+                ]
               }
             }
           }
         }
       },
-      "required": ["version", "permissions"]
+      "required": [
+        "version",
+        "permissions"
+      ]
     },
     "satisfaction": {
       "type": "object",
       "description": "User satisfaction tracking data",
       "properties": {
-        "version": { "type": "string", "pattern": "^\\d+\\.\\d+$" },
-        "updated": { "type": "string", "format": "date-time" },
+        "version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+$"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
         "sessions": {
           "type": "object",
           "description": "Satisfaction data per session",
           "additionalProperties": {
             "type": "object",
             "properties": {
-              "positive": { "type": "integer", "minimum": 0, "description": "Count of positive signals" },
-              "negative": { "type": "integer", "minimum": 0, "description": "Count of negative signals" },
-              "neutral": { "type": "integer", "minimum": 0, "description": "Count of neutral signals" },
+              "positive": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Count of positive signals"
+              },
+              "negative": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Count of negative signals"
+              },
+              "neutral": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Count of neutral signals"
+              },
               "signals": {
                 "type": "array",
                 "description": "Individual satisfaction signals",
                 "items": {
                   "type": "object",
                   "properties": {
-                    "type": { "type": "string", "enum": ["positive", "negative", "neutral"] },
-                    "context": { "type": "string", "description": "Truncated prompt context" },
-                    "timestamp": { "type": "string", "format": "date-time" }
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "positive",
+                        "negative",
+                        "neutral"
+                      ]
+                    },
+                    "context": {
+                      "type": "string",
+                      "description": "Truncated prompt context"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
                   },
-                  "required": ["type", "timestamp"]
+                  "required": [
+                    "type",
+                    "timestamp"
+                  ]
                 }
               },
-              "started": { "type": "string", "format": "date-time" },
-              "lastSignal": { "type": "string", "format": "date-time" }
+              "started": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "lastSignal": {
+                "type": "string",
+                "format": "date-time"
+              }
             },
-            "required": ["positive", "negative", "neutral"]
+            "required": [
+              "positive",
+              "negative",
+              "neutral"
+            ]
           }
         },
         "aggregate": {
           "type": "object",
           "description": "Aggregate satisfaction metrics",
           "properties": {
-            "totalPositive": { "type": "integer", "minimum": 0 },
-            "totalNegative": { "type": "integer", "minimum": 0 },
-            "totalNeutral": { "type": "integer", "minimum": 0 },
+            "totalPositive": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "totalNegative": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "totalNeutral": {
+              "type": "integer",
+              "minimum": 0
+            },
             "averageScore": {
               "type": "number",
               "minimum": 0,
@@ -193,10 +410,19 @@
               "description": "0.0 = all negative, 1.0 = all positive"
             }
           },
-          "required": ["totalPositive", "totalNegative", "totalNeutral", "averageScore"]
+          "required": [
+            "totalPositive",
+            "totalNegative",
+            "totalNeutral",
+            "averageScore"
+          ]
         }
       },
-      "required": ["version", "sessions", "aggregate"]
+      "required": [
+        "version",
+        "sessions",
+        "aggregate"
+      ]
     },
     "satisfactionSignal": {
       "type": "object",
@@ -204,7 +430,11 @@
       "properties": {
         "sentiment": {
           "type": "string",
-          "enum": ["positive", "negative", "neutral"],
+          "enum": [
+            "positive",
+            "negative",
+            "neutral"
+          ],
           "description": "Overall sentiment classification"
         },
         "score": {
@@ -213,20 +443,103 @@
           "maximum": 1,
           "description": "Confidence score (positive / total signals)"
         },
-        "positiveCount": { "type": "integer", "minimum": 0 },
-        "negativeCount": { "type": "integer", "minimum": 0 },
+        "positiveCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "negativeCount": {
+          "type": "integer",
+          "minimum": 0
+        },
         "positiveMatches": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Words/phrases that matched positive patterns"
         },
         "negativeMatches": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Words/phrases that matched negative patterns"
         }
       },
-      "required": ["sentiment", "score", "positiveCount", "negativeCount"]
+      "required": [
+        "sentiment",
+        "score",
+        "positiveCount",
+        "negativeCount"
+      ]
+    },
+    "bestPracticePattern": {
+      "type": "object",
+      "description": "A best practice or anti-pattern from the library (#49)",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "The pattern description"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "decision",
+            "architecture",
+            "pattern",
+            "blocker",
+            "constraint",
+            "preference",
+            "pagination",
+            "database",
+            "authentication",
+            "api",
+            "frontend",
+            "performance"
+          ],
+          "description": "Pattern category"
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "success",
+            "failed",
+            "neutral"
+          ],
+          "description": "Whether the pattern succeeded or failed"
+        },
+        "projects": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Projects where this pattern was used"
+        },
+        "occurrences": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of times this pattern was recorded"
+        },
+        "successRate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Success rate across all occurrences"
+        },
+        "lesson": {
+          "type": "string",
+          "description": "Lesson learned (for anti-patterns)"
+        },
+        "lastUsed": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "text",
+        "category",
+        "outcome"
+      ]
     }
   }
 }

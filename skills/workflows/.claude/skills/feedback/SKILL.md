@@ -1,19 +1,36 @@
-# /skf:feedback - Manage feedback and learning system
+---
+name: feedback
+description: Manage the SkillForge feedback system that learns from your usage
+context: inherit
+version: 1.0.0
+author: SkillForge
+tags: [feedback, learning, patterns, metrics, privacy]
+---
+
+# Feedback - Manage Learning System
 
 View and manage the SkillForge feedback system that learns from your usage.
+
+## When to Use
+
+- Checking feedback system status
+- Pausing/resuming learning
+- Resetting learned patterns
+- Exporting feedback data
+- Managing privacy settings
 
 ## Usage
 
 ```
-/skf:feedback                    # Same as status
-/skf:feedback status             # Show current state
-/skf:feedback pause              # Pause learning
-/skf:feedback resume             # Resume learning
-/skf:feedback reset              # Clear learned patterns
-/skf:feedback export             # Export feedback data
-/skf:feedback settings           # Show/edit settings
-/skf:feedback opt-in             # Enable anonymous sharing
-/skf:feedback opt-out            # Disable anonymous sharing
+/feedback                    # Same as status
+/feedback status             # Show current state
+/feedback pause              # Pause learning
+/feedback resume             # Resume learning
+/feedback reset              # Clear learned patterns
+/feedback export             # Export feedback data
+/feedback settings           # Show/edit settings
+/feedback opt-in             # Enable anonymous sharing
+/feedback opt-out            # Disable anonymous sharing
 ```
 
 ## Subcommands
@@ -56,7 +73,7 @@ Temporarily pause all learning without clearing data.
 ⏸️ Feedback learning paused
 
 Your existing patterns are preserved.
-Resume with: /skf:feedback resume
+Resume with: /feedback resume
 ```
 
 ### resume
@@ -147,10 +164,10 @@ shareAnonymized:      false  (share anonymous stats)
 retentionDays:        90     (data retention period)
 
 To change a setting, use:
-  /skf:feedback settings <key> <value>
+  /feedback settings <key> <value>
 
 Example:
-  /skf:feedback settings retentionDays 30
+  /feedback settings retentionDays 30
 ```
 
 ### opt-in / opt-out
@@ -171,7 +188,7 @@ What we NEVER share:
 • Project names or paths
 • Personal information
 
-Disable anytime: /skf:feedback opt-out
+Disable anytime: /feedback opt-out
 ```
 
 **opt-out Output:**
@@ -181,16 +198,8 @@ Disable anytime: /skf:feedback opt-out
 Your feedback data stays completely local.
 No usage data is shared.
 
-Re-enable anytime: /skf:feedback opt-in
+Re-enable anytime: /feedback opt-in
 ```
-
-## File Locations
-
-- Preferences: `.claude/feedback/preferences.json`
-- Metrics: `.claude/feedback/metrics.json`
-- Learned patterns: `.claude/feedback/learned-patterns.json`
-
-All files are gitignored by default.
 
 ## Security Note
 
@@ -198,3 +207,7 @@ The following commands are NEVER auto-approved regardless of learning:
 - `rm -rf`, `sudo`, `chmod 777`
 - Commands with `--force` or `--no-verify`
 - Commands involving passwords, secrets, or credentials
+
+## File Locations
+
+See `references/file-locations.md` for storage details.

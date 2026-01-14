@@ -152,7 +152,7 @@ assert_file_contains() {
   local path="$1"
   local substring="$2"
 
-  if [[ -f "$path" ]] && grep -q "$substring" "$path" 2>/dev/null; then
+  if [[ -f "$path" ]] && grep -qF -- "$substring" "$path" 2>/dev/null; then
     return 0
   else
     echo -e "${RED}ASSERTION FAILED${NC}: File '$path' does not contain '$substring'" >&2
@@ -216,7 +216,7 @@ assert_log_contains() {
   local substring="$1"
   local logfile="$HOOK_LOG_DIR/hooks.log"
 
-  if [[ -f "$logfile" ]] && grep -q "$substring" "$logfile" 2>/dev/null; then
+  if [[ -f "$logfile" ]] && grep -qF -- "$substring" "$logfile" 2>/dev/null; then
     return 0
   else
     echo -e "${RED}ASSERTION FAILED${NC}: Log does not contain '$substring'" >&2

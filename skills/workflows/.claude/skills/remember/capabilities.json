@@ -1,0 +1,48 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "remember",
+  "version": "1.0.0",
+  "description": "Store decisions, patterns, and best practices in semantic memory with success/failure tracking",
+  "capabilities": [
+    "semantic-memory-storage",
+    "best-practice-tracking",
+    "anti-pattern-recording",
+    "category-detection",
+    "cross-project-learning"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "remember",
+      "store.*decision",
+      "save.*pattern",
+      "record.*that"
+    ],
+    "medium_confidence": [
+      "note.*worked",
+      "note.*failed",
+      "this.*worked",
+      "this.*failed"
+    ]
+  },
+  "integrates_with": [
+    "mem0",
+    "best-practices",
+    "recall"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 600
+    },
+    "tier_3_references": {
+      "category-detection": {
+        "file": "references/category-detection.md",
+        "tokens": 150
+      }
+    }
+  }
+}

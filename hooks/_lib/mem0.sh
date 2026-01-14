@@ -23,10 +23,11 @@ set -euo pipefail
 readonly MEM0_SCOPE_DECISIONS="decisions"    # Architecture/design decisions
 readonly MEM0_SCOPE_PATTERNS="patterns"      # Code patterns and conventions
 readonly MEM0_SCOPE_CONTINUITY="continuity"  # Session continuity/handoff
-readonly MEM0_SCOPE_AGENTS="agents"          # Agent-specific context
+readonly MEM0_SCOPE_AGENTS="agents"              # Agent-specific context
+readonly MEM0_SCOPE_BEST_PRACTICES="best-practices"  # Success/failure patterns (#49)
 
 # Valid scopes array for validation
-readonly MEM0_VALID_SCOPES=("$MEM0_SCOPE_DECISIONS" "$MEM0_SCOPE_PATTERNS" "$MEM0_SCOPE_CONTINUITY" "$MEM0_SCOPE_AGENTS")
+readonly MEM0_VALID_SCOPES=("$MEM0_SCOPE_DECISIONS" "$MEM0_SCOPE_PATTERNS" "$MEM0_SCOPE_CONTINUITY" "$MEM0_SCOPE_AGENTS" "$MEM0_SCOPE_BEST_PRACTICES")
 
 # -----------------------------------------------------------------------------
 # Project Identification Functions
@@ -61,14 +62,18 @@ mem0_get_project_id() {
 # Generate scoped user_id for Mem0
 # Usage: mem0_user_id "decisions"
 # Output: myproject-decisions
+# Generate scoped user_id for Mem0
+# Usage: mem0_user_id "decisions"
+# Output: myproject-decisions
 mem0_user_id() {
-    local scope="${1:-$MEM0_SCOPE_CONTINUITY}"
+    local scope="${1:-continuity}"
     local project_id
     project_id=$(mem0_get_project_id)
 
-    # Validate scope
+    # Define valid scopes inline to avoid readonly array export issues
+    local valid_scopes=("decisions" "patterns" "continuity" "agents" "best-practices")
     local valid=false
-    for valid_scope in "${MEM0_VALID_SCOPES[@]}"; do
+    for valid_scope in "${valid_scopes[@]}"; do
         if [[ "$scope" == "$valid_scope" ]]; then
             valid=true
             break
@@ -76,8 +81,8 @@ mem0_user_id() {
     done
 
     if [[ "$valid" != "true" ]]; then
-        echo "Warning: Invalid scope '$scope', using '$MEM0_SCOPE_CONTINUITY'" >&2
-        scope="$MEM0_SCOPE_CONTINUITY"
+        echo "Warning: Invalid scope '$scope', using 'continuity'" >&2
+        scope="continuity"
     fi
 
     echo "${project_id}-${scope}"
@@ -429,3 +434,134 @@ export MEM0_SCOPE_DECISIONS
 export MEM0_SCOPE_PATTERNS
 export MEM0_SCOPE_CONTINUITY
 export MEM0_SCOPE_AGENTS
+export MEM0_SCOPE_BEST_PRACTICES
+
+# -----------------------------------------------------------------------------
+# Best Practices Library Functions (#49)
+# -----------------------------------------------------------------------------
+
+# Build best practice memory content with outcome metadata
+# Usage: build_best_practice_json "success|failed|neutral" "category" "text" ["lesson"]
+# Output: JSON suitable for storing in mem0
+build_best_practice_json() {
+    local outcome="$1"
+    local category="$2"
+    local text="$3"
+    local lesson="${4:-}"
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_BEST_PRACTICES")
+    local project_id
+    project_id=$(mem0_get_project_id)
+    local timestamp
+    timestamp=$(date -Iseconds 2>/dev/null || date +%Y-%m-%dT%H:%M:%S%z)
+
+    # Build metadata
+    local metadata
+    if [[ -n "$lesson" ]]; then
+        metadata=$(jq -n \
+            --arg category "$category" \
+            --arg outcome "$outcome" \
+            --arg project "$project_id" \
+            --arg timestamp "$timestamp" \
+            --arg lesson "$lesson" \
+            '{
+                category: $category,
+                outcome: $outcome,
+                project: $project,
+                stored_at: $timestamp,
+                lesson: $lesson,
+                source: "skillforge-plugin"
+            }')
+    else
+        metadata=$(jq -n \
+            --arg category "$category" \
+            --arg outcome "$outcome" \
+            --arg project "$project_id" \
+            --arg timestamp "$timestamp" \
+            '{
+                category: $category,
+                outcome: $outcome,
+                project: $project,
+                stored_at: $timestamp,
+                source: "skillforge-plugin"
+            }')
+    fi
+
+    # Output the tool call arguments
+    jq -n \
+        --arg content "$text" \
+        --arg user_id "$user_id" \
+        --argjson metadata "$metadata" \
+        '{
+            content: $content,
+            user_id: $user_id,
+            metadata: $metadata
+        }'
+}
+
+# Auto-detect category from text content
+# Usage: detect_best_practice_category "text content"
+# Output: category name (lowercase)
+detect_best_practice_category() {
+    local text="$1"
+    local text_lower
+    text_lower=$(echo "$text" | tr '[:upper:]' '[:lower:]')
+
+    # Check for category indicators (order matters - more specific first)
+    # Performance should come before database because "query was slow" should match performance
+    if [[ "$text_lower" =~ pagination|cursor|offset|page ]]; then
+        echo "pagination"
+    elif [[ "$text_lower" =~ auth|jwt|oauth|token|session|login ]]; then
+        echo "authentication"
+    elif [[ "$text_lower" =~ performance|slow|fast|cache|optimize|latency ]]; then
+        echo "performance"
+    elif [[ "$text_lower" =~ database|sql|postgres|query|schema|migration ]]; then
+        echo "database"
+    elif [[ "$text_lower" =~ api|endpoint|rest|graphql|route ]]; then
+        echo "api"
+    elif [[ "$text_lower" =~ react|component|frontend|ui|css|style ]]; then
+        echo "frontend"
+    elif [[ "$text_lower" =~ architecture|design|system|structure ]]; then
+        echo "architecture"
+    elif [[ "$text_lower" =~ pattern|convention|style ]]; then
+        echo "pattern"
+    elif [[ "$text_lower" =~ blocked|issue|bug|workaround ]]; then
+        echo "blocker"
+    elif [[ "$text_lower" =~ must|cannot|required|constraint ]]; then
+        echo "constraint"
+    elif [[ "$text_lower" =~ chose|decided|selected ]]; then
+        echo "decision"
+    else
+        echo "decision"  # Default
+    fi
+}
+
+# Check if text might be a known anti-pattern
+# Usage: check_for_antipattern "text content"
+# Output: JSON with matched anti-patterns or empty
+# Note: This requires mem0 MCP tool to be called separately
+check_for_antipattern_query() {
+    local text="$1"
+    local category
+    category=$(detect_best_practice_category "$text")
+
+    # Build query for searching similar patterns
+    jq -n \
+        --arg text "$text" \
+        --arg category "$category" \
+        '{
+            query: $text,
+            filters: {
+                "AND": [
+                    { "metadata.category": $category },
+                    { "metadata.outcome": "failed" }
+                ]
+            },
+            limit: 5
+        }'
+}
+
+# Export new functions
+export -f build_best_practice_json
+export -f detect_best_practice_category
+export -f check_for_antipattern_query

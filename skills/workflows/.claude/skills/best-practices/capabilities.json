@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "best-practices",
+  "version": "1.0.0",
+  "description": "View and manage your personal best practices library with success/failure patterns",
+  "capabilities": [
+    "best-practice-aggregation",
+    "anti-pattern-tracking",
+    "cross-project-analysis",
+    "category-statistics",
+    "proactive-warnings"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "best.?practices",
+      "show.*patterns",
+      "what.*worked",
+      "what.*failed"
+    ],
+    "medium_confidence": [
+      "anti.?patterns",
+      "successful.*patterns",
+      "pattern.*library"
+    ]
+  },
+  "integrates_with": [
+    "mem0",
+    "remember",
+    "recall"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 100
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 700
+    },
+    "tier_3_references": {
+      "proactive-warnings": {
+        "file": "references/proactive-warnings.md",
+        "tokens": 200
+      }
+    }
+  }
+}

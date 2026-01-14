@@ -1,0 +1,47 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "feedback",
+  "version": "1.0.0",
+  "description": "Manage the SkillForge feedback system that learns from your usage",
+  "capabilities": [
+    "feedback-status",
+    "learning-control",
+    "pattern-management",
+    "data-export",
+    "privacy-settings"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "feedback",
+      "skf.*feedback",
+      "feedback.*status",
+      "feedback.*settings"
+    ],
+    "medium_confidence": [
+      "learning.*status",
+      "pause.*learning",
+      "reset.*patterns"
+    ]
+  },
+  "integrates_with": [
+    "remember",
+    "recall",
+    "best-practices"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 90
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 600
+    },
+    "tier_3_references": {
+      "file-locations": {
+        "file": "references/file-locations.md",
+        "tokens": 100
+      }
+    }
+  }
+}

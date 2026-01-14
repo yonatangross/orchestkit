@@ -1,0 +1,40 @@
+{
+  "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
+  "name": "recall",
+  "version": "1.0.0",
+  "description": "Search and retrieve decisions and patterns from semantic memory",
+  "capabilities": [
+    "semantic-memory-search",
+    "category-filtering",
+    "cross-project-recall",
+    "time-based-formatting"
+  ],
+  "triggers": {
+    "high_confidence": [
+      "recall",
+      "search.*memory",
+      "find.*decision",
+      "what.*we.*decide"
+    ],
+    "medium_confidence": [
+      "remember.*about",
+      "did.*we.*decide",
+      "what.*pattern"
+    ]
+  },
+  "integrates_with": [
+    "mem0",
+    "remember",
+    "best-practices"
+  ],
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 90
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 350
+    }
+  }
+}
