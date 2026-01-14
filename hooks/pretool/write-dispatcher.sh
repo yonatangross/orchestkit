@@ -1,12 +1,22 @@
 #!/bin/bash
-# Write/Edit PreToolUse Dispatcher - Combines path, headers, guard, lock, and validation checks
-# CC 2.1.6 Compliant: silent on success, visible on failure
-set -euo pipefail
+# Write/Edit PreToolUse Unified Dispatcher
+# CC 2.1.7 Compliant: silent on success, visible on failure
+#
+# Performance optimization (2026-01-14):
+# - Single dispatcher (was 4 separate hooks)
+# - PARALLEL validation checks where safe
+# - Consolidates: file-guard, naming, structure, test-location validators
+set -uo pipefail
 
 _HOOK_INPUT=$(cat)
 export _HOOK_INPUT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$SCRIPT_DIR/../skill"
+
+# Temp directory for parallel outputs
+TEMP_DIR=$(mktemp -d)
+trap "rm -rf $TEMP_DIR" EXIT
 
 # ANSI colors
 RED=$'\033[31m'
@@ -20,7 +30,8 @@ FILE_PATH=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.file_path // ""')
 CONTENT=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.content // ""')
 TOOL_NAME=$(echo "$_HOOK_INPUT" | jq -r '.tool_name // "Write"')
 
-WARNINGS=()
+# Export for child hooks
+export TOOL_INPUT_FILE_PATH="$FILE_PATH"
 
 # Helper to block with specific error
 block() {
@@ -32,126 +43,158 @@ block() {
   exit 0
 }
 
-# Helper to run a sub-hook (passes hook input via environment)
-run_hook() {
+# Helper to run a validator in background (parallel)
+run_validator_parallel() {
   local name="$1"
   local script="$2"
+  local status_file="$TEMP_DIR/$name.status"
+  local output_file="$TEMP_DIR/$name.out"
+  local block_file="$TEMP_DIR/$name.block"
 
   if [[ ! -f "$script" ]]; then
+    echo "0" > "$status_file"
     return 0
   fi
 
-  local output
-  local exit_code
-  output=$(_HOOK_INPUT="$_HOOK_INPUT" bash "$script" 2>&1) && exit_code=0 || exit_code=$?
+  (
+    output=$(TOOL_INPUT_FILE_PATH="$FILE_PATH" _HOOK_INPUT="$_HOOK_INPUT" bash "$script" 2>&1) && exit_code=0 || exit_code=$?
+    echo "$output" > "$output_file"
+    echo "$exit_code" > "$status_file"
 
-  if [[ $exit_code -ne 0 ]]; then
-    WARNINGS+=("$name: failed")
-  elif [[ "$output" == *"warning"* ]] || [[ "$output" == *"Warning"* ]]; then
-    local warn_msg=$(echo "$output" | grep -i "warning" | head -1 | sed 's/.*warning[: ]*//')
-    [[ -n "$warn_msg" ]] && WARNINGS+=("$name: $warn_msg")
-  fi
+    # Check if it's a blocking result
+    if [[ $exit_code -ne 0 ]] || [[ "$output" == *"BLOCKED"* ]]; then
+      echo "$output" > "$block_file"
+    fi
+  ) &
+}
 
+# Collect any blocking errors
+collect_blocks() {
+  for block_file in "$TEMP_DIR"/*.block; do
+    [[ -f "$block_file" ]] || continue
+    cat "$block_file"
+    return 1
+  done
   return 0
 }
 
-# 0. Write headers for new files (first - modifies content)
+# Collect warnings (non-blocking)
+collect_warnings() {
+  local result=""
+  for output_file in "$TEMP_DIR"/*.out; do
+    [[ -f "$output_file" ]] || continue
+    local output
+    output=$(cat "$output_file")
+    if [[ "$output" == *"warning"* ]] || [[ "$output" == *"Warning"* ]]; then
+      local warn_msg
+      warn_msg=$(echo "$output" | grep -i "warning" | head -1 | sed 's/.*warning[: ]*//')
+      if [[ -n "$warn_msg" ]]; then
+        if [[ -n "$result" ]]; then
+          result="$result; $warn_msg"
+        else
+          result="$warn_msg"
+        fi
+      fi
+    fi
+  done
+  echo "$result"
+}
+
+# ============================================================================
+# PHASE 0: Write headers for new files (sequential - modifies content)
+# ============================================================================
 if [[ ! -f "$FILE_PATH" ]]; then
-  run_hook "Headers" "$SCRIPT_DIR/input-mod/write-headers.sh"
+  if [[ -f "$SCRIPT_DIR/input-mod/write-headers.sh" ]]; then
+    _HOOK_INPUT="$_HOOK_INPUT" bash "$SCRIPT_DIR/input-mod/write-headers.sh" >/dev/null 2>&1 || true
+  fi
 fi
 
-# 1. Path normalization
+# ============================================================================
+# PHASE 1: Path normalization
+# ============================================================================
 ORIGINAL_PATH="$FILE_PATH"
 if [[ "$FILE_PATH" != /* ]]; then
   FILE_PATH="$PWD/$FILE_PATH"
 fi
 
-# 2. File guard - check protected paths
-PROTECTED_EXACT=(
-  ".git/config"
-  ".git/HEAD"
-  ".env"
-  ".env.local"
-  ".env.production"
-)
+# ============================================================================
+# PHASE 2: File guard - check protected paths (fast, inline)
+# ============================================================================
+PROTECTED_EXACT=(".git/config" ".git/HEAD" ".env" ".env.local" ".env.production")
+PROTECTED_DIRS=(".git/hooks" "node_modules/" "__pycache__/" ".venv/" "venv/")
+PROTECTED_FILES=("package-lock.json" "yarn.lock" "pnpm-lock.yaml" "poetry.lock" "Cargo.lock")
 
-PROTECTED_DIRS=(
-  ".git/hooks"
-  "node_modules/"
-  "__pycache__/"
-  ".venv/"
-  "venv/"
-)
-
-PROTECTED_FILES=(
-  "package-lock.json"
-  "yarn.lock"
-  "pnpm-lock.yaml"
-  "poetry.lock"
-  "Cargo.lock"
-)
-
-# Check exact matches
 for p in "${PROTECTED_EXACT[@]}"; do
   if [[ "$FILE_PATH" == *"/$p" ]] || [[ "$FILE_PATH" == *"$p" ]]; then
     block "Protected" "Cannot modify protected file: $p"
   fi
 done
 
-# Check directory patterns
 for p in "${PROTECTED_DIRS[@]}"; do
   if [[ "$FILE_PATH" == *"$p"* ]]; then
     block "Protected" "Cannot write to protected directory: $p"
   fi
 done
 
-# Check lock files
 for p in "${PROTECTED_FILES[@]}"; do
   if [[ "$FILE_PATH" == *"/$p" ]]; then
     block "Protected" "Cannot modify lock file: $p (use package manager instead)"
   fi
 done
 
-# 3. Architecture change detector (for significant files)
+# ============================================================================
+# PHASE 3: Run all validators in PARALLEL
+# ============================================================================
+
+# Skill validators (naming, structure, test location)
+run_validator_parallel "BackendNaming" "$SKILL_DIR/backend-file-naming.sh"
+run_validator_parallel "Structure" "$SKILL_DIR/structure-location-validator.sh"
+run_validator_parallel "TestLocation" "$SKILL_DIR/test-location-validator.sh"
+
+# Architecture change detector (for significant files)
 case "$FILE_PATH" in
   **/api/**|**/services/**|**/db/**|**/models/**|**/workflows/**)
-    run_hook "ArchDetect" "$SCRIPT_DIR/Write/architecture-change-detector.sh"
+    run_validator_parallel "ArchDetect" "$SCRIPT_DIR/Write/architecture-change-detector.sh"
     ;;
 esac
 
-# 4. Multi-instance lock (if coordination enabled)
-if [[ -f "$COORDINATION_DB" ]]; then
-  run_hook "MultiLock" "$SCRIPT_DIR/write-edit/multi-instance-lock.sh"
-fi
-
-# 5. Test file location check (skip for .claude/ skill/hook files)
-if [[ "$FILE_PATH" == *"test"* ]] || [[ "$FILE_PATH" == *"spec"* ]]; then
-  # Skip check for .claude/ directory (skills, hooks, etc. may have "test" in name)
-  if [[ "$FILE_PATH" != *"/.claude/"* ]]; then
-    # Check it's in proper test directory
-    if [[ "$FILE_PATH" != *"/tests/"* ]] && [[ "$FILE_PATH" != *"/__tests__/"* ]] && [[ "$FILE_PATH" != *"/test/"* ]]; then
-      block "Structure" "Test files should be in tests/, __tests__/, or test/ directory"
-    fi
-  fi
-fi
-
-# 6. Security pattern validator (last, for code files)
+# Security pattern validator (for code files)
 case "$FILE_PATH" in
   *.py|*.ts|*.tsx|*.js|*.jsx)
-    run_hook "Security" "$SCRIPT_DIR/Write/security-pattern-validator.sh"
+    run_validator_parallel "Security" "$SCRIPT_DIR/Write/security-pattern-validator.sh"
     ;;
 esac
 
-# Output: silent on success, show warnings if any
-if [[ ${#WARNINGS[@]} -gt 0 ]]; then
-  WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
+# Multi-instance lock (if coordination enabled)
+if [[ -f "$COORDINATION_DB" ]]; then
+  run_validator_parallel "MultiLock" "$SCRIPT_DIR/write-edit/multi-instance-lock.sh"
+fi
+
+# Wait for all validators
+wait
+
+# ============================================================================
+# PHASE 4: Check for blocking errors
+# ============================================================================
+BLOCK_MSG=$(collect_blocks)
+if [[ $? -ne 0 ]]; then
+  # Extract the actual error message
+  REASON=$(echo "$BLOCK_MSG" | grep -E "^BLOCKED:" | head -1 | sed 's/^BLOCKED: *//' || echo "Validation failed")
+  block "Validator" "$REASON"
+fi
+
+# ============================================================================
+# PHASE 5: Output result
+# ============================================================================
+WARNINGS=$(collect_warnings)
+
+if [[ -n "$WARNINGS" ]]; then
   jq -n \
-    --arg msg "${YELLOW}⚠ ${WARN_MSG}${RESET}" \
+    --arg msg "${YELLOW}⚠ ${WARNINGS}${RESET}" \
     --arg file_path "$FILE_PATH" \
     --arg content "$CONTENT" \
     '{systemMessage: $msg, continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'
 else
-  # Silent success - no systemMessage
   jq -n \
     --arg file_path "$FILE_PATH" \
     --arg content "$CONTENT" \
