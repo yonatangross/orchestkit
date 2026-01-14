@@ -30,6 +30,7 @@ COMMAND_NORMALIZED=$(echo "$COMMAND" | sed -E 's/\\[[:space:]]*[\r\n]+//g' | tr 
 # Use normalized command for security checks
 COMMAND_FOR_CHECK="$COMMAND_NORMALIZED"
 
+
 WARNINGS=()
 
 # Helper to block with specific error
@@ -64,6 +65,15 @@ run_hook() {
 
   return 0
 }
+
+# CC 2.1.7 Security: Validate compound commands (&&, ||, |, ;)
+# Source validator and check each segment of compound commands
+if [[ -f "$SCRIPT_DIR/bash/compound-command-validator.sh" ]]; then
+  source "$SCRIPT_DIR/bash/compound-command-validator.sh"
+  if ! validate_compound_command "$COMMAND_FOR_CHECK"; then
+    block "CompoundCommand" "Dangerous command in compound chain: $COMPOUND_BLOCK_REASON"
+  fi
+fi
 
 # 0. Error pattern warning (first - informational)
 RULES_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/rules/error_rules.json"

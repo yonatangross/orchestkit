@@ -105,6 +105,51 @@ Task(subagent_type="ux-researcher", prompt="...", run_in_background=True)
 | code-quality-reviewer #1 | Full test suite |
 | security-auditor | Security audit |
 
+## Phase 5.5: Progress Notifications (CC 2.1.7)
+
+CC 2.1.7 supports inline notification patterns for real-time progress updates:
+
+### Agent Completion Notifications
+
+When subagents complete, track their progress:
+
+```python
+# After parallel agent execution
+for result in agent_results:
+    notification.inline(f"{result.agent}: {result.status}")
+
+# Summary notification
+notification.inline(f"Phase 5 complete: {len(agent_results)}/{expected} agents finished")
+```
+
+### MCP Deferral Awareness
+
+When MCPs are deferred due to context limits, adapt your workflow:
+
+```python
+if mcp.deferred:
+    notification.inline("MCP tools deferred - using cached docs")
+    # Fall back to cached documentation
+    docs = load_cached_docs("react-19-patterns")
+else:
+    # Normal MCP query
+    docs = mcp__context7__query_docs(...)
+```
+
+### Progress Tracking Pattern
+
+Use inline notifications for long-running phases:
+
+```
+[Phase 4] Starting: 8 parallel agents
+[Phase 4] Complete: backend-system-architect (2.3s)
+[Phase 4] Complete: frontend-ui-developer (3.1s)
+[Phase 4] Complete: database-engineer (1.8s)
+...
+[Phase 4] Finished: 8/8 agents (12.5s total)
+```
+
+
 ## Phase 6: E2E Verification
 
 If UI changes, verify with Playwright MCP:

@@ -1,6 +1,6 @@
 {
   "name": "skf",
-  "version": "4.11.1",
+  "version": "4.12.0",
   "description": "Comprehensive AI-assisted development toolkit with 90 skills (78 knowledge + 12 commands), 20 agents, 96 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",

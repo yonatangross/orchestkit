@@ -613,3 +613,44 @@ release_all_locks() {
 # Export multi-instance functions
 export -f get_coordination_db is_multi_instance_enabled get_instance_id init_coordination_db
 export -f is_file_locked_by_other acquire_file_lock release_file_lock release_all_locks
+
+# -----------------------------------------------------------------------------
+# CC 2.1.7: Permission Feedback Functions
+# -----------------------------------------------------------------------------
+
+# Log permission decision for audit trail (CC 2.1.7 feature)
+# Usage: log_permission_feedback "allow|deny" "reason"
+log_permission_feedback() {
+  local decision="$1"
+  local reason="${2:-unspecified}"
+  local log_file="${HOOK_LOG_DIR}/permission-feedback.log"
+
+  # Rotate if needed
+  rotate_log_file "$log_file" 100
+
+  local timestamp=$(date -Iseconds)
+  local tool_name=$(get_tool_name 2>/dev/null || echo "unknown")
+  local session_id=$(get_session_id 2>/dev/null || echo "unknown")
+
+  echo "$timestamp | $decision | $reason | tool=$tool_name | session=$session_id" >> "$log_file"
+  log_hook "Permission: $decision - $reason (tool=$tool_name)"
+}
+
+# Silent approval with feedback logging (CC 2.1.7)
+# Usage: output_silent_allow_with_feedback "reason for approval"
+output_silent_allow_with_feedback() {
+  local reason="${1:-auto-approved}"
+  log_permission_feedback "allow" "$reason"
+  echo '{"decision":{"behavior":"allow"}, "continue": true, "suppressOutput": true}'
+}
+
+# Deny with feedback logging (CC 2.1.7)
+# Usage: output_deny_with_feedback "reason for denial"
+output_deny_with_feedback() {
+  local reason="${1:-policy-violation}"
+  log_permission_feedback "deny" "$reason"
+  jq -n --arg r "$reason" '{decision:{behavior:"deny"}, continue: false, stopReason: $r}'
+}
+
+# Export CC 2.1.7 permission feedback functions
+export -f log_permission_feedback output_silent_allow_with_feedback output_deny_with_feedback

@@ -19,6 +19,53 @@ LOG_FILE="$PROJECT_ROOT/logs/context-budget.log"
 BUDGET_TOTAL=2200          # Total token budget for context layer
 COMPRESS_TRIGGER=0.70      # Trigger compression at 70%
 COMPRESS_TARGET=0.50       # Target 50% after compression
+# CC 2.1.7: MCP deferral configuration
+MCP_DEFER_TRIGGER=0.10     # Defer MCP tools when context >10% of effective window
+MCP_STATE_FILE="/tmp/claude-mcp-defer-state-${CLAUDE_SESSION_ID:-default}.json"
+
+# CC 2.1.7: Get effective context window (actual usable vs static max)
+get_effective_context_window() {
+    local base_window=${CLAUDE_MAX_CONTEXT:-200000}
+    local overhead_percent=20  # ~20% system overhead (tools, system prompt)
+    echo $((base_window * (100 - overhead_percent) / 100))
+}
+
+# CC 2.1.7: Check if MCP tools should be deferred
+should_defer_mcp() {
+    local current_tokens=$1
+    local effective_window=$(get_effective_context_window)
+
+    # Calculate usage ratio against effective window
+    local usage_ratio=$(echo "scale=4; $current_tokens / $effective_window" | bc)
+
+    if (( $(echo "$usage_ratio > $MCP_DEFER_TRIGGER" | bc -l) )); then
+        return 0  # Should defer
+    fi
+    return 1  # Don't defer
+}
+
+# CC 2.1.7: Update MCP deferral state file
+update_mcp_defer_state() {
+    local should_defer=$1
+    local current_tokens=$2
+    local effective_window=$(get_effective_context_window)
+
+    jq -n \
+        --argjson defer "$should_defer" \
+        --argjson tokens "$current_tokens" \
+        --argjson window "$effective_window" \
+        --arg ts "$(date -Iseconds)" \
+        '{
+            mcp_deferred: $defer,
+            context_tokens: $tokens,
+            effective_window: $window,
+            updated_at: $ts,
+            reason: (if $defer then "context > 10% threshold" else "context within limits" end)
+        }' > "$MCP_STATE_FILE"
+
+    log "MCP defer state updated: defer=$should_defer, tokens=$current_tokens, window=$effective_window"
+}
+
 
 # Ensure log directory exists
 mkdir -p "$(dirname "$LOG_FILE")"
@@ -118,6 +165,14 @@ monitor_budget() {
     local usage_percent=$(echo "scale=0; $usage_ratio * 100" | bc)
 
     log "Context usage: $current_tokens / $BUDGET_TOTAL tokens ($usage_percent%)"
+
+    # CC 2.1.7: Check and update MCP deferral state
+    local effective_window=$(get_effective_context_window)
+    if should_defer_mcp "$current_tokens"; then
+        update_mcp_defer_state "true" "$current_tokens"
+    else
+        update_mcp_defer_state "false" "$current_tokens"
+    fi
 
     # Check if compression needed
     if (( $(echo "$usage_ratio > $COMPRESS_TRIGGER" | bc -l) )); then

@@ -373,6 +373,78 @@ async def rate_limited_call(user_id: str, func, *args):
 4. **Secrets in tool output**: Never return API keys or credentials
 5. **Unbounded responses**: Limit response sizes (Claude has context limits)
 
+
+---
+
+## CC 2.1.7: Auto-Discovery Optimization
+
+### MCP Search Discovery
+
+CC 2.1.7 introduces automatic MCP discovery via `MCPSearch`. When context exceeds 10%, your MCP tools are still available but discovered on-demand rather than pre-loaded.
+
+### Optimizing for Auto-Discovery
+
+Make your tools easily discoverable by using descriptive names and keywords:
+
+```python
+# GOOD: Descriptive, searchable
+Tool(
+    name="query_product_database",
+    description="""
+    Search the product catalog database.
+
+    KEYWORDS: products, catalog, inventory, SKU, search
+    USE WHEN: User needs product info, pricing, availability
+    """,
+    inputSchema={...}
+)
+
+# BAD: Generic, hard to discover
+Tool(
+    name="search",
+    description="Search things",
+    inputSchema={...}
+)
+```
+
+### Token-Efficient Tool Definitions
+
+Since tool definitions consume context when loaded, optimize for size:
+
+```python
+# Verbose: ~200 tokens
+Tool(
+    name="search_database",
+    description="This tool allows you to search our comprehensive database...",
+    inputSchema={...}  # detailed descriptions
+)
+
+# Concise: ~80 tokens
+Tool(
+    name="search_database",
+    description="Search database. Supports: full-text, filters. Returns: {id, title, snippet}",
+    inputSchema={...}  # brief descriptions
+)
+```
+
+### Discovery Metadata Pattern
+
+Add discovery hints to improve MCPSearch matching:
+
+```python
+Tool(
+    name="analyze_logs",
+    description="""
+    Analyze application logs for errors.
+
+    Category: Observability
+    Keywords: logs, errors, debugging, monitoring
+    Triggers: "check logs", "find errors", "debug issue"
+    """,
+    inputSchema={...}
+)
+```
+
 ## Resources
 - MCP Specification: https://modelcontextprotocol.io/docs
 - Python SDK: https://github.com/modelcontextprotocol/python-sdk

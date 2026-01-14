@@ -454,6 +454,46 @@ def compress_and_update_todos(
 
 ---
 
+---
+
+## CC 2.1.7: Effective Context Window
+
+### Static vs Effective Context
+
+CC 2.1.7 introduces the concept of **effective context window** - the actual usable space after system overhead:
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  STATIC CONTEXT WINDOW (Theoretical Maximum)                     │
+│  200,000 tokens                                                  │
+│                                                                  │
+│  EFFECTIVE CONTEXT WINDOW (Actual Usable)                        │
+│  ~160,000 tokens (after system overhead)                         │
+│                                                                  │
+│  YOUR CONTEXT BUDGET (SkillForge Managed)                        │
+│  2,200 tokens (for context layer files)                          │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### Updated Compression Triggers
+
+| Trigger | Static (CC 2.1.6) | Effective (CC 2.1.7) |
+|---------|-------------------|----------------------|
+| MCP Defer | N/A | 10% of effective |
+| Warning | 60% of static | 60% of effective |
+| Compress | 70% of static | 70% of effective |
+| Critical | 90% of static | 90% of effective |
+
+### Calculating Against Effective Window
+
+```python
+def calculate_effective_usage(tokens_used: int) -> float:
+    # CC 2.1.7: Use effective window for more accurate percentage
+    effective_window = os.environ.get("CLAUDE_EFFECTIVE_CONTEXT", 160000)
+    return (tokens_used / effective_window) * 100
+```
+
+
 ## Related Skills
 
 - `context-engineering` - Attention mechanics and positioning

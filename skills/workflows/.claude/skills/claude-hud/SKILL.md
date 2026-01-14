@@ -42,6 +42,40 @@ Add to your `.claude/settings.json`:
 | `session.cost` | Current session cost | `$0.23` |
 | `session.duration` | Session duration | `15m` |
 
+### CC 2.1.7 New Fields
+
+| Field | Description | Example |
+|-------|-------------|---------|
+| `turn.duration` | Current turn duration | `2.3s` |
+| `context_window.effective` | Effective window size | `160000` |
+| `context_window.effective_percentage` | Usage vs effective window | `28` |
+| `mcp.deferred` | MCP tools deferred status | `true` |
+
+## Turn Duration Display (CC 2.1.7)
+
+Enable turn duration tracking in your statusline:
+
+```json
+{
+  "statusline": {
+    "enabled": true,
+    "showTurnDuration": true,
+    "template": "[CTX: {{context_window.used_percentage}}%] [Turn: {{turn.duration}}]"
+  }
+}
+```
+
+### Effective Context Window
+
+CC 2.1.7 uses the **effective** context window rather than the static maximum:
+
+```
+Static Max:    200,000 tokens (theoretical limit)
+Effective:     160,000 tokens (actual usable after overhead)
+Your Usage:     45,000 tokens (28% of effective)
+```
+
+
 ## Visual States
 
 Context usage thresholds help you know when to act:
@@ -154,5 +188,5 @@ If numbers seem off, check for large files loaded in context.
 
 ## Version Requirements
 
-- **Claude Code**: >= 2.1.6
-- **Fields Available**: `context_window.used_percentage`, `context_window.remaining_percentage`
+- **Claude Code**: >= 2.1.7
+- **Fields Available**: CC 2.1.6 + CC 2.1.7 (turn.duration, context_window.effective, mcp.deferred)

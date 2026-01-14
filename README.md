@@ -10,8 +10,8 @@
 
 <p align="center">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin"><img src="https://img.shields.io/github/stars/yonatangross/skillforge-claude-plugin?style=flat-square" alt="GitHub Stars"></a>
-  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.11.1-green?style=flat-square" alt="Version"></a>
-  <img src="https://img.shields.io/badge/CC-≥2.1.6-blue?style=flat-square" alt="Claude Code 2.1.6+">
+  <a href="https://github.com/yonatangross/skillforge-claude-plugin/releases"><img src="https://img.shields.io/badge/version-4.12.0-green?style=flat-square" alt="Version"></a>
+  <img src="https://img.shields.io/badge/CC-≥2.1.7-blue?style=flat-square" alt="Claude Code 2.1.7+">
   <a href="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml"><img src="https://github.com/yonatangross/skillforge-claude-plugin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/license-MIT-purple?style=flat-square" alt="License"></a>
   <a href="https://github.com/anthropics/claude-plugins-official/pull/86"><img src="https://img.shields.io/badge/anthropic--official-pending-yellow?style=flat-square" alt="Anthropic Official"></a>
@@ -48,7 +48,15 @@ SkillForge transforms Claude Code into a comprehensive AI development platform b
 | Single-threaded | Parallel agent execution (fan-out/fan-in) |
 | Context overload | Token-efficient (~70% savings) |
 
-## What's New in v4.11.1 (Agent Fixes)
+## What's New in v4.12.0 (CC 2.1.7 Compatibility)
+
+- **MCP Auto-Mode**: Tools defer when context >10% (~7200 tokens/session savings)
+- **Effective Context Window**: Uses actual usable window for accurate budget tracking
+- **Compound Command Security**: Validates shell operators (&&, ||, |, ;) in chained commands
+- **Permission Feedback**: Logs permission decisions for security auditing
+- **Skill Enhancements**: 6 skills updated with CC 2.1.7 documentation
+
+### Previous (v4.11.1 - Agent Fixes)
 
 - **Agent Model Fixes**: Changed 4 agents from haiku→sonnet for deeper reasoning
 - **Context Modes**: Added explicit `context:` declaration to all 20 agents

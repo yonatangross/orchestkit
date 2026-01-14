@@ -97,7 +97,54 @@ All MCPs disabled by default. Enable selectively:
 | memory | Cross-session persistence |
 | playwright | Browser automation |
 
-## Step 6: Preview & Save
+## Step 6: CC 2.1.7 Settings (New)
+
+Configure CC 2.1.7-specific features:
+
+### Turn Duration Display
+
+```
+Enable turn duration in statusline? [y/N]: y
+```
+
+Adds to settings.json:
+```json
+{
+  "statusline": {
+    "showTurnDuration": true
+  }
+}
+```
+
+### MCP Auto-Deferral Threshold
+
+```
+MCP deferral threshold (default 10%): 10
+```
+
+Adds to config.json:
+```json
+{
+  "cc217": {
+    "mcp_defer_threshold": 0.10,
+    "use_effective_window": true
+  }
+}
+```
+
+### Effective Context Window Mode
+
+```
+Use effective context window for calculations? [Y/n]: y
+```
+
+When enabled:
+- Statusline shows `context_window.effective_percentage`
+- Compression triggers use effective window
+- MCP deferral more accurate
+
+
+## Step 7: Preview & Save
 
 Save to: `~/.claude/plugins/skillforge/config.json`
 

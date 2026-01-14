@@ -86,29 +86,43 @@ fi
 echo ""
 
 # =============================================================================
-# Test 3: Hook paths are valid (relative paths are acceptable for development)
+# Test 3: Hook paths are valid in plugin.json (plugin system architecture)
 # =============================================================================
 echo "--- Test 3: Hook paths validation ---"
 
-SETTINGS_FILE="$PLUGIN_ROOT/.claude/settings.json"
-if [[ -f "$SETTINGS_FILE" ]]; then
-  # Check that hooks reference exists
-  if grep -q '"hooks"' "$SETTINGS_FILE"; then
-    pass "settings.json has hooks configuration"
+# Hooks are defined in plugin.json (root) with ${CLAUDE_PLUGIN_ROOT} paths
+# This is the correct architecture for Claude Code plugins
+PLUGIN_CONFIG="$PLUGIN_ROOT/plugin.json"
+if [[ -f "$PLUGIN_CONFIG" ]]; then
+  # Check that hooks configuration exists
+  if jq -e '.hooks' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
+    pass "plugin.json has hooks configuration"
   else
-    fail "settings.json missing hooks configuration"
+    fail "plugin.json missing hooks configuration"
   fi
 
-  # Check hooks use valid path patterns (relative or CLAUDE_PLUGIN_ROOT)
-  if grep -q '\./hooks/' "$SETTINGS_FILE" || grep -q 'CLAUDE_PLUGIN_ROOT' "$SETTINGS_FILE"; then
-    pass "settings.json uses valid hook paths"
+  # Check hooks use CLAUDE_PLUGIN_ROOT (required for installed plugins)
+  if grep -q 'CLAUDE_PLUGIN_ROOT' "$PLUGIN_CONFIG"; then
+    pass "plugin.json uses CLAUDE_PLUGIN_ROOT paths"
   else
-    fail "settings.json hook paths invalid"
+    fail "plugin.json hook paths should use CLAUDE_PLUGIN_ROOT"
+  fi
+
+  # Verify at least PreToolUse and PostToolUse hooks exist
+  if jq -e '.hooks.PreToolUse' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
+    pass "plugin.json has PreToolUse hooks"
+  else
+    fail "plugin.json missing PreToolUse hooks"
+  fi
+
+  if jq -e '.hooks.PostToolUse' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
+    pass "plugin.json has PostToolUse hooks"
+  else
+    fail "plugin.json missing PostToolUse hooks"
   fi
 else
-  fail ".claude/settings.json not found"
+  fail "plugin.json not found"
 fi
-
 echo ""
 
 # =============================================================================

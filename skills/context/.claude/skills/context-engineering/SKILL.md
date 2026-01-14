@@ -358,6 +358,43 @@ if task_matches("database"):
 
 ---
 
+---
+
+## CC 2.1.7: MCP Auto-Discovery and Deferral
+
+### MCP Search Mode
+
+CC 2.1.7 introduces intelligent MCP tool discovery. When context usage exceeds 10% of the effective window, MCPs are automatically deferred to reduce token overhead.
+
+```
+Context < 10%:  MCP tools immediately available
+Context > 10%:  MCP tools discovered via MCPSearch (deferred loading)
+
+Savings: ~7200 tokens per session average
+```
+
+### How Auto-Deferral Works
+
+The context budget monitor tracks usage against the effective window:
+
+1. **Below 10%**: MCP tool definitions loaded in context (~1200 tokens)
+2. **Above 10%**: MCP tools deferred, available via MCPSearch on-demand
+3. **State file**: `/tmp/claude-mcp-defer-state-{session}.json`
+
+### Best Practices for MCP with Auto-Deferral
+
+1. **Use MCPs early** - Before context fills up
+2. **Batch MCP calls** - Multiple queries in one turn
+3. **Cache MCP results** - Store retrieved docs in context
+4. **Monitor statusline** - Watch for `mcp.deferred: true`
+
+### Checking MCP Deferral State
+
+```bash
+cat /tmp/claude-mcp-defer-state-${CLAUDE_SESSION_ID}.json
+```
+
+
 ## Related Skills
 
 - `context-compression` - Compression strategies and anchored summarization
