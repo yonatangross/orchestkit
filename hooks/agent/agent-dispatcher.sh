@@ -48,7 +48,7 @@ run_hook "MultiClaudeVerifier" "$SCRIPT_DIR/multi-claude-verifier.sh"
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
-  echo "{\"systemMessage\": \"${YELLOW}⚠ Agent: ${WARN_MSG}${RESET}\", \"continue\": true}"
+  jq -n --arg msg "⚠ Agent: $WARN_MSG" '{continue:true,systemMessage:$msg}'
 else
   # Silent success
   echo '{"continue": true, "suppressOutput": true}'

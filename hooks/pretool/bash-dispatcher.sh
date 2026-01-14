@@ -150,7 +150,7 @@ UPDATED_PARAMS=$(jq -n \
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
   jq -n \
-    --arg msg "${YELLOW}⚠ ${WARN_MSG}${RESET}" \
+    --arg msg "⚠ $WARN_MSG" \
     --argjson params "$UPDATED_PARAMS" \
     '{systemMessage: $msg, continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: $params}}'
 else

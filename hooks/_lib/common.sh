@@ -654,3 +654,38 @@ output_deny_with_feedback() {
 
 # Export CC 2.1.7 permission feedback functions
 export -f log_permission_feedback output_silent_allow_with_feedback output_deny_with_feedback
+
+# -----------------------------------------------------------------------------
+# CC 2.1.7 Output Helpers - ANSI-free JSON output
+# -----------------------------------------------------------------------------
+
+# Output warning message - CC 2.1.7 compliant (no ANSI in JSON)
+# Usage: output_warning "Warning message"
+output_warning() {
+  local msg="$1"
+  # Use Unicode emoji ⚠ instead of ANSI colors - safe for JSON
+  jq -n --arg msg "⚠ $msg" '{continue: true, systemMessage: $msg}'
+}
+
+# Output PostToolUse feedback - CC 2.1.7 format
+# Usage: output_posttool_feedback "message" [block]
+# The "decision: block" field is required for Claude to see the reason
+output_posttool_feedback() {
+  local msg="$1"
+  local block="${2:-false}"
+  if [[ "$block" == "true" ]]; then
+    jq -n --arg r "$msg" '{decision:"block",reason:$r,continue:false}'
+  else
+    # Even for non-blocking feedback, use decision:block format so Claude sees it
+    jq -n --arg r "$msg" '{decision:"block",reason:$r,continue:true}'
+  fi
+}
+
+# Strip ANSI escape codes from a string
+# Usage: clean_msg=$(strip_ansi "$msg_with_colors")
+strip_ansi() {
+  echo "$1" | sed 's/\x1b\[[0-9;]*m//g'
+}
+
+# Export CC 2.1.7 helpers
+export -f output_warning output_posttool_feedback strip_ansi

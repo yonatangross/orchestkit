@@ -29,17 +29,21 @@ log_hook "Agent memory inject hook starting"
 # Max memories to inject (prevent context bloat)
 MAX_MEMORIES=5
 
-# Agent type to domain mapping for better memory retrieval
-declare -A AGENT_DOMAINS=(
-    ["database-engineer"]="database schema SQL PostgreSQL migration"
-    ["backend-system-architect"]="API REST architecture backend FastAPI"
-    ["frontend-ui-developer"]="React frontend UI component TypeScript"
-    ["security-auditor"]="security OWASP vulnerability audit"
-    ["test-generator"]="testing unit integration coverage pytest"
-    ["workflow-architect"]="LangGraph workflow agent orchestration"
-    ["llm-integrator"]="LLM API OpenAI Anthropic embeddings RAG"
-    ["data-pipeline-engineer"]="data pipeline embeddings vector ETL"
-)
+# Agent type to domain mapping - bash 3.2 compatible (no associative arrays)
+get_agent_domain() {
+    local agent_type="$1"
+    case "$agent_type" in
+        database-engineer) echo "database schema SQL PostgreSQL migration" ;;
+        backend-system-architect) echo "API REST architecture backend FastAPI" ;;
+        frontend-ui-developer) echo "React frontend UI component TypeScript" ;;
+        security-auditor) echo "security OWASP vulnerability audit" ;;
+        test-generator) echo "testing unit integration coverage pytest" ;;
+        workflow-architect) echo "LangGraph workflow agent orchestration" ;;
+        llm-integrator) echo "LLM API OpenAI Anthropic embeddings RAG" ;;
+        data-pipeline-engineer) echo "data pipeline embeddings vector ETL" ;;
+        *) echo "$agent_type" ;;
+    esac
+}
 
 # -----------------------------------------------------------------------------
 # Extract Agent Type from Hook Input
@@ -56,7 +60,7 @@ if [[ -n "$_HOOK_INPUT" ]]; then
     if [[ -z "$AGENT_TYPE" ]]; then
         PROMPT=$(echo "$_HOOK_INPUT" | jq -r '.prompt // ""' 2>/dev/null || echo "")
         # Check if prompt mentions a specific agent type
-        for agent in "${!AGENT_DOMAINS[@]}"; do
+        for agent in database-engineer backend-system-architect frontend-ui-developer security-auditor test-generator workflow-architect llm-integrator data-pipeline-engineer; do
             if echo "$PROMPT" | grep -qi "$agent"; then
                 AGENT_TYPE="$agent"
                 break
@@ -92,7 +96,7 @@ PROJECT_ID=$(mem0_get_project_id)
 AGENT_USER_ID=$(mem0_user_id "$MEM0_SCOPE_AGENTS")
 
 # Get domain keywords for this agent type
-DOMAIN_KEYWORDS="${AGENT_DOMAINS[$AGENT_TYPE]:-$AGENT_TYPE}"
+DOMAIN_KEYWORDS=$(get_agent_domain "$AGENT_TYPE")
 
 # Build search query combining agent scope and domain
 SEARCH_QUERY="$AGENT_TYPE patterns decisions $DOMAIN_KEYWORDS"
@@ -118,7 +122,7 @@ EOF
 SYSTEM_MSG="[Memory Context] Agent: $AGENT_TYPE | Project: $PROJECT_ID"
 
 # Only add hint if we have domain info
-if [[ -n "${AGENT_DOMAINS[$AGENT_TYPE]:-}" ]]; then
+if [[ -n "$(get_agent_domain "$AGENT_TYPE")" && "$(get_agent_domain "$AGENT_TYPE")" != "$AGENT_TYPE" ]]; then
     SYSTEM_MSG="$SYSTEM_MSG | Domain: $DOMAIN_KEYWORDS"
 fi
 

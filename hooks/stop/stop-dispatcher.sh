@@ -1,6 +1,6 @@
 #!/bin/bash
 # Stop Dispatcher - Runs all stop hooks and outputs combined status
-# CC 2.1.4 Compliant: silent on success, visible on failure
+# CC 2.1.7 Compliant: silent on success, visible on failure
 # Consolidates: multi-instance cleanup, task-completion, auto-save, context-compressor, skill hooks
 set -euo pipefail
 
@@ -58,13 +58,16 @@ run_hook "Decisions" "$SKILL_DIR/design-decision-saver.sh"
 run_hook "Evidence" "$SKILL_DIR/evidence-collector.sh"
 run_hook "Mem0Decisions" "$SKILL_DIR/mem0-decision-saver.sh"
 
-# 5. Context compressor (last)
+# 5. Mem0 pre-compaction sync (save important context before compaction)
+run_hook "Mem0Sync" "$SCRIPT_DIR/mem0-pre-compaction-sync.sh"
+
+# 6. Context compressor (last)
 run_hook "Compressor" "$SCRIPT_DIR/context-compressor.sh"
 
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
-  echo "{\"systemMessage\": \"${YELLOW}⚠ ${WARN_MSG}${RESET}\", \"continue\": true}"
+  jq -n --arg msg "⚠ $WARN_MSG" '{continue:true,systemMessage:$msg}'
 else
   # Silent success - no systemMessage
   echo "{\"continue\": true, \"suppressOutput\": true}"

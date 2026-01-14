@@ -190,7 +190,7 @@ WARNINGS=$(collect_warnings)
 
 if [[ -n "$WARNINGS" ]]; then
   jq -n \
-    --arg msg "${YELLOW}⚠ ${WARNINGS}${RESET}" \
+    --arg msg "⚠ $WARNINGS" \
     --arg file_path "$FILE_PATH" \
     --arg content "$CONTENT" \
     '{systemMessage: $msg, continue: true, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "allow", updatedInput: {file_path: $file_path, content: $content}}}'

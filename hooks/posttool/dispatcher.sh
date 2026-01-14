@@ -271,7 +271,7 @@ fi
 
 # Output: silent on success, show warnings if any
 if [[ -n "$WARNINGS_MSG" ]]; then
-  echo "{\"systemMessage\": \"${YELLOW}⚠ ${WARNINGS_MSG}${RESET}\", \"continue\": true}"
+  jq -n --arg msg "⚠ $WARNINGS_MSG" '{continue:true,systemMessage:$msg}'
 else
   echo "{\"continue\": true, \"suppressOutput\": true}"
 fi

@@ -44,7 +44,7 @@ run_hook "PatternSync" "$SCRIPT_DIR/pattern-sync-push.sh"
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
-  echo "{\"systemMessage\": \"${YELLOW}⚠ Cleanup: ${WARN_MSG}${RESET}\", \"continue\": true}"
+  jq -n --arg msg "⚠ Cleanup: $WARN_MSG" '{continue:true,systemMessage:$msg}'
 else
   # Silent success
   echo '{"continue": true, "suppressOutput": true}'

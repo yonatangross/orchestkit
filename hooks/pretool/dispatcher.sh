@@ -82,9 +82,9 @@ esac
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
   if [[ -n "$UPDATED_INPUT" ]]; then
-    echo "$UPDATED_INPUT" | jq --arg msg "${YELLOW}⚠ ${WARN_MSG}${RESET}" '.systemMessage = $msg | .continue = true'
+    echo "$UPDATED_INPUT" | jq --arg msg "⚠ $WARN_MSG" '.systemMessage = $msg | .continue = true'
   else
-    echo "{\"systemMessage\": \"${YELLOW}⚠ ${WARN_MSG}${RESET}\", \"continue\": true}"
+    jq -n --arg msg "⚠ $WARN_MSG" '{continue:true,systemMessage:$msg}'
   fi
 elif [[ -n "$UPDATED_INPUT" ]]; then
   # Silent success with updated input - remove systemMessage

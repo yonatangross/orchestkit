@@ -168,10 +168,10 @@ fi
 if [[ -n "$WARNINGS" ]]; then
   # Has warnings - show to user and inject context
   if [[ -n "$CONTEXTS" ]]; then
-    jq -nc --arg ctx "$CONTEXTS" --arg msg "${YELLOW}⚠ ${WARNINGS}${RESET}" \
+    jq -nc --arg ctx "$CONTEXTS" --arg msg "⚠ $WARNINGS" \
       '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$ctx},systemMessage:$msg,continue:true}'
   else
-    jq -nc --arg msg "${YELLOW}⚠ ${WARNINGS}${RESET}" '{systemMessage:$msg,continue:true}'
+    jq -nc --arg msg "⚠ $WARNINGS" '{systemMessage:$msg,continue:true}'
   fi
 elif [[ -n "$CONTEXTS" ]]; then
   # Has context - inject silently (CC 2.1.7 SessionStart format)

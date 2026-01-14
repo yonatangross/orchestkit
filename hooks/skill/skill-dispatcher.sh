@@ -52,7 +52,7 @@ run_hook "EvalMetrics" "$SCRIPT_DIR/eval-metrics-collector.sh"
 # Output: silent on success, show warnings if any
 if [[ ${#WARNINGS[@]} -gt 0 ]]; then
   WARN_MSG=$(IFS="; "; echo "${WARNINGS[*]}")
-  echo "{\"systemMessage\": \"${YELLOW}⚠ Skills: ${WARN_MSG}${RESET}\", \"continue\": true}"
+  jq -n --arg msg "⚠ Skills: $WARN_MSG" '{continue:true,systemMessage:$msg}'
 else
   # Silent success
   echo '{"continue": true, "suppressOutput": true}'

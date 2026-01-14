@@ -96,7 +96,7 @@ WARNINGS_MSG=$(collect_warnings)
 # Output: silent on success, show warnings if any
 # CC 2.1.7: Don't use suppressOutput: false (redundant), just omit it
 if [[ -n "$WARNINGS_MSG" ]]; then
-  jq -nc --arg msg "${YELLOW}⚠ ${WARNINGS_MSG}${RESET}" '{systemMessage:$msg,continue:true}'
+  jq -nc --arg msg "⚠ $WARNINGS_MSG" '{systemMessage:$msg,continue:true}'
 else
   # Silent success
   echo '{"continue":true,"suppressOutput":true}'
