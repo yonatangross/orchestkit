@@ -9,5 +9,27 @@
     "Manage skill versions and rollback",
     "Track skill performance metrics"
   ],
-  "triggers": ["skill evolution", "skill analysis", "evolve skill", "skill metrics", "skill rollback"]
+  "triggers": {
+    "high_confidence": [
+      "skill evolution",
+      "evolve skill",
+      "skill analysis",
+      "skill metrics"
+    ],
+    "medium_confidence": [
+      "skill rollback",
+      "improve skill",
+      "skill usage"
+    ]
+  },
+  "progressive_loading": {
+    "tier_1_discovery": {
+      "file": "capabilities.json",
+      "tokens": 90
+    },
+    "tier_2_overview": {
+      "file": "SKILL.md",
+      "tokens": 400
+    }
+  }
 }

@@ -2,61 +2,25 @@
   "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
   "name": "remember",
   "version": "1.1.0",
-  "description": "Store decisions, patterns, and best practices in semantic memory with graph relationships, agent scoping, and cross-project learning",
+  "description": "Store decisions and patterns in semantic memory with agent scoping and cross-project learning",
   "capabilities": [
     "semantic-memory-storage",
     "best-practice-tracking",
-    "anti-pattern-recording",
     "category-detection",
-    "cross-project-learning",
-    "graph-memory-relationships",
-    "agent-scoped-storage"
+    "cross-project-learning"
   ],
   "triggers": {
     "high_confidence": [
       "remember",
       "store.*decision",
       "save.*pattern",
-      "record.*that",
-      "remember.*graph",
       "remember.*global"
     ],
     "medium_confidence": [
       "note.*worked",
-      "note.*failed",
       "this.*worked",
-      "this.*failed",
-      "save.*for.*later"
+      "this.*failed"
     ]
   },
-  "integrates_with": [
-    "mem0-memory",
-    "best-practices",
-    "recall",
-    "graph-memory"
-  ],
-  "flags": {
-    "--graph": "Enable graph memory to extract entities and relationships",
-    "--agent": "Scope memory to a specific agent (e.g., database-engineer)",
-    "--global": "Store as cross-project best practice",
-    "--success": "Mark as successful pattern",
-    "--failed": "Mark as anti-pattern",
-    "--category": "Specify category manually"
-  },
-  "progressive_loading": {
-    "tier_1_discovery": {
-      "file": "capabilities.json",
-      "tokens": 120
-    },
-    "tier_2_overview": {
-      "file": "SKILL.md",
-      "tokens": 800
-    },
-    "tier_3_references": {
-      "category-detection": {
-        "file": "references/category-detection.md",
-        "tokens": 150
-      }
-    }
-  }
+  "integrates_with": ["mem0-memory", "best-practices", "recall"]
 }

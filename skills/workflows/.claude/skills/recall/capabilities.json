@@ -30,8 +30,7 @@
   "integrates_with": [
     "mem0-memory",
     "remember",
-    "best-practices",
-    "graph-memory"
+    "best-practices"
   ],
   "flags": {
     "--graph": "Enable graph search to find related entities and relationships",
