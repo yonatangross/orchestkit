@@ -564,7 +564,7 @@ else
         echo -e "${YELLOW}${BOLD}NO TESTS FOUND${NC}"
         echo ""
         echo "Create test files in:"
-        echo "  - tests/.claude/skills/{structure,progressive-loading,semantic-matching,integration}/"
+        echo "  - tests/skills/{structure,progressive-loading,semantic-matching,integration}/"
         echo "  - tests/subagents/{definition,spawn,quality-gates,tools}/"
         echo ""
         echo "Test files should be named test-*.sh"

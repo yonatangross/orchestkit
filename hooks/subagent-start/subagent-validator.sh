@@ -132,7 +132,7 @@ validate_agent_skills() {
 
   # Validate each skill exists
   local missing_skills=()
-  local skills_dir="${CLAUDE_PROJECT_DIR:-.}/.claude/skills"
+  local skills_dir="${CLAUDE_PROJECT_DIR:-.}/skills"
 
   for skill in "${skills[@]}"; do
     # Check if skill directory exists with SKILL.md (CC 2.1.7 flat structure)

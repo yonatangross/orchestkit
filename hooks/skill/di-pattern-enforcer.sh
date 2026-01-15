@@ -177,7 +177,7 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
         echo "  $error"
     done
     echo ""
-    echo "Reference: .claude/skills/backend-architecture-enforcer/SKILL.md"
+    echo "Reference: skills/backend-architecture-enforcer/SKILL.md"
     exit 1
 fi
 

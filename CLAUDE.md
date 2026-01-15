@@ -9,7 +9,7 @@ This document provides essential context for Claude Code when working with the S
 - **97 skills**: Reusable knowledge modules in 10 category-based directories (flat structure)
 - **20 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **12 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands)
-- **81 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
+- **105 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -27,7 +27,7 @@ This document provides essential context for Claude Code when working with the S
 ├── commands/            # User-invocable skill workflows (CC 2.1.3+ unified)
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 99 lifecycle hooks for automation
+├── hooks/               # 105 lifecycle hooks for automation
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -598,11 +598,11 @@ ls agents/
 
 ## Version Information
 
-- **Current Version**: 4.15.0 (as of 2026-01-15)
+- **Current Version**: 4.15.2 (as of 2026-01-15)
 - **Claude Code Requirement**: >= 2.1.7
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.7 native parallel execution (32 direct, routing dispatchers for PreToolUse/PostToolUse)
+- **Hook Architecture**: CC 2.1.7 native parallel execution (105 hooks, all direct - zero dispatchers)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
@@ -642,4 +642,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-15 (v4.15.0 - CC 2.1.7 Skills Migration)
+**Last Updated**: 2026-01-15 (v4.15.2 - CI/CD fixes, 105 hooks registered)

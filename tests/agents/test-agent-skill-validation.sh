@@ -8,7 +8,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/agents"
-SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
+SKILLS_DIR="$REPO_ROOT/skills"
 HOOK_SCRIPT="$REPO_ROOT/hooks/subagent-start/subagent-validator.sh"
 
 # Test temp directory

@@ -32,7 +32,7 @@ jobs:
         run: bash tests/ci/lint.sh
 
   # ============================================================================
-  # STAGE 2: Unit Tests (< 2m)
+  # STAGE 2: Unit Tests (< 5m)
   # ============================================================================
   unit-tests:
     name: Unit Tests
@@ -58,10 +58,53 @@ jobs:
       - name: Run unit tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          # Core validation tests
           bash tests/unit/test-json-validity.sh
           bash tests/unit/test-hook-executability.sh
           bash tests/unit/test-context-schemas.sh
           bash tests/unit/test-hooks-unit.sh
+          bash tests/unit/test-shell-syntax.sh
+          bash tests/unit/test-hook-json-output.sh
+          bash tests/unit/test-edge-cases.sh
+          bash tests/unit/test-count-components.sh
+          # Hook-specific tests
+          bash tests/unit/test-best-practices.sh
+          bash tests/unit/test-lifecycle-hooks.sh
+          bash tests/unit/test-pretool-all-hooks.sh
+          bash tests/unit/test-pretool-mcp-hooks.sh
+          bash tests/unit/test-pretool-skill-hooks.sh
+          bash tests/unit/test-pretool-task-hooks.sh
+          bash tests/unit/test-permission-posttool-hooks.sh
+          bash tests/unit/test-prompt-hooks.sh
+          bash tests/unit/test-file-lock-hooks.sh
+          bash tests/unit/test-subagent-hooks.sh
+          bash tests/unit/test-skill-hooks.sh
+          bash tests/unit/test-learning-tracker-hook.sh
+          # Memory and context tests
+          bash tests/unit/test-mem0-prompt-hooks.sh
+          bash tests/unit/test-memory-lib.sh
+          bash tests/unit/test-memory-commands.sh
+          bash tests/unit/test-memory-context-hook.sh
+          bash tests/unit/test-mcp-pretool-hooks.sh
+          bash tests/unit/test-agent-memory-hooks.sh
+          # Coordination tests
+          bash tests/unit/test-coordination-lib.sh
+          bash tests/unit/test-decision-sync.sh
+          bash tests/unit/test-pattern-sync.sh
+          bash tests/unit/test-worktree-cli.sh
+          # Analytics and feedback tests
+          bash tests/unit/test-analytics.sh
+          bash tests/unit/test-feedback-lib.sh
+          bash tests/unit/test-satisfaction-detection.sh
+          bash tests/unit/test-consent-manager.sh
+          # Skill and agent unit tests
+          bash tests/unit/test-skill-analytics.sh
+          bash tests/unit/test-skill-edit-tracker.sh
+          bash tests/unit/test-agent-performance.sh
+          # Other unit tests
+          bash tests/unit/test-pii-validation.sh
+          bash tests/unit/test-evolution-engine.sh
+          bash tests/unit/test-version-manager.sh
 
   # ============================================================================
   # STAGE 3: Security Tests (< 3m)
@@ -96,6 +139,11 @@ jobs:
           bash tests/security/test-path-traversal.sh
           bash tests/security/test-unicode-attacks.sh
           bash tests/security/test-symlink-attacks.sh
+          bash tests/security/test-line-continuation-bypass.sh
+          bash tests/security/test-compound-commands.sh
+          bash tests/security/test-sqlite-injection.sh
+          bash tests/security/test-input-validation.sh
+          bash tests/security/test-additional-security.sh
 
   # ============================================================================
   # STAGE 4: Integration Tests (< 5m)
@@ -126,6 +174,11 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/integration/test-hook-chains.sh
           bash tests/integration/test-context-system.sh
+          bash tests/integration/test-context-deferral.sh
+          bash tests/integration/test-coordination-hooks.sh
+          bash tests/integration/test-multi-instance-gates.sh
+          bash tests/integration/test-full-mcp-integration.sh
+          bash tests/integration/test-plugin-installation.sh
           bash tests/e2e/test-progressive-loading.sh
           bash tests/e2e/test-agent-lifecycle.sh
           bash tests/e2e/test-coordination-e2e.sh
@@ -149,11 +202,13 @@ jobs:
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/performance/test-token-budget.sh
+          bash tests/performance/test-hook-timing.sh
+
   # ============================================================================
-  # STAGE 6: Compliance Tests (NEW)
+  # STAGE 6: Compliance Tests
   # ============================================================================
   compliance-tests:
-    name: CC 2.1.6 Compliance
+    name: CC 2.1.7 Compliance
     needs: lint
     runs-on: ubuntu-latest
     steps:
@@ -164,10 +219,32 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Run CC 2.1.6 compliance tests
+      - name: Run CC 2.1.7 compliance tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/compliance/test-cc-216-compliance.sh
+
+  # ============================================================================
+  # STAGE 6b: Mem0 Integration Tests (v4.15.1)
+  # ============================================================================
+  mem0-tests:
+    name: Mem0 Integration
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run mem0 integration tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/mem0/test-mem0-integration.sh
+          bash tests/mem0/test-mem0-v1.1.0-enhancements.sh
+          bash tests/mem0/test-mem0-library.sh
 
   # ============================================================================
   # STAGE 7: Agent & Skill Validation
@@ -184,43 +261,67 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq
 
-      - name: Test Agent Model Selection
+      - name: Run agent tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/agents/test-agent-model-selection.sh
-
-      - name: Test Agent Context Modes
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/agents/test-agent-context-modes.sh
-
-      - name: Test Agent Required Hooks
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/agents/test-agent-required-hooks.sh
-
-      - name: Test Agent Frontmatter
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/agents/test-agent-frontmatter.sh
+          bash tests/agents/test-agent-skill-validation.sh
+          bash tests/agents/test-agent-lifecycle-e2e.sh
+          bash tests/agents/test-auto-mode-in-description.sh
+          bash tests/agents/test-hook-paths.sh
 
-      - name: Test Skill Structure
+      - name: Run skill tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/skills/test-skill-structure.sh
-
-      - name: Test Skill Context Modes
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash tests/skills/test-skill-context-modes.sh
+          bash tests/skills/test-skill-references.sh
+          bash tests/skills/test-skill-length.sh
+          bash tests/skills/test-description-triggers.sh
+          bash tests/skills/test-remember-recall-integration.sh
+          bash tests/skills/structure/test-skill-md.sh
+          bash tests/skills/integration/test-skill-agent-integration.sh
 
-      - name: Test Skill References
+      - name: Run subagent definition tests
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/skills/test-skill-references.sh
+          bash tests/subagents/definition/test-agent-definitions.sh
 
   # ============================================================================
-  # STAGE 8: Coverage Report
+  # STAGE 8: System Tests
+  # ============================================================================
+  system-tests:
+    name: System Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run config tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/config/test-config-system.sh
+
+      - name: Run feedback tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/feedback/test-feedback-system.sh
+
+      - name: Run evaluation tests
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash tests/evaluations/validate-evaluations.sh
+
+  # ============================================================================
+  # STAGE 9: Coverage Report
   # ============================================================================
   coverage-report:
     name: Hook Coverage
@@ -253,7 +354,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, unit-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, coverage-report]
+    needs: [lint, unit-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -266,8 +367,10 @@ jobs:
           echo "Integration Tests: ${{ needs.integration-tests.result }}"
           echo "Performance Tests: ${{ needs.performance-tests.result }}"
           echo "Compliance Tests: ${{ needs.compliance-tests.result }}"
-          echo "Coverage Report: ${{ needs.coverage-report.result }}"
+          echo "Mem0 Tests: ${{ needs.mem0-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
+          echo "System Tests: ${{ needs.system-tests.result }}"
+          echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
@@ -275,7 +378,9 @@ jobs:
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
              [[ "${{ needs.performance-tests.result }}" != "success" ]] || \
              [[ "${{ needs.compliance-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.agent-skill-tests.result }}" != "success" ]]; then
+             [[ "${{ needs.mem0-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.agent-skill-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.system-tests.result }}" != "success" ]]; then
             echo "::error::One or more CI stages failed"
             exit 1
           fi

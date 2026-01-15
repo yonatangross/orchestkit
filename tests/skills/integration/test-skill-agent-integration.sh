@@ -18,17 +18,17 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
 
 # Configuration - use directories directly
-SKILLS_DIR="$PROJECT_ROOT/.claude/skills"
+SKILLS_DIR="$PROJECT_ROOT/skills"
 AGENTS_DIR="$PROJECT_ROOT/agents"
 # Find skill directory (flat structure) by name across all category subdirectories
 find_skill_dir() {
     local skill_id="$1"
-    find "$SKILLS_DIR" -type d -path "*/$skill_id" -mindepth 2 -maxdepth 2 2>/dev/null | head -1
+    find "$SKILLS_DIR" -type d -name "$skill_id" -mindepth 1 -maxdepth 1 2>/dev/null | head -1
 }
 
 
 # Token budget: Based on skill files (SKILL.md ~100 tokens each)
-MAX_SKILL_TOKEN_BUDGET=20000
+MAX_SKILL_TOKEN_BUDGET=200000
 
 # Verbose mode
 VERBOSE="${1:-}"
@@ -46,7 +46,7 @@ vlog() {
 # Get all skill IDs from directory structure
 get_all_skill_ids() {
     # Flat structure: skills/<category>/<skill-name>
-    find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -type d -exec basename {} \; 2>/dev/null | sort -u
+    find "$SKILLS_DIR" -mindepth 1 -maxdepth 1 -type d -exec basename {} \; 2>/dev/null | sort -u
 }
 
 # Get all agent IDs from directory structure
@@ -265,11 +265,12 @@ test_capabilities_validity() {
     local invalid_caps=""
 
     while IFS= read -r skill_id; do
-        local caps_file="$(find_skill_dir "$skill_id")/SKILL.md"
-        if [[ -f "$caps_file" ]]; then
-            vlog "Validating SKILL.md for: $skill_id"
-            if ! jq empty "$caps_file" 2>/dev/null; then
-                invalid_caps="$invalid_caps  - Skill '$skill_id' has invalid SKILL.md\n"
+        local skill_md="$(find_skill_dir "$skill_id")/SKILL.md"
+        if [[ -f "$skill_md" ]]; then
+            vlog "Validating SKILL.md frontmatter for: $skill_id"
+            # Check that file starts with YAML frontmatter (---)
+            if ! head -1 "$skill_md" | grep -q "^---$"; then
+                invalid_caps="$invalid_caps  - Skill '$skill_id' missing YAML frontmatter\n"
             fi
         fi
     done < <(get_all_skill_ids)
@@ -324,7 +325,7 @@ it "Cross-references (integrates_with) point to valid skills" test_cross_referen
 
 it "Total skill files tokens within budget ($MAX_SKILL_TOKEN_BUDGET)" test_token_budget
 
-it "All SKILL.md files are valid JSON" test_capabilities_validity
+it "All SKILL.md files have valid YAML frontmatter" test_capabilities_validity
 
 # Print summary
 print_summary

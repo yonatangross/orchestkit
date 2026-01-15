@@ -173,7 +173,7 @@ jobs:
       - name: Validate component counts
         run: ./bin/validate-counts.sh
 
-  # Job 7: Skills Validation
+  # Job 7: Skills Validation (CC 2.1.7 flat structure)
   skills-validation:
     name: Skills Validation
     runs-on: ubuntu-latest
@@ -185,9 +185,9 @@ jobs:
 
       - name: Validate skill structure
         run: |
-          echo "Validating skills (flat structure)..."
+          echo "Validating skills (CC 2.1.7 flat structure)..."
 
-          # Flat structure: skills/<category>/<skill-name>/
+          # CC 2.1.7 flat structure: skills/<skill-name>/
           if [[ ! -d "skills" ]]; then
             echo "No skills directory found"
             exit 0
@@ -196,29 +196,16 @@ jobs:
           errors=0
           skill_count=0
 
-          for category_dir in .claude/skills/; do
-            [[ -d "$category_dir" ]] || continue
-            category=$(basename "$category_dir")
+          for skill_dir in skills/*/; do
+            [[ -d "$skill_dir" ]] || continue
+            skill_name=$(basename "$skill_dir")
+            skill_count=$((skill_count + 1))
 
-            for skill_dir in "$category_dir"/*/; do
-              [[ -d "$skill_dir" ]] || continue
-              skill_name=$(basename "$skill_dir")
-              skill_count=$((skill_count + 1))
-
-              # Check for required SKILL.md
-              if [[ ! -f "$skill_dir/SKILL.md" ]]; then
-                echo "  ERROR: $category/$skill_name missing SKILL.md"
-                errors=$((errors + 1))
-              fi
-
-              # Check for capabilities.json (required for progressive loading)
-              if [[ -f "$skill_dir/capabilities.json" ]]; then
-                if ! jq empty "$skill_dir/capabilities.json" 2>/dev/null; then
-                  echo "  ERROR: $category/$skill_name invalid capabilities.json"
-                  errors=$((errors + 1))
-                fi
-              fi
-            done
+            # Check for required SKILL.md
+            if [[ ! -f "$skill_dir/SKILL.md" ]]; then
+              echo "  ERROR: $skill_name missing SKILL.md"
+              errors=$((errors + 1))
+            fi
           done
 
           echo "Validated $skill_count skills"

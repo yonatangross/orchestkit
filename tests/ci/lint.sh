@@ -113,8 +113,8 @@ echo "────────────────────────�
 incomplete_skills=0
 complete_skills=0
 
-# CC 2.1.7 flat structure: .claude/skills/<skill-name>/SKILL.md
-for skill_dir in "$PROJECT_ROOT/.claude/skills"/*; do
+# CC 2.1.7 flat structure: skills/<skill-name>/SKILL.md
+for skill_dir in "$PROJECT_ROOT/skills"/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
 

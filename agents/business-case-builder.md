@@ -2,6 +2,7 @@
 name: business-case-builder
 description: Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale. Activates for ROI, cost-benefit, risk assessment, investment justification, business case, budget, revenue impact, cost analysis, financial, payback period, NPV, IRR, TCO, revenue projection
 model: sonnet
+context: fork
 color: indigo
 tools:
   - Read
