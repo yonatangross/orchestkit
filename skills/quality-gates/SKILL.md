@@ -8,6 +8,8 @@ author: SkillForge AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking]
 ---
 
+# Quality Gates
+
 This skill teaches agents how to assess task complexity, enforce quality gates, and prevent wasted work on incomplete or poorly-defined tasks.
 
 **Key Principle:** Stop and clarify before proceeding with incomplete information. Better to ask questions than to waste cycles on the wrong solution.

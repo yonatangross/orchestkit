@@ -6,6 +6,7 @@ agent: test-generator
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [testing, quality, enforcement, blocking, aaa-pattern, coverage]
+---
 Enforce 2026 testing best practices with **BLOCKING** validation.
 
 ## When to Use

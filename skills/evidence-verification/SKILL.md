@@ -1,4 +1,6 @@
 ---
+
+# Evidence Verification
 name: evidence-verification
 description: Use when completing tasks, code reviews, or deployments to verify work with evidence. Collects test results, build outputs, coverage metrics, and exit codes to prove work is complete.
 version: 2.0.0
@@ -17,6 +19,8 @@ This skill teaches agents how to collect and verify evidence before marking task
 
 ---
 
+# Evidence Verification
+
 ## When to Use This Skill
 
 ### Auto-Activate Triggers
@@ -33,6 +37,8 @@ This skill teaches agents how to collect and verify evidence before marking task
 - When troubleshooting failures
 
 ---
+
+# Evidence Verification
 
 ## Core Concepts
 
@@ -106,6 +112,8 @@ This skill teaches agents how to collect and verify evidence before marking task
 - ✅ Security scan passes
 
 ---
+
+# Evidence Verification
 
 ## Evidence Collection Templates
 
@@ -182,6 +190,8 @@ Use this template for linting and type checking:
 
 ---
 
+# Evidence Verification
+
 ## Quality Standards
 
 ### Minimum Acceptable
@@ -210,6 +220,8 @@ Use this template for linting and type checking:
 ✅ **Deployment verification** complete
 
 ---
+
+# Evidence Verification
 
 ## Common Pitfalls
 
@@ -260,6 +272,8 @@ Fixing the error now before marking complete."
 
 ---
 
+# Evidence Verification
+
 ## Quick Reference
 
 ### Evidence Collection Checklist
@@ -296,6 +310,8 @@ mypy .                 # Run type checker
 ```
 
 ---
+
+# Evidence Verification
 
 **Remember:** Evidence-first development prevents hallucinations, ensures production quality, and builds confidence. When in doubt, collect more evidence, not less.
 

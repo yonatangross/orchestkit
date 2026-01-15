@@ -6,6 +6,7 @@ agent: code-quality-reviewer
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [structure, architecture, enforcement, blocking, imports, organization]
+---
 Enforce 2026 folder structure best practices with **BLOCKING** validation.
 
 ## When to Use

@@ -374,6 +374,7 @@ test_remember_skill_exists() {
 }
 
 test_remember_skill_has_capabilities() {
+    : # No-op placeholder
 }
 
 test_remember_skill_has_success_flag() {
@@ -393,6 +394,7 @@ test_recall_skill_exists() {
 }
 
 test_recall_skill_has_capabilities() {
+    : # Placeholder
 }
 
 test_best_practices_skill_exists() {
@@ -400,6 +402,7 @@ test_best_practices_skill_exists() {
 }
 
 test_best_practices_skill_has_capabilities() {
+    : # Placeholder
 }
 
 test_best_practices_skill_has_categories() {
@@ -421,6 +424,7 @@ test_feedback_skill_exists() {
 }
 
 test_feedback_skill_has_capabilities() {
+    : # Placeholder
 }
 
 # ============================================================================

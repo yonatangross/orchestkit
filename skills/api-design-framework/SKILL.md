@@ -12,7 +12,7 @@ tags: [api, rest, graphql, grpc, backend, documentation]
 
 This skill provides comprehensive guidance for designing robust, scalable, and developer-friendly APIs. Whether building REST, GraphQL, or gRPC services, this framework ensures consistency, usability, and maintainability.
 
-**When to use this skill:**
+## When to Use
 - Designing new API endpoints or services
 - Establishing API conventions for a team or organization
 - Reviewing API designs for consistency and best practices
