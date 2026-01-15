@@ -6,7 +6,9 @@ agent: code-quality-reviewer
 version: 1.1.0
 author: SkillForge AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking]
-This skill teaches agents how to assess task complexity, enforce quality gates, and prevent wasted work on incomplete or poorly-defined tasks. Inspired by production-grade development practices, quality gates ensure agents have sufficient context before proceeding and automatically escalate when stuck or blocked.
+---
+
+This skill teaches agents how to assess task complexity, enforce quality gates, and prevent wasted work on incomplete or poorly-defined tasks.
 
 **Key Principle:** Stop and clarify before proceeding with incomplete information. Better to ask questions than to waste cycles on the wrong solution.
 
@@ -26,560 +28,142 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 - User asks for complexity assessment
 - Planning a multi-step project
 - Before committing to a timeline
-- When uncertain about requirements
 
 ---
 
 ## Core Concepts
 
-### 1. Complexity Scoring (1-5 Scale)
+### Complexity Scoring (1-5 Scale)
 
-Assess every task on a 1-5 complexity scale:
+| Level | Files | Lines | Time | Characteristics |
+|-------|-------|-------|------|-----------------|
+| 1 - Trivial | 1 | < 50 | < 30 min | No deps, no unknowns |
+| 2 - Simple | 1-3 | 50-200 | 30 min - 2 hr | 0-1 deps, minimal unknowns |
+| 3 - Moderate | 3-10 | 200-500 | 2-8 hr | 2-3 deps, some unknowns |
+| 4 - Complex | 10-25 | 500-1500 | 8-24 hr | 4-6 deps, significant unknowns |
+| 5 - Very Complex | 25+ | 1500+ | 24+ hr | 7+ deps, many unknowns |
 
-**Level 1: Trivial**
-- Single file change
-- Simple variable rename
-- Documentation update
-- CSS styling tweak
-- < 50 lines of code
-- < 30 minutes estimated
-- No dependencies
-- No unknowns
+**See:** `references/complexity-scoring.md` for detailed examples and assessment formulas.
 
-**Level 2: Simple**
-- 1-3 file changes
-- Basic function implementation
-- Simple API endpoint (CRUD)
-- Straightforward component
-- 50-200 lines of code
-- 30 minutes - 2 hours estimated
-- 0-1 dependencies
-- Minimal unknowns
+### Blocking Thresholds
 
-**Level 3: Moderate**
-- 3-10 file changes
-- Multiple component coordination
-- API with validation and error handling
-- State management integration
-- Database schema changes
-- 200-500 lines of code
-- 2-8 hours estimated
-- 2-3 dependencies
-- Some unknowns that need research
+| Condition | Threshold | Action |
+|-----------|-----------|--------|
+| Critical Questions | > 3 unanswered | BLOCK |
+| Missing Dependencies | Any blocking | BLOCK |
+| Failed Attempts | >= 3 | BLOCK & ESCALATE |
+| Evidence Failure | 2 fix attempts | BLOCK |
+| Complexity Overflow | Level 4-5 no plan | BLOCK |
 
-**Level 4: Complex**
-- 10-25 file changes
-- Cross-cutting concerns
-- Authentication/authorization
-- Real-time features (WebSockets)
-- Payment integration
-- Database migrations with data
-- 500-1500 lines of code
-- 8-24 hours (1-3 days) estimated
-- 4-6 dependencies
-- Significant unknowns
-- Multiple decision points
+**WARNING Conditions** (proceed with caution):
+- Level 3 complexity
+- 1-2 unanswered questions
+- 1-2 failed attempts
 
-**Level 5: Very Complex**
-- 25+ file changes
-- Architectural changes
-- New service/microservice
-- Complete feature subsystem
-- Third-party API integration
-- Performance optimization
-- 1500+ lines of code
-- 24+ hours (3+ days) estimated
-- 7+ dependencies
-- Many unknowns
-- Requires research and prototyping
-- High risk of scope creep
+**See:** `references/blocking-thresholds.md` for escalation protocols and decision logic.
 
-### 2. Quality Gate Thresholds
+---
 
-**BLOCKING Conditions** (MUST resolve before proceeding):
+## References
 
-1. **Incomplete Requirements** (>3 critical questions)
-   - If you have more than 3 unanswered critical questions, STOP
-   - Examples of critical questions:
-     - "What should happen when X fails?"
-     - "What data structure should I use?"
-     - "What's the expected behavior for edge case Y?"
-     - "Which API should I call?"
-     - "What authentication method?"
+### Complexity Scoring
+**See:** `references/complexity-scoring.md`
 
-2. **Missing Dependencies** (blocked by another task)
-   - Task depends on incomplete work
-   - Required API endpoint doesn't exist
-   - Database schema not ready
-   - External service not configured
+Key topics covered:
+- Detailed Level 1-5 characteristics and examples
+- Quick assessment formula
+- Assessment checklist
 
-3. **Stuck Detection** (3 attempts at same task)
-   - Tried 3 different approaches, all failed
-   - Keep encountering the same error
-   - Can't find necessary information
-   - Solution keeps breaking other things
+### Blocking Thresholds & Escalation
+**See:** `references/blocking-thresholds.md`
 
-4. **Evidence Failure** (tests/builds failing)
-   - Tests fail after 2 fix attempts
-   - Build breaks after changes
-   - Type errors persist
-   - Integration tests failing
+Key topics covered:
+- BLOCKING vs WARNING conditions
+- Escalation protocol and message templates
+- Gate decision logic
+- Attempt tracking
 
-5. **Complexity Overflow** (Level 4-5 tasks without breakdown)
-   - Complex task not broken into subtasks
-   - No clear implementation plan
-   - Too many unknowns
-   - Scope unclear
+### Quality Gate Workflows
+**See:** `references/workflows.md`
 
-**WARNING Conditions** (Can proceed with caution):
+Key topics covered:
+- Pre-task gate validation workflow
+- Stuck detection and escalation workflow
+- Complexity breakdown workflow (Level 4-5)
+- Requirements completeness check
 
-1. **Moderate Complexity** (Level 3)
-   - Can proceed but should verify approach first
-   - Document assumptions
-   - Plan for checkpoints
+### Gate Patterns
+**See:** `references/gate-patterns.md`
 
-2. **1-2 Unanswered Questions**
-   - Document assumptions
-   - Proceed with best guess
-   - Note for review later
+Key topics covered:
+- Gate validation process templates
+- Integration with context system
+- Common pitfalls
 
-3. **1-2 Failed Attempts**
-   - Try alternative approach
-   - Document what didn't work
-   - Consider asking for help
+### LLM Quality Validation
+**See:** `references/llm-quality-validation.md`
 
-### 3. Gate Validation Process
+Key topics covered:
+- LLM-as-judge patterns
+- Quality aspects (relevance, depth, coherence, accuracy, completeness)
+- Fail-open vs fail-closed strategies
+- Graceful degradation patterns
+- Triple-consumer artifact design
+
+---
+
+## Quick Reference
+
+### Gate Decision Flow
+
+```
+1. Assess complexity (1-5)
+2. Count critical questions unanswered
+3. Check dependencies blocked
+4. Check attempt count
+
+if (questions > 3 || deps blocked || attempts >= 3) -> BLOCK
+else if (complexity >= 4 && no plan) -> BLOCK
+else if (complexity == 3 || questions 1-2) -> WARNING
+else -> PASS
+```
+
+### Gate Check Template
 
 ```markdown
-## Quality Gate Check
+## Quality Gate: [Task Name]
 
-**Task:** [Task description]
-**Complexity:** [1-5 scale]
-**Dependencies:** [List dependencies]
-
-### Critical Questions (Must answer before proceeding)
-1. [Question 1] - ✅ Answered / ❌ Unknown
-2. [Question 2] - ✅ Answered / ❌ Unknown
-3. [Question 3] - ✅ Answered / ❌ Unknown
-
+**Complexity:** Level [1-5]
 **Unanswered Critical Questions:** [Count]
-
-### Dependency Check
-- [ ] All required APIs exist
-- [ ] Database schema ready
-- [ ] Required services running
-- [ ] External APIs accessible
-- [ ] Authentication configured
-
-**Blocked Dependencies:** [List]
-
-### Attempt History
-- Attempt 1: [What was tried, outcome]
-- Attempt 2: [What was tried, outcome]
-- Attempt 3: [What was tried, outcome]
-
+**Blocked Dependencies:** [List or None]
 **Failed Attempts:** [Count]
 
-### Gate Status
-- ✅ **PASS** - Can proceed
-- ⚠️ **WARNING** - Proceed with caution
-- ❌ **BLOCKED** - Must resolve before proceeding
-
-### Blocking Reasons (if blocked)
-- [ ] >3 critical questions unanswered
-- [ ] Missing dependencies
-- [ ] 3+ failed attempts (stuck)
-- [ ] Evidence shows failures
-- [ ] Complexity too high without plan
-
-### Actions Required
-[List actions needed to unblock]
-```
-
----
-
-## Quality Gate Workflows
-
-### Workflow 1: Pre-Task Gate Validation
-
-**When:** Before starting any task (especially Level 3-5)
-
-**Steps:**
-
-1. **Assess Complexity**
-   ```
-   Read task description
-   Count file changes needed
-   Estimate lines of code
-   Identify dependencies
-   Count unknowns
-   → Assign complexity score (1-5)
-   ```
-
-2. **Identify Critical Questions**
-   ```
-   What must I know to complete this?
-   - Data structures?
-   - Expected behaviors?
-   - Edge cases?
-   - Error handling?
-   - API contracts?
-
-   → List all critical questions
-   → Count unanswered questions
-   ```
-
-3. **Check Dependencies**
-   ```
-   What does this task depend on?
-   - Other tasks?
-   - External services?
-   - Database changes?
-   - Configuration?
-
-   → Verify dependencies ready
-   → List blockers
-   ```
-
-4. **Gate Decision**
-   ```
-   if (unansweredQuestions > 3) → BLOCK
-   if (missingDependencies > 0) → BLOCK
-   if (complexity >= 4 && !hasPlan) → BLOCK
-   if (complexity == 3) → WARN
-   else → PASS
-   ```
-
-5. **Document in Context**
-   ```javascript
-   context.tasks_pending.push({
-     id: 'task-' + Date.now(),
-     task: "Task description",
-     complexity_score: 3,
-     gate_status: 'pass',
-     critical_questions: [...],
-     dependencies: [...],
-     timestamp: new Date().toISOString()
-   });
-   ```
-
-### Workflow 2: Stuck Detection & Escalation
-
-**When:** After multiple failed attempts at same task
-
-**Steps:**
-
-1. **Track Attempts**
-   ```javascript
-   // In context, track attempts
-   if (!context.attempt_tracking) {
-     context.attempt_tracking = {};
-   }
-
-   if (!context.attempt_tracking[taskId]) {
-     context.attempt_tracking[taskId] = {
-       attempts: [],
-       first_attempt: new Date().toISOString()
-     };
-   }
-
-   context.attempt_tracking[taskId].attempts.push({
-     timestamp: new Date().toISOString(),
-     approach: "Describe what was tried",
-     outcome: "Failed because X",
-     error_message: "Error details"
-   });
-   ```
-
-2. **Check Threshold**
-   ```javascript
-   const attemptCount = context.attempt_tracking[taskId].attempts.length;
-
-   if (attemptCount >= 3) {
-     // ESCALATE - stuck
-     return {
-       status: 'blocked',
-       reason: 'stuck_after_3_attempts',
-       escalate_to: 'user',
-       attempts_history: context.attempt_tracking[taskId].attempts
-     };
-   }
-   ```
-
-3. **Escalation Message**
-   ```markdown
-   ## 🚨 Escalation: Task Stuck
-
-   **Task:** [Task description]
-   **Attempts:** 3
-   **Status:** BLOCKED - Need human guidance
-
-   ### What Was Tried
-   1. **Attempt 1:** [Approach] → Failed: [Reason]
-   2. **Attempt 2:** [Approach] → Failed: [Reason]
-   3. **Attempt 3:** [Approach] → Failed: [Reason]
-
-   ### Current Blocker
-   [Describe the persistent problem]
-
-   ### Need Guidance On
-   - [Specific question 1]
-   - [Specific question 2]
-
-   **Recommendation:** Human review needed to unblock
-   ```
-
-### Workflow 3: Complexity Breakdown (Level 4-5)
-
-**When:** Assigned a Level 4 or 5 complexity task
-
-**Steps:**
-
-1. **Break Down into Subtasks**
-   ```markdown
-   ## Task Breakdown: [Main Task]
-   **Overall Complexity:** Level 4
-
-   ### Subtasks
-   1. **Subtask 1:** [Description]
-      - Complexity: Level 2
-      - Dependencies: None
-      - Estimated: 2 hours
-
-   2. **Subtask 2:** [Description]
-      - Complexity: Level 3
-      - Dependencies: Subtask 1
-      - Estimated: 4 hours
-
-   3. **Subtask 3:** [Description]
-      - Complexity: Level 2
-      - Dependencies: Subtask 2
-      - Estimated: 2 hours
-
-   **Total Estimated:** 8 hours
-   **Complexity Check:** All subtasks ≤ Level 3 ✅
-   ```
-
-2. **Validate Breakdown**
-   ```
-   Check:
-   - [ ] All subtasks are Level 1-3
-   - [ ] Dependencies clearly mapped
-   - [ ] Each subtask has clear acceptance criteria
-   - [ ] Sum of estimates reasonable
-   - [ ] No overlapping work
-   ```
-
-3. **Create Execution Plan**
-   ```markdown
-   ## Execution Plan
-
-   **Phase 1:** Subtask 1
-   - Start: After requirements confirmed
-   - Gate check: Pass
-   - Evidence: Tests pass, build succeeds
-
-   **Phase 2:** Subtask 2
-   - Start: After Subtask 1 complete
-   - Gate check: Verify Subtask 1 evidence
-   - Evidence: Integration tests pass
-
-   **Phase 3:** Subtask 3
-   - Start: After Subtask 2 complete
-   - Gate check: End-to-end verification
-   - Evidence: Full feature tests pass
-   ```
-
-### Workflow 4: Requirements Completeness Check
-
-**When:** Starting a new feature or significant task
-
-**Steps:**
-
-1. **Functional Requirements Check**
-   ```markdown
-   ## Functional Requirements
-
-   - [ ] **Happy path defined:** What should happen when everything works?
-   - [ ] **Error cases defined:** What should happen when things fail?
-   - [ ] **Edge cases identified:** What are the boundary conditions?
-   - [ ] **Input validation:** What inputs are valid/invalid?
-   - [ ] **Output format:** What should the output look like?
-   - [ ] **Success criteria:** How do we know it works?
-   ```
-
-2. **Technical Requirements Check**
-   ```markdown
-   ## Technical Requirements
-
-   - [ ] **API contracts:** Endpoints, methods, schemas defined?
-   - [ ] **Data structures:** Models, types, interfaces specified?
-   - [ ] **Database changes:** Schema migrations needed?
-   - [ ] **Authentication:** Who can access this?
-   - [ ] **Performance:** Any latency/throughput requirements?
-   - [ ] **Security:** Any special security considerations?
-   ```
-
-3. **Count Critical Unknowns**
-   ```javascript
-   const criticalUnknowns = [
-     !functionalRequirements.happyPath,
-     !functionalRequirements.errorCases,
-     !technicalRequirements.apiContracts,
-     !technicalRequirements.dataStructures
-   ].filter(unknown => unknown).length;
-
-   if (criticalUnknowns > 3) {
-     return {
-       gate_status: 'blocked',
-       reason: 'incomplete_requirements',
-       critical_unknowns: criticalUnknowns,
-       action: 'clarify_requirements'
-     };
-   }
-   ```
-
----
-
-## Quality Gate Templates
-
-### Template 1: Pre-Task Gate Check
-
-```markdown
-# Quality Gate: [Task Name]
-
-**Date:** [YYYY-MM-DD]
-**Agent:** [Agent name]
-
-## Complexity Assessment
-
-**Estimated Lines of Code:** [X]
-**Estimated Duration:** [X hours]
-**File Changes:** [X files]
-**Dependencies:** [X dependencies]
-**Unknowns:** [X unknowns]
-
-**Complexity Score:** Level [1-5]
-
-## Critical Questions
-
-1. [Question 1] - ✅ Answered / ❌ Unknown
-2. [Question 2] - ✅ Answered / ❌ Unknown
-3. [Question 3] - ✅ Answered / ❌ Unknown
-
-**Unanswered:** [Count]
-
-## Dependency Check
-
-**Required:**
-- [ ] [Dependency 1] - Ready / Blocked
-- [ ] [Dependency 2] - Ready / Blocked
-
-**Blockers:** [List]
-
-## Gate Decision
-
-**Status:** ✅ PASS / ⚠️ WARNING / ❌ BLOCKED
-
-**Reasoning:** [Why this decision]
-
-**Actions Required:** [If blocked or warning]
-
+**Status:** PASS / WARNING / BLOCKED
 **Can Proceed:** Yes / No
 ```
 
-### Template 2: Stuck Escalation
+### Escalation Template
 
 ```markdown
-# Escalation: Task Stuck
+## Escalation: Task Blocked
 
-**Task:** [Task description]
-**Agent:** [Agent name]
-**Date:** [YYYY-MM-DD]
+**Task:** [Description]
+**Block Type:** [Critical Questions / Dependencies / Stuck / Evidence]
+**Attempts:** [Count]
 
-## Attempt History
+### What Was Tried
+1. [Approach 1] - Failed: [Reason]
+2. [Approach 2] - Failed: [Reason]
 
-**Attempt 1** ([Timestamp])
-- **Approach:** [What was tried]
-- **Outcome:** Failed
-- **Error:** [Error message or issue]
+### Need Guidance On
+- [Specific question]
 
-**Attempt 2** ([Timestamp])
-- **Approach:** [What was tried]
-- **Outcome:** Failed
-- **Error:** [Error message or issue]
-
-**Attempt 3** ([Timestamp])
-- **Approach:** [What was tried]
-- **Outcome:** Failed
-- **Error:** [Error message or issue]
-
-## Current Blocker
-
-[Detailed description of persistent problem]
-
-## Need Guidance
-
-1. [Specific question requiring human input]
-2. [Specific question requiring human input]
-
-## Recommendation
-
-**Escalate to:** User / Studio Coach / Specific Agent
-
-**Suggested Actions:** [What might unblock this]
-```
-
-### Template 3: Complexity Breakdown
-
-```markdown
-# Task Breakdown: [Main Task]
-
-**Original Complexity:** Level [4-5]
-**Goal:** Break down to Level 1-3 subtasks
-
-## Subtasks
-
-### Subtask 1: [Name]
-- **Complexity:** Level [X]
-- **Estimated Duration:** [X hours]
-- **Dependencies:** [None / List]
-- **Acceptance Criteria:**
-  - [ ] [Criterion 1]
-  - [ ] [Criterion 2]
-
-### Subtask 2: [Name]
-- **Complexity:** Level [X]
-- **Estimated Duration:** [X hours]
-- **Dependencies:** [List]
-- **Acceptance Criteria:**
-  - [ ] [Criterion 1]
-  - [ ] [Criterion 2]
-
-### Subtask 3: [Name]
-- **Complexity:** Level [X]
-- **Estimated Duration:** [X hours]
-- **Dependencies:** [List]
-- **Acceptance Criteria:**
-  - [ ] [Criterion 1]
-  - [ ] [Criterion 2]
-
-## Validation
-
-- [ ] All subtasks ≤ Level 3
-- [ ] Dependencies clearly mapped
-- [ ] No circular dependencies
-- [ ] Acceptance criteria clear
-- [ ] Total estimate reasonable
-
-**Can Proceed:** Yes / No
+**Recommendation:** [Suggested action]
 ```
 
 ---
 
 ## Integration with Context System
-
-Quality gates integrate with the context system for tracking:
 
 ```javascript
 // Add gate check to context
@@ -599,8 +183,6 @@ context.quality_gates.push({
 
 ## Integration with Evidence System
 
-Quality gates check for evidence before allowing completion:
-
 ```javascript
 // Before marking task complete
 const evidence = context.quality_evidence;
@@ -610,89 +192,7 @@ const hasPassingEvidence = (
 );
 
 if (!hasPassingEvidence) {
-  return {
-    gate_status: 'blocked',
-    reason: 'no_passing_evidence',
-    action: 'collect_evidence_first'
-  };
-}
-```
-
----
-
-## Best Practices
-
-### 1. Always Run Gate Check Before Starting
-```javascript
-// ❌ BAD: Start immediately
-function startTask(task) {
-  implementTask(task);
-}
-
-// ✅ GOOD: Gate check first
-function startTask(task) {
-  const gateCheck = runQualityGate(task);
-
-  if (gateCheck.status === 'blocked') {
-    escalate(gateCheck.reason);
-    return;
-  }
-
-  if (gateCheck.status === 'warning') {
-    documentAssumptions(gateCheck.warnings);
-  }
-
-  implementTask(task);
-}
-```
-
-### 2. Document All Assumptions
-```markdown
-When proceeding with warnings, document assumptions:
-
-## Assumptions Made
-1. **Assumption:** API will return JSON format
-   **Risk:** Low - standard REST practice
-   **Mitigation:** Add try-catch for parsing
-
-2. **Assumption:** User authentication already implemented
-   **Risk:** Medium - might not exist
-   **Mitigation:** Check early, escalate if missing
-```
-
-### 3. Track Attempts for Stuck Detection
-```javascript
-// Track every attempt
-function attemptTask(taskId, approach) {
-  trackAttempt(taskId, approach);
-
-  const attemptCount = getAttemptCount(taskId);
-  if (attemptCount >= 3) {
-    escalateToUser(taskId);
-    return 'blocked';
-  }
-
-  return executeApproach(approach);
-}
-```
-
-### 4. Break Down Complex Tasks Proactively
-```javascript
-// ❌ BAD: Tackle Level 5 task directly
-implementComplexFeature();
-
-// ✅ GOOD: Break down first
-function handleComplexTask(task) {
-  if (task.complexity >= 4) {
-    const subtasks = breakDownIntoSubtasks(task);
-
-    subtasks.forEach(subtask => {
-      runQualityGate(subtask);
-      implementSubtask(subtask);
-    });
-  } else {
-    implementTask(task);
-  }
+  return { gate_status: 'blocked', reason: 'no_passing_evidence' };
 }
 ```
 
@@ -700,306 +200,65 @@ function handleComplexTask(task) {
 
 ## Common Pitfalls
 
-### ❌ Pitfall 1: Skipping Gate Checks for "Simple" Tasks
-```markdown
-**Problem:** Assume task is simple, skip gate check, get stuck later
-**Solution:** Always run gate check, even for Level 1-2 tasks (quick check)
-```
-
-### ❌ Pitfall 2: Ignoring Warning Status
-```markdown
-**Problem:** Proceed with warnings without documenting assumptions
-**Solution:** Document every assumption when proceeding with warnings
-```
-
-### ❌ Pitfall 3: Not Tracking Attempts
-```markdown
-**Problem:** Keep trying same approach repeatedly, waste cycles
-**Solution:** Track every attempt, escalate after 3
-```
-
-### ❌ Pitfall 4: Proceeding When Blocked
-```markdown
-**Problem:** Gate says BLOCKED but proceed anyway "to make progress"
-**Solution:** NEVER bypass BLOCKED gates - resolve blockers first
-```
-
----
-
-## Quick Reference
-
-### Complexity Quick Check
-- 1-3 files, < 200 lines, < 2 hours → **Level 1-2**
-- 3-10 files, 200-500 lines, 2-8 hours → **Level 3**
-- 10-25 files, 500-1500 lines, 8-24 hours → **Level 4**
-- 25+ files, 1500+ lines, 24+ hours → **Level 5**
-
-### Blocking Threshold Quick Check
-- >3 critical questions unanswered → **BLOCK**
-- Missing dependencies → **BLOCK**
-- 3+ failed attempts → **BLOCK & ESCALATE**
-- Level 4-5 without breakdown → **BLOCK**
-
-### Gate Decision Quick Flow
-```
-1. Assess complexity (1-5)
-2. Count critical questions unanswered
-3. Check dependencies blocked
-4. Check attempt count
-
-if (questions > 3 || dependencies blocked || attempts >= 3) → BLOCK
-else if (complexity >= 4 && no plan) → BLOCK
-else if (complexity == 3 || questions 1-2) → WARNING
-else → PASS
-```
-
----
-
-## LLM-as-Judge Quality Validation (v1.1.0)
-
-Modern AI workflows benefit from automated quality assessment using LLM-as-judge patterns.
-
-### Quality Aspects to Evaluate
-
-When validating LLM-generated content, evaluate these dimensions:
-
-```python
-QUALITY_ASPECTS = [
-    "relevance",    # How relevant is the output to the input?
-    "depth",        # How thorough and detailed is the analysis?
-    "coherence",    # How well-structured and clear is the output?
-    "accuracy",     # Are facts and code snippets correct?
-    "completeness"  # Are all required sections present?
-]
-```
-
-### Quality Gate Implementation Pattern
-
-```python
-async def quality_gate_node(state: WorkflowState) -> dict:
-    """Validate output quality using LLM-as-judge."""
-    THRESHOLD = 0.7  # Minimum score to pass (0.0-1.0)
-    MAX_RETRIES = 2
-
-    # Skip if no content to validate
-    if not state.get("output"):
-        return {"quality_gate_passed": True}
-
-    # Evaluate each quality aspect
-    scores = {}
-    for aspect in QUALITY_ASPECTS:
-        try:
-            async with asyncio.timeout(30):  # Timeout protection
-                score = await evaluate_aspect(
-                    input_content=state["input"],
-                    output_content=state["output"],
-                    aspect=aspect
-                )
-                scores[aspect] = score
-        except TimeoutError:
-            scores[aspect] = 0.7  # Fail open with passing score
-
-    # Calculate average (guard against division by zero)
-    avg_score = sum(scores.values()) / len(scores) if scores else 0.0
-
-    # Determine gate result
-    retry_count = state.get("retry_count", 0)
-    gate_passed = avg_score >= THRESHOLD or retry_count >= MAX_RETRIES
-
-    return {
-        "quality_scores": scores,
-        "quality_gate_avg_score": avg_score,
-        "quality_gate_passed": gate_passed,
-        "quality_gate_retry_count": retry_count
-    }
-```
-
-### Retry Logic
-
-```python
-def should_retry_synthesis(state: WorkflowState) -> str:
-    """Conditional edge function for quality gate routing."""
-    if state.get("quality_gate_passed", True):
-        return "continue"  # Proceed to next node
-
-    retry_count = state.get("quality_gate_retry_count", 0)
-    if retry_count < MAX_RETRIES:
-        return "retry_synthesis"  # Re-run synthesis
-
-    return "continue"  # Max retries reached, fail open
-```
-
-### Fail-Open vs Fail-Closed
-
-**Fail-Open (Recommended for most cases):**
-- If quality validation fails/errors, allow workflow to continue
-- Log the failure for monitoring
-- Prevents workflow from getting stuck
-- Use when partial output is better than no output
-
-**Fail-Closed (Use for critical paths):**
-- If validation fails, block the workflow
-- Use for payment processing, security operations
-- Requires explicit error handling and user notification
-
-### Graceful Degradation Pattern
-
-```python
-async def safe_quality_evaluation(state: dict) -> dict:
-    """Quality gate with full graceful degradation."""
-    try:
-        async with asyncio.timeout(60):  # Total timeout
-            return await quality_gate_node(state)
-    except TimeoutError:
-        logger.warning("quality_gate_timeout", analysis_id=state["id"])
-        return {
-            "quality_gate_passed": True,  # Fail open
-            "quality_gate_error": "Evaluation timed out"
-        }
-    except Exception as e:
-        logger.error("quality_gate_error", error=str(e))
-        return {
-            "quality_gate_passed": True,  # Fail open
-            "quality_gate_error": str(e)
-        }
-```
-
----
-
-## Triple-Consumer Artifact Design (v1.1.0)
-
-Modern artifacts should serve three distinct audiences from the same content:
-
-### 1. AI Coding Assistants (Claude Code, Cursor, Copilot)
-- **Need:** Structured context, implementation steps, code snippets
-- **Format:** Pre-formatted prompts enabling accurate code generation
-- **Quality check:** Are code snippets runnable? Are steps actionable?
-
-### 2. Tutor Systems (Socratic learning)
-- **Need:** Core concepts, exercises, quiz questions, mastery checklists
-- **Format:** Pedagogical structure for progressive skill building
-- **Quality check:** Do exercises have hints and solutions? Are quiz answers valid?
-
-### 3. Human Readers (Developers, learners)
-- **Need:** TL;DR, visual diagrams, glossary, clear explanations
-- **Format:** Scannable in 10-30 seconds with deep-dive capability
-- **Quality check:** Is summary under 500 chars? Do diagrams render correctly?
-
-### Schema Validation for Multi-Consumer Output
-
-```python
-from pydantic import BaseModel, Field, model_validator
-
-class QuizQuestion(BaseModel):
-    """Quiz question with validated answer."""
-    question: str = Field(min_length=10)
-    options: list[str] = Field(min_length=2, max_length=6)
-    correct_answer: str
-    explanation: str = Field(min_length=20)
-
-    @model_validator(mode='after')
-    def validate_correct_answer(self) -> 'QuizQuestion':
-        """Ensure correct_answer is one of the options."""
-        if self.correct_answer not in self.options:
-            raise ValueError(
-                f"correct_answer '{self.correct_answer}' "
-                f"must be one of {self.options}"
-            )
-        return self
-```
+| Pitfall | Problem | Solution |
+|---------|---------|----------|
+| Skip gates for "simple" tasks | Get stuck later | Always run gate check |
+| Ignore WARNING status | Undocumented assumptions cause issues | Document every assumption |
+| Not tracking attempts | Waste cycles on same approach | Track every attempt, escalate at 3 |
+| Proceed when BLOCKED | Build wrong solution | NEVER bypass BLOCKED gates |
 
 ---
 
 ## Version History
 
-**v1.1.0** - Artifact Quality Initiative Update
-- Added LLM-as-judge quality validation patterns
-- Added retry logic with fail-open behavior
-- Added graceful degradation patterns
-- Added triple-consumer artifact design guidance
-- Added Pydantic v2 validation examples
+**v1.1.0** - Added LLM-as-judge quality validation, retry logic, graceful degradation, triple-consumer artifact design
 
-**v1.0.0** - Initial release
-- Complexity scoring (1-5 scale)
-- Blocking thresholds
-- Stuck detection and escalation
-- Requirements completeness checks
-- Context integration
-- Templates and workflows
+**v1.0.0** - Initial release with complexity scoring, blocking thresholds, stuck detection, requirements checks
 
 ---
 
 **Remember:** Quality gates prevent wasted work. Better to ask questions upfront than to build the wrong solution. When in doubt, BLOCK and escalate.
 
+---
+
 ## Capability Details
 
 ### complexity-scoring
 **Keywords:** complexity, score, difficulty, estimate, sizing, 1-5 scale
-**Solves:**
-- How complex is this task?
-- Score task complexity on 1-5 scale
-- Assess implementation difficulty
+**Solves:** How complex is this task? Score task complexity on 1-5 scale, assess implementation difficulty
 
 ### blocking-thresholds
 **Keywords:** blocking, threshold, gate, stop, escalate, cannot proceed
-**Solves:**
-- When should I block progress?
-- >3 critical questions = BLOCK
-- Missing dependencies = BLOCK
-- 3+ failed attempts = BLOCK
+**Solves:** When should I block progress? >3 critical questions = BLOCK, Missing dependencies = BLOCK
 
 ### critical-questions
 **Keywords:** critical questions, unanswered, unknowns, clarify
-**Solves:**
-- What are critical questions?
-- Count unanswered critical questions
-- Block if >3 questions unanswered
+**Solves:** What are critical questions? Count unanswered, block if >3
 
 ### stuck-detection
 **Keywords:** stuck, failed attempts, retry, 3 attempts, escalate
-**Solves:**
-- How do I detect when stuck?
-- After 3 failed attempts, escalate
-- Track attempt history
+**Solves:** How do I detect when stuck? After 3 failed attempts, escalate
 
 ### gate-validation
 **Keywords:** validate, gate check, pass, fail, gate status
-**Solves:**
-- How do I validate quality gates?
-- Run pre-task gate validation
-- Determine PASS/WARNING/BLOCKED status
+**Solves:** How do I validate quality gates? Run pre-task gate validation
 
 ### pre-task-gate-check
 **Keywords:** pre-task, before starting, can proceed
-**Solves:**
-- How do I check gates before starting?
-- Assess complexity before proceeding
-- Identify blockers early
+**Solves:** How do I check gates before starting? Assess complexity, identify blockers
 
 ### complexity-breakdown
 **Keywords:** breakdown, decompose, subtasks, split task
-**Solves:**
-- How do I break down complex tasks?
-- Split Level 4-5 into Level 1-3 subtasks
-- Create task breakdown with dependencies
+**Solves:** How do I break down complex tasks? Split Level 4-5 into Level 1-3 subtasks
 
 ### requirements-completeness
 **Keywords:** requirements, incomplete, acceptance criteria
-**Solves:**
-- Are requirements complete enough?
-- Check functional requirements
-- Block if requirements too vague
+**Solves:** Are requirements complete enough? Check functional/technical requirements
 
 ### escalation-protocol
 **Keywords:** escalate, ask user, need help, human guidance
-**Solves:**
-- When and how to escalate?
-- Escalate after 3 failed attempts
-- Create escalation message
+**Solves:** When and how to escalate? Escalate after 3 failed attempts
 
 ### llm-as-judge
 **Keywords:** llm as judge, g-eval, aspect scoring, quality validation
-**Solves:**
-- How do I use LLM-as-judge?
-- Evaluate relevance, depth, coherence
-- Set quality thresholds (0.0-1.0)
+**Solves:** How do I use LLM-as-judge? Evaluate relevance, depth, coherence with thresholds

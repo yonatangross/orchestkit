@@ -1,6 +1,6 @@
-# Distributed Tracing with OpenTelemetry
+# Distributed Tracing
 
-Track requests across microservices.
+Track requests across microservices with OpenTelemetry.
 
 ## Basic Setup (Node.js)
 
@@ -16,30 +16,63 @@ const sdk = new NodeSDK({
 sdk.start();
 ```
 
-## Manual Spans
+## Span Relationships
 
-```typescript
-import { trace } from '@opentelemetry/api';
+```python
+from opentelemetry import trace
 
-const tracer = trace.getTracer('my-service');
+tracer = trace.get_tracer(__name__)
 
-async function processOrder(orderId: string) {
-  const span = tracer.startSpan('process_order');
-  span.setAttribute('order.id', orderId);
+# Parent span
+with tracer.start_as_current_span("analyze_content") as parent_span:
+    parent_span.set_attribute("content.url", url)
+    parent_span.set_attribute("content.type", "article")
 
-  try {
-    await fetchOrder(orderId);
-    await chargePayment(orderId);
-    span.setStatus({ code: SpanStatusCode.OK });
-  } catch (error) {
-    span.recordException(error);
-    span.setStatus({ code: SpanStatusCode.ERROR });
-    throw error;
-  } finally {
-    span.end();
-  }
-}
+    # Child span (sequential)
+    with tracer.start_as_current_span("fetch_content") as fetch_span:
+        content = await fetch_url(url)
+        fetch_span.set_attribute("content.size_bytes", len(content))
+
+    # Another child span (sequential)
+    with tracer.start_as_current_span("generate_embedding") as embed_span:
+        embedding = await embed_text(content)
+        embed_span.set_attribute("embedding.dimensions", len(embedding))
+
+    # Parallel child spans (using asyncio.gather)
+    async def analyze_with_span(agent_name: str, content: str):
+        with tracer.start_as_current_span(f"agent_{agent_name}"):
+            return await agent.analyze(content)
+
+    results = await asyncio.gather(
+        analyze_with_span("tech_comparator", content),
+        analyze_with_span("security_auditor", content),
+        analyze_with_span("implementation_planner", content)
+    )
 ```
+
+## Trace Sampling Strategies
+
+**Head-based sampling** (decide at trace start):
+```python
+from opentelemetry.sdk.trace.sampling import (
+    TraceIdRatioBased,  # Sample X% of traces
+    ParentBased,        # Follow parent's sampling decision
+    ALWAYS_ON,          # Always sample
+    ALWAYS_OFF          # Never sample
+)
+
+# Sample 10% of traces
+sampler = TraceIdRatioBased(0.1)
+```
+
+**Tail-based sampling** (decide after trace completes):
+- Keep all traces with errors
+- Keep slow traces (p95+ latency)
+- Sample 1% of successful fast traces
+
+**Recommended sampling:**
+- Development: 100% sampling
+- Production: 10% sampling, 100% for errors
 
 ## Context Propagation
 
@@ -55,6 +88,28 @@ context.with(propagatedCtx, () => {
   // ...
   span.end();
 });
+```
+
+## Trace Analysis Queries
+
+**Find slow traces:**
+```
+duration > 2s
+```
+
+**Find traces with errors:**
+```
+status = error
+```
+
+**Find traces for specific user:**
+```
+user.id = "abc-123"
+```
+
+**Find traces hitting specific service:**
+```
+service.name = "analysis-worker"
 ```
 
 ## Best Practices
