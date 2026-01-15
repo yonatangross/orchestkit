@@ -13,7 +13,7 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 DRY_RUN=false
@@ -26,10 +26,29 @@ fi
 # =============================================================================
 # COUNT ACTUAL COMPONENTS (filesystem = source of truth)
 # =============================================================================
-SKILLS=$(find "$PROJECT_ROOT/.claude/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-COMMANDS=$(find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+if [[ -d "$PROJECT_ROOT/skills" ]]; then
+    SKILLS=$(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+else
+    SKILLS=0
+fi
+
+if [[ -d "$PROJECT_ROOT/agents" ]]; then
+    AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+else
+    AGENTS=0
+fi
+
+if [[ -d "$PROJECT_ROOT/.claude/commands" ]]; then
+    COMMANDS=$(find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+else
+    COMMANDS=0
+fi
+
+if [[ -d "$PROJECT_ROOT/hooks" ]]; then
+    HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+else
+    HOOKS=0
+fi
 
 echo "Current counts (from filesystem):"
 echo "  Skills:   $SKILLS"
