@@ -1,11 +1,12 @@
 #!/bin/bash
-# Test CC 2.1.6 Line Continuation Bypass Regression
+# Test CC 2.1.7 Line Continuation Bypass Regression
 #
 # CC 2.1.6 fixed a vulnerability where line continuation characters (\)
 # could be used to bypass command validation. This test ensures our hooks
 # properly detect and normalize such commands.
 #
-# Reference: Claude Code 2.1.6 Changelog - Security Fix
+# Reference: Claude Code 2.1.6+ Changelog - Security Fix
+# Updated for CC 2.1.7 compliance
 
 set -euo pipefail
 
@@ -97,25 +98,25 @@ test_dispatcher_integration() {
   local dispatcher="$PROJECT_ROOT/hooks/pretool/bash/dangerous-command-blocker.sh"
 
   if [[ -f "$dispatcher" ]]; then
-    # Check that the dispatcher includes normalization
-    if grep -q "COMMAND_NORMALIZED" "$dispatcher"; then
+    # Check that the dispatcher includes normalization (uses NORMALIZED_COMMAND variable)
+    if grep -q "NORMALIZED_COMMAND" "$dispatcher"; then
       log_pass "Dispatcher includes normalization variable"
     else
       log_fail "Dispatcher missing normalization"
     fi
 
-    # Check that it uses normalized command for checks
-    if grep -q "COMMAND_FOR_CHECK" "$dispatcher"; then
+    # Check that it uses normalized command for checks (same variable)
+    if grep -q '\$NORMALIZED_COMMAND' "$dispatcher"; then
       log_pass "Dispatcher uses normalized command for security checks"
     else
       log_fail "Dispatcher not using normalized command"
     fi
 
-    # Check for CC 2.1.6 comment
-    if grep -q "CC 2.1.6" "$dispatcher"; then
-      log_pass "Dispatcher has CC 2.1.6 security documentation"
+    # Check for CC 2.1.7 comment (updated from 2.1.6)
+    if grep -q "CC 2.1.7" "$dispatcher"; then
+      log_pass "Dispatcher has CC 2.1.7 security documentation"
     else
-      log_fail "Dispatcher missing CC 2.1.6 documentation"
+      log_fail "Dispatcher missing CC 2.1.7 documentation"
     fi
   else
     log_fail "Dispatcher not found at: $dispatcher"
@@ -126,7 +127,7 @@ test_dispatcher_integration() {
 main() {
   echo ""
   echo "================================================================"
-  echo "  CC 2.1.6 Line Continuation Bypass Security Tests"
+  echo "  CC 2.1.7 Line Continuation Bypass Security Tests"
   echo "================================================================"
   echo ""
 
