@@ -8,7 +8,7 @@
 *Transform Claude Code into a full-stack development powerhouse*
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.7-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-97-blue?style=flat-square)](./.claude/skills)
+[![Skills](https://img.shields.io/badge/Skills-97-blue?style=flat-square)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-20-green?style=flat-square)](./agents)
 [![Hooks](https://img.shields.io/badge/Hooks-56_registered-orange?style=flat-square)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
@@ -37,7 +37,7 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 - **Skills Structure**: Migrated from category-based to CC 2.1.7 native flat structure
 - **Removed capabilities.json**: Skills now use SKILL.md frontmatter for discovery
-- **97 Skills**: All skills at `.claude/skills/<skill-name>/`
+- **97 Skills**: All skills at `skills/<skill-name>/`
 - **Documentation**: Updated all docs and tests for new structure
 
 ### Previous (v4.13.0 - CC 2.1.7 Compatibility)
@@ -66,7 +66,7 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 ### Previous (v4.10.0 - CC 2.1.6 Integration)
 
 ```
-.claude/skills/     # 97 skills in flat CC 2.1.7 structure
+skills/     # 97 skills in flat CC 2.1.7 structure
 ├── api-design-framework/
 ├── auth-patterns/
 ├── database-schema-designer/
@@ -181,7 +181,7 @@ skillforge-claude-plugin/
 │   ├── pretool/          # PreToolUse dispatchers (tool-based routing)
 │   ├── posttool/         # PostToolUse dispatcher (file-type routing)
 │   └── permission/       # Auto-approval hooks
-├── .claude/skills/       # 97 skills in flat structure
+├── skills/       # 97 skills in flat structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required
 │       ├── references/        # Optional
@@ -236,7 +236,7 @@ CLAUDE_MULTI_INSTANCE   # "1" when multi-instance mode active
 
 ```bash
 # Create skill directory
-mkdir -p .claude/skills/my-skill
+mkdir -p skills/my-skill
 
 # Create SKILL.md with frontmatter
 # Then validate

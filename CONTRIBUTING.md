@@ -49,12 +49,12 @@ Skills use the CC 2.1.7 native flat structure with SKILL.md as the only required
 ### 1. Create Skill Directory
 
 ```bash
-mkdir -p .claude/skills/your-skill-name/references
+mkdir -p skills/your-skill-name/references
 ```
 
 ### 2. Create SKILL.md (Required)
 
-Create `.claude/skills/your-skill-name/SKILL.md`:
+Create `skills/your-skill-name/SKILL.md`:
 
 ```markdown
 ---

@@ -39,11 +39,11 @@ echo ""
 # =============================================================================
 echo "--- Test 1: Core directories exist ---"
 
-# CC 2.1.7: skills are in .claude/skills/ (flat structure)
-if [[ -d "$PLUGIN_ROOT/.claude/skills" ]]; then
-  pass ".claude/skills directory exists"
+# CC 2.1.7: skills are in skills/ (flat structure)
+if [[ -d "$PLUGIN_ROOT/skills" ]]; then
+  pass "skills directory exists"
 else
-  fail ".claude/skills directory missing"
+  fail "skills directory missing"
 fi
 
 if [[ -d "$PLUGIN_ROOT/hooks" ]]; then
@@ -131,8 +131,8 @@ echo ""
 # =============================================================================
 echo "--- Test 4: Skill discovery (CC 2.1.7 flat structure) ---"
 
-# CC 2.1.7 flat structure: .claude/skills/<skill-name>/SKILL.md
-SKILL_COUNT=$(find -L "$PLUGIN_ROOT/.claude/skills" -maxdepth 2 -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+# CC 2.1.7 flat structure: skills/<skill-name>/SKILL.md
+SKILL_COUNT=$(find -L "$PLUGIN_ROOT/skills" -maxdepth 2 -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$SKILL_COUNT" -gt 0 ]]; then
   pass "Found $SKILL_COUNT skills with SKILL.md (CC 2.1.7 flat structure)"
 else
@@ -142,7 +142,7 @@ fi
 # Check a few key skills exist in flat structure
 skill_exists() {
   local skill_name="$1"
-  [[ -f "$PLUGIN_ROOT/.claude/skills/${skill_name}/SKILL.md" ]]
+  [[ -f "$PLUGIN_ROOT/skills/${skill_name}/SKILL.md" ]]
 }
 
 for skill in commit configure explore implement verify; do

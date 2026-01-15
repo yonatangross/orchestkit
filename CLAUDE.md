@@ -43,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 └── workflows/           # Multi-agent workflow orchestrations
 
 # Skills use CC 2.1.7 native flat structure (97 skills):
-.claude/skills/<skill-name>/
+skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
 ├── templates/          # Optional: Code generation templates (~300 tokens)
@@ -95,7 +95,7 @@ bin/                     # CLI utilities and scripts
 git clone https://github.com/yonatangross/skillforge-claude-plugin ~/.claude/plugins/skillforge
 
 # Verify installation - check nested structure
-ls ~/.claude/plugins/skillforge/.claude/skills/
+ls ~/.claude/plugins/skillforge/skills/
 ```
 
 ### Testing
@@ -155,7 +155,7 @@ rm -rf hooks/logs/*.log
 ### Skill Development
 ```bash
 # Validate skill structure
-./bin/validate-skill.sh .claude/skills/my-new-skill
+./bin/validate-skill.sh skills/my-new-skill
 
 # Test progressive loading
 ./bin/test-progressive-load.sh my-skill-id
@@ -221,13 +221,13 @@ Tier 1 (Discovery) → Tier 2 (Overview) → Tier 3 (Specific) → Tier 4 (Gener
 **Example** (CC 2.1.7 flat structure):
 ```bash
 # Step 1: Read SKILL.md for overview and patterns
-Read .claude/skills/api-design-framework/SKILL.md
+Read skills/api-design-framework/SKILL.md
 
 # Step 2: If implementing specific pattern, read reference
-Read .claude/skills/api-design-framework/references/rest-pagination.md
+Read skills/api-design-framework/references/rest-pagination.md
 
 # Step 3: If generating code, use template
-Read .claude/skills/api-design-framework/templates/endpoint-template.py
+Read skills/api-design-framework/templates/endpoint-template.py
 ```
 
 ### 2. Hook Architecture (CC 2.1.7)
@@ -409,10 +409,10 @@ Use `/skf:claude-hud` to configure statusline display.
 ### 1. Adding a New Skill (CC 2.1.7)
 ```bash
 # Step 1: Create skill directory
-mkdir -p .claude/skills/my-skill/references
+mkdir -p skills/my-skill/references
 
 # Step 2: Create SKILL.md (required)
-cat > .claude/skills/my-skill/SKILL.md << 'EOF'
+cat > skills/my-skill/SKILL.md << 'EOF'
 ---
 name: my-skill
 description: Brief description of what this skill provides
@@ -432,7 +432,7 @@ Brief overview...
 EOF
 
 # Step 3: Add references (optional)
-touch .claude/skills/my-skill/references/impl.md
+touch skills/my-skill/references/impl.md
 
 # Step 4: Validate
 ./tests/skills/structure/test-skill-md.sh
@@ -539,7 +539,7 @@ hooks/logs/
 .claude/schemas/*.json
 
 # Skills (CC 2.1.6 nested structure)
-.claude/skills/<skill-name>/
+skills/<skill-name>/
 
 # Agents (CC 2.1.6 native format)
 agents/<agent-name>.md
@@ -568,10 +568,10 @@ tail -20 hooks/logs/pretool-bash.log
 cat .claude/coordination/work-registry.json | jq '.locks'
 
 # List available skills
-ls .claude/skills/
+ls skills/
 
 # View a skill
-cat .claude/skills/api-design-framework/SKILL.md
+cat skills/api-design-framework/SKILL.md
 
 # List available agents
 ls agents/
@@ -581,7 +581,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-97 skills in flat structure at `.claude/skills/`. Common skill types include:
+97 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
@@ -600,7 +600,7 @@ ls agents/
 
 - **Current Version**: 4.15.0 (as of 2026-01-15)
 - **Claude Code Requirement**: >= 2.1.7
-- **Skills Structure**: CC 2.1.7 native flat (.claude/skills/<skill>/)
+- **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
 - **Hook Architecture**: CC 2.1.7 native parallel execution (32 direct, routing dispatchers for PreToolUse/PostToolUse)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
