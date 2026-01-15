@@ -14,6 +14,8 @@ skills:
   - database-schema-designer
   - pgvector-search
   - performance-optimization
+  - remember
+  - recall
 hooks:
   PreToolUse:
     - matcher: "Bash"

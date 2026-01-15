@@ -10,6 +10,8 @@ tools:
   - Glob
 skills:
   - design-system-starter
+  - remember
+  - recall
 ---
 ## Directive
 Create rapid UI prototypes with Tailwind CSS, establish design systems with tokens, and produce implementation-ready component specifications with accessibility compliance.

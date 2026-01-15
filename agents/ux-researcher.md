@@ -11,6 +11,8 @@ tools:
   - Glob
 skills:
   - design-system-starter
+  - remember
+  - recall
 ---
 ## Directive
 Conduct user research, create actionable personas, map user journeys, and validate design decisions through data-driven insights and behavioral analysis.

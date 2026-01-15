@@ -1,10 +1,10 @@
 {
   "name": "skf",
-  "version": "4.14.0",
+  "version": "4.15.1",
   "engines": {
     "claude-code": ">=2.1.7"
   },
-  "description": "Comprehensive AI-assisted development toolkit with 97 skills, 20 agents, 99 hooks (ALL registered directly via CC 2.1.7 native parallel - zero dispatchers), progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 97 skills, 20 agents, 81 hooks (ALL registered directly via CC 2.1.7 native parallel - zero dispatchers), progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -67,7 +67,8 @@
     "observability",
     "progressive-loading",
     "skill-system",
-    "agent-framework"
+    "agent-framework",
+    "mcp-integration"
   ],
   "hooks": {
     "PreToolUse": [
@@ -101,6 +102,30 @@
         "matcher": "Skill",
         "hooks": [
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/skill/skill-tracker.sh"}
+        ]
+      },
+      {
+        "matcher": "mcp__context7__*",
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/context7-tracker.sh"}
+        ]
+      },
+      {
+        "matcher": "mcp__playwright__*",
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/playwright-safety.sh"}
+        ]
+      },
+      {
+        "matcher": "mcp__memory__*",
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/memory-validator.sh"}
+        ]
+      },
+      {
+        "matcher": "mcp__sequential-thinking__*",
+        "hooks": [
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/sequential-thinking-auto.sh"}
         ]
       }
     ],
@@ -164,7 +189,8 @@
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/context-injector.sh"},
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/todo-enforcer.sh"},
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/memory-context.sh"},
-          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/satisfaction-detector.sh"}
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/satisfaction-detector.sh"},
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/antipattern-detector.sh"}
         ]
       }
     ],
@@ -204,7 +230,8 @@
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/evidence-collector.sh"},
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/mem0-decision-saver.sh"},
           {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/mem0-pre-compaction-sync.sh"},
-          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/context-compressor.sh"}
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/context-compressor.sh"},
+          {"type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/auto-remember-continuity.sh"}
         ]
       }
     ],

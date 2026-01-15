@@ -18,6 +18,8 @@ skills:
   - vcr-http-recording
   - webapp-testing
   - performance-testing
+  - remember
+  - recall
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.

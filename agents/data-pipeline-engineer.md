@@ -21,6 +21,8 @@ skills:
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
+  - remember
+  - recall
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.

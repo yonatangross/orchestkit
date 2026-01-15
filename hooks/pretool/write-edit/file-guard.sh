@@ -50,6 +50,7 @@ PROTECTED_PATTERNS=(
 # Check if file matches protected patterns (using resolved path)
 for pattern in "${PROTECTED_PATTERNS[@]}"; do
   if [[ "$REAL_PATH" =~ $pattern ]]; then
+    log_permission_feedback "file-guard" "deny" "Protected file blocked: $FILE_PATH (pattern: $pattern)"
     block_with_error "Protected File" "Cannot modify protected file: $FILE_PATH (resolved: $REAL_PATH)
 
 This file matches protected pattern: $pattern
@@ -74,9 +75,11 @@ for pattern in "${CONFIG_PATTERNS[@]}"; do
   if [[ "$REAL_PATH" =~ $pattern ]]; then
     warn "Modifying configuration file: $FILE_PATH"
     log_hook "WARNING: Config file modification: $REAL_PATH"
+    log_permission_feedback "file-guard" "warn" "Config file modification: $FILE_PATH"
   fi
 done
 
-# Output systemMessage for user visibility
+# Allow the write
+log_permission_feedback "file-guard" "allow" "File write allowed: $FILE_PATH"
 echo '{"continue": true, "suppressOutput": true}'
 exit 0

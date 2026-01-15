@@ -20,6 +20,8 @@ skills:
   - webapp-testing
   - i18n-date-patterns
   - motion-animation-patterns
+  - remember
+  - recall
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.

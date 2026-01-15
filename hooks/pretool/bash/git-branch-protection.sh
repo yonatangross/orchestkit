@@ -2,10 +2,14 @@
 set -euo pipefail
 # Git Branch Protection Hook for Claude Code
 # Prevents commits and pushes to dev/main branches
-# CC 2.1.6 Compliant: outputs JSON with continue field
+# CC 2.1.7 Compliant: outputs JSON with continue field
 
 # Read hook input from stdin
 INPUT=$(cat)
+export _HOOK_INPUT="$INPUT"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../_lib/common.sh"
 
 # Extract the bash command
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
@@ -43,11 +47,13 @@ Required workflow:
    gh pr create --base dev
 
 Aborting command to protect $CURRENT_BRANCH branch."
+    log_permission_feedback "git-branch-protection" "deny" "Blocked $COMMAND on protected branch $CURRENT_BRANCH"
     jq -n --arg msg "$ERROR_MSG" '{systemMessage: $msg, continue: false, hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: "Protected branch"}}'
     exit 0
   fi
 fi
 
 # Allow other git operations (fetch, pull, status, etc.)
+log_permission_feedback "git-branch-protection" "allow" "Git command allowed: $COMMAND"
 echo '{"continue": true, "suppressOutput": true}'
 exit 0

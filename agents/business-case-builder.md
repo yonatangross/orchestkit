@@ -13,6 +13,8 @@ tools:
 skills:
   - brainstorming
   - github-cli
+  - remember
+  - recall
 ---
 ## Directive
 Build compelling business cases with ROI projections, cost-benefit analysis, and risk assessment to justify product investments.

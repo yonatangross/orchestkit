@@ -17,6 +17,8 @@ skills:
   - evidence-verification
   - webapp-testing
   - resilience-patterns
+  - remember
+  - recall
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

@@ -61,19 +61,27 @@ else
     EXPIRES_AT=$(date -u -d '+60 seconds' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)
 fi
 
-# Check for existing lock
+# Check for existing lock (with SQL escaping)
 check_existing_lock() {
-    sqlite3 "$DB_PATH" "SELECT instance_id, expires_at, reason FROM file_locks WHERE file_path = '$1' AND expires_at > datetime('now') AND instance_id != '$INSTANCE_ID' LIMIT 1;" 2>/dev/null || echo ""
+    local escaped_path=$(sqlite_escape "$1")
+    local escaped_instance=$(sqlite_escape "$INSTANCE_ID")
+    sqlite3 "$DB_PATH" "SELECT instance_id, expires_at, reason FROM file_locks WHERE file_path = '$escaped_path' AND expires_at > datetime('now') AND instance_id != '$escaped_instance' LIMIT 1;" 2>/dev/null || echo ""
 }
 
-# Acquire lock
+# Acquire lock (with SQL escaping)
 acquire_lock() {
-    sqlite3 "$DB_PATH" "INSERT OR REPLACE INTO file_locks (lock_id, file_path, lock_type, instance_id, acquired_at, expires_at, extensions, reason) VALUES ('$LOCK_ID', '$1', 'exclusive_write', '$INSTANCE_ID', datetime('now'), '$EXPIRES_AT', 0, '$2');" 2>/dev/null || true
+    local escaped_path=$(sqlite_escape "$1")
+    local escaped_reason=$(sqlite_escape "$2")
+    local escaped_lock=$(sqlite_escape "$LOCK_ID")
+    local escaped_instance=$(sqlite_escape "$INSTANCE_ID")
+    sqlite3 "$DB_PATH" "INSERT OR REPLACE INTO file_locks (lock_id, file_path, lock_type, instance_id, acquired_at, expires_at, extensions, reason) VALUES ('$escaped_lock', '$escaped_path', 'exclusive_write', '$escaped_instance', datetime('now'), '$EXPIRES_AT', 0, '$escaped_reason');" 2>/dev/null || true
 }
 
-# Check for directory lock
+# Check for directory lock (with SQL escaping)
 check_directory_lock() {
-    sqlite3 "$DB_PATH" "SELECT instance_id, file_path FROM file_locks WHERE lock_type = 'directory' AND '$1' LIKE file_path || '%' AND expires_at > datetime('now') AND instance_id != '$INSTANCE_ID' LIMIT 1;" 2>/dev/null || echo ""
+    local escaped_path=$(sqlite_escape "$1")
+    local escaped_instance=$(sqlite_escape "$INSTANCE_ID")
+    sqlite3 "$DB_PATH" "SELECT instance_id, file_path FROM file_locks WHERE lock_type = 'directory' AND '$escaped_path' LIKE file_path || '%' AND expires_at > datetime('now') AND instance_id != '$escaped_instance' LIMIT 1;" 2>/dev/null || echo ""
 }
 
 # Main lock logic
@@ -81,32 +89,35 @@ main() {
     # Check for directory lock first
     local dir_lock_info
     dir_lock_info=$(check_directory_lock "$FILE_PATH")
-    
+
     if [[ -n "$dir_lock_info" ]]; then
         local holder_instance locked_dir
         holder_instance=$(echo "$dir_lock_info" | cut -d'|' -f1)
         locked_dir=$(echo "$dir_lock_info" | cut -d'|' -f2)
         log_hook "BLOCKED: Directory $locked_dir is locked by $holder_instance"
+        log_permission_feedback "multi-instance-lock" "deny" "Directory $locked_dir locked by instance $holder_instance"
         output_block "Directory $locked_dir is locked by another Claude instance ($holder_instance). Wait for lock release."
         exit 0
     fi
-    
+
     # Check for file lock
     local lock_info
     lock_info=$(check_existing_lock "$FILE_PATH")
-    
+
     if [[ -n "$lock_info" ]]; then
         local holder_instance expires_at
         holder_instance=$(echo "$lock_info" | cut -d'|' -f1)
         expires_at=$(echo "$lock_info" | cut -d'|' -f2)
         log_hook "BLOCKED: File $FILE_PATH is locked by $holder_instance until $expires_at"
+        log_permission_feedback "multi-instance-lock" "deny" "File $FILE_PATH locked by instance $holder_instance"
         output_block "File $FILE_PATH is locked by another Claude instance ($holder_instance). Wait for lock release."
         exit 0
     fi
-    
+
     # No conflicts, acquire lock
     acquire_lock "$FILE_PATH" "Modifying via $TOOL_NAME"
     log_hook "Lock acquired: $FILE_PATH (expires: $EXPIRES_AT)"
+    log_permission_feedback "multi-instance-lock" "allow" "Lock acquired for $FILE_PATH"
     output_silent_success
 }
 

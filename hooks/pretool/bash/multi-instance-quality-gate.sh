@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
 # multi-instance-quality-gate.sh
-# CC 2.1.6 Compliant: includes continue field in all outputs
+# CC 2.1.7 Compliant: includes continue field in all outputs
 # Pre-commit quality gate for multi-instance Claude Code environments
 # =============================================================================
 set -euo pipefail
@@ -38,6 +38,7 @@ if [[ "$COMMAND" =~ --amend|--fixup ]]; then
 fi
 
 echo "Running multi-instance quality gates..." >&2
+log_permission_feedback "quality-gate" "allow" "Starting quality gate for commit"
 
 # =============================================================================
 # 1. GET STAGED FILES
@@ -273,6 +274,7 @@ if [[ "$ERRORS_FOUND" == "true" ]]; then
     echo "" >&2
     echo "Fix the errors above and try again" >&2
     echo "" >&2
+    log_permission_feedback "quality-gate" "deny" "Quality gate failed - commit blocked"
     jq -nc '{systemMessage:"Quality gate failed",continue:false,hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:"Quality gate failed"}}'
     exit 1
 fi
@@ -283,10 +285,12 @@ if [[ "$WARNINGS_FOUND" == "true" ]]; then
     echo "" >&2
     echo "Warnings don't block commits, but should be addressed" >&2
     echo "" >&2
+    log_permission_feedback "quality-gate" "warn" "Quality gate passed with warnings"
 fi
 
 echo "Multi-instance quality gates passed" >&2
 echo "" >&2
+log_permission_feedback "quality-gate" "allow" "Quality gate passed"
 
 # Output systemMessage for user visibility
 echo '{"continue": true, "suppressOutput": true}'

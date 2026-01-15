@@ -12,6 +12,8 @@ tools:
   - Bash
 skills:
   - github-cli
+  - remember
+  - recall
 ---
 ## Directive
 Transform ambiguous product ideas into clear, actionable requirements with user stories, acceptance criteria, and defined scope boundaries.

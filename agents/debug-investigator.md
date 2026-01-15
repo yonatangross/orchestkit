@@ -11,6 +11,8 @@ tools:
   - Glob
 skills:
   - observability-monitoring
+  - remember
+  - recall
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

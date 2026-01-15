@@ -14,6 +14,8 @@ tools:
   - Bash
 skills:
   - github-cli
+  - remember
+  - recall
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.

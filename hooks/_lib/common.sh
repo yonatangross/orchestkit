@@ -556,6 +556,13 @@ init_coordination_db() {
   return 0
 }
 
+# Escape string for SQLite (prevent SQL injection)
+# Replaces single quotes with two single quotes
+sqlite_escape() {
+  local input="$1"
+  # Use sed for reliable SQL escaping: replace ' with ''
+  echo "$input" | sed "s/'/''/g"
+}
 # Check if a file is locked by another instance
 is_file_locked_by_other() {
   local file_path="$1"
@@ -564,8 +571,10 @@ is_file_locked_by_other() {
   if ! is_multi_instance_enabled; then
     return 1
   fi
+  local escaped_path
+  escaped_path=$(sqlite_escape "$file_path")
   local lock_holder
-  lock_holder=$(sqlite3 "$COORDINATION_DB_PATH" "SELECT instance_id FROM file_locks WHERE file_path = '$file_path';" 2>/dev/null)
+  lock_holder=$(sqlite3 "$COORDINATION_DB_PATH" "SELECT instance_id FROM file_locks WHERE file_path = '$escaped_path';" 2>/dev/null)
   if [[ -z "$lock_holder" || "$lock_holder" == "$my_instance" ]]; then
     return 1
   fi
@@ -583,7 +592,9 @@ acquire_file_lock() {
   if is_file_locked_by_other "$file_path"; then
     return 1
   fi
-  sqlite3 "$COORDINATION_DB_PATH" "INSERT OR REPLACE INTO file_locks (file_path, instance_id, acquired_at) VALUES ('$file_path', '$my_instance', datetime('now'));" 2>/dev/null
+  local escaped_path
+  escaped_path=$(sqlite_escape "$file_path")
+  sqlite3 "$COORDINATION_DB_PATH" "INSERT OR REPLACE INTO file_locks (file_path, instance_id, acquired_at) VALUES ('$escaped_path', '$my_instance', datetime('now'));" 2>/dev/null
   return 0
 }
 
@@ -595,7 +606,9 @@ release_file_lock() {
   if ! is_multi_instance_enabled; then
     return 0
   fi
-  sqlite3 "$COORDINATION_DB_PATH" "DELETE FROM file_locks WHERE file_path = '$file_path' AND instance_id = '$my_instance';" 2>/dev/null
+  local escaped_path
+  escaped_path=$(sqlite_escape "$file_path")
+  sqlite3 "$COORDINATION_DB_PATH" "DELETE FROM file_locks WHERE file_path = '$escaped_path' AND instance_id = '$my_instance';" 2>/dev/null
   return 0
 }
 
@@ -612,7 +625,7 @@ release_all_locks() {
 
 # Export multi-instance functions
 export -f get_coordination_db is_multi_instance_enabled get_instance_id init_coordination_db
-export -f is_file_locked_by_other acquire_file_lock release_file_lock release_all_locks
+export -f is_file_locked_by_other acquire_file_lock release_file_lock release_all_locks sqlite_escape
 
 # -----------------------------------------------------------------------------
 # CC 2.1.7: Permission Feedback Functions

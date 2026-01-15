@@ -14,6 +14,8 @@ tools:
 skills:
   - brainstorming
   - github-cli
+  - remember
+  - recall
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.

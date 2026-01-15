@@ -12,6 +12,8 @@ tools:
   - Bash
 skills:
   - github-cli
+  - remember
+  - recall
 ---
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.

@@ -54,11 +54,13 @@ if [[ ${#SECURITY_ISSUES[@]} -gt 0 ]]; then
 
     # Build warning message
     WARNING_MSG="Security warnings for $(basename "$FILE_PATH"): ${SECURITY_ISSUES[*]}"
+    log_permission_feedback "security-validator" "warn" "Security issues in $FILE_PATH: ${SECURITY_ISSUES[*]}"
     output_warning "$WARNING_MSG"
     exit 0
 else
     echo "[$(date -Iseconds)] SECURITY_OK: $FILE_PATH" >> "$LOG_DIR/security-validator.log" 2>/dev/null || true
 fi
 
+log_permission_feedback "security-validator" "allow" "No security issues in $FILE_PATH"
 output_silent_success
 exit 0

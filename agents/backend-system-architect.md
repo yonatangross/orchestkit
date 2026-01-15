@@ -25,6 +25,8 @@ skills:
   - resilience-patterns
   - langgraph-supervisor
   - mcp-server-building
+  - remember
+  - recall
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.

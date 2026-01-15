@@ -11,6 +11,8 @@ tools:
 skills:
   - owasp-top-10
   - security-scanning
+  - remember
+  - recall
 hooks:
   PostToolUse:
     - matcher: "Bash"

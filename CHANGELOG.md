@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [4.15.1] - 2026-01-15
+
+### Added
+
+**Enhanced Mem0 Integration**
+- Added `remember` and `recall` skills to all 20 agents for automatic mem0 capability injection
+- New hook: `hooks/stop/auto-remember-continuity.sh` - Prompts storing session context at session end
+- New hook: `hooks/prompt/antipattern-detector.sh` - Suggests checking mem0 for known failures before implementing patterns
+- New test file: `tests/unit/test-mem0-prompt-hooks.sh` - Tests for new mem0 hooks and agent skill integration
+
+### Fixed
+
+**Context Bloat**
+- Reset session state from 774 lines to 13 lines (~500+ tokens saved per session)
+- Cleaned accumulated handoff and verification-queue files
+
+**Version Synchronization**
+- Synced `identity.json` version to match `plugin.json` (both now 4.15.1)
+
+**Documentation Accuracy**
+- Fixed hook count in plugin description (103 → 81 actual registered hooks)
+
+### Changed
+- Bumped version to 4.15.1
+
+---
+
 ## [4.11.1] - 2026-01-14
 
 ### Fixed

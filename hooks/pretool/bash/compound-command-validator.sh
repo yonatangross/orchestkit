@@ -6,6 +6,10 @@ set -euo pipefail
 
 # Read hook input from stdin once at the start
 INPUT=$(cat)
+export _HOOK_INPUT="$INPUT"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../_lib/common.sh"
 
 # Extract the bash command
 COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // ""')
@@ -86,6 +90,7 @@ The command contains a potentially destructive operation.
 
 Please review and modify your command to remove the dangerous operation."
 
+  log_permission_feedback "compound-command" "deny" "Dangerous compound command: $COMPOUND_BLOCK_REASON"
   jq -n --arg msg "$ERROR_MSG" '{
     systemMessage: $msg,
     continue: false,
@@ -99,5 +104,6 @@ Please review and modify your command to remove the dangerous operation."
 fi
 
 # Safe compound command - allow execution
+log_permission_feedback "compound-command" "allow" "Compound command validated: safe"
 echo '{"continue": true, "suppressOutput": true}'
 exit 0

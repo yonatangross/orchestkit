@@ -14,6 +14,8 @@ skills:
   - owasp-top-10
   - security-scanning
   - performance-optimization
+  - remember
+  - recall
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

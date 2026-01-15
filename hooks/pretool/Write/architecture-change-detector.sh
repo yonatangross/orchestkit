@@ -19,6 +19,7 @@ FILE_PATH=$(get_field '.tool_input.file_path')
 
 # Check if file exists (new file vs modification)
 if [[ ! -f "$FILE_PATH" ]]; then
+    log_permission_feedback "architecture-detector" "allow" "New architectural file: $FILE_PATH"
     output_silent_success
     exit 0
 fi
@@ -34,5 +35,6 @@ mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 echo "[$(date -Iseconds)] ARCH_DETECT: $FILE_PATH (patterns=$HAS_PATTERNS)" >> "$LOG_DIR/architecture-detector.log" 2>/dev/null || true
 
+log_permission_feedback "architecture-detector" "allow" "Architectural change detected: $FILE_PATH"
 output_silent_success
 exit 0

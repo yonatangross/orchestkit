@@ -13,6 +13,8 @@ skills:
   - security-scanning
   - auth-patterns
   - input-validation
+  - remember
+  - recall
 hooks:
   PostToolUse:
     - matcher: "Bash"
