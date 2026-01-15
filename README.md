@@ -10,7 +10,7 @@
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.7-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-97-blue?style=flat-square)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-20-green?style=flat-square)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-56_registered-orange?style=flat-square)](./hooks)
+[![Hooks](https://img.shields.io/badge/Hooks-105-orange?style=flat-square)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 [Features](#features) • [Quick Start](#quick-start) • [Skills](#skill-system) • [Agents](#agents) • [Hooks](#hooks) • [Commands](#commands)
@@ -25,7 +25,7 @@ SkillForge Complete is a production-ready plugin for Claude Code that provides:
 
 - **97 Skills** across 10 categories with progressive loading (saves ~70% context tokens)
 - **20 Specialized Agents** with native CC 2.1.6+ skill injection
-- **56 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
+- **105 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
 - **Context Window HUD** with real-time usage monitoring
 - **Multi-Instance Coordination** for parallel Claude Code sessions
 
@@ -33,17 +33,24 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.15.0 (CC 2.1.7 Skills Migration)
+## What's New in v4.15.2 (Comprehensive CI & Agent Fixes)
+
+- **CI Coverage**: 88 tests in CI (was 37), 96% test coverage
+- **105 Hooks**: All hooks now registered directly (zero dispatchers)
+- **Agent Context**: All 20 agents have explicit `context: fork|inherit` declarations
+- **Path Fixes**: Updated all tests/hooks for CC 2.1.7 flat skill structure
+- **New Test**: `test-progressive-loading.sh` recreated for flat structure
+
+### Previous (v4.15.0 - CC 2.1.7 Skills Migration)
 
 - **Skills Structure**: Migrated from category-based to CC 2.1.7 native flat structure
 - **Removed capabilities.json**: Skills now use SKILL.md frontmatter for discovery
 - **97 Skills**: All skills at `skills/<skill-name>/`
-- **Documentation**: Updated all docs and tests for new structure
 
 ### Previous (v4.13.0 - CC 2.1.7 Compatibility)
 
 - **Hook Refactoring**: Removed lifecycle dispatchers, now uses CC 2.1.7 native parallel execution
-- **32 Direct Hooks**: SessionStart (8), UserPromptSubmit (4), SessionEnd (4), Stop (10) registered individually
+- **105 Direct Hooks**: SessionStart (8), UserPromptSubmit (4), SessionEnd (4), Stop (10) registered individually
 - **MCP Auto-Mode**: Tools defer when context >10% (~7200 tokens/session savings)
 - **Effective Context Window**: Uses actual usable window for accurate budget tracking
 - **Compound Command Security**: Validates shell operators (&&, ||, |, ;) in chained commands
