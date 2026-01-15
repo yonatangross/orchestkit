@@ -31,16 +31,16 @@ Welcome to the SkillForge plugin for Claude Code! We're excited that you're inte
 ## Project Structure
 
 ```
+skills/                   # 92 skills in 10 categories
+└── <category>/<skill-name>/
+    ├── capabilities.json   # Tier 1: Discovery metadata
+    ├── SKILL.md           # Tier 2: Patterns and best practices
+    ├── references/        # Tier 3: Specific implementations
+    └── templates/         # Tier 4: Code generation
+agents/                   # 20 specialized AI personas
+hooks/                    # 56 registered lifecycle hooks
 .claude/
-├── skills/           # 90 skills (78 knowledge + 12 commands)
-│   └── skill-name/
-│       ├── capabilities.json   # Tier 1: Discovery metadata
-│       ├── SKILL.md           # Tier 2: Patterns and best practices
-│       ├── references/        # Tier 3: Specific implementations
-│       └── templates/         # Tier 4: Code generation
-├── agents/           # 20 specialized AI personas
-├── hooks/            # 96 lifecycle hooks
-└── context/          # Session and knowledge management
+└── context/              # Session and knowledge management
 ```
 
 ## Adding New Skills
@@ -50,7 +50,7 @@ Skills follow a 4-tier progressive loading structure.
 ### 1. Create Skill Directory
 
 ```bash
-mkdir -p skills/your-skill-name/references
+mkdir -p skills/backend/your-skill-name/references
 ```
 
 ### 2. Create capabilities.json (Tier 1 - Required)
@@ -77,7 +77,7 @@ mkdir -p skills/your-skill-name/references
 }
 ```
 
-**Categories**: `ai`, `backend`, `frontend`, `testing`, `security`, `devops`, `workflow`
+**Categories**: `ai-llm`, `langgraph`, `backend`, `frontend`, `testing`, `security`, `devops`, `workflows`, `quality`, `context`
 
 ### 3. Create SKILL.md (Tier 2 - Required)
 
@@ -127,7 +127,7 @@ Add to the `skills` array in `plugin.json`:
 
 ```json
 {
-  "path": "skills/your-skill-name",
+  "path": "skills/backend/your-skill-name",
   "tags": ["keyword1", "keyword2"],
   "description": "Brief description"
 }
@@ -136,7 +136,7 @@ Add to the `skills` array in `plugin.json`:
 ### 7. Validate
 
 ```bash
-./bin/validate-skill.sh skills/your-skill-name
+./bin/validate-skill.sh skills/backend/your-skill-name
 ./tests/schemas/validate-all.sh
 ```
 

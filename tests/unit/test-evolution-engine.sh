@@ -27,10 +27,10 @@ EVOLUTION_ENGINE="$PROJECT_ROOT/.claude/scripts/evolution-engine.sh"
 setup_evolution_env() {
     local test_dir="$TEMP_DIR/evolution-test"
     mkdir -p "$test_dir/.claude/feedback"
-    mkdir -p "$test_dir/skills/testing/.claude/skills/mock-skill/references"
+    mkdir -p "$test_dir/skills/testing/mock-skill/references"
 
     # Create mock skill capabilities.json
-    cat > "$test_dir/skills/testing/.claude/skills/mock-skill/capabilities.json" << 'EOF'
+    cat > "$test_dir/skills/testing/mock-skill/capabilities.json" << 'EOF'
 {
     "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
     "name": "mock-skill",
@@ -40,7 +40,7 @@ setup_evolution_env() {
 EOF
 
     # Create mock SKILL.md
-    cat > "$test_dir/skills/testing/.claude/skills/mock-skill/SKILL.md" << 'EOF'
+    cat > "$test_dir/skills/testing/mock-skill/SKILL.md" << 'EOF'
 ---
 name: mock-skill
 version: 1.0.0

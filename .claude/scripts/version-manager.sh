@@ -41,7 +41,7 @@ find_skill_dir() {
 
     # Search in all category directories
     for category_dir in "$SKILLS_ROOT"/*/; do
-        local candidate="${category_dir}.claude/skills/${skill_id}"
+        local candidate="${category_dir}${skill_id}"
         if [[ -d "$candidate" ]]; then
             skill_dir="$candidate"
             break
@@ -552,8 +552,8 @@ Examples:
   version-manager.sh metrics api-design-framework
 
 Files:
-  Version snapshots: skills/<cat>/.claude/skills/<name>/versions/
-  Manifest: skills/<cat>/.claude/skills/<name>/versions/manifest.json
+  Version snapshots: skills/<cat>/<name>/versions/
+  Manifest: skills/<cat>/<name>/versions/manifest.json
   Metrics: .claude/feedback/metrics.json
 EOF
 }

@@ -15,7 +15,7 @@ echo "=== Skill Structure Test ==="
 echo ""
 
 # Find all skill directories using CC 2.1.6 nested structure
-for skill_dir in "$SKILLS_ROOT"/*/.claude/skills/*/; do
+for skill_dir in "$SKILLS_ROOT"/*/*/; do
   if [[ ! -d "$skill_dir" ]]; then
     continue
   fi

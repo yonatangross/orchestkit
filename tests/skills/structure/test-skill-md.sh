@@ -210,7 +210,7 @@ echo -e "${CYAN}Test 1: File Existence (SKILL.md)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_files=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]]; then
         ((TOTAL_SKILLS++)) || true
         skill_name=$(basename "$skill_dir")
@@ -236,7 +236,7 @@ echo -e "${CYAN}Test 2: YAML Frontmatter Presence${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_frontmatter=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -270,7 +270,7 @@ echo -e "${CYAN}Test 3: Required Frontmatter Fields (name, description)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_fields=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -312,7 +312,7 @@ echo -e "${CYAN}Test 4: H1 Title Presence${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_h1=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -338,7 +338,7 @@ echo -e "${CYAN}Test 5: 'When to Use' or 'Overview' Section${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_section=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -364,7 +364,7 @@ echo -e "${CYAN}Test 6: Code Examples Present${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_code=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -396,7 +396,7 @@ MAX_TOKENS=5000
 under_budget=()
 over_budget=()
 
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -434,7 +434,7 @@ echo -e "${CYAN}Test 8: 'Related Skills' or 'Key Decisions' Section${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_related=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -460,7 +460,7 @@ echo -e "${CYAN}Test 9: Internal Link Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 broken_link_skills=()
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"

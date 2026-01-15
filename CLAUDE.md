@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **92 skills**: Reusable knowledge modules in 10 category-based directories (CC 2.1.6 nested structure)
+- **97 skills**: Reusable knowledge modules in 10 category-based directories (flat structure)
 - **20 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **12 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands)
-- **56 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
+- **99 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -27,7 +27,7 @@ This document provides essential context for Claude Code when working with the S
 ├── commands/            # User-invocable skill workflows (CC 2.1.3+ unified)
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 95 lifecycle hooks for automation
+├── hooks/               # 99 lifecycle hooks for automation
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -42,7 +42,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-skills/                  # 92 skills in CC 2.1.6 nested structure
+skills/                  # 97 skills in flat category structure
 ├── ai-llm/                       # (19) RAG, embeddings, agents, caching
 ├── langgraph/                    # (7)  LangGraph workflows
 ├── backend/                      # (15) FastAPI, architecture, databases
@@ -603,7 +603,7 @@ ls agents/
 
 ## Version Information
 
-- **Current Version**: 4.12.0 (as of 2026-01-14)
+- **Current Version**: 4.14.0 (as of 2026-01-15)
 - **Claude Code Requirement**: >= 2.1.7
 - **Skills Structure**: Flat category-based (skills/<category>/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)

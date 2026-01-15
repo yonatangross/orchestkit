@@ -29,10 +29,10 @@ Located in `.claude/schemas/`:
 # Using ajv
 npx ajv validate \
   -s .claude/schemas/skill-capabilities.schema.json \
-  -d skills/workflows/.claude/skills/doctor/capabilities.json
+  -d skills/workflows/doctor/capabilities.json
 
 # Using jq for basic structure check
-jq empty skills/workflows/.claude/skills/doctor/capabilities.json
+jq empty skills/workflows/doctor/capabilities.json
 ```
 
 ## Common Schema Errors

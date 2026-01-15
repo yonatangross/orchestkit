@@ -1,7 +1,7 @@
 #!/bin/bash
 # ============================================================
 # SkillForge GitHub CLI Helper Functions
-# Source this file: source .claude/skills/github-cli/scripts/gh-helpers.sh
+# Source this file: source skills/devops/github-cli/scripts/gh-helpers.sh
 # ============================================================
 
 # Configuration
@@ -290,7 +290,7 @@ ENVIRONMENT:
   $SF_STATUS_APPROVED   - 1e03846e (✅ approved)
 
 USAGE:
-  source .claude/skills/github-cli/scripts/gh-helpers.sh
+  source skills/devops/github-cli/scripts/gh-helpers.sh
   sf_start_feature "Add hybrid search" "Implement RRF fusion" "enhancement,backend"
 EOF
 }

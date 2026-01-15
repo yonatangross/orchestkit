@@ -23,7 +23,7 @@ SKILL_COUNT=0
 echo "=== Skill Context Modes Test ==="
 echo ""
 
-for skill_dir in "$SKILLS_ROOT"/*/.claude/skills/*/; do
+for skill_dir in "$SKILLS_ROOT"/*/*/; do
   if [[ ! -d "$skill_dir" ]]; then
     continue
   fi

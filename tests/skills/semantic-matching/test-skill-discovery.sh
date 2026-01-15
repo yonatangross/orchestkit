@@ -16,7 +16,7 @@ SKILLS_DIR="$PROJECT_ROOT/skills"
 # CC 2.1.6: Find skill directory by name across all category subdirectories
 find_skill_dir() {
     local skill_name="$1"
-    find "$SKILLS_DIR" -type d -path "*/.claude/skills/$skill_name" 2>/dev/null | head -1
+    find "$SKILLS_DIR" -type d -path "*/$skill_name" 2>/dev/null | head -1
 }
 
 
@@ -1136,7 +1136,7 @@ test_all_skills_have_capabilities_json() {
     local missing=0
     local skill_dirs
 
-    skill_dirs=$(find "$SKILLS_DIR" -type d -path "*/.claude/skills/*" -prune | sort)
+    skill_dirs=$(find "$SKILLS_DIR" -type d -path "*/*/*" -prune | sort)
 
     while IFS= read -r skill_dir; do
         local skill_name
@@ -1508,7 +1508,7 @@ echo "  Skill Semantic Matching Discovery Tests"
 echo "=========================================="
 echo ""
 echo "Skills Directory: $SKILLS_DIR"
-echo "Total Skills: $(find "$SKILLS_DIR" -type d -path "*/.claude/skills/*" -prune | wc -l | tr -d ' ')"
+echo "Total Skills: $(find "$SKILLS_DIR" -type d -path "*/*/*" -prune | wc -l | tr -d ' ')"
 echo ""
 
 run_tests

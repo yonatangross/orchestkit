@@ -140,10 +140,10 @@ echo "────────────────────────�
 incomplete_skills=0
 complete_skills=0
 
-# CC 2.1.6 nested structure: skills/<category>/.claude/skills/<skill-name>/
+# Simplified structure: skills/<category>/<skill-name>/
 for category_dir in "$PROJECT_ROOT/skills"/*; do
-    if [ -d "$category_dir/.claude/skills" ]; then
-        for skill_dir in "$category_dir/.claude/skills"/*; do
+    if [ -d "$category_dir" ]; then
+        for skill_dir in "$category_dir"/*; do
             if [ -d "$skill_dir" ]; then
                 skill_name=$(basename "$skill_dir")
                 has_tier1=false

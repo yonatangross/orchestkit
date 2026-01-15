@@ -295,8 +295,8 @@ Previous version backed up to: versions/.backup-1.2.0-1736867234
 | `.claude/feedback/edit-patterns.jsonl` | Raw edit pattern events | JSONL (append-only) |
 | `.claude/feedback/evolution-registry.json` | Aggregated suggestions | JSON |
 | `.claude/feedback/metrics.json` | Skill usage metrics | JSON |
-| `skills/<cat>/.claude/skills/<name>/versions/` | Version snapshots | Directory |
-| `skills/<cat>/.claude/skills/<name>/versions/manifest.json` | Version metadata | JSON |
+| `skills/<cat>/<name>/versions/` | Version snapshots | Directory |
+| `skills/<cat>/<name>/versions/manifest.json` | Version metadata | JSON |
 
 ---
 

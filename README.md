@@ -1,7 +1,7 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <div align="center">
 
-# 🛠️ SkillForge Claude Plugin
+# SkillForge Claude Plugin
 
 **Comprehensive AI-Assisted Development Toolkit**
 
@@ -60,16 +60,16 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ```
 skills/
-├── ai-llm/.claude/skills/       # 19 skills: RAG, embeddings, agents, caching
-├── langgraph/.claude/skills/    # 7 skills: State, routing, parallel, checkpoints
-├── backend/.claude/skills/      # 15 skills: FastAPI, architecture, databases
-├── frontend/.claude/skills/     # 6 skills: React 19, design systems
-├── testing/.claude/skills/      # 9 skills: Unit, integration, E2E, mocking
-├── security/.claude/skills/     # 5 skills: OWASP, auth, validation
-├── devops/.claude/skills/       # 4 skills: CI/CD, observability
-├── workflows/.claude/skills/    # 13 skills: Git, PR, implementation
-├── quality/.claude/skills/      # 8 skills: Quality gates, reviews
-└── context/.claude/skills/      # 6 skills: Compression, brainstorming
+├── ai-llm/       # 19 skills: RAG, embeddings, agents, caching
+├── langgraph/    # 7 skills: State, routing, parallel, checkpoints
+├── backend/      # 15 skills: FastAPI, architecture, databases
+├── frontend/     # 6 skills: React 19, design systems
+├── testing/      # 9 skills: Unit, integration, E2E, mocking
+├── security/     # 5 skills: OWASP, auth, validation
+├── devops/       # 4 skills: CI/CD, observability
+├── workflows/    # 13 skills: Git, PR, implementation
+├── quality/      # 8 skills: Quality gates, reviews
+└── context/      # 6 skills: Compression, brainstorming
 ```
 
 ## Quick Start
@@ -180,7 +180,7 @@ skillforge-claude-plugin/
 │   ├── posttool/         # PostToolUse dispatcher (file-type routing)
 │   └── permission/       # Auto-approval hooks
 ├── skills/               # 92 skills in 10 categories
-│   └── <category>/.claude/skills/<skill>/
+│   └── <category>/<skill>/
 │       ├── capabilities.json   # Tier 1
 │       ├── SKILL.md           # Tier 2
 │       ├── references/        # Tier 3
@@ -238,7 +238,7 @@ CLAUDE_MULTI_INSTANCE   # "1" when multi-instance mode active
 ./bin/generate-skill.sh --name "My Skill" --category backend
 
 # Validate
-./bin/validate-skill.sh skills/backend/.claude/skills/my-skill
+./bin/validate-skill.sh skills/backend/my-skill
 ```
 
 ### Hook Development

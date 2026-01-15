@@ -182,7 +182,7 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
         echo "  $error"
     done
     echo ""
-    echo "Reference: .claude/skills/test-standards-enforcer/SKILL.md"
+    echo "Reference: skills/testing/test-standards-enforcer/SKILL.md"
     exit 1
 fi
 

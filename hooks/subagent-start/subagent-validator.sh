@@ -137,8 +137,8 @@ validate_agent_skills() {
   for skill in "${skills[@]}"; do
     local found=0
 
-    # Search in all category directories: skills/*/.claude/skills/{skill-name}/capabilities.json
-    for caps_file in "$skills_dir"/*/.claude/skills/"$skill"/capabilities.json; do
+    # Search in all category directories: skills/*/{skill-name}/capabilities.json
+    for caps_file in "$skills_dir"/*/"$skill"/capabilities.json; do
       if [[ -f "$caps_file" ]]; then
         found=1
         break

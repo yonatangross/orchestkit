@@ -79,7 +79,7 @@ find_skill_dir() {
     local skill_dir=""
 
     for category_dir in "$SKILLS_DIR"/*/; do
-        local candidate="${category_dir}.claude/skills/${skill_id}"
+        local candidate="${category_dir}${skill_id}"
         if [[ -d "$candidate" ]]; then
             skill_dir="$candidate"
             break

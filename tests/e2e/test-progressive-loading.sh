@@ -78,7 +78,7 @@ echo "────────────────────────�
 missing_tier1=0
 total_skills=0
 
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [ -d "$skill_dir" ]; then
         ((total_skills++)) || true
         skill_name=$(basename "$skill_dir")
@@ -104,7 +104,7 @@ echo "────────────────────────�
 
 missing_tier2=0
 
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
 
@@ -134,7 +134,7 @@ test_semantic_match() {
     local expected_skill="$2"
     local found=false
 
-    for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+    for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
         if [ -f "$caps_file" ]; then
             skill_dir=$(dirname "$caps_file")
             skill_name=$(basename "$skill_dir")
@@ -204,7 +204,7 @@ TIER2_LIMIT=1200  # SKILL.md should be < 1200 tokens (relaxed)
 tier1_over=0
 tier2_over=0
 
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
 
@@ -237,9 +237,9 @@ echo "────────────────────────�
 # Simulate loading order for a skill
 test_loading_order() {
     local skill_name="$1"
-    # CC 2.1.6 nested structure: skills/<category>/.claude/skills/<skill-name>/
+    # Simplified structure: skills/<category>/<skill-name>/
     local skill_dir
-    skill_dir=$(find "$SKILLS_DIR" -type d -path "*/.claude/skills/$skill_name" 2>/dev/null | head -1)
+    skill_dir=$(find "$SKILLS_DIR" -type d -path "*/$skill_name" 2>/dev/null | head -1)
 
     if [ -z "$skill_dir" ] || [ ! -d "$skill_dir" ]; then
         info "Skill not found: $skill_name (skipping)"
@@ -280,7 +280,7 @@ TOTAL_BUDGET=3000  # Total tokens allowed for all loaded context (relaxed)
 
 # Calculate total if we loaded all Tier 1 + identity + session
 total_tier1_tokens=0
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [ -f "$caps_file" ]; then
         tokens=$(count_tokens "$caps_file")
         total_tier1_tokens=$((total_tier1_tokens + tokens))

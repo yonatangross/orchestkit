@@ -75,7 +75,7 @@ skill_exists() {
     local skill_name="$1"
     # Search in all category directories
     for category_dir in "$SKILLS_DIR"/*/; do
-        if [[ -d "${category_dir}.claude/skills/${skill_name}" ]]; then
+        if [[ -d "${category_dir}${skill_name}" ]]; then
             return 0
         fi
     done

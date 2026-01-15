@@ -20,10 +20,10 @@ source "$PROJECT_ROOT/tests/fixtures/test-helpers.sh"
 # Configuration - use directories directly
 SKILLS_DIR="$PROJECT_ROOT/skills"
 AGENTS_DIR="$PROJECT_ROOT/agents"
-# CC 2.1.6: Find skill directory by name across all category subdirectories
+# Find skill directory (flat structure) by name across all category subdirectories
 find_skill_dir() {
     local skill_id="$1"
-    find "$SKILLS_DIR" -type d -path "*/.claude/skills/$skill_id" 2>/dev/null | head -1
+    find "$SKILLS_DIR" -type d -path "*/$skill_id" -mindepth 2 -maxdepth 2 2>/dev/null | head -1
 }
 
 
@@ -45,8 +45,8 @@ vlog() {
 
 # Get all skill IDs from directory structure
 get_all_skill_ids() {
-    # CC 2.1.6: Skills are in nested structure skills/<category>/.claude/skills/<skill-name>
-    find "$SKILLS_DIR" -type d -path "*/.claude/skills/*" -prune -exec basename {} \; 2>/dev/null | sort -u
+    # Flat structure: skills/<category>/<skill-name>
+    find "$SKILLS_DIR" -mindepth 2 -maxdepth 2 -type d -exec basename {} \; 2>/dev/null | sort -u
 }
 
 # Get all agent IDs from directory structure

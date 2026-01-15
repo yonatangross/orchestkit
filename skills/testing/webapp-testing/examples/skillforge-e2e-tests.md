@@ -52,7 +52,7 @@ export default defineConfig({
 ```typescript
 // tests/e2e/pages/HomePage.ts
 import { Page, Locator } from '@playwright/test';
-import { BasePage } from '../../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { BasePage } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 export class HomePage extends BasePage {
   readonly urlInput: Locator;
@@ -96,7 +96,7 @@ export class HomePage extends BasePage {
 ```typescript
 // tests/e2e/pages/AnalysisProgressPage.ts
 import { Page, Locator } from '@playwright/test';
-import { BasePage, WaitHelpers } from '../../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { BasePage, WaitHelpers } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 export class AnalysisProgressPage extends BasePage {
   readonly progressBar: Locator;
@@ -176,7 +176,7 @@ export class AnalysisProgressPage extends BasePage {
 ```typescript
 // tests/e2e/pages/ArtifactPage.ts
 import { Page, Locator } from '@playwright/test';
-import { BasePage } from '../../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { BasePage } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 export class ArtifactPage extends BasePage {
   readonly artifactTitle: Locator;
@@ -236,7 +236,7 @@ import { test, expect } from '@playwright/test';
 import { HomePage } from './pages/HomePage';
 import { AnalysisProgressPage } from './pages/AnalysisProgressPage';
 import { ArtifactPage } from './pages/ArtifactPage';
-import { ApiMocker, CustomAssertions } from '../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { ApiMocker, CustomAssertions } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 test.describe('Analysis Flow - Happy Path', () => {
   test('should complete full analysis flow from URL submission to artifact view', async ({ page }) => {
@@ -289,7 +289,7 @@ test.describe('Analysis Flow - Happy Path', () => {
 import { test, expect } from '@playwright/test';
 import { HomePage } from './pages/HomePage';
 import { AnalysisProgressPage } from './pages/AnalysisProgressPage';
-import { ApiMocker } from '../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { ApiMocker } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 test.describe('SSE Progress Updates', () => {
   test('should show real-time progress updates via SSE', async ({ page }) => {
@@ -357,7 +357,7 @@ test.describe('SSE Progress Updates', () => {
 import { test, expect } from '@playwright/test';
 import { HomePage } from './pages/HomePage';
 import { AnalysisProgressPage } from './pages/AnalysisProgressPage';
-import { ApiMocker, CustomAssertions } from '../../.claude/skills/webapp-testing/templates/playwright-test-template';
+import { ApiMocker, CustomAssertions } from 'skills/testing/webapp-testing/templates/playwright-test-template';
 
 test.describe('Error Handling', () => {
   test('should show validation error for invalid URL', async ({ page }) => {

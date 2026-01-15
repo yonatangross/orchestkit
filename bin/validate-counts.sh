@@ -7,7 +7,7 @@
 # Actual counts come from counting actual files
 #
 # Note: Commands were migrated to skills in v4.7.0, so command validation
-# is skipped. The "12 commands" in the description refers to command-type
+# is skipped. The "12 user-invocable skills" in the description refers to command-type
 # skills (commit, configure, explore, etc.) which are part of the 90 skills count.
 #
 # Exit codes:

@@ -121,7 +121,7 @@ fi
 
 # Count total skills
 TOTAL_SKILLS=0
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]]; then
         ((TOTAL_SKILLS++)) || true
     fi
@@ -138,7 +138,7 @@ echo "Test 1: File Existence - All skills must have capabilities.json"
 echo "----------------------------------------------------------------------------"
 
 missing_files=0
-for skill_dir in "$SKILLS_DIR"/*/.claude/skills/*; do
+for skill_dir in "$SKILLS_DIR"/*/*; do
     if [[ -d "$skill_dir" ]]; then
         skill_name=$(basename "$skill_dir")
         if [[ ! -f "$skill_dir/capabilities.json" ]]; then
@@ -164,7 +164,7 @@ echo "Test 2: JSON Syntax - All capabilities.json must be valid JSON"
 echo "----------------------------------------------------------------------------"
 
 invalid_json=0
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         skill_name=$(basename "$skill_dir")
@@ -193,7 +193,7 @@ echo "--------------------------------------------------------------------------
 
 missing_fields=0
 
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         skill_name=$(basename "$skill_dir")
@@ -227,7 +227,7 @@ echo "Test 4: Name Consistency - name field must match directory name"
 echo "----------------------------------------------------------------------------"
 
 name_mismatches=0
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         dir_name=$(basename "$skill_dir")
@@ -264,7 +264,7 @@ echo "--------------------------------------------------------------------------
 invalid_versions=0
 semver_pattern='^[0-9]+\.[0-9]+\.[0-9]+$'
 
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         skill_name=$(basename "$skill_dir")
@@ -305,7 +305,7 @@ empty_capabilities=0
 slim_count=0
 legacy_count=0
 
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         skill_name=$(basename "$skill_dir")
@@ -353,7 +353,7 @@ TOKEN_LIMIT=350
 over_budget=0
 total_tokens=0
 
-for caps_file in "$SKILLS_DIR"/*/.claude/skills/*/capabilities.json; do
+for caps_file in "$SKILLS_DIR"/*/*/capabilities.json; do
     if [[ -f "$caps_file" ]]; then
         skill_dir=$(dirname "$caps_file")
         skill_name=$(basename "$skill_dir")

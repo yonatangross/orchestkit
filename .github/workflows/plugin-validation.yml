@@ -185,9 +185,9 @@ jobs:
 
       - name: Validate skill structure
         run: |
-          echo "Validating skills (CC 2.1.6 nested structure)..."
+          echo "Validating skills (flat structure)..."
 
-          # CC 2.1.6 structure: skills/<category>/.claude/skills/<skill-name>/
+          # Flat structure: skills/<category>/<skill-name>/
           if [[ ! -d "skills" ]]; then
             echo "No skills directory found"
             exit 0
@@ -200,14 +200,7 @@ jobs:
             [[ -d "$category_dir" ]] || continue
             category=$(basename "$category_dir")
 
-            # Check for .claude/skills subdirectory (CC 2.1.6 pattern)
-            nested_dir="$category_dir.claude/skills"
-            if [[ ! -d "$nested_dir" ]]; then
-              echo "  WARN: Category $category missing .claude/skills/"
-              continue
-            fi
-
-            for skill_dir in "$nested_dir"/*/; do
+            for skill_dir in "$category_dir"/*/; do
               [[ -d "$skill_dir" ]] || continue
               skill_name=$(basename "$skill_dir")
               skill_count=$((skill_count + 1))

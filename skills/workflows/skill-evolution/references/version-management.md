@@ -7,7 +7,7 @@ Reference guide for managing skill versions with safe rollback capability.
 Each skill can have versioned snapshots stored in:
 
 ```
-skills/<category>/.claude/skills/<skill-name>/
+skills/<category>/<skill-name>/
 ├── SKILL.md                 # Current version
 ├── capabilities.json        # Current metadata
 ├── references/              # Current references

@@ -45,7 +45,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
       CHECKED=$((CHECKED + 1))
 
       # Search for skill in nested structure
-      found=$(find "$SKILLS_ROOT" -path "*/.claude/skills/$skill" -type d 2>/dev/null | head -1)
+      found=$(find "$SKILLS_ROOT" -path "*/$skill" -type d 2>/dev/null | head -1)
 
       if [[ -z "$found" ]]; then
         echo "FAIL: $agent_name references non-existent skill: $skill"

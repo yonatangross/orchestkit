@@ -130,8 +130,8 @@ echo ""
 # =============================================================================
 echo "--- Test 4: Skill discovery (CC 2.1.6 structure) ---"
 
-# CC 2.1.6 nested structure: skills/<category>/.claude/skills/<skill-name>/SKILL.md
-SKILL_COUNT=$(find -L "$PLUGIN_ROOT/skills" -path "*/.claude/skills/*/SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+# Simplified structure: skills/<category>/<skill-name>/SKILL.md
+SKILL_COUNT=$(find -L "$PLUGIN_ROOT/skills" -path "*/*/SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$SKILL_COUNT" -gt 0 ]]; then
   pass "Found $SKILL_COUNT skills with SKILL.md (CC 2.1.6 structure)"
 else
@@ -142,7 +142,7 @@ fi
 skill_exists() {
   local skill_name="$1"
   for category_dir in "$PLUGIN_ROOT/skills"/*/; do
-    if [[ -f "${category_dir}.claude/skills/${skill_name}/SKILL.md" ]]; then
+    if [[ -f "${category_dir}${skill_name}/SKILL.md" ]]; then
       return 0
     fi
   done

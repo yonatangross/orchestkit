@@ -448,7 +448,7 @@ agents/*.md
 
 ### Skills (92 files)
 ```
-skills/*/.claude/skills/*/SKILL.md
+skills/*/*/SKILL.md
 - Update description with trigger keywords
 ```
 
