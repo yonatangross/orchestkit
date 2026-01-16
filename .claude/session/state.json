@@ -1,48 +1,16 @@
 {
   "recentSkills": [
     {
-      "skillId": "review-pr",
-      "timestamp": 1768546650
+      "skillId": "null",
+      "timestamp": 1768591573
     },
     {
-      "skillId": "commit",
-      "timestamp": 1768546650
+      "skillId": "null",
+      "timestamp": 1768591610
     },
     {
-      "skillId": "review-pr",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "run-tests",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "explore",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "verify",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "run-tests",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "brainstorm",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "commit",
-      "timestamp": 1768546651
-    },
-    {
-      "skillId": "test-skill",
-      "timestamp": 1768546653
-    },
-    {
-      "skillId": "test-skill",
-      "timestamp": 1768546653
+      "skillId": "null",
+      "timestamp": 1768591666
     }
   ]
 }

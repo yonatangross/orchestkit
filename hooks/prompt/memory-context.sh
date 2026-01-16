@@ -230,14 +230,9 @@ if [[ "$USE_GLOBAL" != "true" ]]; then
     SYSTEM_MSG="$SYSTEM_MSG | For cross-project patterns: user_id=\"$GLOBAL_USER_ID\""
 fi
 
-log_hook "Outputting memory search suggestion for: $SEARCH_TERMS"
+log_hook "Memory context available for: $SEARCH_TERMS"
 
-# Output CC 2.1.7 compliant JSON
-jq -n \
-    --arg msg "$SYSTEM_MSG" \
-    '{
-        continue: true,
-        systemMessage: $msg
-    }'
+# Silent operation - Claude already has access to mem0 tools
+echo '{"continue": true, "suppressOutput": true}'
 
 exit 0

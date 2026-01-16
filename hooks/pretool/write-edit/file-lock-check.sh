@@ -21,8 +21,8 @@ source "${SCRIPT_DIR}/../../../.claude/coordination/lib/coordination.sh" 2>/dev/
 }
 
 # Load instance ID
-if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
-  source "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" 2>/dev/null || true
+if [[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" ]]; then
+  source "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" 2>/dev/null || true
   export INSTANCE_ID="${CLAUDE_INSTANCE_ID:-}"
 fi
 

@@ -8,7 +8,7 @@
 #
 # Version: 1.0.0
 
-set -euo pipefail
+set -eo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"

@@ -81,15 +81,10 @@ main() {
     local search_query
     search_query=$(check_for_antipattern_query "$prompt")
 
-    # Output a system message that will help Claude check for anti-patterns
-    # The actual mem0 search must be done by Claude using MCP tools
-    cat << EOF
-{
-    "continue": true,
-    "systemMessage": "Before implementing, check your Best Practice Library for known anti-patterns in category '$category'. Use /best-practices $category to review.",
-    "suppressOutput": false
-}
-EOF
+    # Silent operation - Claude already has access to mem0 tools
+    # Log the suggestion instead of showing to user
+    log_hook "Antipattern check suggested for category: $category"
+    echo '{"continue": true, "suppressOutput": true}'
 }
 
 main "$@"
