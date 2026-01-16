@@ -7,6 +7,77 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [4.17.0] - 2026-01-16
+
+### Added
+
+**CC 2.1.3 User-Invocable Skills**
+- Added `user-invocable: true` to 17 command skills (commit, review-pr, explore, implement, verify, configure, doctor, feedback, recall, remember, add-golden, skill-evolution, claude-hud, create-pr, fix-issue, brainstorming, worktree-coordination)
+- Added `user-invocable: false` to 80 internal knowledge skills
+- Only user-invocable skills appear in `/skf:*` slash command menu
+
+**Test Coverage**
+- New Test 10 in `tests/skills/structure/test-skill-md.sh`: validates user-invocable field presence and counts (17 commands, 80 internal)
+
+### Changed
+
+- Updated plugin.json description to clarify "97 skills (17 user-invocable commands, 80 internal knowledge)"
+- Updated CLAUDE.md to reflect 17 user-invocable skills (was 12)
+- Updated bin/validate-counts.sh comments for accuracy
+- Version bumped: 4.16.0 → 4.17.0
+
+---
+
+## [4.16.0] - 2026-01-16
+
+### Added
+
+**CC 2.1.9 Integration**
+- New helper functions in `hooks/_lib/common.sh`: `output_with_context()`, `output_allow_with_context()`, `output_allow_with_context_logged()`
+- New session ID helpers: `get_session_state_dir()`, `get_session_temp_file()`, `ensure_session_temp_dir()`
+- PreToolUse `additionalContext` support for injecting guidance before tool execution
+- `plansDirectory` setting in `.claude/defaults/config.json`
+- `auto:N` MCP thresholds in `.claude/templates/mcp-enabled.json` (context7:75, sequential-thinking:60, mem0:80, memory:70, playwright:50)
+
+**Hook Updates with additionalContext**
+- `git-branch-protection.sh` - Injects branch context before git commands
+- `error-pattern-warner.sh` - Injects learned error patterns
+- `context7-tracker.sh` - Injects cache state
+- `architecture-change-detector.sh` - Injects affected patterns
+
+### Changed
+
+- Engine requirement updated to `>=2.1.9`
+- Removed session ID fallback patterns (`:-default`, `:-unknown`) for CC 2.1.9 compliance
+- Updated `test-context-system.sh` to set `CLAUDE_SESSION_ID` for hook testing
+- Version bumped: 4.15.3 → 4.16.0
+
+### Fixed
+
+- Version consistency across marketplace.json, identity.json, plugin.json
+
+---
+
+## [4.15.3] - 2026-01-15
+
+### Fixed
+
+**CI/CD Test Compatibility**
+- Fixed bash arithmetic `((VAR++))` exit issue with `set -e` across 30+ test files
+- Added `|| true` to arithmetic operations that return 0 on first call
+- Fixed coordination.sh paths in 4 hooks (missing `.claude/` prefix)
+- Added cross-platform timeout wrapper for macOS compatibility (timeout/gtimeout/direct)
+- Fixed file-lock-release.sh double JSON output (trap + exit race condition)
+
+**Hook JSON Output**
+- Added clean_exit helper pattern to prevent trap/output duplication
+- Ensured all coordination hooks properly clear trap before normal exits
+
+### Changed
+- Updated test-hook-json-output.sh with run_with_timeout helper function
+
+---
+
 ## [4.15.1] - 2026-01-15
 
 ### Added

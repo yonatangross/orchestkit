@@ -30,19 +30,19 @@ TESTS_FAILED=0
 test_start() {
     local name="$1"
     echo -n "  ○ $name... "
-    ((TESTS_RUN++))
+    ((TESTS_RUN++)) || true
 }
 
 test_pass() {
     echo -e "\033[0;32mPASS\033[0m"
-    ((TESTS_PASSED++))
+    ((TESTS_PASSED++)) || true
 }
 
 test_fail() {
     local reason="${1:-}"
     echo -e "\033[0;31mFAIL\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_FAILED++))
+    ((TESTS_FAILED++)) || true
 }
 
 # =============================================================================

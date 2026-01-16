@@ -5,6 +5,7 @@ context: fork
 version: 1.1.0
 author: SkillForge
 tags: [code-review, pull-request, quality, security, testing]
+user-invocable: true
 ---
 
 # Review PR

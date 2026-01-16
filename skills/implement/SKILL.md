@@ -5,6 +5,7 @@ context: fork
 version: 1.1.0
 author: SkillForge
 tags: [implementation, feature, full-stack, parallel-agents]
+user-invocable: true
 ---
 
 # Implement Feature

@@ -5,6 +5,7 @@ context: fork
 agent: llm-integrator
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # Prompt Caching

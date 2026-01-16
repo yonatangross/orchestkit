@@ -6,7 +6,7 @@
 # It outputs a gentle reminder or first-time prompt if appropriate.
 #
 # CC 2.1.7 Compliant: uses hookSpecificOutput.additionalContext for context injection
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(pwd)}"

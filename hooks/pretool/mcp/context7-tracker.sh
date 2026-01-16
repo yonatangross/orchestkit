@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# CC 2.1.7 PreToolUse Hook: Context7 Documentation Tracker
-# Tracks context7 library lookups for telemetry and caching
+# CC 2.1.9 PreToolUse Hook: Context7 Documentation Tracker
+# Tracks context7 library lookups and injects cache state as additionalContext
 set -euo pipefail
 
 # Read stdin once and cache
@@ -36,8 +36,30 @@ fi
   echo "$(date -u +"%Y-%m-%dT%H:%M:%SZ") | tool=$TOOL_NAME | library=$LIBRARY_ID | query_length=${#QUERY}"
 } >> "$TELEMETRY_LOG" 2>/dev/null || true
 
-# Log permission decision
-log_permission_feedback "context7" "allow" "Documentation lookup: $LIBRARY_ID"
+# CC 2.1.9: Calculate cache stats from telemetry log
+CACHE_CONTEXT=""
+if [[ -f "$TELEMETRY_LOG" ]]; then
+  # Count total queries and unique libraries this session
+  TOTAL_QUERIES=$(wc -l < "$TELEMETRY_LOG" 2>/dev/null | tr -d ' ' || echo "0")
 
-# Allow the request
-output_silent_success
+  # Extract unique libraries - handle empty library= values and no matches gracefully
+  # Pattern requires at least one char after = to avoid matching empty library= entries
+  UNIQUE_LIBS=$(grep -oE 'library=[^| ]+' "$TELEMETRY_LOG" 2>/dev/null | grep -v 'library=$' | sort -u | wc -l | tr -d ' ' || echo "0")
+
+  # Get recently queried libraries (last 3 unique, non-empty)
+  RECENT_LIBS=$(grep -oE 'library=[^| ]+' "$TELEMETRY_LOG" 2>/dev/null | grep -v 'library=$' | tail -10 | sed 's/library=//' | sort -u | tail -3 | tr '\n' ', ' | sed 's/,$//' || echo "")
+
+  if [[ "${TOTAL_QUERIES:-0}" -gt 0 ]]; then
+    CACHE_CONTEXT="Context7: ${TOTAL_QUERIES} queries, ${UNIQUE_LIBS:-0} libraries. Recent: ${RECENT_LIBS:-none}"
+  fi
+fi
+
+# Log permission decision
+log_permission_feedback "allow" "Documentation lookup: $LIBRARY_ID"
+
+# CC 2.1.9: Inject cache context if available
+if [[ -n "$CACHE_CONTEXT" ]]; then
+  output_with_context "$CACHE_CONTEXT"
+else
+  output_silent_success
+fi

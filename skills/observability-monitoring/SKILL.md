@@ -8,6 +8,7 @@ category: Operations & Reliability
 agents: [backend-system-architect, code-quality-reviewer, ai-ml-engineer]
 keywords: [observability, monitoring, logging, metrics, tracing, alerts, Prometheus, OpenTelemetry]
 author: SkillForge
+user-invocable: false
 ---
 
 # Observability & Monitoring Skill

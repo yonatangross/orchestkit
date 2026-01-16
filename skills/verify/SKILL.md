@@ -5,6 +5,7 @@ context: fork
 version: 1.1.0
 author: SkillForge
 tags: [verification, testing, quality, validation]
+user-invocable: true
 ---
 
 # Verify Feature

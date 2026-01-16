@@ -133,18 +133,18 @@ test_plugin_version_requirement() {
   local engine_req
   engine_req=$(jq -r '.engines["claude-code"] // "unknown"' "$plugin_json")
 
-  # Check version is 4.12.0+
-  if [[ "$version" == "4.12.0" ]]; then
-    log_pass "Plugin version is 4.12.0"
+  # Check version is valid semver (4.x.x)
+  if [[ "$version" =~ ^4\.[0-9]+\.[0-9]+$ ]]; then
+    log_pass "Plugin version is valid: $version"
   else
-    log_fail "Expected version 4.12.0, got $version"
+    log_fail "Expected version 4.x.x, got $version"
   fi
 
-  # Check engine requirement is >=2.1.7
-  if [[ "$engine_req" == ">=2.1.7" ]]; then
-    log_pass "Engine requirement is >=2.1.7"
+  # Check engine requirement is >=2.1.9
+  if [[ "$engine_req" == ">=2.1.9" ]]; then
+    log_pass "Engine requirement is >=2.1.9"
   else
-    log_fail "Expected engine >=2.1.7, got $engine_req"
+    log_fail "Expected engine >=2.1.9, got $engine_req"
   fi
 }
 test_plugin_version_requirement

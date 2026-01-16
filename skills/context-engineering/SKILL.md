@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [context, attention, optimization, llm, performance, 2026]
+user-invocable: false
 ---
 
 # Context Engineering

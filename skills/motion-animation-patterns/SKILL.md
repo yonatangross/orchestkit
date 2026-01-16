@@ -6,6 +6,7 @@ agent: rapid-ui-designer
 version: 1.0.0
 author: Yonatan Gross
 tags: [motion, framer-motion, animation, react, ux, transitions, hover, stagger, skeleton]
+user-invocable: false
 ---
 
 # Motion Animation Patterns

@@ -11,6 +11,7 @@ allowed-tools:
   - Grep
   - Glob
   - Bash  # For backup/restore scripts
+user-invocable: false
 ---
 
 # Golden Dataset Management

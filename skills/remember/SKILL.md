@@ -5,6 +5,7 @@ context: inherit
 version: 1.1.0
 author: SkillForge
 tags: [memory, decisions, patterns, best-practices, mem0, graph-memory]
+user-invocable: true
 ---
 
 # Remember - Store Decisions and Patterns

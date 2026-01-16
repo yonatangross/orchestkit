@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.1.0
 author: AI Agent Hub
 tags: [edge, cloudflare, vercel, deno, serverless, 2025]
+user-invocable: false
 ---
 
 # Edge Computing Patterns

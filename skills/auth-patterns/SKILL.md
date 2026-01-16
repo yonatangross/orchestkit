@@ -13,6 +13,7 @@ allowed-tools:
   - Edit
   - Bash
 author: SkillForge
+user-invocable: false
 ---
 
 # Authentication Patterns

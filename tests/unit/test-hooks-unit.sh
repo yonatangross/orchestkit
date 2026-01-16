@@ -85,43 +85,11 @@ get_fixture() {
 echo -e "${CYAN}Testing PreToolUse Hooks${NC}"
 echo "----------------------------------------"
 
-# Test: path-normalizer.sh with Read
-echo -n "  path-normalizer (Read)... "
-if [[ -f "$HOOKS_DIR/pretool/input-mod/path-normalizer.sh" ]]; then
-    input=$(get_fixture "pretool_read")
-    if run_hook "$HOOKS_DIR/pretool/input-mod/path-normalizer.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
-fi
-
 # Test: git-branch-protection.sh (safe command)
 echo -n "  git-branch-protection (safe)... "
 if [[ -f "$HOOKS_DIR/pretool/bash/git-branch-protection.sh" ]]; then
     input=$(get_fixture "pretool_bash_safe")
     if run_hook "$HOOKS_DIR/pretool/bash/git-branch-protection.sh" "$input" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
-fi
-
-# Test: subagent-validator.sh
-echo -n "  subagent-validator (Task)... "
-if [[ -f "$HOOKS_DIR/pretool/task/subagent-validator.sh" ]]; then
-    input=$(get_fixture "pretool_task")
-    if run_hook "$HOOKS_DIR/pretool/task/subagent-validator.sh" "$input" 0; then
         echo -e "${GREEN}PASS${NC}"
         PASSED=$((PASSED + 1))
     else
@@ -219,21 +187,6 @@ echo "----------------------------------------"
 echo -n "  session-context-loader... "
 if [[ -f "$HOOKS_DIR/lifecycle/session-context-loader.sh" ]]; then
     if run_hook "$HOOKS_DIR/lifecycle/session-context-loader.sh" "{}" 0; then
-        echo -e "${GREEN}PASS${NC}"
-        PASSED=$((PASSED + 1))
-    else
-        echo -e "${RED}FAIL${NC}"
-        FAILED=$((FAILED + 1))
-    fi
-else
-    echo -e "${YELLOW}SKIP${NC} (not found)"
-    SKIPPED=$((SKIPPED + 1))
-fi
-
-# Test: context-loader.sh (new)
-echo -n "  context-loader (v2)... "
-if [[ -f "$HOOKS_DIR/lifecycle/context-loader.sh" ]]; then
-    if run_hook "$HOOKS_DIR/lifecycle/context-loader.sh" "{}" 0; then
         echo -e "${GREEN}PASS${NC}"
         PASSED=$((PASSED + 1))
     else

@@ -6,6 +6,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [golden-dataset, curation, quality, multi-agent, langfuse, 2025]
+user-invocable: false
 ---
 
 # Golden Dataset Curation

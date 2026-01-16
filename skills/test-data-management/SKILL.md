@@ -5,6 +5,7 @@ context: fork
 agent: test-generator
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # Test Data Management

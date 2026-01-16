@@ -6,6 +6,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [browser, playwright, mcp, scraping, spa, authentication, chrome-extension, 2025]
+user-invocable: false
 ---
 
 # Browser Content Capture

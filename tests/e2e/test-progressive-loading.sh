@@ -235,7 +235,15 @@ echo "▶ Test 5: Progressive Loading Order"
 echo "────────────────────────────────────────"
 
 # Simulate loading order for a random skill
-sample_skill=$(ls -d "$SKILLS_DIR"/*/ 2>/dev/null | head -1)
+# Use for loop with glob (consistent with Test 4) instead of ls | head
+# This avoids potential exit code issues with ls on some platforms
+sample_skill=""
+for dir in "$SKILLS_DIR"/*/; do
+    if [ -d "$dir" ]; then
+        sample_skill="$dir"
+        break
+    fi
+done
 
 if [ -n "$sample_skill" ]; then
     skill_name=$(basename "$sample_skill")

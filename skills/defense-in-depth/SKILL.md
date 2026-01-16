@@ -9,6 +9,7 @@ allowed-tools:
   - Grep
   - Glob
 author: SkillForge
+user-invocable: false
 ---
 
 # Defense in Depth for AI Systems

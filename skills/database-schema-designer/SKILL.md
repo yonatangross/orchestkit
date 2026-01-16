@@ -6,9 +6,13 @@ author: AI Agent Hub
 tags: [database, schema-design, sql, nosql, performance, migrations]
 context: fork
 agent: database-engineer
+user-invocable: false
+---
+
+# Database Schema Designer
 This skill provides comprehensive guidance for designing robust, scalable database schemas for both SQL and NoSQL databases. Whether building from scratch or evolving existing schemas, this framework ensures data integrity, performance, and maintainability.
 
-**When to use this skill:**
+## When to Use
 - Designing new database schemas
 - Refactoring or migrating existing schemas
 - Optimizing database performance

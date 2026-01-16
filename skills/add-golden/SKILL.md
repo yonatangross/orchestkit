@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge
 tags: [curation, golden-dataset, evaluation, testing]
+user-invocable: true
 ---
 
 # Add to Golden Dataset

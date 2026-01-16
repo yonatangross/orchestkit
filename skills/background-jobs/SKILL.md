@@ -6,6 +6,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 tags: [background-jobs, celery, arq, redis, async, python, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # Background Job Patterns

@@ -25,18 +25,18 @@ declare -a FAILED_TESTS=()
 
 log_pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++))
+    ((TESTS_PASSED++)) || true
 }
 
 log_fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++))
+    ((TESTS_FAILED++)) || true
     FAILED_TESTS+=("$1")
 }
 
 log_skip() {
     echo -e "${YELLOW}⊘${NC} $1 (skipped)"
-    ((TESTS_SKIPPED++))
+    ((TESTS_SKIPPED++)) || true
 }
 
 log_section() {
@@ -44,6 +44,22 @@ log_section() {
     echo "═══════════════════════════════════════════════════════════════"
     echo "  $1"
     echo "═══════════════════════════════════════════════════════════════"
+}
+
+# Run command with optional timeout (cross-platform)
+run_with_timeout() {
+    local timeout_sec="$1"
+    shift
+
+    # Try timeout (Linux), then gtimeout (macOS with coreutils), then run without timeout
+    if command -v timeout >/dev/null 2>&1; then
+        timeout "${timeout_sec}s" "$@"
+    elif command -v gtimeout >/dev/null 2>&1; then
+        gtimeout "${timeout_sec}s" "$@"
+    else
+        # No timeout available, run directly (hooks should be fast)
+        "$@"
+    fi
 }
 
 # Test that a hook script outputs valid JSON
@@ -73,8 +89,8 @@ test_hook_json_output() {
     local output
     local exit_code=0
 
-    # Run with timeout to prevent hanging
-    output=$(timeout 5s bash "$hook_path" 2>/dev/null) || exit_code=$?
+    # Run with timeout to prevent hanging (cross-platform)
+    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || exit_code=$?
 
     # Clean up
     rm -f "${PROJECT_ROOT}/.claude/.instance_env.test"
@@ -123,7 +139,7 @@ test_hook_without_coordination() {
     export TOOL_INPUT='{"file_path": "/tmp/test.txt"}'
 
     local output
-    output=$(timeout 5s bash "$hook_path" 2>/dev/null) || true
+    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || true
 
     # Restore coordination.sh
     if [[ -f "$coord_backup" ]]; then
@@ -158,7 +174,7 @@ test_hook_empty_input() {
     export TOOL_INPUT=""
 
     local output
-    output=$(timeout 5s bash "$hook_path" 2>/dev/null) || true
+    output=$(run_with_timeout 5 bash "$hook_path" 2>/dev/null) || true
 
     if [[ -z "$output" ]]; then
         log_fail "$hook_name (empty input): Empty output"

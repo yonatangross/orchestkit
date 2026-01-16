@@ -3,7 +3,7 @@
 # Usage: count-components.sh [--json]
 #
 # Counts:
-# - Skills: directories with SKILL.md in .claude/skills/
+# - Skills: directories with SKILL.md in skills/
 # - Agents: .md files in agents/
 # - Commands: .md files in commands/
 # - Hooks: .sh files in hooks/ (excluding _lib/)
@@ -11,34 +11,53 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Count skills (directories with SKILL.md in .claude/skills/)
+# Count skills (directories with SKILL.md in skills/)
 count_skills() {
-    find "$PROJECT_ROOT/.claude/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/skills" ]]; then
+        find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    else
+        echo "0"
+    fi
 }
 
 # Count agents (markdown files in agents dir)
 count_agents() {
-    find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/agents" ]]; then
+        find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    else
+        echo "0"
+    fi
 }
 
 # Count commands (markdown files in commands dir)
 count_commands() {
-    find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/.claude/commands" ]]; then
+        find "$PROJECT_ROOT/.claude/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    else
+        echo "0"
+    fi
 }
 
 # Count hooks (shell scripts in hooks dir, excluding _lib)
 count_hooks() {
-    find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/hooks" ]]; then
+        find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' '
+    else
+        echo "0"
+    fi
 }
 
 # Count hook entries in settings.json (alternative method)
 count_hook_entries() {
-    if [[ -f "$PROJECT_ROOT/.claude/settings.json" ]]; then
-        jq '.hooks | to_entries | map(.value | map(.hooks | length) | add) | add // 0' \
-            "$PROJECT_ROOT/.claude/settings.json" 2>/dev/null || echo "0"
+    local settings_file="$PROJECT_ROOT/.claude/settings.json"
+    if [[ -f "$settings_file" ]]; then
+        # Check if .hooks exists and is not null before counting
+        local result
+        result=$(jq -r 'if .hooks then (.hooks | to_entries | map(.value | if type == "array" then map(if .hooks then (.hooks | length) else 0 end) | add else 0 end) | add) // 0 else 0 end' "$settings_file" 2>/dev/null) || result="0"
+        echo "${result:-0}"
     else
         echo "0"
     fi
@@ -46,8 +65,11 @@ count_hook_entries() {
 
 # Count plugin bundles
 count_bundles() {
-    if [[ -f "$PROJECT_ROOT/.claude-plugin/marketplace.json" ]]; then
-        jq '.plugins | length' "$PROJECT_ROOT/.claude-plugin/marketplace.json" 2>/dev/null || echo "0"
+    local marketplace_file="$PROJECT_ROOT/.claude-plugin/marketplace.json"
+    if [[ -f "$marketplace_file" ]]; then
+        local result
+        result=$(jq '.plugins | length // 0' "$marketplace_file" 2>/dev/null) || result="0"
+        echo "${result:-0}"
     else
         echo "0"
     fi

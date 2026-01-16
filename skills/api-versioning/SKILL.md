@@ -6,6 +6,7 @@ agent: backend-system-architect
 version: 1.0.0
 tags: [api, versioning, rest, fastapi, backward-compatibility, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # API Versioning Strategies

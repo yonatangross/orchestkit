@@ -5,6 +5,7 @@ context: fork
 agent: workflow-architect
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 # LangGraph Functional API
 Build workflows using decorators instead of explicit graph construction.

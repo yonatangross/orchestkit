@@ -18,7 +18,7 @@ echo
 # Find all evaluation files
 for eval_file in "$SCRIPT_DIR"/*.eval.json; do
     [[ -f "$eval_file" ]] || continue
-    ((CHECKED++))
+    ((CHECKED++)) || true
 
     filename=$(basename "$eval_file")
     skill_name="${filename%.eval.json}"
@@ -26,7 +26,7 @@ for eval_file in "$SCRIPT_DIR"/*.eval.json; do
     # Check JSON validity
     if ! jq empty "$eval_file" 2>/dev/null; then
         echo "FAIL: $filename - Invalid JSON"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
@@ -37,19 +37,19 @@ for eval_file in "$SCRIPT_DIR"/*.eval.json; do
 
     if [[ "$has_skill" != "true" ]]; then
         echo "FAIL: $filename - Missing 'skill' field"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
     if [[ "$has_version" != "true" ]]; then
         echo "FAIL: $filename - Missing 'version' field"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
     if [[ "$has_evaluations" != "true" ]]; then
         echo "FAIL: $filename - Missing 'evaluations' array"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
@@ -57,7 +57,7 @@ for eval_file in "$SCRIPT_DIR"/*.eval.json; do
     eval_count=$(jq '.evaluations | length' "$eval_file")
     if [[ "$eval_count" -eq 0 ]]; then
         echo "FAIL: $filename - Empty evaluations array"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
@@ -65,7 +65,7 @@ for eval_file in "$SCRIPT_DIR"/*.eval.json; do
     invalid_evals=$(jq '[.evaluations[] | select(.id == null or .query == null or .expected_behavior == null)] | length' "$eval_file")
     if [[ "$invalid_evals" -gt 0 ]]; then
         echo "FAIL: $filename - $invalid_evals evaluations missing required fields (id, query, expected_behavior)"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 

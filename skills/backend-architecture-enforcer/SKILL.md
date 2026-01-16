@@ -6,6 +6,7 @@ agent: backend-system-architect
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [backend, fastapi, architecture, enforcement, blocking, clean-architecture, di]
+user-invocable: false
 ---
 
 Enforce FastAPI Clean Architecture with **BLOCKING** validation.

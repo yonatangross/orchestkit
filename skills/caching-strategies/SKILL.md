@@ -6,6 +6,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 tags: [caching, redis, performance, fastapi, python, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # Backend Caching Strategies

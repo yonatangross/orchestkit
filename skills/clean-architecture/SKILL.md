@@ -6,6 +6,7 @@ agent: code-quality-reviewer
 version: 1.0.0
 tags: [architecture, solid, hexagonal, ddd, python, fastapi, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # Clean Architecture Patterns

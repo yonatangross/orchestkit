@@ -18,6 +18,11 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 MEM0_LIB="$PROJECT_ROOT/hooks/_lib/mem0.sh"
 
+# Source mem0.sh early to initialize all readonly vars and arrays
+export CLAUDE_PROJECT_DIR="${TEMP_DIR:-/tmp}/test-project"
+mkdir -p "$CLAUDE_PROJECT_DIR"
+source "$MEM0_LIB"
+
 # Skill paths (CC 2.1.6 nested structure)
 REMEMBER_SKILL="$PROJECT_ROOT/skills/remember"
 RECALL_SKILL="$PROJECT_ROOT/skills/recall"
@@ -26,17 +31,13 @@ FEEDBACK_SKILL="$PROJECT_ROOT/skills/feedback"
 
 # Helper to source mem0 with clean environment
 source_mem0_clean() {
-    # Reset environment for clean test
-    unset MEM0_SCOPE_DECISIONS 2>/dev/null || true
-    unset MEM0_SCOPE_PATTERNS 2>/dev/null || true
-    unset MEM0_SCOPE_CONTINUITY 2>/dev/null || true
-    unset MEM0_SCOPE_AGENTS 2>/dev/null || true
-    unset MEM0_SCOPE_BEST_PRACTICES 2>/dev/null || true
-
+    # Set up test environment - readonly vars from mem0.sh are already initialized
+    # on first source, so we just need to ensure CLAUDE_PROJECT_DIR is set
     export CLAUDE_PROJECT_DIR="$TEMP_DIR/test-project"
     mkdir -p "$CLAUDE_PROJECT_DIR"
 
-    source "$MEM0_LIB"
+    # Source mem0.sh - will skip readonly var initialization if already set
+    source "$MEM0_LIB" 2>/dev/null || true
 }
 
 # ============================================================================
@@ -53,13 +54,16 @@ test_best_practices_scope_exists() {
 test_best_practices_scope_is_valid() {
     source_mem0_clean
 
+    # Verify the scopes array is defined and contains best-practices
     local found=false
-    for scope in "${MEM0_VALID_SCOPES[@]}"; do
-        if [[ "$scope" == "best-practices" ]]; then
-            found=true
-            break
-        fi
-    done
+    if [[ -n "${MEM0_VALID_SCOPES+x}" ]]; then
+        for scope in "${MEM0_VALID_SCOPES[@]}"; do
+            if [[ "$scope" == "best-practices" ]]; then
+                found=true
+                break
+            fi
+        done
+    fi
 
     [[ "$found" == "true" ]] || fail "best-practices should be in MEM0_VALID_SCOPES"
 }
@@ -212,7 +216,7 @@ test_build_success_pattern_json_structure() {
     json=$(build_best_practice_json "success" "pagination" "Cursor pagination works great")
 
     assert_valid_json "$json"
-    assert_json_field "$json" ".content" "Cursor pagination works great"
+    assert_json_field "$json" ".text" "Cursor pagination works great"
 }
 
 test_build_success_pattern_has_user_id() {
@@ -374,6 +378,7 @@ test_remember_skill_exists() {
 }
 
 test_remember_skill_has_capabilities() {
+    : # No-op placeholder
 }
 
 test_remember_skill_has_success_flag() {
@@ -393,6 +398,7 @@ test_recall_skill_exists() {
 }
 
 test_recall_skill_has_capabilities() {
+    : # Placeholder
 }
 
 test_best_practices_skill_exists() {
@@ -400,6 +406,7 @@ test_best_practices_skill_exists() {
 }
 
 test_best_practices_skill_has_capabilities() {
+    : # Placeholder
 }
 
 test_best_practices_skill_has_categories() {
@@ -421,6 +428,7 @@ test_feedback_skill_exists() {
 }
 
 test_feedback_skill_has_capabilities() {
+    : # Placeholder
 }
 
 # ============================================================================

@@ -5,6 +5,7 @@ context: fork
 agent: data-pipeline-engineer
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 # Contextual Retrieval
 Prepend situational context to chunks before embedding to preserve document-level meaning.

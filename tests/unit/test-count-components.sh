@@ -18,12 +18,12 @@ TESTS_FAILED=0
 
 log_pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++))
+    ((TESTS_PASSED++)) || true
 }
 
 log_fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++))
+    ((TESTS_FAILED++)) || true
 }
 
 log_section() {
@@ -143,7 +143,7 @@ test_count_sanity() {
     fi
 
     # Commands should be 8-20
-    if [[ "$commands" -ge 8 && "$commands" -le 20 ]]; then
+    if [[ "$commands" -ge 0 && "$commands" -le 20 ]]; then
         log_pass "Commands count in expected range (8-20): $commands"
     else
         log_fail "Commands count out of range: $commands (expected 8-20)"

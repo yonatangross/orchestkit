@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [skill-management, evolution, versioning, analytics]
+user-invocable: true
 ---
 
 # Skill Evolution Manager

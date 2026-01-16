@@ -173,7 +173,7 @@ jobs:
       - name: Validate component counts
         run: ./bin/validate-counts.sh
 
-  # Job 7: Skills Validation (CC 2.1.7 flat structure)
+  # Job 7: Skills Validation (flat structure)
   skills-validation:
     name: Skills Validation
     runs-on: ubuntu-latest
@@ -185,9 +185,9 @@ jobs:
 
       - name: Validate skill structure
         run: |
-          echo "Validating skills (CC 2.1.7 flat structure)..."
+          echo "Validating skills (flat structure)..."
 
-          # CC 2.1.7 flat structure: skills/<skill-name>/
+          # Flat structure: skills/<skill-name>/
           if [[ ! -d "skills" ]]; then
             echo "No skills directory found"
             exit 0

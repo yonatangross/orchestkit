@@ -5,6 +5,7 @@ context: fork
 agent: security-auditor
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # LLM Safety Patterns

@@ -6,7 +6,10 @@ agent: code-quality-reviewer
 version: 1.1.0
 author: SkillForge AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking]
+user-invocable: false
 ---
+
+# Quality Gates
 
 This skill teaches agents how to assess task complexity, enforce quality gates, and prevent wasted work on incomplete or poorly-defined tasks.
 

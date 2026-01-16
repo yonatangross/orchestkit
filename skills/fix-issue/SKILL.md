@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge
 tags: [issue, bug-fix, github, debugging]
+user-invocable: true
 ---
 
 # Fix Issue

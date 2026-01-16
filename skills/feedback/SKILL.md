@@ -5,6 +5,7 @@ context: inherit
 version: 1.2.0
 author: SkillForge
 tags: [feedback, learning, patterns, metrics, privacy, analytics, consent]
+user-invocable: true
 ---
 
 # Feedback - Manage Learning System

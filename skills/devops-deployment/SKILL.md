@@ -8,6 +8,7 @@ category: Infrastructure & Deployment
 agents: [backend-system-architect, code-quality-reviewer, studio-coach]
 keywords: [CI/CD, deployment, Docker, Kubernetes, pipeline, infrastructure, GitOps, container, automation, release]
 author: SkillForge
+user-invocable: false
 ---
 
 # DevOps & Deployment Skill

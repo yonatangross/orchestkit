@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [best-practices, patterns, anti-patterns, mem0, learning]
+user-invocable: false
 ---
 
 # Best Practices - View Your Pattern Library

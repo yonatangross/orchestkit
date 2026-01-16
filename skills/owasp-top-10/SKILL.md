@@ -9,6 +9,7 @@ allowed-tools:
   - Glob
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # OWASP Top 10

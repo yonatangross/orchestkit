@@ -5,6 +5,7 @@ context: fork
 agent: system-design-reviewer
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # System Design Interrogation

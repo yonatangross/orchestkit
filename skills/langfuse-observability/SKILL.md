@@ -6,6 +6,7 @@ agent: metrics-architect
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2025]
+user-invocable: false
 ---
 
 # Langfuse Observability

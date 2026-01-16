@@ -30,7 +30,7 @@ log() {
 }
 
 # Source coordination lib with fallback
-source "${SCRIPT_DIR}/../../coordination/lib/coordination.sh" 2>/dev/null || {
+source "${SCRIPT_DIR}/../../.claude/coordination/lib/coordination.sh" 2>/dev/null || {
     trap - EXIT
     echo '{"continue":true,"suppressOutput":true}'
     exit 0

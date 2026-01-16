@@ -11,19 +11,33 @@ export _HOOK_INPUT
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../_lib/common.sh"
 
-# Self-guard: Only run for Write/Edit
-guard_tool "Write" "Edit" || exit 0
+# EXIT trap to ensure JSON output on unexpected exits only
+trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
 
-# Self-guard: Only run if multi-instance coordination is enabled
-guard_multi_instance || exit 0
-
-# Source coordination lib
-COORD_LIB="${SCRIPT_DIR}/../../../coordination/lib/coordination.sh"
-if [[ ! -f "$COORD_LIB" ]]; then
+# Helper to exit cleanly (clears trap first to avoid double output)
+clean_exit() {
+    trap - EXIT
     output_silent_success
     exit 0
+}
+
+# Self-guard: Only run for Write/Edit (silent check, no output)
+TOOL_NAME_CHECK=$(get_field '.tool_name // ""')
+if [[ "$TOOL_NAME_CHECK" != "Write" && "$TOOL_NAME_CHECK" != "Edit" ]]; then
+    clean_exit
 fi
-source "$COORD_LIB" 2>/dev/null || { output_silent_success; exit 0; }
+
+# Self-guard: Only run if multi-instance coordination is enabled
+if ! is_multi_instance_enabled; then
+    clean_exit
+fi
+
+# Source coordination lib
+COORD_LIB="${SCRIPT_DIR}/../../../.claude/coordination/lib/coordination.sh"
+if [[ ! -f "$COORD_LIB" ]]; then
+    clean_exit
+fi
+source "$COORD_LIB" 2>/dev/null || { clean_exit; }
 
 # Load instance ID
 if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
@@ -33,21 +47,20 @@ fi
 
 # Get file path
 FILE_PATH=$(get_field '.tool_input.file_path')
-[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$FILE_PATH" ]] && clean_exit
 
 # Skip coordination directory files
-[[ "$FILE_PATH" =~ /.claude/coordination/ ]] && { output_silent_success; exit 0; }
+[[ "$FILE_PATH" =~ /.claude/coordination/ ]] && clean_exit
 
 # Check for errors in tool result
 TOOL_RESULT=$(get_field '.tool_result // ""')
 if [[ "$TOOL_RESULT" == *"error"* ]] || [[ "$TOOL_RESULT" == *"Error"* ]]; then
     # Keep lock on error, will auto-expire
-    output_silent_success
-    exit 0
+    clean_exit
 fi
 
 # Release lock
 coord_release_lock "$FILE_PATH" 2>/dev/null || true
 
-output_silent_success
-exit 0
+# Success
+clean_exit

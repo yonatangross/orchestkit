@@ -6,6 +6,7 @@ agent: test-generator
 version: 2.0.0
 tags: [testing, llm, ai, deepeval, ragas, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # LLM Testing Patterns

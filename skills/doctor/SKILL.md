@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [health-check, diagnostics, validation, permissions, hooks]
+user-invocable: true
 ---
 
 # SkillForge Health Diagnostics

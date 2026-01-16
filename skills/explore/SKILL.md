@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge
 tags: [exploration, code-search, architecture, codebase]
+user-invocable: true
 ---
 
 # Codebase Exploration

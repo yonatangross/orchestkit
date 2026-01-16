@@ -7,7 +7,7 @@
 
 *Transform Claude Code into a full-stack development powerhouse*
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.7-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.9-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-97-blue?style=flat-square)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-20-green?style=flat-square)](./agents)
 [![Hooks](https://img.shields.io/badge/Hooks-105-orange?style=flat-square)](./hooks)

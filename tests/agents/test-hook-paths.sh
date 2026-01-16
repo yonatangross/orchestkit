@@ -6,6 +6,9 @@
 # 2. All hooks in agent frontmatter resolve to actual files
 # 3. Hook scripts are executable
 #
+# Note: LSP servers (pyright-langserver, typescript-language-server, etc.) are
+# external commands, not hook files - they are skipped.
+#
 # CC 2.1.7 Compliant
 
 set -euo pipefail
@@ -40,34 +43,55 @@ resolve_hook_path() {
     echo "$hook_path"
 }
 
+# Function to check if a command looks like a hook path (contains / or .sh)
+is_hook_path() {
+    local cmd="$1"
+    # Hook paths typically contain / or end with .sh
+    # LSP servers like "pyright-langserver" are simple command names
+    if [[ "$cmd" == *"/"* ]] || [[ "$cmd" == *".sh" ]]; then
+        return 0  # Looks like a hook path
+    else
+        return 1  # Likely an external command (LSP server, etc.)
+    fi
+}
+
 echo "--- Part 1: plugin.json Hooks ---"
 echo ""
 
-# Extract hook commands from plugin.json using grep
-# Looking for "command": "..." patterns
-while IFS= read -r hook_cmd; do
-    # Clean up the extracted command
-    hook_cmd=$(echo "$hook_cmd" | sed 's/.*"command":[[:space:]]*"\([^"]*\)".*/\1/')
+# Extract hook commands from plugin.json using jq (more reliable than grep)
+# Only look in the hooks section, not lspServers
+if command -v jq >/dev/null 2>&1; then
+    # Use jq to properly extract hook commands from the hooks section
+    hook_commands=$(jq -r '.hooks[]?.command // empty' "$PLUGIN_JSON" 2>/dev/null || true)
 
-    if [[ -n "$hook_cmd" && "$hook_cmd" != *"command"* ]]; then
-        ((TOTAL_HOOKS++))
+    if [[ -n "$hook_commands" ]]; then
+        while IFS= read -r hook_cmd; do
+            if [[ -n "$hook_cmd" ]]; then
+                # Check if this looks like a hook path (contains / or .sh)
+                if is_hook_path "$hook_cmd"; then
+                    ((TOTAL_HOOKS++)) || true
 
-        resolved_path=$(resolve_hook_path "$hook_cmd")
+                    resolved_path=$(resolve_hook_path "$hook_cmd")
 
-        if [[ -f "$resolved_path" ]]; then
-            ((VALID_HOOKS++))
-            if [[ -x "$resolved_path" ]]; then
-                ((EXECUTABLE_HOOKS++))
-            else
-                echo "WARN: Hook exists but not executable: $resolved_path"
+                    if [[ -f "$resolved_path" ]]; then
+                        ((VALID_HOOKS++)) || true
+                        if [[ -x "$resolved_path" ]]; then
+                            ((EXECUTABLE_HOOKS++)) || true
+                        else
+                            echo "WARN: Hook exists but not executable: $resolved_path"
+                        fi
+                    else
+                        echo "FAIL: plugin.json - Hook path not found: $hook_cmd"
+                        echo "      Resolved to: $resolved_path"
+                        FAILED=1
+                    fi
+                fi
             fi
-        else
-            echo "FAIL: plugin.json - Hook path not found: $hook_cmd"
-            echo "      Resolved to: $resolved_path"
-            FAILED=1
-        fi
+        done <<< "$hook_commands"
     fi
-done < <(grep '"command":' "$PLUGIN_JSON")
+else
+    echo "WARN: jq not available, skipping plugin.json hook validation"
+fi
 
 echo "plugin.json: $VALID_HOOKS hooks validated"
 echo ""
@@ -107,21 +131,25 @@ for agent_file in "$AGENTS_DIR"/*.md; do
 
             if [[ "$in_hooks" == true && "$line" =~ command:[[:space:]]*(.+) ]]; then
                 hook_cmd="${BASH_REMATCH[1]}"
-                ((AGENT_HOOKS++))
-                ((TOTAL_HOOKS++))
 
-                resolved_path=$(resolve_hook_path "$hook_cmd")
+                # Only validate if it looks like a hook path
+                if is_hook_path "$hook_cmd"; then
+                    ((AGENT_HOOKS++)) || true
+                    ((TOTAL_HOOKS++)) || true
 
-                if [[ -f "$resolved_path" ]]; then
-                    ((AGENT_VALID++))
-                    ((VALID_HOOKS++))
-                    if [[ -x "$resolved_path" ]]; then
-                        ((EXECUTABLE_HOOKS++))
+                    resolved_path=$(resolve_hook_path "$hook_cmd")
+
+                    if [[ -f "$resolved_path" ]]; then
+                        ((AGENT_VALID++)) || true
+                        ((VALID_HOOKS++)) || true
+                        if [[ -x "$resolved_path" ]]; then
+                            ((EXECUTABLE_HOOKS++)) || true
+                        fi
+                    else
+                        echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
+                        echo "      Resolved to: $resolved_path"
+                        FAILED=1
                     fi
-                else
-                    echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
-                    echo "      Resolved to: $resolved_path"
-                    FAILED=1
                 fi
             fi
         fi

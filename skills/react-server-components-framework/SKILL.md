@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.3.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, 2026]
+user-invocable: false
 ---
 
 # React Server Components Framework

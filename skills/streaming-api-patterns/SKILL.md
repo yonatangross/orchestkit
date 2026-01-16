@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub
 tags: [streaming, sse, websocket, real-time, api, 2025]
+user-invocable: false
 ---
 
 # Streaming API Patterns

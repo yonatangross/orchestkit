@@ -14,6 +14,7 @@
 # 7. Token budget between 300-1500 tokens (chars/4)
 # 8. Has "Related Skills" or "Key Decisions" section
 # 9. No broken internal links to references/ or templates/
+# 10. user-invocable field validation (17 commands, 80 internal)
 #
 # Usage: ./test-skill-md.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -210,7 +211,7 @@ echo -e "${CYAN}Test 1: File Existence (SKILL.md)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_files=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]]; then
         ((TOTAL_SKILLS++)) || true
         skill_name=$(basename "$skill_dir")
@@ -236,7 +237,7 @@ echo -e "${CYAN}Test 2: YAML Frontmatter Presence${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_frontmatter=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -270,7 +271,7 @@ echo -e "${CYAN}Test 3: Required Frontmatter Fields (name, description)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_fields=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -312,7 +313,7 @@ echo -e "${CYAN}Test 4: H1 Title Presence${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_h1=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -338,7 +339,7 @@ echo -e "${CYAN}Test 5: 'When to Use' or 'Overview' Section${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_section=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -364,7 +365,7 @@ echo -e "${CYAN}Test 6: Code Examples Present${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_code=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -396,7 +397,7 @@ MAX_TOKENS=5000
 under_budget=()
 over_budget=()
 
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -434,7 +435,7 @@ echo -e "${CYAN}Test 8: 'Related Skills' or 'Key Decisions' Section${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 missing_related=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -460,7 +461,7 @@ echo -e "${CYAN}Test 9: Internal Link Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 broken_link_skills=()
-for skill_dir in "$SKILLS_DIR"/*/*; do
+for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
@@ -478,6 +479,66 @@ done
 if [[ ${#broken_link_skills[@]} -eq 0 ]]; then
     pass "All internal links to references/ and templates/ are valid"
 fi
+echo ""
+
+# ============================================================================
+# Test 10: user-invocable field validation (CC 2.1.3+)
+# ============================================================================
+echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
+echo "────────────────────────────────────────────────────────────────────────────"
+
+# Expected counts
+EXPECTED_USER_INVOCABLE=17
+EXPECTED_INTERNAL=80
+
+missing_user_invocable=()
+user_invocable_true=()
+user_invocable_false=()
+
+for skill_dir in "$SKILLS_DIR"/*/; do
+    if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
+        skill_name=$(basename "$skill_dir")
+        skill_file="$skill_dir/SKILL.md"
+
+        frontmatter=$(extract_frontmatter "$skill_file")
+        user_invocable_field=$(get_frontmatter_field "$frontmatter" "user-invocable")
+
+        if [[ -z "$user_invocable_field" ]]; then
+            missing_user_invocable+=("$skill_name")
+            fail "$skill_name: Missing 'user-invocable' field in frontmatter"
+        elif [[ "$user_invocable_field" == "true" ]]; then
+            user_invocable_true+=("$skill_name")
+            info "$skill_name: user-invocable: true (command)"
+        elif [[ "$user_invocable_field" == "false" ]]; then
+            user_invocable_false+=("$skill_name")
+            info "$skill_name: user-invocable: false (internal)"
+        else
+            fail "$skill_name: Invalid 'user-invocable' value: $user_invocable_field (expected true/false)"
+        fi
+    fi
+done
+
+# Check counts
+actual_commands=${#user_invocable_true[@]}
+actual_internal=${#user_invocable_false[@]}
+
+if [[ ${#missing_user_invocable[@]} -eq 0 ]]; then
+    pass "All SKILL.md files have 'user-invocable' field"
+fi
+
+if [[ "$actual_commands" -eq "$EXPECTED_USER_INVOCABLE" ]]; then
+    pass "User-invocable commands: $actual_commands (expected $EXPECTED_USER_INVOCABLE)"
+else
+    fail "User-invocable commands: $actual_commands (expected $EXPECTED_USER_INVOCABLE)"
+    echo "    Commands found: ${user_invocable_true[*]}"
+fi
+
+if [[ "$actual_internal" -eq "$EXPECTED_INTERNAL" ]]; then
+    pass "Internal skills: $actual_internal (expected $EXPECTED_INTERNAL)"
+else
+    fail "Internal skills: $actual_internal (expected $EXPECTED_INTERNAL)"
+fi
+
 echo ""
 
 # ============================================================================

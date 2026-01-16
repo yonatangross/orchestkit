@@ -6,6 +6,7 @@ agent: backend-system-architect
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [resilience, circuit-breaker, bulkhead, retry, fault-tolerance]
+user-invocable: false
 ---
 
 # Resilience Patterns Skill

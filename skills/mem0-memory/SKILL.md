@@ -5,6 +5,7 @@ context: fork
 agent: any
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # Mem0 Memory Management

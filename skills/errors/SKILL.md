@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [errors, debugging, troubleshooting, patterns]
+user-invocable: false
 ---
 
 # Error Pattern Analysis

@@ -6,6 +6,7 @@ agent: test-generator
 version: 2.0.0
 tags: [msw, testing, mocking, frontend, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # MSW (Mock Service Worker) 2.x

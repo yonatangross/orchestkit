@@ -5,6 +5,7 @@ context: fork
 agent: backend-system-architect
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 # MCP Server Building
 Build custom MCP servers to extend Claude with tools, resources, and prompts.

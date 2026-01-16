@@ -19,7 +19,7 @@ echo
 
 # Find all SKILL.md files
 while IFS= read -r skill_file; do
-    ((CHECKED++))
+    ((CHECKED++)) || true
 
     # Extract description from frontmatter
     # Look for description: line between --- markers
@@ -43,7 +43,7 @@ while IFS= read -r skill_file; do
     if [[ ${#description} -lt 50 ]]; then
         echo "FAIL: $skill_name - Description too short (${#description} chars)"
         echo "      File: $rel_path"
-        ((FAILED++))
+        ((FAILED++)) || true
         continue
     fi
 
@@ -63,7 +63,7 @@ while IFS= read -r skill_file; do
     if [[ $has_trigger -eq 0 ]]; then
         echo "WARN: $skill_name - Missing trigger keywords ('Use when...')"
         echo "      Description: ${description:0:80}..."
-        ((MISSING_USE_WHEN++))
+        ((MISSING_USE_WHEN++)) || true
     fi
 
 done < <(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null)

@@ -6,6 +6,7 @@ tags: [playwright, e2e, testing, ai-agents, 2026]
 context: fork
 agent: test-generator
 author: SkillForge
+user-invocable: false
 ---
 
 # E2E Testing with Playwright 1.57+

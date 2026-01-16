@@ -6,9 +6,13 @@ author: AI Agent Hub
 tags: [architecture, documentation, decision-making, backend]
 context: fork
 agent: backend-system-architect
+user-invocable: false
+---
+
+# Architecture Decision Records
 Architecture Decision Records (ADRs) are lightweight documents that capture important architectural decisions along with their context and consequences. This skill provides templates, examples, and best practices for creating and maintaining ADRs in your projects.
 
-**When to use this skill:**
+## When to Use
 - Making significant technology choices (databases, frameworks, cloud providers)
 - Designing system architecture or major components
 - Establishing patterns or conventions for the team

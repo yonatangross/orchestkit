@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [statusline, hud, context, monitoring, cc216]
+user-invocable: true
 ---
 
 # Claude HUD - Status Line Configuration

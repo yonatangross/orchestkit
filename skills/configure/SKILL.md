@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [configuration, setup, wizard, customization]
+user-invocable: true
 ---
 
 # SkillForge Configuration

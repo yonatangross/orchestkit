@@ -5,7 +5,7 @@
 #
 # Part of mem0 Semantic Memory Integration (#47)
 
-set -uo pipefail
+set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -56,7 +56,7 @@ if [[ -n "$sync_output" ]]; then
 
     # Output as JSON with systemMessage (not message) for Claude
     jq -nc --arg msg "Session ending with $pending_count pending decisions. To sync to mem0, run: decision-sync.sh sync" \
-        '{continue:true,systemMessage:$msg}'
+        '{"continue":true,"systemMessage":$msg}'
 else
     log_hook "No sync output generated"
     echo '{"continue":true,"suppressOutput":true}'

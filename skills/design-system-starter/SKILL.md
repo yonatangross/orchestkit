@@ -6,6 +6,7 @@ agent: rapid-ui-designer
 version: 1.0.0
 author: AI Agent Hub
 tags: [design-system, ui, components, design-tokens, accessibility, frontend]
+user-invocable: false
 ---
 
 # Design System Starter
@@ -30,6 +31,17 @@ This skill provides comprehensive guidance for building robust, scalable design 
 - `references/theming.md` - Theme and dark mode patterns
 - `templates/design-tokens-template.json` - W3C design token format
 - `templates/component-template.tsx` - React component template
+
+```typescript
+// Example: Design token structure
+const tokens = {
+  colors: {
+    primary: { base: "#0066cc", hover: "#0052a3" },
+    semantic: { success: "#28a745", error: "#dc3545" }
+  },
+  spacing: { xs: "4px", sm: "8px", md: "16px", lg: "24px" }
+};
+```
 - `checklists/design-system-checklist.md` - Design system audit checklist
 
 ---

@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.2.0
 author: Yonatan Gross
 tags: [i18n, internationalization, dayjs, dates, react-i18next, localization, rtl, useTranslation, useFormatting, ICU, Trans]
+user-invocable: false
 ---
 
 # i18n and Localization Patterns

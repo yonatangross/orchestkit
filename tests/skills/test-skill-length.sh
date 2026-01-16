@@ -21,7 +21,7 @@ echo
 
 # Find all SKILL.md files
 while IFS= read -r skill_file; do
-    ((CHECKED++))
+    ((CHECKED++)) || true
 
     # Count lines
     line_count=$(wc -l < "$skill_file" | tr -d ' ')
@@ -31,10 +31,10 @@ while IFS= read -r skill_file; do
 
     if [[ $line_count -gt $MAX_LINES ]]; then
         echo "FAIL: $rel_path ($line_count lines)"
-        ((FAILED++))
+        ((FAILED++)) || true
     elif [[ $line_count -gt 400 ]]; then
         echo "WARN: $rel_path ($line_count lines - approaching limit)"
-        ((WARNINGS++))
+        ((WARNINGS++)) || true
     fi
 done < <(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null)
 

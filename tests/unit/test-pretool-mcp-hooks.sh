@@ -41,7 +41,8 @@ test_context7_tracker_handles_get_docs() {
         skip "context7-tracker.sh not found"
     fi
 
-    local input='{"tool_name":"mcp__context7__get-library-docs","tool_input":{"context7CompatibleLibraryID":"/facebook/react","topic":"useState"}}'
+    # Use correct tool name: query-docs (not get-library-docs)
+    local input='{"tool_name":"mcp__context7__query-docs","tool_input":{"libraryId":"/facebook/react","query":"useState"}}'
     local output
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 

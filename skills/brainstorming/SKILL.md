@@ -5,6 +5,7 @@ context: fork
 agent: product-strategist
 version: 1.0.0
 author: SkillForge
+user-invocable: true
 ---
 
 # Brainstorming Ideas Into Designs

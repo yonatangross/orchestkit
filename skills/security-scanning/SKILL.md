@@ -10,6 +10,7 @@ allowed-tools:
   - Bash  # For running security scanners only
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # Security Scanning

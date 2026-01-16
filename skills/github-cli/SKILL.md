@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [github, gh, cli, issues, pr, projects, automation, 2025]
+user-invocable: false
 ---
 
 # GitHub CLI Skill

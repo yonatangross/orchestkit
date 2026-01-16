@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge
 tags: [git, github, pull-request, pr, code-review]
+user-invocable: true
 ---
 
 # Create Pull Request

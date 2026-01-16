@@ -69,7 +69,7 @@ for agent_file in "$AGENTS_DIR"/*.md; do
     if [[ $desc_length -lt 100 ]]; then
         echo "WARN: $agent_name description is short ($desc_length chars)"
         echo "      Consider adding trigger keywords"
-        ((WARNINGS++))
+        ((WARNINGS++)) || true
     fi
 
     # Check for "Use when" pattern (best practice)

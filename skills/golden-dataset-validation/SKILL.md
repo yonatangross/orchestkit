@@ -10,6 +10,7 @@ allowed-tools:
   - Read
   - Grep
   - Glob
+user-invocable: false
 ---
 
 # Golden Dataset Validation

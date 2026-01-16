@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/../../_lib/common.sh" 2>/dev/null || true
 
 # Source coordination lib with fallback
-source "${SCRIPT_DIR}/../../../coordination/lib/coordination.sh" 2>/dev/null || {
+source "${SCRIPT_DIR}/../../../.claude/coordination/lib/coordination.sh" 2>/dev/null || {
     trap - EXIT
     echo '{"continue":true,"suppressOutput":true}'
     exit 0

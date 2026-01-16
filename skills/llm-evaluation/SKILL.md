@@ -6,6 +6,7 @@ agent: llm-integrator
 version: 2.0.0
 tags: [evaluation, llm, quality, ragas, langfuse, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # LLM Evaluation

@@ -146,6 +146,19 @@ assert_file_exists() {
   fi
 }
 
+# Assert file is executable
+# Usage: assert_file_executable "$path"
+assert_file_executable() {
+  local path="$1"
+
+  if [[ -x "$path" ]]; then
+    return 0
+  else
+    echo -e "${RED}ASSERTION FAILED${NC}: File is not executable: $path" >&2
+    return 1
+  fi
+}
+
 # Assert file contains string
 # Usage: assert_file_contains "$path" "$substring"
 assert_file_contains() {
@@ -237,14 +250,26 @@ assert_valid_json() {
   fi
 }
 
-# Assert JSON field equals value
-# Usage: assert_json_field "$json" ".field" "expected_value"
+# Assert JSON field equals value or exists
+# Usage: assert_json_field "$json" ".field" ["expected_value"]
+# If expected_value is omitted, just checks field exists
 assert_json_field() {
   local json="$1"
   local field="$2"
-  local expected="$3"
+  local expected="${3:-}"
 
-  local actual=$(echo "$json" | jq -r "$field" 2>/dev/null)
+  local actual
+  actual=$(echo "$json" | jq -r "$field" 2>/dev/null)
+
+  # If no expected value, just check field exists (not null)
+  if [[ -z "$expected" ]]; then
+    if [[ -n "$actual" && "$actual" != "null" ]]; then
+      return 0
+    else
+      echo -e "${RED}ASSERTION FAILED${NC}: JSON field $field does not exist or is null" >&2
+      return 1
+    fi
+  fi
 
   if [[ "$actual" == "$expected" ]]; then
     return 0
@@ -640,6 +665,16 @@ fail() {
   local message="${1:-Test failed}"
   echo -e "${RED}FAIL${NC}: $message" >&2
   return 1
+}
+
+# Informational message (non-failing, silent by default)
+# Usage: info "message"
+info() {
+  local message="${1:-}"
+  # Silent in test output to keep results clean
+  # Uncomment the line below for verbose debugging:
+  # echo -e "  ${CYAN}[info]${NC} $message" >&2
+  return 0
 }
 
 # Assert string contains at least one of two substrings

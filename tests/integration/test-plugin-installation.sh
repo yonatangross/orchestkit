@@ -164,9 +164,9 @@ HOOK_COUNT=0
 NON_EXEC_COUNT=0
 
 while IFS= read -r hook; do
-  ((HOOK_COUNT++))
+  ((HOOK_COUNT++)) || true
   if [[ ! -x "$hook" ]]; then
-    ((NON_EXEC_COUNT++))
+    ((NON_EXEC_COUNT++)) || true
     warn "Hook not executable: $(basename "$hook")"
   fi
 done < <(find -L "$PLUGIN_ROOT/hooks" -name "*.sh" -type f 2>/dev/null)

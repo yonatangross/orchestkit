@@ -5,6 +5,7 @@ context: fork
 agent: metrics-architect
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # Cache Cost Tracking

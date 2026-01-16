@@ -12,6 +12,7 @@ allowed-tools:
   - Write
   - Edit
 author: SkillForge
+user-invocable: false
 ---
 
 # Input Validation

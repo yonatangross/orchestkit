@@ -5,6 +5,7 @@ version: 1.0.0
 context: inherit
 tags: [ascii, visualization, diagrams, architecture, 2025]
 author: SkillForge
+user-invocable: false
 ---
 
 # ASCII Visualizer Skill

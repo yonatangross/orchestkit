@@ -5,6 +5,7 @@ context: fork
 agent: workflow-architect
 version: 1.0.0
 author: SkillForge
+user-invocable: false
 ---
 
 # LangGraph Parallel Execution

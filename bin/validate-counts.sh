@@ -7,8 +7,9 @@
 # Actual counts come from counting actual files
 #
 # Note: Commands were migrated to skills in v4.7.0, so command validation
-# is skipped. The "12 user-invocable skills" in the description refers to command-type
-# skills (commit, configure, explore, etc.) which are part of the 90 skills count.
+# is skipped. The "17 user-invocable skills" have `user-invocable: true` in frontmatter
+# (commit, configure, explore, review-pr, etc.) which are part of the 97 skills count.
+# The remaining 80 skills have `user-invocable: false` (internal knowledge modules).
 #
 # Exit codes:
 #   0 - All counts match

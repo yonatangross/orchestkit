@@ -6,6 +6,7 @@ agent: backend-system-architect
 version: 1.0.0
 tags: [fastapi, python, async, middleware, dependencies, 2026]
 author: SkillForge
+user-invocable: false
 ---
 
 # FastAPI Advanced Patterns (2026)

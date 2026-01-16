@@ -5,6 +5,7 @@ context: none
 version: 1.0.0
 author: SkillForge
 tags: [coordination, worktree, multi-instance, locking, parallel-development, 2026]
+user-invocable: true
 ---
 
 # Worktree Coordination Skill

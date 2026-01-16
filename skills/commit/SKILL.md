@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 author: SkillForge
 tags: [git, commit, version-control, conventional-commits]
+user-invocable: true
 ---
 
 # Smart Commit

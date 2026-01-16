@@ -29,19 +29,13 @@ setup_evolution_env() {
     mkdir -p "$test_dir/.claude/feedback"
     mkdir -p "$test_dir/skills/mock-skill/references"
 
-{
-    "$schema": "../../../../../.claude/schemas/skill-capabilities.schema.json",
-    "name": "mock-skill",
-    "description": "A mock skill for testing",
-    "capabilities": ["testing", "mocking"]
-}
-EOF
-
     # Create mock SKILL.md
     cat > "$test_dir/skills/mock-skill/SKILL.md" << 'EOF'
 ---
 name: mock-skill
 version: 1.0.0
+description: A mock skill for testing
+tags: [testing, mocking]
 ---
 
 # Mock Skill

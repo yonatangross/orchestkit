@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: SkillForge
 tags: [testing, pytest, coverage, test-execution]
+user-invocable: false
 ---
 
 # Run Tests
