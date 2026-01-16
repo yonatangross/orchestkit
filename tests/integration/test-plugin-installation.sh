@@ -91,9 +91,9 @@ echo ""
 # =============================================================================
 echo "--- Test 3: Hook paths validation ---"
 
-# Hooks are defined in plugin.json (root) with ${CLAUDE_PLUGIN_ROOT} paths
+# Hooks are defined in .claude-plugin/plugin.json with ${CLAUDE_PLUGIN_ROOT} paths
 # This is the correct architecture for Claude Code plugins
-PLUGIN_CONFIG="$PLUGIN_ROOT/plugin.json"
+PLUGIN_CONFIG="$PLUGIN_ROOT/.claude-plugin/plugin.json"
 if [[ -f "$PLUGIN_CONFIG" ]]; then
   # Check that hooks configuration exists
   if jq -e '.hooks' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
@@ -204,21 +204,21 @@ fi
 echo ""
 
 # =============================================================================
-# Test 7: Version consistency across manifests
+# Test 7: Plugin manifest version valid
 # =============================================================================
-echo "--- Test 7: Version consistency ---"
+echo "--- Test 7: Version validation ---"
 
-PLUGIN_JSON_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/plugin.json" 2>/dev/null || echo "")
-CLAUDE_PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" 2>/dev/null || echo "")
+PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" 2>/dev/null || echo "")
 
-if [[ -n "$PLUGIN_JSON_VERSION" && -n "$CLAUDE_PLUGIN_VERSION" ]]; then
-  if [[ "$PLUGIN_JSON_VERSION" == "$CLAUDE_PLUGIN_VERSION" ]]; then
-    pass "Version consistent: $PLUGIN_JSON_VERSION"
+if [[ -n "$PLUGIN_VERSION" && "$PLUGIN_VERSION" != "null" ]]; then
+  # Validate semver format (basic check)
+  if [[ "$PLUGIN_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    pass "Version valid: $PLUGIN_VERSION"
   else
-    fail "Version mismatch: .claude-plugin/plugin.json=$CLAUDE_PLUGIN_VERSION, plugin.json=$PLUGIN_JSON_VERSION"
+    fail "Version format invalid: $PLUGIN_VERSION (expected semver)"
   fi
 else
-  fail "Could not read version from plugin manifests"
+  fail "Could not read version from .claude-plugin/plugin.json"
 fi
 
 echo ""

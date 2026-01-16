@@ -1,9 +1,622 @@
 {
   "name": "skf",
-  "version": "4.17.1",
+  "version": "4.17.2",
+  "engines": {
+    "claude-code": ">=2.1.9"
+  },
   "description": "Comprehensive AI-assisted development toolkit with 97 skills (17 user-invocable commands, 80 internal knowledge), 20 agents, 105 hooks, progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
-    "email": "yonatan2gross@gmail.com"
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/skillforge-claude-plugin"
+  },
+  "homepage": "https://github.com/yonatangross/skillforge-claude-plugin",
+  "repository": "https://github.com/yonatangross/skillforge-claude-plugin",
+  "license": "MIT",
+  "lspServers": {
+    "pyright": {
+      "command": "pyright-langserver",
+      "args": [
+        "--stdio"
+      ],
+      "extensionToLanguage": {
+        ".py": "python",
+        ".pyi": "python"
+      }
+    },
+    "typescript": {
+      "command": "typescript-language-server",
+      "args": [
+        "--stdio"
+      ],
+      "extensionToLanguage": {
+        ".ts": "typescript",
+        ".tsx": "typescriptreact",
+        ".js": "javascript",
+        ".jsx": "javascriptreact",
+        ".mts": "typescript",
+        ".cts": "typescript",
+        ".mjs": "javascript",
+        ".cjs": "javascript"
+      }
+    },
+    "rust": {
+      "command": "rust-analyzer",
+      "args": [],
+      "extensionToLanguage": {
+        ".rs": "rust"
+      }
+    },
+    "go": {
+      "command": "gopls",
+      "args": [],
+      "extensionToLanguage": {
+        ".go": "go"
+      }
+    }
+  },
+  "keywords": [
+    "ai-development",
+    "langgraph",
+    "fastapi",
+    "react",
+    "typescript",
+    "python",
+    "multi-agent",
+    "rag",
+    "semantic-search",
+    "code-quality",
+    "security",
+    "testing",
+    "observability",
+    "progressive-loading",
+    "skill-system",
+    "agent-framework",
+    "mcp-integration"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/dangerous-command-blocker.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/git-branch-protection.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/compound-command-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/error-pattern-warner.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/ci-simulation.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/issue-docs-requirement.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/multi-instance-quality-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/default-timeout-setter.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/conflict-predictor.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/write-edit/file-guard.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/input-mod/write-headers.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/backend-file-naming.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/structure-location-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/test-location-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/Write/architecture-change-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/Write/security-pattern-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/write-edit/multi-instance-lock.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/write-edit/file-lock-check.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/skill/skill-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__context7__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/context7-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__playwright__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/playwright-safety.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__memory__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/memory-validator.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__sequential-thinking__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/sequential-thinking-auto.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/agent/block-writes.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/agent/migration-safety-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/agent/security-command-audit.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/session-metrics.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/audit-logger.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/context-budget-monitor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/error-collector.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/write-edit/file-lock-release.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/auto-lint.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/skill-edit-tracker.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/backend-layer-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/import-direction-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/pattern-consistency-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/merge-conflict-predictor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/Write/coverage-predictor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/Write/release-lock-on-commit.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/error-tracker.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/redact-secrets.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/coordination-heartbeat.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "Read|Glob|Grep",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/permission/auto-approve-readonly.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/permission/auto-approve-safe-bash.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/permission/learning-tracker.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/permission/auto-approve-project-writes.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/context-injector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/todo-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/memory-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/satisfaction-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/antipattern-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/antipattern-warning.sh"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-context-loader.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-env-setup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/mem0-context-retrieval.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/pattern-sync-pull.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/analytics-consent-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/multi-instance-init.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/coordination-init.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/instance-heartbeat.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/decision-sync-pull.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/coordination-cleanup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-metrics-summary.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-cleanup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/pattern-sync-push.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/decision-sync-push.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/multi-instance-cleanup.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/cleanup-instance.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/task-completion-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/auto-save-context.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/coverage-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/design-decision-saver.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/evidence-collector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/mem0-decision-saver.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/mem0-pre-compaction-sync.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/context-compressor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/auto-remember-continuity.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/full-test-suite.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/security-scan-aggregator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/coverage-threshold-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/cross-instance-test-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/di-pattern-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/duplicate-code-detector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/eval-metrics-collector.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/merge-readiness-checker.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/migration-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/review-summary-generator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/security-summary.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/test-pattern-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/test-runner.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start/subagent-context-stager.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start/agent-memory-inject.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start/subagent-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-start/context-gate.sh"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/output-validator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/context-publisher.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/handoff-preparer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/feedback-loop.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/auto-spawn-quality.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/multi-claude-verifier.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/agent-memory-store.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/subagent-completion-tracker.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/subagent-stop/subagent-quality-gate.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/notification/desktop.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/notification/sound.sh"
+          }
+        ]
+      }
+    ]
   }
 }

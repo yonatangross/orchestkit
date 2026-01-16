@@ -679,4 +679,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-16 (v4.17.1)
+**Last Updated**: 2026-01-16 (v4.17.2)

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [4.17.2] - 2026-01-16
+
+### Fixed
+
+- **Commands Autocomplete**: Added `commands/` directory with 17 command files to enable autocomplete for `/skf:*` commands (#68)
+  - Commands now appear in Claude Code autocomplete when typing `/skf:`
+  - Each command file has YAML frontmatter (`description`, `allowed-tools`) and references corresponding skill
+
+### Added
+
+- **Test Coverage**: New `tests/commands/test-commands-structure.sh` validates commands directory structure
+- **CI Integration**: Commands validation added to `run-all-tests.sh`
+
+### Technical Details
+
+- Claude Code has two systems for slash commands:
+  1. `commands/` directory - Shows in autocomplete
+  2. `skills/*/SKILL.md` with `user-invocable: true` - Works via Skill tool
+- Previously only using skills system; now both systems are connected
+
+---
+
 ## [4.17.1] - 2026-01-16
 
 ### Changed

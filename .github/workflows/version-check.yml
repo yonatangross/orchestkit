@@ -21,7 +21,7 @@ jobs:
       - name: Get version from PR branch
         id: pr_version
         run: |
-          PR_VERSION=$(jq -r '.version' plugin.json)
+          PR_VERSION=$(jq -r '.version' .claude-plugin/plugin.json)
           echo "version=$PR_VERSION" >> $GITHUB_OUTPUT
           echo "PR branch version: $PR_VERSION"
 
@@ -29,7 +29,7 @@ jobs:
         id: main_version
         run: |
           git fetch origin main
-          MAIN_VERSION=$(git show origin/main:plugin.json | jq -r '.version')
+          MAIN_VERSION=$(git show origin/main:.claude-plugin/plugin.json | jq -r '.version')
           echo "version=$MAIN_VERSION" >> $GITHUB_OUTPUT
           echo "Main branch version: $MAIN_VERSION"
 

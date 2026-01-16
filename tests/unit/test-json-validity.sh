@@ -50,17 +50,17 @@ while IFS= read -r -d '' json_file; do
     fi
 done < <(find "$CLAUDE_DIR" -name "*.json" -type f -print0 2>/dev/null)
 
-# Also check root plugin.json
-if [[ -f "$PROJECT_ROOT/plugin.json" ]]; then
+# Also check .claude-plugin/plugin.json
+if [[ -f "$PROJECT_ROOT/.claude-plugin/plugin.json" ]]; then
     TOTAL=$((TOTAL + 1))
-    if output=$(jq empty "$PROJECT_ROOT/plugin.json" 2>&1); then
+    if output=$(jq empty "$PROJECT_ROOT/.claude-plugin/plugin.json" 2>&1); then
         PASSED=$((PASSED + 1))
         if [[ "$VERBOSE" == "--verbose" ]]; then
-            echo -e "${GREEN}✓${NC} plugin.json"
+            echo -e "${GREEN}✓${NC} .claude-plugin/plugin.json"
         fi
     else
         FAILED=$((FAILED + 1))
-        echo -e "${RED}✗${NC} plugin.json"
+        echo -e "${RED}✗${NC} .claude-plugin/plugin.json"
         echo "  Error: $output"
     fi
 fi

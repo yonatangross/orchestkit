@@ -120,10 +120,10 @@ test_common_has_permission_feedback
 
 log_section "Test 5: Plugin.json has CC 2.1.7 requirement"
 test_plugin_version_requirement() {
-  local plugin_json="$PROJECT_ROOT/plugin.json"
+  local plugin_json="$PROJECT_ROOT/.claude-plugin/plugin.json"
 
   if [[ ! -f "$plugin_json" ]]; then
-    log_skip "plugin.json not found"
+    log_skip ".claude-plugin/plugin.json not found"
     return 0
   fi
 

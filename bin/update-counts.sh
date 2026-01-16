@@ -3,11 +3,11 @@
 # Usage: update-counts.sh [--dry-run]
 #
 # Architecture: Single source of truth = filesystem
-# Updates declared counts in: plugin.json, CLAUDE.md, README.md
+# Updates declared counts in: .claude-plugin/plugin.json, CLAUDE.md, README.md
 # Does NOT update marketplace.json (external schema, not our format)
 #
 # Updates:
-# - plugin.json (description string)
+# - .claude-plugin/plugin.json (description string)
 # - CLAUDE.md (count references)
 # - README.md (count references)
 
@@ -58,9 +58,9 @@ echo "  Hooks:    $HOOKS"
 echo ""
 
 # =============================================================================
-# UPDATE plugin.json (primary source of declared counts)
+# UPDATE .claude-plugin/plugin.json (primary source of declared counts)
 # =============================================================================
-PLUGIN_JSON="$PROJECT_ROOT/plugin.json"
+PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
 if [[ -f "$PLUGIN_JSON" ]]; then
     echo "Updating $PLUGIN_JSON..."
 

@@ -207,7 +207,7 @@ it "has format_for_mem0 function" test_has_format_for_mem0
 describe "Integration: Plugin.json Registration"
 
 test_memory_hook_in_plugin_json() {
-    local plugin_json="$PROJECT_ROOT/plugin.json"
+    local plugin_json="$PROJECT_ROOT/.claude-plugin/plugin.json"
     grep -q "memory-context.sh" "$plugin_json"
 }
 

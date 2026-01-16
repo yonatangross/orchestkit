@@ -246,6 +246,9 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Skill-Agent Integration" "$SCRIPT_DIR/skills/integration/test-skill-agent-integration.sh" || true
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
     fi
+
+    # Commands directory validation (for autocomplete)
+    run_test "Commands Structure" "$SCRIPT_DIR/commands/test-commands-structure.sh" || true
 fi
 # ============================================================
 

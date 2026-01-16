@@ -3,7 +3,7 @@
 # Usage: validate-counts.sh
 #
 # Architecture: Single source of truth = filesystem
-# Declared counts come from plugin.json description string
+# Declared counts come from .claude-plugin/plugin.json description string
 # Actual counts come from counting actual files
 #
 # Note: Commands were migrated to skills in v4.7.0, so command validation
@@ -28,11 +28,11 @@ ACTUAL_AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | w
 ACTUAL_HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
 
 # =============================================================================
-# DECLARED COUNTS (from plugin.json description string)
+# DECLARED COUNTS (from .claude-plugin/plugin.json description string)
 # =============================================================================
-PLUGIN_JSON="$PROJECT_ROOT/plugin.json"
+PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
 if [[ ! -f "$PLUGIN_JSON" ]]; then
-    echo "ERROR: plugin.json not found at $PLUGIN_JSON"
+    echo "ERROR: .claude-plugin/plugin.json not found at $PLUGIN_JSON"
     exit 1
 fi
 
@@ -54,7 +54,7 @@ DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+[^0-9]*hooks' | grep -oE 
 ERRORS=0
 
 echo "Validating component counts..."
-echo "Source: plugin.json description"
+echo "Source: .claude-plugin/plugin.json description"
 echo ""
 
 if [[ "$ACTUAL_SKILLS" != "$DECLARED_SKILLS" ]]; then
@@ -82,7 +82,7 @@ echo ""
 if [[ $ERRORS -gt 0 ]]; then
     echo "Validation FAILED: $ERRORS mismatches found"
     echo ""
-    echo "To fix: Update plugin.json description to match actual counts"
+    echo "To fix: Update .claude-plugin/plugin.json description to match actual counts"
     exit 1
 else
     echo "Validation PASSED: All counts match"

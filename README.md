@@ -33,13 +33,17 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.17.1 (Documentation Update)
+## What's New in v4.17.2 (Commands Autocomplete Fix)
+
+- **Commands Autocomplete**: Added `commands/` directory with 17 command files - commands now appear when typing `/skf:`
+- **Test Coverage**: New `tests/commands/test-commands-structure.sh` validates commands match user-invocable skills
+- **Bug Fix**: Resolved #68 - User-invocable skills were missing from autocomplete
+
+### Previous (v4.17.1 - Documentation Update)
 
 - **CC 2.1.9 Integration**: `additionalContext` for pre-tool guidance, `auto:N` MCP thresholds, `plansDirectory` support
 - **17 User-Invocable Skills**: Commands available via `/skf:*` menu (commit, review-pr, explore, implement, verify, etc.)
 - **80 Internal Knowledge Skills**: Auto-loaded based on task context (not directly invocable)
-- **Session Helpers**: New `get_session_state_dir()`, `get_session_temp_file()` for session-scoped storage
-- **Hook Enhancements**: 4 hooks updated with `additionalContext` injection (git-branch-protection, error-pattern-warner, context7-tracker, architecture-change-detector)
 
 ### Previous (v4.16.0 - CC 2.1.9 Features)
 

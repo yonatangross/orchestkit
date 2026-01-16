@@ -15,15 +15,14 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Files containing version
 VERSION_FILES=(
-  "$PROJECT_ROOT/plugin.json"
   "$PROJECT_ROOT/.claude-plugin/plugin.json"
   "$PROJECT_ROOT/.claude-plugin/marketplace.json"
   "$PROJECT_ROOT/plugin-metadata.json"
 )
 
-# Get current version from plugin.json
+# Get current version from .claude-plugin/plugin.json
 get_current_version() {
-  jq -r '.version' "$PROJECT_ROOT/plugin.json"
+  jq -r '.version' "$PROJECT_ROOT/.claude-plugin/plugin.json"
 }
 
 # Bump version based on type
@@ -146,7 +145,7 @@ add_changelog_entry() {
 stage_changes() {
   echo "Staging changes..."
   cd "$PROJECT_ROOT"
-  git add plugin.json CLAUDE.md CHANGELOG.md 2>/dev/null || true
+  git add CLAUDE.md CHANGELOG.md 2>/dev/null || true
   git add .claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
   git add plugin-metadata.json 2>/dev/null || true
   echo "  ✓ Changes staged"

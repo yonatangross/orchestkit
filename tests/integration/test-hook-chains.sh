@@ -123,7 +123,7 @@ echo "=========================================="
 
 # Test Read chain
 echo ""
-read_input='{"tool_name":"Read","tool_input":{"file_path":"'"$PROJECT_ROOT"'/plugin.json"},"session_id":"test"}'
+read_input='{"tool_name":"Read","tool_input":{"file_path":"'"$PROJECT_ROOT"'/.claude-plugin/plugin.json"},"session_id":"test"}'
 if run_hook_chain "PreToolUse" "Read|Write|Edit|Glob|Grep" "$read_input" 0; then
     PASSED=$((PASSED + 1))
 else
