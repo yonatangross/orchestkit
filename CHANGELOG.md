@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 
+## [4.17.1] - 2026-01-16
+
+### Changed
+
+- **README.md**: Updated "What's New" section to v4.17.0 with CC 2.1.9 features
+- **Documentation**: Added user-invocable skills breakdown (17 commands, 80 internal)
+- **Version Alignment**: All version references now consistently at 4.17.x
+
+---
+
+
 ## [4.17.0] - 2026-01-16
 
 ### Added
