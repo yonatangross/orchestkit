@@ -33,13 +33,25 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.15.2 (Comprehensive CI & Agent Fixes)
+## What's New in v4.17.0 (CC 2.1.9 Integration & User-Invocable Skills)
+
+- **CC 2.1.9 Integration**: `additionalContext` for pre-tool guidance, `auto:N` MCP thresholds, `plansDirectory` support
+- **17 User-Invocable Skills**: Commands available via `/skf:*` menu (commit, review-pr, explore, implement, verify, etc.)
+- **80 Internal Knowledge Skills**: Auto-loaded based on task context (not directly invocable)
+- **Session Helpers**: New `get_session_state_dir()`, `get_session_temp_file()` for session-scoped storage
+- **Hook Enhancements**: 4 hooks updated with `additionalContext` injection (git-branch-protection, error-pattern-warner, context7-tracker, architecture-change-detector)
+
+### Previous (v4.16.0 - CC 2.1.9 Features)
+
+- **additionalContext Support**: Hooks can inject contextual guidance before tool execution
+- **MCP Auto-Enable Thresholds**: `auto:N` syntax for context-aware MCP server activation
+- **Plans Directory**: Custom plans directory configuration support
+
+### Previous (v4.15.2 - Comprehensive CI & Agent Fixes)
 
 - **CI Coverage**: 88 tests in CI (was 37), 96% test coverage
 - **105 Hooks**: All hooks now registered directly (zero dispatchers)
 - **Agent Context**: All 20 agents have explicit `context: fork|inherit` declarations
-- **Path Fixes**: Updated all tests/hooks for CC 2.1.7 flat skill structure
-- **New Test**: `test-progressive-loading.sh` recreated for flat structure
 
 ### Previous (v4.15.0 - CC 2.1.7 Skills Migration)
 
