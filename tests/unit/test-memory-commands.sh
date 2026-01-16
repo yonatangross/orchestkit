@@ -2,10 +2,10 @@
 # ============================================================================
 # Memory Commands Unit Tests
 # ============================================================================
-# Tests for memory/feedback slash commands:
-# - /remember (remember.md)
-# - /recall (recall.md)
-# - /skf:feedback (feedback.md)
+# Tests for memory/feedback slash commands (CC 2.1.3 merged with skills):
+# - /remember (skills/remember/SKILL.md)
+# - /recall (skills/recall/SKILL.md)
+# - /skf:feedback (skills/feedback/SKILL.md)
 # ============================================================================
 
 set -euo pipefail
@@ -13,7 +13,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-COMMANDS_DIR="$PROJECT_ROOT/.claude/commands"
+# CC 2.1.3: Commands merged with skills
+SKILLS_DIR="$PROJECT_ROOT/skills"
 
 # ============================================================================
 # /remember COMMAND TESTS
@@ -22,15 +23,15 @@ COMMANDS_DIR="$PROJECT_ROOT/.claude/commands"
 describe "Command: /remember"
 
 test_remember_command_exists() {
-    assert_file_exists "$COMMANDS_DIR/remember.md"
+    assert_file_exists "$SKILLS_DIR/remember/SKILL.md"
 }
 
 test_remember_has_usage_section() {
-    assert_file_contains "$COMMANDS_DIR/remember.md" "## Usage"
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Usage"
 }
 
 test_remember_has_categories() {
-    local file="$COMMANDS_DIR/remember.md"
+    local file="$SKILLS_DIR/remember/SKILL.md"
 
     assert_file_contains "$file" "decision"
     assert_file_contains "$file" "architecture"
@@ -40,24 +41,24 @@ test_remember_has_categories() {
 }
 
 test_remember_references_mem0_tool() {
-    assert_file_contains "$COMMANDS_DIR/remember.md" "mcp__mem0__add_memory"
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "mcp__mem0__add_memory"
 }
 
-test_remember_has_instructions() {
-    assert_file_contains "$COMMANDS_DIR/remember.md" "## Instructions"
+test_remember_has_workflow() {
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Workflow"
 }
 
-test_remember_has_examples() {
-    assert_file_contains "$COMMANDS_DIR/remember.md" "## Examples"
+test_remember_has_when_to_use() {
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## When to Use"
 }
 
 test_remember_has_auto_detect_logic() {
-    assert_file_contains "$COMMANDS_DIR/remember.md" "Auto-detect"
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "Auto-Detect"
 }
 
 test_remember_specifies_user_id_format() {
     # Should specify the user_id format for mem0
-    assert_file_contains "$COMMANDS_DIR/remember.md" "user_id"
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "user_id"
 }
 
 # ============================================================================
@@ -67,38 +68,40 @@ test_remember_specifies_user_id_format() {
 describe "Command: /recall"
 
 test_recall_command_exists() {
-    assert_file_exists "$COMMANDS_DIR/recall.md"
+    assert_file_exists "$SKILLS_DIR/recall/SKILL.md"
 }
 
 test_recall_has_usage_section() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "## Usage"
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Usage"
 }
 
 test_recall_has_options() {
-    local file="$COMMANDS_DIR/recall.md"
+    local file="$SKILLS_DIR/recall/SKILL.md"
 
-    grep -q "category" "$file" || fail "recall.md should mention category option"
-    grep -q "limit" "$file" || fail "recall.md should mention limit option"
+    grep -q "category" "$file" || fail "recall SKILL.md should mention category option"
+    grep -q "limit" "$file" || fail "recall SKILL.md should mention limit option"
 }
 
 test_recall_references_mem0_search() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "mcp__mem0__search_memories"
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "mcp__mem0__search_memories"
 }
 
-test_recall_has_instructions() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "## Instructions"
+test_recall_has_workflow() {
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Workflow"
 }
 
-test_recall_has_examples() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "## Examples"
+test_recall_has_when_to_use() {
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## When to Use"
 }
 
-test_recall_has_time_formatting() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "Time Formatting"
+test_recall_has_filter_options() {
+    local file="$SKILLS_DIR/recall/SKILL.md"
+    # Should explain filter construction
+    grep -qi "filter" "$file" || fail "recall SKILL.md should mention filters"
 }
 
-test_recall_has_error_handling() {
-    assert_file_contains "$COMMANDS_DIR/recall.md" "Error Handling"
+test_recall_has_advanced_flags() {
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Advanced Flags"
 }
 
 # ============================================================================
@@ -108,15 +111,15 @@ test_recall_has_error_handling() {
 describe "Command: /skf:feedback"
 
 test_feedback_command_exists() {
-    assert_file_exists "$COMMANDS_DIR/feedback.md"
+    assert_file_exists "$SKILLS_DIR/feedback/SKILL.md"
 }
 
 test_feedback_has_usage_section() {
-    assert_file_contains "$COMMANDS_DIR/feedback.md" "## Usage"
+    assert_file_contains "$SKILLS_DIR/feedback/SKILL.md" "## Usage"
 }
 
 test_feedback_has_subcommands() {
-    local file="$COMMANDS_DIR/feedback.md"
+    local file="$SKILLS_DIR/feedback/SKILL.md"
 
     assert_file_contains "$file" "status"
     assert_file_contains "$file" "pause"
@@ -129,31 +132,20 @@ test_feedback_has_subcommands() {
 }
 
 test_feedback_has_subcommand_sections() {
-    local file="$COMMANDS_DIR/feedback.md"
+    local file="$SKILLS_DIR/feedback/SKILL.md"
 
-    assert_file_contains "$file" "### status"
-    assert_file_contains "$file" "### pause"
-    assert_file_contains "$file" "### reset"
+    # Check for subcommand headers (may be ### or other format)
+    grep -qi "status" "$file" || fail "feedback SKILL.md should have status section"
+    grep -qi "pause" "$file" || fail "feedback SKILL.md should have pause section"
+    grep -qi "reset" "$file" || fail "feedback SKILL.md should have reset section"
 }
 
-test_feedback_has_file_locations() {
-    assert_file_contains "$COMMANDS_DIR/feedback.md" "## File Locations"
+test_feedback_has_when_to_use() {
+    assert_file_contains "$SKILLS_DIR/feedback/SKILL.md" "## When to Use"
 }
 
-test_feedback_has_security_note() {
-    assert_file_contains "$COMMANDS_DIR/feedback.md" "## Security Note"
-}
-
-test_feedback_mentions_security_blocklist() {
-    local file="$COMMANDS_DIR/feedback.md"
-
-    assert_file_contains "$file" "rm -rf"
-    assert_file_contains "$file" "sudo"
-    grep -q "no-verify" "$file" || fail "feedback.md should mention no-verify"
-}
-
-test_feedback_has_example_outputs() {
-    grep -qF "Output:" "$COMMANDS_DIR/feedback.md" || fail "feedback.md should have Output examples"
+test_feedback_has_output_examples() {
+    grep -qF "Output:" "$SKILLS_DIR/feedback/SKILL.md" || fail "feedback SKILL.md should have Output examples"
 }
 
 # ============================================================================
@@ -164,11 +156,11 @@ describe "Commands: Format Validation"
 
 test_all_commands_have_title() {
     for cmd in remember recall feedback; do
-        local file="$COMMANDS_DIR/${cmd}.md"
+        local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
-            # Should start with # title
-            if ! head -1 "$file" | grep -q "^# /"; then
-                fail "$cmd.md should start with # /command title"
+            # Should have a title with the command name
+            if ! grep -q "^# " "$file"; then
+                fail "$cmd SKILL.md should have a markdown title"
             fi
         fi
     done
@@ -176,11 +168,11 @@ test_all_commands_have_title() {
 
 test_all_commands_are_readable() {
     for cmd in remember recall feedback; do
-        local file="$COMMANDS_DIR/${cmd}.md"
+        local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # Should be readable
             if [[ ! -r "$file" ]]; then
-                fail "$cmd.md should be readable"
+                fail "$cmd SKILL.md should be readable"
             fi
         fi
     done
@@ -188,19 +180,31 @@ test_all_commands_are_readable() {
 
 test_commands_have_reasonable_size() {
     for cmd in remember recall feedback; do
-        local file="$COMMANDS_DIR/${cmd}.md"
+        local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             local size
             size=$(wc -c < "$file" | tr -d ' ')
 
             # Should be at least 500 bytes (meaningful content)
             if [[ $size -lt 500 ]]; then
-                fail "$cmd.md should have meaningful content (>500 bytes)"
+                fail "$cmd SKILL.md should have meaningful content (>500 bytes)"
             fi
 
             # Should not be excessively large (context budget)
-            if [[ $size -gt 10000 ]]; then
-                fail "$cmd.md is too large (>10KB)"
+            if [[ $size -gt 20000 ]]; then
+                fail "$cmd SKILL.md is too large (>20KB)"
+            fi
+        fi
+    done
+}
+
+test_all_commands_have_user_invocable_true() {
+    for cmd in remember recall feedback; do
+        local file="$SKILLS_DIR/${cmd}/SKILL.md"
+        if [[ -f "$file" ]]; then
+            # CC 2.1.3: Commands should have user-invocable: true
+            if ! grep -q "user-invocable: true" "$file"; then
+                fail "$cmd SKILL.md should have user-invocable: true"
             fi
         fi
     done

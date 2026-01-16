@@ -59,7 +59,8 @@ is_sync_enabled() {
     fi
 
     local sync_enabled
-    sync_enabled=$(jq -r '.syncGlobalPatterns // true' "$PROJECT_PREFERENCES_FILE" 2>/dev/null || echo "true")
+    # Note: Can't use // operator as it treats false as falsy
+    sync_enabled=$(jq -r 'if has("syncGlobalPatterns") then .syncGlobalPatterns else true end' "$PROJECT_PREFERENCES_FILE" 2>/dev/null || echo "true")
 
     [[ "$sync_enabled" == "true" ]]
 }
