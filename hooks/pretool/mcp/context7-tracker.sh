@@ -40,14 +40,17 @@ fi
 CACHE_CONTEXT=""
 if [[ -f "$TELEMETRY_LOG" ]]; then
   # Count total queries and unique libraries this session
-  TOTAL_QUERIES=$(wc -l < "$TELEMETRY_LOG" 2>/dev/null | tr -d ' ')
-  UNIQUE_LIBS=$(grep -oE 'library=[^ |]+' "$TELEMETRY_LOG" 2>/dev/null | sort -u | wc -l | tr -d ' ')
+  TOTAL_QUERIES=$(wc -l < "$TELEMETRY_LOG" 2>/dev/null | tr -d ' ' || echo "0")
 
-  # Get recently queried libraries (last 5 unique)
-  RECENT_LIBS=$(grep -oE 'library=[^ |]+' "$TELEMETRY_LOG" 2>/dev/null | tail -10 | sed 's/library=//' | sort -u | tail -3 | tr '\n' ', ' | sed 's/,$//')
+  # Extract unique libraries - handle empty library= values and no matches gracefully
+  # Pattern requires at least one char after = to avoid matching empty library= entries
+  UNIQUE_LIBS=$(grep -oE 'library=[^| ]+' "$TELEMETRY_LOG" 2>/dev/null | grep -v 'library=$' | sort -u | wc -l | tr -d ' ' || echo "0")
 
-  if [[ "$TOTAL_QUERIES" -gt 0 ]]; then
-    CACHE_CONTEXT="Context7: ${TOTAL_QUERIES} queries, ${UNIQUE_LIBS} libraries. Recent: ${RECENT_LIBS:-none}"
+  # Get recently queried libraries (last 3 unique, non-empty)
+  RECENT_LIBS=$(grep -oE 'library=[^| ]+' "$TELEMETRY_LOG" 2>/dev/null | grep -v 'library=$' | tail -10 | sed 's/library=//' | sort -u | tail -3 | tr '\n' ', ' | sed 's/,$//' || echo "")
+
+  if [[ "${TOTAL_QUERIES:-0}" -gt 0 ]]; then
+    CACHE_CONTEXT="Context7: ${TOTAL_QUERIES} queries, ${UNIQUE_LIBS:-0} libraries. Recent: ${RECENT_LIBS:-none}"
   fi
 fi
 
