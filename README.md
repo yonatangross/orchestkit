@@ -33,7 +33,7 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.17.0 (CC 2.1.9 Integration & User-Invocable Skills)
+## What's New in v4.17.1 (Documentation Update)
 
 - **CC 2.1.9 Integration**: `additionalContext` for pre-tool guidance, `auto:N` MCP thresholds, `plansDirectory` support
 - **17 User-Invocable Skills**: Commands available via `/skf:*` menu (commit, review-pr, explore, implement, verify, etc.)

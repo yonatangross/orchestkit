@@ -633,7 +633,7 @@ Hooks use `${CLAUDE_SESSION_ID}` directly without fallback patterns (CC 2.1.9 gu
 
 ## Version Information
 
-- **Current Version**: 4.17.0 (as of 2026-01-16)
+- **Current Version**: 4.17.1 (as of 2026-01-16)
 - **Claude Code Requirement**: >= 2.1.9
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
@@ -679,4 +679,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-16 (v4.17.0 - CC 2.1.3 user-invocable field for 17 commands, 80 internal skills)
+**Last Updated**: 2026-01-16 (v4.17.1)
