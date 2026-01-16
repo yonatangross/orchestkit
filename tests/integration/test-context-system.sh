@@ -256,6 +256,8 @@ echo "----------------------------------------"
 
 echo -n "  context-budget-monitor.sh... "
 if [[ -f "$HOOKS_DIR/posttool/context-budget-monitor.sh" ]]; then
+    # CC 2.1.9: CLAUDE_SESSION_ID is required (no fallback)
+    export CLAUDE_SESSION_ID="${CLAUDE_SESSION_ID:-test-context-session}"
     output=$(bash "$HOOKS_DIR/posttool/context-budget-monitor.sh" 2>&1) && exit_code=0 || exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
         # Try to parse JSON output

@@ -1,6 +1,7 @@
 {
   "version": "1.0.0",
   "preset": "complete",
+  "plansDirectory": ".claude/plans",
   "customized": false,
   "skills": {
     "ai_ml": true,

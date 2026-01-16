@@ -21,7 +21,7 @@ COMPRESS_TRIGGER=0.70      # Trigger compression at 70%
 COMPRESS_TARGET=0.50       # Target 50% after compression
 # CC 2.1.7: MCP deferral configuration
 MCP_DEFER_TRIGGER=0.10     # Defer MCP tools when context >10% of effective window
-MCP_STATE_FILE="/tmp/claude-mcp-defer-state-${CLAUDE_SESSION_ID:-default}.json"
+MCP_STATE_FILE="/tmp/claude-mcp-defer-state-${CLAUDE_SESSION_ID}.json"
 
 # CC 2.1.7: Get effective context window (actual usable vs static max)
 get_effective_context_window() {

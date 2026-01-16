@@ -704,6 +704,78 @@ strip_ansi() {
 export -f output_warning output_posttool_feedback strip_ansi
 
 # -----------------------------------------------------------------------------
+# CC 2.1.9: PreToolUse additionalContext Helpers
+# -----------------------------------------------------------------------------
+# These functions inject contextual information BEFORE tool execution.
+# additionalContext appears in the model's context, enabling proactive guidance.
+
+# Output with additionalContext - injects context before tool execution (CC 2.1.9)
+# Usage: output_with_context "Context to inject before tool execution"
+output_with_context() {
+  local ctx="$1"
+  jq -n --arg c "$ctx" \
+    '{continue:true,suppressOutput:true,hookSpecificOutput:{additionalContext:$c}}'
+}
+
+# Output allow with additionalContext - permission hook approves with context (CC 2.1.9)
+# Usage: output_allow_with_context "Context to inject" ["optional_system_message"]
+output_allow_with_context() {
+  local ctx="$1"
+  local msg="${2:-}"
+
+  if [[ -n "$msg" ]]; then
+    jq -n --arg c "$ctx" --arg m "$msg" \
+      '{continue:true,systemMessage:$m,hookSpecificOutput:{hookEventName:"PreToolUse",additionalContext:$c,permissionDecision:"allow"}}'
+  else
+    jq -n --arg c "$ctx" \
+      '{continue:true,suppressOutput:true,hookSpecificOutput:{hookEventName:"PreToolUse",additionalContext:$c,permissionDecision:"allow"}}'
+  fi
+}
+
+# Output allow with context and logged permission feedback (CC 2.1.9)
+# Usage: output_allow_with_context_logged "Context" "reason for audit"
+output_allow_with_context_logged() {
+  local ctx="$1"
+  local reason="${2:-auto-approved-with-context}"
+  log_permission_feedback "allow" "$reason"
+  jq -n --arg c "$ctx" \
+    '{continue:true,suppressOutput:true,hookSpecificOutput:{hookEventName:"PreToolUse",additionalContext:$c,permissionDecision:"allow"}}'
+}
+
+# Export CC 2.1.9 additionalContext helpers
+export -f output_with_context output_allow_with_context output_allow_with_context_logged
+
+# -----------------------------------------------------------------------------
+# CC 2.1.9: Session ID Helpers
+# -----------------------------------------------------------------------------
+# Direct ${CLAUDE_SESSION_ID} substitution is now reliable in CC 2.1.9.
+# These helpers provide session-scoped paths without fallback complexity.
+
+# Get session-scoped state directory path (CC 2.1.9)
+# Usage: state_dir=$(get_session_state_dir)
+get_session_state_dir() {
+  echo "${CLAUDE_PROJECT_DIR:-.}/.claude/context/sessions/${CLAUDE_SESSION_ID}"
+}
+
+# Get session-scoped temp file path (CC 2.1.9)
+# Usage: tmp_file=$(get_session_temp_file "mcp-defer-state.json")
+get_session_temp_file() {
+  local filename="$1"
+  echo "/tmp/claude-session-${CLAUDE_SESSION_ID}/${filename}"
+}
+
+# Ensure session temp directory exists and return path (CC 2.1.9)
+# Usage: tmp_dir=$(ensure_session_temp_dir)
+ensure_session_temp_dir() {
+  local tmp_dir="/tmp/claude-session-${CLAUDE_SESSION_ID}"
+  mkdir -p "$tmp_dir" 2>/dev/null || true
+  echo "$tmp_dir"
+}
+
+# Export CC 2.1.9 session ID helpers
+export -f get_session_state_dir get_session_temp_file ensure_session_temp_dir
+
+# -----------------------------------------------------------------------------
 # CC 2.1.7 Self-Guard Helpers
 # -----------------------------------------------------------------------------
 

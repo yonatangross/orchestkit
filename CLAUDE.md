@@ -66,8 +66,8 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.7 (CC 2.1.7 native parallel hooks, native agent skills, context HUD, security fixes)
-- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure)
+- **Claude Code**: >= 2.1.9 (CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
+- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure, auto-enable via auto:N thresholds)
 
 ### Expected Application Stack (Skills Support)
 - **Backend**: FastAPI + Python 3.11+ + SQLAlchemy 2.0 + PostgreSQL 18 + pgvector
@@ -596,16 +596,52 @@ ls agents/
 
 ---
 
+## CC 2.1.9 Features
+
+### PreToolUse additionalContext
+Hooks can inject contextual guidance BEFORE tool execution using `additionalContext`:
+```json
+{
+  "continue": true,
+  "hookSpecificOutput": {
+    "additionalContext": "Context injected before tool execution"
+  }
+}
+```
+Enhanced hooks: `git-branch-protection.sh`, `error-pattern-warner.sh`, `context7-tracker.sh`, `architecture-change-detector.sh`
+
+### MCP Auto-Enable Thresholds
+MCP servers use `auto:N` syntax to auto-enable based on context window percentage:
+- `context7`: auto:75 (high-value docs, keep available longer)
+- `sequential-thinking`: auto:60 (complex reasoning needs room)
+- `mem0`: auto:80 (memory critical for session)
+- `memory`: auto:70 (moderate priority)
+- `playwright`: auto:50 (browser-heavy, disable early)
+
+### Plans Directory
+Configure custom plans directory in `.claude/defaults/config.json`:
+```json
+{
+  "plansDirectory": ".claude/plans"
+}
+```
+
+### Session ID Direct Substitution
+Hooks use `${CLAUDE_SESSION_ID}` directly without fallback patterns (CC 2.1.9 guarantees availability).
+
+---
+
 ## Version Information
 
-- **Current Version**: 4.15.2 (as of 2026-01-15)
-- **Claude Code Requirement**: >= 2.1.7
+- **Current Version**: 4.16.0 (as of 2026-01-16)
+- **Claude Code Requirement**: >= 2.1.9
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.7 native parallel execution (105 hooks, all direct - zero dispatchers)
+- **Hook Architecture**: CC 2.1.9 additionalContext + CC 2.1.7 native parallel (105 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
+- **CC 2.1.9 Integration**: additionalContext, auto:N MCP, plansDirectory (v4.16.0)
 
 ---
 
@@ -642,4 +678,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-15 (v4.15.2 - CI/CD fixes, 105 hooks registered)
+**Last Updated**: 2026-01-16 (v4.16.0 - CC 2.1.9 integration: additionalContext, auto:N MCP, plansDirectory)
