@@ -177,8 +177,9 @@ main() {
 
     # Aggregate results
     aggregate_results
-
-    exit 0
 }
 
+# Output CC 2.1.7 compliant JSON first
+echo '{"continue":true,"suppressOutput":true}'
 main "$@"
+exit 0

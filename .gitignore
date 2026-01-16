@@ -53,12 +53,14 @@ HOOK_SECURITY_*.txt
 .claude/coordination/heartbeats/
 .claude/coordination/locks/
 .claude/coordination/decision-log.json
+.claude/coordination/.decision-sync-state.json
+.claude/coordination/work-registry.json
 
 # Hook logs (generated at runtime)
 .claude/hooks/logs/
 
-# Session logs
-.claude/logs/sessions/
+# All runtime logs
+.claude/logs/
 
 # Local settings (user-specific)
 .claude/settings.local.json

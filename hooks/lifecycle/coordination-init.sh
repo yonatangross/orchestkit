@@ -40,9 +40,9 @@ source "${SCRIPT_DIR}/../../.claude/coordination/lib/coordination.sh" 2>/dev/nul
 TASK_DESC="General development"
 AGENT_ROLE="main"
 
-if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/context/session/state.json" ]]; then
+if [[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/context/session/state.json" ]]; then
   TASK_DESC=$(jq -r '.current_task.description // "General development"' \
-    "${CLAUDE_PROJECT_DIR}/.claude/context/session/state.json" 2>/dev/null || echo "General development")
+    "${CLAUDE_PROJECT_DIR:-.}/.claude/context/session/state.json" 2>/dev/null || echo "General development")
 fi
 
 # Check if we're in a subagent context
@@ -56,7 +56,7 @@ INSTANCE_ID=$(coord_register_instance "${TASK_DESC}" "${AGENT_ROLE}" 2>/dev/null
 if [[ -n "${INSTANCE_ID}" ]]; then
   # Store instance ID for other hooks
   export CLAUDE_INSTANCE_ID="${INSTANCE_ID}"
-  echo "CLAUDE_INSTANCE_ID=${INSTANCE_ID}" >> "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" 2>/dev/null || true
+  echo "CLAUDE_INSTANCE_ID=${INSTANCE_ID}" >> "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" 2>/dev/null || true
 
   # Initial heartbeat
   coord_heartbeat 2>/dev/null || true

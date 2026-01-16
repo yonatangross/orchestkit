@@ -79,7 +79,8 @@ get_field() {
       return 1
       ;;
   esac
-  local input=$(read_hook_input)
+  local input
+  input=$(read_hook_input)
   echo "$input" | jq -r "$filter" 2>/dev/null || echo ""
 }
 
@@ -105,7 +106,8 @@ rotate_log_file() {
   # Use file-based counter for thread-safe lazy checking
   local count_file="${logfile}.count"
   # Read only last line and strip non-digits to handle corrupted files
-  local prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9')
+  local prev_count
+  prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9')
   prev_count=${prev_count:-0}
   local count=$((prev_count + 1))
   echo "$count" > "$count_file" 2>/dev/null || true
@@ -128,7 +130,8 @@ rotate_log_file() {
       flock -n 9 || return 0  # Non-blocking, skip if locked
 
       # Check file size inside the lock
-      local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
+      local size
+      size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
       if [[ $size -gt $max_size_bytes ]]; then
         # Rotate: compress old log and truncate
         local rotated="${logfile}.old.$(date +%Y%m%d-%H%M%S)"
@@ -141,8 +144,10 @@ rotate_log_file() {
         fi
 
         # Optimized cleanup: use find -delete instead of xargs rm
-        local logdir=$(dirname "$logfile")
-        local logbase=$(basename "$logfile")
+        local logdir
+        logdir=$(dirname "$logfile")
+        local logbase
+        logbase=$(basename "$logfile")
 
         # Keep only last 5 rotated logs (more efficient: delete oldest first)
         find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
@@ -161,7 +166,8 @@ rotate_log_file() {
       echo "$$" > "$lockfile" 2>/dev/null || return 0
 
       # Check file size
-      local size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
+      local size
+      size=$(stat -f%z "$logfile" 2>/dev/null || stat -c%s "$logfile" 2>/dev/null || echo 0)
       if [[ $size -gt $max_size_bytes ]]; then
         local rotated="${logfile}.old.$(date +%Y%m%d-%H%M%S)"
         mv "$logfile" "$rotated" 2>/dev/null || {
@@ -174,8 +180,10 @@ rotate_log_file() {
           rotated="${rotated}.gz"
         fi
 
-        local logdir=$(dirname "$logfile")
-        local logbase=$(basename "$logfile")
+        local logdir
+        logdir=$(dirname "$logfile")
+        local logbase
+        logbase=$(basename "$logfile")
         find "$logdir" -maxdepth 1 -name "${logbase}.old.*" -type f 2>/dev/null | \
           sort -r | tail -n +6 | while IFS= read -r oldfile; do
             rm -f "$oldfile" 2>/dev/null || true
@@ -200,8 +208,10 @@ log_hook() {
   # Rotate if needed (200KB limit)
   rotate_log_file "$logfile" 200
 
-  local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-  local hook_name=$(basename "${BASH_SOURCE[1]:-$0}" .sh)
+  local timestamp
+  timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+  local hook_name
+  hook_name=$(basename "${BASH_SOURCE[1]:-$0}" .sh)
   echo "[$timestamp] [$hook_name] $msg" >> "$logfile"
 }
 
@@ -260,7 +270,8 @@ WARNEOF
 # Usage: command_matches "git commit"
 command_matches() {
   local pattern="$1"
-  local cmd=$(get_field '.tool_input.command')
+  local cmd
+  cmd=$(get_field '.tool_input.command')
   [[ "$cmd" =~ $pattern ]]
 }
 
@@ -271,7 +282,8 @@ get_current_branch() {
 
 # Check if on protected branch
 is_protected_branch() {
-  local branch=$(get_current_branch)
+  local branch
+  branch=$(get_current_branch)
   [[ "$branch" == "dev" || "$branch" == "main" || "$branch" == "master" ]]
 }
 
@@ -283,14 +295,16 @@ METRICS_FILE="/tmp/claude-session-metrics.json"
 # SEC-007 fix: Use jq --arg for safe variable interpolation
 increment_metric() {
   local tool="$1"
-  local session_id=$(get_session_id)
+  local session_id
+  session_id=$(get_session_id)
 
   if [[ ! -f "$METRICS_FILE" ]]; then
     echo '{"tools":{},"sessions":{}}' > "$METRICS_FILE"
   fi
 
   # SEC-007 fix: Use jq --arg for safe variable interpolation (prevents injection)
-  local current=$(jq -r --arg t "$tool" '.tools[$t] // 0' "$METRICS_FILE")
+  local current
+  current=$(jq -r --arg t "$tool" '.tools[$t] // 0' "$METRICS_FILE")
   jq --arg t "$tool" --argjson v "$((current + 1))" '.tools[$t] = $v' "$METRICS_FILE" > "${METRICS_FILE}.tmp" && mv "${METRICS_FILE}.tmp" "$METRICS_FILE"
 }
 
@@ -325,7 +339,8 @@ is_hook_enabled_by_config() {
 # Usage: exit_if_disabled (call at top of hook script)
 # This checks the current script's name against the config
 exit_if_disabled() {
-  local hook_name=$(basename "${BASH_SOURCE[1]:-$0}")
+  local hook_name
+  hook_name=$(basename "${BASH_SOURCE[1]:-$0}")
 
   if ! is_hook_enabled_by_config "$hook_name"; then
     # Output continue: true so Claude Code proceeds without this hook
@@ -536,8 +551,9 @@ is_multi_instance_enabled() {
 
 # Get current instance ID
 get_instance_id() {
-  if [[ -n "${CLAUDE_SESSION_ID:-}" ]]; then
-    echo "$CLAUDE_SESSION_ID"
+  local session_id="${CLAUDE_SESSION_ID:-}"
+  if [[ -n "$session_id" ]]; then
+    echo "$session_id"
   else
     echo "instance-$$-$(date +%s)"
   fi
@@ -563,6 +579,7 @@ sqlite_escape() {
   # Use sed for reliable SQL escaping: replace ' with ''
   echo "$input" | sed "s/'/''/g"
 }
+
 # Check if a file is locked by another instance
 is_file_locked_by_other() {
   local file_path="$1"
@@ -641,9 +658,12 @@ log_permission_feedback() {
   # Rotate if needed
   rotate_log_file "$log_file" 100
 
-  local timestamp=$(date -Iseconds)
-  local tool_name=$(get_tool_name 2>/dev/null || echo "unknown")
-  local session_id=$(get_session_id 2>/dev/null || echo "unknown")
+  local timestamp
+  timestamp=$(date -Iseconds)
+  local tool_name
+  tool_name=$(get_tool_name 2>/dev/null || echo "unknown")
+  local session_id
+  session_id=$(get_session_id 2>/dev/null || echo "unknown")
 
   echo "$timestamp | $decision | $reason | tool=$tool_name | session=$session_id" >> "$log_file"
   log_hook "Permission: $decision - $reason (tool=$tool_name)"
@@ -825,7 +845,8 @@ guard_path_pattern() {
 
 # Guard: Skip internal/generated files
 guard_skip_internal() {
-  local fp=$(get_field '.tool_input.file_path // ""')
+  local fp
+  fp=$(get_field '.tool_input.file_path // ""')
   [[ -z "$fp" ]] && return 0
   case "$fp" in */.claude/*|*/node_modules/*|*/.git/*|*/dist/*|*.lock)
     output_silent_success; return 1 ;; esac
@@ -834,7 +855,8 @@ guard_skip_internal() {
 
 # Guard: Only run for non-trivial bash commands
 guard_nontrivial_bash() {
-  local cmd=$(get_field '.tool_input.command // ""')
+  local cmd
+  cmd=$(get_field '.tool_input.command // ""')
   case "$cmd" in echo\ *|ls\ *|ls|pwd|cat\ *|head\ *|tail\ *|wc\ *|date|whoami)
     output_silent_success; return 1 ;; esac
   return 0

@@ -40,7 +40,7 @@ if [[ -z "$ISSUE_NUM" ]]; then
 fi
 
 # Check if docs/issues/<issue-num>-*/README.md exists
-DOCS_PATH="$CLAUDE_PROJECT_DIR/docs/issues"
+DOCS_PATH="${CLAUDE_PROJECT_DIR:-.}/docs/issues"
 MATCHING_DOCS=$(find "$DOCS_PATH" -maxdepth 2 -type f -name "README.md" -path "*/${ISSUE_NUM}-*/*" 2>/dev/null | head -1)
 
 if [[ -n "$MATCHING_DOCS" ]]; then
