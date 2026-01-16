@@ -93,7 +93,9 @@ echo ""
 echo "2️⃣  Testing pattern-consistency-enforcer.sh"
 
 # Test 2.1: Should block React.FC
-TEST_FILE_3="$TEMP_DIR/test3.tsx"
+# Create frontend/src path structure to match hook's path check
+mkdir -p "$TEMP_DIR/frontend/src"
+TEST_FILE_3="$TEMP_DIR/frontend/src/test3.tsx"
 cat > "$TEST_FILE_3" << 'TESTEOF'
 export const MyComponent: React.FC<Props> = (props) => {
   return <div>Hello</div>;
@@ -103,14 +105,16 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_3"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_3")"
 
-OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
-EXIT_CODE=$(echo "$OUTPUT" | grep -oE "EXIT_CODE=[0-9]+" | cut -d= -f2 || echo "0")
+set +e
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1)
+EXIT_CODE=$?
+set -e
 
-assert_exit_code 1 ${EXIT_CODE:-0} "Blocks React.FC pattern"
+assert_exit_code 1 $EXIT_CODE "Blocks React.FC pattern"
 assert_output_contains "React.FC" "$OUTPUT" "Mentions React.FC in error"
 
 # Test 2.2: Should block missing Zod validation
-TEST_FILE_4="$TEMP_DIR/test4.ts"
+TEST_FILE_4="$TEMP_DIR/frontend/src/test4.ts"
 cat > "$TEST_FILE_4" << 'TESTEOF'
 async function fetchUser() {
   const response = await fetch('/api/user');
@@ -122,11 +126,13 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_4"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_4")"
 
-OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1 || echo "EXIT_CODE=$?")
+set +e
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1)
+set -e
 assert_output_contains "Zod" "$OUTPUT" "Detects missing Zod validation"
 
 # Test 2.3: Should pass correct pattern
-TEST_FILE_5="$TEMP_DIR/test5.tsx"
+TEST_FILE_5="$TEMP_DIR/frontend/src/test5.tsx"
 cat > "$TEST_FILE_5" << 'TESTEOF'
 import { z } from 'zod';
 
@@ -167,10 +173,12 @@ TESTEOF
 export TOOL_INPUT_FILE_PATH="$TEST_FILE_6"
 export TOOL_OUTPUT_CONTENT="$(cat "$TEST_FILE_6")"
 
-OUTPUT=$("$PROJECT_ROOT/hooks/skill/cross-instance-test-validator.sh" 2>&1 || echo "EXIT_CODE=$?")
-EXIT_CODE=$(echo "$OUTPUT" | grep -oE "EXIT_CODE=[0-9]+" | cut -d= -f2 || echo "1")
+set +e
+OUTPUT=$("$PROJECT_ROOT/hooks/skill/cross-instance-test-validator.sh" 2>&1)
+EXIT_CODE=$?
+set -e
 
-assert_exit_code 1 ${EXIT_CODE:-1} "Blocks when test file missing"
+assert_exit_code 1 $EXIT_CODE "Blocks when test file missing"
 assert_output_contains "No test file found" "$OUTPUT" "Mentions missing test file"
 
 # Test 3.2: Should pass if test file exists

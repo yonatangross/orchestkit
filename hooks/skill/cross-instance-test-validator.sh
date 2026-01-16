@@ -193,11 +193,11 @@ if git worktree list >/dev/null 2>&1; then
         EXTENDS=""
 
         if [[ "$FILE_PATH" =~ \.(ts|tsx|js|jsx)$ ]]; then
-            IMPLEMENTS=$(echo "$CONTENT" | grep -oE "implements\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1)
-            EXTENDS=$(echo "$CONTENT" | grep -oE "extends\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1)
+            IMPLEMENTS=$(echo "$CONTENT" | grep -oE "implements\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1 || true)
+            EXTENDS=$(echo "$CONTENT" | grep -oE "extends\s+[A-Za-z_][A-Za-z0-9_]*" | awk '{print $2}' | head -1 || true)
         elif [[ "$FILE_PATH" =~ \.py$ ]]; then
             EXTENDS=$(echo "$CONTENT" | grep -oE "class\s+[A-Za-z_][A-Za-z0-9_]*\s*\([^)]*\)" | \
-                grep -oE "\([^)]*\)" | tr -d '()' | awk '{print $1}' | head -1)
+                grep -oE "\([^)]*\)" | tr -d '()' | awk '{print $1}' | head -1 || true)
         fi
 
         if [[ -n "$IMPLEMENTS" || -n "$EXTENDS" ]]; then
