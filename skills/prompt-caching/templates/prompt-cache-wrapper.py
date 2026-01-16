@@ -9,11 +9,11 @@ Features:
 """
 
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 import time
 import structlog
-from anthropic import Anthropic, AsyncAnthropic
-from prometheus_client import Counter, Histogram
+from anthropic import AsyncAnthropic
+from prometheus_client import Counter
 
 logger = structlog.get_logger()
 
@@ -40,9 +40,9 @@ class CachedMessage:
     text: str
     cache_control: Optional[Dict[str, str]] = None
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, str | dict[str, str]]:
         """Convert to Anthropic API format."""
-        content = {"type": "text", "text": self.text}
+        content: dict[str, str | dict[str, str]] = {"type": "text", "text": self.text}
         if self.cache_control:
             content["cache_control"] = self.cache_control
         return content

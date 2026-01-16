@@ -24,10 +24,10 @@ Usage:
 import asyncio
 import logging
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import wraps
 from time import time
-from typing import Any, Awaitable, Callable, Optional, Set, Type, TypeVar, Union
+from typing import Any, Awaitable, Callable, Optional, Set, Type, TypeVar
 
 logger = logging.getLogger(__name__)
 

@@ -112,7 +112,7 @@ log_edit_pattern() {
     local skill_id="$1"
     local file_path="$2"
     local patterns="$3"
-    local session_id="${CLAUDE_SESSION_ID}"
+    local session_id="${CLAUDE_SESSION_ID:-unknown}"
 
     # Ensure directory exists
     mkdir -p "$(dirname "$EDIT_PATTERNS_FILE")"

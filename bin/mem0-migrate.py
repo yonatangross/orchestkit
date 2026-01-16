@@ -39,7 +39,6 @@ import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 
 # ANSI colors for terminal output
 class Colors:
@@ -258,11 +257,12 @@ class Mem0Migrator:
             return True
 
         try:
-            self.client.add(
-                content,
-                user_id=self.user_id,
-                metadata=metadata,
-            )
+            if self.client is not None:
+                self.client.add(
+                    content,
+                    user_id=self.user_id,
+                    metadata=metadata,
+                )
             self.existing_memories.add(content_hash)
             self.migrated_count += 1
             if self.verbose:

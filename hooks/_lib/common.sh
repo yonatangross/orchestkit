@@ -754,20 +754,20 @@ export -f output_with_context output_allow_with_context output_allow_with_contex
 # Get session-scoped state directory path (CC 2.1.9)
 # Usage: state_dir=$(get_session_state_dir)
 get_session_state_dir() {
-  echo "${CLAUDE_PROJECT_DIR:-.}/.claude/context/sessions/${CLAUDE_SESSION_ID}"
+  echo "${CLAUDE_PROJECT_DIR:-.}/.claude/context/sessions/${CLAUDE_SESSION_ID:-unknown}"
 }
 
 # Get session-scoped temp file path (CC 2.1.9)
 # Usage: tmp_file=$(get_session_temp_file "mcp-defer-state.json")
 get_session_temp_file() {
   local filename="$1"
-  echo "/tmp/claude-session-${CLAUDE_SESSION_ID}/${filename}"
+  echo "/tmp/claude-session-${CLAUDE_SESSION_ID:-unknown}/${filename}"
 }
 
 # Ensure session temp directory exists and return path (CC 2.1.9)
 # Usage: tmp_dir=$(ensure_session_temp_dir)
 ensure_session_temp_dir() {
-  local tmp_dir="/tmp/claude-session-${CLAUDE_SESSION_ID}"
+  local tmp_dir="/tmp/claude-session-${CLAUDE_SESSION_ID:-unknown}"
   mkdir -p "$tmp_dir" 2>/dev/null || true
   echo "$tmp_dir"
 }

@@ -24,6 +24,48 @@ from deepeval.metrics import (
 
 
 # =============================================================================
+# Placeholder Functions (Replace with your actual implementations)
+# =============================================================================
+
+async def your_function(input_text: str) -> dict:
+    """
+    TODO: Replace with your actual LLM function.
+
+    Example:
+        async def analyze_text(input_text: str) -> dict:
+            response = await llm_client.complete(input_text)
+            return {"content": response}
+    """
+    raise NotImplementedError("Replace 'your_function' with your actual function")
+
+
+async def your_structured_function(input_text: str) -> dict:
+    """
+    TODO: Replace with your actual structured output function.
+
+    Example:
+        async def get_structured_analysis(input_text: str) -> dict:
+            response = await llm_client.complete_structured(input_text, schema=MySchema)
+            return response
+    """
+    raise NotImplementedError("Replace 'your_structured_function' with your actual function")
+
+
+async def your_function_with_fallback(input_text: str) -> dict:
+    """
+    TODO: Replace with your actual function that handles timeouts.
+
+    Example:
+        async def analyze_with_fallback(input_text: str) -> dict:
+            try:
+                return await asyncio.wait_for(llm_call(input_text), timeout=30)
+            except asyncio.TimeoutError:
+                return {"status": "fallback", "content": "Default response"}
+    """
+    raise NotImplementedError("Replace 'your_function_with_fallback' with your actual function")
+
+
+# =============================================================================
 # Fixtures
 # =============================================================================
 
@@ -236,8 +278,8 @@ class TestEdgeCases:
         mock_llm_client.complete.return_value = {"content": "Response"}
         
         with patch("your_module.llm_client", mock_llm_client):
-            result = await your_function(long_input)
-        
+            await your_function(long_input)
+
         # Verify truncation happened
         call_args = mock_llm_client.complete.call_args
         assert len(call_args[0][0]) < 100_000

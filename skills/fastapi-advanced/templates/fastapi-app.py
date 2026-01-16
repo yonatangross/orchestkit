@@ -341,7 +341,7 @@ async def root():
 # Example Resource Routes
 # ============================================================================
 
-from pydantic import BaseModel
+from pydantic import BaseModel  # noqa: E402
 
 
 class ItemCreate(BaseModel):

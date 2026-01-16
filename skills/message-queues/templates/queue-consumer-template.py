@@ -18,8 +18,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, TypeVar, Generic
-from contextlib import asynccontextmanager
+from typing import TypeVar, Generic
 
 import aio_pika
 from aio_pika import IncomingMessage, Message, DeliveryMode
@@ -158,6 +157,7 @@ class BaseConsumer(ABC, Generic[T]):
         """Start consuming messages."""
         await self.connect()
 
+        assert self._channel is not None, "Channel not initialized"
         queue = await self._channel.get_queue(self.config.queue_name)
 
         logger.info(f"Starting to consume from: {self.config.queue_name}")
@@ -181,7 +181,7 @@ class BaseConsumer(ABC, Generic[T]):
                 parsed = self.parse_message(message.body)
 
                 logger.info(
-                    f"Processing message",
+                    "Processing message",
                     extra={"correlation_id": correlation_id}
                 )
 
@@ -189,7 +189,7 @@ class BaseConsumer(ABC, Generic[T]):
                 await self.handle_message(parsed)
 
                 logger.info(
-                    f"Message processed successfully",
+                    "Message processed successfully",
                     extra={"correlation_id": correlation_id}
                 )
 
@@ -219,7 +219,7 @@ class BaseConsumer(ABC, Generic[T]):
         else:
             # Let RabbitMQ route to DLX (configured on queue)
             logger.warning(
-                f"Message exhausted retries, routing to DLQ",
+                "Message exhausted retries, routing to DLQ",
                 extra={"correlation_id": correlation_id}
             )
             # Message will be rejected and routed to DLX when context exits
@@ -255,6 +255,7 @@ class BaseConsumer(ABC, Generic[T]):
             }
         )
 
+        assert self._channel is not None, "Channel not initialized"
         exchange = await self._channel.get_exchange("")  # Default exchange
         await exchange.publish(new_message, routing_key=self.config.queue_name)
 

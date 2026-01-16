@@ -171,8 +171,8 @@ def create_search_service(
 # ============================================================================
 
 # backend/app/api/v1/search.py
-from fastapi import APIRouter, Depends
-from app.api.dependencies import get_chunk_repo, get_embedding_service
+from fastapi import APIRouter, Depends  # noqa: E402
+from app.api.dependencies import get_chunk_repo, get_embedding_service  # noqa: E402
 
 router = APIRouter(prefix="/api/v1/search")
 

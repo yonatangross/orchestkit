@@ -21,7 +21,6 @@ import asyncio
 import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
 from enum import Enum
 from typing import Any, Awaitable, Callable, List, Optional, TypeVar
 
@@ -344,9 +343,11 @@ class QualityAwareFallbackChain(LLMFallbackChain):
         self.quality_threshold = quality_threshold
         self.max_quality_retries = max_quality_retries
 
-    async def complete(
+    async def complete(  # type: ignore[override]
         self,
         prompt: str,
+        use_cache: bool = True,
+        cache_result: bool = True,
         **kwargs: Any,
     ) -> LLMResponse:
         """Complete with quality-aware fallback."""
@@ -355,7 +356,7 @@ class QualityAwareFallbackChain(LLMFallbackChain):
 
         for attempt in range(self.max_quality_retries + 1):
             # Get response from chain
-            response = await super().complete(prompt, **kwargs)
+            response = await super().complete(prompt, use_cache=use_cache, cache_result=cache_result, **kwargs)
 
             # If no quality evaluator, return immediately
             if not self.quality_evaluator:
@@ -414,7 +415,6 @@ class MockLLMProvider(LLMProvider):
 
     async def complete(self, prompt: str, **kwargs: Any) -> LLMResponse:
         import random
-        import time
 
         # Simulate latency
         await asyncio.sleep(self.latency_ms / 1000)

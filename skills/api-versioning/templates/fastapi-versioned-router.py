@@ -9,7 +9,6 @@ Production-ready API versioning with:
 """
 
 from datetime import datetime
-from typing import Callable
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel

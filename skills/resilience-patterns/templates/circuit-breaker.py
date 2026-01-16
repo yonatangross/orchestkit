@@ -20,8 +20,8 @@ Usage:
 import asyncio
 import logging
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from functools import wraps
 from time import time

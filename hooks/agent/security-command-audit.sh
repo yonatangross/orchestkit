@@ -11,7 +11,7 @@ set -euo pipefail
 
 AGENT_ID="${CLAUDE_AGENT_ID:-unknown}"
 TOOL_NAME="${CLAUDE_TOOL_NAME:-}"
-SESSION_ID="${CLAUDE_SESSION_ID}"
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 LOG_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/security-audit.log"
 
 # Only audit Bash commands

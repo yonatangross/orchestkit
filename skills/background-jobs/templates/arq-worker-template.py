@@ -193,11 +193,11 @@ async def process_analysis(
     """Process an analysis in the background."""
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    async with AsyncSession(ctx["db_engine"]) as session:
+    async with AsyncSession(ctx["db_engine"]) as session:  # noqa: F841
         # Your processing logic here
-        # 1. Fetch analysis
+        # 1. Fetch analysis from session
         # 2. Process content
-        # 3. Update status
+        # 3. Update status via session.execute(...)
         await asyncio.sleep(1)  # Simulate work
 
         return {

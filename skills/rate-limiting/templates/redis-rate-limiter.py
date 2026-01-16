@@ -306,7 +306,7 @@ def create_rate_limit_dependency(
 # Rate Limit Middleware
 # ============================================================================
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 
 
 class RateLimitHeadersMiddleware(BaseHTTPMiddleware):

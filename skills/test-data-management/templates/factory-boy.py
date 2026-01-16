@@ -2,8 +2,8 @@
 # Usage: Copy to tests/factories.py and customize for your models
 
 import factory
-from factory import Faker, SubFactory, LazyAttribute, Sequence, post_generation
-from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyDecimal
+from factory import Faker, SubFactory, LazyAttribute, Sequence
+from factory.fuzzy import FuzzyChoice, FuzzyDecimal
 from datetime import datetime, timedelta
 import random
 

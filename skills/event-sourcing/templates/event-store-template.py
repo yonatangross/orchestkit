@@ -11,7 +11,7 @@ Ready-to-use template with:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Generic, TypeVar
+from typing import Generic, TypeVar
 from uuid import UUID, uuid4
 from collections.abc import AsyncIterator, Iterable
 
@@ -98,7 +98,7 @@ class EventStore(ABC):
         pass
 
     @abstractmethod
-    async def stream_all(self, after_event_id: UUID | None = None) -> AsyncIterator[DomainEvent]:
+    def stream_all(self, after_event_id: UUID | None = None) -> AsyncIterator[DomainEvent]:
         pass
 
 
@@ -146,10 +146,11 @@ class Repository(Generic[E]):
     async def load(self, aggregate_id: UUID) -> Aggregate[E]:
         events = await self.event_store.get_events(aggregate_id)
         aggregate = self.aggregate_class(aggregate_id)
-        aggregate.load_from_history(events)
+        aggregate.load_from_history(events)  # type: ignore[arg-type]
         return aggregate
 
     async def save(self, aggregate: Aggregate[E]) -> None:
         if aggregate.uncommitted_changes:
-            await self.event_store.append(aggregate.id, aggregate.uncommitted_changes, aggregate.version)
+            events: list[DomainEvent] = list(aggregate.uncommitted_changes)
+            await self.event_store.append(aggregate.id, events, aggregate.version)
             aggregate.mark_committed()

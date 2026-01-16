@@ -76,7 +76,7 @@ async def analyze_with_langchain(content: str, analysis_id: str) -> str:
 
 
 # Example 2: LangGraph workflow with tracing
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph  # noqa: E402
 
 
 async def run_langgraph_workflow(content: str, analysis_id: str):

@@ -7,7 +7,6 @@ Replace placeholders with actual implementations.
 
 import os
 import jwt
-from functools import wraps
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 from argon2 import PasswordHasher
@@ -49,8 +48,8 @@ def verify_password(password_hash: str, password: str) -> bool:
 
 def create_access_token(
     user_id: str,
-    roles: list[str] = None,
-    expires_delta: timedelta = None,
+    roles: list[str] | None = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """Create JWT access token."""
     if expires_delta is None:

@@ -21,11 +21,9 @@ Cron setup:
 import json
 import hashlib
 import re
-import sys
 from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any
 
 # Paths
 CLAUDE_DIR = Path(__file__).parent.parent

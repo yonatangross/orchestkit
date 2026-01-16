@@ -12,8 +12,6 @@ Usage:
 import json
 import asyncio
 from typing import Callable, Any
-from functools import wraps
-from pydantic import BaseModel, Field
 from openai import AsyncOpenAI
 
 # --- Tool Registry ---

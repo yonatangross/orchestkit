@@ -121,7 +121,7 @@ class BrowserCaptureWorkflow:
         # """)
 
         # Placeholder
-        links = []
+        links: list[dict[str, str]] = []
 
         for link in links:
             result = await self.capture_page(link["href"])

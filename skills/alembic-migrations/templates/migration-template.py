@@ -15,7 +15,6 @@ Dependencies:
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import UUID, JSONB
 from typing import Sequence, Union
 
 # Revision identifiers
@@ -106,7 +105,6 @@ def _migrate_data_in_batches() -> None:
     """Migrate data in batches to avoid long locks and memory issues."""
     conn = op.get_bind()
 
-    offset = 0
     total_processed = 0
 
     while True:
