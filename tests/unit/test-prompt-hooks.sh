@@ -113,7 +113,7 @@ test_all_prompt_hooks_have_suppress_output() {
 }
 
 test_hooks_registered_in_plugin_json() {
-    local plugin_json="$PROJECT_ROOT/plugin.json"
+    local plugin_json="$PROJECT_ROOT/.claude-plugin/plugin.json"
 
     # Check all 4 prompt hooks are registered individually
     grep -q "context-injector.sh" "$plugin_json" || return 1

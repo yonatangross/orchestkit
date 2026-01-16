@@ -241,7 +241,7 @@ test_post_agent_in_dispatcher() {
 test_pre_agent_in_plugin_json() {
     # CC 2.1.7: Hooks in subagent-start are auto-registered, may not be in plugin.json
     # Check if registered in plugin.json OR if hook exists in subagent-start directory
-    if jq -e '.hooks.PreToolUse[] | select(.matcher == "Task") | .hooks[] | select(.command | contains("agent-memory-inject"))' "$PROJECT_ROOT/plugin.json" >/dev/null 2>&1; then
+    if jq -e '.hooks.PreToolUse[] | select(.matcher == "Task") | .hooks[] | select(.command | contains("agent-memory-inject"))' "$PROJECT_ROOT/.claude-plugin/plugin.json" >/dev/null 2>&1; then
         return 0
     fi
     # Also valid: hook exists in subagent-start directory (CC 2.1.7 native registration)

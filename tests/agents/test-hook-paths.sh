@@ -15,7 +15,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-PLUGIN_JSON="$REPO_ROOT/plugin.json"
+PLUGIN_JSON="$REPO_ROOT/.claude-plugin/plugin.json"
 AGENTS_DIR="$REPO_ROOT/agents"
 
 FAILED=0

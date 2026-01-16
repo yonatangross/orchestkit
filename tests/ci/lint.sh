@@ -49,12 +49,12 @@ while IFS= read -r -d '' file; do
     fi
 done < <(find "$PROJECT_ROOT/.claude" -name "*.json" -print0 2>/dev/null)
 
-# Check plugin.json separately
-if [ -f "$PROJECT_ROOT/plugin.json" ]; then
-    if jq empty "$PROJECT_ROOT/plugin.json" 2>/dev/null; then
-        pass "plugin.json is valid JSON"
+# Check .claude-plugin/plugin.json separately
+if [ -f "$PROJECT_ROOT/.claude-plugin/plugin.json" ]; then
+    if jq empty "$PROJECT_ROOT/.claude-plugin/plugin.json" 2>/dev/null; then
+        pass ".claude-plugin/plugin.json is valid JSON"
     else
-        fail "plugin.json is invalid JSON"
+        fail ".claude-plugin/plugin.json is invalid JSON"
         ((json_errors++)) || true
     fi
 fi
