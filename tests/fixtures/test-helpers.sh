@@ -642,6 +642,16 @@ fail() {
   return 1
 }
 
+# Informational message (non-failing, silent by default)
+# Usage: info "message"
+info() {
+  local message="${1:-}"
+  # Silent in test output to keep results clean
+  # Uncomment the line below for verbose debugging:
+  # echo -e "  ${CYAN}[info]${NC} $message" >&2
+  return 0
+}
+
 # Assert string contains at least one of two substrings
 # Usage: assert_contains_either "$string" "$substring1" "$substring2"
 assert_contains_either() {
