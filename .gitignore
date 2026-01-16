@@ -74,3 +74,4 @@ HOOK_SECURITY_*.txt
 # Feedback system (user-specific learning data)
 .claude/feedback/
 !.claude/feedback/.gitkeep
+.claude/.satisfaction-counter
