@@ -16,6 +16,8 @@ skills:
   - security-scanning
   - github-operations
   - observability-monitoring
+  - biome-linting
+  - vite-advanced
   - remember
   - recall
 hooks:

@@ -11,6 +11,8 @@ tools:
   - Glob
 skills:
   - design-system-starter
+  - shadcn-patterns
+  - radix-primitives
   - remember
   - recall
 ---

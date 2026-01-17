@@ -23,6 +23,9 @@ skills:
   - motion-animation-patterns
   - a11y-testing
   - focus-management
+  - render-optimization
+  - shadcn-patterns
+  - radix-primitives
   - remember
   - recall
 ---

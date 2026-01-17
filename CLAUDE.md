@@ -6,7 +6,7 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **116 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
+- **128 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
 - **27 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **18 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
 - **124 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
@@ -43,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-# Skills use CC 2.1.7 native flat structure (116 skills):
+# Skills use CC 2.1.7 native flat structure (128 skills):
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
@@ -615,12 +615,12 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-116 skills in flat structure at `skills/`. Common skill types include:
+128 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
 - **Backend**: FastAPI, asyncio, SQLAlchemy async, connection pooling, idempotency, resilience (19 skills)
-- **Frontend**: React 19, design systems, animations, i18n (6 skills)
+- **Frontend**: React 19, design systems, animations, i18n, Radix primitives, shadcn patterns, render optimization, Vite, Biome (11 skills)
 - **Testing**: Unit, integration, E2E, mocking, data management, a11y-testing (10 skills)
 - **Security**: OWASP, auth, validation, defense-in-depth (5 skills)
 - **DevOps**: CI/CD, observability, GitHub CLI (4 skills)

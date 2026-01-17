@@ -20,6 +20,7 @@ skills:
   - test-standards-enforcer
   - security-scanning
   - quality-gates
+  - biome-linting
   - remember
   - recall
 hooks:

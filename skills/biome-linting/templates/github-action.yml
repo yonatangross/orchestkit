@@ -1,0 +1,91 @@
+# Biome Linting GitHub Action
+# Copy to .github/workflows/lint.yml
+
+name: Code Quality
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Biome Lint & Format
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Biome
+        uses: biomejs/setup-biome@v2
+        with:
+          version: latest
+
+      - name: Run Biome
+        run: biome ci .
+
+  # Alternative: Run via Node.js
+  lint-node:
+    name: Lint (Node.js)
+    runs-on: ubuntu-latest
+    if: false # Enable if you prefer npm-based setup
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Biome
+        run: npx biome ci .
+
+  # Full quality pipeline
+  quality:
+    name: Full Quality Check
+    runs-on: ubuntu-latest
+    if: false # Enable for full pipeline
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      # Parallel quality checks
+      - name: Biome (Lint + Format)
+        run: npx biome ci .
+
+      - name: TypeScript
+        run: npx tsc --noEmit
+
+      - name: Tests
+        run: npm test -- --coverage
+
+      # Upload coverage (optional)
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: coverage/lcov.info
+
+# Notes:
+# - `biome ci` is strict mode (fails on any warning/error)
+# - For PR annotations, add `--reporter=github`
+# - For JSON output, add `--reporter=json > biome-results.json`
