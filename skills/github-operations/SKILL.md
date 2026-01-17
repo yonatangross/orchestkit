@@ -126,6 +126,7 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 - `review-pr` - Comprehensive PR review with specialized agents
 - `release-management` - GitHub release workflow with semantic versioning and changelogs
 - `stacked-prs` - Manage dependent PRs with rebase coordination
+- `issue-progress-tracking` - Automatic issue progress updates from commits
 
 ## Key Decisions
 

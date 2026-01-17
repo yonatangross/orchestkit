@@ -134,6 +134,7 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [Brief description]"
 - commit: Commit issue fixes
 - debug-investigator: Debug complex issues
 - errors: Handle error patterns
+- issue-progress-tracking: Auto-updates issue checkboxes from commits
 ## References
 
 - [Commit Template](references/commit-template.md)

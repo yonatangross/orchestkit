@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **115 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
+- **116 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
 - **27 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **18 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **121 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
+- **124 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -43,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-# Skills use CC 2.1.7 native flat structure (115 skills):
+# Skills use CC 2.1.7 native flat structure (116 skills):
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
@@ -615,7 +615,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-115 skills in flat structure at `skills/`. Common skill types include:
+116 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
@@ -725,7 +725,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (121 hooks)
+- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (124 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
