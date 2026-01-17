@@ -30,11 +30,10 @@ user_id="${project_id}-decisions"
 
 log_hook "Session starting - decision recall available with user_id: $user_id"
 
-# Output CC 2.1.7 compliant JSON with hookSpecificOutput.additionalContext
-# Context is injected silently for Claude to use when relevant
-CTX="Decision memory available: user_id='${user_id}'. Use mcp__mem0__search_memories to retrieve past architectural decisions for ${project_id}."
+# Output CC 2.1.7 compliant JSON
+# Note: SessionStart hooks don't support hookSpecificOutput.additionalContext
+log_hook "Decision memory available: user_id='${user_id}' for ${project_id}"
 
-jq -nc --arg ctx "$CTX" \
-    '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$ctx},continue:true,suppressOutput:true}'
+echo '{"continue":true,"suppressOutput":true}'
 
 exit 0

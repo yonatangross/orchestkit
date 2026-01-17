@@ -226,33 +226,28 @@ elif has_valid_pending_sync "$PENDING_SYNC_GLOBAL"; then
 fi
 
 # -----------------------------------------------------------------------------
-# Output CC 2.1.9 Compliant JSON with hookSpecificOutput.additionalContext
-# Uses additionalContext for context injection per CC 2.1.9 specification
+# Output CC 2.1.7 Compliant JSON for SessionStart
+# Note: SessionStart hooks don't support hookSpecificOutput.additionalContext
+# Context injection happens via session-context-loader.sh instead
 # -----------------------------------------------------------------------------
 
 if [[ -n "$PENDING_FILE" ]]; then
-    # Pending sync exists - inject context with graph-first instructions
-    CTX_MSG=$(build_pending_sync_message "$PENDING_FILE")
+    # Pending sync exists - archive it and log
+    log_hook "Found pending sync, archiving for processing"
 
     # Archive the file after reading (move to .processed)
     archive_pending_sync "$PENDING_FILE"
 
-    log_hook "Outputting pending sync context with graph-first instructions"
-    jq -nc --arg ctx "$CTX_MSG" \
-        '{"continue":true,"hookSpecificOutput":{"additionalContext":$ctx}}'
-else
-    # No pending sync - Graph is always available (graph-first architecture)
-    # Provide context retrieval hints using graph as primary
-    TIP_MSG=$(build_search_tip_message)
-
-    if is_mem0_available; then
-        log_hook "Graph + mem0 available, outputting enhanced context retrieval hints"
-    else
-        log_hook "Graph available (mem0 not configured), outputting graph-first context hints"
-    fi
-
-    jq -nc --arg ctx "$TIP_MSG" \
-        '{"continue":true,"hookSpecificOutput":{"additionalContext":$ctx}}'
+    log_hook "Pending sync archived - will be processed on next memory operation"
 fi
+
+# SessionStart hooks must use simple success output (no hookSpecificOutput.additionalContext)
+if is_mem0_available; then
+    log_hook "Graph + mem0 available for this session"
+else
+    log_hook "Graph available (mem0 not configured) for this session"
+fi
+
+echo '{"continue":true,"suppressOutput":true}'
 
 exit 0
