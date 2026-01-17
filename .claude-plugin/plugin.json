@@ -193,6 +193,16 @@
         ]
       },
       {
+        "matcher": "mcp__mem0__*|mcp__memory__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/memory-fabric-init.sh",
+            "once": true
+          }
+        ]
+      },
+      {
         "matcher": "mcp__memory__*",
         "hooks": [
           {
@@ -331,6 +341,24 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/decision-entity-extractor.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mem0__add_memory|mcp__memory__create_entities",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/memory-bridge.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|Skill|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/realtime-sync.sh"
           }
         ]
       }

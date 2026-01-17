@@ -20,13 +20,13 @@
       "env": {
         "MEM0_API_KEY": "YOUR_MEM0_API_KEY_HERE"
       },
-      "auto": "80"
+      "auto": "90"
     },
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "description": "Local file-based memory via knowledge graph",
-      "auto": "70"
+      "auto": "85"
     },
     "playwright": {
       "command": "npx",

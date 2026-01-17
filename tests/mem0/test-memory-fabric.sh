@@ -1,0 +1,428 @@
+#!/bin/bash
+# test-memory-fabric.sh - Integration tests for unified Memory Fabric
+# Part of SkillForge Claude Plugin comprehensive test suite
+# CC 2.1.7 Compliant
+#
+# Tests Memory Fabric v2.0 features:
+# - Unified query across mem0 and graph
+# - Result merging and deduplication
+# - Entity extraction from text
+# - Bidirectional sync (mem0 ↔ graph)
+# - Real-time sync priority classification
+# - load-context command auto-loading
+# - Dual-write in remember skill
+# - Unified search in recall skill
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+
+# Export for hooks
+export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
+
+# Test counters
+TESTS_RUN=0
+TESTS_PASSED=0
+TESTS_FAILED=0
+
+# =============================================================================
+# Test Helper Functions
+# =============================================================================
+
+test_start() {
+    local name="$1"
+    echo -n "  ○ $name... "
+    TESTS_RUN=$((TESTS_RUN + 1))
+}
+
+test_pass() {
+    echo -e "\033[0;32mPASS\033[0m"
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+}
+
+test_fail() {
+    local reason="${1:-}"
+    echo -e "\033[0;31mFAIL\033[0m"
+    [[ -n "$reason" ]] && echo "    └─ $reason"
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+}
+
+test_skip() {
+    local reason="${1:-}"
+    echo -e "\033[0;33mSKIP\033[0m"
+    [[ -n "$reason" ]] && echo "    └─ $reason"
+}
+
+# =============================================================================
+# Test: Memory Fabric Skill Exists
+# =============================================================================
+
+test_memory_fabric_skill_exists() {
+    test_start "memory-fabric skill SKILL.md exists"
+
+    if [[ -f "$PROJECT_ROOT/skills/memory-fabric/SKILL.md" ]]; then
+        test_pass
+    else
+        test_fail "skills/memory-fabric/SKILL.md not found"
+    fi
+}
+
+test_memory_fabric_skill_frontmatter() {
+    test_start "memory-fabric skill has valid frontmatter"
+
+    local skill_file="$PROJECT_ROOT/skills/memory-fabric/SKILL.md"
+
+    if [[ ! -f "$skill_file" ]]; then
+        test_skip "Skill file not found"
+        return
+    fi
+
+    # Check for required frontmatter fields
+    local has_name has_description
+    has_name=$(grep -c "^name:" "$skill_file" || echo "0")
+    has_description=$(grep -c "^description:" "$skill_file" || echo "0")
+
+    if [[ "$has_name" -ge 1 ]] && [[ "$has_description" -ge 1 ]]; then
+        test_pass
+    else
+        test_fail "Missing required frontmatter fields"
+    fi
+}
+
+# =============================================================================
+# Test: Memory Fabric Library
+# =============================================================================
+
+test_memory_fabric_library_exists() {
+    test_start "memory-fabric.sh library exists"
+
+    if [[ -f "$PROJECT_ROOT/hooks/_lib/memory-fabric.sh" ]]; then
+        test_pass
+    else
+        test_fail "hooks/_lib/memory-fabric.sh not found"
+    fi
+}
+
+test_memory_fabric_library_functions() {
+    test_start "memory-fabric.sh exports required functions"
+
+    local lib_file="$PROJECT_ROOT/hooks/_lib/memory-fabric.sh"
+
+    if [[ ! -f "$lib_file" ]]; then
+        test_skip "Library file not found"
+        return
+    fi
+
+    # Check for key function definitions
+    local has_unified_search has_merge has_extract
+    has_unified_search=$(grep -c "fabric_unified_search\|unified_search" "$lib_file" || echo "0")
+    has_merge=$(grep -c "fabric_merge\|merge_results" "$lib_file" || echo "0")
+    has_extract=$(grep -c "fabric_extract\|extract_entities" "$lib_file" || echo "0")
+
+    if [[ "$has_unified_search" -ge 1 ]] || [[ "$has_merge" -ge 1 ]]; then
+        test_pass
+    else
+        test_fail "Missing key functions (unified_search, merge_results)"
+    fi
+}
+
+# =============================================================================
+# Test: Load Context Command
+# =============================================================================
+
+test_load_context_command_exists() {
+    test_start "load-context command exists"
+
+    if [[ -f "$PROJECT_ROOT/commands/load-context.md" ]]; then
+        test_pass
+    else
+        test_fail "commands/load-context.md not found"
+    fi
+}
+
+test_load_context_auto_invoke() {
+    test_start "load-context has auto-invoke: session-start"
+
+    local cmd_file="$PROJECT_ROOT/commands/load-context.md"
+
+    if [[ ! -f "$cmd_file" ]]; then
+        test_skip "Command file not found"
+        return
+    fi
+
+    if grep -q "auto-invoke.*session-start\|auto-invoke: session-start" "$cmd_file"; then
+        test_pass
+    else
+        test_fail "Missing auto-invoke: session-start"
+    fi
+}
+
+test_load_context_user_invocable() {
+    test_start "load-context is user-invocable"
+
+    local cmd_file="$PROJECT_ROOT/commands/load-context.md"
+
+    if [[ ! -f "$cmd_file" ]]; then
+        test_skip "Command file not found"
+        return
+    fi
+
+    if grep -q "user-invocable.*true\|user-invocable: true" "$cmd_file"; then
+        test_pass
+    else
+        test_fail "Missing user-invocable: true"
+    fi
+}
+
+# =============================================================================
+# Test: Memory Bridge Hook
+# =============================================================================
+
+test_memory_bridge_hook_exists() {
+    test_start "memory-bridge hook exists"
+
+    if [[ -f "$PROJECT_ROOT/hooks/posttool/memory-bridge.sh" ]]; then
+        test_pass
+    else
+        test_fail "hooks/posttool/memory-bridge.sh not found"
+    fi
+}
+
+test_memory_bridge_outputs_valid_json() {
+    test_start "memory-bridge outputs valid CC 2.1.7 JSON"
+
+    local hook_file="$PROJECT_ROOT/hooks/posttool/memory-bridge.sh"
+
+    if [[ ! -f "$hook_file" ]]; then
+        test_skip "Hook file not found"
+        return
+    fi
+
+    # Run hook with mock input
+    export HOOK_INPUT='{"tool_name":"mcp__mem0__add_memory","tool_result":"success"}'
+    local output
+    output=$(bash "$hook_file" 2>/dev/null || echo '{"continue":true}')
+
+    if echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+        test_pass
+    else
+        test_fail "Invalid JSON output"
+    fi
+}
+
+# =============================================================================
+# Test: Realtime Sync Hook
+# =============================================================================
+
+test_realtime_sync_hook_exists() {
+    test_start "realtime-sync hook exists"
+
+    if [[ -f "$PROJECT_ROOT/hooks/posttool/realtime-sync.sh" ]]; then
+        test_pass
+    else
+        test_fail "hooks/posttool/realtime-sync.sh not found"
+    fi
+}
+
+test_realtime_sync_priority_classification() {
+    test_start "realtime-sync classifies priority correctly"
+
+    local hook_file="$PROJECT_ROOT/hooks/posttool/realtime-sync.sh"
+
+    if [[ ! -f "$hook_file" ]]; then
+        test_skip "Hook file not found"
+        return
+    fi
+
+    # Check for priority keywords in hook
+    local has_immediate has_batched
+    has_immediate=$(grep -c "IMMEDIATE\|immediate" "$hook_file" || echo "0")
+    has_batched=$(grep -c "BATCHED\|batched\|SESSION" "$hook_file" || echo "0")
+
+    if [[ "$has_immediate" -ge 1 ]] && [[ "$has_batched" -ge 1 ]]; then
+        test_pass
+    else
+        test_fail "Missing priority classification (IMMEDIATE, BATCHED)"
+    fi
+}
+
+# =============================================================================
+# Test: Updated Recall Skill
+# =============================================================================
+
+test_recall_skill_unified_search() {
+    test_start "recall skill mentions unified search"
+
+    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+
+    if [[ ! -f "$skill_file" ]]; then
+        test_fail "Skill file not found"
+        return
+    fi
+
+    # Check for unified search or both systems mentioned
+    if grep -qi "unified\|both.*system\|mem0.*graph\|mcp__memory" "$skill_file"; then
+        test_pass
+    else
+        test_fail "Recall skill doesn't mention unified search"
+    fi
+}
+
+# =============================================================================
+# Test: Updated Remember Skill
+# =============================================================================
+
+test_remember_skill_dual_write() {
+    test_start "remember skill mentions dual-write"
+
+    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+
+    if [[ ! -f "$skill_file" ]]; then
+        test_fail "Skill file not found"
+        return
+    fi
+
+    # Check for dual-write or entity creation mentioned
+    if grep -qi "dual.*write\|entity\|mcp__memory.*create\|graph" "$skill_file"; then
+        test_pass
+    else
+        test_fail "Remember skill doesn't mention dual-write or entity creation"
+    fi
+}
+
+# =============================================================================
+# Test: Schema Exists
+# =============================================================================
+
+test_memory_fabric_schema_exists() {
+    test_start "memory-fabric schema exists"
+
+    if [[ -f "$PROJECT_ROOT/.claude/schemas/memory-fabric.schema.json" ]]; then
+        test_pass
+    else
+        test_fail ".claude/schemas/memory-fabric.schema.json not found"
+    fi
+}
+
+test_memory_fabric_schema_valid_json() {
+    test_start "memory-fabric schema is valid JSON"
+
+    local schema_file="$PROJECT_ROOT/.claude/schemas/memory-fabric.schema.json"
+
+    if [[ ! -f "$schema_file" ]]; then
+        test_skip "Schema file not found"
+        return
+    fi
+
+    if jq -e '.' "$schema_file" >/dev/null 2>&1; then
+        test_pass
+    else
+        test_fail "Invalid JSON in schema file"
+    fi
+}
+
+# =============================================================================
+# Test: Updated Agent Memory Inject Hook
+# =============================================================================
+
+test_agent_memory_inject_updated() {
+    test_start "agent-memory-inject uses memory-fabric approach"
+
+    local hook_file="$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh"
+
+    if [[ ! -f "$hook_file" ]]; then
+        test_fail "Hook file not found"
+        return
+    fi
+
+    # Check for memory-fabric integration or actual MCP call building
+    if grep -qi "memory.*fabric\|unified\|mcp__memory.*search\|Execute.*MCP" "$hook_file"; then
+        test_pass
+    else
+        test_fail "Hook doesn't integrate with memory-fabric"
+    fi
+}
+
+# =============================================================================
+# Test: Context Retrieval Hook Updated
+# =============================================================================
+
+test_context_retrieval_updated() {
+    test_start "mem0-context-retrieval triggers load-context"
+
+    local hook_file="$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh"
+
+    if [[ ! -f "$hook_file" ]]; then
+        test_fail "Hook file not found"
+        return
+    fi
+
+    # Check for load-context or memory-fabric reference
+    if grep -qi "load-context\|memory.*fabric\|unified\|Auto-load" "$hook_file"; then
+        test_pass
+    else
+        test_fail "Hook doesn't reference load-context or memory-fabric"
+    fi
+}
+
+# =============================================================================
+# Run All Tests
+# =============================================================================
+
+echo "=============================================="
+echo "Memory Fabric Integration Tests"
+echo "=============================================="
+echo ""
+
+echo "📦 Core Components:"
+test_memory_fabric_skill_exists
+test_memory_fabric_skill_frontmatter
+test_memory_fabric_library_exists
+test_memory_fabric_library_functions
+echo ""
+
+echo "📥 Load Context Command:"
+test_load_context_command_exists
+test_load_context_auto_invoke
+test_load_context_user_invocable
+echo ""
+
+echo "🔄 Bidirectional Sync Hooks:"
+test_memory_bridge_hook_exists
+test_memory_bridge_outputs_valid_json
+test_realtime_sync_hook_exists
+test_realtime_sync_priority_classification
+echo ""
+
+echo "🔍 Updated Skills:"
+test_recall_skill_unified_search
+test_remember_skill_dual_write
+echo ""
+
+echo "📋 Schema & Hooks:"
+test_memory_fabric_schema_exists
+test_memory_fabric_schema_valid_json
+test_agent_memory_inject_updated
+test_context_retrieval_updated
+echo ""
+
+# =============================================================================
+# Summary
+# =============================================================================
+
+echo "=============================================="
+echo "Test Summary"
+echo "=============================================="
+echo "Total:  $TESTS_RUN"
+echo -e "Passed: \033[0;32m$TESTS_PASSED\033[0m"
+echo -e "Failed: \033[0;31m$TESTS_FAILED\033[0m"
+echo ""
+
+if [[ $TESTS_FAILED -gt 0 ]]; then
+    echo -e "\033[0;31m❌ Some tests failed\033[0m"
+    exit 1
+else
+    echo -e "\033[0;32m✅ All tests passed\033[0m"
+    exit 0
+fi

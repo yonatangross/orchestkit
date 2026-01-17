@@ -1,0 +1,421 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/memory-fabric.schema.json",
+  "title": "Memory Fabric Schema",
+  "description": "Schema for unified memory system combining mem0 and graph memory with cross-agent federation (v1.0.0)",
+  "type": "object",
+  "definitions": {
+    "graphEntity": {
+      "type": "object",
+      "description": "Entity in the graph memory knowledge base",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Entity name (unique identifier)"
+        },
+        "entityType": {
+          "type": "string",
+          "description": "Entity type (e.g., agent, tool, pattern, decision, technology)"
+        },
+        "observations": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Observations about this entity"
+        }
+      },
+      "required": ["name", "entityType"]
+    },
+    "graphRelation": {
+      "type": "object",
+      "description": "Relationship between two entities in graph memory",
+      "properties": {
+        "from": {
+          "type": "string",
+          "description": "Source entity name"
+        },
+        "to": {
+          "type": "string",
+          "description": "Target entity name"
+        },
+        "relationType": {
+          "type": "string",
+          "description": "Type of relationship (e.g., recommends, uses, requires, implements, blocks)"
+        }
+      },
+      "required": ["from", "to", "relationType"]
+    },
+    "memorySource": {
+      "type": "string",
+      "enum": ["mem0", "graph", "merged"],
+      "description": "Source of the memory result"
+    },
+    "memoryCategory": {
+      "type": "string",
+      "enum": [
+        "decision",
+        "architecture",
+        "pattern",
+        "blocker",
+        "preference",
+        "constraint",
+        "pagination",
+        "database",
+        "authentication",
+        "api",
+        "frontend",
+        "performance",
+        "security",
+        "testing",
+        "deployment"
+      ],
+      "description": "Categories for organizing memories"
+    },
+    "syncPriority": {
+      "type": "string",
+      "enum": ["immediate", "batched", "session_end"],
+      "description": "Priority for syncing memories between sources"
+    },
+    "mergeStrategy": {
+      "type": "string",
+      "enum": ["dedupe", "interleave", "priority"],
+      "description": "Strategy for merging results from multiple sources"
+    },
+    "unifiedMemoryResult": {
+      "type": "object",
+      "description": "A single result from unified memory search",
+      "properties": {
+        "source": {
+          "$ref": "#/definitions/memorySource"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for this memory"
+        },
+        "content": {
+          "type": "string",
+          "description": "The memory content text"
+        },
+        "category": {
+          "$ref": "#/definitions/memoryCategory"
+        },
+        "timestamp": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When this memory was created"
+        },
+        "relevance_score": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Relevance score from semantic search (0-1)"
+        },
+        "metadata": {
+          "type": "object",
+          "properties": {
+            "project": { "type": "string" },
+            "scope": { "type": "string" },
+            "agent_id": { "type": "string" },
+            "outcome": { "type": "string", "enum": ["success", "failed", "neutral"] },
+            "source": { "type": "string" }
+          },
+          "additionalProperties": true
+        },
+        "entities": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/graphEntity" },
+          "description": "Related entities from graph memory"
+        },
+        "relations": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/graphRelation" },
+          "description": "Related relationships from graph memory"
+        }
+      },
+      "required": ["source", "id", "content"]
+    },
+    "fabricQuery": {
+      "type": "object",
+      "description": "Query parameters for unified memory search",
+      "properties": {
+        "query": {
+          "type": "string",
+          "description": "Semantic search query text"
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["mem0", "graph", "both"]
+          },
+          "default": ["both"],
+          "description": "Which memory sources to search"
+        },
+        "filters": {
+          "type": "object",
+          "description": "Additional filter conditions",
+          "properties": {
+            "AND": {
+              "type": "array",
+              "items": { "type": "object" }
+            },
+            "OR": {
+              "type": "array",
+              "items": { "type": "object" }
+            },
+            "user_id": { "type": "string" },
+            "agent_id": { "type": "string" },
+            "category": { "$ref": "#/definitions/memoryCategory" }
+          }
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50,
+          "default": 10,
+          "description": "Maximum number of results to return"
+        },
+        "merge_strategy": {
+          "$ref": "#/definitions/mergeStrategy",
+          "default": "dedupe"
+        },
+        "enable_graph": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to include graph memory in search"
+        }
+      },
+      "required": ["query"]
+    },
+    "fabricSearchResponse": {
+      "type": "object",
+      "description": "Response from unified memory search",
+      "properties": {
+        "results": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/unifiedMemoryResult" }
+        },
+        "sources_searched": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/memorySource" }
+        },
+        "total_count": {
+          "type": "integer",
+          "description": "Total number of matching results"
+        },
+        "query_metadata": {
+          "type": "object",
+          "properties": {
+            "query": { "type": "string" },
+            "merge_strategy": { "$ref": "#/definitions/mergeStrategy" },
+            "execution_time_ms": { "type": "number" }
+          }
+        }
+      },
+      "required": ["results", "sources_searched"]
+    },
+    "agentMemoryContext": {
+      "type": "object",
+      "description": "Memory context prepared for agent injection",
+      "properties": {
+        "agent_type": {
+          "type": "string",
+          "description": "The agent type receiving this context"
+        },
+        "agent_id": {
+          "type": "string",
+          "pattern": "^skf:[a-z0-9-]+$",
+          "description": "Formatted agent ID (skf:agent-name)"
+        },
+        "domain_keywords": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Domain-specific keywords for this agent"
+        },
+        "related_agents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Related agents for cross-agent knowledge sharing"
+        },
+        "mem0_queries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "purpose": { "type": "string" },
+              "query": { "type": "string" },
+              "filters": { "type": "object" },
+              "enable_graph": { "type": "boolean" }
+            }
+          },
+          "description": "Pre-built mem0 search queries for this agent"
+        },
+        "graph_queries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "purpose": { "type": "string" },
+              "query": { "type": "string" }
+            }
+          },
+          "description": "Pre-built graph memory search queries"
+        }
+      },
+      "required": ["agent_type", "agent_id"]
+    },
+    "crossAgentFederation": {
+      "type": "object",
+      "description": "Configuration for cross-agent knowledge sharing",
+      "properties": {
+        "primary_agent": {
+          "type": "string",
+          "description": "The primary agent requesting context"
+        },
+        "federated_agents": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Agents to federate knowledge from"
+        },
+        "federation_depth": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "default": 1,
+          "description": "Depth of federation (1 = direct relations only)"
+        },
+        "filter_by_relevance": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether to filter federated results by relevance threshold"
+        },
+        "relevance_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "default": 0.5,
+          "description": "Minimum relevance score for federated results"
+        }
+      },
+      "required": ["primary_agent", "federated_agents"]
+    },
+    "memorySyncConfig": {
+      "type": "object",
+      "description": "Configuration for memory synchronization between sources",
+      "properties": {
+        "sync_enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "sync_priority": {
+          "$ref": "#/definitions/syncPriority",
+          "default": "batched"
+        },
+        "batch_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "default": 10
+        },
+        "sync_interval_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "default": 300
+        },
+        "conflict_resolution": {
+          "type": "string",
+          "enum": ["newest_wins", "merge", "manual"],
+          "default": "newest_wins"
+        }
+      }
+    },
+    "hookMemoryLoadInstruction": {
+      "type": "object",
+      "description": "Actionable memory load instruction for agent injection",
+      "properties": {
+        "instruction_type": {
+          "type": "string",
+          "enum": ["mcp_call", "skill_invoke", "combined"],
+          "description": "Type of instruction to execute"
+        },
+        "mcp_calls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "enum": ["mcp__mem0__search_memories", "mcp__memory__search_nodes", "mcp__memory__read_graph"]
+              },
+              "parameters": { "type": "object" },
+              "purpose": { "type": "string" }
+            },
+            "required": ["tool", "parameters"]
+          }
+        },
+        "inject_as": {
+          "type": "string",
+          "enum": ["system_context", "additional_context", "prepend_prompt"],
+          "default": "additional_context"
+        }
+      },
+      "required": ["instruction_type"]
+    }
+  },
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Schema version"
+    },
+    "memory_sources": {
+      "type": "object",
+      "properties": {
+        "mem0": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "graph_memory_default": { "type": "boolean", "default": true },
+            "scopes": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["decisions", "patterns", "continuity", "agents", "best-practices"]
+            }
+          }
+        },
+        "graph": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean", "default": true },
+            "entity_types": {
+              "type": "array",
+              "items": { "type": "string" },
+              "default": ["agent", "tool", "pattern", "decision", "technology", "project"]
+            }
+          }
+        }
+      }
+    },
+    "federation": {
+      "$ref": "#/definitions/crossAgentFederation"
+    },
+    "sync": {
+      "$ref": "#/definitions/memorySyncConfig"
+    }
+  },
+  "examples": [
+    {
+      "version": "1.0.0",
+      "memory_sources": {
+        "mem0": {
+          "enabled": true,
+          "graph_memory_default": true,
+          "scopes": ["decisions", "patterns", "agents"]
+        },
+        "graph": {
+          "enabled": true,
+          "entity_types": ["agent", "tool", "pattern"]
+        }
+      }
+    }
+  ]
+}

@@ -652,9 +652,11 @@ Enhanced hooks: `git-branch-protection.sh`, `error-pattern-warner.sh`, `context7
 MCP servers use `auto:N` syntax to auto-enable based on context window percentage:
 - `context7`: auto:75 (high-value docs, keep available longer)
 - `sequential-thinking`: auto:60 (complex reasoning needs room)
-- `mem0`: auto:80 (memory critical for session)
-- `memory`: auto:70 (moderate priority)
+- `mem0`: auto:90 (memory critical - preserve until compaction)
+- `memory`: auto:85 (graph memory important for relationships)
 - `playwright`: auto:50 (browser-heavy, disable early)
+
+**Rationale for high memory thresholds:** When context is tight, memory becomes MORE important, not less. Compaction is imminent and memory operations help preserve session context before it's lost.
 
 ### Plans Directory
 Configure custom plans directory in `.claude/defaults/config.json`:

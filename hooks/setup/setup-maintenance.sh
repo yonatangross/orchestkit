@@ -8,6 +8,7 @@ set -euo pipefail
 # - Log rotation (daily)
 # - Stale lock cleanup (daily)
 # - Session archive (daily)
+# - Memory Fabric cleanup (daily) - CC 2.1.11, added in v4.20.0
 # - Metrics aggregation (weekly)
 # - Full health validation (weekly)
 # - Version migrations (on version change)
@@ -23,7 +24,7 @@ source "$(dirname "$0")/../_lib/common.sh"
 # Determine plugin root
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
 MARKER_FILE="${PLUGIN_ROOT}/.setup-complete"
-CURRENT_VERSION="4.19.0"
+CURRENT_VERSION="4.20.0"
 
 # Mode: --force, --background, --migrate
 MODE="${1:-auto}"
@@ -217,6 +218,51 @@ task_metrics_aggregation() {
   fi
 }
 
+# Task: Memory Fabric cleanup (cleanup old pending syncs and processed archives)
+# CC 2.1.11: Memory Fabric v2.0 maintenance
+task_memory_fabric_cleanup() {
+  log_hook "Task: Memory Fabric cleanup"
+
+  local cleaned=0
+  local project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+
+  # Clean up old pending sync files (older than 7 days)
+  # These are session-specific files: .mem0-pending-sync-{session-id}.json
+  find "${project_dir}/.claude/logs" -name ".mem0-pending-sync-*.json" -type f -mtime +7 2>/dev/null | while IFS= read -r syncfile; do
+    rm -f "$syncfile" 2>/dev/null && ((cleaned++)) || true
+  done
+
+  # Clean up old processed archives (keep last 20)
+  local processed_dir="${project_dir}/.claude/logs/mem0-processed"
+  if [[ -d "$processed_dir" ]]; then
+    find "$processed_dir" -name "*.processed-*.json" -type f 2>/dev/null | \
+      sort -r | tail -n +21 | while IFS= read -r oldfile; do
+        rm -f "$oldfile" 2>/dev/null && ((cleaned++)) || true
+      done
+  fi
+
+  # Clean up global pending sync if stale (older than 24 hours)
+  local global_sync="${HOME}/.claude/.mem0-pending-sync.json"
+  if [[ -f "$global_sync" ]]; then
+    # Check file age using find
+    if find "$global_sync" -mtime +1 2>/dev/null | grep -q .; then
+      rm -f "$global_sync" 2>/dev/null && ((cleaned++)) || true
+    fi
+  fi
+
+  # Validate memory-fabric schema if it exists
+  local schema_file="${PLUGIN_ROOT}/.claude/schemas/memory-fabric.schema.json"
+  if [[ -f "$schema_file" ]]; then
+    if ! jq empty "$schema_file" 2>/dev/null; then
+      log_hook "WARN: memory-fabric.schema.json is invalid - may need repair"
+    fi
+  fi
+
+  if [[ $cleaned -gt 0 ]]; then
+    TASKS_COMPLETED+=("Cleaned $cleaned Memory Fabric files")
+  fi
+}
+
 # Task: Full health validation
 task_health_validation() {
   log_hook "Task: Full health validation"
@@ -339,6 +385,7 @@ main() {
     task_log_rotation
     task_stale_lock_cleanup
     task_session_cleanup
+    task_memory_fabric_cleanup  # CC 2.1.11: Memory Fabric v2.0
   fi
 
   # Run weekly tasks

@@ -2,15 +2,43 @@
 name: remember
 description: Store decisions and patterns in semantic memory with success/failure tracking. Use when saving patterns, storing decisions, remembering approaches that worked.
 context: inherit
-version: 1.1.0
+version: 2.0.0
 author: SkillForge
-tags: [memory, decisions, patterns, best-practices, mem0, graph-memory]
+tags: [memory, decisions, patterns, best-practices, mem0, graph-memory, unified-memory]
 user-invocable: true
 ---
 
 # Remember - Store Decisions and Patterns
 
-Store important decisions, patterns, or context in mem0 for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
+Store important decisions, patterns, or context in the unified memory fabric (mem0 + knowledge graph) for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
+
+## Dual-Write (v2.0)
+
+The remember skill now writes to **BOTH** memory systems for comprehensive storage:
+
+1. **Semantic Memory (mem0)**: Full-text storage via `mcp__mem0__add_memory`
+2. **Knowledge Graph**: Entity and relationship creation via `mcp__memory__create_entities` and `mcp__memory__create_relations`
+
+**Benefits of Dual-Write:**
+- Semantic memory enables natural language recall with contextual matching
+- Graph memory enables explicit relationship queries (e.g., "what does X use?")
+- Cross-referencing links semantic memories to graph entities
+- Unified recall combines results from both systems
+
+**Automatic Entity Extraction:**
+- Extracts capitalized terms as potential entities (PostgreSQL, React, pgvector)
+- Detects agent names (database-engineer, backend-system-architect)
+- Identifies pattern names (cursor-pagination, connection-pooling)
+- Recognizes "X uses Y", "X recommends Y", "X requires Y" relationship patterns
+
+**Graph Entity Types:**
+| Pattern | Entity Type | Example |
+|---------|------------|---------|
+| Technology names | Technology | PostgreSQL, pgvector, React |
+| Agent names | Agent | database-engineer, security-auditor |
+| Pattern names | Pattern | cursor-pagination, HNSW-index |
+| Project references | Project | my-app, ecommerce-backend |
+| Decisions | Decision | "chose PostgreSQL over MySQL" |
 
 ## When to Use
 
@@ -34,6 +62,11 @@ Store important decisions, patterns, or context in mem0 for future sessions. Sup
 /remember --agent <agent-id> <text>         # Store in agent-specific scope
 /remember --global <text>                   # Store as cross-project best practice
 /remember --global --success --graph <text> # Combine flags
+
+# Dual-write options (v2.0.0+)
+/remember <text>                            # Writes to BOTH mem0 AND knowledge graph (default)
+/remember --no-graph <text>                 # Skip knowledge graph entity creation
+/remember --mem0-only <text>                # Write only to mem0 semantic memory
 ```
 
 ## Advanced Flags
@@ -41,6 +74,13 @@ Store important decisions, patterns, or context in mem0 for future sessions. Sup
 - `--graph` - Enable graph memory to extract entities and relationships (useful for "X uses Y" patterns)
 - `--agent <agent-id>` - Scope memory to a specific agent (e.g., `database-engineer`, `backend-system-architect`)
 - `--global` - Store as cross-project best practice (user_id: `skillforge-global-best-practices`)
+
+## Dual-Write Flags (v2.0.0)
+
+- `--no-graph` - Skip knowledge graph entity creation, only write to mem0
+- `--mem0-only` - Alias for --no-graph (write only to mem0 semantic memory)
+
+**Note:** In v2.0, the default behavior writes to BOTH systems. Use --no-graph to opt-out of entity creation.
 
 ## Categories
 
@@ -72,7 +112,8 @@ If neither flag is provided, the memory is stored as neutral (informational).
 Check for --success flag → outcome: success
 Check for --failed flag → outcome: failed
 Check for --category <category> flag
-Check for --graph flag → enable_graph: true
+Check for --graph flag → enable_graph: true (legacy, now default)
+Check for --no-graph or --mem0-only flag → skip_graph: true
 Check for --agent <agent-id> flag → agent_id: "skf:{agent-id}"
 Check for --global flag → use global user_id
 Extract the text to remember
@@ -101,7 +142,7 @@ If outcome is "failed", look for:
 - "should have", "instead use", "better to"
 - If not found, prompt user: "What should be done instead?"
 
-### 4. Store in mem0
+### 4. Store in mem0 (Semantic Memory)
 
 Use `mcp__mem0__add_memory` with:
 
@@ -131,82 +172,205 @@ Use `mcp__mem0__add_memory` with:
 - `enable_graph`: true (when `--graph` flag used)
 - `agent_id`: "skf:{agent-id}" (when `--agent` flag used)
 
+### 4.5. Create Graph Entities (v2.0)
+
+**Skip if `--no-graph` or `--mem0-only` flag is set.**
+
+**Step A: Extract entities from text:**
+
+```
+1. Find capitalized terms (PostgreSQL, React, FastAPI)
+2. Find agent names (database-engineer, backend-system-architect)
+3. Find pattern names (cursor-pagination, connection-pooling)
+4. Find technology keywords (pgvector, HNSW, RAG)
+```
+
+**Step B: Detect relationship patterns:**
+
+| Pattern | Relation Type |
+|---------|--------------|
+| "X uses Y" | USES |
+| "X recommends Y" | RECOMMENDS |
+| "X requires Y" | REQUIRES |
+| "X enables Y" | ENABLES |
+| "X prefers Y" | PREFERS |
+| "chose X over Y" | CHOSE_OVER |
+| "X for Y" | USED_FOR |
+
+**Step C: Create entities via `mcp__memory__create_entities`:**
+
+```json
+{
+  "entities": [
+    {
+      "name": "pgvector",
+      "entityType": "Technology",
+      "observations": ["Used for vector search", "From remember: '{original text}'"]
+    },
+    {
+      "name": "database-engineer",
+      "entityType": "Agent",
+      "observations": ["Recommends pgvector for RAG"]
+    }
+  ]
+}
+```
+
+**Step D: Create relations via `mcp__memory__create_relations`:**
+
+```json
+{
+  "relations": [
+    {
+      "from": "database-engineer",
+      "to": "pgvector",
+      "relationType": "RECOMMENDS"
+    },
+    {
+      "from": "pgvector",
+      "to": "RAG",
+      "relationType": "USED_FOR"
+    }
+  ]
+}
+```
+
+**Entity Type Assignment:**
+- Capitalized single words ending in common suffixes: Technology (PostgreSQL, FastAPI)
+- Words with hyphens matching agent pattern: Agent (database-engineer)
+- Words with hyphens matching pattern names: Pattern (cursor-pagination)
+- Project context: Project (current project name)
+
 ### 5. Confirm Storage
 
-**For success:**
+**For success (v2.0 dual-write):**
 ```
 ✅ Remembered SUCCESS (category): "summary of text"
-   → Added to your Best Practice Library
-   📊 Graph: enabled (if --graph used)
+   → Stored in mem0 semantic memory
+   → Created graph entity: {entity_name} ({entity_type})
+   → Created relation: {from} → {relation_type} → {to}
+   📊 Graph: {N} entities, {M} relations created
    🤖 Agent: {agent-id} (if --agent used)
    🌐 Scope: global (if --global used)
 ```
 
-**For failed:**
+**For failed (v2.0 dual-write):**
 ```
 ❌ Remembered ANTI-PATTERN (category): "summary of text"
-   → Added to your Best Practice Library
+   → Stored in mem0 semantic memory
+   → Created graph entity: {anti-pattern-name} (AntiPattern)
    💡 Lesson: {lesson if extracted}
 ```
 
-**For neutral:**
+**For neutral (v2.0 dual-write):**
 ```
 ✓ Remembered (category): "summary of text"
-   → Will be recalled in future sessions
+   → Stored in mem0 semantic memory
+   → Created graph entity: {entity_name} ({entity_type})
+   → Created relation: {from} → {relation_type} → {to}
+```
+
+**For --no-graph (mem0 only):**
+```
+✅ Remembered SUCCESS (category): "summary of text"
+   → Stored in mem0 semantic memory
+   ⚠️ Graph entity creation skipped (--no-graph)
 ```
 
 ## Examples
 
-### Success Pattern
+### Success Pattern (v2.0 Dual-Write)
 
 **Input:** `/remember --success Cursor-based pagination scales well for large datasets`
 
 **Output:**
 ```
 ✅ Remembered SUCCESS (pagination): "Cursor-based pagination scales well for large datasets"
-   → Added to your Best Practice Library
+   → Stored in mem0 semantic memory
+   → Created graph entity: cursor-pagination (Pattern)
+   📊 Graph: 1 entity, 0 relations created
 ```
 
-### Anti-Pattern
+### Anti-Pattern (v2.0 Dual-Write)
 
 **Input:** `/remember --failed Offset pagination caused timeouts on tables with 1M+ rows`
 
 **Output:**
 ```
 ❌ Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
-   → Added to your Best Practice Library
+   → Stored in mem0 semantic memory
+   → Created graph entity: offset-pagination (AntiPattern)
    💡 Lesson: Use cursor-based pagination for large datasets
 ```
 
-### Graph Memory (New)
+### Dual-Write with Relationships (v2.0)
 
-**Input:** `/remember --graph --success database-engineer uses pgvector for RAG applications`
+**Input:** `/remember --success database-engineer uses pgvector for RAG applications`
 
 **Output:**
 ```
 ✅ Remembered SUCCESS (database): "database-engineer uses pgvector for RAG applications"
-   → Added to your Best Practice Library
-   📊 Graph: enabled - extracted entities: database-engineer, pgvector, RAG
+   → Stored in mem0 semantic memory
+   → Created graph entity: pgvector (Technology)
+   → Created graph entity: database-engineer (Agent)
+   → Created graph entity: RAG (Technology)
+   → Created relation: database-engineer → USES → pgvector
+   → Created relation: pgvector → USED_FOR → RAG
+   📊 Graph: 3 entities, 2 relations created
 ```
 
-### Agent-Scoped Memory (New)
+### Skip Graph Creation (v2.0)
+
+**Input:** `/remember --no-graph --success Quick note about API rate limits`
+
+**Output:**
+```
+✅ Remembered SUCCESS (api): "Quick note about API rate limits"
+   → Stored in mem0 semantic memory
+   ⚠️ Graph entity creation skipped (--no-graph)
+```
+
+### Agent-Scoped Memory with Dual-Write
 
 **Input:** `/remember --agent backend-system-architect Use connection pooling with min=5, max=20`
 
 **Output:**
 ```
 ✓ Remembered (database): "Use connection pooling with min=5, max=20"
-   → Scoped to agent: backend-system-architect
+   → Stored in mem0 semantic memory
+   → Created graph entity: connection-pooling (Pattern)
+   → Created relation: project → USES → connection-pooling
+   🤖 Agent: backend-system-architect
 ```
 
-### Global Best Practice (New)
+### Global Best Practice with Dual-Write
 
 **Input:** `/remember --global --success Always validate user input at API boundaries`
 
 **Output:**
 ```
 ✅ Remembered SUCCESS (api): "Always validate user input at API boundaries"
-   → Added to GLOBAL Best Practice Library (available in all projects)
+   → Stored in mem0 semantic memory (global scope)
+   → Created graph entity: input-validation (Pattern)
+   → Created relation: API → REQUIRES → input-validation
+   🌐 Scope: global (available in all projects)
+```
+
+### Complex Relationship Extraction
+
+**Input:** `/remember --success backend-system-architect recommends PostgreSQL for ACID transactions, chose it over MongoDB`
+
+**Output:**
+```
+✅ Remembered SUCCESS (database): "backend-system-architect recommends PostgreSQL for ACID transactions, chose it over MongoDB"
+   → Stored in mem0 semantic memory
+   → Created graph entity: PostgreSQL (Technology)
+   → Created graph entity: MongoDB (Technology)
+   → Created graph entity: backend-system-architect (Agent)
+   → Created relation: backend-system-architect → RECOMMENDS → PostgreSQL
+   → Created relation: PostgreSQL → CHOSE_OVER → MongoDB
+   → Created relation: PostgreSQL → USED_FOR → ACID-transactions
+   📊 Graph: 3 entities, 3 relations created
 ```
 
 ## Duplicate Detection
@@ -226,7 +390,11 @@ Before storing, search for similar patterns:
 ## Error Handling
 
 - If mem0 unavailable, inform user to check MCP configuration
+- If knowledge graph unavailable, proceed with mem0-only write and notify user
+- If both systems unavailable, show configuration instructions
 - If text is empty, ask user to provide something to remember
 - If text >2000 chars, truncate with notice
 - If both --success and --failed provided, ask user to clarify
 - If --agent used without agent-id, prompt for agent selection
+- If entity extraction fails, proceed with mem0 write and warn about graph failure
+- If relation creation fails (e.g., entity doesn't exist), create entities first then retry
