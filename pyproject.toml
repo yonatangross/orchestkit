@@ -1,0 +1,72 @@
+[project]
+name = "skillforge-claude-plugin"
+version = "4.18.0"
+description = "SkillForge Complete - AI-assisted development toolkit for Claude Code with 111 skills, 27 agents, and 109 hooks"
+requires-python = ">=3.13"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Yonatan Gross"}
+]
+keywords = ["claude", "claude-code", "ai", "development", "skills", "agents"]
+
+# Minimal dependencies for template validation
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.0",
+    "pytest>=8.0.0",
+    "pytest-cov>=6.0.0",
+]
+# Template dependencies (for validating skill templates)
+templates = [
+    "fastapi>=0.115.0",
+    "pydantic>=2.10.0",
+    "sqlalchemy>=2.0.0",
+    "langchain>=0.3.0",
+    "langgraph>=0.2.0",
+    "redis>=5.0.0",
+]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+exclude = [
+    ".git",
+    ".claude",
+    "node_modules",
+    "__pycache__",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "PTH"]
+ignore = [
+    "E501",  # Line too long (templates may have long lines for clarity)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pyright]
+pythonVersion = "3.13"
+typeCheckingMode = "basic"
+include = [
+    "skills/**/*.py",
+    "bin/*.py",
+    ".claude/scripts/*.py",
+]
+exclude = [
+    "**/__pycache__",
+    "**/node_modules",
+]
+reportMissingImports = "warning"
+reportMissingTypeStubs = false
+
+[tool.ty.environment]
+python-version = "3.13"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+asyncio_mode = "auto"

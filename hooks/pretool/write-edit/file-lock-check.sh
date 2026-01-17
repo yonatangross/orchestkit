@@ -8,6 +8,10 @@ set -euo pipefail
 # Ensure JSON output on any exit (trap for safety)
 trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
 
+# Read stdin BEFORE sourcing common.sh to avoid race conditions
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common lib for logging

@@ -1,0 +1,18 @@
+{
+  "pythonVersion": "3.13",
+  "typeCheckingMode": "basic",
+  "include": [
+    "skills/**/*.py",
+    "bin/*.py",
+    ".claude/scripts/*.py"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    "**/node_modules",
+    ".git"
+  ],
+  "reportMissingImports": "warning",
+  "reportMissingTypeStubs": false,
+  "reportUnusedImport": "warning",
+  "reportUnusedVariable": "warning"
+}

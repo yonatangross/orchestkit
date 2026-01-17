@@ -40,8 +40,8 @@ fi
 source "$COORD_LIB" 2>/dev/null || { clean_exit; }
 
 # Load instance ID
-if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
-  source "${CLAUDE_PROJECT_DIR}/.claude/.instance_env"
+if [[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" ]]; then
+  source "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env"
   export INSTANCE_ID="${CLAUDE_INSTANCE_ID:-}"
 fi
 
