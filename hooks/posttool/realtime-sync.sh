@@ -48,8 +48,8 @@ LOG_FILE="${HOOK_LOG_DIR}/realtime-sync.log"
 mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
 
 # Pending sync queue file (per-session)
-# CC 2.1.11: CLAUDE_SESSION_ID guaranteed available
-SESSION_ID="${CLAUDE_SESSION_ID}"
+# CC 2.1.11: CLAUDE_SESSION_ID guaranteed available (with fallback for edge cases)
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 PENDING_SYNC_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/.mem0-pending-sync-${SESSION_ID}.json"
 
 # Memory Fabric Agent path
