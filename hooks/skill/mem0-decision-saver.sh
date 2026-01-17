@@ -3,7 +3,7 @@
 # Extracts and suggests saving design decisions after skill completion
 # Enhanced with graph memory support and category detection
 #
-# Version: 1.2.0 - Implemented decision extraction with graph support
+# Version: 1.2.1 - Uses mem0.sh v1.2.0 with graph-first defaults
 
 set -euo pipefail
 
@@ -165,8 +165,10 @@ MSG=$(cat <<EOF
 
 To persist these decisions, use mcp__mem0__add_memory with:
 - user_id="$DECISIONS_USER_ID"
-- enable_graph=true (extracts: $ENTITY_HINTS)
+- text=<decision content>
 - metadata={"category": "$CATEGORY", "source": "skillforge-plugin", "skill": "${SKILL_NAME:-unknown}"}
+
+Note: Graph memory enabled by default (v1.2.0) - entities extracted: $ENTITY_HINTS
 
 Example decision: "${FIRST_DECISION:0:100}..."
 EOF
