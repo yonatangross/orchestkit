@@ -38,7 +38,7 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 - **10 New Skills**: Event-driven (event-sourcing, message-queues, outbox-pattern), Database (alembic-migrations, zero-downtime-migration, database-versioning), Accessibility (react-aria-patterns, focus-management, wcag-compliance, a11y-testing)
 - **5 New Agents**: accessibility-specialist, ci-cd-engineer, deployment-manager, event-driven-architect, infrastructure-architect
 - **3 New Agent Hooks**: a11y-lint-check.sh, ci-safety-check.sh, deployment-safety-check.sh
-- **Total**: 111 skills, 27 agents, 113 hooks
+- **Total**: 115 skills, 27 agents, 113 hooks
 
 ### Previous (v4.17.2 - Commands Autocomplete Fix)
 
@@ -139,7 +139,7 @@ Try these to explore:
 
 ### Skill System
 
-**111 skills** organized in CC 2.1.7 nested structure with 4-tier progressive loading:
+**115 skills** organized in CC 2.1.7 nested structure with 4-tier progressive loading:
 
 | Tier | Content | Tokens | When Loaded |
 |------|---------|--------|-------------|
@@ -213,7 +213,7 @@ skillforge-claude-plugin/
 │   ├── pretool/          # PreToolUse dispatchers (tool-based routing)
 │   ├── posttool/         # PostToolUse dispatcher (file-type routing)
 │   └── permission/       # Auto-approval hooks
-├── skills/       # 111 skills in flat structure
+├── skills/       # 115 skills in flat structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required
 │       ├── references/        # Optional
