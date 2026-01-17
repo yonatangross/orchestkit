@@ -2,17 +2,18 @@
 set -euo pipefail
 # Agent Memory Inject - Pre-Tool Hook for Task
 # CC 2.1.7 Compliant: includes continue field in all outputs
-# Injects relevant memories before agent spawn
+# Injects relevant memories before agent spawn with cross-agent federation
 #
 # Strategy:
 # - Query mem0 for agent-specific memories using agent_id scope
 # - Query for project decisions relevant to agent's domain
+# - Query related agents for cross-agent knowledge sharing (v1.2.0)
 # - Inject as system message for agent context
-# - Support enable_graph for relationship queries
+# - Graph memory enabled by default (v1.2.0)
 # - Support cross-project best practices lookup
 #
-# Version: 1.1.0
-# Part of mem0 Semantic Memory Integration (#40, #44)
+# Version: 1.2.0
+# Part of Mem0 Pro Integration - Phase 3
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
 _HOOK_INPUT=$(cat)
@@ -128,21 +129,35 @@ SEARCH_QUERY="$AGENT_TYPE patterns decisions $DOMAIN_KEYWORDS"
 log_hook "Memory search: agent_id=$AGENT_ID, project=$PROJECT_ID"
 
 # -----------------------------------------------------------------------------
-# Build Memory Injection Message
+# Build Memory Injection Message with Cross-Agent Federation
 # -----------------------------------------------------------------------------
+
+# Get related agents for cross-agent knowledge sharing
+RELATED_AGENTS=$(mem0_get_related_agents "$AGENT_TYPE")
+
+# Build cross-agent search JSON (for Claude to execute)
+CROSS_AGENT_SEARCH=""
+if [[ -n "$RELATED_AGENTS" ]]; then
+    CROSS_AGENT_SEARCH=$(mem0_cross_agent_search_json "$AGENT_TYPE" "$DOMAIN_KEYWORDS")
+fi
 
 # Generate the mem0 search parameters for Claude to use
 # We output a suggestion for Claude to search, not the results directly
 # (since hooks can't call MCP tools, only Claude can)
 
-MEMORY_HINT=$(cat <<EOF
-Before proceeding with this $AGENT_TYPE task, consider retrieving relevant context:
+# Build related agents list for display
+RELATED_LIST=""
+if [[ -n "$RELATED_AGENTS" ]]; then
+    RELATED_LIST="Related agents: $RELATED_AGENTS"
+fi
 
-1. Agent-specific patterns (with relationships):
+MEMORY_HINT=$(cat <<EOF
+Before proceeding with this $AGENT_TYPE task, consider retrieving relevant context (graph memory enabled by default):
+
+1. Agent-specific patterns:
    mcp__mem0__search_memories with:
    - query="$SEARCH_QUERY"
    - filters={"AND": [{"user_id": "$AGENT_USER_ID"}, {"agent_id": "$AGENT_ID"}]}
-   - enable_graph=true
 
 2. Project decisions:
    mcp__mem0__search_memories with:
@@ -153,12 +168,20 @@ Before proceeding with this $AGENT_TYPE task, consider retrieving relevant conte
    mcp__mem0__search_memories with:
    - query="$DOMAIN_KEYWORDS best practices"
    - filters={"AND": [{"user_id": "$GLOBAL_USER_ID"}]}
-   - enable_graph=true
 EOF
 )
 
+# Add cross-agent section if related agents exist
+if [[ -n "$RELATED_AGENTS" ]]; then
+    MEMORY_HINT="${MEMORY_HINT}
+
+4. Cross-agent knowledge (from $RELATED_AGENTS):
+   mcp__mem0__search_memories with:
+   $CROSS_AGENT_SEARCH"
+fi
+
 # Build compact message for system context
-SYSTEM_MSG="[Memory Context] Agent: $AGENT_TYPE | ID: $AGENT_ID | Domain: $DOMAIN_KEYWORDS | Search user_id: $DECISIONS_USER_ID (project), $GLOBAL_USER_ID (global)"
+SYSTEM_MSG="[Memory Context] Agent: $AGENT_TYPE | ID: $AGENT_ID | Domain: $DOMAIN_KEYWORDS | Related: ${RELATED_AGENTS:-none}"
 
 log_hook "Outputting memory injection hint for $AGENT_TYPE"
 

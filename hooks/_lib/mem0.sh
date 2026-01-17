@@ -2,7 +2,7 @@
 # Mem0 Memory Operations Library for SkillForge Plugin
 # Provides helper functions for interacting with Mem0 MCP server
 #
-# Version: 1.1.0 - Added graph memory, agent_id, and global scope support
+# Version: 1.2.0 - Graph memory enabled by default, cross-agent federation support
 # Part of SkillForge Plugin - Works across ANY repository
 #
 # Usage: source "${CLAUDE_PLUGIN_ROOT}/hooks/_lib/mem0.sh"
@@ -12,8 +12,9 @@
 # - Graceful degradation: Works even if project has no .claude/context structure
 # - Scoped memory: Uses {project-name}-{scope} format for user_id
 # - MCP-compatible: Outputs JSON suitable for mcp__mem0__* tool calls
-# - Graph-aware: Supports enable_graph for relationship extraction
+# - Graph-first: enable_graph=true by default for relationship extraction
 # - Agent-aware: Supports agent_id for agent-scoped memories
+# - Cross-agent: Federation support for multi-agent knowledge sharing
 
 set -euo pipefail
 
@@ -33,6 +34,10 @@ set -euo pipefail
 
 # Valid scopes array for validation
 [[ -z "${MEM0_VALID_SCOPES:-}" ]] && readonly MEM0_VALID_SCOPES=("$MEM0_SCOPE_DECISIONS" "$MEM0_SCOPE_PATTERNS" "$MEM0_SCOPE_CONTINUITY" "$MEM0_SCOPE_AGENTS" "$MEM0_SCOPE_BEST_PRACTICES")
+
+# Graph memory default (v1.2.0 - enabled by default for relationship extraction)
+# Override with MEM0_ENABLE_GRAPH_DEFAULT=false if needed
+[[ -z "${MEM0_ENABLE_GRAPH_DEFAULT:-}" ]] && readonly MEM0_ENABLE_GRAPH_DEFAULT="true"
 
 # -----------------------------------------------------------------------------
 # Project Identification Functions
@@ -236,11 +241,12 @@ extract_recent_tasks() {
 # Output JSON for MCP tool call to add memory
 # Usage: mem0_add_memory_json "scope" "content" ["metadata_json"] ["enable_graph"] ["agent_id"] ["global"]
 # Output: JSON suitable for mcp__mem0__add_memory arguments
+# Note: enable_graph defaults to MEM0_ENABLE_GRAPH_DEFAULT (true in v1.2.0)
 mem0_add_memory_json() {
     local scope="$1"
     local content="$2"
     local metadata="${3:-{\}}"
-    local enable_graph="${4:-false}"
+    local enable_graph="${4:-$MEM0_ENABLE_GRAPH_DEFAULT}"
     local agent_id="${5:-}"
     local global="${6:-false}"
 
@@ -304,11 +310,12 @@ mem0_add_memory_json() {
 # Output JSON for MCP tool call to search memory
 # Usage: mem0_search_memory_json "scope" "query" ["limit"] ["enable_graph"] ["agent_id"] ["category"] ["global"]
 # Output: JSON suitable for mcp__mem0__search_memories arguments
+# Note: enable_graph defaults to MEM0_ENABLE_GRAPH_DEFAULT (true in v1.2.0)
 mem0_search_memory_json() {
     local scope="$1"
     local query="$2"
     local limit="${3:-10}"
-    local enable_graph="${4:-false}"
+    local enable_graph="${4:-$MEM0_ENABLE_GRAPH_DEFAULT}"
     local agent_id="${5:-}"
     local category="${6:-}"
     local global="${7:-false}"
@@ -656,6 +663,9 @@ export MEM0_SCOPE_AGENTS
 export MEM0_SCOPE_BEST_PRACTICES
 export MEM0_GLOBAL_PREFIX
 
+# Export graph memory default (v1.2.0)
+export MEM0_ENABLE_GRAPH_DEFAULT
+
 # -----------------------------------------------------------------------------
 # Best Practices Library Functions (#49)
 # -----------------------------------------------------------------------------
@@ -663,12 +673,13 @@ export MEM0_GLOBAL_PREFIX
 # Build best practice memory content with outcome metadata
 # Usage: build_best_practice_json "success|failed|neutral" "category" "text" ["lesson"] ["enable_graph"] ["agent_id"] ["global"]
 # Output: JSON suitable for storing in mem0
+# Note: enable_graph defaults to MEM0_ENABLE_GRAPH_DEFAULT (true in v1.2.0)
 build_best_practice_json() {
     local outcome="$1"
     local category="$2"
     local text="$3"
     local lesson="${4:-}"
-    local enable_graph="${5:-false}"
+    local enable_graph="${5:-$MEM0_ENABLE_GRAPH_DEFAULT}"
     local agent_id="${6:-}"
     local global="${7:-false}"
 
@@ -809,3 +820,562 @@ check_for_antipattern_query() {
 export -f build_best_practice_json
 export -f detect_best_practice_category
 export -f check_for_antipattern_query
+
+# -----------------------------------------------------------------------------
+# Cross-Agent Federation Functions (NEW in v1.2.0)
+# -----------------------------------------------------------------------------
+
+# Get related agents for cross-agent knowledge sharing
+# Usage: mem0_get_related_agents "database-engineer"
+# Output: Space-separated list of related agent types
+mem0_get_related_agents() {
+    local agent_type="$1"
+    case "$agent_type" in
+        database-engineer)
+            echo "backend-system-architect security-auditor data-pipeline-engineer" ;;
+        backend-system-architect)
+            echo "database-engineer frontend-ui-developer security-auditor llm-integrator" ;;
+        frontend-ui-developer)
+            echo "backend-system-architect ux-researcher accessibility-specialist rapid-ui-designer" ;;
+        security-auditor)
+            echo "backend-system-architect database-engineer infrastructure-architect" ;;
+        test-generator)
+            echo "backend-system-architect frontend-ui-developer code-quality-reviewer" ;;
+        workflow-architect)
+            echo "llm-integrator backend-system-architect data-pipeline-engineer" ;;
+        llm-integrator)
+            echo "workflow-architect data-pipeline-engineer backend-system-architect" ;;
+        data-pipeline-engineer)
+            echo "database-engineer llm-integrator workflow-architect" ;;
+        metrics-architect)
+            echo "backend-system-architect product-strategist business-case-builder" ;;
+        ux-researcher)
+            echo "frontend-ui-developer product-strategist rapid-ui-designer" ;;
+        code-quality-reviewer)
+            echo "test-generator backend-system-architect security-auditor" ;;
+        infrastructure-architect)
+            echo "ci-cd-engineer deployment-manager security-auditor" ;;
+        ci-cd-engineer)
+            echo "infrastructure-architect deployment-manager test-generator" ;;
+        deployment-manager)
+            echo "infrastructure-architect ci-cd-engineer release-engineer" ;;
+        accessibility-specialist)
+            echo "frontend-ui-developer ux-researcher rapid-ui-designer" ;;
+        product-strategist)
+            echo "requirements-translator market-intelligence business-case-builder ux-researcher" ;;
+        requirements-translator)
+            echo "product-strategist prioritization-analyst backend-system-architect" ;;
+        prioritization-analyst)
+            echo "product-strategist requirements-translator metrics-architect" ;;
+        rapid-ui-designer)
+            echo "frontend-ui-developer ux-researcher accessibility-specialist" ;;
+        market-intelligence)
+            echo "product-strategist business-case-builder" ;;
+        business-case-builder)
+            echo "product-strategist metrics-architect prioritization-analyst" ;;
+        *)
+            echo "" ;;
+    esac
+}
+
+# Build cross-agent search JSON for multiple agents
+# Usage: mem0_cross_agent_search_json "database-engineer" "query" ["limit"]
+# Output: JSON suitable for mcp__mem0__search_memories with OR filters
+mem0_cross_agent_search_json() {
+    local agent_type="$1"
+    local query="$2"
+    local limit="${3:-5}"
+
+    local related_agents
+    related_agents=$(mem0_get_related_agents "$agent_type")
+
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_AGENTS")
+
+    # Build OR filter for multiple agents
+    local agent_filters='[]'
+
+    # Add primary agent
+    agent_filters=$(echo "$agent_filters" | jq --arg aid "skf:$agent_type" '. += [{"agent_id": $aid}]')
+
+    # Add related agents
+    for related in $related_agents; do
+        if [[ -n "$related" ]]; then
+            agent_filters=$(echo "$agent_filters" | jq --arg aid "skf:$related" '. += [{"agent_id": $aid}]')
+        fi
+    done
+
+    # Build the search JSON with OR filter
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --argjson agent_filters "$agent_filters" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"OR": $agent_filters}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build cross-project best practices search for an agent's domain
+# Usage: mem0_cross_project_search_json "database-engineer" "query" ["limit"]
+# Output: JSON for searching global best practices relevant to agent domain
+mem0_cross_project_search_json() {
+    local agent_type="$1"
+    local query="$2"
+    local limit="${3:-5}"
+
+    local global_user_id
+    global_user_id=$(mem0_global_user_id "$MEM0_SCOPE_BEST_PRACTICES")
+
+    # Get domain keywords for this agent
+    local domain_keywords=""
+    case "$agent_type" in
+        database-engineer)
+            domain_keywords="database schema SQL PostgreSQL migration" ;;
+        backend-system-architect)
+            domain_keywords="API REST architecture backend microservice" ;;
+        frontend-ui-developer)
+            domain_keywords="React frontend UI component TypeScript" ;;
+        security-auditor)
+            domain_keywords="security OWASP vulnerability authentication" ;;
+        llm-integrator)
+            domain_keywords="LLM API embeddings RAG function-calling" ;;
+        workflow-architect)
+            domain_keywords="LangGraph workflow agent orchestration state" ;;
+        *)
+            domain_keywords="$agent_type" ;;
+    esac
+
+    # Enhance query with domain keywords
+    local enhanced_query="${query} ${domain_keywords}"
+
+    jq -n \
+        --arg query "$enhanced_query" \
+        --arg user_id "$global_user_id" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Export cross-agent functions
+export -f mem0_get_related_agents
+export -f mem0_cross_agent_search_json
+export -f mem0_cross_project_search_json
+
+# -----------------------------------------------------------------------------
+# Proactive Pattern Surfacing Functions (NEW in v1.2.0)
+# -----------------------------------------------------------------------------
+
+# Build search JSON filtered by outcome (success or failed)
+# Usage: mem0_search_by_outcome_json "scope" "query" "success|failed" ["limit"]
+# Output: JSON for searching patterns with specific outcome
+mem0_search_by_outcome_json() {
+    local scope="$1"
+    local query="$2"
+    local outcome="$3"
+    local limit="${4:-5}"
+
+    local user_id
+    user_id=$(mem0_user_id "$scope")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg outcome "$outcome" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": $outcome}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build search JSON for anti-patterns (failed patterns)
+# Usage: mem0_search_antipatterns_json "query" ["category"] ["limit"]
+# Output: JSON for searching failed patterns
+mem0_search_antipatterns_json() {
+    local query="$1"
+    local category="${2:-}"
+    local limit="${3:-5}"
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_BEST_PRACTICES")
+
+    local filters
+    if [[ -n "$category" ]]; then
+        filters=$(jq -n \
+            --arg user_id "$user_id" \
+            --arg category "$category" \
+            '{
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": "failed"},
+                    {"metadata.category": $category}
+                ]
+            }')
+    else
+        filters=$(jq -n \
+            --arg user_id "$user_id" \
+            '{
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": "failed"}
+                ]
+            }')
+    fi
+
+    jq -n \
+        --arg query "$query" \
+        --argjson filters "$filters" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: $filters,
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build search JSON for best practices (successful patterns)
+# Usage: mem0_search_best_practices_json "query" ["category"] ["limit"]
+# Output: JSON for searching successful patterns
+mem0_search_best_practices_json() {
+    local query="$1"
+    local category="${2:-}"
+    local limit="${3:-5}"
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_BEST_PRACTICES")
+
+    local filters
+    if [[ -n "$category" ]]; then
+        filters=$(jq -n \
+            --arg user_id "$user_id" \
+            --arg category "$category" \
+            '{
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": "success"},
+                    {"metadata.category": $category}
+                ]
+            }')
+    else
+        filters=$(jq -n \
+            --arg user_id "$user_id" \
+            '{
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": "success"}
+                ]
+            }')
+    fi
+
+    jq -n \
+        --arg query "$query" \
+        --argjson filters "$filters" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: $filters,
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build global search JSON for cross-project patterns by outcome
+# Usage: mem0_search_global_by_outcome_json "query" "success|failed" ["limit"]
+# Output: JSON for searching global patterns with specific outcome
+mem0_search_global_by_outcome_json() {
+    local query="$1"
+    local outcome="$2"
+    local limit="${3:-5}"
+
+    local user_id
+    user_id=$(mem0_global_user_id "$MEM0_SCOPE_BEST_PRACTICES")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg outcome "$outcome" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.outcome": $outcome}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Export proactive pattern surfacing functions
+export -f mem0_search_by_outcome_json
+export -f mem0_search_antipatterns_json
+export -f mem0_search_best_practices_json
+export -f mem0_search_global_by_outcome_json
+
+# -----------------------------------------------------------------------------
+# Session Continuity 2.0 Functions (NEW in v1.2.0)
+# -----------------------------------------------------------------------------
+
+# Build session summary JSON for storage at session end
+# Collects current task, blockers, decisions, agents used, and next steps
+# Usage: build_session_summary_json "task_summary" "status" ["blockers"] ["next_steps"]
+# Output: JSON suitable for mcp__mem0__add_memory for session continuity
+build_session_summary_json() {
+    local task_summary="$1"
+    local status="${2:-in_progress}"
+    local blockers="${3:-}"
+    local next_steps="${4:-}"
+
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    local session_id
+    session_id="${CLAUDE_SESSION_ID:-$(date +%s)}"
+
+    # Build text summary
+    local text="Session Summary: ${task_summary}"
+    if [[ -n "$blockers" ]]; then
+        text="${text} | Blockers: ${blockers}"
+    fi
+    if [[ -n "$next_steps" ]]; then
+        text="${text} | Next: ${next_steps}"
+    fi
+
+    # Build metadata
+    local metadata
+    metadata=$(jq -n \
+        --arg status "$status" \
+        --arg project "$project_id" \
+        --arg timestamp "$timestamp" \
+        --arg session_id "$session_id" \
+        --arg blockers "$blockers" \
+        --arg next_steps "$next_steps" \
+        '{
+            type: "session_summary",
+            status: $status,
+            project: $project,
+            session_id: $session_id,
+            stored_at: $timestamp,
+            has_blockers: ($blockers != ""),
+            has_next_steps: ($next_steps != ""),
+            source: "skillforge-plugin"
+        }')
+
+    # Build result
+    local result
+    result=$(jq -n \
+        --arg text "$text" \
+        --arg user_id "$user_id" \
+        --argjson metadata "$metadata" \
+        '{
+            text: $text,
+            user_id: $user_id,
+            metadata: $metadata,
+            enable_graph: true
+        }')
+
+    echo "$result"
+}
+
+# Build search JSON for recent sessions with time filtering
+# Usage: mem0_search_recent_sessions_json "query" ["days_back"] ["limit"]
+# Output: JSON for searching session continuity with time filter
+mem0_search_recent_sessions_json() {
+    local query="$1"
+    local days_back="${2:-7}"
+    local limit="${3:-3}"
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+    # Calculate date threshold
+    # macOS date differs from Linux - detect and handle both
+    local date_threshold
+    if date --version >/dev/null 2>&1; then
+        # GNU date (Linux)
+        date_threshold=$(date -d "-${days_back} days" +%Y-%m-%d)
+    else
+        # BSD date (macOS)
+        date_threshold=$(date -v-${days_back}d +%Y-%m-%d)
+    fi
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg date_threshold "$date_threshold" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"created_at": {"gte": $date_threshold}}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build search JSON for sessions with blockers
+# Usage: mem0_search_blocked_sessions_json "query" ["days_back"] ["limit"]
+# Output: JSON for searching sessions that had blockers
+mem0_search_blocked_sessions_json() {
+    local query="$1"
+    local days_back="${2:-14}"
+    local limit="${3:-5}"
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+    # Calculate date threshold
+    local date_threshold
+    if date --version >/dev/null 2>&1; then
+        date_threshold=$(date -d "-${days_back} days" +%Y-%m-%d)
+    else
+        date_threshold=$(date -v-${days_back}d +%Y-%m-%d)
+    fi
+
+    jq -n \
+        --arg query "$query blockers issues" \
+        --arg user_id "$user_id" \
+        --arg date_threshold "$date_threshold" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.has_blockers": true},
+                    {"created_at": {"gte": $date_threshold}}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build search JSON for sessions with pending next steps
+# Usage: mem0_search_pending_work_json "query" ["days_back"] ["limit"]
+# Output: JSON for searching sessions with unfinished work
+mem0_search_pending_work_json() {
+    local query="$1"
+    local days_back="${2:-14}"
+    local limit="${3:-5}"
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+    # Calculate date threshold
+    local date_threshold
+    if date --version >/dev/null 2>&1; then
+        date_threshold=$(date -d "-${days_back} days" +%Y-%m-%d)
+    else
+        date_threshold=$(date -v-${days_back}d +%Y-%m-%d)
+    fi
+
+    jq -n \
+        --arg query "$query next steps pending" \
+        --arg user_id "$user_id" \
+        --arg date_threshold "$date_threshold" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            filters: {
+                "AND": [
+                    {"user_id": $user_id},
+                    {"metadata.has_next_steps": true},
+                    {"metadata.status": "in_progress"},
+                    {"created_at": {"gte": $date_threshold}}
+                ]
+            },
+            limit: $limit,
+            enable_graph: true
+        }'
+}
+
+# Build combined session context retrieval hint for Claude
+# Usage: build_session_retrieval_hint ["days_back"]
+# Output: Formatted hint for Claude to search session context
+build_session_retrieval_hint() {
+    local days_back="${1:-7}"
+
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    local user_id
+    user_id=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+    local decisions_user_id
+    decisions_user_id=$(mem0_user_id "$MEM0_SCOPE_DECISIONS")
+
+    # Build the recent sessions search JSON
+    local recent_search
+    recent_search=$(mem0_search_recent_sessions_json "session context blockers next steps" "$days_back" 3)
+
+    # Build the blocked sessions search JSON
+    local blocked_search
+    blocked_search=$(mem0_search_blocked_sessions_json "blockers issues" "$days_back" 3)
+
+    cat <<EOF
+Session context available for ${project_id} (graph memory enabled):
+
+1. Recent session summaries (last ${days_back} days):
+   mcp__mem0__search_memories with:
+   ${recent_search}
+
+2. Sessions with blockers:
+   mcp__mem0__search_memories with:
+   ${blocked_search}
+
+3. Project decisions:
+   mcp__mem0__search_memories with:
+   - query="recent decisions architecture"
+   - filters={"AND": [{"user_id": "${decisions_user_id}"}]}
+   - limit=5
+   - enable_graph=true
+EOF
+}
+
+# Export session continuity functions
+export -f build_session_summary_json
+export -f mem0_search_recent_sessions_json
+export -f mem0_search_blocked_sessions_json
+export -f mem0_search_pending_work_json
+export -f build_session_retrieval_hint

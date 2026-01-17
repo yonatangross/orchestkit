@@ -6,10 +6,14 @@
 # This hook checks for pending memory sync from previous sessions and
 # provides guidance on using Mem0 for context retrieval.
 #
+# Version: 1.3.0 - Session Continuity 2.0 with time-filtered search
+# Part of Mem0 Pro Integration - Phase 5
+#
 # Features:
 # - Checks for .mem0-pending-sync.json from previous session
 # - Prompts Claude to sync pending memories via mcp__mem0__add_memory
-# - Suggests using mcp__mem0__search_memories for context when no pending sync
+# - Time-filtered search for recent sessions (last 7 days by default)
+# - Blocker detection and pending work search
 # - Project-agnostic: uses project-scoped user_ids
 # - Graceful if Mem0 MCP is not configured
 
@@ -84,7 +88,7 @@ archive_pending_sync() {
     fi
 }
 
-# Build concise system message for pending sync
+# Build concise system message for pending sync (v1.3.0 - includes continuation hints)
 build_pending_sync_message() {
     local file="$1"
     local project_id
@@ -100,10 +104,25 @@ build_pending_sync_message() {
     local user_id
     user_id=$(mem0_user_id "$scope")
 
-    echo "Pending memory sync detected (${memory_count} items for ${project_id}). Call mcp__mem0__add_memory with user_id='${user_id}' to persist previous session context."
+    # Check for any blockers or pending work in the sync file
+    local has_blockers
+    has_blockers=$(jq -r '.memories[]? | select(.metadata.has_blockers == true) | .text' "$file" 2>/dev/null | head -1 || echo "")
+    local has_next_steps
+    has_next_steps=$(jq -r '.memories[]? | select(.metadata.has_next_steps == true) | .text' "$file" 2>/dev/null | head -1 || echo "")
+
+    local msg="Pending memory sync detected (${memory_count} items for ${project_id}). Call mcp__mem0__add_memory with user_id='${user_id}' to persist previous session context."
+
+    if [[ -n "$has_blockers" ]]; then
+        msg="${msg} Previous session had unresolved blockers."
+    fi
+    if [[ -n "$has_next_steps" ]]; then
+        msg="${msg} Previous session had pending next steps."
+    fi
+
+    echo "$msg"
 }
 
-# Build tip message for memory search
+# Build tip message for memory search (v1.3.0 - enhanced with time-filtered searches)
 build_search_tip_message() {
     local project_id
     project_id=$(mem0_get_project_id)
@@ -112,7 +131,14 @@ build_search_tip_message() {
     local user_id_continuity
     user_id_continuity=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
 
-    echo "Use mcp__mem0__search_memories with user_id='${user_id_decisions}' or '${user_id_continuity}' to retrieve relevant context for ${project_id}."
+    # Use the new session retrieval hint function if available
+    if type build_session_retrieval_hint &>/dev/null; then
+        # Return enhanced hint with time-filtered search options
+        build_session_retrieval_hint 7
+    else
+        # Fallback to basic hint
+        echo "Use mcp__mem0__search_memories with user_id='${user_id_decisions}' or '${user_id_continuity}' to retrieve relevant context for ${project_id}."
+    fi
 }
 
 # -----------------------------------------------------------------------------

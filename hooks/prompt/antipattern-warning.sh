@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # antipattern-warning.sh - Proactive anti-pattern detection and warning injection
-# Part of SkillForge Plugin - Best Practice Library (#49)
+# Part of Mem0 Pro Integration - Phase 4
 #
 # This hook analyzes user prompts for patterns that match known anti-patterns
 # and injects a warning via CC 2.1.9 additionalContext if a match is found.
+# Enhanced with Mem0 semantic search hints for project/global anti-patterns.
 #
 # CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext for warnings
+# Version: 1.2.0
 
 set -euo pipefail
 
@@ -146,17 +148,38 @@ search_local_antipatterns() {
     fi
 }
 
-# Build mem0 search instruction for Claude
+# Build mem0 search instruction for Claude (enhanced for v1.2.0)
 build_mem0_search_hint() {
     local prompt="$1"
     local category
     category=$(detect_best_practice_category "$prompt")
 
+    # Build Mem0 search JSON for anti-patterns
+    local antipattern_search
+    antipattern_search=$(mem0_search_antipatterns_json "$prompt" "$category" 5)
+
+    # Build Mem0 search JSON for best practices
+    local best_practice_search
+    best_practice_search=$(mem0_search_best_practices_json "$prompt" "$category" 3)
+
+    # Build global search
+    local global_search
+    global_search=$(mem0_search_global_by_outcome_json "$prompt" "failed" 3)
+
     cat << EOF
-Before implementing, search your memory for relevant patterns:
-- Search mem0 for failed patterns in category "$category"
-- Query: mcp__mem0__search_memories with filters for outcome="failed"
-- Check if similar approaches failed in other projects
+Before implementing, search Mem0 for relevant patterns (graph memory enabled):
+
+1. Project anti-patterns (category: $category):
+   mcp__mem0__search_memories with:
+   $antipattern_search
+
+2. Project best practices:
+   mcp__mem0__search_memories with:
+   $best_practice_search
+
+3. Cross-project failures:
+   mcp__mem0__search_memories with:
+   $global_search
 EOF
 }
 
@@ -188,12 +211,32 @@ main() {
     local warnings
     warnings=$(search_local_antipatterns "$prompt")
 
+    # Build Mem0 search hints
+    local mem0_search_hints=""
+    if is_mem0_available; then
+        mem0_search_hints=$(build_mem0_search_hint "$prompt")
+    fi
+
     if [[ -n "$warnings" ]]; then
         log "Found anti-pattern warnings: $warnings"
 
-        # Build warning message
+        # Build warning message with Mem0 search hints
         local warning_message
-        warning_message=$(cat << EOF
+        if [[ -n "$mem0_search_hints" ]]; then
+            warning_message=$(cat << EOF
+## Anti-Pattern Warning
+
+The following patterns have previously caused issues:
+
+$(echo "$warnings" | sed 's/^/- /')
+
+Consider alternative approaches before proceeding.
+
+$mem0_search_hints
+EOF
+)
+        else
+            warning_message=$(cat << EOF
 ## Anti-Pattern Warning
 
 The following patterns have previously caused issues:
@@ -203,6 +246,7 @@ $(echo "$warnings" | sed 's/^/- /')
 Consider alternative approaches before proceeding.
 EOF
 )
+        fi
 
         # Inject warning via additionalContext (CC 2.1.9)
         jq -n \
@@ -214,13 +258,18 @@ EOF
                 }
             }'
     else
-        # No warnings, but still hint to check mem0
+        # No local warnings - provide Mem0 search hints for semantic search
         local category
         category=$(detect_best_practice_category "$prompt")
 
         # Only add hint for significant implementation tasks
         if [[ "$prompt" =~ (implement|build|create|develop) ]]; then
-            local hint="Consider checking mem0 for past patterns related to \"$category\" before implementing."
+            local hint
+            if [[ -n "$mem0_search_hints" ]]; then
+                hint="$mem0_search_hints"
+            else
+                hint="Consider checking mem0 for past patterns related to \"$category\" before implementing."
+            fi
             jq -n \
                 --arg hint "$hint" \
                 '{
