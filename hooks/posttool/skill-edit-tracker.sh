@@ -7,7 +7,7 @@
 # Action: Categorize and log edit patterns for evolution analysis
 # CC 2.1.7 Compliant: Self-contained hook with stdin reading
 #
-# Version: 1.0.1
+# Version: 1.0.2 - Fixed Bash 3.2 compatibility (no associative arrays)
 
 set -eo pipefail
 
@@ -36,40 +36,62 @@ EDIT_PATTERNS_FILE="${PROJECT_ROOT}/.claude/feedback/edit-patterns.jsonl"
 SKILL_USAGE_LOG="${PROJECT_ROOT}/.claude/logs/skill-usage.log"
 
 # Edit pattern categories with detection patterns
-# Note: Using simple patterns to avoid shell quoting issues
-declare -A PATTERN_DETECTORS=(
+# Note: Using parallel arrays for Bash 3.2 compatibility (no associative arrays)
+# Pattern names and their regex detectors are stored in parallel arrays
+PATTERN_NAMES=(
     # API/Backend patterns
-    ["add_pagination"]="limit.*offset|page.*size|cursor.*pagination|paginate|Paginated"
-    ["add_rate_limiting"]="rate.?limit|throttl|RateLimiter|requests.?per"
-    ["add_caching"]="@cache|cache_key|TTL|redis|memcache|@cached"
-    ["add_retry_logic"]="retry|backoff|max_attempts|tenacity|Retry"
-
+    "add_pagination"
+    "add_rate_limiting"
+    "add_caching"
+    "add_retry_logic"
     # Error handling patterns
-    ["add_error_handling"]="try.*catch|except|raise.*Exception|throw.*Error|error.*handler"
-    ["add_validation"]="validate|Validator|@validate|Pydantic|Zod|yup|schema"
-    ["add_logging"]="logger[.]|logging[.]|console[.]log|winston|pino|structlog"
-
+    "add_error_handling"
+    "add_validation"
+    "add_logging"
     # Type safety patterns
-    ["add_types"]=": *(str|int|bool|List|Dict|Optional)|interface |type .*="
-    ["add_type_guards"]="isinstance|typeof|is.*Type|assert.*type"
-
+    "add_types"
+    "add_type_guards"
     # Code quality patterns
-    ["add_docstring"]='docstring|"""[^"]+"""|/[*][*]'
-    ["remove_comments"]="^-.*#|^-.*//|^-.*[*]"
-
+    "add_docstring"
+    "remove_comments"
     # Security patterns
-    ["add_auth_check"]="@auth|@require_auth|isAuthenticated|requiresAuth|@login_required"
-    ["add_input_sanitization"]="escape|sanitize|htmlspecialchars|DOMPurify"
-
+    "add_auth_check"
+    "add_input_sanitization"
     # Testing patterns
-    ["add_test_case"]="def test_|it[(]|describe[(]|expect[(]|assert|@pytest"
-    ["add_mock"]="Mock|patch|jest[.]mock|vi[.]mock|MagicMock"
-
+    "add_test_case"
+    "add_mock"
     # Import/dependency patterns
-    ["modify_imports"]="^[+-].*import|^[+-].*from.*import|^[+-].*require[(]"
-
+    "modify_imports"
     # Async patterns
-    ["add_async"]="async |await |Promise|asyncio|async def"
+    "add_async"
+)
+
+PATTERN_REGEXES=(
+    # API/Backend patterns
+    "limit.*offset|page.*size|cursor.*pagination|paginate|Paginated"
+    "rate.?limit|throttl|RateLimiter|requests.?per"
+    "@cache|cache_key|TTL|redis|memcache|@cached"
+    "retry|backoff|max_attempts|tenacity|Retry"
+    # Error handling patterns
+    "try.*catch|except|raise.*Exception|throw.*Error|error.*handler"
+    "validate|Validator|@validate|Pydantic|Zod|yup|schema"
+    "logger[.]|logging[.]|console[.]log|winston|pino|structlog"
+    # Type safety patterns
+    ": *(str|int|bool|List|Dict|Optional)|interface |type .*="
+    "isinstance|typeof|is.*Type|assert.*type"
+    # Code quality patterns
+    'docstring|"""[^"]+"""|/[*][*]'
+    "^-.*#|^-.*//|^-.*[*]"
+    # Security patterns
+    "@auth|@require_auth|isAuthenticated|requiresAuth|@login_required"
+    "escape|sanitize|htmlspecialchars|DOMPurify"
+    # Testing patterns
+    "def test_|it[(]|describe[(]|expect[(]|assert|@pytest"
+    "Mock|patch|jest[.]mock|vi[.]mock|MagicMock"
+    # Import/dependency patterns
+    "^[+-].*import|^[+-].*from.*import|^[+-].*require[(]"
+    # Async patterns
+    "async |await |Promise|asyncio|async def"
 )
 
 # Get recent skill usage from session state
@@ -93,15 +115,20 @@ get_recent_skill() {
 }
 
 # Detect edit patterns in content diff
+# Uses parallel arrays for Bash 3.2 compatibility
 detect_patterns() {
     local diff_content="$1"
     local detected=()
+    local i=0
+    local count=${#PATTERN_NAMES[@]}
 
-    for pattern_name in "${!PATTERN_DETECTORS[@]}"; do
-        local regex="${PATTERN_DETECTORS[$pattern_name]}"
+    while [[ $i -lt $count ]]; do
+        local pattern_name="${PATTERN_NAMES[$i]}"
+        local regex="${PATTERN_REGEXES[$i]}"
         if echo "$diff_content" | grep -qiE "$regex" 2>/dev/null; then
             detected+=("$pattern_name")
         fi
+        i=$((i + 1))
     done
 
     # Output as JSON array

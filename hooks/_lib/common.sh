@@ -800,13 +800,19 @@ export -f get_session_state_dir get_session_temp_file ensure_session_temp_dir
 # -----------------------------------------------------------------------------
 
 # Guard: Only run for specific file extensions
+# Note: Uses tr for case-insensitive comparison (Bash 3.2 compatible - no ${,,} syntax)
 guard_file_extension() {
   local file_path
   file_path=$(get_field '.tool_input.file_path // ""')
   [[ -z "$file_path" ]] && { output_silent_success; return 1; }
   local ext="${file_path##*.}"
+  # Convert to lowercase using tr (Bash 3.2 compatible)
+  local ext_lower
+  ext_lower=$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')
   for allowed_ext in "$@"; do
-    [[ "${ext,,}" == "${allowed_ext,,}" ]] && return 0
+    local allowed_lower
+    allowed_lower=$(printf '%s' "$allowed_ext" | tr '[:upper:]' '[:lower:]')
+    [[ "$ext_lower" == "$allowed_lower" ]] && return 0
   done
   output_silent_success
   return 1

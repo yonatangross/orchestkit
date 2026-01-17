@@ -12,7 +12,7 @@ PLUGIN_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Source mem0 library for user_id helpers
 source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null || {
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -64,7 +64,7 @@ fi
 
 # If nothing to sync, silent exit
 if [[ "$DECISION_COUNT" == "0" && "$PATTERN_COUNT" == "0" ]]; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 

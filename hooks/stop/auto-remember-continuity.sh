@@ -40,7 +40,7 @@ log_hook "Auto-remember continuity hook triggered"
 # Skip if mem0 not available
 if [[ "$MEM0_AVAILABLE" != "true" ]]; then
     log_hook "Mem0 not available, skipping"
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 

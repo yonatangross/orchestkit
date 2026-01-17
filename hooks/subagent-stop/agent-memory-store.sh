@@ -90,7 +90,7 @@ fi
 # If no agent type, silent success
 if [[ -z "$AGENT_TYPE" ]]; then
     log_hook "No agent type in input, skipping"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -231,7 +231,7 @@ if [[ -n "$EXTRACTED_PATTERNS" ]]; then
         }'
 else
     log_hook "No patterns extracted from $AGENT_TYPE output"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
 fi
 
 # Clean up tracking file

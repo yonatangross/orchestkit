@@ -113,7 +113,7 @@ if [[ -n "$STAGED_CONTEXT" ]]; then
   log_hook "Staged context with $(echo -e "$STAGED_CONTEXT" | wc -l) lines"
 else
   log_hook "No context staged for this task"
-  echo '{"continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
 fi
 
 exit 0

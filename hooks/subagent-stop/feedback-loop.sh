@@ -230,7 +230,7 @@ main() {
     # Skip if unknown agent type
     if [[ "$AGENT_TYPE" == "unknown" || -z "$AGENT_TYPE" ]]; then
         log_feedback "Skipping unknown agent type"
-        echo '{"continue":true}'
+        echo '{"continue":true,"suppressOutput":true}'
         exit 0
     fi
 

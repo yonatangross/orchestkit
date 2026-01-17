@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source mem0 library
 source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null || {
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -58,7 +58,7 @@ fi
 
 # Skip if no skill output or too short
 if [[ -z "$SKILL_OUTPUT" || ${#SKILL_OUTPUT} -lt $MIN_OUTPUT_LENGTH ]]; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -110,7 +110,7 @@ has_decision_content() {
 
 # Check if output contains decision-worthy content
 if ! has_decision_content "$SKILL_OUTPUT"; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -139,7 +139,7 @@ extract_decisions() {
 EXTRACTED_DECISIONS=$(extract_decisions "$SKILL_OUTPUT")
 
 if [[ -z "$EXTRACTED_DECISIONS" ]]; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 

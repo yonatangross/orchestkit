@@ -9,7 +9,7 @@ This document provides essential context for Claude Code when working with the S
 - **111 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
 - **27 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **18 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **109 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
+- **118 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -27,7 +27,8 @@ This document provides essential context for Claude Code when working with the S
 ├── commands/            # User-invocable skill workflows (CC 2.1.3+ unified)
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 105 lifecycle hooks for automation
+├── hooks/               # 118 lifecycle hooks for automation
+│   ├── setup/           # CC 2.1.11 Setup hooks (--init, --maintenance)
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -66,7 +67,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.9 (CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
+- **Claude Code**: >= 2.1.11 (CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure, auto-enable via auto:N thresholds)
 
 ### Expected Application Stack (Skills Support)
@@ -636,19 +637,70 @@ Hooks use `${CLAUDE_SESSION_ID}` directly without fallback patterns (CC 2.1.9 gu
 
 ---
 
+## CC 2.1.11 Features
+
+### Setup Hook Event
+New hook event triggered via CLI flags for repository initialization and maintenance:
+
+```bash
+# Interactive first-run setup wizard
+claude --init
+
+# Silent setup for CI/CD (non-interactive)
+claude --init-only
+
+# Run maintenance tasks (log rotation, cleanup, migrations)
+claude --maintenance
+```
+
+**Setup Hooks Architecture:**
+```
+hooks/setup/
+├── setup-check.sh          # Entry point - fast validation (< 10ms happy path)
+├── first-run-setup.sh      # Full setup + interactive wizard
+├── setup-repair.sh         # Self-healing for broken installations
+└── setup-maintenance.sh    # Periodic maintenance tasks
+```
+
+**Hybrid Marker File Detection:**
+- Marker file (`.setup-complete`) for fast first-run detection
+- Quick validation (< 50ms) for self-healing
+- Automatic repair of corrupted configs, permissions, directories
+
+**Maintenance Tasks:**
+| Task | Frequency | Description |
+|------|-----------|-------------|
+| Log rotation | Daily | Rotate logs > 200KB |
+| Stale lock cleanup | Daily | Remove locks > 24h old |
+| Session archive | Daily | Archive sessions > 7 days |
+| Metrics aggregation | Weekly | Aggregate usage metrics |
+| Health validation | Weekly | Full component validation |
+
+**Emergency Bypass:**
+```bash
+SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
+```
+
+### VSCode Plugin Enhancements
+- Install count display in plugin listings
+- Trust warning when installing plugins
+
+---
+
 ## Version Information
 
-- **Current Version**: 4.18.0 (as of 2026-01-16)
-- **Claude Code Requirement**: >= 2.1.9
+- **Current Version**: 4.19.0 (as of 2026-01-17)
+- **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.9 additionalContext + CC 2.1.7 native parallel (109 hooks)
+- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (118 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
 - **CC 2.1.9 Integration**: additionalContext, auto:N MCP, plansDirectory (v4.16.0)
 - **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 17 commands (v4.17.0)
 - **Git Enforcement**: Commit message, branch naming, atomic commits, issue creation (v4.18.0)
+- **CC 2.1.11 Integration**: Setup hooks (--init, --init-only, --maintenance), self-healing, maintenance automation (v4.19.0)
 
 ---
 
@@ -685,4 +737,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-16 (v4.18.0)
+**Last Updated**: 2026-01-17 (v4.19.0)

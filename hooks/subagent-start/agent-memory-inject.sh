@@ -86,7 +86,7 @@ fi
 # If no agent type detected, silent success
 if [[ -z "$AGENT_TYPE" ]]; then
     log_hook "No agent type detected, passing through"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -106,7 +106,7 @@ echo "$AGENT_ID" > "$AGENT_TRACKING_DIR/current-agent-id" 2>/dev/null || true
 
 if ! is_mem0_available; then
     log_hook "Mem0 not available, skipping memory injection"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 

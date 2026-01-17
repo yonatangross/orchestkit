@@ -155,7 +155,7 @@ if [[ ${#VERIFICATION_ACTIONS[@]} -gt 0 ]]; then
         }'
 else
     log_action "SKIP" "No verification triggers matched"
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
 fi
 
 exit 0

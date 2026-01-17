@@ -3,6 +3,7 @@ set -euo pipefail
 # Changelog Generator Hook
 # Injects auto-generated changelog before gh release create commands
 # CC 2.1.9: Uses additionalContext to provide suggested changelog
+# Version: 1.0.1 - Fixed Bash 3.2 compatibility (no associative arrays)
 
 INPUT=$(cat)
 export _HOOK_INPUT="$INPUT"
@@ -44,18 +45,18 @@ if [[ -z "$COMMITS" ]]; then
 fi
 
 # Group commits by conventional commit type
-declare -A COMMIT_GROUPS
-COMMIT_GROUPS["feat"]=""
-COMMIT_GROUPS["fix"]=""
-COMMIT_GROUPS["docs"]=""
-COMMIT_GROUPS["refactor"]=""
-COMMIT_GROUPS["test"]=""
-COMMIT_GROUPS["chore"]=""
-COMMIT_GROUPS["style"]=""
-COMMIT_GROUPS["perf"]=""
-COMMIT_GROUPS["ci"]=""
-COMMIT_GROUPS["build"]=""
-COMMIT_GROUPS["other"]=""
+# Using parallel arrays for Bash 3.2 compatibility (no associative arrays)
+COMMITS_FEAT=""
+COMMITS_FIX=""
+COMMITS_DOCS=""
+COMMITS_REFACTOR=""
+COMMITS_TEST=""
+COMMITS_CHORE=""
+COMMITS_STYLE=""
+COMMITS_PERF=""
+COMMITS_CI=""
+COMMITS_BUILD=""
+COMMITS_OTHER=""
 
 while IFS= read -r commit; do
   [[ -z "$commit" ]] && continue
@@ -65,10 +66,21 @@ while IFS= read -r commit; do
   CONV_COMMIT_PATTERN='^(feat|fix|docs|refactor|test|chore|style|perf|ci|build)(\([^)]+\))?:[[:space:]]+(.+)'
   if [[ "$commit" =~ $CONV_COMMIT_PATTERN ]]; then
     type="${BASH_REMATCH[1]}"
-    COMMIT_GROUPS["$type"]+="- $commit"$'\n'
+    case "$type" in
+      feat)     COMMITS_FEAT="${COMMITS_FEAT}- $commit"$'\n' ;;
+      fix)      COMMITS_FIX="${COMMITS_FIX}- $commit"$'\n' ;;
+      docs)     COMMITS_DOCS="${COMMITS_DOCS}- $commit"$'\n' ;;
+      refactor) COMMITS_REFACTOR="${COMMITS_REFACTOR}- $commit"$'\n' ;;
+      test)     COMMITS_TEST="${COMMITS_TEST}- $commit"$'\n' ;;
+      chore)    COMMITS_CHORE="${COMMITS_CHORE}- $commit"$'\n' ;;
+      style)    COMMITS_STYLE="${COMMITS_STYLE}- $commit"$'\n' ;;
+      perf)     COMMITS_PERF="${COMMITS_PERF}- $commit"$'\n' ;;
+      ci)       COMMITS_CI="${COMMITS_CI}- $commit"$'\n' ;;
+      build)    COMMITS_BUILD="${COMMITS_BUILD}- $commit"$'\n' ;;
+    esac
   else
     # Non-conventional commits go to "other"
-    COMMIT_GROUPS["other"]+="- $commit"$'\n'
+    COMMITS_OTHER="${COMMITS_OTHER}- $commit"$'\n'
   fi
 done <<< "$COMMITS"
 
@@ -79,32 +91,29 @@ $TAG_INFO
 
 "
 
-# Map types to human-readable headers
-declare -A TYPE_HEADERS
-TYPE_HEADERS["feat"]="Features"
-TYPE_HEADERS["fix"]="Bug Fixes"
-TYPE_HEADERS["docs"]="Documentation"
-TYPE_HEADERS["refactor"]="Refactoring"
-TYPE_HEADERS["test"]="Tests"
-TYPE_HEADERS["chore"]="Chores"
-TYPE_HEADERS["style"]="Style"
-TYPE_HEADERS["perf"]="Performance"
-TYPE_HEADERS["ci"]="CI/CD"
-TYPE_HEADERS["build"]="Build"
-TYPE_HEADERS["other"]="Other Changes"
-
-# Order for display
-DISPLAY_ORDER=("feat" "fix" "perf" "refactor" "docs" "test" "ci" "build" "chore" "style" "other")
-
-for type in "${DISPLAY_ORDER[@]}"; do
-  commits="${COMMIT_GROUPS[$type]}"
+# Helper function to append section if not empty
+append_section() {
+  local header="$1"
+  local commits="$2"
   if [[ -n "$commits" ]]; then
-    header="${TYPE_HEADERS[$type]}"
     CHANGELOG+="### $header
 $commits
 "
   fi
-done
+}
+
+# Append sections in display order
+append_section "Features" "$COMMITS_FEAT"
+append_section "Bug Fixes" "$COMMITS_FIX"
+append_section "Performance" "$COMMITS_PERF"
+append_section "Refactoring" "$COMMITS_REFACTOR"
+append_section "Documentation" "$COMMITS_DOCS"
+append_section "Tests" "$COMMITS_TEST"
+append_section "CI/CD" "$COMMITS_CI"
+append_section "Build" "$COMMITS_BUILD"
+append_section "Chores" "$COMMITS_CHORE"
+append_section "Style" "$COMMITS_STYLE"
+append_section "Other Changes" "$COMMITS_OTHER"
 
 # Add usage hint
 CHANGELOG+="---
