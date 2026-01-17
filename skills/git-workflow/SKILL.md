@@ -194,3 +194,8 @@ Avoid:
 - [Interactive Staging](references/interactive-staging.md)
 - [Reflog Recovery](references/reflog-recovery.md)
 - [Recovery Decision Tree](references/recovery-decision-tree.md)
+
+## Checklists
+
+- [Branch Checklist](checklists/branch-checklist.md) - Pre-flight checks before creating branches
+- [Pre-Commit Checklist](checklists/pre-commit-checklist.md) - Validation before committing

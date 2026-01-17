@@ -144,3 +144,7 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 - [Milestone API](references/milestone-api.md) - REST API patterns for milestone CRUD
 - [Projects v2](references/projects-v2.md) - Custom fields, GraphQL mutations
 - [GraphQL API](references/graphql-api.md) - Complex queries, pagination, bulk operations
+
+## Examples
+
+- [Automation Scripts](examples/automation-scripts.md) - Ready-to-use scripts for bulk operations, PR automation, milestone management

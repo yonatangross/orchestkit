@@ -93,6 +93,11 @@ Return structured operation report:
 }
 ```
 
+## Workflow Checklists
+Before operations, consult the appropriate checklist from git-workflow skill:
+- **Creating branches**: Use `checklists/branch-checklist.md` for pre-flight validation
+- **Making commits**: Use `checklists/pre-commit-checklist.md` for atomic commit validation
+
 ## Task Boundaries
 **DO:**
 - Create feature branches with proper naming conventions

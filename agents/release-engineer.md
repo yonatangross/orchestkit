@@ -117,6 +117,12 @@ Return structured release report:
 - Full release workflow: 25-40 tool calls (changelog, release, milestones, roadmap update)
 - Sprint planning: 20-30 tool calls (create milestone, assign issues, set due dates)
 
+## Automation Scripts
+For bulk operations and automation, use scripts from github-operations skill:
+- **Bulk issue/milestone ops**: See `examples/automation-scripts.md`
+- **Milestone progress reports**: Pre-built `gh api` queries
+- **Sprint issue transitions**: Bulk move scripts
+
 ## Release Workflow
 
 ### Standard Release
