@@ -3,7 +3,7 @@
 # Prompts Claude to save important session context to Mem0 before compaction
 # Enhanced with graph memory support, pending pattern sync, and session summaries
 #
-# Version: 1.3.0 - Session Continuity 2.0 with richer summaries
+# Version: 1.4.0 - Auto-invoke mem0-sync skill with ready MCP calls
 # Part of Mem0 Pro Integration - Phase 5
 
 set -euo pipefail
@@ -157,48 +157,89 @@ fi
 # Build continuity user ID for session summary
 CONTINUITY_USER_ID=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
 
-# Build detailed sync message with session summary (v1.3.0)
-MSG=$(cat <<EOF
-[Session Sync] $SUMMARY
+# -----------------------------------------------------------------------------
+# Build Sync Context for mem0-sync Skill (v1.4.0)
+# -----------------------------------------------------------------------------
 
-Before session ends, consider saving important context to Mem0 (graph memory enabled by default):
+# Build sync context JSON that the skill will use
+SYNC_CONTEXT=$(jq -n \
+    --arg project_id "$PROJECT_ID" \
+    --arg task_summary "${SUMMARY_TEXT:-Session work}" \
+    --arg status "${SESSION_STATUS:-in_progress}" \
+    --arg blockers "${BLOCKERS:-}" \
+    --arg next_steps "${NEXT_STEPS:-}" \
+    --argjson decision_count "$DECISION_COUNT" \
+    --argjson pattern_count "$PATTERN_COUNT" \
+    --arg continuity_user_id "$CONTINUITY_USER_ID" \
+    --arg decisions_user_id "$DECISIONS_USER_ID" \
+    --arg global_user_id "$GLOBAL_USER_ID" \
+    --arg agents_user_id "$(mem0_user_id "$MEM0_SCOPE_AGENTS")" \
+    '{
+        project_id: $project_id,
+        task_summary: $task_summary,
+        status: $status,
+        blockers: $blockers,
+        next_steps: $next_steps,
+        decision_count: $decision_count,
+        pattern_count: $pattern_count,
+        user_ids: {
+            continuity: $continuity_user_id,
+            decisions: $decisions_user_id,
+            agents: $agents_user_id,
+            global: $global_user_id
+        }
+    }')
 
-1. Session Summary (for continuity):
-   mcp__mem0__add_memory with:
-   - user_id="$CONTINUITY_USER_ID"
-   - text="Session Summary: ${SUMMARY_TEXT:-Session work}"${BLOCKERS:+
-   - Blockers: $BLOCKERS}${NEXT_STEPS:+
-   - Next steps: $NEXT_STEPS}
+# Build concise skill invocation message
+SKILL_MSG="[Mem0 Sync] $SUMMARY - Execute /mem0-sync to persist session context"
 
-2. Project Decisions:
-   mcp__mem0__add_memory with:
-   - user_id="$DECISIONS_USER_ID"
-   - text=<decision content>
+# Build the ready-to-execute MCP calls for the skill
+MCP_CALLS=""
 
-3. Agent Patterns (if valuable for future sessions):
-   mcp__mem0__add_memory with:
-   - user_id="$DECISIONS_USER_ID"
-   - agent_id=<agent_id from pattern>
+# Determine boolean values for has_blockers and has_next_steps
+HAS_BLOCKERS="false"
+HAS_NEXT_STEPS="false"
+[[ -n "${BLOCKERS:-}" ]] && HAS_BLOCKERS="true"
+[[ -n "${NEXT_STEPS:-}" ]] && HAS_NEXT_STEPS="true"
 
-4. Cross-Project Best Practices (if pattern is generalizable):
-   mcp__mem0__add_memory with:
-   - user_id="$GLOBAL_USER_ID"
-   - metadata={"project": "$PROJECT_ID", "outcome": "success"}
-EOF
-)
+# Session summary MCP call (always include)
+SESSION_MCP=$(jq -n \
+    --arg text "Session Summary: ${SUMMARY_TEXT:-Session work}${BLOCKERS:+ | Blockers: $BLOCKERS}${NEXT_STEPS:+ | Next: $NEXT_STEPS}" \
+    --arg user_id "$CONTINUITY_USER_ID" \
+    --arg project "$PROJECT_ID" \
+    --arg status "${SESSION_STATUS:-in_progress}" \
+    --argjson has_blockers "$HAS_BLOCKERS" \
+    --argjson has_next_steps "$HAS_NEXT_STEPS" \
+    '{
+        tool: "mcp__mem0__add_memory",
+        args: {
+            text: $text,
+            user_id: $user_id,
+            metadata: {
+                type: "session_summary",
+                status: $status,
+                project: $project,
+                has_blockers: $has_blockers,
+                has_next_steps: $has_next_steps,
+                source: "skillforge-plugin"
+            },
+            enable_graph: true
+        }
+    }')
 
-# Add session summary JSON hint if available
-if [[ -n "$SESSION_SUMMARY_JSON" ]]; then
-    MSG="${MSG}
-
-5. Ready-to-use Session Summary JSON:
-   $SESSION_SUMMARY_JSON"
-fi
-
-# Output valid JSON with sync recommendation
+# Output skill invocation directive with sync context
+# The systemMessage tells Claude to execute the skill with the provided context
 jq -n \
-    --arg msg "$MSG" \
+    --arg msg "$SKILL_MSG" \
+    --argjson sync_context "$SYNC_CONTEXT" \
+    --argjson session_mcp "$SESSION_MCP" \
     '{
         continue: true,
-        systemMessage: $msg
+        systemMessage: $msg,
+        hookSpecificOutput: {
+            invokeSkill: "mem0-sync",
+            syncContext: $sync_context,
+            readyMcpCalls: [$session_mcp],
+            autoExecute: true
+        }
     }'

@@ -330,14 +330,14 @@ else
     echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh should be executable"
 fi
 
-# Test hook version is 1.3.0
+# Test hook version is 1.4.0 (auto-invoke skill capability)
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -10 "$HOOK" | grep -q "Version: 1.3.0"; then
+if head -10 "$HOOK" | grep -q "Version: 1.4.0"; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: mem0-pre-compaction-sync.sh version is 1.3.0"
+    echo -e "${GREEN}PASS${NC}: mem0-pre-compaction-sync.sh version is 1.4.0"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh version should be 1.3.0"
+    echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh version should be 1.4.0"
 fi
 
 # Test hook mentions Session Continuity 2.0
