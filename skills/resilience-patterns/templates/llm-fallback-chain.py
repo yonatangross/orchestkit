@@ -20,9 +20,10 @@ Usage:
 import asyncio
 import logging
 from abc import ABC, abstractmethod
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Awaitable, Callable, List, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ class LLMResponse:
     """Response from LLM with metadata."""
     content: str
     source: ResponseSource
-    model: Optional[str] = None
+    model: str | None = None
     latency_ms: float = 0.0
     input_tokens: int = 0
     output_tokens: int = 0
@@ -50,9 +51,9 @@ class LLMResponse:
     is_fallback: bool = False
     is_cached: bool = False
     is_degraded: bool = False
-    cache_similarity: Optional[float] = None
-    quality_score: Optional[float] = None
-    quality_warning: Optional[str] = None
+    cache_similarity: float | None = None
+    quality_score: float | None = None
+    quality_warning: str | None = None
     metadata: dict = field(default_factory=dict)
 
 
@@ -61,7 +62,7 @@ class LLMConfig:
     """Configuration for an LLM provider."""
     name: str
     model: str
-    api_key: Optional[str] = None
+    api_key: str | None = None
     timeout: float = 30.0
     max_tokens: int = 4096
     temperature: float = 0.7
@@ -100,7 +101,7 @@ class SemanticCache(ABC):
         self,
         prompt: str,
         threshold: float = 0.85,
-    ) -> Optional[LLMResponse]:
+    ) -> LLMResponse | None:
         """Get cached response if similar prompt exists."""
         pass
 
@@ -151,12 +152,12 @@ class LLMFallbackChain:
     def __init__(
         self,
         primary: LLMProvider,
-        fallbacks: Optional[List[LLMProvider]] = None,
-        cache: Optional[SemanticCache] = None,
+        fallbacks: list[LLMProvider] | None = None,
+        cache: SemanticCache | None = None,
         cache_threshold: float = 0.85,
-        default_response: Optional[Callable[[str], str]] = None,
-        on_fallback: Optional[Callable[[str, Exception], None]] = None,
-        on_cache_hit: Optional[Callable[[str, float], None]] = None,
+        default_response: Callable[[str], str] | None = None,
+        on_fallback: Callable[[str, Exception], None] | None = None,
+        on_cache_hit: Callable[[str, float], None] | None = None,
     ):
         self.primary = primary
         self.fallbacks = fallbacks or []
@@ -331,9 +332,9 @@ class QualityAwareFallbackChain(LLMFallbackChain):
     def __init__(
         self,
         primary: LLMProvider,
-        fallbacks: Optional[List[LLMProvider]] = None,
-        cache: Optional[SemanticCache] = None,
-        quality_evaluator: Optional[Callable[[str, str], Awaitable[float]]] = None,
+        fallbacks: list[LLMProvider] | None = None,
+        cache: SemanticCache | None = None,
+        quality_evaluator: Callable[[str, str], Awaitable[float]] | None = None,
         quality_threshold: float = 0.7,
         max_quality_retries: int = 2,
         **kwargs: Any,
@@ -351,7 +352,7 @@ class QualityAwareFallbackChain(LLMFallbackChain):
         **kwargs: Any,
     ) -> LLMResponse:
         """Complete with quality-aware fallback."""
-        best_response: Optional[LLMResponse] = None
+        best_response: LLMResponse | None = None
         best_score: float = 0.0
 
         for attempt in range(self.max_quality_retries + 1):

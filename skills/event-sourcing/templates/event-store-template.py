@@ -9,12 +9,11 @@ Ready-to-use template with:
 """
 
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Generic, TypeVar
 from uuid import UUID, uuid4
-from collections.abc import AsyncIterator, Iterable
-
 
 # ============================================================
 # EVENT BASE CLASS

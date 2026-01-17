@@ -11,9 +11,10 @@ Features:
 
 from typing import Protocol
 from uuid import UUID
-from sqlalchemy import select, func, literal
-from sqlalchemy.ext.asyncio import AsyncSession
+
 import structlog
+from sqlalchemy import func, literal, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

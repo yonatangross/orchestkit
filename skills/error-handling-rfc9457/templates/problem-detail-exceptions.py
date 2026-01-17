@@ -13,10 +13,9 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
-
 
 # ============================================================================
 # Problem Detail Schema

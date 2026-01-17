@@ -21,9 +21,9 @@ Usage:
 """
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +145,7 @@ class TokenCounter:
         # Approximation: ~4 characters per token
         return len(text) // 4
 
-    def count_messages(self, messages: List[Dict[str, str]]) -> int:
+    def count_messages(self, messages: list[dict[str, str]]) -> int:
         """Count tokens in message list (includes message overhead)."""
         total = 0
         for msg in messages:
@@ -210,8 +210,8 @@ class TokenBudgetGuard:
         self,
         model: str,
         context_limit: int,
-        allocation: Optional[BudgetAllocation] = None,
-        summarizer: Optional[Callable[[str], str]] = None,
+        allocation: BudgetAllocation | None = None,
+        summarizer: Callable[[str], str] | None = None,
     ):
         self.model = model
         self.context_limit = context_limit
@@ -234,8 +234,8 @@ class TokenBudgetGuard:
     def get_usage(
         self,
         system_prompt: str,
-        messages: List[Dict[str, str]],
-        retrieved_docs: List[str],
+        messages: list[dict[str, str]],
+        retrieved_docs: list[str],
     ) -> TokenUsage:
         """Get current token usage by category."""
         system_tokens = self.counter.count(system_prompt)
@@ -254,9 +254,9 @@ class TokenBudgetGuard:
     def fit_to_budget(
         self,
         system_prompt: str,
-        messages: List[Dict[str, str]],
-        retrieved_docs: List[str],
-    ) -> Tuple[str, List[Dict[str, str]], List[str]]:
+        messages: list[dict[str, str]],
+        retrieved_docs: list[str],
+    ) -> tuple[str, list[dict[str, str]], list[str]]:
         """
         Fit all content to token budget.
 
@@ -303,9 +303,9 @@ class TokenBudgetGuard:
 
     def _fit_messages(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         budget: int,
-    ) -> List[Dict[str, str]]:
+    ) -> list[dict[str, str]]:
         """Fit messages to budget using sliding window."""
         if not messages:
             return []
@@ -358,9 +358,9 @@ class TokenBudgetGuard:
 
     def _fit_docs(
         self,
-        docs: List[str],
+        docs: list[str],
         budget: int,
-    ) -> List[str]:
+    ) -> list[str]:
         """Fit documents to budget, keeping highest priority."""
         if not docs:
             return []

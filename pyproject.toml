@@ -37,12 +37,16 @@ exclude = [
     ".claude",
     "node_modules",
     "__pycache__",
+    # Templates are educational examples - prioritize clarity over strict linting
+    "skills/*/templates",
+    "skills/*/examples",
 ]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "PTH"]
 ignore = [
     "E501",  # Line too long (templates may have long lines for clarity)
+    "B008",  # Function call in default argument (FastAPI Depends pattern is intentional)
 ]
 
 [tool.ruff.format]

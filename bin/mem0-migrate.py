@@ -37,8 +37,9 @@ import hashlib
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
 
 # ANSI colors for terminal output
 class Colors:
@@ -81,7 +82,7 @@ def load_json_file(file_path: Path) -> dict | None:
     if not file_path.exists():
         return None
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with file_path.open(encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError as e:
         log_warning(f"Invalid JSON in {file_path}: {e}")
@@ -244,7 +245,7 @@ class Mem0Migrator:
             "category": category,
             "source_file": source_file,
             "migrated": True,
-            "migrated_at": datetime.now(timezone.utc).isoformat(),
+            "migrated_at": datetime.now(UTC).isoformat(),
             "content_hash": content_hash,
         }
 

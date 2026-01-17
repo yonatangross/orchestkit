@@ -1,11 +1,12 @@
 # Template: Pytest Integration Test Suite
 # Usage: Copy to tests/integration/test_api.py and customize for your endpoints
 
+from collections.abc import AsyncGenerator, Generator
+
 import pytest
-from httpx import AsyncClient, ASGITransport
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from typing import AsyncGenerator, Generator
 
 # TODO: Import your FastAPI app and models
 # from app.main import app
@@ -50,7 +51,7 @@ def db_session(db_engine) -> Generator:
 # ============================================================================
 
 @pytest.fixture
-async def client(db_session) -> AsyncGenerator[AsyncClient, None]:
+async def client(db_session) -> AsyncGenerator[AsyncClient]:
     """Async HTTP client for testing FastAPI endpoints."""
     # TODO: Import and use your actual app
     from fastapi import FastAPI

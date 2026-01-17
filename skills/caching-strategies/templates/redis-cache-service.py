@@ -8,15 +8,15 @@ Production-ready cache service with:
 - Pattern-based invalidation
 """
 
-from typing import TypeVar, Callable, Generic, Any
-import json
-import hashlib
 import asyncio
+import hashlib
+import json
 import uuid
+from collections.abc import Callable
+from typing import Any, Generic, TypeVar
 
 import redis.asyncio as redis
 from pydantic import BaseModel
-
 
 T = TypeVar("T", bound=BaseModel)
 

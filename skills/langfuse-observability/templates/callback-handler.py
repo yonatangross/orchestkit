@@ -5,11 +5,10 @@ Use this pattern for automatic tracing of LangChain LLM calls
 without modifying existing LangChain code.
 """
 
+from app.core.config import settings
 from langchain_anthropic import ChatAnthropic
 from langchain_core.messages import HumanMessage, SystemMessage
 from langfuse.callback import CallbackHandler
-
-from app.core.config import settings
 
 
 def create_langfuse_handler(

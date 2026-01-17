@@ -8,10 +8,11 @@ Usage:
     chunks = await pipeline.process_document(text, metadata)
 """
 
-import hashlib
 import asyncio
-from typing import Iterator
+import hashlib
+from collections.abc import Iterator
 from dataclasses import dataclass
+
 from openai import AsyncOpenAI
 
 

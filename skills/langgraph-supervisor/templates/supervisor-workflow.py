@@ -9,12 +9,13 @@ Features:
 - Langfuse observability
 """
 
-from typing import TypedDict, Annotated, Literal
 from operator import add
-from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.postgres import PostgresSaver
-from langfuse.decorators import observe, langfuse_context
+from typing import Annotated, Literal, TypedDict
+
 import structlog
+from langfuse.decorators import langfuse_context, observe
+from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.graph import END, StateGraph
 
 logger = structlog.get_logger()
 

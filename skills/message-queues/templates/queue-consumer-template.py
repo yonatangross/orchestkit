@@ -13,15 +13,15 @@ Usage:
 
 import asyncio
 import json
-import signal
 import logging
+import signal
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import TypeVar, Generic
+from typing import Generic, TypeVar
 
 import aio_pika
-from aio_pika import IncomingMessage, Message, DeliveryMode
+from aio_pika import DeliveryMode, IncomingMessage, Message
 
 # Configure logging
 logging.basicConfig(

@@ -20,10 +20,11 @@ Usage:
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
-from typing import Any, Awaitable, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -118,12 +119,12 @@ class Bulkhead:
         self,
         name: str,
         tier: Tier = Tier.STANDARD,
-        max_concurrent: Optional[int] = None,
-        queue_size: Optional[int] = None,
-        timeout: Optional[float] = None,
+        max_concurrent: int | None = None,
+        queue_size: int | None = None,
+        timeout: float | None = None,
         rejection_policy: RejectionPolicy = RejectionPolicy.QUEUE,
-        on_rejection: Optional[Callable[[str, Tier], None]] = None,
-        on_timeout: Optional[Callable[[str, float], None]] = None,
+        on_rejection: Callable[[str, Tier], None] | None = None,
+        on_timeout: Callable[[str, float], None] | None = None,
     ):
         self.name = name
         self.tier = tier
@@ -162,7 +163,7 @@ class Bulkhead:
     async def execute(
         self,
         fn: Callable[[], Awaitable[T]],
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> T:
         """
         Execute function within bulkhead constraints.
@@ -199,7 +200,7 @@ class Bulkhead:
                     self._semaphore.acquire(),
                     timeout=effective_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 async with self._lock:
                     self._waiting -= 1
                     self.stats.current_queued = self._waiting
@@ -220,7 +221,7 @@ class Bulkhead:
                 result = await asyncio.wait_for(fn(), timeout=effective_timeout)
                 self.stats.successful_calls += 1
                 return result
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return await self._handle_timeout(effective_timeout)
             finally:
                 self._semaphore.release()
@@ -366,7 +367,7 @@ class BulkheadRegistry:
 
 
 # Global registry for convenience
-_default_registry: Optional[BulkheadRegistry] = None
+_default_registry: BulkheadRegistry | None = None
 
 
 def get_registry() -> BulkheadRegistry:

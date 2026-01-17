@@ -13,15 +13,16 @@ Rollback Plan:
 Dependencies:
     Any application changes required before/after this migration.
 """
-from alembic import op
+from collections.abc import Sequence
+
 import sqlalchemy as sa
-from typing import Sequence, Union
+from alembic import op
 
 # Revision identifiers
 revision: str = '${revision}'
-down_revision: Union[str, None] = '${down_revision}'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '${down_revision}'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 # Configuration
 BATCH_SIZE = 5000  # Adjust based on table size and resources

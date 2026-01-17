@@ -6,9 +6,9 @@ Replace placeholders with actual implementations.
 """
 
 import os
+from datetime import UTC, datetime, timedelta
+
 import jwt
-from datetime import datetime, timedelta, timezone
-from typing import Optional
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
@@ -55,7 +55,7 @@ def create_access_token(
     if expires_delta is None:
         expires_delta = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "type": "access",
@@ -66,7 +66,7 @@ def create_access_token(
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-def verify_access_token(token: str) -> Optional[dict]:
+def verify_access_token(token: str) -> dict | None:
     """Verify and decode access token."""
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
@@ -79,7 +79,7 @@ def verify_access_token(token: str) -> Optional[dict]:
         return None
 
 
-def get_token_from_header(authorization: str) -> Optional[str]:
+def get_token_from_header(authorization: str) -> str | None:
     """Extract token from Authorization header."""
     if not authorization:
         return None

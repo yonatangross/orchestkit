@@ -5,9 +5,8 @@ Standard pattern for capturing content from web pages using Playwright MCP tools
 Customize selectors and extraction logic for your target site.
 """
 
-from dataclasses import dataclass
-from typing import Optional
 import asyncio
+from dataclasses import dataclass
 
 
 @dataclass
@@ -17,7 +16,7 @@ class CaptureResult:
     title: str
     content: str
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class BrowserCaptureWorkflow:

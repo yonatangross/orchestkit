@@ -5,23 +5,21 @@ Copy this template when creating new LLM tests.
 Replace placeholders with actual implementations.
 """
 
-import pytest
-import asyncio
-from unittest.mock import AsyncMock, patch
 from typing import Any
+from unittest.mock import AsyncMock, patch
+
+import pytest
 
 # =============================================================================
 # DeepEval Imports (if using)
 # =============================================================================
-
 from deepeval import assert_test
-from deepeval.test_case import LLMTestCase
 from deepeval.metrics import (
     AnswerRelevancyMetric,
     FaithfulnessMetric,
     HallucinationMetric,
 )
-
+from deepeval.test_case import LLMTestCase
 
 # =============================================================================
 # Placeholder Functions (Replace with your actual implementations)
@@ -128,7 +126,7 @@ class TestLLMUnit:
     @pytest.mark.asyncio
     async def test_handles_timeout(self, mock_llm_client):
         """Test timeout handling."""
-        mock_llm_client.complete.side_effect = asyncio.TimeoutError()
+        mock_llm_client.complete.side_effect = TimeoutError()
         
         with patch("your_module.llm_client", mock_llm_client):
             result = await your_function_with_fallback("test")
@@ -162,9 +160,8 @@ class TestStructuredOutput:
         """Test handling of invalid schema."""
         mock_llm_client.complete_structured.side_effect = ValueError("Invalid schema")
         
-        with patch("your_module.llm_client", mock_llm_client):
-            with pytest.raises(ValueError):
-                await your_structured_function("test")
+        with patch("your_module.llm_client", mock_llm_client), pytest.raises(ValueError):
+            await your_structured_function("test")
 
 
 # =============================================================================

@@ -8,9 +8,9 @@ Features:
 - Support for multiple cache breakpoints
 """
 
-from dataclasses import dataclass
-from typing import Optional, List, Dict
 import time
+from dataclasses import dataclass
+
 import structlog
 from anthropic import AsyncAnthropic
 from prometheus_client import Counter
@@ -38,7 +38,7 @@ prompt_cache_tokens_saved = Counter(
 class CachedMessage:
     """Message content with optional cache breakpoint."""
     text: str
-    cache_control: Optional[Dict[str, str]] = None
+    cache_control: dict[str, str] | None = None
 
     def to_dict(self) -> dict[str, str | dict[str, str]]:
         """Convert to Anthropic API format."""
@@ -53,7 +53,7 @@ class PromptCacheWrapper:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         model: str = "claude-sonnet-4-20250514",
         max_tokens: int = 4096
     ):
@@ -72,10 +72,10 @@ class PromptCacheWrapper:
         self,
         system_prompt: str,
         user_content: str,
-        few_shot_examples: Optional[str] = None,
-        schema_docs: Optional[str] = None,
-        additional_context: Optional[str] = None
-    ) -> List[dict]:
+        few_shot_examples: str | None = None,
+        schema_docs: str | None = None,
+        additional_context: str | None = None
+    ) -> list[dict]:
         """Build messages with cache breakpoints.
 
         Cache structure (up to 4 breakpoints):
@@ -145,9 +145,9 @@ class PromptCacheWrapper:
         user_content: str,
         agent_type: str,
         system_prompt: str,
-        few_shot_examples: Optional[str] = None,
-        schema_docs: Optional[str] = None,
-        additional_context: Optional[str] = None,
+        few_shot_examples: str | None = None,
+        schema_docs: str | None = None,
+        additional_context: str | None = None,
         temperature: float = 1.0
     ) -> dict:
         """Generate LLM response with prompt caching.
@@ -274,8 +274,8 @@ class PromptCacheWrapper:
         user_content: str,
         agent_type: str,
         system_prompt: str,
-        few_shot_examples: Optional[str] = None,
-        schema_docs: Optional[str] = None
+        few_shot_examples: str | None = None,
+        schema_docs: str | None = None
     ):
         """Stream LLM response with prompt caching.
 

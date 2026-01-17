@@ -12,12 +12,14 @@ Usage:
 
 import asyncio
 import logging
+from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Callable, Optional
+from typing import Any
 from uuid import UUID, uuid4
 
 from sqlalchemy import Column, DateTime, Integer, String, delete, select
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
@@ -44,9 +46,9 @@ class OutboxMessage(Base):
     event_type: str = Column(String(100), nullable=False)
     payload: dict = Column(JSONB, nullable=False)
     created_at: datetime = Column(DateTime, nullable=False, default=datetime.utcnow)
-    published_at: Optional[datetime] = Column(DateTime, nullable=True)
+    published_at: datetime | None = Column(DateTime, nullable=True)
     retry_count: int = Column(Integer, nullable=False, default=0)
-    last_error: Optional[str] = Column(String(500), nullable=True)
+    last_error: str | None = Column(String(500), nullable=True)
 
     def to_event_dict(self) -> dict[str, Any]:
         """Convert to event dictionary for publishing."""
@@ -144,7 +146,7 @@ class OutboxPublisher:
         self.batch_size = batch_size
         self.max_retries = max_retries
         self._running = False
-        self._task: Optional[asyncio.Task] = None
+        self._task: asyncio.Task | None = None
 
     async def start(self) -> None:
         """Start the publisher background task."""
@@ -170,7 +172,7 @@ class OutboxPublisher:
         if self._task:
             try:
                 await asyncio.wait_for(self._task, timeout=timeout)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.warning("Publisher stop timed out, cancelling")
                 self._task.cancel()
 

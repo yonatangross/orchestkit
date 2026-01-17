@@ -9,13 +9,12 @@ Production-ready rate limiter with:
 """
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 import redis.asyncio as redis
 from fastapi import HTTPException, Request, status
-
 
 # ============================================================================
 # Rate Limit Result

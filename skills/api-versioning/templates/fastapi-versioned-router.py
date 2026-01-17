@@ -13,7 +13,6 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel
 
-
 # ============================================================================
 # Version Configuration
 # ============================================================================

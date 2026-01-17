@@ -9,9 +9,11 @@ Usage:
     result = await run_tool_loop(registry, "Find Python tutorials")
 """
 
-import json
 import asyncio
-from typing import Callable, Any
+import json
+from collections.abc import Callable
+from typing import Any
+
 from openai import AsyncOpenAI
 
 # --- Tool Registry ---
