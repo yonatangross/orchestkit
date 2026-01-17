@@ -1,7 +1,7 @@
 {
   "name": "skf",
   "version": "4.19.0",
-  "description": "Comprehensive AI-assisted development toolkit with 111 skills (18 user-invocable commands, 93 internal knowledge), 27 agents, 120 hooks (CC 2.1.11 Setup hooks), progressive loading, and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 111 skills (18 user-invocable commands, 93 internal knowledge), 27 agents, 121 hooks (CC 2.1.11 Setup hooks), progressive loading, and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -117,6 +117,10 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/pr-merge-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/pre-commit-simulation.sh"
           }
         ]
       },

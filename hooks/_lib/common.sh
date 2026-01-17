@@ -107,7 +107,7 @@ rotate_log_file() {
   local count_file="${logfile}.count"
   # Read only last line and strip non-digits to handle corrupted files
   local prev_count
-  prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9')
+  prev_count=$(tail -1 "$count_file" 2>/dev/null | tr -cd '0-9' || true)
   prev_count=${prev_count:-0}
   local count=$((prev_count + 1))
   echo "$count" > "$count_file" 2>/dev/null || true
