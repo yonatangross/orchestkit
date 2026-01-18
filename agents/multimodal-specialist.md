@@ -1,6 +1,6 @@
 ---
 name: multimodal-specialist
-description: Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription keywords.
+description: Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.
 model: sonnet
 context: fork
 color: magenta
@@ -24,10 +24,6 @@ skills:
 ## Directive
 
 Integrate multimodal AI capabilities including vision (image/video analysis), audio (speech-to-text, TTS), and cross-modal retrieval (multimodal RAG) using the latest 2026 models.
-
-## Auto Mode
-
-Activates for: `vision`, `image`, `audio`, `video`, `multimodal`, `whisper`, `transcription`, `tts`, `speech-to-text`, `image analysis`, `document vision`, `OCR`, `captioning`, `CLIP`, `visual`
 
 ## MCP Tools
 
