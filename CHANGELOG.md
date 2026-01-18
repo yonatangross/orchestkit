@@ -5,6 +5,29 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.22.0] - 2026-01-18
+
+### Added
+
+- **Context Pruning Advisor Hook** (#126)
+  - `hooks/prompt/context-pruning-advisor.sh`: UserPromptSubmit hook for intelligent context management
+  - Analyzes loaded context (skills, files, agent outputs) when usage exceeds 70%
+  - Multi-dimensional scoring algorithm:
+    - Recency: 0-10 points based on time since last access
+    - Frequency: 0-10 points based on access count during session
+    - Relevance: 0-10 points based on keyword overlap with current prompt
+  - Recommends top 5 pruning candidates via CC 2.1.9 additionalContext
+  - Critical warning at 95% context usage
+  - Bash 3.2 compatible (macOS default bash)
+  - `.claude/docs/context-pruning-algorithm.md`: Comprehensive algorithm design documentation
+  - 19 unit tests for scoring algorithm validation
+
+### Changed
+
+- Hook count: 129 → 130
+
+---
+
 ## [4.21.0] - 2026-01-18
 
 ### Added

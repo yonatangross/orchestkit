@@ -33,12 +33,18 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.21.0 (Skill Auto-Suggest)
+## What's New in v4.22.0 (Context Pruning Advisor)
+
+- **Context Pruning Advisor Hook** (#126): Intelligent context management when usage exceeds 70%
+- 3D scoring algorithm: recency (time since access), frequency (session count), relevance (keyword overlap)
+- Recommends top 5 pruning candidates via CC 2.1.9 additionalContext
+- Critical warning at 95% usage with compression suggestions
+- **Total**: 135 skills, 27 agents, 130 hooks
+
+### Previous (v4.21.0 - Skill Auto-Suggest)
 
 - **Skill Auto-Suggest Hook** (#123): Proactive skill suggestions based on prompt analysis
 - Analyzes prompts for 100+ keywords across API, database, auth, testing, frontend, AI/LLM, DevOps domains
-- Uses CC 2.1.9 additionalContext for non-intrusive suggestions
-- **Total**: 135 skills, 27 agents, 129 hooks
 
 ### Previous (v4.20.0 - Memory Fabric & Frontend Skills)
 
