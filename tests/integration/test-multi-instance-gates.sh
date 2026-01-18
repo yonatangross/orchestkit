@@ -110,7 +110,15 @@ OUTPUT=$("$PROJECT_ROOT/hooks/skill/pattern-consistency-enforcer.sh" 2>&1)
 EXIT_CODE=$?
 set -e
 
-assert_exit_code 1 $EXIT_CODE "Blocks React.FC pattern"
+# CC 2.1.7: Hooks signal blocking via JSON output (continue:false), not exit codes
+# Check for JSON blocking output or stderr containing error
+if echo "$OUTPUT" | grep -qE '"continue"\s*:\s*false|BLOCKED:|Pattern.*violations'; then
+    echo "  ✅ Blocks React.FC pattern (via JSON continue:false)"
+    ((TESTS_PASSED++)) || true
+else
+    echo "  ❌ Blocks React.FC pattern (expected continue:false or BLOCKED in output)"
+    ((TESTS_FAILED++)) || true
+fi
 assert_output_contains "React.FC" "$OUTPUT" "Mentions React.FC in error"
 
 # Test 2.2: Should block missing Zod validation
