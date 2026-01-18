@@ -7,9 +7,7 @@
 ehthumbs.db
 Thumbs.db
 
-# Editor directories and files
-.idea/
-.vscode/
+# Editor swap files
 *.swp
 *.swo
 *~
@@ -26,7 +24,6 @@ logs/
 # Environment files
 .env
 .env.local
-__pycache__/
 
 # =============================================================================
 # Runtime artifacts (should never be committed)
@@ -70,7 +67,19 @@ HOOK_SECURITY_*.txt
 # Mem0 sync state
 .mem0-sync-pending
 
-.mypy_cache
+# Python caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE/Editor specific
+.cursor/
+.idea/
+.vscode/
+
 # Local instance files
 .instance/
 .claude/coordination/.claude.db
