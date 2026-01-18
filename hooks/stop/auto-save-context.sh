@@ -8,6 +8,10 @@ set -euo pipefail
 # - $schema: For schema validation
 # - _meta: For attention positioning and token budgets
 
+# Read and discard stdin to prevent broken pipe errors in hook chain
+_HOOK_INPUT=$(cat 2>/dev/null || true)
+export _HOOK_INPUT
+
 source "$(dirname "$0")/../_lib/common.sh"
 
 log_hook "Stop hook - auto-saving context (Protocol 2.0)"

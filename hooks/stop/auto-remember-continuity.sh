@@ -16,6 +16,10 @@ set -euo pipefail
 # Version: 2.1.0 - Graph-First Architecture
 # Part of Memory Fabric v2.1
 
+# Read and discard stdin to prevent broken pipe errors in hook chain
+_HOOK_INPUT=$(cat 2>/dev/null || true)
+export _HOOK_INPUT
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common utilities if available
