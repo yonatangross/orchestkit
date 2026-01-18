@@ -10,6 +10,10 @@
 # 2. It creates/updates a "Release PR" with version bump and changelog
 # 3. When you merge the Release PR, it creates a GitHub Release
 #
+# Version sync strategy:
+# - Release-please updates: plugin.json (source of truth) + CHANGELOG.md
+# - Hook auto-syncs: marketplace.json, pyproject.toml, CLAUDE.md
+#
 # Conventional Commits → Version Bumps:
 # - fix: → patch (1.0.0 → 1.0.1)
 # - feat: → minor (1.0.0 → 1.1.0)
@@ -35,28 +39,21 @@ jobs:
     steps:
       - uses: googleapis/release-please-action@v4
         with:
-          # Use simple release type for non-npm projects
           release-type: simple
-
-          # Package name for the release
           package-name: skillforge-claude-plugin
 
-          # Changelog sections configuration
-          # Maps conventional commit types to changelog sections
+          # Changelog sections
           changelog-types: |
             [
               {"type": "feat", "section": "Features", "hidden": false},
               {"type": "fix", "section": "Bug Fixes", "hidden": false},
               {"type": "chore", "section": "Miscellaneous", "hidden": false},
               {"type": "docs", "section": "Documentation", "hidden": false},
-              {"type": "style", "section": "Styles", "hidden": true},
               {"type": "refactor", "section": "Code Refactoring", "hidden": false},
               {"type": "perf", "section": "Performance", "hidden": false},
-              {"type": "test", "section": "Tests", "hidden": true},
               {"type": "ci", "section": "CI/CD", "hidden": false}
             ]
 
-          # Extra files to update version in
+          # Only update source of truth - hook syncs the rest
           extra-files: |
             .claude-plugin/plugin.json
-            CLAUDE.md
