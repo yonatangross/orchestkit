@@ -50,6 +50,22 @@
       "hooks": [
         "test-runner.sh"
       ]
+    },
+    "learning": {
+      "enabled": true,
+      "description": "Learn user preferences and patterns automatically",
+      "hooks": [
+        "code-style-learner.sh",
+        "naming-convention-learner.sh",
+        "workflow-pattern-learner.sh"
+      ]
+    },
+    "dependency_check": {
+      "enabled": true,
+      "description": "Check for outdated or vulnerable dependencies at session start",
+      "hooks": [
+        "dependency-version-check.sh"
+      ]
     }
   }
 }

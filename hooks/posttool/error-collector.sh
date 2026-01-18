@@ -108,6 +108,6 @@ if [[ "$IS_ERROR" == "true" ]]; then
   log_hook "ERROR captured: $TOOL_NAME - $ERROR_TYPE - ${ERROR_MESSAGE:0:100}"
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
+# Output proper CC 2.1.7 JSON
+output_silent_success
 exit 0

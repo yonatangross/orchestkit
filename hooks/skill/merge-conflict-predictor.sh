@@ -18,11 +18,12 @@ source "$SCRIPT_DIR/../_lib/common.sh"
 FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_OUTPUT_CONTENT:-}"
 
-[[ -z "$FILE_PATH" ]] && exit 0
-[[ -z "$CONTENT" ]] && exit 0
+[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$CONTENT" ]] && { output_silent_success; exit 0; }
 
 # Only run if we're in a git worktree environment
 if ! git worktree list >/dev/null 2>&1; then
+    output_silent_success
     exit 0
 fi
 
@@ -34,14 +35,14 @@ CONFLICTS=()
 # =============================================================================
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
-[[ -z "$REPO_ROOT" ]] && exit 0
+[[ -z "$REPO_ROOT" ]] && { output_silent_success; exit 0; }
 
 REL_PATH=$(realpath --relative-to="$REPO_ROOT" "$FILE_PATH" 2>/dev/null || echo "$FILE_PATH")
 
 # Get all worktrees
 WORKTREES=$(git worktree list --porcelain 2>/dev/null | grep "^worktree " | awk '{print $2}' || true)
 
-[[ -z "$WORKTREES" ]] && exit 0
+[[ -z "$WORKTREES" ]] && { output_silent_success; exit 0; }
 
 # Check each worktree for modifications to the same file
 while IFS= read -r worktree; do
@@ -304,10 +305,13 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     for warning in "${WARNINGS[@]}"; do
         echo "  $warning" >&2
     done
+
+    # Output with warning context
+    CTX="Potential merge conflicts detected in $FILE_PATH. Review warnings on stderr."
+    output_with_context "$CTX"
+    exit 0
 fi
 
-# Don't block, just warn
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"Merge conflicts predicted","continue":true}'
+# Success - no issues found
+output_silent_success
 exit 0

@@ -752,3 +752,101 @@ export FABRIC_MAX_RESULTS
 export FABRIC_WEIGHT_RECENCY
 export FABRIC_WEIGHT_RELEVANCE
 export FABRIC_WEIGHT_AUTHORITY
+
+# -----------------------------------------------------------------------------
+# Cross-Project Learning Pattern Storage (Memory Fabric v2.1)
+# -----------------------------------------------------------------------------
+
+# Queue a learned pattern for mem0 storage during session-end sync
+# This enables cross-project learning by storing patterns with metadata
+# that can be retrieved from any project.
+#
+# Usage: store_learned_pattern "category" "pattern_text" ["outcome"] ["lesson"]
+# Categories: code_style, naming_convention, workflow, architecture, etc.
+# Outcomes: success, failed, neutral (default: neutral)
+#
+# Example:
+#   store_learned_pattern "code_style" "Python uses 4-space indentation" "success"
+#   store_learned_pattern "naming_convention" "Functions use snake_case" "success"
+#   store_learned_pattern "workflow" "TDD workflow detected" "neutral"
+#
+store_learned_pattern() {
+    local category="$1"
+    local pattern_text="$2"
+    local outcome="${3:-neutral}"
+    local lesson="${4:-}"
+
+    # Validate inputs
+    if [[ -z "$category" || -z "$pattern_text" ]]; then
+        return 1
+    fi
+
+    # Get project and timestamp
+    local project_id
+    project_id=$(mem0_get_project_id 2>/dev/null || echo "unknown")
+
+    local timestamp
+    timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+    # Patterns queue file
+    local patterns_queue="${CLAUDE_PROJECT_DIR:-.}/.claude/feedback/patterns-queue.json"
+
+    # Ensure directory exists
+    mkdir -p "$(dirname "$patterns_queue")" 2>/dev/null || true
+
+    # Initialize queue if missing
+    if [[ ! -f "$patterns_queue" ]]; then
+        echo '{"patterns": []}' > "$patterns_queue"
+    fi
+
+    # Build the pattern entry
+    local pattern_entry
+    if [[ -n "$lesson" ]]; then
+        pattern_entry=$(jq -n \
+            --arg category "$category" \
+            --arg text "$pattern_text" \
+            --arg outcome "$outcome" \
+            --arg project "$project_id" \
+            --arg timestamp "$timestamp" \
+            --arg lesson "$lesson" \
+            '{
+                category: $category,
+                text: $text,
+                outcome: $outcome,
+                project: $project,
+                timestamp: $timestamp,
+                lesson: $lesson,
+                source: "memory-fabric-v2.1"
+            }')
+    else
+        pattern_entry=$(jq -n \
+            --arg category "$category" \
+            --arg text "$pattern_text" \
+            --arg outcome "$outcome" \
+            --arg project "$project_id" \
+            --arg timestamp "$timestamp" \
+            '{
+                category: $category,
+                text: $text,
+                outcome: $outcome,
+                project: $project,
+                timestamp: $timestamp,
+                source: "memory-fabric-v2.1"
+            }')
+    fi
+
+    # Add to queue atomically
+    local tmp_file
+    tmp_file=$(mktemp)
+
+    if jq --argjson entry "$pattern_entry" '.patterns += [$entry]' "$patterns_queue" > "$tmp_file" 2>/dev/null; then
+        mv "$tmp_file" "$patterns_queue"
+        return 0
+    else
+        rm -f "$tmp_file" 2>/dev/null || true
+        return 1
+    fi
+}
+
+# Export cross-project learning function
+export -f store_learned_pattern

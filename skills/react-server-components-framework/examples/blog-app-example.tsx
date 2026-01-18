@@ -48,6 +48,7 @@ model Comment {
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import DOMPurify from 'isomorphic-dompurify' // XSS protection for user content
 import { z } from 'zod'
 import { db } from '@/lib/database'
 import { getServerSession } from '@/lib/auth'
@@ -275,7 +276,7 @@ export default async function BlogPostPage({ params }: PageProps) {
 
       <div
         className="prose prose-lg max-w-none mb-12"
-        dangerouslySetInnerHTML={{ __html: post.content }}
+        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content) }}
       />
 
       <section className="border-t pt-8">

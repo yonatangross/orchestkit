@@ -22,7 +22,7 @@ source "$(dirname "$0")/../_lib/common.sh"
 # Determine plugin root
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
 MARKER_FILE="${PLUGIN_ROOT}/.setup-complete"
-CURRENT_VERSION="4.19.0"
+CURRENT_VERSION="4.25.0"
 
 # Mode: --interactive (default) or --silent (CI/CD)
 MODE="${1:---interactive}"
@@ -340,8 +340,7 @@ main() {
   if ! validate_dependencies; then
     log_hook "ERROR: Dependency validation failed"
     CTX="SkillForge setup failed: Missing required dependencies. Install jq and ensure bash 4.0+."
-    jq -nc --arg ctx "$CTX" \
-      '{continue:true,hookSpecificOutput:{additionalContext:$ctx}}'
+    output_with_context "$CTX"
     exit 1
   fi
 
@@ -380,8 +379,7 @@ main() {
     CTX="SkillForge v$CURRENT_VERSION initialized (silent mode)."
   fi
 
-  jq -nc --arg ctx "$CTX" \
-    '{continue:true,hookSpecificOutput:{additionalContext:$ctx}}'
+  output_with_context "$CTX"
 }
 
 main "$@"

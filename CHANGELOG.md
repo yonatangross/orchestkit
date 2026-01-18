@@ -5,6 +5,48 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.25.0] - 2026-01-18
+
+### Added
+
+- **CC 2.1.x Compliance & Hook Optimizations**
+  - Ensure 100% CC 2.1.7 JSON output compliance across all 140 hooks
+  - Add `output_silent_success`, `output_with_context`, `output_block` functions
+  - Configure MCP auto:N thresholds (context7:75, memory:90, mem0:85, playwright:50)
+  - Add statusline context_window config for CC 2.1.6
+  - Add 15 wildcard permissions for common Bash patterns
+  - Add `once:true` to Setup hooks (first-run-setup, setup-check)
+
+- **New Hooks Implemented** (#127, #128, #129, #133, #134, #136, #137, #138, #139, #140)
+  - `hooks/posttool/skill/skill-usage-optimizer.sh`: Track skill usage patterns
+  - `hooks/pretool/Write/code-quality-gate.sh`: Unified complexity + type checking
+  - `hooks/posttool/Write/code-style-learner.sh`: Extract code style patterns
+  - `hooks/posttool/Write/naming-convention-learner.sh`: Extract naming conventions
+  - `hooks/lifecycle/session-start/dependency-version-check.sh`: Check outdated deps
+  - `hooks/pretool/bash/license-compliance.sh`: Validate license headers
+  - `hooks/pretool/bash/affected-tests-finder.sh`: Find related tests
+  - `hooks/pretool/Write/docstring-enforcer.sh`: Enforce docstrings
+  - `hooks/posttool/Write/readme-sync.sh`: Sync README changes
+
+- **Pre-commit Validation Improvements**
+  - Update `pre-commit-simulation.sh` to v2.0.0 with BLOCKING on critical errors
+  - Add plugin.json validation (JSON syntax, required fields, semver)
+  - Add CHANGELOG version check
+  - Add quick unit tests for SkillForge plugin modifications
+  - Install actual git pre-commit hook (`.git/hooks/pre-commit`)
+
+### Changed
+
+- Hook count: 127 → 140
+- Setup hooks optimized: Use bash globs instead of `find | wc -l`
+- Version constants synced to 4.25.0 across all Setup hooks
+
+### Fixed
+
+- XSS vulnerability in `blog-app-example.tsx` with DOMPurify sanitization
+
+---
+
 ## [4.24.0] - 2026-01-18
 
 ### Added

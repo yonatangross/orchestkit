@@ -24,6 +24,9 @@ export ENABLE_LSP_TOOL=1
 # Only needed for standalone bin/memory-fabric-agent.py script
 # If you need it, run: export ANTHROPIC_API_KEY manually before the script
 
+# Explicitly unset API key to avoid auth conflicts with claude.ai
+unset ANTHROPIC_API_KEY 2>/dev/null || true
+
 # Optional: Show dev mode indicator
 if [[ "${CLAUDE_DEV_QUIET:-0}" != "1" ]]; then
     echo "🔧 Plugin dev mode: CLAUDE_PLUGIN_ROOT=$CLAUDE_PLUGIN_ROOT"

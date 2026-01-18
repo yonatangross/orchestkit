@@ -478,7 +478,7 @@ touch skills/my-skill/references/impl.md
 cat > agents/my-agent.md << 'EOF'
 ---
 name: my-agent
-description: What this agent does and when to use it
+description: What this agent does and when to use it. Activates for keyword1, keyword2, pattern
 model: sonnet
 color: cyan
 tools:
@@ -495,9 +495,6 @@ skills:
 ## Directive
 Clear instruction for what this agent does.
 
-## Auto Mode
-Activates for: keyword1, keyword2, pattern
-
 ## Concrete Objectives
 1. First objective
 2. Second objective
@@ -512,6 +509,7 @@ EOF
 
 # Step 3: Validate agent loads skills correctly
 # CC 2.1.6 automatically injects skills from frontmatter
+# NOTE: Activation keywords MUST be in description field (not ## Auto Mode section)
 ```
 
 ### 3. Implementing a Security Hook
@@ -723,11 +721,11 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.24.0 (as of 2026-01-18)
+- **Current Version**: 4.25.0 (as of 2026-01-18)
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (131 hooks)
+- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (140 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0

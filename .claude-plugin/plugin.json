@@ -1,7 +1,7 @@
 {
   "name": "skf",
-  "version": "4.24.0",
-  "description": "Comprehensive AI-assisted development toolkit with 138 skills (20 user-invocable commands, 118 internal knowledge), 28 agents, 131 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
+  "version": "4.25.0",
+  "description": "Comprehensive AI-assisted development toolkit with 138 skills (20 user-invocable commands, 118 internal knowledge), 28 agents, 140 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -121,6 +121,14 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/pre-commit-simulation.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/license-compliance.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/affected-tests-finder.sh"
           }
         ]
       },
@@ -162,6 +170,14 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/write-edit/file-lock-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/Write/docstring-enforcer.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/Write/code-quality-gate.sh"
           }
         ]
       },
@@ -269,7 +285,19 @@
           },
           {
             "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/Write/code-style-learner.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/Write/naming-convention-learner.sh"
+          },
+          {
+            "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/auto-lint.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/Write/readme-sync.sh"
           },
           {
             "type": "command",
@@ -345,6 +373,10 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/decision-entity-extractor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/skill/skill-usage-optimizer.sh"
           }
         ]
       },
@@ -476,6 +508,10 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/decision-sync-pull.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/lifecycle/session-start/dependency-version-check.sh"
           }
         ]
       }
@@ -695,10 +731,37 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/setup/setup-check.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/setup/setup-check.sh",
+            "once": true
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/setup/first-run-setup.sh",
+            "once": true
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/setup/setup-maintenance.sh"
           }
         ]
       }
     ]
-  }
+  },
+  "allowed-tools": [
+    "Bash(npm install *)",
+    "Bash(npm run *)",
+    "Bash(npm test *)",
+    "Bash(pip install *)",
+    "Bash(pytest *)",
+    "Bash(git status *)",
+    "Bash(git diff *)",
+    "Bash(git log *)",
+    "Bash(git fetch *)",
+    "Bash(git pull *)",
+    "Bash(gh pr *)",
+    "Bash(gh issue *)",
+    "Bash(ls *)",
+    "Bash(which *)",
+    "Bash(echo *)"
+  ]
 }

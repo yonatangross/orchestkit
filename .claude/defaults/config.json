@@ -1,8 +1,26 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "preset": "complete",
   "plansDirectory": ".claude/plans",
   "customized": false,
+  "statusLine": "[CTX: ${context_window.used_percentage}%] ${context_window.remaining_percentage}% remaining | ${model}",
+  "mcpServers": {
+    "context7": {
+      "autoEnable": "auto:75"
+    },
+    "sequential-thinking": {
+      "autoEnable": "auto:60"
+    },
+    "memory": {
+      "autoEnable": "auto:90"
+    },
+    "mem0": {
+      "autoEnable": "auto:85"
+    },
+    "playwright": {
+      "autoEnable": "auto:50"
+    }
+  },
   "skills": {
     "ai_ml": true,
     "backend": true,

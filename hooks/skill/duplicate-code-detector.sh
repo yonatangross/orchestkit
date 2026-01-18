@@ -18,11 +18,12 @@ source "$SCRIPT_DIR/../_lib/common.sh"
 FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_OUTPUT_CONTENT:-}"
 
-[[ -z "$FILE_PATH" ]] && exit 0
-[[ -z "$CONTENT" ]] && exit 0
+[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$CONTENT" ]] && { output_silent_success; exit 0; }
 
 # Only validate code files
 if [[ ! "$FILE_PATH" =~ \.(ts|tsx|js|jsx|py)$ ]]; then
+    output_silent_success
     exit 0
 fi
 
@@ -244,6 +245,10 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
     done
     echo "" >&2
     echo "Reference: Multi-instance quality gates prevent code duplication" >&2
+
+    # Output proper CC 2.1.7 JSON with context
+    CTX="Duplicate code violation in $FILE_PATH. See stderr for details."
+    output_with_context "$CTX"
     exit 1
 fi
 
@@ -258,9 +263,13 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     done
     echo "" >&2
     echo "These are warnings - review before committing" >&2
+
+    # Output with warning context
+    CTX="Potential code duplication detected in $FILE_PATH. Review warnings on stderr."
+    output_with_context "$CTX"
+    exit 0
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"Duplicates checked","continue":true}'
+# Success - no issues found
+output_silent_success
 exit 0

@@ -2,15 +2,20 @@
 # =============================================================================
 # test-pattern-validator.sh
 # BLOCKING: Tests must follow AAA pattern and naming conventions
+# CC 2.1.7 Compliant: Proper JSON output
 # =============================================================================
 set -euo pipefail
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../_lib/common.sh"
 
 # Get inputs
 FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_OUTPUT_CONTENT:-}"
 
-[[ -z "$FILE_PATH" ]] && exit 0
-[[ -z "$CONTENT" ]] && exit 0
+[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$CONTENT" ]] && { output_silent_success; exit 0; }
 
 # Only validate test files
 IS_TEST_FILE=false
@@ -21,7 +26,7 @@ if [[ "$FILE_PATH" =~ (^|/)test_[^/]*\.py$ ]] || [[ "$FILE_PATH" =~ _test\.py$ ]
     IS_TEST_FILE=true
 fi
 
-[[ "$IS_TEST_FILE" == "false" ]] && exit 0
+[[ "$IS_TEST_FILE" == "false" ]] && { output_silent_success; exit 0; }
 
 ERRORS=()
 
@@ -173,20 +178,22 @@ fi
 # Report errors and block
 # =============================================================================
 if [[ ${#ERRORS[@]} -gt 0 ]]; then
-    echo "BLOCKED: Test pattern violations detected"
-    echo ""
-    echo "File: $FILE_PATH"
-    echo ""
-    echo "Violations:"
+    echo "BLOCKED: Test pattern violations detected" >&2
+    echo "" >&2
+    echo "File: $FILE_PATH" >&2
+    echo "" >&2
+    echo "Violations:" >&2
     for error in "${ERRORS[@]}"; do
-        echo "  $error"
+        echo "  $error" >&2
     done
-    echo ""
-    echo "Reference: skills/test-standards-enforcer/SKILL.md"
-    exit 1
+    echo "" >&2
+    echo "Reference: skills/test-standards-enforcer/SKILL.md" >&2
+
+    # CC 2.1.7: Block with proper JSON output
+    output_block "Test pattern violations detected in $FILE_PATH"
+    exit 0
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"Test patterns validated","continue":true}'
+# CC 2.1.7: Silent success for passing validation
+output_silent_success
 exit 0

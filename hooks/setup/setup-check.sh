@@ -32,7 +32,7 @@ SETUP_DIR="$(dirname "$0")"
 
 # Marker file location (JSON for extensibility)
 MARKER_FILE="${PLUGIN_ROOT}/.setup-complete"
-CURRENT_VERSION="4.19.0"
+CURRENT_VERSION="4.25.0"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Helper Functions
@@ -61,17 +61,23 @@ quick_validate() {
     fi
   fi
 
-  # Check 2: At least 50 hooks exist and are executable
-  local hook_count
-  hook_count=$(find "${PLUGIN_ROOT}/hooks" -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
+  # Check 2: At least 50 hooks exist (optimized - use glob instead of find)
+  local hook_count=0
+  shopt -s nullglob
+  local hook_files=("${PLUGIN_ROOT}"/hooks/**/*.sh)
+  hook_count=${#hook_files[@]}
+  shopt -u nullglob
   if [[ "$hook_count" -lt 50 ]]; then
     log_hook "WARN: Only $hook_count hooks found (expected 50+)"
     ((errors++))
   fi
 
-  # Check 3: At least 100 skills exist
-  local skill_count
-  skill_count=$(find "${PLUGIN_ROOT}/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+  # Check 3: At least 100 skills exist (optimized - use glob instead of find)
+  local skill_count=0
+  shopt -s nullglob
+  local skill_files=("${PLUGIN_ROOT}"/skills/*/SKILL.md)
+  skill_count=${#skill_files[@]}
+  shopt -u nullglob
   if [[ "$skill_count" -lt 100 ]]; then
     log_hook "WARN: Only $skill_count skills found (expected 100+)"
     ((errors++))

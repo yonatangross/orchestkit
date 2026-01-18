@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 # Setup Repair - Self-healing for broken installations
-# Hook: Setup (triggered by setup-check.sh when validation fails)
+#
+# INTERNAL HOOK: Called by setup-check.sh when validation fails.
+# NOT registered in plugin.json (by design - it's a sub-hook).
+#
 # CC 2.1.11 Compliant
 #
 # Repair Actions:
@@ -21,7 +24,7 @@ source "$(dirname "$0")/../_lib/common.sh"
 # Determine plugin root
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-$(pwd)}}"
 MARKER_FILE="${PLUGIN_ROOT}/.setup-complete"
-CURRENT_VERSION="4.19.0"
+CURRENT_VERSION="4.25.0"
 
 log_hook "Setup repair starting"
 
