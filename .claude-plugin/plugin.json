@@ -1,7 +1,7 @@
 {
   "name": "skf",
   "version": "4.25.0",
-  "description": "Comprehensive AI-assisted development toolkit with 138 skills (20 user-invocable commands, 118 internal knowledge), 28 agents, 127 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
+  "description": "Comprehensive AI-assisted development toolkit with 138 skills (20 user-invocable commands, 118 internal knowledge), 28 agents, 140 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

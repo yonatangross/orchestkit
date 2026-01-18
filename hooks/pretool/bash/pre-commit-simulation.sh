@@ -58,7 +58,7 @@ if [[ -f ".claude-plugin/plugin.json" ]]; then
     # Validate version format (semver)
     VERSION=$(jq -r '.version // ""' .claude-plugin/plugin.json)
     if [[ -n "$VERSION" && ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-      ISSUES="${ISSUES}### Plugin Version Warning\n\nVersion '$VERSION' is not valid semver (X.Y.Z)\n\n"
+      CRITICAL_ERRORS="${CRITICAL_ERRORS}### Plugin Version Warning\n\nVersion '$VERSION' is not valid semver (X.Y.Z)\n\n"
     fi
   fi
 fi
@@ -80,7 +80,7 @@ if [[ -f "tests/run-all-tests.sh" ]] && [[ -f ".claude-plugin/plugin.json" ]]; t
   fi
 fi
 
-# ===== CHANGELOG Validation (for SkillForge plugin) =====
+# ===== CHANGELOG Validation (for SkillForge plugin - CRITICAL) =====
 if [[ -f "CHANGELOG.md" ]] && echo "$STAGED_FILES" | grep -q "plugin.json"; then
   CHECKS_RUN="${CHECKS_RUN}Changelog, "
 
@@ -90,7 +90,7 @@ if [[ -f "CHANGELOG.md" ]] && echo "$STAGED_FILES" | grep -q "plugin.json"; then
     if [[ -n "$CURRENT_VER" ]]; then
       # Check if version is in CHANGELOG
       if ! grep -q "## \[$CURRENT_VER\]" CHANGELOG.md 2>/dev/null && ! grep -q "## $CURRENT_VER" CHANGELOG.md 2>/dev/null; then
-        ISSUES="${ISSUES}### Changelog Not Updated\n\nVersion $CURRENT_VER not found in CHANGELOG.md. Consider updating changelog.\n\n"
+        CRITICAL_ERRORS="${CRITICAL_ERRORS}### Changelog Not Updated\n\nVersion $CURRENT_VER not found in CHANGELOG.md. Update changelog before committing.\n\n"
       fi
     fi
   fi
@@ -109,7 +109,7 @@ if [[ -f "pyproject.toml" ]] || [[ -f "setup.py" ]] || [[ -f "requirements.txt" 
       if [[ -n "$RUFF_OUTPUT" ]] && [[ ! "$RUFF_OUTPUT" =~ ^All\ checks\ passed ]]; then
         ISSUE_COUNT=$(echo "$RUFF_OUTPUT" | grep -cE '^[^:]+:[0-9]+:' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### Ruff Linting ($ISSUE_COUNT issues)\n\`\`\`\n${RUFF_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### Ruff Linting ($ISSUE_COUNT issues)\n\`\`\`\n${RUFF_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -120,7 +120,7 @@ if [[ -f "pyproject.toml" ]] || [[ -f "setup.py" ]] || [[ -f "requirements.txt" 
       if [[ -n "$MYPY_OUTPUT" ]] && [[ ! "$MYPY_OUTPUT" =~ ^Success ]]; then
         ISSUE_COUNT=$(echo "$MYPY_OUTPUT" | grep -cE '^[^:]+:[0-9]+:' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### MyPy Type Errors ($ISSUE_COUNT issues)\n\`\`\`\n${MYPY_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### MyPy Type Errors ($ISSUE_COUNT issues)\n\`\`\`\n${MYPY_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -140,7 +140,7 @@ if [[ -f "package.json" ]]; then
       if [[ -n "$ESLINT_OUTPUT" ]] && [[ ! "$ESLINT_OUTPUT" =~ ^$ ]]; then
         ISSUE_COUNT=$(echo "$ESLINT_OUTPUT" | grep -cE ':[0-9]+:[0-9]+:' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### ESLint Issues ($ISSUE_COUNT issues)\n\`\`\`\n${ESLINT_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### ESLint Issues ($ISSUE_COUNT issues)\n\`\`\`\n${ESLINT_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -153,7 +153,7 @@ if [[ -f "package.json" ]]; then
         if [[ -n "$TSC_OUTPUT" ]] && [[ ! "$TSC_OUTPUT" =~ ^$ ]]; then
           ISSUE_COUNT=$(echo "$TSC_OUTPUT" | grep -cE 'error TS[0-9]+' || echo "0")
           if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-            ISSUES="${ISSUES}### TypeScript Errors ($ISSUE_COUNT issues)\n\`\`\`\n${TSC_OUTPUT:0:500}\n\`\`\`\n\n"
+            CRITICAL_ERRORS="${CRITICAL_ERRORS}### TypeScript Errors ($ISSUE_COUNT issues)\n\`\`\`\n${TSC_OUTPUT:0:500}\n\`\`\`\n\n"
           fi
         fi
       fi
@@ -174,7 +174,7 @@ if [[ -f "Cargo.toml" ]]; then
       if [[ -n "$CLIPPY_OUTPUT" ]]; then
         ISSUE_COUNT=$(echo "$CLIPPY_OUTPUT" | grep -cE '^(warning|error)\[' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### Cargo Clippy ($ISSUE_COUNT issues)\n\`\`\`\n${CLIPPY_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### Cargo Clippy ($ISSUE_COUNT issues)\n\`\`\`\n${CLIPPY_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -194,7 +194,7 @@ if [[ -f "go.mod" ]]; then
       if [[ -n "$VET_OUTPUT" ]]; then
         ISSUE_COUNT=$(echo "$VET_OUTPUT" | grep -cE '^.*\.go:[0-9]+' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### Go Vet ($ISSUE_COUNT issues)\n\`\`\`\n${VET_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### Go Vet ($ISSUE_COUNT issues)\n\`\`\`\n${VET_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -205,7 +205,7 @@ if [[ -f "go.mod" ]]; then
       if [[ -n "$LINT_OUTPUT" ]]; then
         ISSUE_COUNT=$(echo "$LINT_OUTPUT" | grep -cE '^.*\.go:[0-9]+' || echo "0")
         if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-          ISSUES="${ISSUES}### GolangCI-Lint ($ISSUE_COUNT issues)\n\`\`\`\n${LINT_OUTPUT:0:500}\n\`\`\`\n\n"
+          CRITICAL_ERRORS="${CRITICAL_ERRORS}### GolangCI-Lint ($ISSUE_COUNT issues)\n\`\`\`\n${LINT_OUTPUT:0:500}\n\`\`\`\n\n"
         fi
       fi
     fi
@@ -223,7 +223,7 @@ if [[ -n "$SHELL_FILES" ]]; then
     if [[ -n "$SHELLCHECK_OUTPUT" ]]; then
       ISSUE_COUNT=$(echo "$SHELLCHECK_OUTPUT" | grep -cE ':[0-9]+:[0-9]+:' || echo "0")
       if [[ "$ISSUE_COUNT" -gt 0 ]]; then
-        ISSUES="${ISSUES}### ShellCheck ($ISSUE_COUNT issues)\n\`\`\`\n${SHELLCHECK_OUTPUT:0:500}\n\`\`\`\n\n"
+        CRITICAL_ERRORS="${CRITICAL_ERRORS}### ShellCheck ($ISSUE_COUNT issues)\n\`\`\`\n${SHELLCHECK_OUTPUT:0:500}\n\`\`\`\n\n"
       fi
     fi
   fi
