@@ -109,12 +109,14 @@ cd e2e && npx playwright test
 
 ## Phase 6: E2E Verification (Optional)
 
-If UI changes, verify with Playwright MCP:
+If UI changes, verify with agent-browser:
 
-```python
-mcp__playwright__browser_navigate(url="http://localhost:5173")
-mcp__playwright__browser_snapshot()
-mcp__playwright__browser_take_screenshot(filename="verification.png")
+```bash
+agent-browser open http://localhost:5173
+agent-browser wait --load networkidle
+agent-browser snapshot -i
+agent-browser screenshot /tmp/verification.png
+agent-browser close
 ```
 
 

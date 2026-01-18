@@ -153,12 +153,14 @@ Use inline notifications for long-running phases:
 
 ## Phase 6: E2E Verification
 
-If UI changes, verify with Playwright MCP:
+If UI changes, verify with agent-browser:
 
-```python
-mcp__playwright__browser_navigate(url="http://localhost:5173")
-mcp__playwright__browser_snapshot()
-mcp__playwright__browser_take_screenshot(filename="feature.png")
+```bash
+agent-browser open http://localhost:5173
+agent-browser wait --load networkidle
+agent-browser snapshot -i
+agent-browser screenshot /tmp/feature.png
+agent-browser close
 ```
 
 ## Phase 7: Documentation
@@ -173,10 +175,10 @@ mcp__mem0__add-memory(content="Implementation decisions...", userId="project-dec
 
 **Total Parallel Agents: 17 across 4 phases**
 
-**MCPs Used:**
-- context7 (library documentation)
-- mem0 (decision persistence)
-- playwright (E2E verification)
+**Tools Used:**
+- context7 MCP (library documentation)
+- mem0 MCP (decision persistence)
+- agent-browser CLI (E2E verification)
 
 **Key Principles:**
 - Tests are NOT optional

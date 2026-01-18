@@ -2,7 +2,8 @@
 # ============================================================================
 # MCP PreToolUse Hooks Unit Tests
 # ============================================================================
-# Tests for MCP hook validation: context7, playwright, memory, sequential-thinking
+# Tests for MCP hook validation: context7, memory, sequential-thinking
+# Also tests agent-browser safety (Bash hook)
 # CC 2.1.7 Compliant
 # ============================================================================
 
@@ -40,62 +41,74 @@ test_context7_ignores_non_context7_tools() {
 }
 
 # ============================================================================
-# PLAYWRIGHT SAFETY TESTS
+# AGENT-BROWSER SAFETY TESTS
 # ============================================================================
 
-describe "MCP Hooks: Playwright Safety"
+describe "Bash Hooks: agent-browser Safety"
 
-test_playwright_blocks_file_protocol() {
-    local hook="$MCP_HOOKS_DIR/playwright-safety.sh"
-    [[ ! -f "$hook" ]] && skip "playwright-safety.sh not found"
+BASH_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/bash"
 
-    local input='{"tool_name":"mcp__playwright__navigate","tool_input":{"url":"file:///etc/passwd"}}'
+test_agent_browser_blocks_file_protocol() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open file:///etc/passwd"}}'
     local result=$(echo "$input" | bash "$hook" 2>/dev/null)
 
     assert_contains "$result" '"continue": false' "Should block file:// protocol"
 }
 
-test_playwright_blocks_localhost_by_default() {
-    local hook="$MCP_HOOKS_DIR/playwright-safety.sh"
-    [[ ! -f "$hook" ]] && skip "playwright-safety.sh not found"
+test_agent_browser_blocks_localhost_by_default() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
 
     unset ALLOW_LOCALHOST
-    local input='{"tool_name":"mcp__playwright__navigate","tool_input":{"url":"http://localhost:3000"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open http://localhost:3000"}}'
     local result=$(echo "$input" | bash "$hook" 2>/dev/null)
 
     assert_contains "$result" '"continue": false' "Should block localhost by default"
 }
 
-test_playwright_allows_localhost_when_enabled() {
-    local hook="$MCP_HOOKS_DIR/playwright-safety.sh"
-    [[ ! -f "$hook" ]] && skip "playwright-safety.sh not found"
+test_agent_browser_allows_localhost_when_enabled() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
 
     export ALLOW_LOCALHOST=true
-    local input='{"tool_name":"mcp__playwright__navigate","tool_input":{"url":"http://localhost:3000"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open http://localhost:3000"}}'
     local result=$(echo "$input" | bash "$hook" 2>/dev/null)
 
     assert_contains "$result" '"continue": true' "Should allow localhost when ALLOW_LOCALHOST=true"
     unset ALLOW_LOCALHOST
 }
 
-test_playwright_blocks_auth_domains() {
-    local hook="$MCP_HOOKS_DIR/playwright-safety.sh"
-    [[ ! -f "$hook" ]] && skip "playwright-safety.sh not found"
+test_agent_browser_blocks_auth_domains() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
 
-    local input='{"tool_name":"mcp__playwright__navigate","tool_input":{"url":"https://accounts.google.com/signin"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://accounts.google.com/signin"}}'
     local result=$(echo "$input" | bash "$hook" 2>/dev/null)
 
     assert_contains "$result" '"continue": false' "Should block authentication domains"
 }
 
-test_playwright_allows_safe_urls() {
-    local hook="$MCP_HOOKS_DIR/playwright-safety.sh"
-    [[ ! -f "$hook" ]] && skip "playwright-safety.sh not found"
+test_agent_browser_allows_safe_urls() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
 
-    local input='{"tool_name":"mcp__playwright__navigate","tool_input":{"url":"https://example.com/page"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://example.com/page"}}'
     local result=$(echo "$input" | bash "$hook" 2>/dev/null)
 
     assert_contains "$result" '"continue": true' "Should allow safe external URLs"
+}
+
+test_agent_browser_skips_non_browser_commands() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"ls -la"}}'
+    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
+
+    assert_contains "$result" '"continue": true' "Should skip non-agent-browser commands"
 }
 
 # ============================================================================

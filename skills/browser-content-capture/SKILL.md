@@ -1,17 +1,18 @@
 ---
 name: browser-content-capture
-description: Capture content from JavaScript-rendered pages, login-protected sites, and multi-page documentation using Playwright MCP tools or Claude Chrome extension. Use when capturing browser content, extracting web data, saving page content.
+description: Capture content from JavaScript-rendered pages, login-protected sites, and multi-page documentation using agent-browser CLI. Use when capturing browser content, extracting web data, saving page content.
 context: fork
 agent: data-pipeline-engineer
-version: 1.0.0
+version: 2.0.0
 author: SkillForge AI Agent Hub
-tags: [browser, playwright, mcp, scraping, spa, authentication, chrome-extension, 2025]
+tags: [browser, agent-browser, scraping, spa, authentication, 2026]
 user-invocable: false
+allowed-tools: Bash(agent-browser:*)
 ---
 
 # Browser Content Capture
 
-**Capture web content that traditional scrapers cannot access.**
+**Capture web content that traditional scrapers cannot access using agent-browser CLI.**
 
 ## Overview
 
@@ -39,47 +40,45 @@ This skill enables content extraction from sources that require browser-level ac
 
 ## Quick Start
 
-### Check Available MCP Tools
-
-```
-MCPSearch: "select:mcp__playwright__browser_navigate"
-```
-
 ### Basic Capture Pattern
 
-```python
+```bash
 # 1. Navigate to URL
-mcp__playwright__browser_navigate(url="https://docs.example.com")
+agent-browser open https://docs.example.com
 
 # 2. Wait for content to render
-mcp__playwright__browser_wait_for(selector=".main-content", timeout=5000)
+agent-browser wait --load networkidle
 
-# 3. Capture page snapshot
-snapshot = mcp__playwright__browser_snapshot()
+# 3. Get interactive snapshot
+agent-browser snapshot -i
 
 # 4. Extract text content
-content = mcp__playwright__browser_evaluate(
-    script="document.querySelector('.main-content').innerText"
-)
+agent-browser get text body
+
+# 5. Take screenshot
+agent-browser screenshot /tmp/capture.png
+
+# 6. Close when done
+agent-browser close
 ```
 
 ---
 
-## MCP Tools Reference
+## agent-browser Commands Reference
 
-| Tool | Purpose | When to Use |
-|------|---------|-------------|
-| `browser_navigate` | Go to URL | First step of any capture |
-| `browser_snapshot` | Get DOM/accessibility tree | Understanding page structure |
-| `browser_evaluate` | Run custom JS | Extract specific content |
-| `browser_click` | Click elements | Navigate menus, pagination |
-| `browser_fill_form` | Fill inputs | Authentication flows |
-| `browser_wait_for` | Wait for selector | Dynamic content loading |
-| `browser_take_screenshot` | Capture image | Visual verification |
-| `browser_console_messages` | Read JS console | Debug extraction issues |
-| `browser_network_requests` | Monitor XHR/fetch | Find API endpoints |
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `open <url>` | Go to URL | First step of any capture |
+| `snapshot -i` | Get interactive element tree | Understanding page structure |
+| `eval "<script>"` | Run custom JS | Extract specific content |
+| `click @e#` | Click elements | Navigate menus, pagination |
+| `fill @e# "value"` | Fill inputs | Authentication flows |
+| `wait @e#` | Wait for element | Dynamic content loading |
+| `screenshot <path>` | Capture image | Visual verification |
+| `console` | Read JS console | Debug extraction issues |
+| `network requests` | Monitor XHR/fetch | Find API endpoints |
 
-**Full tool documentation:** See [references/mcp-tools.md](references/mcp-tools.md)
+**Full reference:** See [references/agent-browser-commands.md](references/agent-browser-commands.md)
 
 ---
 
@@ -89,17 +88,19 @@ content = mcp__playwright__browser_evaluate(
 
 For React/Vue/Angular apps where content renders client-side:
 
-```python
+```bash
 # Navigate and wait for hydration
-mcp__playwright__browser_navigate(url="https://react-docs.example.com")
-mcp__playwright__browser_wait_for(selector="[data-hydrated='true']", timeout=10000)
+agent-browser open https://react-docs.example.com
+agent-browser wait --load networkidle
 
-# Extract after React mounts
-content = mcp__playwright__browser_evaluate(script="""
-    // Wait for React to finish rendering
-    await new Promise(r => setTimeout(r, 1000));
-    return document.querySelector('article').innerText;
-""")
+# Get snapshot to identify content element
+agent-browser snapshot -i
+
+# Extract after framework mounts (use ref from snapshot)
+agent-browser get text @e5  # Main content area
+
+# Or use eval for custom extraction
+agent-browser eval "document.querySelector('article').innerText"
 ```
 
 **Details:** See [references/spa-extraction.md](references/spa-extraction.md)
@@ -108,22 +109,24 @@ content = mcp__playwright__browser_evaluate(script="""
 
 For login-protected content:
 
-```python
+```bash
 # Navigate to login
-mcp__playwright__browser_navigate(url="https://docs.example.com/login")
+agent-browser open https://docs.example.com/login
+agent-browser snapshot -i
 
-# Fill credentials (prompt user for values)
-mcp__playwright__browser_fill_form(
-    selector="#login-form",
-    values={"username": "...", "password": "..."}
-)
+# Fill credentials (refs from snapshot)
+agent-browser fill @e1 "user@example.com"  # Email field
+agent-browser fill @e2 "password123"        # Password field
 
 # Click submit and wait for redirect
-mcp__playwright__browser_click(selector="button[type='submit']")
-mcp__playwright__browser_wait_for(selector=".dashboard", timeout=10000)
+agent-browser click @e3
+agent-browser wait --url "**/dashboard"
+
+# Save authenticated state for reuse
+agent-browser state save /tmp/auth-state.json
 
 # Now navigate to protected content
-mcp__playwright__browser_navigate(url="https://docs.example.com/private-docs")
+agent-browser open https://docs.example.com/private-docs
 ```
 
 **Details:** See [references/auth-handling.md](references/auth-handling.md)
@@ -132,49 +135,56 @@ mcp__playwright__browser_navigate(url="https://docs.example.com/private-docs")
 
 For documentation with navigation trees:
 
-```python
+```bash
 # Get all page links from sidebar
-links = mcp__playwright__browser_evaluate(script="""
-    return Array.from(document.querySelectorAll('nav a'))
-        .map(a => ({href: a.href, text: a.innerText}));
-""")
+agent-browser open https://docs.example.com
+agent-browser snapshot -i
+
+# Extract links via eval
+LINKS=$(agent-browser eval "JSON.stringify(Array.from(document.querySelectorAll('nav a')).map(a => a.href))")
 
 # Iterate and capture each page
-for link in links:
-    mcp__playwright__browser_navigate(url=link['href'])
-    mcp__playwright__browser_wait_for(selector=".content")
-    content = mcp__playwright__browser_evaluate(
-        script="document.querySelector('.content').innerText"
-    )
-    # Queue to SkillForge...
+for link in $(echo "$LINKS" | jq -r '.[]'); do
+    agent-browser open "$link"
+    agent-browser wait --load networkidle
+    agent-browser get text body > "/tmp/content-$(basename $link).txt"
+done
 ```
 
 **Details:** See [references/multi-page-crawl.md](references/multi-page-crawl.md)
 
 ---
 
-## SkillForge Integration
+## Session Management
 
-After capturing content, queue it to SkillForge's analysis pipeline:
+### Save and Reuse Authentication
 
-```python
-import httpx
+```bash
+# Login once and save state
+agent-browser open https://app.example.com/login
+agent-browser snapshot -i
+agent-browser fill @e1 "$USERNAME"
+agent-browser fill @e2 "$PASSWORD"
+agent-browser click @e3
+agent-browser wait --url "**/dashboard"
+agent-browser state save /tmp/app-auth.json
 
-async def queue_to_skillforge(content: str, source_url: str):
-    """Send captured content to SkillForge for analysis."""
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "http://localhost:8500/api/v1/analyze",
-            json={
-                "url": source_url,
-                "content_override": content,  # Skip scraping, use captured
-                "source": "browser_capture"
-            }
-        )
-        return response.json()["analysis_id"]
+# Later: restore state
+agent-browser state load /tmp/app-auth.json
+agent-browser open https://app.example.com/protected-content
 ```
 
-**Full integration:** See [templates/queue-to-skillforge.py](templates/queue-to-skillforge.py)
+### Parallel Sessions
+
+```bash
+# Run isolated sessions for different tasks
+agent-browser --session scrape1 open https://site1.com
+agent-browser --session scrape2 open https://site2.com
+
+# Extract from each
+agent-browser --session scrape1 get text body > site1.txt
+agent-browser --session scrape2 get text body > site2.txt
+```
 
 ---
 
@@ -196,12 +206,12 @@ User requests content from URL
          │
          ▼
     ┌──────────────────┐
-    │ Check URL pattern│
+    │ Use agent-browser│
     └──────────────────┘
          │
-    ├─ Known SPA (react, vue, angular) ──► Playwright MCP
-    ├─ Requires login ──► Chrome Extension (user session)
-    └─ Dynamic content ──► Playwright MCP with wait_for
+    ├─ Known SPA (react, vue, angular) ──► wait --load networkidle
+    ├─ Requires login ──► Authentication flow with state save
+    └─ Dynamic content ──► wait @element or wait --text
 ```
 
 ---
@@ -211,12 +221,12 @@ User requests content from URL
 ### 1. Minimize Browser Usage
 - Always try `WebFetch` first (10x faster, no browser overhead)
 - Cache extracted content to avoid re-scraping
-- Use `browser_evaluate` to extract only needed content
+- Use `get text @e#` to extract only needed content
 
 ### 2. Handle Dynamic Content
-- Always use `wait_for` after navigation
-- Add delays for heavy SPAs: `await new Promise(r => setTimeout(r, 2000))`
-- Check for loading spinners before extracting
+- Always use `wait` after navigation
+- Use `wait --load networkidle` for heavy SPAs
+- Use `wait --text "Expected"` for specific content
 
 ### 3. Respect Rate Limits
 - Add delays between page navigations
@@ -224,9 +234,9 @@ User requests content from URL
 - Honor robots.txt and terms of service
 
 ### 4. Clean Extracted Content
-- Remove navigation, headers, footers
-- Strip ads and promotional content
-- Convert to clean markdown before sending to SkillForge
+- Use targeted refs from snapshot to extract main content
+- Use `eval` to remove noise elements before extraction
+- Convert to clean markdown for downstream processing
 
 ---
 
@@ -234,24 +244,24 @@ User requests content from URL
 
 | Issue | Solution |
 |-------|----------|
-| Empty content | Add `wait_for` with appropriate selector |
-| Partial render | Increase timeout or add explicit delay |
-| Login required | Use Chrome extension with user session |
+| Empty content | Add `wait --load networkidle` after navigation |
+| Partial render | Use `wait --text "Expected content"` |
+| Login required | Use authentication flow with `state save/load` |
 | CAPTCHA blocking | Manual intervention required |
-| Content in iframe | Use `browser_evaluate` to access iframe content |
+| Content in iframe | Use `frame @e#` then extract |
 
 ---
 
 ## Related Skills
 
+- `agent-browser` - Full agent-browser command reference
 - `webapp-testing` - Playwright test automation patterns
-- `streaming-api-patterns` - Handle SSE progress updates from SkillForge
-- `ai-native-development` - RAG pipeline integration
+- `streaming-api-patterns` - Handle SSE progress updates
 
 ---
 
-**Version:** 1.0.0 (December 2025)
-**MCP Requirement:** Playwright MCP server or Claude Chrome extension
+**Version:** 2.0.0 (January 2026)
+**Browser Tool:** agent-browser CLI (replaces Playwright MCP)
 
 ## Capability Details
 
@@ -276,16 +286,9 @@ User requests content from URL
 - Extract multiple pages
 - Follow navigation links
 
-### mcp-tools
-**Keywords:** playwright, mcp, browser_navigate, browser_evaluate, browser_click
+### agent-browser-commands
+**Keywords:** agent-browser, open, snapshot, click, fill, eval, get text
 **Solves:**
-- Which MCP tool to use
-- Browser automation commands
-- Playwright MCP reference
-
-### skillforge-integration
-**Keywords:** queue, analyze, pipeline, api, skillforge, content_override
-**Solves:**
-- Send captured content to SkillForge
-- Queue URL for analysis
-- Integrate with analysis pipeline
+- Which command to use
+- Browser automation reference
+- agent-browser CLI guide

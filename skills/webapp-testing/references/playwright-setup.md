@@ -121,17 +121,19 @@ npx playwright test --debug         # Debug mode
 npx playwright test --headed        # See browser
 ```
 
-## MCP Tools Available
+## Browser Automation
 
-Once configured, Playwright MCP provides these tools:
+For quick browser automation outside of Playwright tests, use agent-browser CLI:
 
-| Tool | Description |
-|------|-------------|
-| `mcp__playwright__browser_navigate` | Navigate to URL |
-| `mcp__playwright__browser_click` | Click element |
-| `mcp__playwright__browser_fill` | Fill form input |
-| `mcp__playwright__browser_screenshot` | Capture screenshot |
-| `mcp__playwright__browser_evaluate` | Execute JavaScript |
+```bash
+# Quick visual verification
+agent-browser open http://localhost:5173
+agent-browser snapshot -i
+agent-browser screenshot /tmp/screenshot.png
+agent-browser close
+```
+
+See `skills/agent-browser/` for comprehensive command reference.
 
 ## Next Steps
 

@@ -30,8 +30,14 @@ Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), an
 ## MCP Tools
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
-- `mcp__playwright__*` - Automated Lighthouse audits and performance testing
 - `mcp__sequential-thinking__*` - Complex optimization decision trees
+
+## Browser Automation
+
+- Use `agent-browser` CLI via Bash for automated Lighthouse audits and performance testing
+- Run Lighthouse: `npx lighthouse <url>` or via `agent-browser` for interactive scenarios
+- Snapshot + Refs workflow for performance profiling: `agent-browser snapshot -i`
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 

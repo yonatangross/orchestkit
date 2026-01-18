@@ -32,7 +32,12 @@ Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are ac
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for React, ARIA patterns
-- `mcp__playwright__*` - Automated accessibility testing
+
+## Browser Automation
+- Use `agent-browser` CLI via Bash for automated accessibility testing
+- Capture page for a11y audit: `agent-browser open <url> && agent-browser snapshot -i`
+- Run axe-core via browser: `agent-browser eval "axe.run()"`
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 At task start, query relevant context:

@@ -1,434 +1,316 @@
-# Multi-Page Crawl Patterns
+# Multi-Page Crawl
 
-Strategies for capturing content from documentation sites with multiple pages.
+Patterns for extracting content from multiple pages using agent-browser.
 
-## Table of Contents
+## Overview
 
-1. [Crawl Strategies](#crawl-strategies)
-2. [Link Discovery](#link-discovery)
-3. [Crawl Implementation](#crawl-implementation)
-4. [Rate Limiting](#rate-limiting)
-5. [Error Handling](#error-handling)
-
----
-
-## Crawl Strategies
-
-### Strategy Comparison
-
-| Strategy | Best For | Pros | Cons |
-|----------|----------|------|------|
-| Sidebar navigation | Doc sites | Complete, ordered | May miss pages |
-| Sitemap.xml | Any site | Comprehensive | May be outdated |
-| Recursive crawl | Unknown structure | Finds everything | Slow, may loop |
-| Pagination | List pages | Efficient | Only works for lists |
-
-### Decision Tree
-
-```
-Multi-page content needed
-         │
-         ▼
-    Check for sitemap.xml
-         │
-    ├─ Exists ──► Parse sitemap, crawl listed URLs
-    │
-    └─ No sitemap
-              │
-         Check for sidebar/nav
-              │
-         ├─ Has nav ──► Extract nav links, crawl in order
-         │
-         └─ No nav ──► Recursive link following
-```
+Multi-page crawling is needed when:
+- Documentation spans multiple pages
+- Content is paginated
+- Need to follow navigation links
+- Building comprehensive content index
 
 ---
 
-## Link Discovery
+## Basic Crawl Pattern
 
-### From Sidebar Navigation
+### Extract Links, Then Visit
 
-Most documentation sites have a sidebar with all pages:
+```bash
+# 1. Navigate to starting page
+agent-browser open https://docs.example.com
 
-```python
-# Get all navigation links
-links = mcp__playwright__browser_evaluate(script="""
-    const navLinks = document.querySelectorAll('nav a, .sidebar a, .toc a');
-    return Array.from(navLinks)
+# 2. Wait for page to load
+agent-browser wait --load networkidle
+
+# 3. Extract all navigation links
+LINKS=$(agent-browser eval "
+JSON.stringify(
+    Array.from(document.querySelectorAll('nav a, .sidebar a'))
+        .map(a => a.href)
+        .filter(href => href.startsWith('https://docs.example.com'))
+)
+")
+
+# 4. Visit each link and extract
+for link in $(echo "$LINKS" | jq -r '.[]'); do
+    echo "Extracting: $link"
+    agent-browser open "$link"
+    agent-browser wait --load networkidle
+    agent-browser get text body > "/tmp/$(basename "$link").txt"
+done
+
+# 5. Close browser
+agent-browser close
+```
+
+---
+
+## Structured Crawl with Metadata
+
+```bash
+#!/bin/bash
+# Crawl with metadata extraction
+
+OUTPUT_DIR="/tmp/docs-crawl"
+mkdir -p "$OUTPUT_DIR"
+
+agent-browser open https://docs.example.com
+agent-browser wait --load networkidle
+
+# Get links with titles
+PAGES=$(agent-browser eval "
+JSON.stringify(
+    Array.from(document.querySelectorAll('nav a'))
         .map(a => ({
-            href: a.href,
-            text: a.innerText.trim(),
-            depth: a.closest('ul')?.querySelectorAll('ul').length || 0
+            url: a.href,
+            title: a.innerText.trim()
         }))
-        .filter(link => link.href && !link.href.includes('#'));
-""")
-```
+        .filter(p => p.url.startsWith(window.location.origin))
+)
+")
 
-### From Sitemap.xml
+# Process each page
+echo "$PAGES" | jq -c '.[]' | while read -r page; do
+    URL=$(echo "$page" | jq -r '.url')
+    TITLE=$(echo "$page" | jq -r '.title')
+    FILENAME=$(echo "$TITLE" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
 
-```python
-# Fetch and parse sitemap
-mcp__playwright__browser_navigate(url="https://docs.example.com/sitemap.xml")
-urls = mcp__playwright__browser_evaluate(script="""
-    const locs = document.querySelectorAll('loc');
-    return Array.from(locs).map(loc => loc.textContent);
-""")
-```
+    echo "Crawling: $TITLE"
+    agent-browser open "$URL"
+    agent-browser wait --load networkidle
 
-### Recursive Link Discovery
+    # Save content with metadata
+    {
+        echo "---"
+        echo "title: $TITLE"
+        echo "url: $URL"
+        echo "crawled_at: $(date -Iseconds)"
+        echo "---"
+        echo ""
+        agent-browser get text body
+    } > "$OUTPUT_DIR/$FILENAME.md"
+done
 
-```python
-def discover_links(visited_urls: set) -> list:
-    """Find all internal links not yet visited."""
-    links = mcp__playwright__browser_evaluate(script="""
-        const baseUrl = new URL(window.location.href);
-        return Array.from(document.querySelectorAll('a[href]'))
-            .map(a => a.href)
-            .filter(href => {
-                try {
-                    const url = new URL(href);
-                    return url.origin === baseUrl.origin;
-                } catch {
-                    return false;
-                }
-            });
-    """)
-    return [url for url in links if url not in visited_urls]
-```
-
-### Pagination Links
-
-```python
-# Handle paginated content
-def get_pagination_links():
-    return mcp__playwright__browser_evaluate(script="""
-        const pagination = document.querySelector('.pagination, [aria-label="pagination"]');
-        if (!pagination) return [];
-
-        return Array.from(pagination.querySelectorAll('a'))
-            .map(a => ({
-                href: a.href,
-                label: a.innerText.trim(),
-                isNext: a.innerText.includes('Next') || a.getAttribute('rel') === 'next'
-            }));
-    """)
+agent-browser close
+echo "Crawl complete: $(ls "$OUTPUT_DIR" | wc -l) pages"
 ```
 
 ---
 
-## Crawl Implementation
+## Pagination Handling
 
-### Basic Sequential Crawl
+### Click-Based Pagination
 
-```python
-async def crawl_documentation(start_url: str) -> list:
-    """Crawl all pages from a documentation site."""
+```bash
+#!/bin/bash
+# Handle "Next" button pagination
 
-    # Navigate to start page
-    mcp__playwright__browser_navigate(url=start_url)
-    mcp__playwright__browser_wait_for(selector="nav")
+PAGE=1
+while true; do
+    echo "Extracting page $PAGE..."
 
-    # Discover all page links
-    links = mcp__playwright__browser_evaluate(script="""
-        return Array.from(document.querySelectorAll('nav a'))
-            .map(a => ({ href: a.href, title: a.innerText }))
-            .filter(l => l.href.includes('/docs/'));
-    """)
+    # Extract current page content
+    agent-browser get text body > "/tmp/page-$PAGE.txt"
 
-    results = []
+    # Check for next button
+    agent-browser snapshot -i
+    NEXT_BUTTON=$(agent-browser eval "
+        const next = document.querySelector('.next, [rel=\"next\"], a:has-text(\"Next\")');
+        next ? 'found' : 'none';
+    ")
 
-    for link in links:
-        # Navigate to page
-        mcp__playwright__browser_navigate(url=link['href'])
-        mcp__playwright__browser_wait_for(selector=".content")
+    if [[ "$NEXT_BUTTON" == "none" ]]; then
+        echo "No more pages"
+        break
+    fi
 
-        # Extract content
-        content = mcp__playwright__browser_evaluate(script="""
-            return {
-                title: document.querySelector('h1').innerText,
-                content: document.querySelector('.content').innerText,
-                url: window.location.href
-            };
-        """)
-
-        results.append(content)
-
-        # Rate limiting
-        await asyncio.sleep(1)
-
-    return results
+    # Click next
+    agent-browser click @e1  # Next button ref from snapshot
+    agent-browser wait --load networkidle
+    ((PAGE++))
+done
 ```
 
-### Breadth-First Crawl
+### URL-Based Pagination
 
-```python
-from collections import deque
+```bash
+#!/bin/bash
+# Handle URL parameter pagination
 
-async def bfs_crawl(start_url: str, max_pages: int = 100) -> list:
-    """Breadth-first crawl up to max_pages."""
+BASE_URL="https://api.example.com/docs"
+PAGE=1
 
-    visited = set()
-    queue = deque([start_url])
-    results = []
+while true; do
+    URL="${BASE_URL}?page=${PAGE}"
+    echo "Fetching: $URL"
 
-    while queue and len(visited) < max_pages:
-        url = queue.popleft()
+    agent-browser open "$URL"
+    agent-browser wait --load networkidle
 
-        if url in visited:
-            continue
-        visited.add(url)
+    # Check if page has content
+    HAS_CONTENT=$(agent-browser eval "
+        document.querySelector('.content').children.length > 0
+    ")
 
-        # Navigate and extract
-        mcp__playwright__browser_navigate(url=url)
-        mcp__playwright__browser_wait_for(selector="body")
+    if [[ "$HAS_CONTENT" != "true" ]]; then
+        echo "No more content at page $PAGE"
+        break
+    fi
 
-        # Get content
-        page_data = mcp__playwright__browser_evaluate(script="""
-            return {
-                url: window.location.href,
-                title: document.title,
-                content: document.querySelector('main, article, .content')?.innerText || ''
-            };
-        """)
-        results.append(page_data)
+    agent-browser get text body > "/tmp/page-$PAGE.txt"
+    ((PAGE++))
+done
+```
 
-        # Discover new links
-        new_links = mcp__playwright__browser_evaluate(script="""
-            const base = new URL(window.location.href);
-            return Array.from(document.querySelectorAll('a[href]'))
+---
+
+## Recursive Crawl
+
+### Follow All Links (Depth-Limited)
+
+```bash
+#!/bin/bash
+# Recursive crawl with depth limit
+
+MAX_DEPTH=3
+VISITED_FILE="/tmp/visited-urls.txt"
+touch "$VISITED_FILE"
+
+crawl_page() {
+    local url="$1"
+    local depth="$2"
+
+    # Skip if already visited
+    grep -qF "$url" "$VISITED_FILE" && return
+
+    # Skip if too deep
+    [[ $depth -gt $MAX_DEPTH ]] && return
+
+    echo "[$depth] Crawling: $url"
+    echo "$url" >> "$VISITED_FILE"
+
+    agent-browser open "$url"
+    agent-browser wait --load networkidle
+
+    # Save content
+    local filename
+    filename=$(echo "$url" | md5sum | cut -d' ' -f1)
+    agent-browser get text body > "/tmp/crawl/$filename.txt"
+
+    # Get child links
+    local links
+    links=$(agent-browser eval "
+        JSON.stringify(
+            Array.from(document.querySelectorAll('a'))
                 .map(a => a.href)
-                .filter(href => {
-                    try {
-                        const url = new URL(href);
-                        return url.origin === base.origin &&
-                               !href.includes('#') &&
-                               url.pathname.startsWith('/docs/');
-                    } catch { return false; }
-                });
-        """)
+                .filter(h => h.startsWith('$BASE_URL'))
+        )
+    ")
 
-        for link in new_links:
-            if link not in visited:
-                queue.append(link)
+    # Recursively crawl children
+    for link in $(echo "$links" | jq -r '.[]' | head -20); do
+        crawl_page "$link" $((depth + 1))
+    done
+}
 
-        await asyncio.sleep(0.5)
-
-    return results
-```
-
-### Structured Documentation Crawl
-
-For sites with clear hierarchy (intro → guide → api → examples):
-
-```python
-async def crawl_structured_docs(base_url: str) -> dict:
-    """Crawl documentation maintaining structure."""
-
-    mcp__playwright__browser_navigate(url=base_url)
-    mcp__playwright__browser_wait_for(selector="nav")
-
-    # Get navigation structure
-    nav_structure = mcp__playwright__browser_evaluate(script="""
-        const nav = document.querySelector('nav');
-
-        function extractSection(element) {
-            const links = [];
-            const items = element.querySelectorAll(':scope > li, :scope > a');
-
-            for (const item of items) {
-                const link = item.querySelector('a') || item;
-                const sublist = item.querySelector('ul');
-
-                links.push({
-                    title: link.innerText.trim(),
-                    href: link.href || null,
-                    children: sublist ? extractSection(sublist) : []
-                });
-            }
-            return links;
-        }
-
-        return extractSection(nav.querySelector('ul'));
-    """)
-
-    # Crawl following structure
-    async def crawl_section(section, depth=0):
-        results = []
-
-        for item in section:
-            if item['href']:
-                mcp__playwright__browser_navigate(url=item['href'])
-                mcp__playwright__browser_wait_for(selector=".content")
-
-                content = mcp__playwright__browser_evaluate(
-                    script="document.querySelector('.content').innerText"
-                )
-
-                results.append({
-                    'title': item['title'],
-                    'url': item['href'],
-                    'content': content,
-                    'depth': depth,
-                    'children': await crawl_section(item['children'], depth + 1)
-                })
-
-                await asyncio.sleep(0.5)
-
-        return results
-
-    return await crawl_section(nav_structure)
+BASE_URL="https://docs.example.com"
+mkdir -p /tmp/crawl
+crawl_page "$BASE_URL" 0
+agent-browser close
 ```
 
 ---
 
-## Rate Limiting
+## Parallel Crawling with Sessions
 
-### Polite Crawling
+```bash
+#!/bin/bash
+# Use multiple sessions for parallel crawling
 
-```python
-import time
-import random
+URLS=(
+    "https://docs.example.com/page1"
+    "https://docs.example.com/page2"
+    "https://docs.example.com/page3"
+    "https://docs.example.com/page4"
+)
 
-class RateLimiter:
-    def __init__(self, min_delay: float = 1.0, max_delay: float = 3.0):
-        self.min_delay = min_delay
-        self.max_delay = max_delay
-        self.last_request = 0
+# Start parallel sessions
+for i in "${!URLS[@]}"; do
+    SESSION="crawler-$i"
+    URL="${URLS[$i]}"
 
-    async def wait(self):
-        """Wait appropriate time between requests."""
-        elapsed = time.time() - self.last_request
-        delay = random.uniform(self.min_delay, self.max_delay)
+    (
+        agent-browser --session "$SESSION" open "$URL"
+        agent-browser --session "$SESSION" wait --load networkidle
+        agent-browser --session "$SESSION" get text body > "/tmp/page-$i.txt"
+        agent-browser --session "$SESSION" close
+    ) &
+done
 
-        if elapsed < delay:
-            await asyncio.sleep(delay - elapsed)
-
-        self.last_request = time.time()
-
-# Usage
-limiter = RateLimiter(min_delay=1.0, max_delay=2.0)
-
-for url in urls:
-    await limiter.wait()
-    mcp__playwright__browser_navigate(url=url)
-    # ... extract content
-```
-
-### Respect robots.txt
-
-```python
-def check_robots_allowed(url: str, user_agent: str = "*") -> bool:
-    """Check if URL is allowed by robots.txt."""
-    from urllib.parse import urlparse
-    from urllib.robotparser import RobotFileParser
-
-    parsed = urlparse(url)
-    robots_url = f"{parsed.scheme}://{parsed.netloc}/robots.txt"
-
-    rp = RobotFileParser()
-    rp.set_url(robots_url)
-    rp.read()
-
-    return rp.can_fetch(user_agent, url)
+# Wait for all to complete
+wait
+echo "All pages crawled"
 ```
 
 ---
 
-## Error Handling
+## Best Practices
 
-### Retry Failed Pages
+### 1. Rate Limiting
 
-```python
-async def crawl_with_retry(url: str, max_retries: int = 3) -> dict:
-    """Crawl a page with retries on failure."""
-
-    for attempt in range(max_retries):
-        try:
-            mcp__playwright__browser_navigate(url=url)
-            mcp__playwright__browser_wait_for(
-                selector=".content",
-                timeout=10000
-            )
-
-            content = mcp__playwright__browser_evaluate(
-                script="document.querySelector('.content').innerText"
-            )
-
-            return {'url': url, 'content': content, 'status': 'success'}
-
-        except Exception as e:
-            if attempt < max_retries - 1:
-                await asyncio.sleep(2 ** attempt)  # Exponential backoff
-            else:
-                return {'url': url, 'error': str(e), 'status': 'failed'}
+```bash
+# Add delay between requests
+for url in "${URLS[@]}"; do
+    agent-browser open "$url"
+    agent-browser wait --load networkidle
+    agent-browser get text body > "/tmp/$(basename "$url").txt"
+    sleep 1  # 1 second delay between requests
+done
 ```
 
-### Handle Missing Content
+### 2. Error Handling
 
-```python
-def extract_content_safely():
-    """Extract content with fallbacks."""
-    return mcp__playwright__browser_evaluate(script="""
-        // Try multiple content selectors
-        const selectors = [
-            'main article',
-            '.content',
-            '#content',
-            'article',
-            '.markdown-body',
-            '.prose'
-        ];
-
-        for (const sel of selectors) {
-            const el = document.querySelector(sel);
-            if (el && el.innerText.trim().length > 100) {
-                return el.innerText;
-            }
-        }
-
-        // Fallback to body with cleanup
-        const body = document.body.cloneNode(true);
-        body.querySelectorAll('nav, header, footer, .sidebar').forEach(el => el.remove());
-        return body.innerText;
-    """)
+```bash
+# Handle failed pages gracefully
+for url in "${URLS[@]}"; do
+    if ! agent-browser open "$url" 2>/dev/null; then
+        echo "Failed to load: $url" >> /tmp/failed-urls.txt
+        continue
+    fi
+    agent-browser get text body > "/tmp/$(basename "$url").txt"
+done
 ```
 
-### Track Failed URLs
+### 3. Resume Capability
 
-```python
-async def crawl_with_tracking(urls: list) -> dict:
-    """Crawl URLs and track successes/failures."""
+```bash
+# Skip already crawled pages
+CRAWLED_DIR="/tmp/crawled"
+mkdir -p "$CRAWLED_DIR"
 
-    results = {
-        'successful': [],
-        'failed': [],
-        'skipped': []
-    }
+for url in "${URLS[@]}"; do
+    HASH=$(echo "$url" | md5sum | cut -d' ' -f1)
+    OUTPUT="$CRAWLED_DIR/$HASH.txt"
 
-    for url in urls:
-        try:
-            mcp__playwright__browser_navigate(url=url)
-            mcp__playwright__browser_wait_for(selector="body", timeout=10000)
+    if [[ -f "$OUTPUT" ]]; then
+        echo "Skipping (already crawled): $url"
+        continue
+    fi
 
-            # Check for error pages
-            is_error = mcp__playwright__browser_evaluate(script="""
-                const title = document.title.toLowerCase();
-                const h1 = document.querySelector('h1')?.innerText.toLowerCase() || '';
-                return title.includes('404') || title.includes('not found') ||
-                       h1.includes('404') || h1.includes('not found');
-            """)
+    agent-browser open "$url"
+    agent-browser wait --load networkidle
+    agent-browser get text body > "$OUTPUT"
+done
+```
 
-            if is_error:
-                results['skipped'].append({'url': url, 'reason': '404'})
-                continue
+### 4. Respect robots.txt
 
-            content = extract_content_safely()
-            results['successful'].append({'url': url, 'content': content})
-
-        except Exception as e:
-            results['failed'].append({'url': url, 'error': str(e)})
-
-        await asyncio.sleep(1)
-
-    return results
+```bash
+# Check robots.txt before crawling
+ROBOTS=$(curl -s "https://docs.example.com/robots.txt")
+if echo "$ROBOTS" | grep -q "Disallow: /docs"; then
+    echo "Crawling /docs is disallowed by robots.txt"
+    exit 1
+fi
 ```

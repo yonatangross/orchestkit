@@ -27,12 +27,6 @@
         "MEM0_API_KEY": "YOUR_MEM0_API_KEY_HERE"
       },
       "auto": "85"
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp"],
-      "description": "Browser automation for e2e testing and content capture",
-      "auto": "50"
     }
   }
 }

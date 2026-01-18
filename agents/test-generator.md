@@ -34,8 +34,12 @@ skills:
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 
 ## MCP Tools
-- `mcp__playwright__*` - For E2E test generation and browser automation
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
+
+## Browser Automation
+- Use `agent-browser` CLI via Bash for E2E test generation and browser automation
+- Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 At task start, query relevant context:

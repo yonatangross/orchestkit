@@ -5,6 +5,61 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.28.0] - 2026-01-18
+
+### Added
+
+- **New agent-browser Skill** - Complete Vercel agent-browser CLI integration
+  - `skills/agent-browser/SKILL.md` with comprehensive command reference (60+ commands)
+  - References: commands.md, snapshot-refs.md, session-management.md, authentication.md, video-recording.md, proxy-support.md, protocol-alignment.md
+  - Templates: capture-workflow.sh, form-automation.sh, authenticated-session.sh
+  - Checklist: migration-checklist.md for Playwright MCP → agent-browser migration
+  - 93% less context consumption compared to Playwright MCP
+
+- **agent-browser-safety.sh Hook** - Security validation for browser automation
+  - Blocks dangerous URL patterns (file://, javascript:, data:, about:)
+  - Blocks credential sites (accounts.google.com, login.microsoftonline.com, auth0.com, okta.com)
+  - CC 2.1.7 compliant PreToolUse hook
+
+### Changed
+
+- **browser-content-capture Skill** - Migrated from Playwright MCP to agent-browser
+  - Rewrote SKILL.md with agent-browser commands and Snapshot + Refs workflow
+  - Updated all references: agent-browser-commands.md, spa-extraction.md, auth-handling.md, multi-page-crawl.md
+  - Replaced Python/JS templates with Bash scripts: capture-workflow.sh, auth-capture.sh, multi-page-crawl.sh
+  - Version bumped to 2.0.0
+
+- **Agent Updates** - Removed deprecated mcp__playwright__* references from 6 agents
+  - test-generator.md: Added Browser Automation section with agent-browser guidance
+  - performance-engineer.md: Updated for Lighthouse + agent-browser integration
+  - rapid-ui-designer.md: Updated for visual testing with agent-browser screenshots
+  - frontend-ui-developer.md: Updated for component testing with agent-browser
+  - code-quality-reviewer.md: Updated for visual regression testing
+  - accessibility-specialist.md: Updated for automated a11y testing with axe-core via agent-browser
+
+### Removed
+
+- **Playwright MCP Integration** - Fully deprecated in favor of agent-browser
+  - Removed from .claude/templates/mcp-enabled.json
+  - Removed mcp__playwright__* hook matcher from plugin.json
+  - Deleted hooks/pretool/mcp/playwright-safety.sh
+
+### Migration Guide
+
+**From Playwright MCP to agent-browser:**
+
+| Playwright MCP | agent-browser |
+|----------------|---------------|
+| `mcp__playwright__browser_navigate(url)` | `agent-browser open <url>` |
+| `mcp__playwright__browser_snapshot()` | `agent-browser snapshot -i` |
+| `mcp__playwright__browser_click(ref)` | `agent-browser click @e#` |
+| `mcp__playwright__browser_fill_form(ref, values)` | `agent-browser fill @e# "value"` |
+| `mcp__playwright__browser_take_screenshot(path)` | `agent-browser screenshot <path>` |
+
+See `skills/agent-browser/checklists/migration-checklist.md` for complete migration guide.
+
+---
+
 ## [4.27.6] - 2026-01-18
 
 ### Fixed

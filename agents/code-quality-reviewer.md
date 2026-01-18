@@ -36,8 +36,12 @@ Review code for bugs, security issues, performance problems, and ensure test cov
 
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
-- `mcp__playwright__*` - Visual regression testing verification
 - `mcp__sequential-thinking__*` - Complex security vulnerability analysis
+
+## Browser Automation
+- Use `agent-browser` CLI via Bash for visual regression testing verification
+- Screenshots: `agent-browser screenshot <path>` for visual comparison
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 At task start, query relevant context:

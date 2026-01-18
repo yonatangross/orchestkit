@@ -1,17 +1,6 @@
 # SPA Content Extraction
 
-Patterns for extracting content from JavaScript-rendered Single Page Applications.
-
-## Table of Contents
-
-1. [Why SPAs Are Different](#why-spas-are-different)
-2. [Detection Patterns](#detection-patterns)
-3. [React Extraction](#react-extraction)
-4. [Vue Extraction](#vue-extraction)
-5. [Angular Extraction](#angular-extraction)
-6. [Generic SPA Patterns](#generic-spa-patterns)
-
----
+Patterns for extracting content from JavaScript-rendered Single Page Applications using agent-browser.
 
 ## Why SPAs Are Different
 
@@ -23,7 +12,7 @@ Traditional scrapers fail on SPAs because:
 4. **Lazy loading** - Content loads as user scrolls
 5. **API-driven** - Data fetched from backend after page load
 
-**Solution:** Use browser automation to wait for JavaScript execution.
+**Solution:** Use agent-browser to wait for JavaScript execution.
 
 ---
 
@@ -31,37 +20,21 @@ Traditional scrapers fail on SPAs because:
 
 ### Identify SPA Framework
 
-```javascript
-// Check for React
-window.__REACT_DEVTOOLS_GLOBAL_HOOK__ !== undefined
-document.querySelector('[data-reactroot]') !== null
+```bash
+# Check for React
+agent-browser eval "window.__REACT_DEVTOOLS_GLOBAL_HOOK__ !== undefined"
 
-// Check for Vue
-window.__VUE__ !== undefined
-document.querySelector('[data-v-]') !== null
+# Check for Vue
+agent-browser eval "window.__VUE__ !== undefined"
 
-// Check for Angular
-window.ng !== undefined
-document.querySelector('[ng-version]') !== null
+# Check for Angular
+agent-browser eval "window.ng !== undefined"
 
-// Check for Next.js
-document.querySelector('#__next') !== null
+# Check for Next.js
+agent-browser eval "document.querySelector('#__next') !== null"
 
-// Check for Nuxt
-document.querySelector('#__nuxt') !== null
-```
-
-### Detect Loading State
-
-```javascript
-// Common loading indicators
-document.querySelector('.loading') !== null
-document.querySelector('.spinner') !== null
-document.querySelector('[aria-busy="true"]') !== null
-
-// Skeleton screens
-document.querySelector('.skeleton') !== null
-document.querySelector('[data-loading]') !== null
+# Check for Nuxt
+agent-browser eval "document.querySelector('#__nuxt') !== null"
 ```
 
 ---
@@ -70,70 +43,39 @@ document.querySelector('[data-loading]') !== null
 
 ### Wait for React Hydration
 
-```python
-# Method 1: Wait for specific hydration marker
-mcp__playwright__browser_wait_for(
-    selector="[data-hydrated='true']",
-    timeout=10000
-)
+```bash
+# Navigate
+agent-browser open https://react-docs.example.com
 
-# Method 2: Wait for content container
-mcp__playwright__browser_wait_for(
-    selector="#root > *",  # React renders into #root
-    timeout=10000
-)
+# Wait for React to render content
+agent-browser wait --load networkidle
 
-# Method 3: Custom hydration check
-mcp__playwright__browser_evaluate(script="""
-    // Wait for React to finish rendering
-    await new Promise(resolve => {
-        const check = () => {
-            const root = document.getElementById('root');
-            if (root && root.children.length > 0) {
-                resolve();
-            } else {
-                setTimeout(check, 100);
-            }
-        };
-        check();
-    });
-    return true;
-""")
+# Or wait for specific hydration marker
+agent-browser wait --fn "document.querySelector('[data-hydrated]') !== null"
+
+# Get snapshot to find content
+agent-browser snapshot -i
+
+# Extract content
+agent-browser get text @e5
 ```
 
 ### Next.js Specific
 
-```python
-# Wait for Next.js hydration
-mcp__playwright__browser_wait_for(
-    selector="#__next",
-    timeout=10000
-)
-
-# Check for completed navigation
-mcp__playwright__browser_evaluate(script="""
-    // Wait for Next.js router to be ready
-    await new Promise(r => setTimeout(r, 1000));
-    return document.querySelector('main').innerText;
-""")
+```bash
+# Wait for Next.js
+agent-browser open https://nextjs-site.com
+agent-browser wait --fn "document.querySelector('#__next').children.length > 0"
+agent-browser snapshot -i
+agent-browser get text @e3
 ```
 
-### React Documentation Sites
+### Docusaurus Sites
 
-Common patterns for React-based doc sites (Docusaurus, Nextra):
-
-```python
-# Docusaurus
-mcp__playwright__browser_wait_for(selector=".theme-doc-markdown")
-content = mcp__playwright__browser_evaluate(script="""
-    return document.querySelector('.theme-doc-markdown').innerText;
-""")
-
-# Nextra
-mcp__playwright__browser_wait_for(selector="article")
-content = mcp__playwright__browser_evaluate(script="""
-    return document.querySelector('article').innerText;
-""")
+```bash
+agent-browser open https://docusaurus-docs.com
+agent-browser wait --load networkidle
+agent-browser eval "document.querySelector('.theme-doc-markdown').innerText"
 ```
 
 ---
@@ -142,61 +84,37 @@ content = mcp__playwright__browser_evaluate(script="""
 
 ### Wait for Vue Mount
 
-```python
-# Wait for Vue app mount
-mcp__playwright__browser_wait_for(
-    selector="#app > *",  # Vue typically mounts to #app
-    timeout=10000
-)
+```bash
+# Navigate
+agent-browser open https://vue-app.example.com
 
-# Or check for Vue data attributes
-mcp__playwright__browser_wait_for(
-    selector="[data-v-]",  # Vue scoped CSS attributes
-    timeout=10000
-)
+# Wait for Vue to mount
+agent-browser wait --fn "document.querySelector('#app').children.length > 0"
+
+# Or wait for Vue data attributes
+agent-browser wait --fn "document.querySelector('[data-v-]') !== null"
+
+# Extract
+agent-browser snapshot -i
+agent-browser get text @e4
 ```
 
 ### Nuxt Specific
 
-```python
-# Wait for Nuxt hydration
-mcp__playwright__browser_wait_for(
-    selector="#__nuxt",
-    timeout=10000
-)
-
-# Handle Nuxt loading states
-mcp__playwright__browser_evaluate(script="""
-    // Wait for Nuxt loading to complete
-    await new Promise(resolve => {
-        const check = () => {
-            const loading = document.querySelector('.nuxt-loading');
-            if (!loading || loading.style.display === 'none') {
-                resolve();
-            } else {
-                setTimeout(check, 100);
-            }
-        };
-        check();
-    });
-    return document.querySelector('main').innerText;
-""")
+```bash
+agent-browser open https://nuxt-site.com
+agent-browser wait --fn "document.querySelector('#__nuxt').children.length > 0"
+agent-browser snapshot -i
+agent-browser get text @e2
 ```
 
-### VuePress/VitePress
+### VitePress/VuePress
 
-```python
-# VuePress
-mcp__playwright__browser_wait_for(selector=".theme-default-content")
-content = mcp__playwright__browser_evaluate(script="""
-    return document.querySelector('.theme-default-content').innerText;
-""")
-
+```bash
 # VitePress
-mcp__playwright__browser_wait_for(selector=".vp-doc")
-content = mcp__playwright__browser_evaluate(script="""
-    return document.querySelector('.vp-doc').innerText;
-""")
+agent-browser open https://vitepress-docs.com
+agent-browser wait --fn "document.querySelector('.vp-doc') !== null"
+agent-browser eval "document.querySelector('.vp-doc').innerText"
 ```
 
 ---
@@ -205,34 +123,19 @@ content = mcp__playwright__browser_evaluate(script="""
 
 ### Wait for Angular Bootstrap
 
-```python
-# Wait for Angular to initialize
-mcp__playwright__browser_wait_for(
-    selector="app-root > *",
-    timeout=10000
-)
+```bash
+# Navigate
+agent-browser open https://angular-app.example.com
+
+# Wait for Angular
+agent-browser wait --fn "document.querySelector('app-root').children.length > 0"
 
 # Or check ng-version attribute
-mcp__playwright__browser_wait_for(
-    selector="[ng-version]",
-    timeout=10000
-)
-```
+agent-browser wait --fn "document.querySelector('[ng-version]') !== null"
 
-### Handle Angular Change Detection
-
-```python
-mcp__playwright__browser_evaluate(script="""
-    // Trigger change detection and wait
-    if (window.ng) {
-        const appRef = window.ng.getComponent(document.querySelector('app-root'));
-        if (appRef) {
-            appRef.detectChanges && appRef.detectChanges();
-        }
-    }
-    await new Promise(r => setTimeout(r, 500));
-    return document.querySelector('main').innerText;
-""")
+# Extract
+agent-browser snapshot -i
+agent-browser get text @e3
 ```
 
 ---
@@ -243,80 +146,54 @@ mcp__playwright__browser_evaluate(script="""
 
 When framework is unknown, wait for visible content:
 
-```python
-mcp__playwright__browser_evaluate(script="""
-    // Wait for meaningful content
-    await new Promise(resolve => {
-        const check = () => {
-            const body = document.body;
-            const text = body.innerText.trim();
-            // Wait until page has substantial content
-            if (text.length > 500) {
-                resolve();
-            } else {
-                setTimeout(check, 200);
-            }
-        };
-        check();
-    });
-    return true;
-""")
+```bash
+# Wait for meaningful content (page has substantial text)
+agent-browser wait --fn "document.body.innerText.trim().length > 500"
+
+# Or wait for specific text
+agent-browser wait --text "Welcome"
 ```
 
 ### Handle Infinite Scroll
 
-```python
-mcp__playwright__browser_evaluate(script="""
-    // Scroll to load all content
-    const scrollToBottom = async () => {
-        let lastHeight = document.body.scrollHeight;
-        while (true) {
-            window.scrollTo(0, document.body.scrollHeight);
-            await new Promise(r => setTimeout(r, 1000));
-            const newHeight = document.body.scrollHeight;
-            if (newHeight === lastHeight) break;
-            lastHeight = newHeight;
-        }
-    };
-    await scrollToBottom();
+```bash
+# Scroll to load all content
+agent-browser eval "
+async function scrollToBottom() {
+    let lastHeight = document.body.scrollHeight;
+    while (true) {
+        window.scrollTo(0, document.body.scrollHeight);
+        await new Promise(r => setTimeout(r, 1000));
+        if (document.body.scrollHeight === lastHeight) break;
+        lastHeight = document.body.scrollHeight;
+    }
     return document.body.innerText;
-""")
+}
+scrollToBottom();
+"
 ```
 
 ### Handle Lazy Images
 
-```python
-mcp__playwright__browser_evaluate(script="""
-    // Trigger lazy image loading
-    document.querySelectorAll('img[data-src]').forEach(img => {
-        img.src = img.dataset.src;
-    });
-    document.querySelectorAll('img[loading="lazy"]').forEach(img => {
-        img.loading = 'eager';
-    });
-    await new Promise(r => setTimeout(r, 2000));
-    return true;
-""")
+```bash
+# Trigger lazy image loading
+agent-browser eval "
+document.querySelectorAll('img[data-src]').forEach(img => img.src = img.dataset.src);
+document.querySelectorAll('img[loading=\"lazy\"]').forEach(img => img.loading = 'eager');
+"
+agent-browser wait 2000
 ```
 
 ### Extract Clean Content
 
-```python
-mcp__playwright__browser_evaluate(script="""
-    // Remove noise elements
-    const removeSelectors = [
-        'nav', 'header', 'footer',
-        '.sidebar', '.ads', '.cookie-banner',
-        '[role="navigation"]', '[aria-hidden="true"]'
-    ];
-    removeSelectors.forEach(sel => {
-        document.querySelectorAll(sel).forEach(el => el.remove());
-    });
-
-    // Get main content
-    const main = document.querySelector('main, article, .content, #content');
-    return main ? main.innerText : document.body.innerText;
-""")
+```bash
+# Remove noise elements before extraction
+agent-browser eval "
+['nav', 'header', 'footer', '.sidebar', '.ads', '.cookie-banner']
+    .forEach(sel => document.querySelectorAll(sel).forEach(el => el.remove()));
+const main = document.querySelector('main, article, .content, #content');
+main ? main.innerText : document.body.innerText;
+"
 ```
 
 ---
@@ -325,8 +202,8 @@ mcp__playwright__browser_evaluate(script="""
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| Empty content | JS not executed | Add longer wait or explicit delay |
-| Partial content | Hydration incomplete | Wait for specific hydration marker |
+| Empty content | JS not executed | Add `wait --load networkidle` |
+| Partial content | Hydration incomplete | Use `wait --fn` with specific check |
 | Stale content | Client-side cache | Add cache-busting param to URL |
-| Loading spinner | Slow API | Increase timeout, wait for content selector |
+| Loading spinner | Slow API | Increase timeout, use `wait --text` |
 | 404 after nav | Client routing issue | Use full page reload |

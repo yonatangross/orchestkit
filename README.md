@@ -479,8 +479,9 @@ skillforge-claude-plugin/
 | **Context7** | Up-to-date library docs | ✅ Until 75% context |
 | **Memory** | Knowledge graph (PRIMARY) | ✅ Until 90% context |
 | **Sequential Thinking** | Complex reasoning | ✅ Until 60% context |
-| **Playwright** | Browser automation | ✅ Until 50% context |
 | **Mem0** | Semantic search (optional) | ⚙️ Requires API key |
+
+**Browser Automation:** Use `agent-browser` CLI via Bash (93% less context than MCP).
 
 ### Environment Variables
 

@@ -68,7 +68,8 @@ bin/                     # CLI utilities and scripts
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
 - **Claude Code**: >= 2.1.11 (CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
-- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure, auto-enable via auto:N thresholds)
+- **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /skf:configure, auto-enable via auto:N thresholds)
+- **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
 
 ### Expected Application Stack (Skills Support)
 - **Backend**: FastAPI + Python 3.11+ + SQLAlchemy 2.0 + PostgreSQL 18 + pgvector
@@ -654,7 +655,7 @@ MCP servers use `auto:N` syntax to auto-enable based on context window percentag
 - `sequential-thinking`: auto:60 (complex reasoning needs room)
 - `memory`: auto:90 (knowledge graph - PRIMARY, preserve until compaction)
 - `mem0`: auto:85 (optional cloud enhancement, less critical than graph)
-- `playwright`: auto:50 (browser-heavy, disable early)
+- Browser automation now uses `agent-browser` CLI via Bash (not MCP)
 
 **Graph-First Architecture (v2.1):** Knowledge graph (memory) is PRIMARY and always available. Mem0 is an optional enhancement for semantic search. When context is tight, graph memory is MORE important as it preserves session context before compaction.
 
@@ -723,7 +724,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.27.6 (as of 2026-01-18)
+- **Current Version**: 4.28.0 (as of 2026-01-18)
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
@@ -740,6 +741,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Memory Fabric v2.1**: Graph-first architecture (v4.21.0) - knowledge graph PRIMARY, mem0 optional cloud enhancement
 - **Frontend Skills Expansion**: lazy-loading-patterns, view-transitions, scroll-driven-animations, responsive-patterns, pwa-patterns, recharts-patterns, dashboard-patterns + performance-engineer agent (v4.26.0)
 - **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
+- **agent-browser Integration**: Replaced Playwright MCP with Vercel agent-browser CLI (93% less context, Snapshot + Refs workflow) (v4.28.0)
 
 ---
 
@@ -776,4 +778,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-18 (v4.19.0)
+**Last Updated**: 2026-01-18 (v4.28.0)

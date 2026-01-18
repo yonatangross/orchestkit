@@ -125,18 +125,20 @@ test_memory_validator_warns_on_delete() {
 }
 
 # ============================================================================
-# PLAYWRIGHT SAFETY
+# AGENT-BROWSER SAFETY
 # ============================================================================
 
-describe "Playwright Safety Hook"
+BASH_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/bash"
 
-test_playwright_safety_handles_navigate() {
-    local hook="$HOOKS_DIR/playwright-safety.sh"
+describe "agent-browser Safety Hook"
+
+test_agent_browser_safety_allows_safe_urls() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
     if [[ ! -f "$hook" ]]; then
-        skip "playwright-safety.sh not found"
+        skip "agent-browser-safety.sh not found"
     fi
 
-    local input='{"tool_name":"mcp__playwright__browser_navigate","tool_input":{"url":"https://example.com"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://example.com"}}'
     local output
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
@@ -146,52 +148,51 @@ test_playwright_safety_handles_navigate() {
     fi
 }
 
-test_playwright_safety_handles_click() {
-    local hook="$HOOKS_DIR/playwright-safety.sh"
+test_agent_browser_safety_blocks_file_protocol() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
     if [[ ! -f "$hook" ]]; then
-        skip "playwright-safety.sh not found"
+        skip "agent-browser-safety.sh not found"
     fi
 
-    local input='{"tool_name":"mcp__playwright__browser_click","tool_input":{"selector":"#submit-btn"}}'
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open file:///etc/passwd"}}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    assert_valid_json "$output"
+    if ! strip_ansi "$output" | jq -e '.continue == false' >/dev/null 2>&1; then
+        fail "Should block file:// protocol"
+    fi
+}
+
+test_agent_browser_safety_blocks_auth_domains() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    if [[ ! -f "$hook" ]]; then
+        skip "agent-browser-safety.sh not found"
+    fi
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://accounts.google.com"}}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    assert_valid_json "$output"
+    if ! strip_ansi "$output" | jq -e '.continue == false' >/dev/null 2>&1; then
+        fail "Should block auth domains"
+    fi
+}
+
+test_agent_browser_safety_skips_non_browser_commands() {
+    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
+    if [[ ! -f "$hook" ]]; then
+        skip "agent-browser-safety.sh not found"
+    fi
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"ls -la"}}'
     local output
     output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
     if ! strip_ansi "$output" | jq -e '.continue == true' >/dev/null 2>&1; then
-        fail "Missing continue:true field"
-    fi
-}
-
-test_playwright_safety_handles_file_upload() {
-    local hook="$HOOKS_DIR/playwright-safety.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "playwright-safety.sh not found"
-    fi
-
-    # File upload should be allowed but logged
-    local input='{"tool_name":"mcp__playwright__browser_file_upload","tool_input":{"paths":["/tmp/test.txt"]}}'
-    local output
-    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
-
-    assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e '.continue == true' >/dev/null 2>&1; then
-        fail "File upload should continue (with logging)"
-    fi
-}
-
-test_playwright_safety_has_valid_output() {
-    local hook="$HOOKS_DIR/playwright-safety.sh"
-    if [[ ! -f "$hook" ]]; then
-        skip "playwright-safety.sh not found"
-    fi
-
-    local input='{"tool_name":"mcp__playwright__browser_screenshot","tool_input":{}}'
-    local output
-    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
-
-    assert_valid_json "$output"
-    if ! strip_ansi "$output" | jq -e 'has("systemMessage") or has("suppressOutput")' >/dev/null 2>&1; then
-        fail "Missing systemMessage or suppressOutput field"
+        fail "Should pass through non-browser commands"
     fi
 }
 

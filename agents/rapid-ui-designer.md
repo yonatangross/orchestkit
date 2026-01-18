@@ -22,7 +22,11 @@ Create rapid UI prototypes with Tailwind CSS, establish design systems with toke
 
 ## MCP Tools
 - `mcp__context7__*` - Tailwind CSS documentation, Radix UI primitives
-- `mcp__playwright__*` - Visual testing and screenshot comparison
+
+## Browser Automation
+- Use `agent-browser` CLI via Bash for visual testing and screenshot comparison
+- Screenshots: `agent-browser screenshot <path>` or `agent-browser screenshot --full <path>`
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 At task start, query relevant context:

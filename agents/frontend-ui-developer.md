@@ -52,8 +52,13 @@ Build React 19/TypeScript components leveraging concurrent features, optimistic 
 
 ## MCP Tools
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
-- `mcp__playwright__*` - Component visual testing, E2E test generation
 - `mcp__sequential-thinking__*` - Complex state management decisions
+
+## Browser Automation
+- Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
+- Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
+- Screenshots: `agent-browser screenshot <path>` for visual verification
+- See `skills/agent-browser/` for comprehensive command reference
 
 ## Memory Integration
 At task start, query relevant context:

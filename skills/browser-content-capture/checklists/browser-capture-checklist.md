@@ -1,6 +1,6 @@
 # Browser Content Capture Checklist
 
-Use this checklist when capturing content from web pages using browser automation.
+Use this checklist when capturing content from web pages using agent-browser.
 
 ## Pre-Capture
 
@@ -8,7 +8,6 @@ Use this checklist when capturing content from web pages using browser automatio
 - [ ] **Check robots.txt** - Ensure scraping is allowed
 - [ ] **Verify ToS** - Review site's terms of service
 - [ ] **Identify page type** - Static, SPA, or auth-protected?
-- [ ] **Choose tool** - Playwright MCP vs Chrome extension
 
 ## Page Analysis
 
@@ -22,31 +21,32 @@ Use this checklist when capturing content from web pages using browser automatio
 
 ## Capture Configuration
 
-- [ ] **Set appropriate timeout** - 5000ms for static, 15000ms for SPAs
-- [ ] **Add hydration wait** - Extra delay for React/Vue
+- [ ] **Set appropriate wait** - `networkidle` for SPAs
+- [ ] **Add hydration wait** - `wait --fn` for React/Vue
 - [ ] **Configure rate limiting** - 1-2 seconds between pages
 - [ ] **Plan error handling** - Retry logic for failures
 
 ## Single Page Capture
 
-```python
+```bash
 # 1. Navigate
-mcp__playwright__browser_navigate(url=target_url)
+agent-browser open "$TARGET_URL"
 
 # 2. Wait for content
-mcp__playwright__browser_wait_for(selector=content_selector, timeout=timeout)
+agent-browser wait --load networkidle
 
-# 3. Optional: Extra delay for SPAs
-mcp__playwright__browser_evaluate(script="await new Promise(r => setTimeout(r, 1000))")
+# 3. Get snapshot to identify elements
+agent-browser snapshot -i
 
 # 4. Extract content
-content = mcp__playwright__browser_evaluate(script=extraction_script)
+agent-browser get text body
+# Or use specific ref: agent-browser get text @e5
 ```
 
 - [ ] Navigation successful
-- [ ] Content selector found
+- [ ] Content visible in snapshot
 - [ ] Extracted content is complete (not partial)
-- [ ] No JavaScript errors in console
+- [ ] No JavaScript errors (`agent-browser errors`)
 
 ## Multi-Page Crawl
 
@@ -56,71 +56,87 @@ content = mcp__playwright__browser_evaluate(script=extraction_script)
 - [ ] **Track visited pages** - Prevent infinite loops
 - [ ] **Handle pagination** - Next/Previous links
 
+```bash
+# Get all nav links
+LINKS=$(agent-browser eval "JSON.stringify(Array.from(document.querySelectorAll('nav a')).map(a => a.href))")
+
+# Crawl each
+for link in $(echo "$LINKS" | jq -r '.[]'); do
+    agent-browser open "$link"
+    agent-browser wait --load networkidle
+    agent-browser get text body > "/tmp/$(basename $link).txt"
+    sleep 1
+done
+```
+
 ## Authentication Handling
 
 - [ ] **Check if login required** - Detect login redirects
 - [ ] **Choose auth method**:
-  - [ ] Form-based login (browser_fill_form)
-  - [ ] Chrome extension (user session)
-  - [ ] OAuth/SSO (requires user intervention)
+  - [ ] Form-based login (`fill @e1`, `click @e2`)
+  - [ ] Headed mode for OAuth/SSO (`AGENT_BROWSER_HEADED=1`)
+  - [ ] Restore saved state (`state load`)
 - [ ] **Store no credentials in code** - Use environment variables
-- [ ] **Verify login success** - Check for dashboard/profile elements
-- [ ] **Handle session expiry** - Re-authenticate if redirected
+- [ ] **Verify login success** - Check URL after redirect
+- [ ] **Save state for reuse** - `agent-browser state save`
+
+```bash
+# Login flow
+agent-browser open "$LOGIN_URL"
+agent-browser snapshot -i
+agent-browser fill @e1 "$USERNAME"
+agent-browser fill @e2 "$PASSWORD"
+agent-browser click @e3
+agent-browser wait --url "**/dashboard"
+agent-browser state save /tmp/auth.json
+```
 
 ## Content Extraction
 
 - [ ] **Remove noise elements** - Nav, header, footer, ads
-- [ ] **Extract clean text** - innerText, not innerHTML
+- [ ] **Extract clean text** - `get text` or `eval innerText`
 - [ ] **Preserve structure** - Headings, lists, code blocks
 - [ ] **Extract code separately** - Language detection, formatting
-- [ ] **Capture metadata** - Title, author, date, URL
+- [ ] **Capture metadata** - Title, URL, date
+
+```bash
+# Clean extraction
+agent-browser eval "
+['nav', 'header', 'footer', '.sidebar'].forEach(sel =>
+    document.querySelectorAll(sel).forEach(el => el.remove()));
+document.querySelector('main, article, .content').innerText;
+"
+```
 
 ## Post-Capture
 
 - [ ] **Validate content** - Not empty, not error page
 - [ ] **Clean whitespace** - Remove excessive newlines
 - [ ] **Word count check** - Reasonable length for page type
-- [ ] **Queue to SkillForge** - Send for analysis
-
-## SkillForge Integration
-
-```python
-from templates.queue_to_skillforge import SkillForgeClient
-
-client = SkillForgeClient()
-result = await client.queue_for_analysis(
-    url=captured_url,
-    content=captured_content,
-    title=captured_title
-)
-```
-
-- [ ] Content sent successfully
-- [ ] Analysis ID received
-- [ ] Monitor progress via SSE
-- [ ] Verify searchable in SkillForge
+- [ ] **Take screenshot** - Visual verification
 
 ## Troubleshooting
 
-| Issue | Check |
-|-------|-------|
-| Empty content | Add wait_for, increase timeout |
-| Partial render | Add explicit delay after navigation |
-| Login redirect | Check authentication, use Chrome ext |
-| Rate limited | Increase delay between pages |
-| JavaScript error | Check browser_console_messages |
-| Wrong content | Verify content selector |
+| Issue | Solution |
+|-------|----------|
+| Empty content | Add `wait --load networkidle` |
+| Partial render | Use `wait --fn "..."` with specific check |
+| Login redirect | Use authentication flow with `state save/load` |
+| Rate limited | Increase `sleep` between pages |
+| JavaScript error | Check `agent-browser errors` |
+| Wrong content | Verify ref in `snapshot -i` |
+| Session expired | Check URL, re-authenticate if `/login` |
 
 ## Quality Verification
 
 - [ ] **Random sample check** - Review 3-5 captured pages manually
-- [ ] **Search test** - Query SkillForge for expected content
+- [ ] **Search test** - Query for expected content
 - [ ] **Compare to source** - Ensure no content lost
 - [ ] **Check code blocks** - Properly formatted and complete
 
 ## Documentation
 
 - [ ] **Record capture date** - For freshness tracking
-- [ ] **Note selectors used** - For future re-crawls
+- [ ] **Note refs used** - For future re-crawls
 - [ ] **Document failures** - Pages that couldn't be captured
-- [ ] **Save capture config** - For reproducibility
+- [ ] **Save capture scripts** - For reproducibility
