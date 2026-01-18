@@ -149,11 +149,11 @@ test_count_sanity() {
         log_fail "Commands count out of range: $commands (expected 8-20)"
     fi
 
-    # Hooks should be 80-140 (updated for error-solution-suggester hook)
-    if [[ "$hooks" -ge 80 && "$hooks" -le 140 ]]; then
-        log_pass "Hooks count in expected range (80-140): $hooks"
+    # Hooks should be 80-160 (updated for version-sync hook)
+    if [[ "$hooks" -ge 80 && "$hooks" -le 160 ]]; then
+        log_pass "Hooks count in expected range (80-160): $hooks"
     else
-        log_fail "Hooks count out of range: $hooks (expected 80-140)"
+        log_fail "Hooks count out of range: $hooks (expected 80-160)"
     fi
 }
 
