@@ -5,10 +5,8 @@ set -euo pipefail
 # CC 2.1.7 Compliant - Context Protocol 2.0
 # Supports agent_type for context-aware initialization
 
-# Check for HOOK_INPUT from parent dispatcher (CC 2.1.6 format)
-if [[ -n "${HOOK_INPUT:-}" ]]; then
-  _HOOK_INPUT="$HOOK_INPUT"
-fi
+# Read and discard stdin to prevent broken pipe errors in hook chain
+_HOOK_INPUT=$(cat 2>/dev/null || true)
 export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"

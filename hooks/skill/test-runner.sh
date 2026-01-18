@@ -1,6 +1,11 @@
 #!/bin/bash
 # Runs after Write in testing skills
 # Auto-runs the test file that was just created/modified
+set -euo pipefail
+
+# Read and discard stdin to prevent broken pipe errors in hook chain
+_HOOK_INPUT=$(cat 2>/dev/null || true)
+export _HOOK_INPUT
 
 FILE="${CC_TOOL_FILE_PATH:-}"
 

@@ -5,6 +5,24 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.27.6] - 2026-01-18
+
+### Fixed
+
+- **Hook Stdin Consumption** - Fixed 39 hooks missing stdin consumption that caused "hook error" messages
+  - Added `_HOOK_INPUT=$(cat 2>/dev/null || true)` to all hooks in lifecycle/, posttool/, skill/, stop/, and prompt/ directories
+  - When hooks don't consume stdin, Claude Code reports broken pipe errors even on successful execution
+  - All 127 hooks now properly consume stdin
+
+### Added
+
+- **Stdin Consumption Test** - New test to prevent future regressions (`tests/unit/test-hook-stdin-consumption.sh`)
+  - Validates all hooks consume stdin using recognized patterns
+  - Runs as part of the test suite to catch missing stdin consumption early
+
+---
+
+
 ## [4.27.5] - 2026-01-18
 
 ### Fixed

@@ -7,6 +7,10 @@
 
 set -euo pipefail
 
+# Read and discard stdin to prevent broken pipe errors in hook chain
+_HOOK_INPUT=$(cat 2>/dev/null || true)
+export _HOOK_INPUT
+
 # Source common utilities (check file exists first to avoid set -e exit)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 [[ -f "$SCRIPT_DIR/../common.sh" ]] && source "$SCRIPT_DIR/../common.sh" || true
