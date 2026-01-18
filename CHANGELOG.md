@@ -5,6 +5,28 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.23.0] - 2026-01-18
+
+### Added
+
+- **Multimodal AI Foundation** (#71)
+  - `skills/vision-language-models`: GPT-5, Claude 4.5, Gemini 2.5/3, Grok 4 vision patterns
+  - `skills/audio-language-models`: Grok Voice Agent, Gemini Live API, GPT-4o-Transcribe, TTS
+  - `skills/multimodal-rag`: CLIP, SigLIP 2, Voyage multimodal-3 embeddings
+  - `agents/multimodal-specialist`: Vision, audio, video processing specialist
+  - Reference documentation for document-vision, cost-optimization, image-captioning
+  - Reference documentation for streaming-audio, tts-patterns, whisper-integration
+  - Reference documentation for clip-embeddings, multimodal-chunking
+  - Implementation checklists for all 3 skills
+  - `docs/roadmap/multimodal-ai-foundation.md`: Implementation roadmap
+
+### Changed
+
+- Skills count: 135 → 138 (added 3 multimodal skills)
+- Agents count: 27 → 28 (added multimodal-specialist)
+
+---
+
 ## [4.22.0] - 2026-01-18
 
 ### Added

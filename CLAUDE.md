@@ -6,8 +6,8 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **135 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
-- **27 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
+- **138 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
+- **28 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **20 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
 - **130 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
@@ -43,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-# Skills use CC 2.1.7 native flat structure (135 skills):
+# Skills use CC 2.1.7 native flat structure (138 skills):
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
@@ -615,7 +615,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-135 skills in flat structure at `skills/`. Common skill types include:
+138 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
@@ -723,7 +723,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.22.0 (as of 2026-01-18)
+- **Current Version**: 4.23.0 (as of 2026-01-18)
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
