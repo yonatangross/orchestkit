@@ -7,10 +7,10 @@
 
 *Transform Claude Code into a full-stack development powerhouse*
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.9-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-116-blue?style=flat-square)](./skills)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.11-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
+[![Skills](https://img.shields.io/badge/Skills-135-blue?style=flat-square)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-27-green?style=flat-square)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-113-orange?style=flat-square)](./hooks)
+[![Hooks](https://img.shields.io/badge/Hooks-128-orange?style=flat-square)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 [Features](#features) • [Quick Start](#quick-start) • [Skills](#skill-system) • [Agents](#agents) • [Hooks](#hooks) • [Commands](#commands)
@@ -23,9 +23,9 @@
 
 SkillForge Complete is a production-ready plugin for Claude Code that provides:
 
-- **113 Skills** across 13 categories with progressive loading (saves ~70% context tokens)
-- **25 Specialized Agents** with native CC 2.1.6+ skill injection
-- **109 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
+- **135 Skills** (20 user-invocable + 115 internal) with progressive loading (saves ~70% context tokens)
+- **27 Specialized Agents** with native CC 2.1.6+ skill injection
+- **128 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
 - **Context Window HUD** with real-time usage monitoring
 - **Multi-Instance Coordination** for parallel Claude Code sessions
 
@@ -33,12 +33,23 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.18.0 (Skills & Agents Expansion)
+## What's New in v4.20.0 (Memory Fabric & Frontend Skills)
 
-- **10 New Skills**: Event-driven (event-sourcing, message-queues, outbox-pattern), Database (alembic-migrations, zero-downtime-migration, database-versioning), Accessibility (react-aria-patterns, focus-management, wcag-compliance, a11y-testing)
-- **5 New Agents**: accessibility-specialist, ci-cd-engineer, deployment-manager, event-driven-architect, infrastructure-architect
-- **3 New Agent Hooks**: a11y-lint-check.sh, ci-safety-check.sh, deployment-safety-check.sh
-- **Total**: 115 skills, 27 agents, 113 hooks
+- **Memory Fabric v2.1**: Graph-first architecture with optional Mem0 cloud enhancement
+- **10 Frontend Skills Expanded**: zustand-patterns, tanstack-query-advanced, form-state-patterns, core-web-vitals, image-optimization, render-optimization, shadcn-patterns, radix-primitives, vite-advanced, biome-linting
+- **2 New Commands**: `/load-context` (auto-load memories), `/mem0-sync` (sync to Mem0)
+- **Total**: 135 skills, 27 agents, 128 hooks
+
+### Previous (v4.19.0 - CC 2.1.11 Setup Hooks)
+
+- **CC 2.1.11 Setup Hooks**: `--init`, `--init-only`, `--maintenance` CLI support
+- **Automatic Pattern Extraction**: Auto-extracts patterns from commits, tests, builds
+- **Total**: 129 skills, 27 agents, 124 hooks
+
+### Previous (v4.18.0 - Skills & Agents Expansion)
+
+- **10 New Skills**: Event-driven, Database, Accessibility categories
+- **5 New Agents**: accessibility-specialist, ci-cd-engineer, deployment-manager, etc.
 
 ### Previous (v4.17.2 - Commands Autocomplete Fix)
 

@@ -5,6 +5,51 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.20.0] - 2026-01-18
+
+### Added
+
+- **Memory Fabric v2.1** - Graph-first architecture with optional Mem0 cloud enhancement
+  - `skills/load-context`: Auto-load memories at session start with context-aware tiers
+  - `skills/mem0-sync`: Auto-sync session context, decisions, and patterns
+  - `commands/load-context.md`: User-invocable command for manual context loading
+  - `commands/mem0-sync.md`: User-invocable command for manual sync
+
+- **10 Frontend Skills Expanded to Baseline Quality**
+  - `zustand-patterns`: Zustand 5.x state management with slices, middleware, Immer
+  - `tanstack-query-advanced`: TanStack Query v5 patterns for infinite queries, optimistic updates
+  - `form-state-patterns`: React Hook Form v7 with Zod validation, React 19 useActionState
+  - `core-web-vitals`: LCP, INP, CLS optimization with 2025/2026 thresholds
+  - `image-optimization`: Next.js 15 Image, AVIF/WebP, blur placeholders, CDN loaders
+  - `render-optimization`: React Compiler, memoization, TanStack Virtual
+  - `shadcn-patterns`: CVA variants, OKLCH theming, cn() utility
+  - `radix-primitives`: Accessible primitives, asChild composition
+  - `vite-advanced`: Vite 7 Environment API, plugin development
+  - `biome-linting`: Biome 2.0+ with type inference, ESLint migration
+
+- **Frontend UI Developer Agent Enhancement**
+  - Added 10 new skills to frontend-ui-developer agent skills array
+  - All skills properly integrated with bidirectional references
+
+### Fixed
+
+- **CI Failures**: Corrected component counts across all files
+  - Skills: 135 (20 user-invocable, 115 internal)
+  - Hooks: 128
+  - Commands: 20
+- **Token Budget**: Increased skill-agent integration test budget to 260K tokens
+- **Test Expectations**: Updated all hardcoded counts in test files
+- **Orphan Command**: Fixed load-context command by creating matching skill
+
+### Changed
+
+- Skills count: 129 → 135 (added 6 new skills)
+- User-invocable skills: 18 → 20 (added load-context, mem0-sync)
+- Updated plugin.json, CLAUDE.md with accurate counts
+- All 5 new frontend skills now have `user-invocable: false` field
+
+---
+
 ## [4.19.0] - 2026-01-17
 
 ### Added

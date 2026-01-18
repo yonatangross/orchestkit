@@ -8,7 +8,7 @@
 # 1. commands/ directory exists
 # 2. Each user-invocable skill has a corresponding command file
 # 3. Command files have valid YAML frontmatter (description, allowed-tools)
-# 4. Command count matches user-invocable skill count (17)
+# 4. Command count matches user-invocable skill count (20)
 # 5. No orphan commands (commands without matching skills)
 #
 # Usage: ./test-commands-structure.sh [--verbose]
