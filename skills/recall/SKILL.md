@@ -51,7 +51,7 @@ The recall skill uses **graph memory as PRIMARY** search:
 /recall --global <query>                    # Search cross-project best practices
 ```
 
-## Flags
+## Advanced Flags
 
 | Flag | Behavior |
 |------|----------|
