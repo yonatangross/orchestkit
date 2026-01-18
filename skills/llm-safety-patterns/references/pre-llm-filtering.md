@@ -87,7 +87,7 @@ async def retrieve_with_isolation(
         document_ids=[r.id for r in results],
         chunk_ids=[r.chunk_id for r in results],
         similarity_scores=[r.similarity for r in results],
-        retrieval_timestamp=datetime.utcnow(),
+        retrieval_timestamp=datetime.now(timezone.utc),
     )
 
     return content_texts, source_refs

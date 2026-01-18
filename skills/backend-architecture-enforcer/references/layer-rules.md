@@ -38,7 +38,7 @@ async def create_user(
 
     # Business logic in router
     user = User(**user_data.dict())
-    user.created_at = datetime.utcnow()
+    user.created_at = datetime.now(timezone.utc)
     db.add(user)
     await db.commit()
     return user
@@ -67,7 +67,7 @@ class UserService:
         user = User(
             email=data.email,
             password_hash=hash_password(data.password),
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         return await self.repo.create(user)
 

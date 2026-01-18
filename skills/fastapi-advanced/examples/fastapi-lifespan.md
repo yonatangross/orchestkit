@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     """
     # STARTUP
     print("Application starting...")
-    app.state.started_at = datetime.utcnow()
+    app.state.started_at = datetime.now(timezone.utc)
 
     yield  # Application runs here
 
@@ -33,7 +33,7 @@ app = FastAPI(lifespan=lifespan)
 
 ```python
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 import structlog
 
 from fastapi import FastAPI
@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
     logger.info("embeddings_initialized")
 
     # Record startup time
-    app.state.started_at = datetime.utcnow()
+    app.state.started_at = datetime.now(timezone.utc)
     logger.info("application_started")
 
     # =====================================================================
@@ -266,7 +266,7 @@ async def health_check(request: Request):
     return {
         "status": status,
         "checks": checks,
-        "uptime_seconds": (datetime.utcnow() - request.app.state.started_at).total_seconds(),
+        "uptime_seconds": (datetime.now(timezone.utc) - request.app.state.started_at).total_seconds(),
     }
 ```
 

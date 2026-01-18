@@ -72,7 +72,7 @@ class PollingPublisher:
             for msg in messages:
                 success = await self._publish_message(msg)
                 if success:
-                    msg.published_at = datetime.utcnow()
+                    msg.published_at = datetime.now(datetime.UTC)
                     published_count += 1
 
             await session.commit()
@@ -149,7 +149,7 @@ class IdempotentConsumer:
             await handler()
             session.add(ProcessedMessage(
                 message_id=message_id,
-                processed_at=datetime.utcnow(),
+                processed_at=datetime.now(datetime.UTC),
             ))
             await session.commit()
             return True

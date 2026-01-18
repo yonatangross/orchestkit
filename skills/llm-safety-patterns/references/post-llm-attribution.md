@@ -127,7 +127,7 @@ async def attribute_llm_output(
         summary=llm_output.get("summary", ""),
 
         # Metadata
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
         model_used=model_name,
         processing_time_ms=processing_time_ms,
     )

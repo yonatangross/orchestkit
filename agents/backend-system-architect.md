@@ -14,7 +14,14 @@ tools:
   - Glob
 skills:
   - api-design-framework
+  - api-versioning
   - database-schema-designer
+  - grpc-python
+  - strawberry-graphql
+  - error-handling-rfc9457
+  - rate-limiting
+  - architecture-decision-record
+  - backend-architecture-enforcer
   - owasp-top-10
   - streaming-api-patterns
   - observability-monitoring

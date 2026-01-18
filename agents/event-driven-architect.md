@@ -15,6 +15,8 @@ skills:
   - event-sourcing
   - message-queues
   - outbox-pattern
+  - saga-patterns
+  - cqrs-patterns
   - streaming-api-patterns
   - background-jobs
   - resilience-patterns

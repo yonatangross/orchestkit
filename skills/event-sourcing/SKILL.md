@@ -34,7 +34,7 @@ Store application state as immutable events rather than current state snapshots.
 
 ```python
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
 class DomainEvent(BaseModel):
@@ -42,7 +42,7 @@ class DomainEvent(BaseModel):
     aggregate_id: UUID
     event_type: str
     version: int
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     class Config:
         frozen = True  # Events are immutable
 ```

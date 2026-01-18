@@ -15,6 +15,7 @@ skills:
   - wcag-compliance
   - a11y-testing
   - focus-management
+  - react-aria-patterns
   - design-system-starter
   - motion-animation-patterns
   - i18n-date-patterns

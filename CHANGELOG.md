@@ -5,6 +5,164 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.27.3] - 2026-01-18
+
+### Added
+
+- **New Agents** - Complete agent coverage for critical workflows (#143, #151)
+  - `documentation-specialist`: Technical writing expert for API docs, READMEs, ADRs, changelogs, OpenAPI specs
+  - `monitoring-engineer`: Observability specialist for Prometheus, Grafana, alerting, OpenTelemetry, SLOs/SLIs
+
+### Changed
+
+- Agent count increased from 32 to 34
+- Updated token budget to 350,000 for expanded skill library (159 skills)
+
+---
+
+## [4.27.2] - 2026-01-18
+
+### Added
+
+- **Jinja2 Prompt Templates (2026 Standards)** - Enhanced `prompt-engineering-suite` templates
+  - Async rendering support (`render_async()`) with Jinja2 3.1.x `enable_async`
+  - Template caching with LRU eviction and hit/miss statistics
+  - Custom LLM filters: `tool` (OpenAI function schema), `cache_control` (Anthropic caching), `image` (multimodal)
+  - Anthropic format support with `render_to_anthropic()` method
+  - Based on [Banks v2.2.0](https://github.com/masci/banks) patterns
+
+- **MCP Security Templates** - Production-ready security implementations for `mcp-security-hardening`
+  - `tool-allowlist.py`: Zero-trust MCP tool validator with cryptographic hash verification
+  - `session-security.py`: Secure session manager with 256-bit entropy IDs, lifecycle state machine
+  - Tool poisoning attack detection with 15+ malicious patterns
+  - Rate limiting, expiration, and permission-based access control
+
+### Changed
+
+- **Template Code Quality** - Comprehensive error handling in inference templates
+  - `vllm-server.py`: Added `check_vllm_installed()`, CUDA validation, subprocess error handling
+  - `quantization-config.py`: Added `check_dependencies()`, `QuantConfig.__post_init__` validation, bounds checking
+
+- **Agent Improvements**
+  - `prompt-engineer.md`: Fixed non-existent MCP references, added `function-calling` and `llm-streaming` skills
+  - `ai-safety-auditor.md`: Added `sequential-thinking` MCP, comprehensive error handling section
+  - Expanded activation keywords for better auto-detection
+
+### Fixed
+
+- Removed non-existent `mcp__langfuse__*` tool references from prompt-engineer agent
+- Fixed unused import warnings in template files
+- Added missing Error Handling sections to agents per SkillForge agent standards
+
+- **Complete Skill-Agent Integration Audit** - Fixed 32 missing bidirectional references across 13 agents
+  - `backend-system-architect`: +5 skills (api-versioning, architecture-decision-record, backend-architecture-enforcer, error-handling-rfc9457, rate-limiting)
+  - `data-pipeline-engineer`: +5 skills (agentic-rag-patterns, background-jobs, browser-content-capture, caching-strategies, devops-deployment)
+  - `llm-integrator`: +4 skills (fine-tuning-customization, high-performance-inference, mcp-advanced-patterns, ollama-local)
+  - `metrics-architect`: +3 skills (cache-cost-tracking, observability-monitoring, performance-testing)
+  - `workflow-architect`: +3 skills (agent-loops, alternative-agent-frameworks, temporal-io)
+  - `accessibility-specialist`: +1 skill (react-aria-patterns)
+  - `code-quality-reviewer`: +2 skills (clean-architecture, project-structure-enforcer)
+  - `frontend-ui-developer`: +2 skills (edge-computing-patterns, streaming-api-patterns)
+  - `rapid-ui-designer`: +1 skill (motion-animation-patterns)
+  - `security-auditor`: +2 skills (llm-safety-patterns, mcp-security-hardening)
+  - `security-layer-auditor`: +1 skill (defense-in-depth)
+  - `system-design-reviewer`: +1 skill (system-design-interrogation)
+  - `test-generator`: +2 skills (llm-testing, test-standards-enforcer)
+
+---
+
+## [4.27.1] - 2026-01-18
+
+### Fixed
+
+- **Deprecated datetime.utcnow() cleanup** - Fixed 176+ occurrences across 25+ skills
+  - Replaced with `datetime.now(timezone.utc)` in markdown documentation
+  - Replaced with `datetime.now(UTC)` in Python template files (Python 3.11+)
+  - Skills updated: saga-patterns, cqrs-patterns, grpc-python, celery-advanced, temporal-io, strawberry-graphql, auth-patterns, message-queues, domain-driven-design, mcp-security-hardening, advanced-guardrails, prompt-engineering-suite, and more
+
+- **Agent skill integration gaps** - Fixed missing bidirectional skill references
+  - Added `grpc-python` and `strawberry-graphql` to `backend-system-architect` agent
+  - Added `saga-patterns` and `cqrs-patterns` to `event-driven-architect` agent
+  - Fixed `celery-advanced` SKILL.md agent reference (was `data-pipeline-engineer`, now correctly `python-performance-engineer`)
+
+---
+
+## [4.27.0] - 2026-01-18
+
+### Added
+
+- **AI/ML Roadmap 2026 Implementation** (#72, #73, #74, #75, #76, #77, #78, #79, #148, #150)
+
+  **8 New AI/ML Skills:**
+  - `skills/mcp-security-hardening` (#74): Multi-layer MCP defense - tool description sanitization, zero-trust allowlists, hash verification, rug pull detection, session security
+  - `skills/advanced-guardrails` (#72): NeMo Guardrails + Guardrails AI + DeepTeam - Colang 2.0 rails, 100+ validators, red-teaming, OWASP LLM Top 10 2025
+  - `skills/agentic-rag-patterns` (#73): Self-RAG, Corrective-RAG (CRAG), knowledge graph RAG - document grading, query transformation, web fallback
+  - `skills/prompt-engineering-suite` (#76): Chain-of-Thought, few-shot learning, Langfuse versioning, DSPy optimization, A/B testing
+  - `skills/alternative-agent-frameworks` (#75): CrewAI hierarchical crews, OpenAI Agents SDK handoffs, Microsoft Agent Framework (AutoGen+SK merger), AG2
+  - `skills/mcp-advanced-patterns` (#77): Tool composition, resource lifecycle management, auto:N thresholds, horizontal scaling, FastMCP production patterns
+  - `skills/high-performance-inference` (#78): vLLM PagedAttention, AWQ/GPTQ/FP8 quantization, speculative decoding, edge deployment
+  - `skills/fine-tuning-customization` (#79): LoRA/QLoRA fine-tuning, DPO alignment, synthetic data generation, when-to-finetune decision framework
+
+  **2 New Agents:**
+  - `agents/ai-safety-auditor.md` (#148): AI safety/security auditor with opus model - red teaming, guardrail validation, prompt injection testing, OWASP LLM compliance
+  - `agents/prompt-engineer.md` (#150): Prompt design specialist with sonnet model - CoT, few-shot, versioning, A/B testing, optimization
+
+  **Comprehensive Skill Structure:**
+  - Each skill includes SKILL.md + 4-5 references + templates + checklists
+  - 62 new files across 8 skills (~60KB of documentation)
+  - Production-ready Python templates and YAML configurations
+
+  **Test Suites:**
+  - `tests/skills/test-ai-ml-skills.sh`: 77 tests validating skill structure, frontmatter, references, templates
+  - `tests/agents/test-ai-ml-agents.sh`: Agent validation for frontmatter, skills, sections, model selection
+
+### Changed
+
+- Skills count: 145 → 159 (added 8 AI/ML skills + 6 additional skills)
+- Agents count: 29 → 32 (added ai-safety-auditor, prompt-engineer, multimodal-specialist)
+- Hooks count: 131 → 144 (added new pretool/posttool hooks)
+- AI/LLM skills category: 19 → 27 skills
+- New AI Security category: 3 skills (mcp-security-hardening, advanced-guardrails, llm-safety-patterns)
+- New MCP category: 2 skills (mcp-advanced-patterns, mcp-server-building)
+
+### Fixed
+
+- Template files now include all required imports (ErrorBoundary, useState, useEffect)
+- Documentation counts synchronized with actual file counts
+- plugin.json, pyproject.toml, CLAUDE.md all reflect accurate counts
+
+---
+
+## [4.26.0] - 2026-01-18
+
+### Added
+
+- **Frontend Skills Expansion** (#111, #117, #118, #119, #120, #121, #122)
+  - `skills/lazy-loading-patterns`: React.lazy, Suspense, route-based splitting, intersection observer, preload strategies
+  - `skills/view-transitions`: View Transitions API, React Router integration, shared element animations, MPA transitions
+  - `skills/scroll-driven-animations`: CSS Scroll-Driven Animations, ScrollTimeline, ViewTimeline, parallax effects
+  - `skills/responsive-patterns`: Container Queries, cqi/cqb units, fluid typography, mobile-first patterns
+  - `skills/pwa-patterns`: Workbox 7.x, service worker lifecycle, caching strategies, installability
+  - `skills/recharts-patterns`: Recharts 3.x, responsive charts, custom tooltips, animations, accessibility
+  - `skills/dashboard-patterns`: Widget composition, real-time updates, TanStack Table, responsive grids
+
+- **Performance Engineer Agent** (#145)
+  - `agents/performance-engineer.md`: Optimizes Core Web Vitals (LCP, INP, CLS), analyzes bundles, profiles renders
+  - Skills: core-web-vitals, lazy-loading-patterns, image-optimization, render-optimization, vite-advanced
+  - Activation keywords: performance, Core Web Vitals, LCP, INP, CLS, bundle, Lighthouse, RUM
+
+- **Test Suites**
+  - `tests/skills/test-frontend-skills.sh`: Validates 7 new frontend skills structure
+  - `tests/agents/test-performance-engineer.sh`: Validates performance-engineer agent
+
+### Changed
+
+- Skills count: 138 → 145 (added 7 frontend skills)
+- Agents count: 28 → 29 (added performance-engineer)
+- Frontend skills category: 16 → 23 skills
+
+---
+
 ## [4.25.0] - 2026-01-18
 
 ### Added

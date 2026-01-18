@@ -4,7 +4,7 @@
 
 ```python
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import ClassVar
 from uuid import UUID
 
@@ -19,7 +19,7 @@ class DomainEvent:
     """
 
     event_id: UUID = field(default_factory=uuid7)
-    occurred_at: datetime = field(default_factory=datetime.utcnow)
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     event_type: ClassVar[str]
 
     def to_dict(self) -> dict:

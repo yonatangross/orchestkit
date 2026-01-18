@@ -8,9 +8,9 @@
 *Transform Claude Code into a full-stack development powerhouse*
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.11-7C3AED?style=flat-square&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-135-blue?style=flat-square)](./skills)
-[![Agents](https://img.shields.io/badge/Agents-27-green?style=flat-square)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-128-orange?style=flat-square)](./hooks)
+[![Skills](https://img.shields.io/badge/Skills-159-blue?style=flat-square)](./skills)
+[![Agents](https://img.shields.io/badge/Agents-32-green?style=flat-square)](./agents)
+[![Hooks](https://img.shields.io/badge/Hooks-144-orange?style=flat-square)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](./LICENSE)
 
 [Features](#features) • [Quick Start](#quick-start) • [Skills](#skill-system) • [Agents](#agents) • [Hooks](#hooks) • [Commands](#commands)
@@ -23,9 +23,9 @@
 
 SkillForge Complete is a production-ready plugin for Claude Code that provides:
 
-- **135 Skills** (20 user-invocable + 115 internal) with progressive loading (saves ~70% context tokens)
-- **27 Specialized Agents** with native CC 2.1.6+ skill injection
-- **128 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
+- **159 Skills** (20 user-invocable + 139 internal) with progressive loading (saves ~70% context tokens)
+- **32 Specialized Agents** with native CC 2.1.6+ skill injection
+- **144 Registered Hooks** for lifecycle automation, security gates, and quality enforcement
 - **Context Window HUD** with real-time usage monitoring
 - **Multi-Instance Coordination** for parallel Claude Code sessions
 
@@ -33,20 +33,32 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.22.0 (Context Pruning Advisor)
+## What's New in v4.27.2 (Complete Skill-Agent Integration)
 
-- **Context Pruning Advisor Hook** (#126): Intelligent context management when usage exceeds 70%
-- 3D scoring algorithm: recency (time since access), frequency (session count), relevance (keyword overlap)
-- Recommends top 5 pruning candidates via CC 2.1.9 additionalContext
-- Critical warning at 95% usage with compression suggestions
-- **Total**: 135 skills, 27 agents, 130 hooks
+- **32 skill-agent integration gaps fixed** across 13 agents
+- **Jinja2 Prompt Templates** with async rendering, caching, and LLM filters
+- **MCP Security Templates** for zero-trust tool validation and session security
+- Full bidirectional references between all skills and their assigned agents
 
-### Previous (v4.21.0 - Skill Auto-Suggest)
+### Previous (v4.27.1 - Python 3.12+ Compatibility)
 
-- **Skill Auto-Suggest Hook** (#123): Proactive skill suggestions based on prompt analysis
-- Analyzes prompts for 100+ keywords across API, database, auth, testing, frontend, AI/LLM, DevOps domains
+- Deprecated datetime.utcnow() cleanup - 176+ occurrences fixed
+- Full Python 3.12+ compatibility for all template files
 
-### Previous (v4.20.0 - Memory Fabric & Frontend Skills)
+### Previous (v4.27.0 - AI/ML Roadmap 2026 + Frontend Skills)
+
+- **8 New AI/ML Skills** including MCP Security Hardening, Advanced Guardrails, Agentic RAG Patterns
+- **7 New Frontend Skills** including lazy-loading-patterns, view-transitions, scroll-driven-animations
+- **3 New Agents**: ai-safety-auditor, prompt-engineer, performance-engineer
+- Template import fixes and documentation count synchronization
+- **Total**: 159 skills, 32 agents, 144 hooks
+
+### Previous (v4.26.0 - Frontend Skills Expansion)
+
+- lazy-loading-patterns, view-transitions, scroll-driven-animations, responsive-patterns, pwa-patterns, recharts-patterns, dashboard-patterns
+- performance-engineer agent for Core Web Vitals optimization
+
+### Previous (v4.22.0 - Context Pruning Advisor)
 
 - **Memory Fabric v2.1**: Graph-first architecture with optional Mem0 cloud enhancement
 - **10 Frontend Skills Expanded**: zustand-patterns, tanstack-query-advanced, form-state-patterns, core-web-vitals, image-optimization, render-optimization, shadcn-patterns, radix-primitives, vite-advanced, biome-linting

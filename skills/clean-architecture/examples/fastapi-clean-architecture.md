@@ -59,7 +59,7 @@ class Analysis:
     source_url: str
     status: AnalysisStatus = AnalysisStatus.PENDING
     id: UUID = field(default_factory=uuid4)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     summary: str | None = None
     error_message: str | None = None
 
@@ -211,7 +211,7 @@ class AnalysisModel(Base):
     error_message: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow
+        default=lambda: datetime.now(timezone.utc)
     )
 
     @classmethod

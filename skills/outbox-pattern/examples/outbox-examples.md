@@ -30,7 +30,7 @@ class OrderService:
             items=items,
             total=total,
             status="pending",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(datetime.UTC),
         )
 
         # Both in same transaction - atomic!
@@ -59,7 +59,7 @@ class OrderService:
             raise OrderNotFoundError(order_id)
 
         order.status = "cancelled"
-        order.cancelled_at = datetime.utcnow()
+        order.cancelled_at = datetime.now(datetime.UTC)
         order.cancellation_reason = reason
 
         self.session.add(OutboxMessage(
@@ -161,7 +161,7 @@ class OutboxPollingPublisher:
                             **msg.payload,
                         },
                     )
-                    msg.published_at = datetime.utcnow()
+                    msg.published_at = datetime.now(datetime.UTC)
                     published_count += 1
                     logger.debug(f"Published message {msg.id}")
                 except Exception as e:
@@ -325,7 +325,7 @@ class RetryablePublisher:
             event_type=message.event_type,
             payload=message.payload,
             error=message.last_error,
-            failed_at=datetime.utcnow(),
+            failed_at=datetime.now(datetime.UTC),
         ))
         await session.delete(message)
         await session.commit()
@@ -342,7 +342,7 @@ async def cleanup_published_messages(
     batch_size: int = 10000,
 ) -> int:
     """Delete old published messages in batches."""
-    cutoff = datetime.utcnow() - timedelta(days=retention_days)
+    cutoff = datetime.now(datetime.UTC) - timedelta(days=retention_days)
     total_deleted = 0
 
     while True:

@@ -22,6 +22,10 @@ skills:
   - resilience-patterns
   - llm-safety-patterns
   - llm-evaluation
+  - fine-tuning-customization
+  - high-performance-inference
+  - mcp-advanced-patterns
+  - ollama-local
   - remember
   - recall
 ---

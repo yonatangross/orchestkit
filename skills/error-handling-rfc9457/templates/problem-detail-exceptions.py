@@ -9,7 +9,7 @@ Production-ready exception handling for FastAPI with:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -39,7 +39,7 @@ class ProblemDetail(BaseModel):
         description="URI reference to the specific occurrence",
     )
     trace_id: str | None = None
-    timestamp: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 class FieldError(BaseModel):
@@ -96,7 +96,7 @@ class ProblemException(Exception):
             "type": self.problem_type,
             "title": self.title,
             "status": self.status_code,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         if self.detail:
@@ -327,7 +327,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
                 "detail": "Request validation failed",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "errors": errors,
             },
             media_type="application/problem+json",
@@ -362,7 +362,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
                 "detail": "An unexpected error occurred. Please try again later.",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             media_type="application/problem+json",
         )

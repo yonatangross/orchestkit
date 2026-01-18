@@ -18,12 +18,18 @@ skills:
   - query-decomposition
   - reranking-patterns
   - contextual-retrieval
+  - agentic-rag-patterns
   - pgvector-search
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
   - semantic-caching
+  - caching-strategies
+  - background-jobs
+  - browser-content-capture
+  - devops-deployment
   - mem0-memory
+  - memory-fabric
   - remember
   - recall
 ---

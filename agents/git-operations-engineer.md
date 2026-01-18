@@ -20,6 +20,7 @@ skills:
   - release-management
   - git-recovery-command
   - architecture-decision-record
+  - issue-progress-tracking
   - remember
   - recall
 hooks:

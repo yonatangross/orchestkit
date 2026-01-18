@@ -12,6 +12,7 @@ tools:
 skills:
   - owasp-top-10
   - security-scanning
+  - defense-in-depth
   - auth-patterns
   - input-validation
   - remember

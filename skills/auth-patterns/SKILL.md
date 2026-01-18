@@ -45,10 +45,11 @@ ph.verify(password_hash, password)
 
 ```python
 import jwt
+from datetime import datetime, timedelta, timezone
 payload = {
     'user_id': user_id,
     'type': 'access',
-    'exp': datetime.utcnow() + timedelta(minutes=15),
+    'exp': datetime.now(timezone.utc) + timedelta(minutes=15),
 }
 token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
 ```

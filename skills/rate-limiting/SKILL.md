@@ -87,7 +87,7 @@ limiter = Limiter(key_func=get_user_identifier)
 
 ```python
 import redis.asyncio as redis
-from datetime import datetime
+from datetime import datetime, timezone
 
 class TokenBucketLimiter:
     def __init__(
@@ -128,7 +128,7 @@ class TokenBucketLimiter:
             return 0
         end
         """
-        now = datetime.utcnow().timestamp()
+        now = datetime.now(timezone.utc).timestamp()
         result = await self.redis.eval(
             lua_script, 1, key,
             self.capacity, self.refill_rate, tokens, now
@@ -146,7 +146,7 @@ class SlidingWindowLimiter:
 
     async def is_allowed(self, key: str, limit: int) -> tuple[bool, int]:
         """Returns (allowed, remaining)."""
-        now = datetime.utcnow().timestamp()
+        now = datetime.now(timezone.utc).timestamp()
         window_start = now - self.window
 
         pipe = self.redis.pipeline()
@@ -207,7 +207,7 @@ async def add_rate_limit_headers(
     response.headers["X-RateLimit-Limit"] = str(limit)
     response.headers["X-RateLimit-Remaining"] = str(remaining)
     response.headers["X-RateLimit-Reset"] = str(int(reset_at.timestamp()))
-    response.headers["Retry-After"] = str(int((reset_at - datetime.utcnow()).seconds))
+    response.headers["Retry-After"] = str(int((reset_at - datetime.now(timezone.utc)).seconds))
 ```
 
 ## Error Response (429)

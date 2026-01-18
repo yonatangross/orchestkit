@@ -11,7 +11,7 @@ Ready-to-use template with:
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator, Iterable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Generic, TypeVar
 from uuid import UUID, uuid4
 
@@ -25,7 +25,7 @@ class DomainEvent:
     aggregate_id: UUID
     version: int
     event_id: UUID = field(default_factory=uuid4)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     @property
     def event_type(self) -> str:

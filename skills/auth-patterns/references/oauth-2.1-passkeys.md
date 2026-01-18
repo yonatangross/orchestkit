@@ -241,7 +241,7 @@ if (window.PublicKeyCredential?.isConditionalMediationAvailable) {
 ```python
 import secrets
 import hashlib
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 def rotate_refresh_token(old_token: str, db) -> tuple[str, str]:
     """Rotate refresh token on use (security best practice)."""
@@ -273,7 +273,7 @@ def rotate_refresh_token(old_token: str, db) -> tuple[str, str]:
     db.execute("""
         INSERT INTO refresh_tokens (user_id, token_hash, expires_at, version)
         VALUES (?, ?, ?, ?)
-    """, [user_id, new_hash, datetime.utcnow() + timedelta(days=7), version + 1])
+    """, [user_id, new_hash, datetime.now(timezone.utc) + timedelta(days=7), version + 1])
     
     return new_access_token, new_refresh_token
 ```

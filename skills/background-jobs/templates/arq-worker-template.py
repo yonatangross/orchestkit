@@ -10,7 +10,7 @@ Production-ready ARQ worker configuration with:
 
 import asyncio
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import redis.asyncio as redis
@@ -114,7 +114,7 @@ def task_wrapper(
     def decorator(func: Callable):
         async def wrapper(ctx: dict, *args, **kwargs) -> Any:
             task_name = func.__name__
-            start_time = datetime.utcnow()
+            start_time = datetime.now(timezone.utc)
 
             logger.info(
                 "task_started",
@@ -126,7 +126,7 @@ def task_wrapper(
             try:
                 result = await func(ctx, *args, **kwargs)
 
-                duration = (datetime.utcnow() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 logger.info(
                     "task_completed",
                     task=task_name,
@@ -137,7 +137,7 @@ def task_wrapper(
                 return result
 
             except retry_on as e:
-                duration = (datetime.utcnow() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 logger.warning(
                     "task_retrying",
                     task=task_name,
@@ -147,7 +147,7 @@ def task_wrapper(
                 raise Retry(defer=settings.retry_delay)
 
             except Exception as e:
-                duration = (datetime.utcnow() - start_time).total_seconds()
+                duration = (datetime.now(timezone.utc) - start_time).total_seconds()
                 logger.exception(
                     "task_failed",
                     task=task_name,
@@ -237,7 +237,7 @@ async def cleanup_old_data(ctx: dict) -> dict:
     from sqlalchemy import text
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    cutoff = datetime.utcnow() - timedelta(days=30)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 
     async with AsyncSession(ctx["db_engine"]) as session:
         result = await session.execute(
@@ -255,7 +255,7 @@ async def generate_daily_report(ctx: dict) -> dict:
     # Your report generation logic
     await asyncio.sleep(2)
 
-    return {"status": "generated", "date": datetime.utcnow().date().isoformat()}
+    return {"status": "generated", "date": datetime.now(timezone.utc).date().isoformat()}
 
 
 @task_wrapper()
@@ -294,7 +294,7 @@ async def health_check(ctx: dict) -> dict:
     return {
         "redis": redis_status,
         "database": db_status,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 

@@ -1,6 +1,6 @@
 ---
 name: frontend-ui-developer
-description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2025 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation
+description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
 model: sonnet
 context: fork
 color: purple
@@ -35,6 +35,15 @@ skills:
   - image-optimization
   - react-aria-patterns
   - wcag-compliance
+  - lazy-loading-patterns
+  - view-transitions
+  - scroll-driven-animations
+  - responsive-patterns
+  - pwa-patterns
+  - recharts-patterns
+  - dashboard-patterns
+  - edge-computing-patterns
+  - streaming-api-patterns
   - remember
   - recall
 ---
@@ -135,7 +144,7 @@ Return structured implementation report:
 - API integrations must use Zod-validated responses
 - All mutations should use optimistic updates where appropriate
 
-## Technology Requirements (React 19 - Dec 2025)
+## Technology Requirements (React 19 - Jan 2026)
 **CRITICAL**: Use TypeScript (.tsx/.ts files) for ALL frontend code. NO JavaScript.
 - React 19.x with TypeScript strict mode
 - File extensions: .tsx for components, .ts for utilities
@@ -203,7 +212,7 @@ function getStatusColor(status: Status): string {
 }
 ```
 
-## Loading States (2025 Patterns)
+## Loading States (2026 Patterns)
 ```typescript
 // Skeleton loading with Motion pulse (NOT CSS animate-pulse)
 import { motion } from 'motion/react';
@@ -278,7 +287,7 @@ function AnalysisLink({ id }: { id: string }) {
 </Link>
 ```
 
-## Testing Requirements (2025)
+## Testing Requirements (2026)
 ```typescript
 // MSW for network-level mocking (NOT fetch mocks)
 import { setupServer } from 'msw/node'
@@ -401,4 +410,4 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance-optimization, i18n-date-patterns, motion-animation-patterns
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns

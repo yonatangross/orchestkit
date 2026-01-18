@@ -82,7 +82,7 @@ app.add_middleware(IdempotencyMiddleware)
 ```python
 from sqlalchemy import Column, String, DateTime, Text, Index
 from sqlalchemy.ext.asyncio import AsyncSession
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 import json
 
 
@@ -95,7 +95,7 @@ class IdempotencyRecord(Base):
     request_hash = Column(String(64), nullable=False)
     response_body = Column(Text, nullable=True)
     response_status = Column(Integer, default=200)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     expires_at = Column(DateTime, nullable=False)
 
     __table_args__ = (
@@ -157,7 +157,7 @@ async def get_or_create_idempotency(
             request_hash=request_hash,
             response_body=json.dumps(response_body),
             response_status=status_code,
-            expires_at=datetime.utcnow() + timedelta(hours=24),
+            expires_at=datetime.now(UTC) + timedelta(hours=24),
         )
         db.add(record)
         await db.commit()
@@ -403,7 +403,7 @@ async def main():
 
 ```python
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 
 async def cleanup_expired_idempotency_records(
@@ -416,7 +416,7 @@ async def cleanup_expired_idempotency_records(
 
     Run this as a scheduled job (e.g., daily).
     """
-    cutoff = datetime.utcnow() - timedelta(days=retention_days)
+    cutoff = datetime.now(UTC) - timedelta(days=retention_days)
     total_deleted = 0
 
     while True:

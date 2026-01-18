@@ -199,10 +199,10 @@ class SnapshotStore:
                 aggregate_type=aggregate_type,
                 version=version,
                 state=state,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ).on_conflict_do_update(
                 index_elements=["aggregate_id"],
-                set_={"version": version, "state": state, "created_at": datetime.utcnow()}
+                set_={"version": version, "state": state, "created_at": datetime.now(timezone.utc)}
             )
         )
 

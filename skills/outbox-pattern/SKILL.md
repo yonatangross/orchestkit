@@ -68,7 +68,7 @@ class OutboxMessage(Base):
     event_type = Column(String(100), nullable=False)
     payload = Column(JSONB, nullable=False)
     idempotency_key = Column(String(255), unique=True, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     published_at = Column(DateTime, nullable=True)
     retry_count = Column(Integer, default=0)
     last_error = Column(Text, nullable=True)
@@ -149,7 +149,7 @@ class OutboxPublisher:
                             **msg.payload
                         },
                     )
-                    msg.published_at = datetime.utcnow()
+                    msg.published_at = datetime.now(timezone.utc)
                     published += 1
                 except Exception as e:
                     msg.retry_count += 1
@@ -246,7 +246,7 @@ class ProcessedEvent(Base):
     __tablename__ = "processed_events"
 
     idempotency_key = Column(String(255), primary_key=True)
-    processed_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 ```
 
 ### Dapr Outbox Integration

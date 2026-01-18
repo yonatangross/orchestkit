@@ -11,6 +11,7 @@ tools:
   - Glob
 skills:
   - observability-monitoring
+  - errors
   - remember
   - recall
 hooks:

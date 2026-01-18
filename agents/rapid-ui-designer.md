@@ -13,6 +13,7 @@ skills:
   - design-system-starter
   - shadcn-patterns
   - radix-primitives
+  - motion-animation-patterns
   - remember
   - recall
 ---

@@ -17,7 +17,7 @@ import logging
 import signal
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Generic, TypeVar
 
 import aio_pika
@@ -251,7 +251,7 @@ class BaseConsumer(ABC, Generic[T]):
                 **(dict(message.headers) if message.headers else {}),
                 "x-retry-count": retry_count,
                 "x-last-error": error_message,
-                "x-retry-timestamp": datetime.utcnow().isoformat()
+                "x-retry-timestamp": datetime.now(UTC).isoformat()
             }
         )
 

@@ -68,7 +68,7 @@ def verify_access_token(token: str) -> dict | None:
 
 ```python
 from flask import Flask, session
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 
 app = Flask(__name__)
 
@@ -87,7 +87,7 @@ def login():
     if user:
         session.permanent = True
         session['user_id'] = user.id
-        session['created_at'] = datetime.utcnow().isoformat()
+        session['created_at'] = datetime.now(timezone.utc).isoformat()
         return redirect('/dashboard')
     return render_template('login.html', error='Invalid credentials')
 

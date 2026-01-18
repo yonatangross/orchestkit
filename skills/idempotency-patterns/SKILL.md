@@ -136,7 +136,7 @@ class IdempotencyMiddleware(BaseHTTPMiddleware):
 ```python
 from sqlalchemy import Column, String, DateTime, Text
 from sqlalchemy.dialects.postgresql import JSONB, insert
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 class ProcessedRequest(Base):
     """Track processed requests for idempotency."""
@@ -146,7 +146,7 @@ class ProcessedRequest(Base):
     endpoint = Column(String(255), nullable=False)
     status_code = Column(Integer, nullable=False)
     response_body = Column(Text)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     expires_at = Column(DateTime)
 
 
@@ -164,7 +164,7 @@ async def idempotent_execute(
     """
     # Check for existing
     existing = await db.get(ProcessedRequest, idempotency_key)
-    if existing and existing.expires_at > datetime.utcnow():
+    if existing and existing.expires_at > datetime.now(UTC):
         return json.loads(existing.response_body), existing.status_code, True
 
     # Execute operation
@@ -176,7 +176,7 @@ async def idempotent_execute(
         endpoint=endpoint,
         status_code=status_code,
         response_body=json.dumps(result),
-        expires_at=datetime.utcnow() + timedelta(hours=ttl_hours),
+        expires_at=datetime.now(UTC) + timedelta(hours=ttl_hours),
     ).on_conflict_do_nothing()
 
     await db.execute(stmt)
@@ -261,7 +261,7 @@ def bad_key():
 
 # NEVER include timestamps in keys
 def bad_key(event):
-    return f"{event.id}:{datetime.utcnow()}"  # Timestamp varies!
+    return f"{event.id}:{datetime.now(UTC)}"  # Timestamp varies!
 
 # NEVER check-then-act without locking
 async def bad_process(key):

@@ -15,6 +15,8 @@ skills:
   - defense-in-depth
   - auth-patterns
   - input-validation
+  - llm-safety-patterns
+  - mcp-security-hardening
   - remember
   - recall
 hooks:

@@ -321,7 +321,7 @@ await channel.set_qos(prefetch_count=10)
 message = {
     "event_id": str(uuid.uuid4()),
     "event_type": "order.created",
-    "timestamp": datetime.utcnow().isoformat(),
+    "timestamp": datetime.now(timezone.utc).isoformat(),
     "data": {
         "order_id": "123",
         "customer_id": "456"

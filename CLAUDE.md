@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **138 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
-- **28 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
+- **159 skills**: Reusable knowledge modules in flat structure (including 7 new frontend performance skills)
+- **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **20 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **131 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
+- **140 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -23,11 +23,11 @@ This document provides essential context for Claude Code when working with the S
 
 ```
 .claude/
-├── agents/              # 25 specialized AI agent personas (CC 2.1.6 native format)
+├── agents/              # 32 specialized AI agent personas (CC 2.1.6 native format)
 ├── commands/            # User-invocable skill workflows (CC 2.1.3+ unified)
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 119 lifecycle hooks for automation
+├── hooks/               # 144 lifecycle hooks for automation
 │   ├── setup/           # CC 2.1.11 Setup hooks (--init, --maintenance)
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
@@ -43,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-# Skills use CC 2.1.7 native flat structure (138 skills):
+# Skills use CC 2.1.7 native flat structure (159 skills):
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
@@ -613,15 +613,17 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-138 skills in flat structure at `skills/`. Common skill types include:
+159 skills in flat structure at `skills/`. Common skill types include:
 
-- **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
+- **AI/LLM**: RAG, embeddings, agents, caching, observability, agentic-rag-patterns, prompt-engineering-suite, alternative-agent-frameworks, high-performance-inference, fine-tuning-customization (27 skills)
+- **AI Security**: MCP security hardening, advanced guardrails, LLM safety patterns (3 skills - NEW)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
 - **Backend**: FastAPI, asyncio, SQLAlchemy async, connection pooling, idempotency, resilience (19 skills)
-- **Frontend**: React 19, design systems, animations, i18n, Radix primitives, shadcn patterns, render optimization, Vite, Biome, Zustand, TanStack Query, forms, Core Web Vitals, image optimization (16 skills)
+- **Frontend**: React 19, design systems, animations, i18n, Radix primitives, shadcn patterns, render optimization, Vite, Biome, Zustand, TanStack Query, forms, Core Web Vitals, image optimization, lazy-loading, view-transitions, scroll-driven-animations, responsive-patterns, PWA, Recharts, dashboards (23 skills)
 - **Testing**: Unit, integration, E2E, mocking, data management, a11y-testing (10 skills)
 - **Security**: OWASP, auth, validation, defense-in-depth (5 skills)
 - **DevOps**: CI/CD, observability, GitHub CLI (4 skills)
+- **MCP**: MCP advanced patterns, server building, tool composition (2 skills - NEW)
 - **Git/GitHub**: Milestones, atomic commits, branch strategy, stacked PRs, releases, recovery (6 skills)
 - **Workflows**: Git, PR, implementation, exploration, HUD (13 skills)
 - **Quality**: Quality gates, reviews, golden datasets (8 skills)
@@ -721,7 +723,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.25.0 (as of 2026-01-18)
+- **Current Version**: 4.27.2 (as of 2026-01-18)
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
@@ -736,6 +738,8 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **CC 2.1.11 Integration**: Setup hooks (--init, --init-only, --maintenance), self-healing, maintenance automation (v4.19.0)
 - **Automatic Pattern Extraction**: Hook-driven pattern learning and anti-pattern warnings (#48, #49) (v4.19.0)
 - **Memory Fabric v2.1**: Graph-first architecture (v4.21.0) - knowledge graph PRIMARY, mem0 optional cloud enhancement
+- **Frontend Skills Expansion**: lazy-loading-patterns, view-transitions, scroll-driven-animations, responsive-patterns, pwa-patterns, recharts-patterns, dashboard-patterns + performance-engineer agent (v4.26.0)
+- **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
 
 ---
 

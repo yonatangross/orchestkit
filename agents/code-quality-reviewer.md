@@ -21,6 +21,9 @@ skills:
   - security-scanning
   - quality-gates
   - biome-linting
+  - clean-architecture
+  - project-structure-enforcer
+  - best-practices
   - remember
   - recall
 hooks:

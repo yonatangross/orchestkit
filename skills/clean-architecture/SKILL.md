@@ -174,7 +174,7 @@ class Analysis:
     id: UUID = field(default_factory=uuid4)
     source_url: str
     status: AnalysisStatus
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Analysis):

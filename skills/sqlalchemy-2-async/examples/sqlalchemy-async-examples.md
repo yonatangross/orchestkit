@@ -60,7 +60,7 @@ async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)):
 ## Example 2: Model with Proper Type Hints
 
 ```python
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 from sqlalchemy import String, ForeignKey, DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
@@ -85,7 +85,7 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100))
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
-        default=datetime.utcnow,
+        default=lambda: datetime.now(timezone.utc),
     )
 
     # Prevent accidental lazy loading

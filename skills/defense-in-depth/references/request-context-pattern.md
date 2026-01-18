@@ -13,7 +13,7 @@ The RequestContext is an immutable object created at the gateway that carries id
 
 ```python
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 from typing import FrozenSet
 
@@ -46,7 +46,7 @@ class RequestContext:
 
     def __post_init__(self):
         if self.timestamp is None:
-            object.__setattr__(self, 'timestamp', datetime.utcnow())
+            object.__setattr__(self, 'timestamp', datetime.now(timezone.utc))
 ```
 
 ## Creation at Gateway

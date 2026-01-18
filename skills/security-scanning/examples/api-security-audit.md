@@ -105,7 +105,7 @@ await audit_log.record(
     amount=amount,
     to_account=to_account,
     ip=request.client.host,
-    timestamp=datetime.utcnow()
+    timestamp=datetime.now(timezone.utc)
 )
 ```
 

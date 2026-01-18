@@ -9,7 +9,7 @@ Copy and adapt for SkillForge workflows.
 
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TypeVar
 from uuid import UUID, uuid4
 
@@ -170,7 +170,7 @@ async def prepare_for_llm(
     source_refs = SourceReference(
         document_ids=[r.id for r in results],
         chunk_ids=[r.chunk_id for r in results],
-        retrieval_timestamp=datetime.utcnow(),
+        retrieval_timestamp=datetime.now(timezone.utc),
     )
 
     # Build content payload
@@ -267,7 +267,7 @@ async def attribute_and_save(
         user_id=ctx.user_id,  # From context
         tenant_id=ctx.tenant_id,  # From context
         source_document_ids=source_refs.document_ids,  # From pre-LLM
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
 
     # Save to database

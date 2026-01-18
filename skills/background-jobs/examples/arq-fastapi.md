@@ -162,7 +162,7 @@ async def send_bulk_emails(
 ```python
 # app/tasks/analysis_tasks.py
 from arq import Retry
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import structlog
 
 logger = structlog.get_logger()
@@ -228,7 +228,7 @@ async def cleanup_old_analyses(ctx: dict) -> dict:
 
     logger.info("cleanup_old_analyses_started")
 
-    cutoff = datetime.utcnow() - timedelta(days=30)
+    cutoff = datetime.now(timezone.utc) - timedelta(days=30)
 
     async with AsyncSession(ctx["db_engine"]) as session:
         result = await session.execute(

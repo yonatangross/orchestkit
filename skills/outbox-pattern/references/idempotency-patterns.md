@@ -37,7 +37,7 @@ class ProcessedEvent(Base):
     __tablename__ = "processed_events"
 
     idempotency_key = Column(String(64), primary_key=True)
-    processed_at = Column(DateTime, default=datetime.utcnow)
+    processed_at = Column(DateTime, default=lambda: datetime.now(datetime.UTC))
     result = Column(JSONB, nullable=True)  # Cache the result
 
 async def process_idempotently(
@@ -163,7 +163,7 @@ def bad_key():
 
 # WRONG: Including timestamps in key
 def bad_key(event):
-    return f"{event.id}:{datetime.utcnow()}"  # Timestamp varies!
+    return f"{event.id}:{datetime.now(datetime.UTC)}"  # Timestamp varies!
 
 # WRONG: Not handling race conditions
 async def bad_check(key):

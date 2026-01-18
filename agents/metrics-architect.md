@@ -12,6 +12,9 @@ tools:
   - Bash
 skills:
   - langfuse-observability
+  - observability-monitoring
+  - cache-cost-tracking
+  - performance-testing
   - remember
   - recall
 ---

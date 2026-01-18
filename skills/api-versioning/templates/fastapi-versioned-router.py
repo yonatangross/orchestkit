@@ -8,7 +8,7 @@ Production-ready API versioning with:
 - Shared services
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Response
 from pydantic import BaseModel
@@ -136,7 +136,7 @@ class User:
         self.email = email
         self.name = name
         self.avatar_url = avatar_url
-        self.created_at = created_at or datetime.utcnow()
+        self.created_at = created_at or datetime.now(timezone.utc)
         self.last_login = last_login
         self.preferences = preferences or {}
         self.is_verified = is_verified

@@ -201,7 +201,7 @@ async def save_with_attribution(
         difficulty=llm_output["difficulty"],
 
         # Metadata
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
         model_used=MODEL_NAME,
     )
 ```

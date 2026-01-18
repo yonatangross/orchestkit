@@ -439,7 +439,7 @@ def create_analysis_workflow():
 from fastapi import APIRouter, HTTPException
 from app.workflows.content_analysis_workflow import create_analysis_workflow
 from app.workflows.state import AnalysisState
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 router = APIRouter(prefix="/api/v1/analysis")
@@ -473,7 +473,7 @@ async def analyze_content(url: str, content: str, db: AsyncSession = Depends(get
         compressed_summary="",
         artifact_id="",
         artifact_data={},
-        started_at=datetime.utcnow().isoformat(),
+        started_at=datetime.now(timezone.utc).isoformat(),
         total_tokens=0,
         total_cost=0.0
     )

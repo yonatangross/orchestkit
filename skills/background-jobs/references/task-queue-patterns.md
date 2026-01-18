@@ -142,7 +142,7 @@ async def move_to_dlq(task_id: str, error: Exception):
     await redis.lpush("dlq:important_task", json.dumps({
         "task_id": task_id,
         "error": str(error),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }))
 ```
 

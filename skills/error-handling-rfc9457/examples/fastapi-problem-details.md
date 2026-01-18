@@ -7,7 +7,7 @@ Complete example implementing RFC 9457 Problem Details in FastAPI.
 ```python
 # app/core/exceptions.py
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 
@@ -34,7 +34,7 @@ class ProblemDetail(BaseModel):
     )
     # Common extensions
     trace_id: str | None = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     class Config:
         json_schema_extra = {
@@ -99,7 +99,7 @@ class ProblemException(Exception):
             "type": self.problem_type,
             "title": self.title,
             "status": self.status_code,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
         if self.detail:
             problem["detail"] = self.detail
@@ -268,7 +268,7 @@ def setup_exception_handlers(app: FastAPI):
                 "detail": "Request validation failed",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "errors": errors,
             },
             media_type="application/problem+json",
@@ -296,7 +296,7 @@ def setup_exception_handlers(app: FastAPI):
                 "detail": detail,
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
             media_type="application/problem+json",
         )
@@ -329,7 +329,7 @@ def setup_exception_handlers(app: FastAPI):
                 "detail": "An unexpected error occurred. Please try again later.",
                 "instance": request.url.path,
                 "trace_id": trace_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "support_url": "https://support.skillforge.dev",
             },
             media_type="application/problem+json",

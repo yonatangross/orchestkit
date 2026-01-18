@@ -8,7 +8,7 @@ Supports both Redis (fast) and database (durable) backends.
 import hashlib
 import json
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request
@@ -40,7 +40,7 @@ class IdempotencyRecord:
     request_hash = Column(String(64), nullable=False)
     response_body = Column(Text, nullable=True)
     response_status = Column(Integer, default=200)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
     expires_at = Column(DateTime, nullable=False)
 
 
@@ -118,7 +118,7 @@ class IdempotencyService:
     ) -> None:
         """Save successful response for future replay."""
         request_hash = self._hash_request(request_body)
-        expires_at = datetime.utcnow() + timedelta(seconds=IDEMPOTENCY_TTL_SECONDS)
+        expires_at = datetime.now(UTC) + timedelta(seconds=IDEMPOTENCY_TTL_SECONDS)
 
         await self.db.execute(
             text("""

@@ -45,7 +45,7 @@ class OutboxMessage(Base):
     aggregate_id: UUID = Column(PGUUID(as_uuid=True), nullable=False, index=True)
     event_type: str = Column(String(100), nullable=False)
     payload: dict = Column(JSONB, nullable=False)
-    created_at: datetime = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at: datetime = Column(DateTime, nullable=False, default=lambda: datetime.now(datetime.UTC))
     published_at: datetime | None = Column(DateTime, nullable=True)
     retry_count: int = Column(Integer, nullable=False, default=0)
     last_error: str | None = Column(String(500), nullable=True)
@@ -216,7 +216,7 @@ class OutboxPublisher:
 
                 try:
                     await self.publish_fn(topic, key, msg.to_event_dict())
-                    msg.published_at = datetime.utcnow()
+                    msg.published_at = datetime.now(datetime.UTC)
                     published_count += 1
                 except Exception as e:
                     msg.retry_count += 1
@@ -276,7 +276,7 @@ async def cleanup_published(
     """Delete published messages older than specified days."""
     from datetime import timedelta
 
-    cutoff = datetime.utcnow() - timedelta(days=older_than_days)
+    cutoff = datetime.now(datetime.UTC) - timedelta(days=older_than_days)
     total_deleted = 0
 
     while True:

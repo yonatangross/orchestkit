@@ -113,6 +113,7 @@ def validate_password(password):
 import jwt
 import hashlib
 import secrets
+from datetime import datetime, timezone, timedelta
 
 # ❌ Bad: Trust algorithm from header
 payload = jwt.decode(token, SECRET, algorithms=jwt.get_unverified_header(token)['alg'])
@@ -151,8 +152,8 @@ def create_protected_token(user_id: str, response) -> str:
     payload = {
         'user_id': user_id,
         'fingerprint': hashlib.sha256(fingerprint.encode()).hexdigest(),
-        'exp': datetime.utcnow() + timedelta(minutes=15),
-        'iat': datetime.utcnow(),
+        'exp': datetime.now(timezone.utc) + timedelta(minutes=15),
+        'iat': datetime.now(timezone.utc),
         'iss': ISSUER,
         'aud': AUDIENCE,
     }

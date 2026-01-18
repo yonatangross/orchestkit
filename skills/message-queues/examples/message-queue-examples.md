@@ -10,7 +10,7 @@ Complete, production-ready code examples for message queue implementations.
 import asyncio
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import aio_pika
@@ -70,7 +70,7 @@ class RabbitMQProducer:
             content_type="application/json",
             message_id=message_id,
             correlation_id=correlation_id,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
             headers=headers or {}
         )
 
@@ -238,7 +238,7 @@ async def main():
 import asyncio
 import json
 import signal
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Callable, Any
 
 import redis.asyncio as redis
@@ -400,7 +400,7 @@ async def main():
     msg_id = await producer.publish({
         "event_type": "user.created",
         "user_id": "123",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat()
     })
     print(f"Published: {msg_id}")
 

@@ -14,7 +14,7 @@
 
 ```python
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Self
 from uuid import UUID
 
@@ -32,8 +32,8 @@ class Entity:
     """
 
     id: UUID = field(default_factory=uuid7)
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     _domain_events: list[DomainEvent] = field(default_factory=list, repr=False)
 
     def __eq__(self, other: object) -> bool:
@@ -69,7 +69,7 @@ class User(Entity):
             raise ValueError("User already active")
 
         self.status = "active"
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         self.add_event(UserActivated(user_id=self.id))
         return self
 
@@ -80,7 +80,7 @@ class User(Entity):
 
         old_email = self.email
         self.email = new_email
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         self.add_event(UserEmailChanged(
             user_id=self.id,
             old_email=old_email,

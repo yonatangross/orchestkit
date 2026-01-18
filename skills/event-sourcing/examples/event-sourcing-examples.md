@@ -6,7 +6,7 @@
 
 ```python
 from pydantic import BaseModel, Field
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID, uuid4
 from typing import ClassVar
 
@@ -16,7 +16,7 @@ class DomainEvent(BaseModel):
     aggregate_type: ClassVar[str]
     event_type: ClassVar[str]
     version: int
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     schema_version: int = 1
 
     class Config:
