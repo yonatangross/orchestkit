@@ -7,6 +7,7 @@ Replace placeholders with actual implementations.
 
 import asyncio
 from typing import Any
+
 import numpy as np
 from scipy import stats
 
@@ -201,7 +202,7 @@ async def evaluate_batch(
         "ci_95_upper": mean + ci,
         "by_dimension": {
             dim: np.mean([r[dim] for r in results])
-            for dim in QUALITY_DIMENSIONS.keys()
+            for dim in QUALITY_DIMENSIONS
         },
         "details": results,
     }

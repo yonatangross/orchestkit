@@ -9,7 +9,7 @@ log_hook "Session cleanup starting"
 
 # Archive metrics if significant
 METRICS_FILE="/tmp/claude-session-metrics.json"
-ARCHIVE_DIR="$CLAUDE_PROJECT_DIR/.claude/logs/sessions"
+ARCHIVE_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/sessions"
 
 if [[ -f "$METRICS_FILE" ]]; then
   TOTAL_TOOLS=$(jq '[.tools | to_entries[].value] | add // 0' "$METRICS_FILE" 2>/dev/null)
@@ -29,7 +29,7 @@ if [[ -d "$ARCHIVE_DIR" ]]; then
 fi
 
 # Clean up old rotated log files (keep last 5, already handled by rotation, but ensure cleanup)
-LOG_DIR="$CLAUDE_PROJECT_DIR/.claude/logs"
+LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
 if [[ -d "$LOG_DIR" ]]; then
   # Clean old rotated hooks.log files (keep last 5)
   ls -t "$LOG_DIR"/hooks.log.old* 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null || true

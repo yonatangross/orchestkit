@@ -190,6 +190,22 @@ Key topics covered:
 
 ---
 
+## Related Skills
+
+- `observability-monitoring` - General observability patterns for metrics, logging, and alerting
+- `llm-evaluation` - Evaluation patterns that integrate with Langfuse scoring
+- `llm-streaming` - Streaming response patterns with trace instrumentation
+- `prompt-caching` - Caching strategies that reduce costs tracked by Langfuse
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Observability platform | Langfuse (not LangSmith) | Open-source, self-hosted, free, built-in prompt management |
+| Tracing approach | @observe decorator | Automatic, low-overhead instrumentation |
+| Cost tracking | Automatic token counting | Built-in model pricing with custom overrides |
+| Prompt management | Langfuse native | Version control, A/B testing, labels in one place |
+
 ## Capability Details
 
 ### distributed-tracing

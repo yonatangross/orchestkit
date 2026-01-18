@@ -246,6 +246,26 @@ Patterns specific to LLM API integrations.
 4. **Health Endpoints**: Separate health check from circuit state
 5. **Chaos Testing**: Regularly test failure scenarios in staging
 
+---
+
+## Related Skills
+
+- `observability-monitoring` - Metrics and alerting for circuit breaker state changes
+- `caching-strategies` - Cache as fallback layer in degradation scenarios
+- `error-handling-rfc9457` - Structured error responses for resilience failures
+- `background-jobs` - Async processing with retry and failure handling
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Circuit breaker recovery | Half-open probe | Gradual recovery, prevents immediate re-failure |
+| Retry algorithm | Exponential backoff + jitter | Prevents thundering herd, respects rate limits |
+| Bulkhead isolation | Semaphore-based tiers | Simple, efficient, prioritizes critical operations |
+| LLM fallback | Model chain with cache | Graceful degradation, cost optimization, availability |
+
+---
+
 ## Capability Details
 
 ### circuit-breaker

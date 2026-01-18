@@ -11,7 +11,7 @@ tools:
   - Glob
   - Bash
 skills:
-  - github-cli
+  - github-operations
   - remember
   - recall
 ---
@@ -244,7 +244,7 @@ Task: "Prioritize the Q1 backlog"
 ## Integration
 - **Receives from:** `product-strategist` (validated opportunities with go/no-go)
 - **Hands off to:** `business-case-builder` (prioritized features for investment case)
-- **Skill references:** github-cli (for issue management)
+- **Skill references:** github-operations (for issue management)
 
 ## Notes
 - Third agent in the product thinking pipeline

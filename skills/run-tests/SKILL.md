@@ -109,6 +109,22 @@ npm run test -- --watch
 | `-v` | Verbose output |
 | `--tb=short` | Shorter tracebacks |
 
+## Related Skills
+
+- `unit-testing` - Unit test patterns and best practices
+- `integration-testing` - Integration test patterns for component interactions
+- `e2e-testing` - End-to-end testing with Playwright
+- `test-data-management` - Test data fixtures and factories
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Parallel Analyzers | 3 agents | Backend, frontend, and coverage analysis in parallel |
+| Default Traceback | `--tb=short` | Balance between detail and readability |
+| Stop Threshold | `--maxfail=3` | Quick feedback without overwhelming output |
+| Coverage Tool | pytest-cov / jest | Native integration with test frameworks |
+
 ## References
 
 - [Test Commands](references/test-commands.md)

@@ -1,10 +1,11 @@
 # Template: VCR.py Cassette Configuration
 # Usage: Copy to tests/conftest.py and customize for your API integrations
 
-import pytest
 import json
 import os
 from typing import Any
+
+import pytest
 
 # ============================================================================
 # VCR CONFIGURATION

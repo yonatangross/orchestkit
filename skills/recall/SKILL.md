@@ -1,16 +1,30 @@
 ---
 name: recall
-description: Search and retrieve decisions and patterns from semantic memory. Use when recalling patterns, retrieving memories, finding past decisions.
+description: Search and retrieve decisions and patterns from knowledge graph. Use when recalling patterns, retrieving memories, finding past decisions.
 context: inherit
-version: 1.1.0
+version: 2.1.0
 author: SkillForge
-tags: [memory, search, decisions, patterns, mem0, graph-memory]
+tags: [memory, search, decisions, patterns, graph-memory, mem0, unified-memory]
 user-invocable: true
 ---
 
-# Recall - Search Semantic Memory
+# Recall - Search Knowledge Graph
 
-Search past decisions and patterns stored in mem0.
+Search past decisions and patterns from the knowledge graph with optional cloud semantic search enhancement.
+
+## Graph-First Architecture (v2.1)
+
+The recall skill uses **graph memory as PRIMARY** search:
+
+1. **Knowledge Graph (PRIMARY)**: Entity and relationship search via `mcp__memory__search_nodes` - FREE, zero-config, always works
+2. **Semantic Memory (mem0)**: Optional cloud search via `mcp__mem0__search_memories` - requires MEM0_API_KEY, use with `--mem0` flag
+
+**Benefits of Graph-First:**
+- Zero configuration required - works out of the box
+- Explicit entity and relationship queries
+- Fast local search with no network latency
+- No cloud dependency for basic operation
+- Optional cloud enhancement with `--mem0` flag for semantic similarity search
 
 ## When to Use
 
@@ -19,6 +33,7 @@ Search past decisions and patterns stored in mem0.
 - Looking up project context
 - Retrieving stored knowledge
 - Querying cross-project best practices
+- Finding entity relationships
 
 ## Usage
 
@@ -27,23 +42,35 @@ Search past decisions and patterns stored in mem0.
 /recall --category <category> <search query>
 /recall --limit <number> <search query>
 
-# Advanced options (v1.1.0+)
-/recall --graph <query>                     # Search with graph relationships
+# Cloud-enhanced search (v2.1.0+)
+/recall --mem0 <query>                     # Search BOTH graph AND mem0 cloud
+/recall --mem0 --limit 20 <query>          # More results from both systems
+
+# Scoped search
 /recall --agent <agent-id> <query>          # Filter by agent scope
 /recall --global <query>                    # Search cross-project best practices
-/recall --global --category pagination      # Combine flags
 ```
-
-## Options
-
-- `--category <category>` - Filter by category (decision, architecture, pattern, blocker, constraint, preference, pagination, database, authentication, api, frontend, performance)
-- `--limit <number>` - Maximum results to return (default: 10)
 
 ## Advanced Flags
 
-- `--graph` - Enable graph search to find related entities and relationships
-- `--agent <agent-id>` - Filter results to a specific agent's memories (e.g., `database-engineer`)
-- `--global` - Search cross-project best practices instead of project-specific memories
+| Flag | Behavior |
+|------|----------|
+| (default) | Search graph only |
+| `--mem0` | Search BOTH graph and mem0 cloud |
+| `--limit <n>` | Max results (default: 10) |
+| `--category <cat>` | Filter by category |
+| `--agent <agent-id>` | Filter results to a specific agent's memories |
+| `--global` | Search cross-project best practices |
+
+## Context-Aware Result Limits (CC 2.1.6)
+
+Result limits automatically adjust based on `context_window.used_percentage`:
+
+| Context Usage | Default Limit | Behavior |
+|---------------|---------------|----------|
+| 0-70% | 10 results | Full results with details |
+| 70-85% | 5 results | Reduced, summarized results |
+| >85% | 3 results | Minimal with "more available" hint |
 
 ## Workflow
 
@@ -52,15 +79,40 @@ Search past decisions and patterns stored in mem0.
 ```
 Check for --category <category> flag
 Check for --limit <number> flag
-Check for --graph flag → enable_graph: true
+Check for --mem0 flag → search_mem0: true
 Check for --agent <agent-id> flag → filter by agent_id
-Check for --global flag → search global user_id
+Check for --global flag → search global scope
 Extract the search query
 ```
 
-### 2. Search mem0
+### 2. Search Knowledge Graph (PRIMARY)
 
-Use `mcp__mem0__search_memories` with:
+Use `mcp__memory__search_nodes`:
+
+```json
+{
+  "query": "user's search query"
+}
+```
+
+**Knowledge Graph Search:**
+- Searches entity names, types, and observations
+- Returns entities with their relationships
+- Finds patterns like "X uses Y", "X recommends Y"
+
+**Entity Types to Look For:**
+- `Technology`: Tools, frameworks, databases (pgvector, PostgreSQL, React)
+- `Agent`: SkillForge agents (database-engineer, backend-system-architect)
+- `Pattern`: Named patterns (cursor-pagination, connection-pooling)
+- `Decision`: Architectural decisions
+- `Project`: Project-specific context
+- `AntiPattern`: Failed patterns
+
+### 3. Search mem0 (OPTIONAL - only if --mem0 flag)
+
+**Skip if `--mem0` flag NOT set or MEM0_API_KEY not configured.**
+
+Use `mcp__mem0__search_memories` IN PARALLEL with step 2:
 
 ```json
 {
@@ -71,7 +123,7 @@ Use `mcp__mem0__search_memories` with:
     ]
   },
   "limit": 10,
-  "enable_graph": false
+  "enable_graph": true
 }
 ```
 
@@ -84,54 +136,87 @@ Use `mcp__mem0__search_memories` with:
 - With `--category`: Add `{ "metadata.category": "{category}" }` to AND array
 - With `--agent`: Add `{ "agent_id": "skf:{agent-id}" }` to AND array
 
-**Example with category and agent filters:**
-```json
-{
-  "query": "pagination patterns",
-  "filters": {
-    "AND": [
-      { "user_id": "skillforge-myproject-decisions" },
-      { "metadata.category": "pagination" },
-      { "agent_id": "skf:database-engineer" }
-    ]
-  },
-  "limit": 10,
-  "enable_graph": true
-}
+### 4. Merge and Deduplicate Results (if --mem0)
+
+**Only when both systems return results:**
+
+1. Collect results from both systems
+2. For each mem0 memory, check if its text matches a graph entity observation
+3. If matched, mark as `[CROSS-REF]` and merge metadata
+4. Remove pure duplicates (same content from both systems)
+5. Sort: graph results first, then mem0 results, cross-refs highlighted
+
+### 5. Format Results
+
+**Graph-Only Results (default):**
+```
+🔍 Found {count} results matching "{query}":
+
+[GRAPH] {entity_name} ({entity_type})
+   → {relation1} → {target1}
+   → {relation2} → {target2}
+   Observations: {observation1}, {observation2}
+
+[GRAPH] {entity_name2} ({entity_type2})
+   Observations: {observation}
 ```
 
-### 3. Format Results
-
-**Standard Results:**
+**With --mem0 (combined results):**
 ```
-🔍 Found {count} memories matching "{query}":
+🔍 Found {count} results matching "{query}":
 
-1. [{time ago}] ({category}) {memory text}
+[GRAPH] {entity_name} ({entity_type})
+   → {relation} → {target}
+   Observations: {observation}
 
-2. [{time ago}] ({category}) {memory text}
-```
+[GRAPH] {entity_name2} ({entity_type2})
+   Observations: {observation}
 
-**With Graph Relationships (when --graph used):**
-```
-🔍 Found {count} memories matching "{query}":
+[MEM0] [{time ago}] ({category}) {memory text}
 
-1. [{time ago}] ({category}) {memory text}
-   📊 Related: {entity1} → {relation} → {entity2}
+[MEM0] [{time ago}] ({category}) {memory text}
 
-2. [{time ago}] ({category}) {memory text}
-   📊 Related: {entity1} → {relation} → {entity2}
+[CROSS-REF] {memory text} (linked to {N} graph entities)
+   📊 Linked entities: {entity1}, {entity2}
 ```
 
-### 4. Handle No Results
+**With --mem0 when MEM0_API_KEY not configured:**
+```
+🔍 Found {count} results matching "{query}":
+
+[GRAPH] {entity_name} ({entity_type})
+   → {relation} → {target}
+   Observations: {observation}
+
+⚠️ mem0 search requested but MEM0_API_KEY not configured (graph-only results)
+```
+
+**High Context Pressure (>85%):**
+```
+🔍 Found 12 matches (showing 3 due to context pressure at 87%)
+
+[GRAPH] pgvector (Technology)
+   → USED_FOR → RAG
+[GRAPH] cursor-pagination (Pattern)
+[GRAPH] database-engineer (Agent)
+   → RECOMMENDS → pgvector
+
+More results available. Use /recall --limit 10 to override.
+```
+
+### 6. Handle No Results
 
 ```
-🔍 No memories found matching "{query}"
+🔍 No results found matching "{query}"
+
+Searched:
+• Knowledge graph: 0 entities
 
 Try:
 • Broader search terms
 • /remember to store new decisions
 • --global flag to search cross-project best practices
-• Check if mem0 is configured correctly
+• --mem0 flag to include cloud semantic search
 ```
 
 ## Time Formatting
@@ -146,19 +231,26 @@ Try:
 
 ## Examples
 
-### Basic Search
+### Basic Graph Search
 
 **Input:** `/recall database`
 
 **Output:**
 ```
-🔍 Found 3 memories matching "database":
+🔍 Found 3 results matching "database":
 
-1. [2 days ago] (decision) PostgreSQL chosen for ACID requirements and team familiarity
+[GRAPH] PostgreSQL (Technology)
+   → CHOSEN_FOR → ACID-requirements
+   → USED_WITH → pgvector
+   Observations: Chosen for ACID requirements and team familiarity
 
-2. [1 week ago] (pattern) Database connection pooling with pool_size=10, max_overflow=20
+[GRAPH] database-engineer (Agent)
+   → RECOMMENDS → pgvector
+   → RECOMMENDS → cursor-pagination
+   Observations: Uses pgvector for RAG applications
 
-3. [2 weeks ago] (architecture) Using pgvector extension for vector similarity search
+[GRAPH] cursor-pagination (Pattern)
+   Observations: Scales well for large datasets
 ```
 
 ### Category Filter
@@ -167,86 +259,105 @@ Try:
 
 **Output:**
 ```
-🔍 Found 2 memories matching "API" (category: architecture):
+🔍 Found 2 results matching "API" (category: architecture):
 
-1. [3 days ago] (architecture) Layered API architecture with controllers, services, repositories
+[GRAPH] api-gateway (Architecture)
+   → IMPLEMENTS → rate-limiting
+   → USES → JWT-authentication
+   Observations: Central entry point for all services
 
-2. [1 week ago] (architecture) API versioning using /api/v1 prefix in URL path
+[GRAPH] REST-API (Pattern)
+   → FOLLOWS → OpenAPI-spec
+   Observations: Standard for external-facing APIs
 ```
 
-### Limited Results
+### Cloud-Enhanced Search
 
-**Input:** `/recall --limit 5 auth`
+**Input:** `/recall --mem0 database`
 
 **Output:**
 ```
-🔍 Found 5 memories matching "auth":
+🔍 Found 5 results matching "database":
 
-1. [1 day ago] (decision) JWT authentication with 24h expiry for access tokens
+[GRAPH] PostgreSQL (Technology)
+   → CHOSEN_FOR → ACID-requirements
+   Observations: Chosen for ACID requirements
 
-2. [3 days ago] (pattern) Refresh tokens stored in httpOnly cookies
+[GRAPH] database-engineer (Agent)
+   → RECOMMENDS → pgvector
+   Observations: Uses pgvector for RAG
 
-3. [1 week ago] (architecture) Auth middleware in src/auth/middleware.py
+[MEM0] [2 days ago] (decision) PostgreSQL chosen for ACID requirements and team familiarity
 
-4. [1 week ago] (constraint) Must support OAuth2 for enterprise customers
+[MEM0] [1 week ago] (pattern) Database connection pooling with pool_size=10, max_overflow=20
 
-5. [2 weeks ago] (blocker) Auth tokens not refreshing properly - fixed by adding token rotation
+[CROSS-REF] [3 days ago] pgvector for RAG applications (linked to 2 entities)
+   📊 Linked: database-engineer, pgvector
 ```
 
-### Graph Search (New)
-
-**Input:** `/recall --graph "what does database-engineer recommend for vectors?"`
-
-**Output:**
-```
-🔍 Found 2 memories with relationships:
-
-1. [3 days ago] (database) database-engineer uses pgvector for RAG applications
-   📊 Related: database-engineer → recommends → pgvector
-   📊 Related: pgvector → used_for → RAG
-
-2. [1 week ago] (performance) pgvector requires HNSW index for >100k vectors
-   📊 Related: pgvector → requires → HNSW index
-```
-
-### Agent-Scoped Search (New)
+### Agent-Scoped Search
 
 **Input:** `/recall --agent backend-system-architect "API patterns"`
 
 **Output:**
 ```
-🔍 Found 2 memories from backend-system-architect:
+🔍 Found 2 results from backend-system-architect:
 
-1. [2 days ago] (api) Use versioned endpoints: /api/v1/, /api/v2/
+[GRAPH] backend-system-architect (Agent)
+   → RECOMMENDS → cursor-pagination
+   → RECOMMENDS → repository-pattern
+   Observations: Use versioned endpoints: /api/v1/, /api/v2/
 
-2. [1 week ago] (architecture) Separate controllers, services, and repositories
+[GRAPH] repository-pattern (Pattern)
+   Observations: Separate controllers, services, and repositories
 ```
 
-### Cross-Project Search (New)
+### Cross-Project Search
 
 **Input:** `/recall --global --category pagination`
 
 **Output:**
 ```
-🔍 Found 4 GLOBAL best practices (pagination):
+🔍 Found 3 GLOBAL best practices (pagination):
 
-1. [Project: ecommerce] (pagination) Cursor-based pagination scales better than offset for large datasets
+[GRAPH] cursor-pagination (Pattern)
+   → SCALES_FOR → large-datasets
+   → PREFERRED_OVER → offset-pagination
+   Observations: From project: ecommerce, analytics, cms
 
-2. [Project: analytics] (pagination) Use keyset pagination for real-time feeds
+[GRAPH] keyset-pagination (Pattern)
+   → USED_FOR → real-time-feeds
+   Observations: From project: analytics
 
-3. [Project: cms] (pagination) Cache page counts separately - they're expensive to compute
-
-4. [Project: api-gateway] (pagination) Always return next_cursor even if empty to signal end
+[GRAPH] offset-pagination (AntiPattern)
+   Observations: Caused timeouts on 1M+ rows
 ```
 
+### Relationship Query
+
+**Input:** `/recall what does database-engineer recommend`
+
+**Output:**
+```
+🔍 Found relationships for database-engineer:
+
+[GRAPH] database-engineer (Agent)
+   → RECOMMENDS → pgvector
+   → RECOMMENDS → cursor-pagination
+   → RECOMMENDS → connection-pooling
+   → USES → PostgreSQL
+   Observations: Specialist in database architecture
+```
 
 ## Related Skills
 - remember: Store information for later recall
 
 ## Error Handling
 
-- If mem0 unavailable, inform user to check MCP configuration
-- If search query empty, show recent memories instead
+- If knowledge graph unavailable, show configuration instructions
+- If --mem0 requested without MEM0_API_KEY, proceed with graph-only and notify user
+- If search query empty, show recent entities instead
 - If no results, suggest alternatives
 - If --agent used without agent-id, show available agents
 - If --global returns no results, suggest storing with /remember --global
+- If --mem0 returns partial results (mem0 failed), show graph results with degradation notice

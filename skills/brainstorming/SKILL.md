@@ -311,6 +311,23 @@ that pattern with a new route handler..."
 **Version:** 2.0.0 (January 2026)
 **Status:** Production patterns from SkillForge brainstorming sessions
 
+## Related Skills
+
+- `architecture-decision-record` - Document key architectural decisions made during brainstorming sessions
+- `implement` - Execute the implementation plan after brainstorming completes
+- `context-engineering` - Optimize context for complex brainstorming sessions with many alternatives
+- `explore` - Deep codebase exploration to understand existing patterns before proposing changes
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Question format | One at a time | Prevents information overload, maintains conversation flow |
+| Tool for choices | AskUserQuestion | Structured options with trade-offs, forces explicit selection |
+| Phase progression | Non-linear allowed | New constraints may require backtracking to earlier phases |
+| Design presentation | 200-300 word sections | Incremental validation prevents large design misalignment |
+| Alternative proposals | Always 2-3 options | Demonstrates exploration, reveals trade-offs |
+
 ## Capability Details
 
 ### phase-1-understanding

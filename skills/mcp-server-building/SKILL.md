@@ -446,6 +446,22 @@ Tool(
 )
 ```
 
+## Related Skills
+
+- `function-calling` - LLM function calling patterns that MCP tools implement
+- `agent-loops` - Agentic patterns that leverage MCP tools for actions
+- `input-validation` - Input validation for MCP tool arguments
+- `llm-safety-patterns` - Security patterns for MCP tool implementations
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Transport protocol | stdio for CLI, SSE for web | stdio is simplest, SSE for browser deployments |
+| Language choice | TypeScript for production | Better SDK support, type safety |
+| Tool descriptions | Concise with keywords | Optimize for CC 2.1.7 auto-discovery |
+| Error handling | Return errors as text content | Claude can interpret and retry |
+
 ## Resources
 - MCP Specification: https://modelcontextprotocol.io/docs
 - Python SDK: https://github.com/modelcontextprotocol/python-sdk

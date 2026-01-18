@@ -64,7 +64,7 @@ if [ ${#VALIDATION_WARNINGS[@]} -gt 0 ]; then
 fi
 
 # Log to file
-LOG_DIR="$CLAUDE_PROJECT_DIR/.claude/logs/agent-validation"
+LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/agent-validation"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
 

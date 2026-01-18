@@ -119,6 +119,23 @@ Access request.cf.country (Cloudflare) or request.geo (Vercel) for location-base
 - [Vercel Edge Functions](https://vercel.com/docs/functions/edge-functions)
 - [Deno Deploy](https://deno.com/deploy/docs)
 
+## Related Skills
+
+- `caching-strategies` - Redis caching patterns that complement edge KV storage and CDN caching
+- `react-server-components-framework` - Next.js App Router patterns for edge-rendered React components
+- `streaming-api-patterns` - SSE and streaming responses for edge function output
+- `api-design-framework` - REST API patterns for edge-deployed endpoints
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Primary Runtime | V8 Isolates | Sub-millisecond cold starts, security isolation |
+| State Management | KV / Edge Config | Eventually consistent, globally replicated |
+| Stateful Workloads | Durable Objects | Strong consistency when needed |
+| Auth Strategy | JWT at Edge | No origin roundtrip, sub-ms verification |
+| Cache Pattern | Cache-Aside | Simple, effective, CDN-compatible |
+
 ## Capability Details
 
 ### cloudflare-workers

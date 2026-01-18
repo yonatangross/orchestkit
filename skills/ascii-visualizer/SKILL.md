@@ -57,6 +57,12 @@ Create clear ASCII visualizations for explaining complex concepts.
 
 See `references/` for complete patterns.
 
+## Related Skills
+
+- `architecture-decision-record` - Document decisions that ASCII diagrams help visualize
+- `brainstorming` - Use visualizations to explore and communicate ideas
+- `explore` - Visualize codebase structure during exploration
+
 ## Capability Details
 
 ### architecture-diagrams

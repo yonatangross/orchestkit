@@ -8,15 +8,15 @@ Production-ready ARQ worker configuration with:
 - Health checks
 """
 
-from typing import Any, Callable
-from datetime import datetime, timedelta
 import asyncio
-import structlog
+from collections.abc import Callable
+from datetime import datetime, timedelta
+from typing import Any
 
-from arq import cron, Retry
-from arq.connections import RedisSettings
 import redis.asyncio as redis
-
+import structlog
+from arq import Retry, cron
+from arq.connections import RedisSettings
 
 logger = structlog.get_logger()
 
@@ -193,11 +193,11 @@ async def process_analysis(
     """Process an analysis in the background."""
     from sqlalchemy.ext.asyncio import AsyncSession
 
-    async with AsyncSession(ctx["db_engine"]) as session:
+    async with AsyncSession(ctx["db_engine"]) as session:  # noqa: F841
         # Your processing logic here
-        # 1. Fetch analysis
+        # 1. Fetch analysis from session
         # 2. Process content
-        # 3. Update status
+        # 3. Update status via session.execute(...)
         await asyncio.sleep(1)  # Simulate work
 
         return {
@@ -234,8 +234,8 @@ async def cleanup_old_data(ctx: dict) -> dict:
 
     Removes data older than 30 days.
     """
-    from sqlalchemy.ext.asyncio import AsyncSession
     from sqlalchemy import text
+    from sqlalchemy.ext.asyncio import AsyncSession
 
     cutoff = datetime.utcnow() - timedelta(days=30)
 

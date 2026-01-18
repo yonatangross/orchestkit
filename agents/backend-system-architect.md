@@ -22,10 +22,20 @@ skills:
   - devops-deployment
   - golden-dataset-management
   - edge-computing-patterns
-  - github-cli
+  - github-operations
   - resilience-patterns
   - langgraph-supervisor
   - mcp-server-building
+  - caching-strategies
+  - auth-patterns
+  - asyncio-advanced
+  - sqlalchemy-2-async
+  - fastapi-advanced
+  - connection-pooling
+  - idempotency-patterns
+  - domain-driven-design
+  - aggregate-patterns
+  - distributed-locks
   - remember
   - recall
 ---

@@ -9,14 +9,16 @@ Usage:
     result = await cache.get_or_generate(query, agent_type, llm_fn)
 """
 
+import hashlib
 import json
 import time
-import hashlib
-from typing import Callable, Any
+from collections.abc import Callable
+from typing import Any
+
+from openai import AsyncOpenAI
 from redis.asyncio import Redis
 from redisvl.index import SearchIndex
 from redisvl.query import VectorQuery
-from openai import AsyncOpenAI
 
 
 class SemanticCache:

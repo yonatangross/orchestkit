@@ -1,12 +1,13 @@
 # Template: Pytest Fixture Configuration
 # Usage: Copy to tests/conftest.py and customize for your project
 
+from collections.abc import AsyncGenerator, Generator
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
-from typing import Generator, AsyncGenerator
-from unittest.mock import MagicMock, AsyncMock
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import Session, sessionmaker
 
 # ============================================================================
 # DATABASE FIXTURES
@@ -27,7 +28,7 @@ def db_engine():
 
 
 @pytest.fixture(scope="function")
-def db_session(db_engine) -> Generator[Session, None, None]:
+def db_session(db_engine) -> Generator[Session]:
     """Function-scoped database session with automatic rollback."""
     connection = db_engine.connect()
     transaction = connection.begin()
@@ -57,13 +58,12 @@ async def async_db_engine():
 
 
 @pytest.fixture(scope="function")
-async def async_db_session(async_db_engine) -> AsyncGenerator[AsyncSession, None]:
+async def async_db_session(async_db_engine) -> AsyncGenerator[AsyncSession]:
     """Async session with transaction rollback."""
-    async with async_db_engine.connect() as connection:
-        async with connection.begin() as transaction:
-            async_session = AsyncSession(bind=connection, expire_on_commit=False)
-            yield async_session
-            await transaction.rollback()
+    async with async_db_engine.connect() as connection, connection.begin() as transaction:
+        async_session = AsyncSession(bind=connection, expire_on_commit=False)
+        yield async_session
+        await transaction.rollback()
 
 
 # ============================================================================

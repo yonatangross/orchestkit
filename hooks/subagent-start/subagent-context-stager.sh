@@ -23,8 +23,8 @@ log_hook "Staging context for $SUBAGENT_TYPE"
 
 # === CHECK FOR ACTIVE TODOS (Context Protocol 2.0) ===
 
-SESSION_STATE="$CLAUDE_PROJECT_DIR/.claude/context/session/state.json"
-DECISIONS_FILE="$CLAUDE_PROJECT_DIR/.claude/context/knowledge/decisions/active.json"
+SESSION_STATE="${CLAUDE_PROJECT_DIR:-.}/.claude/context/session/state.json"
+DECISIONS_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/context/knowledge/decisions/active.json"
 STAGED_CONTEXT=""
 
 if [[ -f "$SESSION_STATE" ]]; then
@@ -86,12 +86,12 @@ if [[ "$TASK_DESCRIPTION" =~ (issue|#[0-9]+|bug|fix) ]]; then
   ISSUE_NUM=$(echo "$TASK_DESCRIPTION" | grep -oE '#[0-9]+' | head -1 | tr -d '#' || echo "")
 
   if [[ -n "$ISSUE_NUM" ]]; then
-    ISSUE_DIR="$CLAUDE_PROJECT_DIR/docs/issues"
+    ISSUE_DIR="${CLAUDE_PROJECT_DIR:-.}/docs/issues"
     if [[ -d "$ISSUE_DIR" ]]; then
       ISSUE_MATCH=$(find "$ISSUE_DIR" -maxdepth 1 -type d -name "*${ISSUE_NUM}*" 2>/dev/null | head -1 || echo "")
 
       if [[ -n "$ISSUE_MATCH" ]]; then
-        STAGED_CONTEXT="${STAGED_CONTEXT}ISSUE DOCS: ${ISSUE_MATCH#$CLAUDE_PROJECT_DIR/}\n\n"
+        STAGED_CONTEXT="${STAGED_CONTEXT}ISSUE DOCS: ${ISSUE_MATCH#${CLAUDE_PROJECT_DIR:-.}/}\n\n"
         log_hook "Staged issue documentation for #$ISSUE_NUM"
       fi
     fi
@@ -113,7 +113,7 @@ if [[ -n "$STAGED_CONTEXT" ]]; then
   log_hook "Staged context with $(echo -e "$STAGED_CONTEXT" | wc -l) lines"
 else
   log_hook "No context staged for this task"
-  echo '{"continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
 fi
 
 exit 0

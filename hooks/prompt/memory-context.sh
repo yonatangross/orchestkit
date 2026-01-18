@@ -2,18 +2,22 @@
 set -euo pipefail
 # Memory Context - UserPromptSubmit Hook
 # CC 2.1.7 Compliant: includes continue field and suppressOutput in all outputs
-# Auto-searches mem0 for relevant context based on user prompt
+# Auto-searches knowledge graph for relevant context based on user prompt
+#
+# Graph-First Architecture (v2.1):
+# - ALWAYS works - knowledge graph requires no configuration
+# - Primary: Search knowledge graph (mcp__memory__search_nodes)
+# - Optional: Also search mem0 for semantic matches if configured
 #
 # Strategy:
 # - Extract key terms from user prompt
-# - Search mem0 for relevant decisions/patterns
-# - Inject search suggestions into context
+# - Search knowledge graph for relevant decisions/patterns (always)
+# - Optionally search mem0 for semantic matches (if configured)
 # - Support @global prefix for cross-project search
 # - Include agent context if CLAUDE_AGENT_ID is set
-# - Suggest enable_graph for relationship queries
 #
-# Version: 1.2.0
-# Part of mem0 Semantic Memory Integration (#40, #46)
+# Version: 2.1.0 - Graph-First Architecture
+# Part of Memory Fabric v2.1
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
 _HOOK_INPUT=$(cat)
@@ -21,13 +25,17 @@ export _HOOK_INPUT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh" 2>/dev/null || true
-source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null || {
-    # mem0 lib not available - silent pass (CC 2.1.7)
-    echo '{"continue":true,"suppressOutput":true}'
-    exit 0
-}
 
-log_hook "Memory context hook starting"
+# mem0 library is optional (for enhanced semantic search)
+MEM0_AVAILABLE=false
+if [[ -f "$SCRIPT_DIR/../_lib/mem0.sh" ]]; then
+    source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null
+    if is_mem0_available 2>/dev/null; then
+        MEM0_AVAILABLE=true
+    fi
+fi
+
+log_hook "Memory context hook starting (graph-first, mem0=${MEM0_AVAILABLE})"
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -151,23 +159,21 @@ if ! should_search_memory "$USER_PROMPT"; then
 fi
 
 # -----------------------------------------------------------------------------
-# Check mem0 Availability
+# Build Search Suggestion (Graph-First)
 # -----------------------------------------------------------------------------
 
-if ! is_mem0_available; then
-    log_hook "Mem0 not available, skipping memory search"
-    echo '{"continue":true,"suppressOutput":true}'
-    exit 0
+# Get project info (may be empty if mem0.sh not loaded)
+PROJECT_ID=""
+USER_ID_DECISIONS=""
+USER_ID_PATTERNS=""
+GLOBAL_USER_ID=""
+
+if [[ "$MEM0_AVAILABLE" == "true" ]]; then
+    PROJECT_ID=$(mem0_get_project_id 2>/dev/null || echo "")
+    USER_ID_DECISIONS=$(mem0_user_id "${MEM0_SCOPE_DECISIONS:-decisions}" 2>/dev/null || echo "")
+    USER_ID_PATTERNS=$(mem0_user_id "${MEM0_SCOPE_PATTERNS:-patterns}" 2>/dev/null || echo "")
+    GLOBAL_USER_ID=$(mem0_global_user_id "best-practices" 2>/dev/null || echo "")
 fi
-
-# -----------------------------------------------------------------------------
-# Build Search Suggestion
-# -----------------------------------------------------------------------------
-
-PROJECT_ID=$(mem0_get_project_id)
-USER_ID_DECISIONS=$(mem0_user_id "$MEM0_SCOPE_DECISIONS")
-USER_ID_PATTERNS=$(mem0_user_id "$MEM0_SCOPE_PATTERNS")
-GLOBAL_USER_ID=$(mem0_global_user_id "best-practices")
 
 # Extract key terms for search (first 5 words, skip common words)
 extract_search_terms() {
@@ -200,44 +206,42 @@ fi
 log_hook "Search terms: $SEARCH_TERMS"
 
 # -----------------------------------------------------------------------------
-# Build Context Suggestion Message
+# Build Context Suggestion Message (Graph-First)
 # -----------------------------------------------------------------------------
 
-# Build filter JSON based on context
+# Build scope description
 if [[ "$USE_GLOBAL" == "true" ]]; then
-    PRIMARY_USER_ID="$GLOBAL_USER_ID"
     SCOPE_DESC="cross-project"
 else
-    PRIMARY_USER_ID="$USER_ID_DECISIONS"
     SCOPE_DESC="project"
 fi
 
-# Build main suggestion
-SYSTEM_MSG="[Memory Context] For relevant past $SCOPE_DESC decisions, use mcp__mem0__search_memories with query=\"$SEARCH_TERMS\" and user_id=\"$PRIMARY_USER_ID\""
+# PRIMARY: Knowledge graph search (always available)
+SYSTEM_MSG="[Memory Context] For relevant past $SCOPE_DESC decisions, use mcp__memory__search_nodes with query=\"$SEARCH_TERMS\""
 
-# Add graph suggestion if relevant
+# Add relationship hint if graph-related query
 if [[ "$USE_GRAPH" == "true" ]]; then
-    SYSTEM_MSG="$SYSTEM_MSG, enable_graph=true"
+    SYSTEM_MSG="$SYSTEM_MSG | For relationships, also use mcp__memory__open_nodes on found entities"
+fi
+
+# OPTIONAL: mem0 semantic search (if configured)
+if [[ "$MEM0_AVAILABLE" == "true" && -n "$USER_ID_DECISIONS" ]]; then
+    SYSTEM_MSG="$SYSTEM_MSG | [Enhanced] For semantic search: mcp__mem0__search_memories query=\"$SEARCH_TERMS\" user_id=\"$USER_ID_DECISIONS\""
+
+    # Add global search hint if not already global
+    if [[ "$USE_GLOBAL" != "true" && -n "$GLOBAL_USER_ID" ]]; then
+        SYSTEM_MSG="$SYSTEM_MSG | Cross-project: user_id=\"$GLOBAL_USER_ID\""
+    fi
 fi
 
 # Add agent filter hint if in agent context
 if [[ -n "$AGENT_CONTEXT" ]]; then
-    SYSTEM_MSG="$SYSTEM_MSG | Agent context: $AGENT_CONTEXT - add agent_id filter for agent-specific memories"
+    SYSTEM_MSG="$SYSTEM_MSG | Agent context: $AGENT_CONTEXT"
 fi
 
-# Add global search hint if not already global
-if [[ "$USE_GLOBAL" != "true" ]]; then
-    SYSTEM_MSG="$SYSTEM_MSG | For cross-project patterns: user_id=\"$GLOBAL_USER_ID\""
-fi
+log_hook "Memory context available for: $SEARCH_TERMS"
 
-log_hook "Outputting memory search suggestion for: $SEARCH_TERMS"
-
-# Output CC 2.1.7 compliant JSON
-jq -n \
-    --arg msg "$SYSTEM_MSG" \
-    '{
-        continue: true,
-        systemMessage: $msg
-    }'
+# Silent operation - Claude already has access to memory tools
+echo '{"continue": true, "suppressOutput": true}'
 
 exit 0

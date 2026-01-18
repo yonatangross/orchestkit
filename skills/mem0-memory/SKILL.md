@@ -168,6 +168,22 @@ This skill requires the Mem0 MCP server configured in Claude Desktop:
 }
 ```
 
+## Related Skills
+
+- `semantic-caching` - Semantic caching patterns that complement long-term memory
+- `embeddings` - Embedding strategies used by Mem0 for semantic search
+- `langgraph-checkpoints` - State persistence patterns for workflow continuity
+- `context-compression` - Compress context when memory retrieval adds too many tokens
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Memory scope | project-decisions, project-patterns, project-continuity | Clear separation of memory types |
+| Storage format | Natural language with metadata | Semantic search works best with descriptive text |
+| MCP integration | Mem0 MCP server | Native Claude Desktop integration |
+| What to avoid | Secrets, large code blocks, volatile info | Keep memories clean and safe |
+
 ## Capability Details
 
 ### memory-add

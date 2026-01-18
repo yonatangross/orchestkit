@@ -117,6 +117,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - create-pr: Create pull requests from commits
 - review-pr: Review changes before committing
 - fix-issue: Fix issues and commit the fixes
+- issue-progress-tracking: Auto-updates GitHub issues with commit progress
 ## References
 
 - [Conventional Commits](references/conventional-commits.md)

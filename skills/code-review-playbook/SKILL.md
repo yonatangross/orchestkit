@@ -280,6 +280,13 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 **Last Updated**: 2026-01-08
 **Maintained by**: AI Agent Hub Team
 
+## Related Skills
+
+- `test-standards-enforcer` - Enforce testing best practices during code review
+- `security-scanning` - Automated security checks to complement manual review
+- `unit-testing` - Unit test patterns to verify during review
+- `a11y-testing` - Accessibility testing requirements for UI code reviews
+
 ## Capability Details
 
 ### review-process

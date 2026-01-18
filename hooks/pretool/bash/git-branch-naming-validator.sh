@@ -1,8 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 # Git Branch Naming Validator Hook
+# BLOCKS branch creation with non-standard naming
 # Enforces branch naming: issue/<num>-<desc>, feature/<desc>, fix/<desc>, hotfix/<desc>
-# CC 2.1.9: Injects guidance via additionalContext
+# CC 2.1.9: Injects guidance via additionalContext on BLOCK
 
 INPUT=$(cat)
 export _HOOK_INPUT="$INPUT"
@@ -67,7 +68,7 @@ for pattern in "${VALID_PATTERNS[@]}"; do
   fi
 done
 
-# Protected branch check
+# Protected branch check - BLOCK
 if [[ "$BRANCH_NAME" == "main" || "$BRANCH_NAME" == "master" || "$BRANCH_NAME" == "dev" || "$BRANCH_NAME" == "develop" ]]; then
   ERROR_MSG="Cannot create branch '$BRANCH_NAME' - this is a protected branch name.
 
@@ -81,23 +82,29 @@ Use a feature branch instead:
     systemMessage: $msg,
     continue: false,
     hookSpecificOutput: {
+      hookEventName: "PreToolUse",
       permissionDecision: "deny",
-      permissionDecisionReason: "Protected branch name"
+      permissionDecisionReason: "Protected branch name",
+      additionalContext: "Protected branches (main, master, dev, develop) cannot be created directly. Use: feature/*, fix/*, hotfix/*, issue/*-description, docs/*, test/*, refactor/*"
     }
   }'
   exit 0
 fi
 
-# Invalid format - provide guidance but allow (soft enforcement)
-GUIDANCE="Branch naming suggestion for '$BRANCH_NAME':
+# Invalid format - BLOCK with guidance (CC 2.1.9 additionalContext)
+ERROR_MSG="INVALID BRANCH NAME FORMAT
 
-Recommended formats:
+Branch name: '$BRANCH_NAME'
+
+Required formats:
   issue/<number>-<description>  - For GitHub issues (preferred)
   feature/<description>         - For features without issues
   fix/<description>             - For bug fixes
   hotfix/<description>          - For urgent production fixes
   chore/<description>           - For maintenance tasks
   docs/<description>            - For documentation
+  refactor/<description>        - For code restructuring
+  test/<description>            - For test changes
   release/v1.2.3                - For release branches
 
 Examples:
@@ -106,8 +113,19 @@ Examples:
   fix/login-redirect
   hotfix/security-patch
 
-Consider renaming to follow conventions for better tracking."
+Please rename your branch to follow the naming convention."
 
-log_permission_feedback "allow" "Non-standard branch name (warning): $BRANCH_NAME"
-output_allow_with_context "$GUIDANCE"
+ADDITIONAL_CONTEXT="Branch name '$BRANCH_NAME' doesn't follow naming convention. Use: feature/*, fix/*, hotfix/*, issue/*-description, docs/*, test/*, refactor/*, chore/*, release/v*"
+
+log_permission_feedback "deny" "Invalid branch name format: $BRANCH_NAME"
+jq -n --arg msg "$ERROR_MSG" --arg ctx "$ADDITIONAL_CONTEXT" '{
+  systemMessage: $msg,
+  continue: false,
+  hookSpecificOutput: {
+    hookEventName: "PreToolUse",
+    permissionDecision: "deny",
+    permissionDecisionReason: "Invalid branch naming convention",
+    additionalContext: $ctx
+  }
+}'
 exit 0

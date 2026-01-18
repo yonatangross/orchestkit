@@ -400,6 +400,23 @@ async def test_stream_cleanup_on_error():
 - [Streams API](https://developer.mozilla.org/en-US/docs/Web/API/Streams_API)
 - [Vercel AI SDK](https://sdk.vercel.ai/docs)
 
+## Related Skills
+
+- `llm-streaming` - LLM-specific streaming patterns for token-by-token responses
+- `api-design-framework` - REST API design patterns for streaming endpoints
+- `caching-strategies` - Cache invalidation patterns for real-time data updates
+- `edge-computing-patterns` - Edge function streaming for low-latency delivery
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Server-to-Client Streaming | SSE | Simple protocol, auto-reconnect, HTTP/2 compatible |
+| Bidirectional Communication | WebSockets | Full-duplex, low latency, binary support |
+| LLM Token Streaming | ReadableStream + SSE | Backpressure control, standard format |
+| Reconnection Strategy | Exponential Backoff | Prevents thundering herd, graceful recovery |
+| Async Generator Cleanup | `aclosing()` | Guaranteed resource cleanup on exceptions |
+
 ## Capability Details
 
 ### sse

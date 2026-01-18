@@ -78,7 +78,7 @@ log_hook "Satisfaction detector hook starting (sample $COUNTER)" 2>/dev/null || 
 MIN_PROMPT_LENGTH=2
 
 # Session ID for tracking
-SESSION_ID="${CLAUDE_SESSION_ID}"
+SESSION_ID="${CLAUDE_SESSION_ID:-unknown}"
 
 # -----------------------------------------------------------------------------
 # Extract User Prompt

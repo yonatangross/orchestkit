@@ -224,6 +224,21 @@ if (!hasPassingEvidence) {
 
 ---
 
+## Related Skills
+
+- `test-standards-enforcer` - Enforce testing standards as part of quality gates
+- `llm-evaluation` - LLM-as-judge patterns for quality validation
+- `golden-dataset-validation` - Validate datasets meet quality thresholds
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Complexity Scale | 1-5 levels | Granular enough for estimation, simple enough for quick assessment |
+| Block Threshold | 3 critical questions | Prevents proceeding with too many unknowns |
+| Escalation Trigger | 3 failed attempts | Balances persistence with avoiding wasted cycles |
+| Level 4-5 Requirement | Plan required | Complex tasks need upfront decomposition |
+
 ## Capability Details
 
 ### complexity-scoring

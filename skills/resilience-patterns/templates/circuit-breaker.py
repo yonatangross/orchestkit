@@ -20,12 +20,13 @@ Usage:
 import asyncio
 import logging
 from collections import deque
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from functools import wraps
 from time import time
-from typing import Any, Awaitable, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +48,8 @@ class CircuitStats:
     failed_calls: int = 0
     rejected_calls: int = 0
     state_changes: int = 0
-    last_failure_time: Optional[datetime] = None
-    last_success_time: Optional[datetime] = None
+    last_failure_time: datetime | None = None
+    last_success_time: datetime | None = None
 
 
 @dataclass
@@ -101,8 +102,8 @@ class CircuitBreaker:
         recovery_timeout: float = 30.0,
         sliding_window_size: int = 10,
         slow_call_threshold: float = 10.0,
-        on_state_change: Optional[Callable[[str, str, str], None]] = None,
-        on_failure: Optional[Callable[[Exception, str], None]] = None,
+        on_state_change: Callable[[str, str, str], None] | None = None,
+        on_failure: Callable[[Exception, str], None] | None = None,
     ):
         self.name = name
         self.config = CircuitBreakerConfig(
@@ -116,7 +117,7 @@ class CircuitBreaker:
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._success_count = 0
-        self._last_failure_time: Optional[float] = None
+        self._last_failure_time: float | None = None
         self._sliding_window: deque = deque(maxlen=sliding_window_size)
 
         # Callbacks

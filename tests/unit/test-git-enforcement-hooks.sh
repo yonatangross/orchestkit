@@ -135,7 +135,7 @@ test_branch_validator_allows_fix_branch() {
     fi
 }
 
-test_branch_validator_warns_nonstandard_branch() {
+test_branch_validator_blocks_nonstandard_branch() {
     local hook="$HOOKS_DIR/pretool/bash/git-branch-naming-validator.sh"
     [[ ! -f "$hook" ]] && skip "Hook not found"
 
@@ -145,8 +145,8 @@ test_branch_validator_warns_nonstandard_branch() {
 
     if [[ -n "$output" ]]; then
         assert_valid_json "$output"
-        # Should warn but still allow (continue: true with additionalContext)
-        echo "$output" | jq -e '.continue == true' >/dev/null || pass "Warns on non-standard branch"
+        # Should block non-standard branches (continue: false)
+        echo "$output" | jq -e '.continue == false' >/dev/null || fail "Should block non-standard branch"
     fi
 }
 
@@ -274,30 +274,146 @@ test_issue_guide_warns_missing_milestone() {
 }
 
 # ============================================================================
+# PRE-COMMIT SIMULATION TESTS
+# ============================================================================
+
+describe "Pre-Commit Simulation Hook"
+
+test_precommit_simulation_exists() {
+    local hook="$HOOKS_DIR/pretool/bash/pre-commit-simulation.sh"
+    assert_file_exists "$hook"
+    assert_file_executable "$hook"
+}
+
+test_precommit_simulation_validates_json_output() {
+    local hook="$HOOKS_DIR/pretool/bash/pre-commit-simulation.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat: test\""}}'
+    local output
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+    fi
+}
+
+test_precommit_simulation_ignores_non_commit() {
+    local hook="$HOOKS_DIR/pretool/bash/pre-commit-simulation.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"git status"}}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Should silently pass (continue: true, suppressOutput: true)
+        echo "$output" | jq -e '.continue == true' >/dev/null || pass "Ignores non-commit commands"
+    fi
+}
+
+test_precommit_simulation_allows_commit_with_context() {
+    local hook="$HOOKS_DIR/pretool/bash/pre-commit-simulation.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"git commit -m \"feat(#123): Add feature\""}}'
+    local output
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Should always allow (continue: true) - hook is WARN mode not BLOCK
+        echo "$output" | jq -e '.continue == true' >/dev/null || fail "Should allow commit (WARN mode)"
+    fi
+}
+
+# ============================================================================
+# CHANGELOG GENERATOR TESTS
+# ============================================================================
+
+describe "Changelog Generator Hook"
+
+test_changelog_generator_exists() {
+    local hook="$HOOKS_DIR/pretool/bash/changelog-generator.sh"
+    assert_file_exists "$hook"
+    assert_file_executable "$hook"
+}
+
+test_changelog_generator_validates_json_output() {
+    local hook="$HOOKS_DIR/pretool/bash/changelog-generator.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"gh release create v1.0.0"}}'
+    local output
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+    fi
+}
+
+test_changelog_generator_ignores_non_release() {
+    local hook="$HOOKS_DIR/pretool/bash/changelog-generator.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"gh issue list"}}'
+    local output
+    output=$(echo "$input" | bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Should silently pass for non-release commands
+        echo "$output" | jq -e '.continue == true' >/dev/null || pass "Ignores non-release commands"
+    fi
+}
+
+test_changelog_generator_provides_context_on_release() {
+    local hook="$HOOKS_DIR/pretool/bash/changelog-generator.sh"
+    [[ ! -f "$hook" ]] && skip "Hook not found"
+
+    local input='{"tool_name":"Bash","tool_input":{"command":"gh release create v2.0.0 --generate-notes"}}'
+    local output
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" bash "$hook" 2>/dev/null) || true
+
+    if [[ -n "$output" ]]; then
+        assert_valid_json "$output"
+        # Should provide additionalContext with changelog
+        echo "$output" | jq -e '.hookSpecificOutput.additionalContext != null' >/dev/null || pass "Provides changelog context"
+    fi
+}
+
+test_changelog_generator_release_engineer_integration() {
+    local agent="$PROJECT_ROOT/agents/release-engineer.md"
+    assert_file_exists "$agent"
+
+    # Verify changelog-generator is in release-engineer hooks
+    grep -q "changelog-generator.sh" "$agent" || fail "changelog-generator not wired to release-engineer"
+}
+
+# ============================================================================
 # SKILL STRUCTURE TESTS
 # ============================================================================
 
 describe "Git Skills Structure"
 
-test_milestone_management_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/milestone-management"
+test_git_workflow_skill_exists() {
+    local skill_dir="$PROJECT_ROOT/skills/git-workflow"
     assert_file_exists "$skill_dir/SKILL.md"
 
-    # Check for references
+    # Check for references (consolidated from atomic-commits, branch-strategy)
     [[ -d "$skill_dir/references" ]] || fail "Missing references directory"
 
-    # Check for templates
-    [[ -d "$skill_dir/templates" ]] || fail "Missing templates directory"
+    # Check for checklists
+    [[ -d "$skill_dir/checklists" ]] || fail "Missing checklists directory"
 }
 
-test_atomic_commits_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/atomic-commits"
+test_github_operations_skill_exists() {
+    local skill_dir="$PROJECT_ROOT/skills/github-operations"
     assert_file_exists "$skill_dir/SKILL.md"
-}
 
-test_branch_strategy_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/branch-strategy"
-    assert_file_exists "$skill_dir/SKILL.md"
+    # Check for references (consolidated from github-cli, milestone-management)
+    [[ -d "$skill_dir/references" ]] || fail "Missing references directory"
 }
 
 test_stacked_prs_skill_exists() {
@@ -310,37 +426,38 @@ test_release_management_skill_exists() {
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
-test_git_recovery_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/git-recovery"
+test_git_recovery_command_skill_exists() {
+    local skill_dir="$PROJECT_ROOT/skills/git-recovery-command"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
 # ============================================================================
-# GITHUB-CLI SKILL ENRICHMENT TESTS
+# GITHUB OPERATIONS SKILL ENRICHMENT TESTS
 # ============================================================================
 
-describe "GitHub CLI Skill Enrichment"
+describe "GitHub Operations Skill Enrichment"
 
-test_issue_creation_checklist_exists() {
-    local file="$PROJECT_ROOT/skills/github-cli/checklists/issue-creation-checklist.md"
-    assert_file_exists "$file"
+test_github_operations_references_exist() {
+    local ref_dir="$PROJECT_ROOT/skills/github-operations/references"
 
-    # Verify it contains key sections
-    grep -q "Pre-Creation Checks" "$file" || fail "Missing pre-creation checks section"
-    grep -q "Labels" "$file" || fail "Missing labeling section"
+    # Verify references directory exists
+    [[ -d "$ref_dir" ]] || fail "Missing references directory"
+
+    # Check for key reference files
+    assert_file_exists "$ref_dir/issue-management.md"
+    assert_file_exists "$ref_dir/pr-workflows.md"
+    assert_file_exists "$ref_dir/milestone-api.md"
 }
 
-test_labeling_guide_exists() {
-    local file="$PROJECT_ROOT/skills/github-cli/checklists/labeling-guide.md"
-    assert_file_exists "$file"
+test_github_operations_examples_exist() {
+    local examples_dir="$PROJECT_ROOT/skills/github-operations/examples"
 
-    # Verify it contains key sections
-    grep -q "Type Labels" "$file" || fail "Missing type labels section"
-    grep -q "Priority Labels" "$file" || fail "Missing priority labels section"
+    # Check for examples (consolidated from github-cli)
+    [[ -d "$examples_dir" ]] && assert_file_exists "$examples_dir/automation-scripts.md"
 }
 
-test_issue_templates_reference_exists() {
-    local file="$PROJECT_ROOT/skills/github-cli/references/issue-templates.md"
+test_github_operations_has_graphql_reference() {
+    local file="$PROJECT_ROOT/skills/github-operations/references/graphql-api.md"
     assert_file_exists "$file"
 }
 

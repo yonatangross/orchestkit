@@ -13,7 +13,7 @@ tools:
   - Bash
 skills:
   - brainstorming
-  - github-cli
+  - github-operations
   - remember
   - recall
 ---

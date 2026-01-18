@@ -315,6 +315,22 @@ mypy .                 # Run type checker
 
 **Remember:** Evidence-first development prevents hallucinations, ensures production quality, and builds confidence. When in doubt, collect more evidence, not less.
 
+## Related Skills
+
+- `unit-testing` - Unit test patterns for generating test evidence
+- `integration-testing` - Integration test patterns for component verification
+- `security-scanning` - Security scan evidence collection (npm audit, pip-audit)
+- `test-standards-enforcer` - Enforce evidence collection standards
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Minimum Coverage | 70% | Industry standard for production-grade code |
+| Exit Code Requirement | 0 = pass | Unix standard for success/failure indication |
+| Gold Standard Coverage | 80% | Higher bar for critical paths |
+| Retry Before Block | 2 attempts | Allow fix attempts before escalation |
+
 ## Capability Details
 
 ### exit-code-validation

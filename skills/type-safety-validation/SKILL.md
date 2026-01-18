@@ -200,6 +200,21 @@ confidence_to_save: float | None = (
 - [Prisma Documentation](https://www.prisma.io/docs)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
 
+## Related Skills
+
+- `input-validation` - Security-focused validation and sanitization patterns
+- `api-design-framework` - REST API design with type-safe contracts
+- `fastapi-advanced` - Python backend with Pydantic type validation
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Runtime Validation | Zod | Best DX, excellent TypeScript inference, composable schemas |
+| API Layer | tRPC | End-to-end type safety without code generation |
+| Exhaustive Checks | assertNever | Compile-time guarantee for union completeness |
+| Branded Types | Zod .brand() | Prevents ID type confusion with minimal overhead |
+
 ---
 
 **Skill Version**: 1.2.0

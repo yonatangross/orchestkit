@@ -3,7 +3,7 @@
 # Extracts and suggests saving design decisions after skill completion
 # Enhanced with graph memory support and category detection
 #
-# Version: 1.2.0 - Implemented decision extraction with graph support
+# Version: 1.2.1 - Uses mem0.sh v1.2.0 with graph-first defaults
 
 set -euo pipefail
 
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source mem0 library
 source "$SCRIPT_DIR/../_lib/mem0.sh" 2>/dev/null || {
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 }
 
@@ -58,7 +58,7 @@ fi
 
 # Skip if no skill output or too short
 if [[ -z "$SKILL_OUTPUT" || ${#SKILL_OUTPUT} -lt $MIN_OUTPUT_LENGTH ]]; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -110,7 +110,7 @@ has_decision_content() {
 
 # Check if output contains decision-worthy content
 if ! has_decision_content "$SKILL_OUTPUT"; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -139,7 +139,7 @@ extract_decisions() {
 EXTRACTED_DECISIONS=$(extract_decisions "$SKILL_OUTPUT")
 
 if [[ -z "$EXTRACTED_DECISIONS" ]]; then
-    echo '{"continue":true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -165,8 +165,10 @@ MSG=$(cat <<EOF
 
 To persist these decisions, use mcp__mem0__add_memory with:
 - user_id="$DECISIONS_USER_ID"
-- enable_graph=true (extracts: $ENTITY_HINTS)
+- text=<decision content>
 - metadata={"category": "$CATEGORY", "source": "skillforge-plugin", "skill": "${SKILL_NAME:-unknown}"}
+
+Note: Graph memory enabled by default (v1.2.0) - entities extracted: $ENTITY_HINTS
 
 Example decision: "${FIRST_DECISION:0:100}..."
 EOF

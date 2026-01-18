@@ -20,12 +20,11 @@ Usage:
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 from functools import wraps
-from time import time
-from typing import Any, Awaitable, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -120,20 +119,20 @@ class Bulkhead:
         self,
         name: str,
         tier: Tier = Tier.STANDARD,
-        max_concurrent: Optional[int] = None,
-        queue_size: Optional[int] = None,
-        timeout: Optional[float] = None,
+        max_concurrent: int | None = None,
+        queue_size: int | None = None,
+        timeout: float | None = None,
         rejection_policy: RejectionPolicy = RejectionPolicy.QUEUE,
-        on_rejection: Optional[Callable[[str, Tier], None]] = None,
-        on_timeout: Optional[Callable[[str, float], None]] = None,
+        on_rejection: Callable[[str, Tier], None] | None = None,
+        on_timeout: Callable[[str, float], None] | None = None,
     ):
         self.name = name
         self.tier = tier
 
         # Get defaults for tier
         defaults = TIER_DEFAULTS[tier]
-        self.max_concurrent = max_concurrent or defaults["max_concurrent"]
-        self.queue_size = queue_size or defaults["queue_size"]
+        self.max_concurrent: int = max_concurrent if max_concurrent is not None else int(defaults["max_concurrent"])
+        self.queue_size: int = queue_size if queue_size is not None else int(defaults["queue_size"])
         self.timeout = timeout or defaults["timeout"]
         self.rejection_policy = rejection_policy
 
@@ -145,8 +144,8 @@ class Bulkhead:
         self._semaphore = asyncio.Semaphore(self.max_concurrent)
 
         # Track queue depth
-        self._waiting = 0
-        self._active = 0
+        self._waiting: int = 0
+        self._active: int = 0
         self._lock = asyncio.Lock()
 
         # Stats
@@ -164,7 +163,7 @@ class Bulkhead:
     async def execute(
         self,
         fn: Callable[[], Awaitable[T]],
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
     ) -> T:
         """
         Execute function within bulkhead constraints.
@@ -201,7 +200,7 @@ class Bulkhead:
                     self._semaphore.acquire(),
                     timeout=effective_timeout,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 async with self._lock:
                     self._waiting -= 1
                     self.stats.current_queued = self._waiting
@@ -222,7 +221,7 @@ class Bulkhead:
                 result = await asyncio.wait_for(fn(), timeout=effective_timeout)
                 self.stats.successful_calls += 1
                 return result
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 return await self._handle_timeout(effective_timeout)
             finally:
                 self._semaphore.release()
@@ -237,7 +236,7 @@ class Bulkhead:
                     self.stats.current_queued = self._waiting
             raise
 
-    async def _handle_rejection(self) -> T:
+    async def _handle_rejection(self) -> T:  # type: ignore[return]
         """Handle queue full situation based on policy."""
         self.stats.rejected_calls += 1
 
@@ -263,7 +262,7 @@ class Bulkhead:
         else:  # QUEUE - but queue is full, so abort
             raise BulkheadFullError(self.name, self.tier, self.queue_size)
 
-    async def _handle_timeout(self, timeout: float) -> T:
+    async def _handle_timeout(self, timeout: float) -> T:  # type: ignore[return]
         """Handle timeout situation."""
         self.stats.timed_out_calls += 1
 
@@ -368,7 +367,7 @@ class BulkheadRegistry:
 
 
 # Global registry for convenience
-_default_registry: Optional[BulkheadRegistry] = None
+_default_registry: BulkheadRegistry | None = None
 
 
 def get_registry() -> BulkheadRegistry:

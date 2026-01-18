@@ -312,9 +312,8 @@ Usage:
 
 ## Related Skills
 
-- milestone-management: Milestones for releases
-- branch-strategy: Release branching
-- github-cli: CLI reference
+- github-operations: Milestones, issues, and CLI reference
+- git-workflow: Branching and recovery patterns
 
 ## References
 

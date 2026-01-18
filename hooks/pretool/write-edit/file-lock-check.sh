@@ -8,6 +8,10 @@ set -euo pipefail
 # Ensure JSON output on any exit (trap for safety)
 trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
 
+# Read stdin BEFORE sourcing common.sh to avoid race conditions
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Source common lib for logging
@@ -21,8 +25,8 @@ source "${SCRIPT_DIR}/../../../.claude/coordination/lib/coordination.sh" 2>/dev/
 }
 
 # Load instance ID
-if [[ -f "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" ]]; then
-  source "${CLAUDE_PROJECT_DIR}/.claude/.instance_env" 2>/dev/null || true
+if [[ -f "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" ]]; then
+  source "${CLAUDE_PROJECT_DIR:-.}/.claude/.instance_env" 2>/dev/null || true
   export INSTANCE_ID="${CLAUDE_INSTANCE_ID:-}"
 fi
 

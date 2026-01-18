@@ -91,6 +91,22 @@ your-project/
 
 See `references/` for detailed agent patterns and commands.
 
+## Related Skills
+
+- `e2e-testing` - Core end-to-end testing patterns with Playwright
+- `msw-mocking` - Mock Service Worker for API mocking in tests
+- `a11y-testing` - Accessibility testing integration with Playwright
+- `vcr-http-recording` - HTTP recording for deterministic test playback
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Agent Architecture | Planner/Generator/Healer | Separation of concerns for autonomous testing |
+| Seed Requirement | seed.spec.ts mandatory | Planner needs context to learn app patterns |
+| Selector Strategy | Semantic locators | More resilient to UI changes than CSS selectors |
+| Self-Healing | Healer agent | Reduces test maintenance burden automatically |
+
 ## Capability Details
 
 ### playwright-setup

@@ -1,47 +1,45 @@
 #!/bin/bash
 # Runs on Stop for evidence-verification skill
-# Collects verification evidence
+# Collects verification evidence - silent operation
 # CC 2.1.6 Compliant - Context Protocol 2.0
+set -euo pipefail
 
-echo "::group::Evidence Collection Summary"
-echo ""
-echo "========================================"
-echo "  VERIFICATION EVIDENCE COLLECTED"
-echo "========================================"
-echo ""
+LOG_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/logs/evidence-collector.log"
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
 
-# Collect exit codes from recent commands
-echo "Recent command results:"
-if [ -n "$CC_LAST_EXIT_CODE" ]; then
-  echo "  Last exit code: $CC_LAST_EXIT_CODE"
-fi
+# Log to file instead of stdout (silent operation)
+{
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Evidence Collection"
 
-# Check for test results
-if [ -f "pytest.xml" ] || [ -f "junit.xml" ]; then
-  echo "  Test results: Found (XML format)"
-fi
+  # Collect exit codes from recent commands
+  echo "Recent command results:"
+  if [ -n "${CC_LAST_EXIT_CODE:-}" ]; then
+    echo "  Last exit code: $CC_LAST_EXIT_CODE"
+  fi
 
-if [ -d "test-results" ]; then
-  echo "  Test results directory: Found"
-  ls test-results/ 2>/dev/null | head -5
-fi
+  # Check for test results
+  if [ -f "pytest.xml" ] || [ -f "junit.xml" ]; then
+    echo "  Test results: Found (XML format)"
+  fi
 
-# Check for coverage
-if [ -f ".coverage" ] || [ -d "coverage" ]; then
-  echo "  Coverage data: Found"
-fi
+  if [ -d "test-results" ]; then
+    echo "  Test results directory: Found"
+    ls test-results/ 2>/dev/null | head -5 || true
+  fi
 
-# Check for lint results
-if [ -f "lint-results.json" ] || [ -f "eslint-report.json" ]; then
-  echo "  Lint results: Found"
-fi
+  # Check for coverage
+  if [ -f ".coverage" ] || [ -d "coverage" ]; then
+    echo "  Coverage data: Found"
+  fi
 
-echo ""
-echo "Evidence verification complete."
-echo "Update session/state.json with quality_evidence."
-echo "========================================"
-echo "::endgroup::"
+  # Check for lint results
+  if [ -f "lint-results.json" ] || [ -f "eslint-report.json" ]; then
+    echo "  Lint results: Found"
+  fi
 
-# Output systemMessage for user visibility
+  echo "Evidence verification complete."
+} >> "$LOG_FILE" 2>/dev/null || true
+
+# Silent success - no visible output
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

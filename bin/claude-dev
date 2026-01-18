@@ -20,6 +20,10 @@ export CLAUDE_PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Enable LSP tool for code intelligence
 export ENABLE_LSP_TOOL=1
 
+# Note: ANTHROPIC_API_KEY not needed for Claude Code (uses claude.ai login)
+# Only needed for standalone bin/memory-fabric-agent.py script
+# If you need it, run: export ANTHROPIC_API_KEY manually before the script
+
 # Optional: Show dev mode indicator
 if [[ "${CLAUDE_DEV_QUIET:-0}" != "1" ]]; then
     echo "🔧 Plugin dev mode: CLAUDE_PLUGIN_ROOT=$CLAUDE_PLUGIN_ROOT"

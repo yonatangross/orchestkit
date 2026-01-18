@@ -197,6 +197,24 @@ When designing a new schema:
 
 ---
 
+## Related Skills
+
+- `alembic-migrations` - Alembic-specific migration patterns for SQLAlchemy projects
+- `zero-downtime-migration` - Safe schema changes without service interruption
+- `database-versioning` - Version control strategies for database objects
+- `caching-strategies` - Cache layer design to complement database performance
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Normalization target | 3NF for OLTP | Reduces redundancy while maintaining query performance |
+| Primary key strategy | INT auto-increment or UUID | UUIDs for distributed systems, INT for single-database |
+| Soft deletes | `deleted_at` timestamp column | Preserves audit trail, enables recovery, supports compliance |
+| Composite index order | Most selective column first | Optimizes index usage for common query patterns |
+
+---
+
 **Skill Version**: 2.0.0
 **Last Updated**: 2026-01-08
 **Maintained by**: AI Agent Hub Team

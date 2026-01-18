@@ -192,6 +192,24 @@ This skill integrates with:
 
 ---
 
+## Related Skills
+
+- `owasp-top-10` - OWASP Top 10 vulnerabilities that Layer 0-2 defend against
+- `auth-patterns` - Detailed authentication/authorization for Layers 1 and 3
+- `input-validation` - Input validation and sanitization patterns for Layer 2
+- `security-scanning` - Automated security scanning for ongoing defense validation
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Context object | Immutable dataclass | Prevents accidental mutation, ensures consistent identity flow |
+| Tenant isolation | Query-level filtering | Defense in depth - application layer + database constraints |
+| LLM prompt security | No identifiers in prompts | IDs flow around LLM, not through it - prevents prompt injection leaks |
+| Audit logging | Sanitized structured logs | Compliance requirements while preventing PII exposure |
+
+---
+
 **Version:** 1.0.0 (December 2025)
 
 ## Capability Details

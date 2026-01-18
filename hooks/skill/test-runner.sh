@@ -2,9 +2,11 @@
 # Runs after Write in testing skills
 # Auto-runs the test file that was just created/modified
 
-FILE="$CC_TOOL_FILE_PATH"
+FILE="${CC_TOOL_FILE_PATH:-}"
 
+# Early exit with proper JSON if no file path (e.g., when called as Stop hook)
 if [ -z "$FILE" ]; then
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 

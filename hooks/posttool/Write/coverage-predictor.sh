@@ -6,7 +6,7 @@
 set -euo pipefail
 
 # Get the file path from tool output
-FILE_PATH="${TOOL_OUTPUT_FILE_PATH:-$1}"
+FILE_PATH="${TOOL_OUTPUT_FILE_PATH:-${1:-}}"
 
 if [[ -z "$FILE_PATH" ]]; then
     exit 0

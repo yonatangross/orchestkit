@@ -13,8 +13,8 @@ source "$(dirname "$0")/../_lib/common.sh"
 log_hook "Stop hook - auto-saving context (Protocol 2.0)"
 
 # Context Protocol 2.0 paths
-SESSION_STATE="$CLAUDE_PROJECT_DIR/.claude/context/session/state.json"
-SESSION_DIR="$CLAUDE_PROJECT_DIR/.claude/context/session"
+SESSION_STATE="${CLAUDE_PROJECT_DIR:-.}/.claude/context/session/state.json"
+SESSION_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/context/session"
 
 # Ensure session directory exists
 mkdir -p "$SESSION_DIR" 2>/dev/null || true

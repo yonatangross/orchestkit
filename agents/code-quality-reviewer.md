@@ -17,6 +17,10 @@ skills:
   - evidence-verification
   - webapp-testing
   - resilience-patterns
+  - test-standards-enforcer
+  - security-scanning
+  - quality-gates
+  - biome-linting
   - remember
   - recall
 hooks:

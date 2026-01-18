@@ -3,13 +3,18 @@ set -euo pipefail
 # Auto-Remember Continuity - Stop Hook
 # CC 2.1.7 Compliant: Prompts Claude to store session context before end
 #
+# Graph-First Architecture (v2.1):
+# - ALWAYS works - knowledge graph requires no configuration
+# - Primary: Store in knowledge graph (mcp__memory__*)
+# - Optional: Also sync to mem0 cloud if configured
+#
 # Purpose:
 # - Before session ends, suggest storing important decisions/context
-# - Enables cross-session continuity via mem0
-# - Only triggers if significant work was done (not for quick Q&A)
+# - Enables cross-session continuity via knowledge graph
+# - Optional mem0 enhancement for semantic search
 #
-# Version: 1.0.0
-# Part of mem0 Semantic Memory Integration
+# Version: 2.1.0 - Graph-First Architecture
+# Part of Memory Fabric v2.1
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -18,7 +23,7 @@ if [[ -f "$SCRIPT_DIR/../_lib/common.sh" ]]; then
     source "$SCRIPT_DIR/../_lib/common.sh"
 fi
 
-# Source mem0 library if available
+# Source mem0 library if available (optional enhancement)
 MEM0_AVAILABLE=false
 if [[ -f "$SCRIPT_DIR/../_lib/mem0.sh" ]]; then
     source "$SCRIPT_DIR/../_lib/mem0.sh"
@@ -37,12 +42,8 @@ log_hook() {
 
 log_hook "Auto-remember continuity hook triggered"
 
-# Skip if mem0 not available
-if [[ "$MEM0_AVAILABLE" != "true" ]]; then
-    log_hook "Mem0 not available, skipping"
-    echo '{"continue":true}'
-    exit 0
-fi
+# Graph-First: ALWAYS run - knowledge graph requires no configuration
+# mem0 is an optional enhancement, not a requirement
 
 # Get project info for the prompt
 PROJECT_ID=""
@@ -60,20 +61,35 @@ if type mem0_user_id &>/dev/null; then
     USER_ID_DECISIONS=$(mem0_user_id "decisions")
 fi
 
-# Build the prompt for Claude to consider storing context
-PROMPT_MSG="Before ending this session, consider preserving important context:
+# Build the prompt for Claude to consider storing context (Graph-First)
+if [[ "$MEM0_AVAILABLE" == "true" ]]; then
+    MEM0_HINT="
+   [Optional] Also sync to mem0 cloud with \`--mem0\` flag for semantic search"
+else
+    MEM0_HINT=""
+fi
+
+PROMPT_MSG="Before ending this session, consider preserving important context in the knowledge graph:
 
 1. **Session Continuity** - If there's unfinished work or next steps:
-   \`mcp__mem0__add_memory\` with:
-   - text: \"Session summary: [what was done]. Next steps: [what remains]\"
-   - user_id: \"${USER_ID_CONTINUITY}\"
-   - metadata: {\"scope\": \"continuity\", \"project\": \"${PROJECT_ID}\"}
+   \`mcp__memory__create_entities\` with:
+   \`\`\`json
+   {\"entities\": [{
+     \"name\": \"session-${PROJECT_ID:-project}\",
+     \"entityType\": \"Session\",
+     \"observations\": [\"What was done: [...]\", \"Next steps: [...]\"]
+   }]}
+   \`\`\`${MEM0_HINT}
 
 2. **Important Decisions** - If architectural/design decisions were made:
-   \`mcp__mem0__add_memory\` with:
-   - text: \"Decision: [what was decided]. Rationale: [why]\"
-   - user_id: \"${USER_ID_DECISIONS}\"
-   - metadata: {\"scope\": \"decisions\", \"category\": \"[category]\"}
+   \`mcp__memory__create_entities\` with:
+   \`\`\`json
+   {\"entities\": [{
+     \"name\": \"decision-[topic]\",
+     \"entityType\": \"Decision\",
+     \"observations\": [\"Decided: [...]\", \"Rationale: [...]\"]
+   }]}
+   \`\`\`
 
 3. **Patterns Learned** - If something worked well or failed:
    - Use \`/remember --success \"pattern that worked\"\`

@@ -9,13 +9,12 @@ Production-ready rate limiter with:
 """
 
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
 
 import redis.asyncio as redis
 from fastapi import HTTPException, Request, status
-
 
 # ============================================================================
 # Rate Limit Result
@@ -306,7 +305,7 @@ def create_rate_limit_dependency(
 # Rate Limit Middleware
 # ============================================================================
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware  # noqa: E402
 
 
 class RateLimitHeadersMiddleware(BaseHTTPMiddleware):

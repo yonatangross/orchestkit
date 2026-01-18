@@ -16,15 +16,15 @@ Features:
 import asyncio
 import json
 import sys
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID
-from sqlalchemy import select, func, delete
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.db.session import get_session
-from app.db.models import Analysis, Chunk, Artifact
-from app.shared.services.embeddings import embed_text
+
 import structlog
+from app.db.models import Analysis, Artifact, Chunk
+from app.db.session import get_session
+from app.shared.services.embeddings import embed_text
+from sqlalchemy import delete, func, select
 
 logger = structlog.get_logger()
 
@@ -238,7 +238,7 @@ async def restore_golden_dataset(replace: bool = False):
         # Final commit
         await session.commit()
 
-        print(f"\n✅ Restore completed:")
+        print("\n✅ Restore completed:")
         print(f"   Analyses: {total_analyses}")
         print(f"   Chunks: {total_chunks} (embeddings regenerated)")
 

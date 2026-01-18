@@ -103,6 +103,10 @@ test_mem0_context_retrieval_provides_hint() {
 test_mem0_context_graceful_no_config() {
     test_start "mem0-context-retrieval graceful when no mem0 config"
 
+    # Save original values
+    local orig_home="$HOME"
+    local orig_claude_dir="${CLAUDE_PROJECT_DIR:-}"
+
     # Use temp dir with no Claude config
     export CLAUDE_PROJECT_DIR="/tmp/test-no-mem0-$$"
     mkdir -p "$CLAUDE_PROJECT_DIR"
@@ -115,8 +119,12 @@ test_mem0_context_graceful_no_config() {
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
 
-    # Cleanup
+    # Cleanup temp directory
     rm -rf "$CLAUDE_PROJECT_DIR" 2>/dev/null || true
+
+    # Restore original values
+    export HOME="$orig_home"
+    export CLAUDE_PROJECT_DIR="$orig_claude_dir"
 
     if [[ "$has_continue" == "true" ]]; then
         test_pass
@@ -391,6 +399,7 @@ test_agent_memory_chain_propagation() {
 
     # Step 1: PreTool sets agent_id in tracking file
     local pretool_input='{"subagent_type":"database-engineer","prompt":"Design schema"}'
+
     echo "$pretool_input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" >/dev/null 2>&1 || true
 
     # Check tracking file was created

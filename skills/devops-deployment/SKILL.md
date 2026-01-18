@@ -207,6 +207,24 @@ charts/app/
 
 ---
 
+## Related Skills
+
+- `zero-downtime-migration` - Database migration patterns for zero-downtime deployments
+- `security-scanning` - Security scanning integration for CI/CD pipelines
+- `observability-monitoring` - Monitoring and alerting for deployed applications
+- `alembic-migrations` - Python/Alembic migration workflow for backend deployments
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Container user | Non-root (uid 1001) | Security best practice, required by many orchestrators |
+| Deployment strategy | Rolling update (default) | Zero downtime, automatic rollback, resource efficient |
+| Secrets management | External Secrets Operator | Syncs from cloud providers, GitOps compatible |
+| Health checks | Separate startup/liveness/readiness | Prevents premature traffic, enables graceful shutdown |
+
+---
+
 ## Extended Thinking Triggers
 
 Use Opus 4.5 extended thinking for:

@@ -172,6 +172,24 @@ cc-worktree-sync [--check-conflicts] [--pull-decisions]
 The heartbeat hook will auto-register on first tool use. If issues persist:
 1. Check `.claude-local/instance-id.txt` exists
 2. Verify `.claude/coordination/` is symlinked correctly
+
+## Related Skills
+
+- `git-workflow` - Git workflow patterns used within each coordinated worktree
+- `commit` - Create commits with proper conventional format in each worktree
+- `stacked-prs` - Manage dependent PRs that may span multiple worktrees
+- `architecture-decision-record` - Document decisions shared via /worktree-decision
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Lock granularity | File-level | Balances conflict prevention with parallel work flexibility |
+| Stale detection | 5 min heartbeat timeout | Long enough for normal pauses, short enough for quick cleanup |
+| Registry location | .claude/coordination/ | Shared across worktrees via symlink, version-controlled |
+| Lock acquisition | Automatic on Write/Edit | Prevents accidental conflicts without manual intervention |
+| Decision sharing | Centralized log | All instances see architectural decisions in real-time |
+
 ## Capability Details
 
 ### status-check

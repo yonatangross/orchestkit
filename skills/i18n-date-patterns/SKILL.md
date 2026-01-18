@@ -204,6 +204,23 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 **Last Updated**: 2026-01-06
 **Maintained by**: Yonatan Gross
 
+## Related Skills
+
+- `a11y-testing` - Accessibility testing for internationalized components and RTL layouts
+- `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
+- `react-server-components-framework` - Server-side locale detection and RSC i18n patterns
+- `focus-management` - RTL-aware focus management for bidirectional UI navigation
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Translation Library | react-i18next | React-native hooks, namespace support, ICU format |
+| Date Library | dayjs | Lightweight, locale plugins, immutable API |
+| Message Format | ICU MessageFormat | Industry standard, complex plural/select support |
+| Locale Storage | Per-namespace JSON | Code-splitting, lazy loading per feature |
+| RTL Detection | CSS logical properties | Native browser support, no JS overhead |
+
 ## Capability Details
 
 ### translation-hooks

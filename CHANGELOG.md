@@ -5,6 +5,100 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.20.0] - 2026-01-18
+
+### Added
+
+- **Memory Fabric v2.1** - Graph-first architecture with optional Mem0 cloud enhancement
+  - `skills/load-context`: Auto-load memories at session start with context-aware tiers
+  - `skills/mem0-sync`: Auto-sync session context, decisions, and patterns
+  - `commands/load-context.md`: User-invocable command for manual context loading
+  - `commands/mem0-sync.md`: User-invocable command for manual sync
+
+- **10 Frontend Skills Expanded to Baseline Quality**
+  - `zustand-patterns`: Zustand 5.x state management with slices, middleware, Immer
+  - `tanstack-query-advanced`: TanStack Query v5 patterns for infinite queries, optimistic updates
+  - `form-state-patterns`: React Hook Form v7 with Zod validation, React 19 useActionState
+  - `core-web-vitals`: LCP, INP, CLS optimization with 2025/2026 thresholds
+  - `image-optimization`: Next.js 15 Image, AVIF/WebP, blur placeholders, CDN loaders
+  - `render-optimization`: React Compiler, memoization, TanStack Virtual
+  - `shadcn-patterns`: CVA variants, OKLCH theming, cn() utility
+  - `radix-primitives`: Accessible primitives, asChild composition
+  - `vite-advanced`: Vite 7 Environment API, plugin development
+  - `biome-linting`: Biome 2.0+ with type inference, ESLint migration
+
+- **Frontend UI Developer Agent Enhancement**
+  - Added 10 new skills to frontend-ui-developer agent skills array
+  - All skills properly integrated with bidirectional references
+
+### Fixed
+
+- **CI Failures**: Corrected component counts across all files
+  - Skills: 135 (20 user-invocable, 115 internal)
+  - Hooks: 128
+  - Commands: 20
+- **Token Budget**: Increased skill-agent integration test budget to 260K tokens
+- **Test Expectations**: Updated all hardcoded counts in test files
+- **Orphan Command**: Fixed load-context command by creating matching skill
+
+### Changed
+
+- Skills count: 129 → 135 (added 6 new skills)
+- User-invocable skills: 18 → 20 (added load-context, mem0-sync)
+- Updated plugin.json, CLAUDE.md with accurate counts
+- All 5 new frontend skills now have `user-invocable: false` field
+
+---
+
+## [4.19.0] - 2026-01-17
+
+### Added
+
+- **CC 2.1.11 Setup Hooks**
+  - New `--init`, `--init-only`, and `--maintenance` CLI support
+  - `hooks/setup/setup-check.sh`: Entry point with fast validation (< 10ms happy path)
+  - `hooks/setup/first-run-setup.sh`: Full setup + interactive wizard
+  - `hooks/setup/setup-repair.sh`: Self-healing for broken installations
+  - `hooks/setup/setup-maintenance.sh`: Periodic maintenance (log rotation, lock cleanup)
+  - Hybrid marker file detection for fast first-run checking
+
+- **Skills Expansion**
+  - Checklists and examples added to 6 git/github workflow skills
+  - Related Skills and Key Decisions sections added to 34 skills
+  - New skills: `wcag-compliance`, `zero-downtime-migration`, `focus-management`
+
+- **Agent Enhancements**
+  - 2 new agents added (total: 27)
+  - Improved skill injection with CC 2.1.6 native format
+
+- **Automatic Pattern Extraction** (#48, #49)
+  - `hooks/posttool/bash/pattern-extractor.sh`: Auto-extracts patterns from commits, tests, builds, PR merges
+  - `hooks/stop/session-patterns.sh`: Persists patterns to `learned-patterns.json` on session end
+  - `hooks/prompt/antipattern-warning.sh`: Detects 7 built-in anti-patterns and injects warnings via CC 2.1.9 additionalContext
+  - Fully automatic - no manual commands needed
+  - Bash 3.2 compatible (no associative arrays)
+
+- **Tests**
+  - `tests/unit/test-pattern-extraction.sh`: 20 tests for pattern extraction system
+
+### Fixed
+
+- **Bash 3.2 Compatibility**: Fixed macOS compatibility issues with case conversion
+- **Hook stdin handling**: Fixed Python 3.13 compatibility for hook input
+- **Ruff linting errors**: Resolved all Python linting issues
+- **Stop hooks**: Now log silently to files instead of stdout
+- **Unbound variables**: Fixed several hooks with unbound variable errors
+- **JSON output**: Fixed hooks producing invalid JSON in edge cases
+
+### Changed
+
+- Skills count: 103 → 111 (added 8 new skills)
+- Agents count: 25 → 27 (added 2 agents)
+- Hooks count: 109 → 120 (added 9 Setup hooks + 2 pattern extraction hooks)
+- Updated CLAUDE.md with CC 2.1.11 documentation
+
+---
+
 ## [4.18.0] - 2026-01-16
 
 ### Added

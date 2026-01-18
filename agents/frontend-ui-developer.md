@@ -21,6 +21,20 @@ skills:
   - webapp-testing
   - i18n-date-patterns
   - motion-animation-patterns
+  - a11y-testing
+  - focus-management
+  - render-optimization
+  - shadcn-patterns
+  - radix-primitives
+  - biome-linting
+  - vite-advanced
+  - zustand-patterns
+  - tanstack-query-advanced
+  - form-state-patterns
+  - core-web-vitals
+  - image-optimization
+  - react-aria-patterns
+  - wcag-compliance
   - remember
   - recall
 ---

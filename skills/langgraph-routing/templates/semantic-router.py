@@ -14,7 +14,7 @@ Usage:
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 class EmbeddingService(Protocol):
     """Protocol for embedding service."""
 
-    async def embed(self, text: str) -> List[float]:
+    async def embed(self, text: str) -> list[float]:
         """Embed text and return vector."""
         ...
 
@@ -36,10 +36,10 @@ class AgentCapability:
     agent_type: str
     name: str
     description: str
-    keywords: List[str] = field(default_factory=list)
-    examples: List[str] = field(default_factory=list)
+    keywords: list[str] = field(default_factory=list)
+    examples: list[str] = field(default_factory=list)
     tier: int = 2  # 1=critical, 2=standard, 3=optional
-    embedding: Optional[np.ndarray] = None
+    embedding: np.ndarray | None = None
 
     def get_embedding_text(self) -> str:
         """Combine all text for embedding."""
@@ -53,7 +53,7 @@ class AgentCapability:
 
 
 # Default agent capabilities (customize for your agents)
-DEFAULT_CAPABILITIES: Dict[str, AgentCapability] = {
+DEFAULT_CAPABILITIES: dict[str, AgentCapability] = {
     "security_auditor": AgentCapability(
         agent_type="security_auditor",
         name="Security Auditor",
@@ -212,7 +212,7 @@ class SemanticRouter:
     def __init__(
         self,
         embedding_service: EmbeddingService,
-        capabilities: Optional[Dict[str, AgentCapability]] = None,
+        capabilities: dict[str, AgentCapability] | None = None,
         similarity_threshold: float = 0.65,
         max_agents: int = 4,
         min_agents: int = 1,
@@ -234,7 +234,7 @@ class SemanticRouter:
         self.min_agents = min_agents
 
         self._initialized = False
-        self._agent_embeddings: Dict[str, np.ndarray] = {}
+        self._agent_embeddings: dict[str, np.ndarray] = {}
 
     async def initialize(self) -> None:
         """Pre-compute agent capability embeddings."""
@@ -255,9 +255,9 @@ class SemanticRouter:
     async def route(
         self,
         content: str,
-        context: Optional[str] = None,
-        excluded_agents: Optional[List[str]] = None,
-    ) -> List[str]:
+        context: str | None = None,
+        excluded_agents: list[str] | None = None,
+    ) -> list[str]:
         """
         Route content to relevant agents.
 
@@ -282,7 +282,7 @@ class SemanticRouter:
         content_vec = np.array(content_embedding)
 
         # Calculate similarities
-        scores: List[tuple[str, float]] = []
+        scores: list[tuple[str, float]] = []
         for agent_type, agent_vec in self._agent_embeddings.items():
             if agent_type in excluded:
                 continue
@@ -315,8 +315,8 @@ class SemanticRouter:
     async def get_scores(
         self,
         content: str,
-        context: Optional[str] = None,
-    ) -> Dict[str, float]:
+        context: str | None = None,
+    ) -> dict[str, float]:
         """
         Get similarity scores for all agents.
 
@@ -340,7 +340,7 @@ class SemanticRouter:
     def _prepare_routing_text(
         self,
         content: str,
-        context: Optional[str] = None,
+        context: str | None = None,
         max_content_length: int = 2000,
     ) -> str:
         """Prepare text for routing embedding."""
@@ -403,8 +403,8 @@ class HybridRouter:
     async def route(
         self,
         content: str,
-        context: Optional[str] = None,
-    ) -> List[str]:
+        context: str | None = None,
+    ) -> list[str]:
         """Route with semantic pre-filter and optional LLM refinement."""
 
         # Step 1: Semantic pre-filter (fast, cheap)
@@ -423,8 +423,8 @@ class HybridRouter:
     async def _llm_refine(
         self,
         content: str,
-        candidates: List[str],
-    ) -> List[str]:
+        candidates: list[str],
+    ) -> list[str]:
         """Use LLM to refine candidate selection."""
 
         prompt = f"""Given this content and candidate agents, select the 2-4 most relevant.
@@ -451,7 +451,7 @@ Example: ["security_auditor", "implementation_planner"]
             logger.warning(f"LLM refinement failed: {e}, using semantic selection")
             return candidates[:3]
 
-    def _format_candidates(self, candidates: List[str]) -> str:
+    def _format_candidates(self, candidates: list[str]) -> str:
         """Format candidates for LLM prompt."""
         lines = []
         for agent_type in candidates:
@@ -468,7 +468,7 @@ if __name__ == "__main__":
     class MockEmbeddingService:
         """Mock embedding service for testing."""
 
-        async def embed(self, text: str) -> List[float]:
+        async def embed(self, text: str) -> list[float]:
             # Simple mock: hash-based pseudo-embedding
             import hashlib
 

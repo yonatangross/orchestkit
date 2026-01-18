@@ -140,8 +140,8 @@ test_plugin_version_requirement() {
 
   # Check CC version requirement is documented in CLAUDE.md
   # (engines field was removed from plugin.json as it's not a valid Claude Code field)
-  if [[ -f "$claude_md" ]] && grep -q "Claude Code.*>= 2.1.9\|>= 2.1.9\|>=2.1.9" "$claude_md"; then
-    log_pass "CC >=2.1.9 requirement documented in CLAUDE.md"
+  if [[ -f "$claude_md" ]] && grep -qE ">= 2\.1\.11" "$claude_md"; then
+    log_pass "CC >=2.1.11 requirement documented in CLAUDE.md"
   else
     log_fail "CC version requirement not found in CLAUDE.md"
   fi

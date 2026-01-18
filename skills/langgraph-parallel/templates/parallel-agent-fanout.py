@@ -12,7 +12,7 @@ Usage:
 import asyncio
 import logging
 from dataclasses import dataclass
-from typing import Annotated, Any, Dict, List, Optional, TypedDict
+from typing import Annotated, Any, TypedDict
 
 from langgraph.graph import END, Send, StateGraph
 
@@ -25,7 +25,7 @@ def add_counts(a: int, b: int) -> int:
     return a + b
 
 
-def merge_lists(a: List, b: List) -> List:
+def merge_lists(a: list, b: list) -> list:
     """Reducer for merging lists."""
     return a + b
 
@@ -44,41 +44,41 @@ class AnalysisState(TypedDict):
     # Input
     url: str
     raw_content: str
-    title: Optional[str]
+    title: str | None
 
     # Fan-out tracking (set by supervisor)
     expected_agent_count: int
-    agents_to_run: List[str]
+    agents_to_run: list[str]
 
     # Fan-in tracking (updated by agents)
     completed_agent_count: Annotated[int, add_counts]
-    successful_agents: Annotated[List[str], merge_lists]
-    failed_agents: Annotated[List[str], merge_lists]
-    skipped_agents: Annotated[List[str], merge_lists]
+    successful_agents: Annotated[list[str], merge_lists]
+    failed_agents: Annotated[list[str], merge_lists]
+    skipped_agents: Annotated[list[str], merge_lists]
 
     # Agent outputs
-    findings: Annotated[List[Finding], merge_lists]
+    findings: Annotated[list[Finding], merge_lists]
 
     # Workflow control
     current_phase: str
-    synthesis_result: Optional[str]
-    error: Optional[str]
+    synthesis_result: str | None
+    error: str | None
 
 
 class AgentState(TypedDict):
     """State passed to individual agent execution."""
     agent_type: str
     content: str
-    context: Optional[str]
+    context: str | None
 
 
 @dataclass
 class AgentResult:
     """Result from agent execution."""
     agent_type: str
-    findings: List[Finding]
+    findings: list[Finding]
     success: bool
-    error: Optional[str] = None
+    error: str | None = None
 
 
 # Agent registry (customize with your agents)
@@ -119,7 +119,7 @@ async def run_agent(agent_type: str, content: str) -> AgentResult:
 
 
 # Node implementations
-async def supervisor_node(state: AnalysisState) -> Dict[str, Any]:
+async def supervisor_node(state: AnalysisState) -> dict[str, Any]:
     """
     Supervisor: select agents and prepare fan-out.
 
@@ -143,7 +143,7 @@ async def supervisor_node(state: AnalysisState) -> Dict[str, Any]:
     }
 
 
-def route_to_agents(state: AnalysisState) -> List[Send]:
+def route_to_agents(state: AnalysisState) -> list[Send]:
     """
     Router: fan-out to selected agents using Send() API.
 
@@ -167,7 +167,7 @@ def route_to_agents(state: AnalysisState) -> List[Send]:
     return sends
 
 
-async def agent_node(state: AgentState) -> Dict[str, Any]:
+async def agent_node(state: AgentState) -> dict[str, Any]:
     """
     Generic agent node: executes agent and returns results.
 
@@ -202,7 +202,7 @@ async def agent_node(state: AgentState) -> Dict[str, Any]:
         }
 
 
-async def aggregate_node(state: AnalysisState) -> Dict[str, Any]:
+async def aggregate_node(state: AnalysisState) -> dict[str, Any]:
     """
     Aggregate: fan-in validation and logging.
 
@@ -230,7 +230,7 @@ async def aggregate_node(state: AnalysisState) -> Dict[str, Any]:
     }
 
 
-async def synthesis_node(state: AnalysisState) -> Dict[str, Any]:
+async def synthesis_node(state: AnalysisState) -> dict[str, Any]:
     """
     Synthesis: combine findings into coherent output.
     """
@@ -304,7 +304,7 @@ class ParallelAnalysisRunner:
         self,
         url: str,
         content: str,
-        title: Optional[str] = None,
+        title: str | None = None,
     ) -> AnalysisState:
         """Run analysis with timeout."""
 
@@ -331,7 +331,7 @@ class ParallelAnalysisRunner:
             )
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Analysis timed out after {self.timeout}s")
             initial_state["error"] = f"Timeout after {self.timeout}s"
             initial_state["current_phase"] = "timeout"

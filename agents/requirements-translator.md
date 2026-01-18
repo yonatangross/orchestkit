@@ -11,7 +11,7 @@ tools:
   - Glob
   - Bash
 skills:
-  - github-cli
+  - github-operations
   - remember
   - recall
 ---

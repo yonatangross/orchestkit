@@ -224,6 +224,24 @@ Use Opus 4.5 extended thinking for:
 
 ---
 
+## Related Skills
+
+- `caching-strategies` - Detailed Redis caching patterns and cache invalidation
+- `database-schema-designer` - Indexing strategies and query optimization fundamentals
+- `observability-monitoring` - Performance monitoring and alerting integration
+- `devops-deployment` - CDN configuration and infrastructure optimization
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Pagination strategy | Cursor-based for large datasets | Stable performance regardless of offset, handles concurrent inserts |
+| Vector index type | HNSW over IVFFlat | 17x faster queries, worth slower indexing for read-heavy workloads |
+| Cache hierarchy | Multi-level (L1-L4) | Optimizes hit rates, reduces load on expensive operations |
+| Bundle splitting | Route-based code splitting | Reduces initial load, enables parallel downloads |
+
+---
+
 **Skill Version**: 1.2.0
 **Last Updated**: 2026-01-15
 **Maintained by**: AI Agent Hub Team

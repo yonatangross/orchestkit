@@ -34,12 +34,8 @@ done
 
 # No coverage file = skip (coverage might not be configured yet)
 if [[ -z "$COVERAGE_FILE" ]]; then
-    # Only warn if we're in a project that should have coverage
-    if [[ -f "package.json" ]] || [[ -f "pyproject.toml" ]] || [[ -f "setup.py" ]]; then
-        echo "INFO: No coverage report found. Run tests with coverage:"
-        echo "  TypeScript: npm test -- --coverage"
-        echo "  Python:     pytest --cov=app --cov-report=json"
-    fi
+    # Output valid JSON even when skipping
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -82,8 +78,8 @@ fi
 # Validate coverage
 # =============================================================================
 if [[ -z "$COVERAGE" ]]; then
-    echo "WARNING: Could not parse coverage from $COVERAGE_FILE"
-    echo "  Ensure coverage report is in a supported format"
+    # Output valid JSON even when skipping
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -112,7 +108,6 @@ if [[ $COVERAGE_INT -lt $THRESHOLD ]]; then
     exit 1
 fi
 
-echo "Coverage gate passed: ${COVERAGE}% (threshold: ${THRESHOLD}%)"
-# Output systemMessage for user visibility
+# Output valid JSON (suppressOutput hides this from user)
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

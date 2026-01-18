@@ -11,17 +11,17 @@ Features:
 - Quality-based eviction
 """
 
-from dataclasses import dataclass
-from typing import Optional
 import hashlib
 import json
 import time
+from dataclasses import dataclass
+
 import structlog
-from redis import Redis, ConnectionPool
+from prometheus_client import Counter, Histogram
+from redis import ConnectionPool, Redis
 from redisvl.index import SearchIndex
 from redisvl.query import VectorQuery
 from redisvl.schema import IndexSchema
-from prometheus_client import Counter, Histogram
 
 logger = structlog.get_logger()
 
@@ -119,8 +119,8 @@ class SemanticCacheService:
         content: str,
         agent_type: str,
         embedding: list[float],
-        content_type: Optional[str] = None
-    ) -> Optional[CacheEntry]:
+        content_type: str | None = None
+    ) -> CacheEntry | None:
         """Look up cached response by semantic similarity.
 
         Args:
@@ -193,7 +193,7 @@ class SemanticCacheService:
         embedding: list[float],
         response: dict,
         agent_type: str,
-        content_type: Optional[str] = None,
+        content_type: str | None = None,
         quality_score: float = 1.0
     ) -> None:
         """Store response in cache.

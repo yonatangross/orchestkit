@@ -282,6 +282,24 @@ Tests should cover:
 ---
 
 **Version:** 1.0.0 (December 2025)
+
+## Related Skills
+
+- `brainstorming` - Transform rough ideas into designs before applying system design interrogation
+- `architecture-decision-record` - Document key decisions discovered during interrogation
+- `explore` - Deep codebase exploration to understand existing architecture before planning
+- `verify` - Comprehensive feature verification after implementation
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Dimensions count | Five (Scale, Data, Security, UX, Coherence) | Covers all critical architectural concerns without overlap |
+| Process timing | Before any code | Prevents costly rework from missed requirements |
+| Question format | Structured templates | Ensures consistent coverage, prevents omissions |
+| Documentation | Markdown template | Portable, version-controlled, reviewable |
+| Integration | Pairs with brainstorming | Brainstorming explores options, interrogation validates choice |
+
 ## Capability Details
 
 ### scale-assessment

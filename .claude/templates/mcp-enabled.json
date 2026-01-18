@@ -13,20 +13,20 @@
       "description": "Complex reasoning and architectural decision support",
       "auto": "60"
     },
-    "mem0": {
-      "command": "uvx",
-      "args": ["mem0-mcp-server"],
-      "description": "Cloud semantic memory (official) - requires MEM0_API_KEY env var and uvx installed",
-      "env": {
-        "MEM0_API_KEY": "YOUR_MEM0_API_KEY_HERE"
-      },
-      "auto": "80"
-    },
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
-      "description": "Local file-based memory via knowledge graph",
-      "auto": "70"
+      "description": "Knowledge graph memory (PRIMARY) - zero-config, always available",
+      "auto": "90"
+    },
+    "mem0": {
+      "command": "uvx",
+      "args": ["mem0-mcp-server"],
+      "description": "Cloud semantic search (OPTIONAL enhancement) - requires MEM0_API_KEY",
+      "env": {
+        "MEM0_API_KEY": "YOUR_MEM0_API_KEY_HERE"
+      },
+      "auto": "85"
     },
     "playwright": {
       "command": "npx",

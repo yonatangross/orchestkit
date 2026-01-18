@@ -9,23 +9,22 @@ Production-ready FastAPI application with:
 - Health checks
 """
 
+import uuid
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import datetime
 from functools import lru_cache
-from typing import AsyncGenerator
-import uuid
 
-from fastapi import FastAPI, Request, Depends, HTTPException, status
+import redis.asyncio as redis
+import structlog
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import ORJSONResponse
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from starlette.middleware.base import BaseHTTPMiddleware
-import redis.asyncio as redis
-import structlog
-
 
 # ============================================================================
 # Configuration
@@ -226,7 +225,7 @@ app.add_middleware(
 # Dependencies
 # ============================================================================
 
-async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
+async def get_db(request: Request) -> AsyncGenerator[AsyncSession]:
     """Dependency to get database session."""
     async with AsyncSession(
         request.app.state.db_engine,
@@ -341,7 +340,7 @@ async def root():
 # Example Resource Routes
 # ============================================================================
 
-from pydantic import BaseModel
+from pydantic import BaseModel  # noqa: E402
 
 
 class ItemCreate(BaseModel):

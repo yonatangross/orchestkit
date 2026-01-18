@@ -1,39 +1,41 @@
 #!/bin/bash
 # Runs on Stop for testing skills
-# Checks if coverage threshold is met
+# Checks if coverage threshold is met - silent operation
+set -euo pipefail
+
+LOG_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/hooks/logs/coverage-check.log"
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
 
 COVERAGE_THRESHOLD=${COVERAGE_THRESHOLD:-80}
 
-echo "::group::Coverage Check"
+# Log to file instead of stdout (silent operation)
+{
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] Coverage Check"
 
-# Check Python coverage
-if [ -f ".coverage" ] || [ -f "coverage.xml" ]; then
-  if command -v coverage &> /dev/null; then
-    COVERAGE=$(coverage report --fail-under=0 2>/dev/null | grep "TOTAL" | awk '{print $NF}' | tr -d '%')
-    if [ -n "$COVERAGE" ]; then
-      echo "Python coverage: ${COVERAGE}%"
-      if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l) )); then
-        echo "::warning::Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
-      else
-        echo "Coverage meets threshold"
+  # Check Python coverage
+  if [ -f ".coverage" ] || [ -f "coverage.xml" ]; then
+    if command -v coverage &> /dev/null; then
+      COVERAGE=$(coverage report --fail-under=0 2>/dev/null | grep "TOTAL" | awk '{print $NF}' | tr -d '%') || true
+      if [ -n "${COVERAGE:-}" ]; then
+        echo "Python coverage: ${COVERAGE}%"
+        if (( $(echo "$COVERAGE < $COVERAGE_THRESHOLD" | bc -l 2>/dev/null || echo "0") )); then
+          echo "WARNING: Coverage ${COVERAGE}% is below threshold ${COVERAGE_THRESHOLD}%"
+        else
+          echo "Coverage meets threshold"
+        fi
       fi
     fi
   fi
-fi
 
-# Check JS/TS coverage
-if [ -d "coverage" ]; then
-  if [ -f "coverage/coverage-summary.json" ]; then
-    COVERAGE=$(cat coverage/coverage-summary.json | grep -o '"lines":{"total":[0-9]*,"covered":[0-9]*' | head -1)
-    if [ -n "$COVERAGE" ]; then
+  # Check JS/TS coverage
+  if [ -d "coverage" ]; then
+    if [ -f "coverage/coverage-summary.json" ]; then
       echo "JavaScript/TypeScript coverage report found"
       echo "Check coverage/lcov-report/index.html for details"
     fi
   fi
-fi
+} >> "$LOG_FILE" 2>/dev/null || true
 
-echo "::endgroup::"
-
-# Output systemMessage for user visibility
+# Silent success - no visible output
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

@@ -180,6 +180,24 @@ Use Opus 4.5 extended thinking for:
 
 ---
 
+## Related Skills
+
+- `defense-in-depth` - Layer 8 observability as part of security architecture
+- `devops-deployment` - Observability integration with CI/CD and Kubernetes
+- `resilience-patterns` - Monitoring circuit breakers and failure scenarios
+- `fastapi-advanced` - FastAPI-specific middleware for logging and metrics
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Log format | Structured JSON | Machine-parseable, supports log aggregation, enables queries |
+| Metric types | RED method (Rate, Errors, Duration) | Industry standard, covers essential service health indicators |
+| Tracing | OpenTelemetry | Vendor-neutral, auto-instrumentation, broad ecosystem support |
+| Alerting severity | 4 levels (Critical, High, Medium, Low) | Clear escalation paths, appropriate response times |
+
+---
+
 ## Capability Details
 
 ### structured-logging

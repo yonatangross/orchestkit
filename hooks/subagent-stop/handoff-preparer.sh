@@ -51,7 +51,7 @@ is_valid_agent() {
 # Skip if not a valid pipeline agent
 if ! is_valid_agent "$AGENT_NAME"; then
   # Silent exit for non-pipeline agents (general-purpose, Explore, etc.)
-  echo '{"continue":true}'
+  echo '{"continue":true,"suppressOutput":true}'
   exit 0
 fi
 
@@ -198,5 +198,5 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
 } > "$LOG_FILE" 2>/dev/null || true
 
 # Output CC 2.1.6 compliant JSON
-echo '{"continue":true}'
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

@@ -11,10 +11,10 @@ Features:
 
 from typing import Protocol
 from uuid import UUID
-from sqlalchemy import select, func, literal
-from sqlalchemy.ext.asyncio import AsyncSession
-from pgvector.sqlalchemy import Vector
+
 import structlog
+from sqlalchemy import func, literal, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -244,16 +244,16 @@ class ChunkRepository:
 # ============================================================================
 
 # Search Configuration
-HYBRID_FETCH_MULTIPLIER = 3  # Fetch 3x results for better RRF coverage
-RRF_K_CONSTANT = 60  # RRF smoothing constant
+HYBRID_FETCH_MULTIPLIER = 3  # Fetch 3x results for better RRF coverage  # noqa: F841
+RRF_K_CONSTANT = 60  # RRF smoothing constant  # noqa: F841
 
 # Score Boosting Factors
-SECTION_TITLE_BOOST_FACTOR = 1.5
-DOCUMENT_PATH_BOOST_FACTOR = 1.15
-CODE_BLOCK_BOOST_FACTOR = 1.2
+SECTION_TITLE_BOOST_FACTOR = 1.5  # noqa: F841
+DOCUMENT_PATH_BOOST_FACTOR = 1.15  # noqa: F841
+CODE_BLOCK_BOOST_FACTOR = 1.2  # noqa: F841
 
 # Technical Query Keywords
-TECHNICAL_QUERY_KEYWORDS = {
+TECHNICAL_QUERY_KEYWORDS = {  # noqa: F841
     "function", "class", "api", "method", "code",
     "implementation", "example", "syntax", "library"
 }
@@ -284,7 +284,7 @@ async def example_usage():
             print(f"  Content: {chunk.content[:100]}...")
 
         # 2. Filter by content type
-        code_results = await repo.hybrid_search(
+        code_results = await repo.hybrid_search(  # noqa: F841
             query,
             embedding,
             top_k=5,
@@ -292,7 +292,7 @@ async def example_usage():
         )
 
         # 3. Similarity threshold
-        high_quality_results = await repo.hybrid_search(
+        high_quality_results = await repo.hybrid_search(  # noqa: F841
             query,
             embedding,
             top_k=10,

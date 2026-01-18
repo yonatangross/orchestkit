@@ -10,9 +10,9 @@ set -euo pipefail
 # - Store in mem0 with agent_id scope for future retrieval
 # - Track agent performance metrics
 # - Detect categories for proper organization
-# - Support enable_graph for relationship extraction
+# - Graph memory enabled by default (v1.2.0)
 #
-# Version: 1.1.0
+# Version: 1.2.0
 # Part of mem0 Semantic Memory Integration (#40, #45)
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
@@ -90,7 +90,7 @@ fi
 # If no agent type, silent success
 if [[ -z "$AGENT_TYPE" ]]; then
     log_hook "No agent type in input, skipping"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
     exit 0
 fi
 
@@ -220,8 +220,8 @@ if [[ -n "$EXTRACTED_PATTERNS" ]]; then
     PATTERN_COUNT=$(echo "$EXTRACTED_PATTERNS" | grep -c . || echo "0")
     log_hook "Extracted $PATTERN_COUNT patterns from $AGENT_TYPE output"
 
-    # Build suggestion for Claude to store memories with graph support
-    SYSTEM_MSG="[Pattern Extraction] $PATTERN_COUNT patterns extracted from $AGENT_TYPE. Use mcp__mem0__add_memory with user_id='$DECISIONS_USER_ID', agent_id='$AGENT_ID', enable_graph=true to persist with relationships."
+    # Build suggestion for Claude to store memories (graph memory enabled by default in v1.2.0)
+    SYSTEM_MSG="[Pattern Extraction] $PATTERN_COUNT patterns extracted from $AGENT_TYPE. Use mcp__mem0__add_memory with user_id='$DECISIONS_USER_ID', agent_id='$AGENT_ID' to persist (graph memory auto-enabled)."
 
     jq -n \
         --arg msg "$SYSTEM_MSG" \
@@ -231,7 +231,7 @@ if [[ -n "$EXTRACTED_PATTERNS" ]]; then
         }'
 else
     log_hook "No patterns extracted from $AGENT_TYPE output"
-    echo '{"continue": true}'
+    echo '{"continue":true,"suppressOutput":true}'
 fi
 
 # Clean up tracking file

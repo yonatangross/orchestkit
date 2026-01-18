@@ -382,6 +382,22 @@ def workflow(input: str) -> str:
     return transform_data(data).result()
 ```
 
+## Related Skills
+
+- `langgraph-state` - State management patterns for complex workflow data
+- `langgraph-routing` - Conditional routing and branching decisions
+- `langgraph-parallel` - Advanced parallel execution and fan-out patterns
+- `langgraph-checkpoints` - Persistence and recovery for long-running workflows
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| API Style | Functional over Graph | Simpler debugging, familiar Python patterns, implicit graph construction |
+| Task Returns | Futures with .result() | Enables parallel execution without explicit async/await |
+| Checkpointing | Optional per-entrypoint | Flexibility for stateless vs. resumable workflows |
+| Human-in-Loop | interrupt() function | Clean pause/resume semantics with Command pattern |
+
 ## Resources
 - LangGraph Functional API: https://langchain-ai.github.io/langgraph/concepts/functional_api/
 - Workflows Tutorial: https://langchain-ai.github.io/langgraph/tutorials/workflows/

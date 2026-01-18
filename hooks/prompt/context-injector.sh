@@ -18,7 +18,7 @@ CONTEXT_HINTS=""
 
 # If prompt mentions issues or bugs, remind about issue docs
 if [[ "$PROMPT" =~ (issue|bug|fix|#[0-9]+) ]]; then
-  if [[ -d "$CLAUDE_PROJECT_DIR/docs/issues" ]]; then
+  if [[ -d "${CLAUDE_PROJECT_DIR:-.}/docs/issues" ]]; then
     CONTEXT_HINTS="${CONTEXT_HINTS}Check docs/issues/ for issue documentation.
 "
   fi

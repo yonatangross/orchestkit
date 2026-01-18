@@ -111,6 +111,21 @@ Validate fixture consistency after writing.
 - No duplicates (>90% similar)
 - At least 2 tags, 2 sections
 
+## Related Skills
+
+- `golden-dataset-validation` - Validate existing golden datasets for quality and coverage
+- `llm-evaluation` - LLM output evaluation patterns used in quality scoring
+- `test-data-management` - General test data strategies and fixture management
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Quality Threshold | >= 0.55 for review | Balances precision with recall for dataset curation |
+| Duplicate Detection | 80% similarity | Prevents near-duplicates while allowing related content |
+| Parallel Agents | 4 concurrent | Optimal parallelism for quality/difficulty/tagging analysis |
+| Weighting | Relevance highest (0.30) | Retrieval relevance most critical for RAG evaluation |
+
 ## References
 
 - [Quality Scoring](references/quality-scoring.md)

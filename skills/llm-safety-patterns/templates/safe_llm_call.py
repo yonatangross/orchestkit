@@ -18,6 +18,45 @@ from pydantic import BaseModel
 # Type variable for schema
 T = TypeVar("T", bound=BaseModel)
 
+
+# ============================================================
+# PLACEHOLDER DEFINITIONS (Replace in your implementation)
+# ============================================================
+
+class SecurityError(Exception):
+    """Security violation error. Replace with your custom exception."""
+    pass
+
+
+# Placeholder for embedding function - Replace with your embedding service
+async def embed(text: str) -> list[float]:
+    """
+    Generate embedding for text.
+
+    TODO: Replace with your embedding service:
+        - OpenAI: await openai.embeddings.create(...)
+        - Anthropic: await anthropic.messages.create(...)
+        - Local: sentence_transformers.encode(...)
+    """
+    raise NotImplementedError("Replace with your embedding service")
+
+
+# Placeholder for LLM client - Replace with your LLM provider
+class _PlaceholderLLMClient:
+    """
+    Placeholder LLM client.
+
+    TODO: Replace with your LLM provider:
+        - OpenAI: openai.AsyncOpenAI()
+        - Anthropic: anthropic.AsyncAnthropic()
+        - LangChain: ChatOpenAI() or ChatAnthropic()
+    """
+    async def generate(self, prompt: str, temperature: float, max_tokens: int) -> str:
+        raise NotImplementedError("Replace with your LLM client")
+
+
+llm_client = _PlaceholderLLMClient()
+
 # ============================================================
 # FORBIDDEN PATTERNS
 # ============================================================
@@ -218,10 +257,13 @@ async def attribute_and_save(
     if re.search(UUID_PATTERN, output_str):
         raise SecurityError("LLM output contains hallucinated IDs")
 
+    # Extract content from model (using getattr for generic BaseModel)
+    output_content: str = getattr(llm_output, "content", "")
+
     # Create attributed result
     result = AttributedResult(
         id=uuid4(),  # We generate the ID
-        content=llm_output.content,
+        content=output_content,
         user_id=ctx.user_id,  # From context
         tenant_id=ctx.tenant_id,  # From context
         source_document_ids=source_refs.document_ids,  # From pre-LLM

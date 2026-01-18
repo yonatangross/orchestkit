@@ -20,6 +20,8 @@ skills:
   - semantic-caching
   - langfuse-observability
   - resilience-patterns
+  - llm-safety-patterns
+  - llm-evaluation
   - remember
   - recall
 ---

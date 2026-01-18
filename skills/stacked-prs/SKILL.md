@@ -273,8 +273,7 @@ Brief description of this PR's changes
 
 ## Related Skills
 
-- branch-strategy: Overall branching approach
-- atomic-commits: Keep PR commits focused
+- git-workflow: Branching, commits, and recovery patterns
 - create-pr: PR creation basics
 
 ## References

@@ -240,6 +240,22 @@ async def decomposed_hyde_search(
 - Set timeout with fallback to original query
 - Combine with HyDE for vocabulary bridging
 
+## Related Skills
+
+- `rag-retrieval` - Core RAG patterns enhanced by query decomposition
+- `hyde-retrieval` - Combine with HyDE for vocabulary bridging per concept
+- `reranking-patterns` - Rerank fused results for final precision
+- `embeddings` - Embedding strategies for parallel concept retrieval
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Decomposition detection | Heuristic first, LLM second | Sub-millisecond fast path for simple queries |
+| Max concepts | 2-4 | More concepts increase latency without proportional benefit |
+| Fusion algorithm | Reciprocal Rank Fusion (RRF) | Robust, parameter-free rank combination |
+| LLM for decomposition | gpt-4o-mini | Fast, cheap, good at concept extraction |
+
 ## References
 
 - [Multi-hop Question Answering](https://arxiv.org/abs/2305.14283)

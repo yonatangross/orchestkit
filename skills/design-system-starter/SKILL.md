@@ -228,6 +228,23 @@ When creating a new design system:
 **Last Updated**: 2025-10-31
 **Maintained by**: AI Agent Hub Team
 
+## Related Skills
+
+- `a11y-testing` - Automated accessibility testing to validate WCAG compliance of design system components
+- `focus-management` - Keyboard focus patterns for accessible interactive widgets in design systems
+- `type-safety-validation` - End-to-end type safety with Zod for design token schemas and component props
+- `react-server-components-framework` - React 19 patterns for server-rendered design system components
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Token Format | W3C Design Tokens | Industry standard, tool-agnostic, supports theming |
+| Component Architecture | Atomic Design | Scalable hierarchy from atoms to pages |
+| Styling Approach | Tailwind `@theme` directive | Native CSS variable integration, zero runtime |
+| Variant Management | CVA (Class Variance Authority) | Type-safe variants, composable styles |
+| Documentation | Storybook | Interactive component playground, visual testing |
+
 ## Capability Details
 
 ### design-tokens

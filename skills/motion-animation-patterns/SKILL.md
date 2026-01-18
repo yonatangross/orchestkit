@@ -397,6 +397,23 @@ When adding animations:
 **Last Updated**: 2026-01-06
 **Maintained by**: Yonatan Gross
 
+## Related Skills
+
+- `a11y-testing` - Testing animations for reduced motion preferences and focus visibility
+- `focus-management` - Focus management during modal animations and page transitions
+- `design-system-starter` - Integrating animation presets into design system components
+- `i18n-date-patterns` - RTL-aware animations for Hebrew and Arabic layouts
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Animation Library | Motion (Framer Motion) | Declarative API, AnimatePresence, spring physics |
+| Animation Strategy | Centralized Presets | Consistency, maintainability, RTL awareness |
+| Performance Target | 60fps | Hardware-accelerated transforms only |
+| Exit Animations | AnimatePresence Required | Proper cleanup, layout stability |
+| Transition Timing | Spring-based | Natural motion, responsive feel |
+
 ## Capability Details
 
 ### animation-presets

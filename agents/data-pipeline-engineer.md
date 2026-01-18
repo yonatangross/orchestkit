@@ -22,6 +22,8 @@ skills:
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
+  - semantic-caching
+  - mem0-memory
   - remember
   - recall
 ---

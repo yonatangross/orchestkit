@@ -1,7 +1,7 @@
 {
   "name": "skf",
-  "version": "4.18.0",
-  "description": "Comprehensive AI-assisted development toolkit with 103 skills (17 user-invocable commands, 86 internal knowledge), 20 agents, 109 hooks, progressive loading, and production-ready patterns for modern full-stack development",
+  "version": "4.20.0",
+  "description": "Comprehensive AI-assisted development toolkit with 135 skills (20 user-invocable commands, 115 internal knowledge), 27 agents, 128 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -35,20 +35,6 @@
         ".cts": "typescript",
         ".mjs": "javascript",
         ".cjs": "javascript"
-      }
-    },
-    "rust": {
-      "command": "rust-analyzer",
-      "args": [],
-      "extensionToLanguage": {
-        ".rs": "rust"
-      }
-    },
-    "go": {
-      "command": "gopls",
-      "args": [],
-      "extensionToLanguage": {
-        ".go": "go"
       }
     }
   },
@@ -127,6 +113,14 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/gh-issue-creation-guide.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/pr-merge-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/pre-commit-simulation.sh"
           }
         ]
       },
@@ -195,6 +189,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/playwright-safety.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mem0__*|mcp__memory__*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/mcp/memory-fabric-init.sh",
+            "once": true
           }
         ]
       },
@@ -307,6 +311,18 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/redact-secrets.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/bash/pattern-extractor.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/bash/issue-progress-commenter.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/bash/issue-subtask-updater.sh"
           }
         ]
       },
@@ -316,6 +332,33 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/coordination-heartbeat.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/decision-entity-extractor.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__mem0__add_memory|mcp__memory__create_entities",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/memory-bridge.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Write|Edit|Skill|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/posttool/realtime-sync.sh"
           }
         ]
       }
@@ -528,10 +571,6 @@
           },
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/merge-readiness-checker.sh"
-          },
-          {
-            "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/migration-validator.sh"
           },
           {
@@ -549,6 +588,14 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/skill/test-runner.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/session-patterns.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/stop/issue-work-summary.sh"
           }
         ]
       }
@@ -627,6 +674,16 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/notification/sound.sh"
+          }
+        ]
+      }
+    ],
+    "Setup": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/setup/setup-check.sh"
           }
         ]
       }

@@ -30,6 +30,6 @@ if command -v afplay &>/dev/null; then
   esac
 fi
 
-# CC 2.1.6 Compliant: output JSON with continue field
-echo '{"continue":true}'
+# CC 2.1.7 Compliant: suppress output for silent operation
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

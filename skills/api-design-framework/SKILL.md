@@ -165,6 +165,24 @@ Key topics covered:
 
 ---
 
+## Related Skills
+
+- `fastapi-advanced` - FastAPI-specific implementation patterns for the API designs in this skill
+- `error-handling-rfc9457` - RFC 9457 Problem Details standard for structured error responses
+- `api-versioning` - Detailed versioning strategies beyond the basics covered here
+- `rate-limiting` - Advanced rate limiting implementations and algorithms
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Pagination default | Cursor-based | More efficient for large datasets, stable under inserts/deletes |
+| Error format | Structured JSON with request_id | Enables debugging, correlation, and consistent client handling |
+| Versioning strategy | URI path (`/api/v1/`) | Most explicit, works with all clients, easy to document |
+| Resource naming | Plural nouns, kebab-case | Industry standard, consistent, avoids verb confusion |
+
+---
+
 **Skill Version**: 1.2.0
 **Last Updated**: 2026-01-14
 

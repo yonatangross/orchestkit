@@ -28,7 +28,7 @@ find_skill_dir() {
 
 
 # Token budget: Based on skill files (SKILL.md ~100 tokens each)
-MAX_SKILL_TOKEN_BUDGET=200000
+MAX_SKILL_TOKEN_BUDGET=260000
 
 # Verbose mode
 VERBOSE="${1:-}"

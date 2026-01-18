@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the S
 
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **103 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
-- **20 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
-- **17 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **109 hooks**: Lifecycle automation via CC 2.1.7 native parallel execution
+- **135 skills**: Reusable knowledge modules in flat structure (including 6 git/GitHub workflow skills)
+- **27 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
+- **20 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
+- **128 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -23,11 +23,12 @@ This document provides essential context for Claude Code when working with the S
 
 ```
 .claude/
-├── agents/              # 20 specialized AI agent personas (CC 2.1.6 native format)
+├── agents/              # 25 specialized AI agent personas (CC 2.1.6 native format)
 ├── commands/            # User-invocable skill workflows (CC 2.1.3+ unified)
 ├── context/             # Session state, knowledge base, and shared context
 ├── coordination/        # Multi-worktree coordination system (locks, registries)
-├── hooks/               # 105 lifecycle hooks for automation
+├── hooks/               # 119 lifecycle hooks for automation
+│   ├── setup/           # CC 2.1.11 Setup hooks (--init, --maintenance)
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
 │   ├── pretool/         # Pre-execution validation (bash, write, skill, MCP)
@@ -42,7 +43,7 @@ This document provides essential context for Claude Code when working with the S
 ├── templates/           # Shared templates (ADR, commits, PRs)
 └── workflows/           # Multi-agent workflow orchestrations
 
-# Skills use CC 2.1.7 native flat structure (97 skills):
+# Skills use CC 2.1.7 native flat structure (135 skills):
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
@@ -66,7 +67,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.9 (CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
+- **Claude Code**: >= 2.1.11 (CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory, Playwright (configure via /skf:configure, auto-enable via auto:N thresholds)
 
 ### Expected Application Stack (Skills Support)
@@ -154,14 +155,15 @@ rm -rf hooks/logs/*.log
 
 ### Skill Development
 ```bash
-# Validate skill structure
-./bin/validate-skill.sh skills/my-new-skill
+# Validate all skill structures (comprehensive 10-test suite)
+./tests/skills/structure/test-skill-md.sh
 
-# Test progressive loading
-./bin/test-progressive-load.sh my-skill-id
+# Create a new skill manually
+mkdir -p skills/my-new-skill/references
+# Then create skills/my-new-skill/SKILL.md with required frontmatter
 
-# Generate skill from template (automatically places in category)
-./bin/generate-skill.sh --name "My Skill" --category backend
+# Count and validate component numbers
+./bin/validate-counts.sh
 ```
 
 ---
@@ -232,7 +234,7 @@ Read skills/api-design-framework/templates/endpoint-template.py
 
 ### 2. Hook Architecture (CC 2.1.7)
 Lifecycle hooks use CC 2.1.7 native parallel execution with output aggregation:
-- **SessionStart**: 8 hooks registered directly (context, env, mem0, patterns, coordination)
+- **SessionStart**: 8 hooks registered directly (context, env, memory, patterns, coordination)
 - **UserPromptSubmit**: 4 hooks registered directly (context injection, memory search)
 - **SessionEnd**: 4 hooks registered directly (cleanup, metrics, sync)
 - **Stop**: 10 hooks registered directly (auto-save, compaction, cleanup)
@@ -359,6 +361,38 @@ Use the statusline to monitor context usage:
 ```
 
 Use `/skf:claude-hud` to configure statusline display.
+
+### 10. Automatic Pattern Extraction (#48, #49)
+The plugin automatically extracts and learns from development patterns without manual intervention:
+
+**Three-Hook Pipeline:**
+1. **pattern-extractor.sh** (PostToolUse/Bash): Extracts patterns from commits, tests, builds, PR merges
+2. **antipattern-warning.sh** (UserPromptSubmit): Detects known anti-patterns and injects warnings via additionalContext
+3. **session-patterns.sh** (Stop): Persists patterns to `.claude/feedback/learned-patterns.json`
+
+**What Gets Extracted:**
+- Git commits: Technology tags (JWT, cursor-pagination, etc.), categories
+- Test results: Pass/fail outcomes with framework detection
+- Build results: Success/failure with tool detection
+- PR merges: Decision records
+
+**Anti-Pattern Detection (7 built-in):**
+- Offset pagination → cursor-based pagination
+- Manual JWT validation → established libraries
+- Plaintext passwords → bcrypt/argon2/scrypt
+- Global state → dependency injection
+- Synchronous file I/O → async operations
+- N+1 queries → eager loading/batch queries
+- Polling for real-time → SSE/WebSocket
+
+**Storage Locations:**
+```
+.claude/feedback/
+├── patterns-queue.json      # Temporary queue during session
+└── learned-patterns.json    # Persistent pattern storage
+```
+
+**No manual commands required** - all extraction and warnings happen automatically via hooks.
 
 ---
 
@@ -581,19 +615,22 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-103 skills in flat structure at `skills/`. Common skill types include:
+135 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability (19 skills)
 - **LangGraph**: State, routing, parallel, checkpoints, human-in-loop (7 skills)
-- **Backend**: FastAPI, architecture, databases, APIs, resilience (15 skills)
-- **Frontend**: React 19, design systems, animations, i18n (6 skills)
-- **Testing**: Unit, integration, E2E, mocking, data management (9 skills)
+- **Backend**: FastAPI, asyncio, SQLAlchemy async, connection pooling, idempotency, resilience (19 skills)
+- **Frontend**: React 19, design systems, animations, i18n, Radix primitives, shadcn patterns, render optimization, Vite, Biome, Zustand, TanStack Query, forms, Core Web Vitals, image optimization (16 skills)
+- **Testing**: Unit, integration, E2E, mocking, data management, a11y-testing (10 skills)
 - **Security**: OWASP, auth, validation, defense-in-depth (5 skills)
 - **DevOps**: CI/CD, observability, GitHub CLI (4 skills)
 - **Git/GitHub**: Milestones, atomic commits, branch strategy, stacked PRs, releases, recovery (6 skills)
 - **Workflows**: Git, PR, implementation, exploration, HUD (13 skills)
 - **Quality**: Quality gates, reviews, golden datasets (8 skills)
 - **Context**: Compression, engineering, brainstorming, planning (6 skills)
+- **Event-Driven**: Event sourcing, message queues, outbox pattern (3 skills)
+- **Database**: Alembic migrations, zero-downtime migrations, database versioning (3 skills)
+- **Accessibility**: WCAG compliance, focus management, React ARIA patterns (3 skills)
 
 ---
 
@@ -615,9 +652,11 @@ Enhanced hooks: `git-branch-protection.sh`, `error-pattern-warner.sh`, `context7
 MCP servers use `auto:N` syntax to auto-enable based on context window percentage:
 - `context7`: auto:75 (high-value docs, keep available longer)
 - `sequential-thinking`: auto:60 (complex reasoning needs room)
-- `mem0`: auto:80 (memory critical for session)
-- `memory`: auto:70 (moderate priority)
+- `memory`: auto:90 (knowledge graph - PRIMARY, preserve until compaction)
+- `mem0`: auto:85 (optional cloud enhancement, less critical than graph)
 - `playwright`: auto:50 (browser-heavy, disable early)
+
+**Graph-First Architecture (v2.1):** Knowledge graph (memory) is PRIMARY and always available. Mem0 is an optional enhancement for semantic search. When context is tight, graph memory is MORE important as it preserves session context before compaction.
 
 ### Plans Directory
 Configure custom plans directory in `.claude/defaults/config.json`:
@@ -632,19 +671,73 @@ Hooks use `${CLAUDE_SESSION_ID}` directly without fallback patterns (CC 2.1.9 gu
 
 ---
 
+## CC 2.1.11 Features
+
+### Setup Hook Event
+New hook event triggered via CLI flags for repository initialization and maintenance:
+
+```bash
+# Interactive first-run setup wizard
+claude --init
+
+# Silent setup for CI/CD (non-interactive)
+claude --init-only
+
+# Run maintenance tasks (log rotation, cleanup, migrations)
+claude --maintenance
+```
+
+**Setup Hooks Architecture:**
+```
+hooks/setup/
+├── setup-check.sh          # Entry point - fast validation (< 10ms happy path)
+├── first-run-setup.sh      # Full setup + interactive wizard
+├── setup-repair.sh         # Self-healing for broken installations
+└── setup-maintenance.sh    # Periodic maintenance tasks
+```
+
+**Hybrid Marker File Detection:**
+- Marker file (`.setup-complete`) for fast first-run detection
+- Quick validation (< 50ms) for self-healing
+- Automatic repair of corrupted configs, permissions, directories
+
+**Maintenance Tasks:**
+| Task | Frequency | Description |
+|------|-----------|-------------|
+| Log rotation | Daily | Rotate logs > 200KB |
+| Stale lock cleanup | Daily | Remove locks > 24h old |
+| Session archive | Daily | Archive sessions > 7 days |
+| Metrics aggregation | Weekly | Aggregate usage metrics |
+| Health validation | Weekly | Full component validation |
+
+**Emergency Bypass:**
+```bash
+SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
+```
+
+### VSCode Plugin Enhancements
+- Install count display in plugin listings
+- Trust warning when installing plugins
+
+---
+
 ## Version Information
 
-- **Current Version**: 4.18.0 (as of 2026-01-16)
-- **Claude Code Requirement**: >= 2.1.9
+- **Current Version**: 4.20.0 (as of 2026-01-17)
+- **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.9 additionalContext + CC 2.1.7 native parallel (109 hooks)
+- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (128 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
+- **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
 - **CC 2.1.9 Integration**: additionalContext, auto:N MCP, plansDirectory (v4.16.0)
 - **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 17 commands (v4.17.0)
 - **Git Enforcement**: Commit message, branch naming, atomic commits, issue creation (v4.18.0)
+- **CC 2.1.11 Integration**: Setup hooks (--init, --init-only, --maintenance), self-healing, maintenance automation (v4.19.0)
+- **Automatic Pattern Extraction**: Hook-driven pattern learning and anti-pattern warnings (#48, #49) (v4.19.0)
+- **Memory Fabric v2.1**: Graph-first architecture (v4.21.0) - knowledge graph PRIMARY, mem0 optional cloud enhancement
 
 ---
 
@@ -681,4 +774,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-16 (v4.18.0)
+**Last Updated**: 2026-01-17 (v4.19.0)

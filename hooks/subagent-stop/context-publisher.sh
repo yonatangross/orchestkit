@@ -13,9 +13,9 @@ TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 OUTPUT=$(cat)
 
 # Context Protocol 2.0 paths
-DECISIONS_FILE="$CLAUDE_PROJECT_DIR/.claude/context/knowledge/decisions/active.json"
-SESSION_STATE="$CLAUDE_PROJECT_DIR/.claude/context/session/state.json"
-DECISIONS_DIR="$CLAUDE_PROJECT_DIR/.claude/context/knowledge/decisions"
+DECISIONS_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/context/knowledge/decisions/active.json"
+SESSION_STATE="${CLAUDE_PROJECT_DIR:-.}/.claude/context/session/state.json"
+DECISIONS_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/context/knowledge/decisions"
 
 # Ensure directories exist
 mkdir -p "$DECISIONS_DIR" 2>/dev/null || true
@@ -97,7 +97,7 @@ if [ -f "$SESSION_STATE" ]; then
 fi
 
 # === Logging ===
-LOG_DIR="$CLAUDE_PROJECT_DIR/.claude/logs/agent-context"
+LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/agent-context"
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
 

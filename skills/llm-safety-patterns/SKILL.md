@@ -276,6 +276,22 @@ backend/app/services/
 
 ---
 
+## Related Skills
+
+- `input-validation` - Input sanitization patterns that complement LLM safety
+- `rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
+- `llm-evaluation` - Output quality assessment including hallucination detection
+- `security-scanning` - Automated security scanning for LLM integrations
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| ID handling | Flow around LLM, never through | Prevents hallucination, injection, and cross-tenant leakage |
+| Output validation | Schema + guardrails + grounding | Defense-in-depth for LLM outputs |
+| Attribution approach | Deterministic post-LLM | System context provides IDs, not LLM |
+| Prompt auditing | Regex pattern matching | Fast detection of forbidden identifiers |
+
 **Version:** 1.0.0 (December 2025)
 ## Capability Details
 

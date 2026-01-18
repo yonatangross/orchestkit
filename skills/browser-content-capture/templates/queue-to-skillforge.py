@@ -7,7 +7,7 @@ analysis pipeline using this integration template.
 
 import asyncio
 from dataclasses import dataclass
-from typing import Optional
+
 import httpx
 
 
@@ -16,7 +16,7 @@ class AnalysisRequest:
     """Request to queue content for SkillForge analysis."""
     url: str
     content: str
-    title: Optional[str] = None
+    title: str | None = None
     source: str = "browser_capture"
 
 
@@ -58,7 +58,7 @@ class SkillForgeClient:
         self,
         url: str,
         content: str,
-        title: Optional[str] = None
+        title: str | None = None
     ) -> AnalysisResponse:
         """
         Queue captured content for SkillForge analysis.
@@ -101,21 +101,20 @@ class SkillForgeClient:
         Yields:
             Progress events from the analysis pipeline
         """
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "GET",
-                f"{self.base_url}/api/v1/analyses/{analysis_id}/events",
-                headers={"Accept": "text/event-stream"}
-            ) as response:
-                async for line in response.aiter_lines():
-                    if line.startswith("data:"):
-                        import json
-                        event = json.loads(line[5:].strip())
-                        yield event
+        async with httpx.AsyncClient(timeout=None) as client, client.stream(
+            "GET",
+            f"{self.base_url}/api/v1/analyses/{analysis_id}/events",
+            headers={"Accept": "text/event-stream"}
+        ) as response:
+            async for line in response.aiter_lines():
+                if line.startswith("data:"):
+                    import json
+                    event = json.loads(line[5:].strip())
+                    yield event
 
-                        # Stop on completion
-                        if event.get("status") in ["completed", "failed"]:
-                            break
+                    # Stop on completion
+                    if event.get("status") in ["completed", "failed"]:
+                        break
 
     async def get_analysis_result(self, analysis_id: str) -> dict:
         """
@@ -136,7 +135,7 @@ class SkillForgeClient:
 
     async def queue_batch(
         self,
-        items: list[tuple[str, str, Optional[str]]]
+        items: list[tuple[str, str, str | None]]
     ) -> list[AnalysisResponse]:
         """
         Queue multiple captured contents for analysis.

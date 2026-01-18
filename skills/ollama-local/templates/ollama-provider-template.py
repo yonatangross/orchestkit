@@ -58,7 +58,7 @@ class OllamaConfig:
     keep_alive: str = "5m"
 
     @classmethod
-    def from_env(cls) -> "OllamaConfig":
+    def from_env(cls) -> OllamaConfig:
         """Load configuration from environment variables."""
         return cls(
             enabled=os.getenv("OLLAMA_ENABLED", "false").lower() == "true",
@@ -177,7 +177,7 @@ class OllamaProvider:
         return self.llm.with_structured_output(schema)
 
     @classmethod
-    def for_reasoning(cls) -> "OllamaProvider":
+    def for_reasoning(cls) -> OllamaProvider:
         """Create provider for reasoning tasks (G-Eval, synthesis)."""
         return cls(
             model=config.model_reasoning,
@@ -186,7 +186,7 @@ class OllamaProvider:
         )
 
     @classmethod
-    def for_coding(cls) -> "OllamaProvider":
+    def for_coding(cls) -> OllamaProvider:
         """Create provider for coding tasks (agents, tool calling)."""
         return cls(
             model=config.model_coding,

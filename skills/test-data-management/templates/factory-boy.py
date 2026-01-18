@@ -1,11 +1,12 @@
 # Template: Factory Boy Configuration
 # Usage: Copy to tests/factories.py and customize for your models
 
-import factory
-from factory import Faker, SubFactory, LazyAttribute, Sequence, post_generation
-from factory.fuzzy import FuzzyChoice, FuzzyInteger, FuzzyDecimal
-from datetime import datetime, timedelta
 import random
+from datetime import datetime, timedelta
+
+import factory
+from factory import Faker, LazyAttribute, Sequence, SubFactory
+from factory.fuzzy import FuzzyChoice, FuzzyDecimal
 
 # TODO: Import your SQLAlchemy models
 # from app.models import User, Team, Project, Task

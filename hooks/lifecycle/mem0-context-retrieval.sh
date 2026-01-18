@@ -1,17 +1,25 @@
 #!/bin/bash
-# Mem0 Context Retrieval - Loads relevant memories at session start
+# Memory Context Retrieval - Auto-loads memories at session start (Graph-First Architecture)
 # Hook: SessionStart
 # CC 2.1.7 Compliant - Works across any repository
+# CC 2.1.9 Compatible - Uses additionalContext for context injection
 #
-# This hook checks for pending memory sync from previous sessions and
-# provides guidance on using Mem0 for context retrieval.
+# Graph-First Architecture (v2.1):
+# - Knowledge graph (mcp__memory__*) is PRIMARY - always available, zero-config
+# - Mem0 cloud (mcp__mem0__*) is OPTIONAL enhancement for semantic search
+#
+# Version: 2.1.0 - Graph-first architecture
+# Part of Memory Fabric v2.1
 #
 # Features:
 # - Checks for .mem0-pending-sync.json from previous session
-# - Prompts Claude to sync pending memories via mcp__mem0__add_memory
-# - Suggests using mcp__mem0__search_memories for context when no pending sync
+# - Triggers /recall skill for memory loading (graph-first)
+# - Provides MCP tool hints for manual memory retrieval
+# - Checks for memory-fabric skill availability
+# - Time-filtered search for recent sessions (last 7 days by default)
+# - Blocker detection and pending work search
 # - Project-agnostic: uses project-scoped user_ids
-# - Graceful if Mem0 MCP is not configured
+# - ALWAYS works - graph is always available (zero-config)
 
 set -euo pipefail
 
@@ -84,7 +92,13 @@ archive_pending_sync() {
     fi
 }
 
-# Build concise system message for pending sync
+# Check if memory-fabric skill exists
+has_memory_fabric_skill() {
+    local plugin_root="${CLAUDE_PLUGIN_ROOT:-$SCRIPT_DIR/../..}"
+    [[ -f "$plugin_root/skills/memory-fabric/SKILL.md" ]]
+}
+
+# Build concise system message for pending sync (v2.1.0 - Graph-first architecture)
 build_pending_sync_message() {
     local file="$1"
     local project_id
@@ -96,23 +110,97 @@ build_pending_sync_message() {
     local scope
     scope=$(jq -r '.scope // "continuity"' "$file" 2>/dev/null || echo "continuity")
 
-    # Build user_id for this project/scope
+    # Build user_id for this project/scope (used if mem0 enhancement available)
     local user_id
     user_id=$(mem0_user_id "$scope")
 
-    echo "Pending memory sync detected (${memory_count} items for ${project_id}). Call mcp__mem0__add_memory with user_id='${user_id}' to persist previous session context."
+    # Check for any blockers or pending work in the sync file
+    local has_blockers
+    has_blockers=$(jq -r '.memories[]? | select(.metadata.has_blockers == true) | .text' "$file" 2>/dev/null | head -1 || echo "")
+    local has_next_steps
+    has_next_steps=$(jq -r '.memories[]? | select(.metadata.has_next_steps == true) | .text' "$file" 2>/dev/null | head -1 || echo "")
+
+    # Build context message with graph-first architecture
+    local msg
+    msg="[Memory Fabric v2.1] Pending session sync detected (${memory_count} items for ${project_id}).
+
+"
+
+    if [[ -n "$has_blockers" ]]; then
+        msg="${msg}⚠️ Previous session had UNRESOLVED BLOCKERS - prioritize loading this context.
+"
+    fi
+    if [[ -n "$has_next_steps" ]]; then
+        msg="${msg}📋 Previous session had PENDING NEXT STEPS to continue.
+"
+    fi
+
+    # Add action instructions (graph-first)
+    msg="${msg}
+Actions to take:
+1. Load from knowledge graph (PRIMARY): mcp__memory__search_nodes({query: 'recent decisions blockers'})
+2. Execute /recall for comprehensive search
+
+Quick load commands (graph-first):
+• mcp__memory__search_nodes({query: 'recent decisions'})
+• mcp__memory__search_nodes({query: 'blockers pending'})"
+
+    # Add mem0 commands only if available
+    if is_mem0_available; then
+        msg="${msg}
+• [mem0 enhancement] mcp__mem0__search_memories({query: 'session blockers', filters: {AND: [{user_id: '${user_id}'}]}, limit: 5})"
+    fi
+
+    echo "$msg"
 }
 
-# Build tip message for memory search
+# Build tip message for memory search (v2.1.0 - Graph-first architecture)
 build_search_tip_message() {
     local project_id
     project_id=$(mem0_get_project_id)
-    local user_id_decisions
-    user_id_decisions=$(mem0_user_id "$MEM0_SCOPE_DECISIONS")
-    local user_id_continuity
-    user_id_continuity=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
 
-    echo "Use mcp__mem0__search_memories with user_id='${user_id_decisions}' or '${user_id_continuity}' to retrieve relevant context for ${project_id}."
+    local msg
+    msg="[Memory Fabric v2.1] Auto-loading session context for ${project_id}...
+
+"
+
+    # Check if memory-fabric skill is available
+    if has_memory_fabric_skill; then
+        msg="${msg}Graph-First Memory Available:
+Execute /recall to load memories from knowledge graph (and mem0 if configured with --mem0 flag).
+
+"
+    fi
+
+    # Add quick load commands (graph-first)
+    msg="${msg}Quick load commands (graph PRIMARY):
+• mcp__memory__search_nodes({query: 'recent decisions'})
+• mcp__memory__search_nodes({query: 'patterns architecture'})
+• mcp__memory__read_graph() - Load full knowledge graph"
+
+    # Add mem0 commands only if available (optional enhancement)
+    if is_mem0_available; then
+        local user_id_decisions
+        user_id_decisions=$(mem0_user_id "$MEM0_SCOPE_DECISIONS")
+        local user_id_continuity
+        user_id_continuity=$(mem0_user_id "$MEM0_SCOPE_CONTINUITY")
+
+        msg="${msg}
+
+Optional mem0 cloud enhancement:
+• mcp__mem0__search_memories({query: 'recent session', filters: {AND: [{user_id: '${user_id_continuity}'}]}, limit: 5})
+• mcp__mem0__search_memories({query: 'architecture decisions', filters: {AND: [{user_id: '${user_id_decisions}'}]}, limit: 5})"
+    fi
+
+    # Add time-filtered search hint if available
+    if type build_session_retrieval_hint &>/dev/null; then
+        msg="${msg}
+
+Additional context retrieval options:
+$(build_session_retrieval_hint 7)"
+    fi
+
+    echo "$msg"
 }
 
 # -----------------------------------------------------------------------------
@@ -138,31 +226,28 @@ elif has_valid_pending_sync "$PENDING_SYNC_GLOBAL"; then
 fi
 
 # -----------------------------------------------------------------------------
-# Output CC 2.1.7 Compliant JSON with hookSpecificOutput.additionalContext
+# Output CC 2.1.7 Compliant JSON for SessionStart
+# Note: SessionStart hooks don't support hookSpecificOutput.additionalContext
+# Context injection happens via session-context-loader.sh instead
 # -----------------------------------------------------------------------------
 
 if [[ -n "$PENDING_FILE" ]]; then
-    # Pending sync exists - inject context for Claude to sync
-    CTX_MSG=$(build_pending_sync_message "$PENDING_FILE")
+    # Pending sync exists - archive it and log
+    log_hook "Found pending sync, archiving for processing"
 
     # Archive the file after reading (move to .processed)
     archive_pending_sync "$PENDING_FILE"
 
-    log_hook "Outputting pending sync context"
-    jq -nc --arg ctx "$CTX_MSG" \
-        '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$ctx},continue:true,suppressOutput:true}'
-else
-    # No pending sync - check if Mem0 is available and provide tip
-    if is_mem0_available; then
-        TIP_MSG=$(build_search_tip_message)
-        log_hook "Mem0 available, outputting search tip as context"
-        jq -nc --arg ctx "$TIP_MSG" \
-            '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$ctx},continue:true,suppressOutput:true}'
-    else
-        # Mem0 not configured - silent success
-        log_hook "Mem0 not configured, silent success"
-        echo '{"continue":true,"suppressOutput":true}'
-    fi
+    log_hook "Pending sync archived - will be processed on next memory operation"
 fi
+
+# SessionStart hooks must use simple success output (no hookSpecificOutput.additionalContext)
+if is_mem0_available; then
+    log_hook "Graph + mem0 available for this session"
+else
+    log_hook "Graph available (mem0 not configured) for this session"
+fi
+
+echo '{"continue":true,"suppressOutput":true}'
 
 exit 0

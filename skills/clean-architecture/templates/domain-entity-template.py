@@ -14,7 +14,6 @@ from enum import Enum
 from typing import Protocol
 from uuid import UUID, uuid4
 
-
 # ============================================================================
 # Domain Events
 # ============================================================================

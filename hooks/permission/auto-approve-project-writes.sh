@@ -16,7 +16,7 @@ log_hook "Evaluating write to: $FILE_PATH"
 
 # Resolve to absolute path
 if [[ "$FILE_PATH" != /* ]]; then
-  FILE_PATH="$CLAUDE_PROJECT_DIR/$FILE_PATH"
+  FILE_PATH="${CLAUDE_PROJECT_DIR:-.}/$FILE_PATH"
 fi
 
 # Check if file is within project directory

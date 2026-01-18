@@ -2,8 +2,13 @@
 # =============================================================================
 # duplicate-code-detector.sh
 # BLOCKING: Detect duplicate/redundant code across worktrees
+# CC 2.1.7 Compliant: Self-contained hook with stdin reading
 # =============================================================================
 set -euo pipefail
+
+# Read stdin BEFORE sourcing common.sh to avoid race conditions
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
 
 # Source common utilities (includes safe grep functions)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -69,15 +69,15 @@ if [[ -n "$AGENT_TYPE" ]]; then
   fi
 fi
 
-# Output CC 2.1.7 compliant response with hookSpecificOutput.additionalContext
+# Output CC 2.1.7 compliant response
+# Note: SessionStart hooks don't support hookSpecificOutput.additionalContext
 if [[ $CONTEXT_LOADED -gt 0 ]]; then
-  CTX="Session context loaded (Protocol 2.0)"
   if [[ -n "$AGENT_TYPE" ]]; then
-    CTX="$CTX - Agent: $AGENT_TYPE"
+    log_hook "Session context loaded (Protocol 2.0) - Agent: $AGENT_TYPE"
+  else
+    log_hook "Session context loaded (Protocol 2.0)"
   fi
-  jq -nc --arg ctx "$CTX" \
-    '{hookSpecificOutput:{hookEventName:"SessionStart",additionalContext:$ctx},continue:true,suppressOutput:true}'
-else
-  echo '{"continue":true,"suppressOutput":true}'
 fi
+
+echo '{"continue":true,"suppressOutput":true}'
 exit 0

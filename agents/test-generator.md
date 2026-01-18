@@ -19,6 +19,11 @@ skills:
   - vcr-http-recording
   - webapp-testing
   - performance-testing
+  - a11y-testing
+  - test-data-management
+  - pytest-advanced
+  - property-based-testing
+  - contract-testing
   - remember
   - recall
 ---

@@ -24,10 +24,11 @@ Usage:
 import asyncio
 import logging
 import random
-from dataclasses import dataclass, field
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass
 from functools import wraps
 from time import time
-from typing import Any, Awaitable, Callable, Optional, Set, Type, TypeVar, Union
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class MaxRetriesExceededError(Exception):
 
 
 # Default retryable exceptions
-DEFAULT_RETRYABLE_EXCEPTIONS: Set[Type[Exception]] = {
+DEFAULT_RETRYABLE_EXCEPTIONS: set[type[Exception]] = {
     ConnectionError,
     TimeoutError,
     ConnectionResetError,
@@ -156,11 +157,11 @@ class RetryHandler:
         max_delay: float = 60.0,
         exponential_base: float = 2.0,
         jitter: bool = True,
-        retryable_exceptions: Optional[Set[Type[Exception]]] = None,
-        retryable_check: Optional[Callable[[Exception], bool]] = None,
-        on_retry: Optional[Callable[[int, Exception, float], None]] = None,
-        on_success: Optional[Callable[[int], None]] = None,
-        on_failure: Optional[Callable[[int, Exception], None]] = None,
+        retryable_exceptions: set[type[Exception]] | None = None,
+        retryable_check: Callable[[Exception], bool] | None = None,
+        on_retry: Callable[[int, Exception, float], None] | None = None,
+        on_success: Callable[[int], None] | None = None,
+        on_failure: Callable[[int, Exception], None] | None = None,
     ):
         self.config = RetryConfig(
             max_attempts=max_attempts,
@@ -211,7 +212,7 @@ class RetryHandler:
             MaxRetriesExceededError: If all attempts fail
             Exception: Original exception if non-retryable
         """
-        last_error: Optional[Exception] = None
+        last_error: Exception | None = None
 
         for attempt in range(1, self.config.max_attempts + 1):
             self.stats.total_attempts += 1
@@ -304,8 +305,8 @@ def retry(
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
     jitter: bool = True,
-    retryable_exceptions: Optional[Set[Type[Exception]]] = None,
-    retryable_check: Optional[Callable[[Exception], bool]] = None,
+    retryable_exceptions: set[type[Exception]] | None = None,
+    retryable_check: Callable[[Exception], bool] | None = None,
 ) -> Callable[[Callable[..., Awaitable[T]]], Callable[..., Awaitable[T]]]:
     """
     Decorator for retry with exponential backoff.

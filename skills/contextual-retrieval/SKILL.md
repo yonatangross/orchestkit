@@ -325,6 +325,22 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
 - Low latency indexing required (high-volume streaming)
 - Cost-sensitive with many small documents
 
+## Related Skills
+
+- `rag-retrieval` - Core RAG pipeline patterns that contextual retrieval enhances
+- `embeddings` - Text embedding strategies for the vector search component
+- `reranking-patterns` - Post-retrieval reranking to further improve precision
+- `hyde-retrieval` - Alternative retrieval enhancement using hypothetical documents
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Context generation model | Claude Sonnet | Balance of quality and cost for context generation |
+| BM25/Vector weight split | 40%/60% | Anthropic research shows slight vector bias optimal |
+| Chunk context length | 1-2 sentences | Enough context without excessive token overhead |
+| Prompt caching | Ephemeral cache | 90% cost reduction when processing many chunks from same doc |
+
 ## Resources
 - Anthropic Blog: https://www.anthropic.com/news/contextual-retrieval
 - Prompt Caching: https://docs.anthropic.com/en/docs/build-with-claude/prompt-caching
