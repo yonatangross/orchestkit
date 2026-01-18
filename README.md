@@ -597,7 +597,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## What's New
 
-**v4.27.2** — Complete skill-agent integration, Jinja2 prompt templates, MCP security templates
+**v4.27.4** — README overhaul with improved visualizations, grouped commands/agents/skills, Mermaid diagrams
 
 [Full Changelog →](./CHANGELOG.md)
 

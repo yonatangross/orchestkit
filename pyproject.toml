@@ -1,6 +1,6 @@
 [project]
 name = "skillforge-claude-plugin"
-version = "4.27.2"
+version = "4.27.4"
 description = "SkillForge Complete - AI-assisted development toolkit for Claude Code with 159 skills, 32 agents, and 144 hooks"
 requires-python = ">=3.13"
 readme = "README.md"
