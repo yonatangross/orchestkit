@@ -267,4 +267,6 @@ main() {
 # Run main
 main
 
+# CC 2.1.7: Silent success - tracking completed
+output_silent_success
 exit 0

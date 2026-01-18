@@ -236,9 +236,12 @@ monitor_budget() {
         log "Context usage within budget. No compression needed."
     fi
 
-    # Output status with systemMessage for user visibility
-    # No output - dispatcher handles all JSON output for posttool hooks
+    # CC 2.1.7: Output valid JSON for silent success
+    # (no user-visible output needed for routine monitoring)
 }
 
 # Execute
 monitor_budget
+
+# CC 2.1.7: Output valid JSON (must be last output before exit)
+echo '{"continue": true, "suppressOutput": true}'

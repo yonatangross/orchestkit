@@ -5,19 +5,28 @@
 # =============================================================================
 set -euo pipefail
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
+# Source common utilities
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../_lib/common.sh"
+
 # Get inputs
 FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_OUTPUT_CONTENT:-}"
 
-[[ -z "$FILE_PATH" ]] && exit 0
-[[ -z "$CONTENT" ]] && exit 0
+[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$CONTENT" ]] && { output_silent_success; exit 0; }
 
 # Only validate Python files in routers/
-[[ ! "$FILE_PATH" =~ /routers/.*\.py$ ]] && exit 0
+[[ ! "$FILE_PATH" =~ /routers/.*\.py$ ]] && { output_silent_success; exit 0; }
 
 # Skip deps.py and dependencies.py (these define the DI functions)
 FILENAME=$(basename "$FILE_PATH")
 if [[ "$FILENAME" =~ ^(deps|dependencies|__init__)\.py$ ]]; then
+    output_silent_success
     exit 0
 fi
 
@@ -152,36 +161,39 @@ fi
 # Report errors and block
 # =============================================================================
 if [[ ${#ERRORS[@]} -gt 0 ]]; then
-    echo "BLOCKED: Dependency injection violation"
-    echo ""
-    echo "File: $FILE_PATH"
-    echo ""
-    echo "=== Correct Pattern ==="
-    echo ""
-    echo "  # In deps.py"
-    echo "  def get_user_service("
-    echo "      repo: UserRepository = Depends(get_user_repository)"
-    echo "  ) -> UserService:"
-    echo "      return UserService(repo)"
-    echo ""
-    echo "  # In router"
-    echo "  @router.post('/users')"
-    echo "  async def create_user("
-    echo "      data: UserCreate,"
-    echo "      service: UserService = Depends(get_user_service)"
-    echo "  ):"
-    echo "      return await service.create(data)"
-    echo ""
-    echo "Violations:"
+    echo "BLOCKED: Dependency injection violation" >&2
+    echo "" >&2
+    echo "File: $FILE_PATH" >&2
+    echo "" >&2
+    echo "=== Correct Pattern ===" >&2
+    echo "" >&2
+    echo "  # In deps.py" >&2
+    echo "  def get_user_service(" >&2
+    echo "      repo: UserRepository = Depends(get_user_repository)" >&2
+    echo "  ) -> UserService:" >&2
+    echo "      return UserService(repo)" >&2
+    echo "" >&2
+    echo "  # In router" >&2
+    echo "  @router.post('/users')" >&2
+    echo "  async def create_user(" >&2
+    echo "      data: UserCreate," >&2
+    echo "      service: UserService = Depends(get_user_service)" >&2
+    echo "  ):" >&2
+    echo "      return await service.create(data)" >&2
+    echo "" >&2
+    echo "Violations:" >&2
     for error in "${ERRORS[@]}"; do
-        echo "  $error"
+        echo "  $error" >&2
     done
-    echo ""
-    echo "Reference: skills/backend-architecture-enforcer/SKILL.md"
+    echo "" >&2
+    echo "Reference: skills/backend-architecture-enforcer/SKILL.md" >&2
+
+    # Output proper CC 2.1.7 JSON with context
+    CTX="Dependency injection violation in $FILE_PATH. See stderr for details."
+    output_with_context "$CTX"
     exit 1
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"DI patterns enforced","continue":true}'
+# Success - output proper CC 2.1.7 JSON
+output_silent_success
 exit 0

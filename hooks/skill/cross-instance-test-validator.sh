@@ -293,6 +293,9 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
     done
     echo "" >&2
     echo "Add tests before committing to ensure quality across all instances" >&2
+
+    # CC 2.1.7: Output block JSON
+    output_block "Missing test coverage for new code"
     exit 1
 fi
 
@@ -304,9 +307,15 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
         echo "  $warning" >&2
     done
     echo "" >&2
+
+    # CC 2.1.7: Output with additionalContext for warnings
+    WARNING_CONTEXT=$(printf "%s\n" "${WARNINGS[@]}")
+    output_with_context "Test coverage warnings detected:
+
+$WARNING_CONTEXT"
+    exit 0
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"Cross-instance tests validated","continue":true}'
+# CC 2.1.7: Output valid JSON for silent success
+output_silent_success
 exit 0

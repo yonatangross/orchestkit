@@ -5,10 +5,19 @@
 
 set -euo pipefail
 
+# Read stdin BEFORE sourcing common.sh to avoid subshell issues
+_HOOK_INPUT=$(cat)
+export _HOOK_INPUT
+
+# Source common utilities for JSON output functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/../../_lib/common.sh"
+
 # Get the file path from tool output
 FILE_PATH="${TOOL_OUTPUT_FILE_PATH:-${1:-}}"
 
 if [[ -z "$FILE_PATH" ]]; then
+    output_silent_success
     exit 0
 fi
 
@@ -16,6 +25,7 @@ fi
 case "$FILE_PATH" in
     *test*|*spec*|*__tests__*)
         # Test file - skip prediction
+        output_silent_success
         exit 0
         ;;
     *.py|*.ts|*.tsx|*.js|*.jsx)
@@ -23,6 +33,7 @@ case "$FILE_PATH" in
         ;;
     *)
         # Non-code files - skip
+        output_silent_success
         exit 0
         ;;
 esac
@@ -37,6 +48,7 @@ elif [[ "$FILE_PATH" == *.ts || "$FILE_PATH" == *.tsx ]]; then
     BASENAME=$(basename "$FILE_PATH" | sed 's/\.[^.]*$//')
     TEST_PATTERN="**/${BASENAME}.test.*"
 else
+    output_silent_success
     exit 0
 fi
 
@@ -57,4 +69,6 @@ else
     echo "💡 Consider adding tests for: $FILE_PATH" >&2
 fi
 
+# CC 2.1.7: Output valid JSON for silent success
+output_silent_success
 exit 0

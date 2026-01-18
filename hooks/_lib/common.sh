@@ -892,3 +892,246 @@ guard_tool() {
 }
 
 export -f guard_tool
+
+# -----------------------------------------------------------------------------
+# Atomic JSON File Operations (CC 2.1.x Multi-Instance Safety)
+# -----------------------------------------------------------------------------
+# These functions provide safe, atomic JSON file writes with flock locking
+# for multi-instance coordination safety.
+#
+# Usage: atomic_json_write "$FILE_PATH" "$JSON_CONTENT"
+# Usage: atomic_json_write "$FILE_PATH" "$JSON_CONTENT" 10  # 10 second timeout
+# -----------------------------------------------------------------------------
+
+# Atomic JSON write with flock locking for multi-instance safety
+# Usage: atomic_json_write <file_path> <json_content> [timeout_seconds]
+#
+# Features:
+# - Uses flock for file locking (with timeout)
+# - Writes to temp file first, then atomic mv
+# - Validates JSON before writing
+# - Creates parent directories if needed
+#
+# Returns: 0 on success, 1 on failure
+atomic_json_write() {
+  local file_path="$1"
+  local json_content="$2"
+  local timeout_seconds="${3:-5}"  # Default 5 second timeout
+
+  # Validate inputs
+  if [[ -z "$file_path" ]]; then
+    log_hook "ERROR: atomic_json_write: file_path is required"
+    return 1
+  fi
+
+  if [[ -z "$json_content" ]]; then
+    log_hook "ERROR: atomic_json_write: json_content is required"
+    return 1
+  fi
+
+  # Validate JSON syntax before writing
+  if ! echo "$json_content" | jq . >/dev/null 2>&1; then
+    log_hook "ERROR: atomic_json_write: Invalid JSON content for $file_path"
+    return 1
+  fi
+
+  # Ensure parent directory exists
+  local dir
+  dir=$(dirname "$file_path")
+  mkdir -p "$dir" 2>/dev/null || {
+    log_hook "ERROR: atomic_json_write: Cannot create directory $dir"
+    return 1
+  }
+
+  # Create temp file in same directory for atomic mv
+  local tmp_file
+  tmp_file=$(mktemp "${dir}/.atomic_json_XXXXXX") || {
+    log_hook "ERROR: atomic_json_write: Cannot create temp file in $dir"
+    return 1
+  }
+
+  # Write JSON to temp file
+  if ! echo "$json_content" > "$tmp_file"; then
+    rm -f "$tmp_file" 2>/dev/null
+    log_hook "ERROR: atomic_json_write: Cannot write to temp file"
+    return 1
+  fi
+
+  # Lock file path (use .lock suffix on the target file)
+  local lock_file="${file_path}.lock"
+
+  # Perform atomic write with flock
+  local result=0
+  if command -v flock >/dev/null 2>&1; then
+    # Use flock for atomic locking
+    (
+      # Acquire exclusive lock with timeout
+      if flock -w "$timeout_seconds" 9 2>/dev/null; then
+        # Atomic move (same filesystem)
+        if mv "$tmp_file" "$file_path" 2>/dev/null; then
+          exit 0
+        else
+          log_hook "ERROR: atomic_json_write: Failed to mv $tmp_file to $file_path"
+          rm -f "$tmp_file" 2>/dev/null
+          exit 1
+        fi
+      else
+        log_hook "WARN: atomic_json_write: Lock timeout for $file_path after ${timeout_seconds}s"
+        rm -f "$tmp_file" 2>/dev/null
+        exit 1
+      fi
+    ) 9>"$lock_file"
+    result=$?
+  else
+    # Fallback: simple lock file approach for systems without flock
+    local lock_acquired=0
+    local attempts=0
+    local max_attempts=$((timeout_seconds * 10))  # Check every 0.1s
+
+    while [[ $attempts -lt $max_attempts ]]; do
+      if (set -o noclobber && echo "$$" > "$lock_file") 2>/dev/null; then
+        lock_acquired=1
+        break
+      fi
+
+      # Check if lock is stale (older than 30 seconds)
+      if [[ -f "$lock_file" ]]; then
+        local lock_age
+        if [[ "$(uname)" == "Darwin" ]]; then
+          lock_age=$(( $(date +%s) - $(stat -f%m "$lock_file" 2>/dev/null || echo 0) ))
+        else
+          lock_age=$(( $(date +%s) - $(stat -c%Y "$lock_file" 2>/dev/null || echo 0) ))
+        fi
+
+        if [[ $lock_age -gt 30 ]]; then
+          rm -f "$lock_file" 2>/dev/null
+          continue
+        fi
+      fi
+
+      sleep 0.1
+      ((attempts++)) || true
+    done
+
+    if [[ $lock_acquired -eq 1 ]]; then
+      if mv "$tmp_file" "$file_path" 2>/dev/null; then
+        result=0
+      else
+        log_hook "ERROR: atomic_json_write: Failed to mv $tmp_file to $file_path"
+        rm -f "$tmp_file" 2>/dev/null
+        result=1
+      fi
+      rm -f "$lock_file" 2>/dev/null
+    else
+      log_hook "WARN: atomic_json_write: Lock timeout for $file_path after ${timeout_seconds}s (no flock)"
+      rm -f "$tmp_file" 2>/dev/null
+      result=1
+    fi
+  fi
+
+  return $result
+}
+
+# Atomic JSON update using jq transformation
+# Usage: atomic_json_update <file_path> <jq_filter> [jq_args...]
+#
+# Example:
+#   atomic_json_update "$FILE" '.count += 1' --arg name "foo"
+#
+# Note: This reads the file, applies jq transformation, and writes atomically.
+# If the file doesn't exist, starts with empty object {}.
+#
+# Returns: 0 on success, 1 on failure
+atomic_json_update() {
+  local file_path="$1"
+  shift
+  local jq_filter="$1"
+  shift
+  local jq_args=("$@")
+
+  # Validate inputs
+  if [[ -z "$file_path" ]]; then
+    log_hook "ERROR: atomic_json_update: file_path is required"
+    return 1
+  fi
+
+  if [[ -z "$jq_filter" ]]; then
+    log_hook "ERROR: atomic_json_update: jq_filter is required"
+    return 1
+  fi
+
+  # Lock file path
+  local lock_file="${file_path}.lock"
+  local timeout_seconds=5
+
+  # Perform atomic read-modify-write with flock
+  if command -v flock >/dev/null 2>&1; then
+    (
+      if flock -w "$timeout_seconds" 9 2>/dev/null; then
+        # Read current content or start with empty object
+        local current_json
+        if [[ -f "$file_path" ]]; then
+          current_json=$(cat "$file_path" 2>/dev/null) || current_json="{}"
+        else
+          current_json="{}"
+        fi
+
+        # Validate current JSON
+        if ! echo "$current_json" | jq . >/dev/null 2>&1; then
+          log_hook "WARN: atomic_json_update: Invalid JSON in $file_path, starting fresh"
+          current_json="{}"
+        fi
+
+        # Apply jq transformation
+        local new_json
+        new_json=$(echo "$current_json" | jq "${jq_args[@]}" "$jq_filter" 2>/dev/null) || {
+          log_hook "ERROR: atomic_json_update: jq transformation failed for $file_path"
+          exit 1
+        }
+
+        # Write to temp file and atomic mv
+        local dir
+        dir=$(dirname "$file_path")
+        mkdir -p "$dir" 2>/dev/null || exit 1
+
+        local tmp_file
+        tmp_file=$(mktemp "${dir}/.atomic_json_XXXXXX") || exit 1
+
+        if echo "$new_json" > "$tmp_file" && mv "$tmp_file" "$file_path"; then
+          exit 0
+        else
+          rm -f "$tmp_file" 2>/dev/null
+          exit 1
+        fi
+      else
+        log_hook "WARN: atomic_json_update: Lock timeout for $file_path"
+        exit 1
+      fi
+    ) 9>"$lock_file"
+    return $?
+  else
+    # Fallback without flock - less safe but functional
+    local current_json
+    if [[ -f "$file_path" ]]; then
+      current_json=$(cat "$file_path" 2>/dev/null) || current_json="{}"
+    else
+      current_json="{}"
+    fi
+
+    if ! echo "$current_json" | jq . >/dev/null 2>&1; then
+      current_json="{}"
+    fi
+
+    local new_json
+    new_json=$(echo "$current_json" | jq "${jq_args[@]}" "$jq_filter" 2>/dev/null) || {
+      log_hook "ERROR: atomic_json_update: jq transformation failed"
+      return 1
+    }
+
+    atomic_json_write "$file_path" "$new_json" 5
+    return $?
+  fi
+}
+
+# Export atomic JSON functions
+export -f atomic_json_write atomic_json_update

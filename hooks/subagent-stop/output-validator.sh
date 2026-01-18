@@ -76,12 +76,12 @@ LOG_FILE="$LOG_DIR/${AGENT_NAME}_$(date +%Y%m%d_%H%M%S).log"
     echo "$OUTPUT"
 } > "$LOG_FILE"
 
-# CC 2.1.6 compliant: Always output JSON with continue field
+# CC 2.1.7 compliant: Always output JSON with continue and suppressOutput fields
 if [ "$VALIDATION_STATUS" = "failed" ]; then
-    jq -n --arg msg "$SYSTEM_MESSAGE" '{systemMessage:$msg,continue:false,hookSpecificOutput:{hookEventName:"SubagentStop",validationResult:"failed"}}'
+    jq -n --arg msg "$SYSTEM_MESSAGE" '{systemMessage:$msg,continue:false,suppressOutput:false,hookSpecificOutput:{hookEventName:"SubagentStop",validationResult:"failed"}}'
     exit 0
 fi
 
-# Output systemMessage for user visibility
-jq -n --arg msg "$SYSTEM_MESSAGE" '{systemMessage: $msg, continue: true}'
+# Silent success for passed validation
+jq -n --arg msg "$SYSTEM_MESSAGE" '{systemMessage: $msg, continue: true, suppressOutput: true}'
 exit 0

@@ -49,6 +49,6 @@ esac
 
 echo "[$TIMESTAMP] $TOOL_NAME ${DETAILS:+| $DETAILS}" >> "$AUDIT_LOG"
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
+# CC 2.1.7: Output valid JSON for silent success
+output_silent_success
 exit 0

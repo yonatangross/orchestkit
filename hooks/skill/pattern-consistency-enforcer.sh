@@ -276,7 +276,10 @@ if [[ ${#ERRORS[@]} -gt 0 ]]; then
     echo "" >&2
     echo "Reference: .claude/context/knowledge/patterns/established.json" >&2
     echo "Fix violations to match established patterns before committing" >&2
-    exit 1
+
+    # CC 2.1.7: Output block with proper JSON
+    output_block "Pattern consistency violations detected in $FILE_PATH"
+    exit 0
 fi
 
 # Warn about pattern drift
@@ -290,9 +293,12 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     done
     echo "" >&2
     echo "Review warnings to ensure consistency across codebase" >&2
+
+    # CC 2.1.7: Continue with warnings (non-blocking)
+    output_silent_success
+    exit 0
 fi
 
-# Output systemMessage for user visibility
-# No output - dispatcher handles all JSON output for posttool hooks
-# echo '{"systemMessage":"Patterns enforced","continue":true}'
+# CC 2.1.7: Silent success for no issues
+output_silent_success
 exit 0

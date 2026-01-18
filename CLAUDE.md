@@ -478,7 +478,7 @@ touch skills/my-skill/references/impl.md
 cat > agents/my-agent.md << 'EOF'
 ---
 name: my-agent
-description: What this agent does and when to use it
+description: What this agent does and when to use it. Activates for keyword1, keyword2, pattern
 model: sonnet
 color: cyan
 tools:
@@ -495,9 +495,6 @@ skills:
 ## Directive
 Clear instruction for what this agent does.
 
-## Auto Mode
-Activates for: keyword1, keyword2, pattern
-
 ## Concrete Objectives
 1. First objective
 2. Second objective
@@ -512,6 +509,7 @@ EOF
 
 # Step 3: Validate agent loads skills correctly
 # CC 2.1.6 automatically injects skills from frontmatter
+# NOTE: Activation keywords MUST be in description field (not ## Auto Mode section)
 ```
 
 ### 3. Implementing a Security Hook
