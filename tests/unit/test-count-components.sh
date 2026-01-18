@@ -128,18 +128,18 @@ test_count_sanity() {
     local commands=$(echo "$output" | jq '.commands // 0')
     local hooks=$(echo "$output" | jq '.hooks // 0')
 
-    # Skills should be 100-150 based on known count (updated for 134 skills)
-    if [[ "$skills" -ge 100 && "$skills" -le 150 ]]; then
-        log_pass "Skills count in expected range (100-150): $skills"
+    # Skills should be 100-175 based on known count (updated for AI/ML Roadmap 2026 expansion)
+    if [[ "$skills" -ge 100 && "$skills" -le 175 ]]; then
+        log_pass "Skills count in expected range (100-175): $skills"
     else
-        log_fail "Skills count out of range: $skills (expected 100-150)"
+        log_fail "Skills count out of range: $skills (expected 100-175)"
     fi
 
-    # Agents should be 15-30
-    if [[ "$agents" -ge 15 && "$agents" -le 30 ]]; then
-        log_pass "Agents count in expected range (15-30): $agents"
+    # Agents should be 15-40 (updated for AI/ML Roadmap 2026 expansion)
+    if [[ "$agents" -ge 15 && "$agents" -le 40 ]]; then
+        log_pass "Agents count in expected range (15-40): $agents"
     else
-        log_fail "Agents count out of range: $agents (expected 15-30)"
+        log_fail "Agents count out of range: $agents (expected 15-40)"
     fi
 
     # Commands should be 8-20

@@ -7,9 +7,9 @@ This document provides essential context for Claude Code when working with the S
 **SkillForge Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
 - **159 skills**: Reusable knowledge modules in flat structure (including 7 new frontend performance skills)
-- **32 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
+- **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **20 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **144 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
+- **140 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -727,7 +727,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (144 hooks)
+- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (140 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
