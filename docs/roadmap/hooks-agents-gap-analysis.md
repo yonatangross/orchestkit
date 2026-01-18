@@ -38,7 +38,7 @@
 ║  │   ✓ auto-approve-safe-bash           │  ✓ todo-enforcer                 │  ✓ coverage-threshold-gate│ ║
 ║  │   ✓ auto-approve-project-writes      │  ✓ antipattern-warning           │  ✓ design-decision-saver  │ ║
 ║  │   ✓ learning-tracker                 │  ✓ memory-context                │  ✓ duplicate-code-detector│ ║
-║  │                                      │  ✗ skill-suggestion              │  ✓ evidence-collector     │ ║
+║  │                                      │  ✓ skill-auto-suggest            │  ✓ evidence-collector     │ ║
 ║  │                                      │  ✗ context-budget-warning        │  ✓ merge-conflict-predict │ ║
 ║  │                                                                         │  ✓ pattern-consistency    │ ║
 ║  │   STOP (7 hooks)                     │  SUBAGENT-START (3 hooks)        │  ✓ security-summary       │ ║
@@ -79,7 +79,7 @@
 ║                               ║   Current: Basic context injection, antipattern warning                  ║
 ║                               ║                                                                          ║
 ║                               ║   Missing Hooks:                                                         ║
-║                               ║   - skill-auto-suggest       (suggest skills based on task context)      ║
+║                               ║   ✓ skill-auto-suggest       (suggest skills based on task context) [DONE]║
 ║                               ║   - similar-code-finder      (find existing implementations)             ║
 ║                               ║   - documentation-linker     (link to relevant docs automatically)       ║
 ║                               ║   - error-solution-suggester (suggest fixes for common errors)           ║

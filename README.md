@@ -33,12 +33,18 @@ Built for teams building modern full-stack applications with FastAPI, React 19, 
 
 ---
 
-## What's New in v4.20.0 (Memory Fabric & Frontend Skills)
+## What's New in v4.21.0 (Skill Auto-Suggest)
+
+- **Skill Auto-Suggest Hook** (#123): Proactive skill suggestions based on prompt analysis
+- Analyzes prompts for 100+ keywords across API, database, auth, testing, frontend, AI/LLM, DevOps domains
+- Uses CC 2.1.9 additionalContext for non-intrusive suggestions
+- **Total**: 135 skills, 27 agents, 129 hooks
+
+### Previous (v4.20.0 - Memory Fabric & Frontend Skills)
 
 - **Memory Fabric v2.1**: Graph-first architecture with optional Mem0 cloud enhancement
 - **10 Frontend Skills Expanded**: zustand-patterns, tanstack-query-advanced, form-state-patterns, core-web-vitals, image-optimization, render-optimization, shadcn-patterns, radix-primitives, vite-advanced, biome-linting
 - **2 New Commands**: `/load-context` (auto-load memories), `/mem0-sync` (sync to Mem0)
-- **Total**: 135 skills, 27 agents, 128 hooks
 
 ### Previous (v4.19.0 - CC 2.1.11 Setup Hooks)
 

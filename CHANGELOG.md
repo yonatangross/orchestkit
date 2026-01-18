@@ -5,6 +5,23 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.21.0] - 2026-01-18
+
+### Added
+
+- **Skill Auto-Suggest Hook** (#123)
+  - `hooks/prompt/skill-auto-suggest.sh`: UserPromptSubmit hook for proactive skill suggestions
+  - Analyzes prompts for 100+ keywords across domains (API, database, auth, testing, frontend, AI/LLM, DevOps)
+  - Injects relevant skill suggestions via CC 2.1.9 additionalContext
+  - Confidence scoring with max 3 suggestions per prompt
+  - 25 unit tests for comprehensive coverage
+
+### Changed
+
+- Hook count: 128 → 129
+
+---
+
 ## [4.20.0] - 2026-01-18
 
 ### Added

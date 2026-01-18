@@ -1,7 +1,7 @@
 {
   "name": "skf",
-  "version": "4.20.0",
-  "description": "Comprehensive AI-assisted development toolkit with 135 skills (20 user-invocable commands, 115 internal knowledge), 27 agents, 128 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
+  "version": "4.21.0",
+  "description": "Comprehensive AI-assisted development toolkit with 135 skills (20 user-invocable commands, 115 internal knowledge), 27 agents, 129 hooks (CC 2.1.11 Setup hooks), progressive loading, Memory Fabric v2.1 (graph-first architecture, optional mem0 cloud enhancement), and production-ready patterns for modern full-stack development",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -422,6 +422,10 @@
           {
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/antipattern-warning.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/prompt/skill-auto-suggest.sh"
           }
         ]
       }
