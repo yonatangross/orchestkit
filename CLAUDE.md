@@ -724,7 +724,7 @@ SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.28.0 (as of 2026-01-18)
+- **Current Version**: 4.28.1 (as of 2026-01-18)
 - **Claude Code Requirement**: >= 2.1.11
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
@@ -778,4 +778,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-18 (v4.28.0)
+**Last Updated**: 2026-01-19 (v4.28.0)
