@@ -1,6 +1,6 @@
 ---
 name: quality-gates
-description: Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides complexity scoring (1-5), blocking thresholds, and escalation workflows to prevent wasted work.
+description: Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides quality-gates scoring (1-5) and escalation workflows.
 context: fork
 agent: code-quality-reviewer
 version: 1.1.0

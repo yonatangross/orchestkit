@@ -1,6 +1,6 @@
 ---
 name: DevOps & Deployment
-description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. Covers GitHub Actions, Docker, Helm, and Terraform patterns.
+description: Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0

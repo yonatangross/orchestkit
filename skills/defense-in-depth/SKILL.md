@@ -1,6 +1,6 @@
 ---
 name: defense-in-depth
-description: Use when building secure AI pipelines or hardening LLM integrations. Implements 8 validation layers from edge to storage with no single point of failure.
+description: Use when building secure AI pipelines or hardening LLM integrations. Defense-in-depth implements 8 validation layers from edge to storage with no single point of failure.
 context: fork
 agent: security-layer-auditor
 version: 1.0.0

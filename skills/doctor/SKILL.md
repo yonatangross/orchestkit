@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: SkillForge health diagnostics command that validates plugin configuration and reports issues. Use when diagnosing plugin health, checking configuration, troubleshooting setup.
+description: SkillForge health diagnostics command that validates plugin configuration and reports issues. Use when running doctor checks or troubleshooting plugin health.
 context: inherit
 version: 1.0.0
 author: SkillForge

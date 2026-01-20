@@ -1,6 +1,6 @@
 ---
 name: Performance Optimization
-description: Use when application is slow, bundle is too large, or investigating performance issues. Covers profiling, React concurrent features, bundle analysis, and optimization patterns.
+description: Use when application is slow, bundle is too large, or investigating performance issues. Performance optimization covers profiling, React concurrent features, bundle analysis, and optimization patterns.
 context: fork
 version: 1.2.0
 category: Quality & Optimization

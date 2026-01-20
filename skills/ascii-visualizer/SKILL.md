@@ -1,6 +1,6 @@
 ---
 name: ASCII Visualizer
-description: Use when visualizing architecture, data flows, or system diagrams in text. Creates ASCII art for plans, workflows, and structures that render in terminals and markdown.
+description: Use when visualizing architecture, data flows, or system diagrams in text. Creates ASCII visualizer diagrams for plans, workflows, and structures.
 version: 1.0.0
 context: inherit
 tags: [ascii, visualization, diagrams, architecture, 2025]

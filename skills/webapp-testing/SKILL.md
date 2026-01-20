@@ -1,6 +1,6 @@
 ---
 name: Webapp Testing
-description: Use when testing web applications with AI-assisted Playwright. Features autonomous test agents for planning, generating, and self-healing tests automatically.
+description: Use when testing web applications with AI-assisted Playwright. Webapp testing covers autonomous test agents for planning, generating, and self-healing tests.
 context: fork
 agent: test-generator
 version: 1.2.0

@@ -1,6 +1,6 @@
 ---
 name: agentic-rag-patterns
-description: Advanced RAG with Self-RAG, Corrective-RAG, and knowledge graphs. Adaptive retrieval, document grading, query rewriting, web fallback. Use when building self-correcting retrieval systems.
+description: Advanced RAG with Self-RAG, Corrective-RAG, and knowledge graphs. Use when building agentic RAG pipelines, adaptive retrieval, or query rewriting.
 version: 1.0.0
 tags: [rag, self-rag, crag, knowledge-graph, langgraph, agentic, 2026]
 context: fork

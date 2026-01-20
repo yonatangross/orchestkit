@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: Use when creating or developing anything, before writing code or implementation plans - refines rough ideas into fully-formed designs through structured Socratic questioning, alternative exploration, and incremental validation
+description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 context: fork
 agent: product-strategist
 version: 1.0.0
