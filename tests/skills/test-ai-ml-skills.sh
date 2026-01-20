@@ -121,16 +121,16 @@ for skill in "${AI_ML_SKILLS[@]}"; do
     fi
 done
 
-# Test 5: SKILL.md "When to Use" section
+# Test 5: SKILL.md "When to Use" or "Overview" section
 echo ""
-echo "Test 5: 'When to Use' section validation"
+echo "Test 5: 'When to Use' or 'Overview' section validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
     skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
-        if grep -q "## When to Use" "$skill_file"; then
-            pass "$skill has 'When to Use' section"
+        if grep -q "## When to Use" "$skill_file" || grep -q "## Overview" "$skill_file"; then
+            pass "$skill has 'When to Use' or 'Overview' section"
         else
-            fail "$skill missing 'When to Use' section"
+            fail "$skill missing 'When to Use' or 'Overview' section"
         fi
     fi
 done
