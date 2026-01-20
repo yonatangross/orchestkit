@@ -18,7 +18,7 @@ Transform rough ideas into fully-formed designs through structured questioning a
 
 **Announce skill usage at start of session.**
 
-## When to Use This Skill
+## Overview
 
 Activate this skill when:
 - Request contains "I have an idea for..." or "I want to build..."

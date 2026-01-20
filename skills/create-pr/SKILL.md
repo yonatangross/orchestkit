@@ -112,7 +112,7 @@ gh pr view --web
 3. **All content goes to GitHub** - PR body via `gh pr create --body`
 4. **Keep it simple** - One command to create PR
 
-## When to Use Agents
+## Agent Usage
 
 Only use Task agents for:
 - Complex code analysis requiring multiple files

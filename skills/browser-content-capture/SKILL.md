@@ -22,7 +22,7 @@ This skill enables content extraction from sources that require browser-level ac
 - **Dynamic content** (infinite scroll, lazy loading, client-side routing)
 - **Multi-page site crawls** (documentation trees, tutorial series)
 
-## When to Use This Skill
+## Overview
 
 **Use when:**
 - `WebFetch` returns empty or partial content

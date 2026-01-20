@@ -17,7 +17,7 @@ This skill teaches agents how to assess task complexity, enforce quality gates, 
 
 ---
 
-## When to Use This Skill
+## Overview
 
 ### Auto-Activate Triggers
 - Receiving a new task assignment

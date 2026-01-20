@@ -21,7 +21,7 @@ user-invocable: false
 
 # Evidence Verification
 
-## When to Use This Skill
+## Overview
 
 ### Auto-Activate Triggers
 - Completing code implementation
