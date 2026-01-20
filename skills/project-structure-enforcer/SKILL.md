@@ -10,7 +10,7 @@ user-invocable: false
 ---
 Enforce 2026 folder structure best practices with **BLOCKING** validation.
 
-## When to Use
+## Overview
 
 - Creating new files
 - Reviewing project architecture

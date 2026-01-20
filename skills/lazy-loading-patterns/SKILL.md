@@ -13,7 +13,7 @@ user-invocable: false
 
 Code splitting and lazy loading patterns for React 19 applications using `React.lazy`, `Suspense`, route-based splitting, and intersection observer strategies.
 
-## When to Use
+## Overview
 
 - Reducing initial bundle size for faster page loads
 - Route-based code splitting in SPAs

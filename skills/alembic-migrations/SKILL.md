@@ -14,7 +14,7 @@ user-invocable: false
 
 Database migration management with Alembic for SQLAlchemy 2.0 async applications.
 
-## When to Use
+## Overview
 
 - Creating or modifying database tables and columns
 - Auto-generating migrations from SQLAlchemy models

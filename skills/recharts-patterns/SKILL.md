@@ -13,7 +13,7 @@ user-invocable: false
 
 Data visualization patterns using Recharts 3.x - a composable charting library built with React and D3.
 
-## When to Use
+## Overview
 
 - Building dashboards with multiple chart types
 - Creating responsive, interactive charts

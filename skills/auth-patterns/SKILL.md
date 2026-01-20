@@ -20,7 +20,7 @@ user-invocable: false
 
 Implement secure authentication with OAuth 2.1, Passkeys, and modern security standards.
 
-## When to Use
+## Overview
 
 - Login/signup flows
 - JWT token management

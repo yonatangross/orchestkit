@@ -12,7 +12,7 @@ user-invocable: false
 
 Display your aggregated best practices library, showing successful patterns and anti-patterns across all projects.
 
-## When to Use
+## Overview
 
 - Reviewing what patterns worked well
 - Checking for known anti-patterns

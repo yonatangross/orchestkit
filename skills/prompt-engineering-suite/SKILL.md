@@ -13,7 +13,7 @@ user-invocable: false
 
 Design, version, and optimize prompts for production LLM applications.
 
-## When to Use
+## Overview
 
 - Designing prompts for new LLM features
 - Improving accuracy with Chain-of-Thought reasoning

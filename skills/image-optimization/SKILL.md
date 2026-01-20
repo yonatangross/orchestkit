@@ -14,7 +14,7 @@ user-invocable: false
 
 Production image optimization patterns for modern web applications.
 
-## When to Use
+## Overview
 
 - Optimizing Largest Contentful Paint (LCP)
 - Reducing page weight and bandwidth

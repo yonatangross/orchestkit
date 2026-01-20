@@ -12,7 +12,7 @@ user-invocable: false
 
 Break large features into small, reviewable PRs that depend on each other. Merge in order for clean history.
 
-## When to Use
+## Overview
 
 - Feature requires 500+ lines of changes
 - Multiple logical parts to implement

@@ -13,7 +13,7 @@ user-invocable: false
 
 Production-ready FastAPI patterns for modern Python backends.
 
-## When to Use
+## Overview
 
 - Building production FastAPI applications
 - Managing application lifecycle (startup/shutdown)

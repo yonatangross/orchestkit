@@ -10,7 +10,7 @@ user-invocable: false
 ---
 Autonomous end-to-end testing with Playwright's three specialized agents for planning, generating, and self-healing tests automatically.
 
-## When to Use
+## Overview
 
 - Setting up E2E testing for web applications
 - Generating tests from user flows

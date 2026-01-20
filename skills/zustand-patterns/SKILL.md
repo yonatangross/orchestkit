@@ -14,7 +14,7 @@ user-invocable: false
 
 Modern state management with Zustand 5.x - lightweight, TypeScript-first, no boilerplate.
 
-## When to Use
+## Overview
 
 - Global state without Redux complexity
 - Shared state across components without prop drilling

@@ -12,7 +12,7 @@ user-invocable: false
 
 Advanced configuration for Vite 7+ including Environment API.
 
-## When to Use
+## Overview
 
 - Multi-environment builds (client, SSR, edge workers)
 - Creating custom Vite plugins

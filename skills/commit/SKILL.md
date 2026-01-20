@@ -12,7 +12,7 @@ user-invocable: true
 
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
 
-## When to Use
+## Overview
 
 - Creating git commits
 - Staging and committing changes

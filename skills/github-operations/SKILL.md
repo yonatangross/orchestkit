@@ -11,7 +11,7 @@ user-invocable: false
 
 Comprehensive GitHub CLI (`gh`) operations for project management, from basic issue creation to advanced Projects v2 integration and milestone tracking via REST API.
 
-## When to Use
+## Overview
 
 - Creating and managing GitHub issues and PRs
 - Working with GitHub Projects v2 custom fields

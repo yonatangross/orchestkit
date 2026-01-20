@@ -14,7 +14,7 @@ user-invocable: false
 
 Essential patterns for managing keyboard focus in accessible web applications, ensuring keyboard-only users can navigate complex interactive components.
 
-## When to Use
+## Overview
 
 - Building modals, dialogs, or drawers that require focus trapping
 - Implementing tab panels, menus, or toolbars with roving tabindex

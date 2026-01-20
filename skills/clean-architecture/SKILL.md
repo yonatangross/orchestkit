@@ -13,7 +13,7 @@ user-invocable: false
 
 Build maintainable, testable backends with SOLID principles and hexagonal architecture.
 
-## When to Use
+## Overview
 
 - Designing new service layer architecture
 - Refactoring tightly-coupled code

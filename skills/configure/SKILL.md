@@ -12,7 +12,7 @@ user-invocable: true
 
 Interactive setup for customizing your SkillForge installation.
 
-## When to Use
+## Overview
 
 - Initial setup of SkillForge
 - Customizing skill categories

@@ -14,7 +14,7 @@ user-invocable: false
 
 Comprehensive frameworks for analyzing and optimizing application performance across the entire stack.
 
-## When to Use
+## Overview
 
 - Application feels slow or unresponsive
 - Database queries taking too long

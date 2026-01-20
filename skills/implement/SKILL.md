@@ -12,7 +12,7 @@ user-invocable: true
 
 Maximum utilization of parallel subagent execution for feature implementation.
 
-## When to Use
+## Overview
 
 - Building new features
 - Full-stack development

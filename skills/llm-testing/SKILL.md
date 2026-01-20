@@ -13,7 +13,7 @@ user-invocable: false
 
 Test AI applications with deterministic patterns using DeepEval and RAGAS.
 
-## When to Use
+## Overview
 
 - LLM integration testing
 - Async timeout validation

@@ -12,7 +12,7 @@ user-invocable: true
 
 Systematic issue resolution with 5-7 parallel agents.
 
-## When to Use
+## Overview
 
 - Fixing GitHub issues
 - Bug resolution

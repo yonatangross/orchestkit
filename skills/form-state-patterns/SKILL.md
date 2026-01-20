@@ -14,7 +14,7 @@ user-invocable: false
 
 Production form patterns with React Hook Form v7 + Zod - type-safe, performant, accessible.
 
-## When to Use
+## Overview
 
 - Complex forms with validation
 - Multi-step wizards

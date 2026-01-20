@@ -15,7 +15,7 @@ Advanced Model Context Protocol patterns for production-grade MCP implementation
 
 > **FastMCP 2.14.x** (Jan 2026): Enterprise auth, OpenAPI/FastAPI generation, server composition, proxying. Python 3.10-3.13.
 
-## When to Use
+## Overview
 
 - Composing multiple tools into orchestrated workflows
 - Managing resource lifecycle and caching efficiently

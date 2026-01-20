@@ -14,7 +14,7 @@ user-invocable: false
 
 Modern async database patterns with SQLAlchemy 2.0, AsyncSession, and FastAPI integration.
 
-## When to Use
+## Overview
 
 - Building async FastAPI applications with database access
 - Implementing async repository patterns

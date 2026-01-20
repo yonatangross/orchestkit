@@ -12,7 +12,7 @@ user-invocable: false
 
 Unstyled, accessible React components for building high-quality design systems.
 
-## When to Use
+## Overview
 
 - Building custom styled components with full accessibility
 - Understanding how shadcn/ui works under the hood

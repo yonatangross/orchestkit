@@ -12,7 +12,7 @@ user-invocable: false
 
 Analyze errors captured from Claude Code sessions to identify patterns and get actionable insights.
 
-## When to Use
+## Overview
 
 - Analyzing recurring error patterns
 - Getting fix suggestions for common errors

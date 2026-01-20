@@ -12,7 +12,7 @@ user-invocable: false
 
 Beautifully designed, accessible components you own and customize.
 
-## When to Use
+## Overview
 
 - Adding shadcn/ui components to your project
 - Building type-safe variant systems with CVA

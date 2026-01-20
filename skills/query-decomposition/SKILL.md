@@ -11,7 +11,7 @@ user-invocable: false
 # Query Decomposition
 Break complex queries into independent concepts for parallel retrieval and fusion.
 
-## When to Use
+## Overview
 
 - Complex queries spanning multiple topics or concepts
 - Multi-hop questions requiring chained reasoning

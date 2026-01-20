@@ -12,7 +12,7 @@ user-invocable: false
 
 Test how components work together.
 
-## When to Use
+## Overview
 
 - API endpoint testing
 - Component interactions

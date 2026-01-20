@@ -13,7 +13,7 @@ user-invocable: false
 
 Multi-agent frameworks beyond LangGraph for specialized use cases.
 
-## When to Use
+## Overview
 
 - Role-based collaboration (CrewAI)
 - OpenAI-native ecosystem integration

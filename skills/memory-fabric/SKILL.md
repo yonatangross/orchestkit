@@ -12,7 +12,7 @@ user-invocable: false
 
 Graph-first architecture: mcp__memory__* (knowledge graph) is PRIMARY and always available. mcp__mem0__* (semantic cloud) is an OPTIONAL enhancement for semantic search when configured.
 
-## When to Use
+## Overview
 
 - Comprehensive memory retrieval across both systems
 - Cross-referencing entities between semantic and graph storage

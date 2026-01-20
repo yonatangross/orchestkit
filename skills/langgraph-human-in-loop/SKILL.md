@@ -12,7 +12,7 @@ user-invocable: false
 
 Pause workflows for human intervention and approval.
 
-## When to Use
+## Overview
 
 - Approval before publishing
 - Manual review of AI outputs

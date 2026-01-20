@@ -13,7 +13,7 @@ user-invocable: false
 
 Validate critical user journeys end-to-end with AI-assisted test generation.
 
-## When to Use
+## Overview
 
 - Critical user flows (checkout, signup, payment)
 - Cross-browser testing

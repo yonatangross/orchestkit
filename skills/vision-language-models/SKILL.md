@@ -13,7 +13,7 @@ tags: [vision, multimodal, image, gpt-5, claude-4, gemini, grok, vlm, 2026]
 
 Integrate vision capabilities from leading multimodal models for image understanding, document analysis, and visual reasoning.
 
-## When to Use
+## Overview
 
 - Image captioning and description generation
 - Visual question answering (VQA)

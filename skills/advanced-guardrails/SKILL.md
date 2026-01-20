@@ -15,7 +15,7 @@ Production LLM safety using NeMo Guardrails, Guardrails AI, and OpenAI moderatio
 
 > **NeMo Guardrails 2026**: LangChain 1.x compatible, parallel rails execution, OpenTelemetry tracing. **DeepTeam**: 40+ vulnerabilities, OWASP Top 10 alignment.
 
-## When to Use
+## Overview
 
 - Implementing input/output validation for LLM applications
 - Preventing hallucinations and enforcing factuality

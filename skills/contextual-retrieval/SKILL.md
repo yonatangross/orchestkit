@@ -312,7 +312,7 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
 
 **67% reduction in retrieval failures** with full contextual retrieval pipeline.
 
-## When to Use
+## Overview
 
 **Use Contextual Retrieval when**:
 - Documents have important metadata (dates, names, versions)

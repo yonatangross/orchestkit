@@ -12,7 +12,7 @@ user-invocable: false
 
 Fast, unified linting and formatting (10-25x faster than ESLint + Prettier).
 
-## When to Use
+## Overview
 
 - New projects (default choice for 2026)
 - Migrating from ESLint + Prettier

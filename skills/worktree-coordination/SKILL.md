@@ -14,7 +14,7 @@ user-invocable: true
 
 Manage multiple Claude Code instances working in parallel across git worktrees with automatic file locking, conflict detection, and decision synchronization.
 
-## When to Use
+## Overview
 
 - Running multiple Claude Code instances simultaneously
 - Working on related features in parallel

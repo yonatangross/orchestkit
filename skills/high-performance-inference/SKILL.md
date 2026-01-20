@@ -15,7 +15,7 @@ Optimize LLM inference for production with vLLM 0.14.x, quantization, and specul
 
 > **vLLM 0.14.0** (Jan 2026): PyTorch 2.9.0, CUDA 12.9, AttentionConfig API, Python 3.12+ recommended.
 
-## When to Use
+## Overview
 
 - Deploying LLMs with low latency requirements
 - Reducing GPU memory for larger models

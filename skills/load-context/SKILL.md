@@ -17,7 +17,7 @@ Auto-load relevant memories at session start from both Mem0 semantic memory and 
 
 **CC 2.1.6 Context-Aware:** Loading adapts based on `context_window.used_percentage`.
 
-## When to Use
+## Overview
 
 - **Automatically**: Invoked at session start via `auto-invoke: session-start`
 - **Manually**: Run `/load-context` to reload memories mid-session

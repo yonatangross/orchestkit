@@ -12,7 +12,7 @@ user-invocable: false
 
 Modern render performance patterns for React 19+.
 
-## When to Use
+## Overview
 
 - Debugging slow or janky UI
 - Rendering large lists (100+ items)

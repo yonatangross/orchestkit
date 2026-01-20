@@ -12,7 +12,7 @@ user-invocable: false
 
 Coordinate multiple specialized agents with a central supervisor.
 
-## When to Use
+## Overview
 
 - Multiple specialist agents
 - Central coordination needed

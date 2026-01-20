@@ -12,7 +12,7 @@ user-invocable: true
 
 Deep code review using 6-7 parallel specialized agents.
 
-## When to Use
+## Overview
 
 - Reviewing pull requests
 - Code quality assessment

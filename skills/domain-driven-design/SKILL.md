@@ -13,7 +13,7 @@ user-invocable: false
 
 Model complex business domains with entities, value objects, and bounded contexts.
 
-## When to Use
+## Overview
 
 - Modeling complex business logic
 - Separating domain from infrastructure

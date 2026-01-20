@@ -13,7 +13,7 @@ tags: [rag, multimodal, image-retrieval, clip, embeddings, vector-search, 2026]
 
 Build retrieval-augmented generation systems that handle images, text, and mixed content.
 
-## When to Use
+## Overview
 
 - Image + text retrieval (product search, documentation)
 - Cross-modal search (text query -> image results)

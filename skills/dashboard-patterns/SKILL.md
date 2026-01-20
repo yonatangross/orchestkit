@@ -13,7 +13,7 @@ user-invocable: false
 
 Dashboard UI patterns for building admin panels, analytics dashboards, and data-driven interfaces with React.
 
-## When to Use
+## Overview
 
 - Building admin dashboards
 - Creating analytics/metrics displays

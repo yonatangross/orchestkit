@@ -12,7 +12,7 @@ user-invocable: false
 
 Run independent nodes concurrently for performance.
 
-## When to Use
+## Overview
 
 - Independent agents can run together
 - Map-reduce over task lists

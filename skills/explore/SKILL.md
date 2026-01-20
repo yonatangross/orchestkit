@@ -12,7 +12,7 @@ user-invocable: true
 
 Multi-angle codebase exploration using 3-5 parallel agents.
 
-## When to Use
+## Overview
 
 - Understanding how a feature works
 - Finding where code is defined

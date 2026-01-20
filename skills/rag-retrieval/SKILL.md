@@ -12,7 +12,7 @@ user-invocable: false
 
 Combine vector search with LLM generation for accurate, grounded responses.
 
-## When to Use
+## Overview
 
 - Q&A systems over documents
 - Chatbots with knowledge bases

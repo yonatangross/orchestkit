@@ -12,7 +12,7 @@ user-invocable: false
 
 Validate system behavior under load.
 
-## When to Use
+## Overview
 
 - Pre-production validation
 - Capacity planning

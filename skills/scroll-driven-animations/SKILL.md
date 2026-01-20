@@ -13,7 +13,7 @@ user-invocable: false
 
 CSS Scroll-Driven Animations API provides performant, declarative scroll-linked animations without JavaScript. Supported in Chrome 115+, Edge 115+, Safari 18.4+.
 
-## When to Use
+## Overview
 
 - Progress indicators tied to scroll position
 - Parallax effects without JavaScript jank

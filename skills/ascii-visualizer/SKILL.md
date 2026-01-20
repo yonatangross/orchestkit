@@ -12,7 +12,7 @@ user-invocable: false
 
 Create clear ASCII visualizations for explaining complex concepts.
 
-## When to Use
+## Overview
 
 - Explaining system architecture
 - Showing workflow steps

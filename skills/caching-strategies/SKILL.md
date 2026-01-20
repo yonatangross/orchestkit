@@ -13,7 +13,7 @@ user-invocable: false
 
 Optimize performance with Redis caching patterns and smart invalidation.
 
-## When to Use
+## Overview
 
 - Reducing database load for frequent reads
 - Caching expensive computations (LLM responses, embeddings)

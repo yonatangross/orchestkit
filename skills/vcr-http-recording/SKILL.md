@@ -12,7 +12,7 @@ user-invocable: false
 
 Record and replay HTTP interactions for Python tests.
 
-## When to Use
+## Overview
 
 - External API testing
 - Deterministic HTTP tests

@@ -12,7 +12,7 @@ user-invocable: false
 
 Coordinate multiple specialized agents for complex tasks.
 
-## When to Use
+## Overview
 
 - Tasks requiring multiple expertise areas
 - Parallel analysis from different perspectives

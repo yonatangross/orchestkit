@@ -13,7 +13,7 @@ user-invocable: false
 
 Standardize API error responses with machine-readable problem details.
 
-## When to Use
+## Overview
 
 - Standardizing error responses across APIs
 - Building public APIs with clear error contracts

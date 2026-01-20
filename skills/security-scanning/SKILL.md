@@ -17,7 +17,7 @@ user-invocable: false
 
 Automate vulnerability detection in code and dependencies.
 
-## When to Use
+## Overview
 
 - Before code review completion
 - After dependency updates

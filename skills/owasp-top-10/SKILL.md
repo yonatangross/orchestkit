@@ -16,7 +16,7 @@ user-invocable: false
 
 Protect against the most critical web security risks.
 
-## When to Use
+## Overview
 
 - Security audits
 - Code review for vulnerabilities

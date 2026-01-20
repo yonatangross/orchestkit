@@ -12,7 +12,7 @@ user-invocable: false
 
 Convert text to dense vector representations for semantic search and similarity.
 
-## When to Use
+## Overview
 
 - Building semantic search systems
 - Document similarity comparison

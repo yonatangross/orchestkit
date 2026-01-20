@@ -20,7 +20,7 @@ The `/skf:doctor` command performs comprehensive health checks on your SkillForg
 4. **Coordination System** - Checks lock health and registry integrity
 5. **Context Budget** - Monitors token usage against budget
 
-## When to Use
+## Overview
 
 - After installing or updating SkillForge
 - When hooks aren't firing as expected

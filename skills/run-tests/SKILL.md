@@ -12,7 +12,7 @@ user-invocable: false
 
 Test execution with parallel analysis agents for failures.
 
-## When to Use
+## Overview
 
 - Running test suites
 - Checking test coverage

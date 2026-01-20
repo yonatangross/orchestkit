@@ -12,7 +12,7 @@ user-invocable: false
 
 Monitor LLM costs and cache effectiveness.
 
-## When to Use
+## Overview
 
 - Cost attribution by agent
 - Cache hit rate monitoring

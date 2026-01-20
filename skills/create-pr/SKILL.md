@@ -12,7 +12,7 @@ user-invocable: true
 
 Comprehensive PR creation with validation. All output goes directly to GitHub PR.
 
-## When to Use
+## Overview
 
 - Creating pull requests for feature branches
 - Submitting changes for code review

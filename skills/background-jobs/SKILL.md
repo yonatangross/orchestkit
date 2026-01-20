@@ -13,7 +13,7 @@ user-invocable: false
 
 Offload long-running tasks with async job queues.
 
-## When to Use
+## Overview
 
 - Long-running tasks (report generation, data processing)
 - Email/notification sending

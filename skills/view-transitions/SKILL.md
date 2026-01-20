@@ -13,7 +13,7 @@ user-invocable: false
 
 The View Transitions API provides smooth, native transitions between different views in web applications. Supported in Chrome 126+ and Safari 18.2+.
 
-## When to Use
+## Overview
 
 - Page navigation transitions in SPAs
 - Cross-document (MPA) transitions

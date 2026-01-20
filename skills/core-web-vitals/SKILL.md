@@ -14,7 +14,7 @@ user-invocable: false
 
 Performance optimization for Google's Core Web Vitals - LCP, INP, CLS with 2025 thresholds.
 
-## When to Use
+## Overview
 
 - Performance audits and optimization
 - Lighthouse score improvements

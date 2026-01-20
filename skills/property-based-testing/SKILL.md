@@ -13,7 +13,7 @@ user-invocable: false
 
 Discover edge cases automatically by testing properties instead of examples.
 
-## When to Use
+## Overview
 
 - Testing functions with many possible inputs
 - Validating invariants that must hold for all inputs

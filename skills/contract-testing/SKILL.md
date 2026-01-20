@@ -13,7 +13,7 @@ user-invocable: false
 
 Ensure API compatibility between services with consumer-driven contracts.
 
-## When to Use
+## Overview
 
 - Multiple teams consuming the same API
 - Microservice-to-microservice communication

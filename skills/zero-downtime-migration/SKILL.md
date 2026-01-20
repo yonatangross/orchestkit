@@ -14,7 +14,7 @@ user-invocable: false
 
 Database migration patterns that ensure continuous service availability during schema changes.
 
-## When to Use
+## Overview
 
 - Deploying schema changes to production systems with uptime requirements
 - Renaming or removing columns without breaking existing application code

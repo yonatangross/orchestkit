@@ -12,7 +12,7 @@ user-invocable: false
 
 Cache LLM responses by semantic similarity.
 
-## When to Use
+## Overview
 
 - Repeated similar queries
 - High-volume LLM applications

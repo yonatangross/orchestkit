@@ -14,7 +14,7 @@ user-invocable: false
 
 Production patterns for TanStack Query v5 - server state management done right.
 
-## When to Use
+## Overview
 
 - Infinite scroll / pagination
 - Optimistic UI updates

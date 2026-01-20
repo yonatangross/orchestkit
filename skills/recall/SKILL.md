@@ -26,7 +26,7 @@ The recall skill uses **graph memory as PRIMARY** search:
 - No cloud dependency for basic operation
 - Optional cloud enhancement with `--mem0` flag for semantic similarity search
 
-## When to Use
+## Overview
 
 - Finding past architectural decisions
 - Searching for recorded patterns

@@ -13,7 +13,7 @@ user-invocable: false
 
 Network-level API mocking for frontend tests using MSW 2.x.
 
-## When to Use
+## Overview
 
 - Frontend component testing
 - Simulating API responses and errors

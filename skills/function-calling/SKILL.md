@@ -12,7 +12,7 @@ user-invocable: false
 
 Enable LLMs to use external tools and return structured data.
 
-## When to Use
+## Overview
 
 - LLM needs to call APIs or databases
 - Extracting structured data from text

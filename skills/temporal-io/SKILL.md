@@ -13,7 +13,7 @@ user-invocable: false
 
 Durable execution engine for reliable distributed applications.
 
-## When to Use
+## Overview
 
 - Long-running business processes (days/weeks/months)
 - Saga patterns requiring compensation/rollback

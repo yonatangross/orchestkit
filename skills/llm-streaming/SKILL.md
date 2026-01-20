@@ -12,7 +12,7 @@ user-invocable: false
 
 Deliver LLM responses in real-time for better UX.
 
-## When to Use
+## Overview
 
 - Chat interfaces (show tokens as generated)
 - Long responses (don't wait for completion)

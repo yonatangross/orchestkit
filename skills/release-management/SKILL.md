@@ -12,7 +12,7 @@ user-invocable: false
 
 Automate releases with `gh release`, semantic versioning, and changelog generation.
 
-## When to Use
+## Overview
 
 - Publishing new versions
 - Creating release notes

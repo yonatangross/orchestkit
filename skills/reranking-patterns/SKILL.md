@@ -11,7 +11,7 @@ user-invocable: false
 # Reranking Patterns
 Improve search precision by re-scoring retrieved documents with more powerful models.
 
-## When to Use
+## Overview
 
 - Improving precision after initial retrieval
 - When bi-encoder embeddings miss semantic nuance

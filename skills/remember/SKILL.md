@@ -32,7 +32,7 @@ The remember skill uses **graph memory as PRIMARY** storage:
 - Identifies pattern names (cursor-pagination, connection-pooling)
 - Recognizes "X uses Y", "X recommends Y", "X requires Y" relationship patterns
 
-## When to Use
+## Overview
 
 - Recording architectural decisions
 - Storing successful patterns

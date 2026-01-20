@@ -12,7 +12,7 @@ user-invocable: false
 
 Enable LLMs to reason, plan, and take autonomous actions.
 
-## When to Use
+## Overview
 
 - Multi-step problem solving
 - Tasks requiring planning

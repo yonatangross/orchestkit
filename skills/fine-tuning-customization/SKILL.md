@@ -15,7 +15,7 @@ Customize LLMs for specific domains using parameter-efficient fine-tuning and al
 
 > **Unsloth 2026**: 7x longer context RL, FP8 RL on consumer GPUs, rsLoRA support. **TRL**: OpenEnv integration, vLLM server mode, transformers 5.0.0+ compatible.
 
-## When to Use
+## Overview
 
 - Domain-specific terminology or style needed
 - Consistent output format required

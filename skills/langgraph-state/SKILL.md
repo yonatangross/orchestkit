@@ -12,7 +12,7 @@ user-invocable: false
 
 Design and manage state schemas for LangGraph workflows.
 
-## When to Use
+## Overview
 
 - Designing workflow state schemas
 - Choosing TypedDict vs Pydantic

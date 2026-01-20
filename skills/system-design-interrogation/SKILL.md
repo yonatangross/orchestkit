@@ -14,7 +14,7 @@ user-invocable: false
 
 Structured questioning framework to ensure nothing is missed when planning system architecture, covering scalability, security, data, and operational dimensions.
 
-## When to Use
+## Overview
 
 - Before starting complex system implementations
 - Planning new features with architectural implications

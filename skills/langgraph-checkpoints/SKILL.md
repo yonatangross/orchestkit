@@ -12,7 +12,7 @@ user-invocable: false
 
 Persist workflow state for recovery and debugging.
 
-## When to Use
+## Overview
 
 - Fault-tolerant workflows
 - Resume after crashes

@@ -13,7 +13,7 @@ user-invocable: false
 
 Modern responsive design patterns using Container Queries, fluid typography, and mobile-first strategies for React applications (2026 best practices).
 
-## When to Use
+## Overview
 
 - Building reusable components that adapt to their container
 - Implementing fluid typography that scales smoothly

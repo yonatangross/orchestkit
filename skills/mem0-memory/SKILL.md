@@ -12,7 +12,7 @@ user-invocable: false
 
 Persist and retrieve semantic memories across Claude sessions.
 
-## When to Use
+## Overview
 
 - Preserving architecture decisions across sessions
 - Remembering user preferences and patterns

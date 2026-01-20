@@ -14,7 +14,7 @@ user-invocable: false
 
 Automated accessibility testing with axe-core for WCAG 2.2 compliance. Catches 30-50% of issues automatically.
 
-## When to Use
+## Overview
 
 - Implementing CI/CD accessibility gates
 - Running pre-release compliance audits

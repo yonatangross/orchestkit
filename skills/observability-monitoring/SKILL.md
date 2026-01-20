@@ -15,7 +15,7 @@ user-invocable: false
 
 Comprehensive frameworks for implementing observability including structured logging, metrics, distributed tracing, and alerting.
 
-## When to Use
+## Overview
 
 - Setting up application monitoring
 - Implementing structured logging

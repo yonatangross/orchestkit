@@ -12,7 +12,7 @@ user-invocable: true
 
 Interactive recovery from common git mistakes. Safe operations with verification steps.
 
-## When to Use
+## Overview
 
 - Undo a commit you just made
 - Recover a deleted branch

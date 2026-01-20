@@ -14,7 +14,7 @@ user-invocable: false
 
 Web Content Accessibility Guidelines 2.2 AA implementation for inclusive, legally compliant web applications.
 
-## When to Use
+## Overview
 
 - Building accessible UI components from scratch
 - Auditing applications for ADA/Section 508 compliance

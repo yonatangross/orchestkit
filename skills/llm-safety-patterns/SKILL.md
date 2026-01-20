@@ -14,7 +14,7 @@ user-invocable: false
 
 Defensive patterns to protect LLM integrations against prompt injection, hallucination, and data leakage through layered validation and output filtering.
 
-## When to Use
+## Overview
 
 - Securing LLM-powered features in production
 - Implementing context separation for multi-tenant AI

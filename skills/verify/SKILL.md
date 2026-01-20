@@ -12,7 +12,7 @@ user-invocable: true
 
 Comprehensive verification using parallel specialized agents.
 
-## When to Use
+## Overview
 
 - Verifying completed features
 - Pre-merge validation

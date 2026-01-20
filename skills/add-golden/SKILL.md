@@ -12,7 +12,7 @@ user-invocable: true
 
 Multi-agent curation workflow for adding high-quality documents.
 
-## When to Use
+## Overview
 
 - Adding documents to evaluation dataset
 - Curating test content

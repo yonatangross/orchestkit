@@ -12,7 +12,7 @@ user-invocable: false
 
 Test isolated business logic with fast, deterministic tests.
 
-## When to Use
+## Overview
 
 - Testing pure functions
 - Business logic isolation

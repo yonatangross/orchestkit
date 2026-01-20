@@ -14,7 +14,7 @@ user-invocable: false
 
 Build accessible UI components using Adobe's React Aria hooks library with React 19 patterns.
 
-## When to Use
+## Overview
 
 - Building accessible buttons, links, and toggles with keyboard/screen reader support
 - Implementing modal dialogs with proper focus management and trapping
