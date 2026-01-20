@@ -12,13 +12,6 @@ user-invocable: false
 
 Cache LLM responses by semantic similarity.
 
-## When to Use
-
-- Repeated similar queries
-- High-volume LLM applications
-- Cost reduction (70-95% savings)
-- Latency optimization
-
 ## Cache Hierarchy
 
 ```

@@ -13,7 +13,7 @@ user-invocable: false
 
 Type-safe GraphQL in Python with code-first schema definition.
 
-## When to Use
+## Overview
 
 - Complex data relationships (nested queries, multiple entities)
 - Client-driven data fetching (mobile apps, SPAs)

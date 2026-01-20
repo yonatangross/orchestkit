@@ -12,13 +12,6 @@ user-invocable: false
 
 Run independent nodes concurrently for performance.
 
-## When to Use
-
-- Independent agents can run together
-- Map-reduce over task lists
-- Scatter-gather patterns
-- Performance optimization
-
 ## Fan-Out/Fan-In Pattern
 
 ```python

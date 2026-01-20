@@ -13,7 +13,7 @@ user-invocable: false
 
 Version control strategies for database schemas and data across environments.
 
-## When to Use
+## Overview
 
 - Tracking schema changes over time
 - Coordinating database changes across dev/staging/prod

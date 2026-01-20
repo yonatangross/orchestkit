@@ -13,7 +13,7 @@ user-invocable: false
 
 Master pytest's advanced features for scalable, maintainable test suites.
 
-## When to Use
+## Overview
 
 - Building custom test markers for categorization
 - Writing pytest plugins and hooks

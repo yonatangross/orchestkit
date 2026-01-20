@@ -12,13 +12,6 @@ user-invocable: false
 
 Test isolated business logic with fast, deterministic tests.
 
-## When to Use
-
-- Testing pure functions
-- Business logic isolation
-- Fast feedback loops
-- High coverage targets
-
 ## AAA Pattern (Arrange-Act-Assert)
 
 ```typescript

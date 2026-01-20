@@ -1,6 +1,6 @@
 ---
 name: Observability & Monitoring
-description: Use when adding logging, metrics, tracing, or alerting to applications. Covers structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies.
+description: Use when adding logging, metrics, tracing, or alerting to applications. Observability & Monitoring covers structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies.
 context: fork
 agent: metrics-architect
 version: 1.0.0
@@ -15,7 +15,7 @@ user-invocable: false
 
 Comprehensive frameworks for implementing observability including structured logging, metrics, distributed tracing, and alerting.
 
-## When to Use
+## Overview
 
 - Setting up application monitoring
 - Implementing structured logging

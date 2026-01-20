@@ -20,7 +20,7 @@ user-invocable: false
 
 Store application state as immutable events rather than current state snapshots.
 
-## When to Use
+## Overview
 
 - Full audit trail requirements (compliance, finance)
 - Temporal queries ("what was state at time X?")

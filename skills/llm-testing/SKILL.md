@@ -13,14 +13,6 @@ user-invocable: false
 
 Test AI applications with deterministic patterns using DeepEval and RAGAS.
 
-## When to Use
-
-- LLM integration testing
-- Async timeout validation
-- Structured output testing
-- Quality gate testing
-- RAG pipeline evaluation
-
 ## Quick Reference
 
 ### Mock LLM Responses

@@ -1,6 +1,6 @@
 ---
 name: mcp-advanced-patterns
-description: Advanced MCP patterns for tool composition, resource management, and scaling. Build custom MCP servers, compose tools, manage resources efficiently.
+description: Advanced MCP patterns for tool composition, resource management, and scaling. Build custom MCP servers, compose tools, manage resources efficiently. Use when composing MCP tools or scaling MCP servers.
 version: 1.0.0
 author: SkillForge
 context: fork
@@ -15,7 +15,7 @@ Advanced Model Context Protocol patterns for production-grade MCP implementation
 
 > **FastMCP 2.14.x** (Jan 2026): Enterprise auth, OpenAPI/FastAPI generation, server composition, proxying. Python 3.10-3.13.
 
-## When to Use
+## Overview
 
 - Composing multiple tools into orchestrated workflows
 - Managing resource lifecycle and caching efficiently

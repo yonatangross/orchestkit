@@ -13,14 +13,6 @@ user-invocable: false
 
 Network-level API mocking for frontend tests using MSW 2.x.
 
-## When to Use
-
-- Frontend component testing
-- Simulating API responses and errors
-- Network delay simulation
-- GraphQL mocking
-- WebSocket mocking (NEW in 2.x)
-
 ## Quick Reference
 
 ```typescript

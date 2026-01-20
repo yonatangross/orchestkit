@@ -13,7 +13,7 @@ user-invocable: false
 
 Design aggregates with clear boundaries, invariants, and consistency guarantees.
 
-## When to Use
+## Overview
 
 - Defining transactional consistency boundaries
 - Enforcing business invariants across related entities

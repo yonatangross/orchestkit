@@ -13,7 +13,7 @@ user-invocable: false
 
 Protect APIs with distributed rate limiting using Redis and modern algorithms.
 
-## When to Use
+## Overview
 
 - Protecting public APIs from abuse
 - Implementing tiered rate limits (free/pro/enterprise)

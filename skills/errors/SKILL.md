@@ -12,12 +12,6 @@ user-invocable: false
 
 Analyze errors captured from Claude Code sessions to identify patterns and get actionable insights.
 
-## When to Use
-
-- Analyzing recurring error patterns
-- Getting fix suggestions for common errors
-- Reviewing session error logs
-
 ## Quick Start
 
 ```bash
@@ -76,7 +70,6 @@ fix: Use Docker connection: docker exec -it skillforge-postgres-dev psql -U skil
 pattern: relation "X" does not exist
 fix: Check MCP postgres server connection string - may be connected to wrong database
 ```
-
 
 ## Related Skills
 - fix-issue: Fix identified errors

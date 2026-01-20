@@ -12,13 +12,6 @@ user-invocable: false
 
 Persist workflow state for recovery and debugging.
 
-## When to Use
-
-- Fault-tolerant workflows
-- Resume after crashes
-- Debug state at each step
-- Avoid re-running expensive LLM calls
-
 ## Checkpointer Options
 
 ```python

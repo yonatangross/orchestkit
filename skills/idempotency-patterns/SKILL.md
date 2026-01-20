@@ -14,7 +14,7 @@ user-invocable: false
 
 Patterns for ensuring operations can be safely retried without unintended side effects.
 
-## When to Use
+## Overview
 
 - Building payment or financial APIs
 - Implementing webhook handlers

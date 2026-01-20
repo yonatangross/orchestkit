@@ -12,7 +12,7 @@ user-invocable: false
 # Database Schema Designer
 This skill provides comprehensive guidance for designing robust, scalable database schemas for both SQL and NoSQL databases. Whether building from scratch or evolving existing schemas, this framework ensures data integrity, performance, and maintainability.
 
-## When to Use
+## Overview
 - Designing new database schemas
 - Refactoring or migrating existing schemas
 - Optimizing database performance

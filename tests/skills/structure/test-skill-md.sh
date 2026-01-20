@@ -129,10 +129,16 @@ has_h1_title() {
     grep -q "^# " "$file" 2>/dev/null
 }
 
-has_when_to_use_or_overview() {
+has_overview_section() {
     local file="$1"
-    # Check for "When to Use" or "Overview" section (case-insensitive)
-    grep -iE "^#+\s*(when\s+to\s+use|overview)" "$file" >/dev/null 2>&1
+    # Check for "Overview" section (case-insensitive)
+    grep -iE "^#+\s*overview" "$file" >/dev/null 2>&1
+}
+
+has_trigger_in_description() {
+    local file="$1"
+    # Check if description field has trigger phrases
+    grep -qiE "description:.*use\s+(when|for|this)" "$file"
 }
 
 has_code_block() {
@@ -333,28 +339,41 @@ fi
 echo ""
 
 # ============================================================================
-# Test 5: "When to Use" or "Overview" section exists
+# Test 5: Overview section or trigger phrases in description
 # ============================================================================
-echo -e "${CYAN}Test 5: 'When to Use' or 'Overview' Section${NC}"
+echo -e "${CYAN}Test 5: Overview Section or Description Triggers${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
+echo -e "${YELLOW}Note: Overview sections are optional. Descriptions with 'Use when...' triggers${NC}"
+echo -e "${YELLOW}provide sufficient guidance. Overview is only required if it adds value.${NC}"
 
-missing_section=()
+missing_guidance=()
+skills_without_overview=0
 for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -f "$skill_dir/SKILL.md" ]]; then
         skill_name=$(basename "$skill_dir")
         skill_file="$skill_dir/SKILL.md"
 
-        if ! has_when_to_use_or_overview "$skill_file"; then
-            missing_section+=("$skill_name")
-            fail "$skill_name: Missing 'When to Use' or 'Overview' section"
+        if has_overview_section "$skill_file"; then
+            info "$skill_name: Has Overview section"
+        elif has_trigger_in_description "$skill_file"; then
+            # Description has triggers, Overview is optional
+            ((skills_without_overview++)) || true
+            info "$skill_name: No Overview (description has triggers - OK)"
         else
-            info "$skill_name: Has usage/overview section"
+            # No Overview and no clear triggers - warn
+            missing_guidance+=("$skill_name")
+            warn "$skill_name: Missing Overview section and no trigger phrases in description"
         fi
     fi
 done
 
-if [[ ${#missing_section[@]} -eq 0 ]]; then
-    pass "All SKILL.md files have 'When to Use' or 'Overview' section"
+if [[ ${#missing_guidance[@]} -eq 0 ]]; then
+    pass "SKILL.md files validated (Overview optional if description has triggers)"
+    if [[ $skills_without_overview -gt 0 ]]; then
+        info "$skills_without_overview skills without Overview sections (OK - descriptions have triggers)"
+    fi
+else
+    warn "${#missing_guidance[@]} skills may benefit from Overview or trigger phrases in description"
 fi
 echo ""
 

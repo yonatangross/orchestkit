@@ -12,13 +12,6 @@ user-invocable: false
 
 Cache LLM prompt prefixes for 90% token savings.
 
-## When to Use
-
-- Same system prompts across requests
-- Few-shot examples in prompts
-- Schema documentation in prompts
-- High-volume API calls
-
 ## Supported Models (2026)
 
 | Provider | Models |

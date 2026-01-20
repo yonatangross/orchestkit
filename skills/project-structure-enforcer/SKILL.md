@@ -10,13 +10,6 @@ user-invocable: false
 ---
 Enforce 2026 folder structure best practices with **BLOCKING** validation.
 
-## When to Use
-
-- Creating new files
-- Reviewing project architecture
-- Refactoring folder structure
-- Validating import patterns
-
 ## Validation Rules
 
 ### BLOCKING Rules (exit 1)

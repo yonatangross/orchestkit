@@ -1,6 +1,6 @@
 ---
 name: memory-fabric
-description: Graph-first memory orchestration - knowledge graph (PRIMARY, always available) with optional mem0 cloud enhancement for semantic search.
+description: Graph-first memory orchestration - knowledge graph (PRIMARY, always available) with optional mem0 cloud enhancement for semantic search. Use when designing memory orchestration or combining graph and mem0.
 context: inherit
 version: 2.1.0
 author: SkillForge
@@ -12,7 +12,7 @@ user-invocable: false
 
 Graph-first architecture: mcp__memory__* (knowledge graph) is PRIMARY and always available. mcp__mem0__* (semantic cloud) is an OPTIONAL enhancement for semantic search when configured.
 
-## When to Use
+## Overview
 
 - Comprehensive memory retrieval across both systems
 - Cross-referencing entities between semantic and graph storage

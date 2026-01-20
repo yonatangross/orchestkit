@@ -13,14 +13,6 @@ user-invocable: false
 
 Production-ready FastAPI patterns for modern Python backends.
 
-## When to Use
-
-- Building production FastAPI applications
-- Managing application lifecycle (startup/shutdown)
-- Creating reusable dependencies
-- Implementing custom middleware
-- Configuring settings with validation
-
 ## Lifespan Management (2026)
 
 ### Modern Lifespan Context Manager

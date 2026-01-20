@@ -12,13 +12,6 @@ user-invocable: true
 
 Deep code review using 6-7 parallel specialized agents.
 
-## When to Use
-
-- Reviewing pull requests
-- Code quality assessment
-- Security auditing PRs
-- Test coverage validation
-
 ## Quick Start
 
 ```bash
@@ -150,7 +143,6 @@ Use these prefixes for comments:
 - `suggestion:` - Improvement idea
 - `issue:` - Must fix
 - `question:` - Needs clarification
-
 
 ## Related Skills
 - commit: Create commits after review

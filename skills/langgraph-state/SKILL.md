@@ -12,13 +12,6 @@ user-invocable: false
 
 Design and manage state schemas for LangGraph workflows.
 
-## When to Use
-
-- Designing workflow state schemas
-- Choosing TypedDict vs Pydantic
-- Multi-agent state accumulation
-- State validation and typing
-
 ## TypedDict Approach (Simple)
 
 ```python

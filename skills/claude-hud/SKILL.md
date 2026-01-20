@@ -10,7 +10,7 @@ user-invocable: true
 
 # Claude HUD - Status Line Configuration
 
-## When to Use
+## Overview
 
 Use this skill when you need to:
 - Monitor context window usage in real-time

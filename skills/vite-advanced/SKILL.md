@@ -12,14 +12,6 @@ user-invocable: false
 
 Advanced configuration for Vite 7+ including Environment API.
 
-## When to Use
-
-- Multi-environment builds (client, SSR, edge workers)
-- Creating custom Vite plugins
-- Configuring SSR for frameworks
-- Building publishable libraries
-- Optimizing production builds
-
 ## Vite 7 Environment API (Key 2026 Feature)
 
 Multi-environment support is now first-class:

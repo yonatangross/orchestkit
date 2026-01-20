@@ -12,13 +12,6 @@ user-invocable: false
 
 Route workflow execution dynamically based on state.
 
-## When to Use
-
-- Dynamic branching based on results
-- Retry loops with backoff
-- Quality gates with pass/fail paths
-- Multi-path workflows
-
 ## Basic Conditional Edge
 
 ```python

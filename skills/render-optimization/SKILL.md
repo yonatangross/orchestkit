@@ -12,13 +12,6 @@ user-invocable: false
 
 Modern render performance patterns for React 19+.
 
-## When to Use
-
-- Debugging slow or janky UI
-- Rendering large lists (100+ items)
-- Reducing unnecessary re-renders
-- Migrating to React Compiler
-
 ## Decision Tree: React Compiler First (2026)
 
 ```

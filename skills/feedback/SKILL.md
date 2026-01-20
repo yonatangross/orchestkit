@@ -12,7 +12,7 @@ user-invocable: true
 
 View and manage the SkillForge feedback system that learns from your usage.
 
-## When to Use
+## Overview
 
 - Checking feedback system status
 - Pausing/resuming learning

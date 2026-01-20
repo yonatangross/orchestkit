@@ -1,6 +1,6 @@
 ---
 name: configure
-description: Interactive SkillForge configuration wizard. Use when configuring settings, setting up MCP servers, customizing plugin.
+description: Interactive SkillForge configuration wizard. Use when you need to configure SkillForge settings, MCP servers, or plugin options.
 context: inherit
 version: 1.0.0
 author: SkillForge
@@ -11,14 +11,6 @@ user-invocable: true
 # SkillForge Configuration
 
 Interactive setup for customizing your SkillForge installation.
-
-## When to Use
-
-- Initial setup of SkillForge
-- Customizing skill categories
-- Toggling agents on/off
-- Configuring hooks
-- Enabling MCP integrations
 
 ## Quick Start
 
@@ -144,7 +136,6 @@ When enabled:
 - Compression triggers use effective window
 - MCP deferral more accurate
 
-
 ## Step 7: Preview & Save
 
 Save to: `~/.claude/plugins/skillforge/config.json`
@@ -159,7 +150,6 @@ Save to: `~/.claude/plugins/skillforge/config.json`
   "mcps": { "context7": false, ... }
 }
 ```
-
 
 ## Related Skills
 - doctor: Diagnose configuration issues

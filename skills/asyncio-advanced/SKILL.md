@@ -14,7 +14,7 @@ user-invocable: false
 
 Modern Python asyncio patterns using structured concurrency, TaskGroup, and Python 3.11+ features.
 
-## When to Use
+## Overview
 
 - Implementing concurrent HTTP requests or database queries
 - Building async services with proper cancellation handling

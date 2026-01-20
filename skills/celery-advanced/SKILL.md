@@ -13,7 +13,7 @@ user-invocable: false
 
 Enterprise-grade task orchestration beyond basic background jobs.
 
-## When to Use
+## Overview
 
 - Complex multi-step task workflows (ETL pipelines, order processing)
 - Priority-based task processing (premium vs standard users)

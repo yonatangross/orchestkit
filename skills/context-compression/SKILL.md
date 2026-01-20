@@ -18,7 +18,7 @@ Context compression is essential for long-running agent sessions. The goal is NO
 
 **Key Metric:** Tokens-per-task (total tokens to complete a task), NOT tokens-per-request.
 
-## When to Use
+## Overview
 
 - Long-running conversations approaching context limits
 - Multi-step agent workflows with accumulating history

@@ -13,14 +13,6 @@ user-invocable: false
 
 Validate critical user journeys end-to-end with AI-assisted test generation.
 
-## When to Use
-
-- Critical user flows (checkout, signup, payment)
-- Cross-browser testing
-- Visual regression testing
-- Full stack validation
-- AI-assisted test generation and healing
-
 ## Quick Reference - Semantic Locators
 
 ```typescript

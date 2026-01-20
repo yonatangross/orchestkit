@@ -1,6 +1,6 @@
 ---
 name: architecture-decision-record
-description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Helps teams maintain architectural memory and rationale for backend systems, API designs, database choices, and infrastructure decisions.
+description: Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options.
 version: 2.0.0
 author: AI Agent Hub
 tags: [architecture, documentation, decision-making, backend]
@@ -12,7 +12,7 @@ user-invocable: false
 # Architecture Decision Records
 Architecture Decision Records (ADRs) are lightweight documents that capture important architectural decisions along with their context and consequences. This skill provides templates, examples, and best practices for creating and maintaining ADRs in your projects.
 
-## When to Use
+## Overview
 - Making significant technology choices (databases, frameworks, cloud providers)
 - Designing system architecture or major components
 - Establishing patterns or conventions for the team

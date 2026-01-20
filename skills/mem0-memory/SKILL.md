@@ -12,13 +12,6 @@ user-invocable: false
 
 Persist and retrieve semantic memories across Claude sessions.
 
-## When to Use
-
-- Preserving architecture decisions across sessions
-- Remembering user preferences and patterns
-- Tracking project-specific conventions
-- Recalling previous discussions and context
-
 ## Memory Scopes
 
 Organize memories by scope for efficient retrieval:

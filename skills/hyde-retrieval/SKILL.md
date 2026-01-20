@@ -119,7 +119,7 @@ async def batch_hyde(
     return await asyncio.gather(*tasks)
 ```
 
-## When to Use HyDE
+## Overview
 
 | Scenario | Use HyDE? |
 |----------|-----------|

@@ -12,12 +12,6 @@ user-invocable: true
 
 Systematic issue resolution with 5-7 parallel agents.
 
-## When to Use
-
-- Fixing GitHub issues
-- Bug resolution
-- Issue investigation and implementation
-
 ## Quick Start
 
 ```bash
@@ -128,7 +122,6 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [Brief description]"
 5. Implement + test
 6. Validate
 7. PR with issue reference
-
 
 ## Related Skills
 - commit: Commit issue fixes

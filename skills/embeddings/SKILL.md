@@ -12,14 +12,6 @@ user-invocable: false
 
 Convert text to dense vector representations for semantic search and similarity.
 
-## When to Use
-
-- Building semantic search systems
-- Document similarity comparison
-- RAG retrieval (see: `rag-retrieval` skill)
-- Clustering related content
-- Duplicate detection
-
 ## Quick Reference
 
 ```python

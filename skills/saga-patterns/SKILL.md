@@ -13,7 +13,7 @@ user-invocable: false
 
 Maintain consistency across microservices without distributed locks.
 
-## When to Use
+## Overview
 
 - Multi-service business transactions (order -> payment -> inventory -> shipping)
 - Operations that must eventually succeed or roll back completely

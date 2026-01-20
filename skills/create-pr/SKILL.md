@@ -12,12 +12,6 @@ user-invocable: true
 
 Comprehensive PR creation with validation. All output goes directly to GitHub PR.
 
-## When to Use
-
-- Creating pull requests for feature branches
-- Submitting changes for code review
-- Opening PRs with auto-generated descriptions
-
 ## Quick Start
 
 ```bash
@@ -112,13 +106,12 @@ gh pr view --web
 3. **All content goes to GitHub** - PR body via `gh pr create --body`
 4. **Keep it simple** - One command to create PR
 
-## When to Use Agents
+## Agent Usage
 
 Only use Task agents for:
 - Complex code analysis requiring multiple files
 - Security review of sensitive changes
 - Architecture review for large refactors
-
 
 ## Related Skills
 - commit: Create commits before PRs

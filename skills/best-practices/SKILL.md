@@ -12,13 +12,6 @@ user-invocable: false
 
 Display your aggregated best practices library, showing successful patterns and anti-patterns across all projects.
 
-## When to Use
-
-- Reviewing what patterns worked well
-- Checking for known anti-patterns
-- Getting statistics on your practices
-- Before implementing a pattern to check history
-
 ## Usage
 
 ```
@@ -169,7 +162,6 @@ Claude warn you before repeating past mistakes.
 ## Proactive Integration
 
 See `references/proactive-warnings.md` for automatic anti-pattern detection.
-
 
 ## Related Skills
 - code-review-playbook: Review best practices

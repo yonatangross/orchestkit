@@ -13,7 +13,7 @@ user-invocable: false
 
 High-performance RPC framework for microservice communication.
 
-## When to Use
+## Overview
 
 - Internal microservice communication (lower latency than REST)
 - Streaming data (real-time updates, file transfers)

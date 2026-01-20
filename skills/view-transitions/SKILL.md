@@ -1,6 +1,6 @@
 ---
 name: view-transitions
-description: View Transitions API for smooth page transitions, shared element animations, and SPA/MPA navigation in React applications
+description: View Transitions API for smooth page transitions, shared element animations, and SPA/MPA navigation in React applications. Use when adding view transitions or page animations.
 tags: [view-transitions, page-transition, shared-element, navigation, react-router, animation, spa, mpa]
 context: fork
 agent: frontend-ui-developer
@@ -13,7 +13,7 @@ user-invocable: false
 
 The View Transitions API provides smooth, native transitions between different views in web applications. Supported in Chrome 126+ and Safari 18.2+.
 
-## When to Use
+## Overview
 
 - Page navigation transitions in SPAs
 - Cross-document (MPA) transitions

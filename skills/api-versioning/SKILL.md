@@ -13,14 +13,6 @@ user-invocable: false
 
 Design APIs that evolve gracefully without breaking clients.
 
-## When to Use
-
-- Launching a public API
-- Planning breaking changes
-- Supporting multiple client versions
-- Implementing deprecation policies
-- Designing API evolution strategy
-
 ## Strategy Comparison
 
 | Strategy | Example | Pros | Cons |

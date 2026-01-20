@@ -13,13 +13,6 @@ user-invocable: false
 
 Ensure API compatibility between services with consumer-driven contracts.
 
-## When to Use
-
-- Multiple teams consuming the same API
-- Microservice-to-microservice communication
-- Preventing breaking API changes
-- Testing integrations without deploying all services
-
 ## Contract Testing vs Integration Testing
 
 | Integration Testing | Contract Testing |

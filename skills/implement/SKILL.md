@@ -12,13 +12,6 @@ user-invocable: true
 
 Maximum utilization of parallel subagent execution for feature implementation.
 
-## When to Use
-
-- Building new features
-- Full-stack development
-- Complex implementations requiring multiple specialists
-- AI/ML integrations
-
 ## Quick Start
 
 ```bash
@@ -150,7 +143,6 @@ Use inline notifications for long-running phases:
 [Phase 4] Finished: 8/8 agents (12.5s total)
 ```
 
-
 ## Phase 6: E2E Verification
 
 If UI changes, verify with agent-browser:
@@ -185,7 +177,6 @@ mcp__mem0__add-memory(content="Implementation decisions...", userId="project-dec
 - Parallel when independent (use `run_in_background: true`)
 - CC 2.1.6 auto-loads skills from agent frontmatter
 - Evidence-based completion
-
 
 ## Related Skills
 - explore: Explore codebase before implementing

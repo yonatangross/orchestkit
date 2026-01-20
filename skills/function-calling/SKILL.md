@@ -12,13 +12,6 @@ user-invocable: false
 
 Enable LLMs to use external tools and return structured data.
 
-## When to Use
-
-- LLM needs to call APIs or databases
-- Extracting structured data from text
-- Building AI agents with tool use
-- Reliable JSON output from LLMs
-
 ## Basic Tool Definition (2026 Best Practice)
 
 ```python

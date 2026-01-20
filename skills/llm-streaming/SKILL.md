@@ -12,13 +12,6 @@ user-invocable: false
 
 Deliver LLM responses in real-time for better UX.
 
-## When to Use
-
-- Chat interfaces (show tokens as generated)
-- Long responses (don't wait for completion)
-- Progress indication for slow operations
-- Streaming with function calls
-
 ## Basic Streaming (OpenAI)
 
 ```python

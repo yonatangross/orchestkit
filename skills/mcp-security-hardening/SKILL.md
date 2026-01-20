@@ -13,7 +13,7 @@ user-invocable: false
 
 Defense-in-depth security patterns for Model Context Protocol (MCP) integrations.
 
-## When to Use
+## Overview
 
 - Securing MCP server implementations
 - Validating tool descriptions before LLM exposure

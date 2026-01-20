@@ -10,17 +10,6 @@ user-invocable: false
 
 # System Design Interrogation
 
-## Overview
-
-Structured questioning framework to ensure nothing is missed when planning system architecture, covering scalability, security, data, and operational dimensions.
-
-## When to Use
-
-- Before starting complex system implementations
-- Planning new features with architectural implications
-- Reviewing existing designs for gaps
-- Preparing for technical design reviews
-
 ## The Problem
 
 Rushing to implementation without systematic design thinking leads to:

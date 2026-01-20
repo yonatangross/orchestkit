@@ -13,13 +13,6 @@ user-invocable: false
 
 Multi-agent frameworks beyond LangGraph for specialized use cases.
 
-## When to Use
-
-- Role-based collaboration (CrewAI)
-- OpenAI-native ecosystem integration
-- Enterprise compliance requirements
-- Exploring framework alternatives
-
 ## Framework Comparison
 
 | Framework | Best For | Key Features | 2026 Status |

@@ -1,6 +1,6 @@
 ---
 name: run-tests
-description: Comprehensive test execution with parallel analysis and coverage reporting
+description: Comprehensive test execution with parallel analysis and coverage reporting. Use when running test suites or troubleshooting failures with the run-tests workflow.
 context: fork
 version: 1.0.0
 author: SkillForge
@@ -11,13 +11,6 @@ user-invocable: false
 # Run Tests
 
 Test execution with parallel analysis agents for failures.
-
-## When to Use
-
-- Running test suites
-- Checking test coverage
-- Analyzing test failures
-- Verifying code changes
 
 ## Quick Start
 

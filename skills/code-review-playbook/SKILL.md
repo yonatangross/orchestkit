@@ -1,6 +1,6 @@
 ---
 name: code-review-playbook
-description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Ensures consistent, constructive, and thorough code reviews across teams.
+description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
 version: 2.0.0
 author: AI Agent Hub
 tags: [code-review, quality, collaboration, best-practices]
@@ -12,7 +12,7 @@ user-invocable: false
 # Code Review Playbook
 This skill provides a comprehensive framework for effective code reviews that improve code quality, share knowledge, and foster collaboration. Whether you're a reviewer giving feedback or an author preparing code for review, this playbook ensures reviews are thorough, consistent, and constructive.
 
-## When to Use
+## Overview
 - Reviewing pull requests or merge requests
 - Preparing code for review (self-review)
 - Establishing code review standards for teams

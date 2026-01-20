@@ -13,14 +13,6 @@ user-invocable: false
 
 Standardize API error responses with machine-readable problem details.
 
-## When to Use
-
-- Standardizing error responses across APIs
-- Building public APIs with clear error contracts
-- Implementing error type registries
-- Replacing ad-hoc error formats
-- Improving client error handling
-
 ## RFC 9457 vs RFC 7807
 
 | Feature | RFC 7807 (Old) | RFC 9457 (Current) |

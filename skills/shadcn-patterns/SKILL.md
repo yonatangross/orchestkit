@@ -12,13 +12,6 @@ user-invocable: false
 
 Beautifully designed, accessible components you own and customize.
 
-## When to Use
-
-- Adding shadcn/ui components to your project
-- Building type-safe variant systems with CVA
-- Customizing themes with OKLCH colors
-- Extending components while maintaining patterns
-
 ## Core Pattern: CVA (Class Variance Authority)
 
 Declarative, type-safe variant definitions:

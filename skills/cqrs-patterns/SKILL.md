@@ -13,7 +13,7 @@ user-invocable: false
 
 Separate read and write concerns for optimized data access.
 
-## When to Use
+## Overview
 
 - Read-heavy workloads with complex queries
 - Different scaling requirements for reads vs writes

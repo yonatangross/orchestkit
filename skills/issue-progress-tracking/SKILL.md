@@ -1,6 +1,6 @@
 ---
 name: issue-progress-tracking
-description: Automatic GitHub issue progress updates from commits and sub-task completion
+description: Automatic GitHub issue progress updates from commits and sub-task completion. Use when tracking issue progress from commits or automating status updates.
 tags: [github, issues, progress, tracking, automation, commits]
 user-invocable: false
 ---
@@ -9,7 +9,7 @@ user-invocable: false
 
 Automatic GitHub issue progress tracking that updates issues based on commits and marks sub-tasks as complete.
 
-## When to Use
+## Overview
 
 - Working on GitHub issues with checkbox sub-tasks
 - Making commits that reference issue numbers

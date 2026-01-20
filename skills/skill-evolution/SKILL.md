@@ -12,7 +12,7 @@ user-invocable: true
 
 Enables skills to automatically improve based on usage patterns, user edits, and success rates. Provides version control with safe rollback capability.
 
-## When to Use
+## Overview
 
 - Reviewing how skills are performing across sessions
 - Identifying patterns in user edits to skill outputs

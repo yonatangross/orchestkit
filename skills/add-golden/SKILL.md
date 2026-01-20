@@ -12,13 +12,6 @@ user-invocable: true
 
 Multi-agent curation workflow for adding high-quality documents.
 
-## When to Use
-
-- Adding documents to evaluation dataset
-- Curating test content
-- Building retrieval benchmarks
-- Quality control for RAG systems
-
 ## Quick Start
 
 ```bash

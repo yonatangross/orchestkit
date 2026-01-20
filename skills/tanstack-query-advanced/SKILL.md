@@ -1,6 +1,6 @@
 ---
 name: tanstack-query-advanced
-description: Advanced TanStack Query v5 patterns for infinite queries, optimistic updates, prefetching, gcTime, and queryOptions
+description: Advanced TanStack Query v5 patterns for infinite queries, optimistic updates, prefetching, gcTime, and queryOptions. Use when building data fetching, caching, or optimistic updates.
 tags: [tanstack-query, react-query, caching, infinite-scroll, optimistic-updates, prefetching, suspense]
 context: fork
 agent: frontend-ui-developer
@@ -14,7 +14,7 @@ user-invocable: false
 
 Production patterns for TanStack Query v5 - server state management done right.
 
-## When to Use
+## Overview
 
 - Infinite scroll / pagination
 - Optimistic UI updates

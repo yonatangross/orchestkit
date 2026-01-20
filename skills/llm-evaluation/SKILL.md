@@ -13,14 +13,6 @@ user-invocable: false
 
 Evaluate and validate LLM outputs for quality assurance using RAGAS and LLM-as-judge patterns.
 
-## When to Use
-
-- Quality gates before publishing AI content
-- Automated testing of LLM outputs
-- Comparing model performance
-- Detecting hallucinations
-- A/B testing models
-
 ## Quick Reference
 
 ### LLM-as-Judge Pattern

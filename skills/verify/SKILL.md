@@ -12,13 +12,6 @@ user-invocable: true
 
 Comprehensive verification using parallel specialized agents.
 
-## When to Use
-
-- Verifying completed features
-- Pre-merge validation
-- Quality gate checks
-- End-to-end verification
-
 ## Quick Start
 
 ```bash
@@ -118,7 +111,6 @@ agent-browser snapshot -i
 agent-browser screenshot /tmp/verification.png
 agent-browser close
 ```
-
 
 ## Related Skills
 - implement: Verify implementations

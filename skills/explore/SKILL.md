@@ -1,6 +1,6 @@
 ---
 name: explore
-description: Deep codebase exploration with parallel specialized agents. Use when exploring codebase, understanding code, finding files, or discovering architecture.
+description: Deep codebase exploration with parallel specialized agents. Use when exploring a repo, finding files, or discovering architecture with the explore agent.
 context: fork
 version: 1.0.0
 author: SkillForge
@@ -11,13 +11,6 @@ user-invocable: true
 # Codebase Exploration
 
 Multi-angle codebase exploration using 3-5 parallel agents.
-
-## When to Use
-
-- Understanding how a feature works
-- Finding where code is defined
-- Tracing data flow through the system
-- Learning codebase architecture
 
 ## Quick Start
 
@@ -89,7 +82,6 @@ For AI/ML topics, add exploration of:
 - "Where are API endpoints defined?"
 - "Find all usages of EventBroadcaster"
 - "What's the workflow for content analysis?"
-
 
 ## Related Skills
 - implement: Implement after exploration

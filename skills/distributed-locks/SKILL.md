@@ -13,7 +13,7 @@ user-invocable: false
 
 Coordinate exclusive access to resources across multiple service instances.
 
-## When to Use
+## Overview
 
 - Preventing duplicate processing of jobs/events
 - Coordinating singleton processes (cron, leaders)

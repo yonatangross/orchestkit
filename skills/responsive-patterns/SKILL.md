@@ -1,6 +1,6 @@
 ---
 name: responsive-patterns
-description: Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications
+description: Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
 tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints]
 context: fork
 agent: frontend-ui-developer
@@ -13,7 +13,7 @@ user-invocable: false
 
 Modern responsive design patterns using Container Queries, fluid typography, and mobile-first strategies for React applications (2026 best practices).
 
-## When to Use
+## Overview
 
 - Building reusable components that adapt to their container
 - Implementing fluid typography that scales smoothly

@@ -1,6 +1,6 @@
 ---
 name: worktree-coordination
-description: Manage multiple Claude Code instances across git worktrees. Check status, claim/release file locks, sync decisions, and prevent conflicts.
+description: Manage multiple Claude Code instances across git worktrees. Check status, claim/release file locks, sync decisions, and prevent conflicts. Use when coordinating multiple worktrees or Claude instances.
 context: none
 version: 1.0.0
 author: SkillForge
@@ -9,17 +9,6 @@ user-invocable: true
 ---
 
 # Worktree Coordination Skill
-
-## Overview
-
-Manage multiple Claude Code instances working in parallel across git worktrees with automatic file locking, conflict detection, and decision synchronization.
-
-## When to Use
-
-- Running multiple Claude Code instances simultaneously
-- Working on related features in parallel
-- Coordinating changes across git worktrees
-- Preventing merge conflicts from parallel work
 
 ## Commands
 

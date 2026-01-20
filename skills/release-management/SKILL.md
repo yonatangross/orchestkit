@@ -1,6 +1,6 @@
 ---
 name: release-management
-description: GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI.
+description: GitHub release workflow with semantic versioning, changelogs, and release automation using gh CLI. Use when creating releases, tagging versions, or publishing changelogs.
 context: fork
 version: 1.0.0
 author: SkillForge
@@ -11,13 +11,6 @@ user-invocable: false
 # Release Management
 
 Automate releases with `gh release`, semantic versioning, and changelog generation.
-
-## When to Use
-
-- Publishing new versions
-- Creating release notes
-- Managing release assets
-- Automating release workflows
 
 ## Quick Reference
 

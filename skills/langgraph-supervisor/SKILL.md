@@ -12,13 +12,6 @@ user-invocable: false
 
 Coordinate multiple specialized agents with a central supervisor.
 
-## When to Use
-
-- Multiple specialist agents
-- Central coordination needed
-- Dynamic agent routing
-- Progress tracking across agents
-
 ## Basic Supervisor
 
 ```python

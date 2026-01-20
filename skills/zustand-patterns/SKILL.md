@@ -1,6 +1,6 @@
 ---
 name: zustand-patterns
-description: Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications
+description: Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications. Use when building state management with Zustand.
 tags: [zustand, state-management, react, immer, middleware, persistence, slices]
 context: fork
 agent: frontend-ui-developer
@@ -14,7 +14,7 @@ user-invocable: false
 
 Modern state management with Zustand 5.x - lightweight, TypeScript-first, no boilerplate.
 
-## When to Use
+## Overview
 
 - Global state without Redux complexity
 - Shared state across components without prop drilling

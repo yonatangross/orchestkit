@@ -12,13 +12,6 @@ user-invocable: false
 
 Fast, unified linting and formatting (10-25x faster than ESLint + Prettier).
 
-## When to Use
-
-- New projects (default choice for 2026)
-- Migrating from ESLint + Prettier
-- CI pipeline optimization (sub-second linting)
-- TypeScript projects with type-aware rules
-
 ## Why Biome in 2026
 
 | Aspect | Biome | ESLint + Prettier |

@@ -10,17 +10,6 @@ user-invocable: false
 
 # LLM Safety Patterns
 
-## Overview
-
-Defensive patterns to protect LLM integrations against prompt injection, hallucination, and data leakage through layered validation and output filtering.
-
-## When to Use
-
-- Securing LLM-powered features in production
-- Implementing context separation for multi-tenant AI
-- Validating and filtering LLM outputs
-- Protecting against prompt injection attacks
-
 ## The Core Principle
 
 > **Identifiers flow AROUND the LLM, not THROUGH it.**

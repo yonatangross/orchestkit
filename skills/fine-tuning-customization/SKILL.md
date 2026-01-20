@@ -15,14 +15,6 @@ Customize LLMs for specific domains using parameter-efficient fine-tuning and al
 
 > **Unsloth 2026**: 7x longer context RL, FP8 RL on consumer GPUs, rsLoRA support. **TRL**: OpenEnv integration, vLLM server mode, transformers 5.0.0+ compatible.
 
-## When to Use
-
-- Domain-specific terminology or style needed
-- Consistent output format required
-- Prompt engineering insufficient
-- RAG doesn't capture nuances
-- ~1000+ high-quality examples available
-
 ## Decision Framework: Fine-Tune or Not?
 
 | Approach | Try First | When It Works |

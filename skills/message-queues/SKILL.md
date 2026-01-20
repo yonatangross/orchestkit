@@ -14,7 +14,7 @@ user-invocable: false
 
 Asynchronous communication patterns for distributed systems using RabbitMQ, Redis Streams, Kafka, and FastStream.
 
-## When to Use
+## Overview
 
 - Decoupling services in microservices architecture
 - Implementing pub/sub and work queue patterns

@@ -11,13 +11,6 @@ user-invocable: false
 
 Enforce FastAPI Clean Architecture with **BLOCKING** validation.
 
-## When to Use
-
-- Building FastAPI endpoints
-- Creating services or repositories
-- Reviewing backend architecture
-- Refactoring legacy code
-
 ## Architecture Overview
 
 ```

@@ -784,8 +784,9 @@ test_expired_lock_handled_by_coordination() {
     local lib_content
     lib_content=$(cat "$coord_lib")
 
-    # Verify library handles lock expiration
-    if echo "$lib_content" | grep -q "expir\|EXIT_LOCK_EXPIRED\|LOCK_TIMEOUT"; then
+    # Verify library handles lock expiration (avoid broken pipe by using grep directly on variable)
+    if echo "$lib_content" | grep -q "expir\|EXIT_LOCK_EXPIRED\|LOCK_TIMEOUT" 2>/dev/null || \
+       grep -q "expir\|EXIT_LOCK_EXPIRED\|LOCK_TIMEOUT" <<< "$lib_content" 2>/dev/null; then
         return 0
     fi
     fail "Coordination library should handle expired locks"

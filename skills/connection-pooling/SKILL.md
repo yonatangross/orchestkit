@@ -14,7 +14,7 @@ user-invocable: false
 
 Database and HTTP connection pooling for high-performance async Python applications.
 
-## When to Use
+## Overview
 
 - Configuring asyncpg/SQLAlchemy connection pools
 - Setting up aiohttp ClientSession for HTTP requests

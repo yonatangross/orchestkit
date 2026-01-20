@@ -16,13 +16,6 @@ user-invocable: false
 
 Protect against the most critical web security risks.
 
-## When to Use
-
-- Security audits
-- Code review for vulnerabilities
-- Designing secure systems
-- Compliance requirements
-
 ## 1. Broken Access Control
 
 ```python

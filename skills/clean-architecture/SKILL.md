@@ -13,14 +13,6 @@ user-invocable: false
 
 Build maintainable, testable backends with SOLID principles and hexagonal architecture.
 
-## When to Use
-
-- Designing new service layer architecture
-- Refactoring tightly-coupled code
-- Implementing domain-driven design
-- Creating testable business logic
-- Separating infrastructure from domain
-
 ## SOLID Principles (2026 Python)
 
 ### S - Single Responsibility

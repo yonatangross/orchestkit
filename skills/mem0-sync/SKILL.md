@@ -1,6 +1,6 @@
 ---
 name: mem0-sync
-description: Auto-sync session context, decisions, and patterns to Mem0 for cross-session continuity
+description: Auto-sync session context, decisions, and patterns to Mem0 for cross-session continuity. Use when persisting session memory or syncing decisions.
 tags: [mem0, sync, session, memory, continuity, persistence]
 user-invocable: true
 auto-invoke: session-end
@@ -11,7 +11,7 @@ context: inherit
 
 Automatically synchronize session context to Mem0 for seamless cross-session continuity. This skill executes MCP calls to persist decisions, patterns, and session summaries.
 
-## When to Use
+## Overview
 
 - **Automatically**: Invoked at session end by `mem0-pre-compaction-sync.sh` hook
 - **Manually**: Run `/mem0-sync` to force sync mid-session

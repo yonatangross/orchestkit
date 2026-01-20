@@ -12,13 +12,6 @@ user-invocable: false
 
 Test how components work together.
 
-## When to Use
-
-- API endpoint testing
-- Component interactions
-- Service layer testing
-- Database integration
-
 ## API Integration Test
 
 ```typescript

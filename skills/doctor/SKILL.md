@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: SkillForge health diagnostics command that validates plugin configuration and reports issues. Use when diagnosing plugin health, checking configuration, troubleshooting setup.
+description: SkillForge health diagnostics command that validates plugin configuration and reports issues. Use when running doctor checks or troubleshooting plugin health.
 context: inherit
 version: 1.0.0
 author: SkillForge
@@ -20,7 +20,7 @@ The `/skf:doctor` command performs comprehensive health checks on your SkillForg
 4. **Coordination System** - Checks lock health and registry integrity
 5. **Context Budget** - Monitors token usage against budget
 
-## When to Use
+## Overview
 
 - After installing or updating SkillForge
 - When hooks aren't firing as expected

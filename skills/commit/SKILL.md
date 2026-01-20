@@ -12,12 +12,6 @@ user-invocable: true
 
 Simple, validated commit creation. Run checks locally, no agents needed for standard commits.
 
-## When to Use
-
-- Creating git commits
-- Staging and committing changes
-- Generating commit messages
-
 ## Quick Start
 
 ```bash
@@ -111,7 +105,6 @@ git add . && git commit -m "fix(#123): Fix typo in error message
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
 ```
-
 
 ## Related Skills
 - create-pr: Create pull requests from commits

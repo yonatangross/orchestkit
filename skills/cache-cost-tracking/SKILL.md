@@ -12,13 +12,6 @@ user-invocable: false
 
 Monitor LLM costs and cache effectiveness.
 
-## When to Use
-
-- Cost attribution by agent
-- Cache hit rate monitoring
-- ROI analysis for caching
-- Multi-agent cost rollup
-
 ## Langfuse Automatic Tracking
 
 ```python

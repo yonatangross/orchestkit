@@ -19,7 +19,7 @@ user-invocable: false
 
 Validate and sanitize all untrusted input using Zod v4 and Pydantic.
 
-## When to Use
+## Overview
 
 - Processing user input
 - Query parameters

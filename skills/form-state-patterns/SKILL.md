@@ -1,6 +1,6 @@
 ---
 name: form-state-patterns
-description: React Hook Form v7 with Zod validation, React 19 useActionState, Server Actions, field arrays, and async validation
+description: React Hook Form v7 with Zod validation, React 19 useActionState, Server Actions, field arrays, and async validation. Use when building complex forms, validation flows, or server action forms.
 tags: [react-hook-form, zod, forms, validation, server-actions, field-arrays, useActionState]
 context: fork
 agent: frontend-ui-developer
@@ -14,7 +14,7 @@ user-invocable: false
 
 Production form patterns with React Hook Form v7 + Zod - type-safe, performant, accessible.
 
-## When to Use
+## Overview
 
 - Complex forms with validation
 - Multi-step wizards

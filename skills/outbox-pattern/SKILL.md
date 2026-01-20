@@ -14,7 +14,7 @@ user-invocable: false
 
 Ensure atomic state changes and event publishing by writing both to a database transaction, then publishing asynchronously.
 
-## When to Use
+## Overview
 
 - Ensuring database writes and event publishing are atomic
 - Building reliable event-driven microservices

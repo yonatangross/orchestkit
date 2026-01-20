@@ -12,13 +12,6 @@ user-invocable: false
 
 Enable LLMs to reason, plan, and take autonomous actions.
 
-## When to Use
-
-- Multi-step problem solving
-- Tasks requiring planning
-- Autonomous tool use
-- Self-correcting workflows
-
 ## ReAct Pattern (Reasoning + Acting)
 
 ```python

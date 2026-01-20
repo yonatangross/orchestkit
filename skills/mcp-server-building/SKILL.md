@@ -10,7 +10,7 @@ user-invocable: false
 # MCP Server Building
 Build custom MCP servers to extend Claude with tools, resources, and prompts.
 
-## When to Use
+## Overview
 
 - Extending Claude with custom tools and capabilities
 - Integrating external APIs and services with Claude

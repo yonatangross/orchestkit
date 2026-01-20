@@ -13,14 +13,6 @@ user-invocable: false
 
 Optimize performance with Redis caching patterns and smart invalidation.
 
-## When to Use
-
-- Reducing database load for frequent reads
-- Caching expensive computations (LLM responses, embeddings)
-- Session and user data caching
-- API response caching
-- Distributed caching across instances
-
 ## Pattern Selection
 
 | Pattern | Write | Read | Consistency | Use Case |

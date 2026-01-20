@@ -1,6 +1,6 @@
 ---
 name: dashboard-patterns
-description: Dashboard UI patterns with widget composition, real-time data updates, responsive grid layouts, and data tables for React applications
+description: Dashboard UI patterns with widget composition, real-time data updates, responsive grid layouts, and data tables for React applications. Use when building dashboards, widgets, or data tables.
 tags: [dashboard, widgets, data-grid, real-time, layout, admin, tanstack-table, sse]
 context: fork
 agent: frontend-ui-developer
@@ -12,14 +12,6 @@ user-invocable: false
 # Dashboard Patterns
 
 Dashboard UI patterns for building admin panels, analytics dashboards, and data-driven interfaces with React.
-
-## When to Use
-
-- Building admin dashboards
-- Creating analytics/metrics displays
-- Implementing real-time monitoring UIs
-- Building data tables with sorting/filtering
-- Creating widget-based layouts
 
 ## Layout Patterns
 

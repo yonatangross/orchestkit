@@ -1,6 +1,6 @@
 ---
 name: load-context
-description: Auto-load relevant memories at session start from both mem0 and graph
+description: Auto-load relevant memories at session start from both mem0 and graph. Use when you need session context restored or preloaded.
 tags: [memory, mem0, graph, session, context, continuity, auto-load]
 user-invocable: true
 auto-invoke: session-start
@@ -17,7 +17,7 @@ Auto-load relevant memories at session start from both Mem0 semantic memory and 
 
 **CC 2.1.6 Context-Aware:** Loading adapts based on `context_window.used_percentage`.
 
-## When to Use
+## Overview
 
 - **Automatically**: Invoked at session start via `auto-invoke: session-start`
 - **Manually**: Run `/load-context` to reload memories mid-session

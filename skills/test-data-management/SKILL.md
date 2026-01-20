@@ -12,13 +12,6 @@ user-invocable: false
 
 Create and manage test data effectively.
 
-## When to Use
-
-- Test data setup
-- Database seeding
-- Realistic test scenarios
-- Data isolation
-
 ## Factory Pattern (Python)
 
 ```python

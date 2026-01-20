@@ -1,6 +1,6 @@
 ---
 name: github-operations
-description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts.
+description: GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh.
 context: fork
 version: 1.0.0
 tags: [github, gh, cli, issues, pr, milestones, projects, api]
@@ -11,7 +11,7 @@ user-invocable: false
 
 Comprehensive GitHub CLI (`gh`) operations for project management, from basic issue creation to advanced Projects v2 integration and milestone tracking via REST API.
 
-## When to Use
+## Overview
 
 - Creating and managing GitHub issues and PRs
 - Working with GitHub Projects v2 custom fields

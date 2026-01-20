@@ -12,13 +12,6 @@ user-invocable: false
 
 Combine vector search with LLM generation for accurate, grounded responses.
 
-## When to Use
-
-- Q&A systems over documents
-- Chatbots with knowledge bases
-- Search with natural language answers
-- Grounding LLM responses in facts
-
 ## Basic RAG Pattern
 
 ```python

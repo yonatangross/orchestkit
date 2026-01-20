@@ -12,13 +12,6 @@ user-invocable: false
 
 Pause workflows for human intervention and approval.
 
-## When to Use
-
-- Approval before publishing
-- Manual review of AI outputs
-- User feedback integration
-- Interactive agent supervision
-
 ## Basic Interrupt
 
 ```python

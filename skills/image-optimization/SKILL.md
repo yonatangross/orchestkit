@@ -1,6 +1,6 @@
 ---
 name: image-optimization
-description: Image optimization with Next.js 15 Image, AVIF/WebP formats, blur placeholders, responsive sizes, and CDN loaders
+description: Image optimization with Next.js 15 Image, AVIF/WebP formats, blur placeholders, responsive sizes, and CDN loaders. Use when improving image performance, responsive sizing, or Next.js image pipelines.
 tags: [images, next-image, avif, webp, responsive, lazy-loading, blur-placeholder, lcp]
 context: fork
 agent: frontend-ui-developer
@@ -14,7 +14,7 @@ user-invocable: false
 
 Production image optimization patterns for modern web applications.
 
-## When to Use
+## Overview
 
 - Optimizing Largest Contentful Paint (LCP)
 - Reducing page weight and bandwidth

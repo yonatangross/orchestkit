@@ -12,13 +12,6 @@ user-invocable: false
 
 Coordinate multiple specialized agents for complex tasks.
 
-## When to Use
-
-- Tasks requiring multiple expertise areas
-- Parallel analysis from different perspectives
-- Complex workflows with agent handoffs
-- Synthesis of multiple agent outputs
-
 ## Fan-Out/Fan-In Pattern
 
 ```python

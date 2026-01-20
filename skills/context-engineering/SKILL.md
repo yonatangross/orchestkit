@@ -18,7 +18,7 @@ Context engineering goes beyond prompt engineering. While prompts focus on *what
 
 **Key Insight:** Context windows are constrained not by raw token capacity but by attention mechanics. As context grows, models experience degradation.
 
-## When to Use
+## Overview
 
 - Designing agent system prompts
 - Optimizing RAG retrieval pipelines

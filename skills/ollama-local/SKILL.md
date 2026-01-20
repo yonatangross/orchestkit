@@ -12,14 +12,6 @@ user-invocable: false
 
 Run LLMs locally for cost savings, privacy, and offline development.
 
-## When to Use
-
-- CI/CD pipelines (93% cost reduction)
-- Development without API costs
-- Privacy-sensitive data
-- Offline environments
-- High-volume batch processing
-
 ## Quick Start
 
 ```bash

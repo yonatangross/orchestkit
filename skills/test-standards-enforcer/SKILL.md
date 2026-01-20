@@ -10,13 +10,6 @@ user-invocable: false
 ---
 Enforce 2026 testing best practices with **BLOCKING** validation.
 
-## When to Use
-
-- Writing new test files
-- Reviewing test code
-- Ensuring test coverage
-- Validating test patterns
-
 ## Validation Rules
 
 ### BLOCKING Rules (exit 1)

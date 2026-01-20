@@ -10,7 +10,7 @@ user-invocable: false
 # LangGraph Functional API
 Build workflows using decorators instead of explicit graph construction.
 
-## When to Use
+## Overview
 
 - Sequential workflows with conditional branching
 - Orchestrator-worker patterns with parallel execution

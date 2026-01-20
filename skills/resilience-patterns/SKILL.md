@@ -13,7 +13,7 @@ user-invocable: false
 
 Production-grade resilience patterns for distributed systems and LLM-based workflows. Covers circuit breakers, bulkheads, retry strategies, and LLM-specific resilience techniques.
 
-## When to Use This Skill
+## Overview
 
 - Building fault-tolerant multi-agent systems
 - Implementing LLM API integrations with proper error handling
