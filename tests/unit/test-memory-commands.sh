@@ -49,11 +49,8 @@ test_remember_has_workflow() {
 }
 
 test_remember_has_when_to_use() {
-    # Accept either "When to Use" or "Overview" section (renamed in #179)
-    local file="$SKILLS_DIR/remember/SKILL.md"
-    if ! grep -q "## When to Use" "$file" && ! grep -q "## Overview" "$file"; then
-        fail "remember SKILL.md should have 'When to Use' or 'Overview' section"
-    fi
+    # Check for "Overview" section (standardized in #179)
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "## Overview"
 }
 
 test_remember_has_auto_detect_logic() {
@@ -95,11 +92,8 @@ test_recall_has_workflow() {
 }
 
 test_recall_has_when_to_use() {
-    # Accept either "When to Use" or "Overview" section (renamed in #179)
-    local file="$SKILLS_DIR/recall/SKILL.md"
-    if ! grep -q "## When to Use" "$file" && ! grep -q "## Overview" "$file"; then
-        fail "recall SKILL.md should have 'When to Use' or 'Overview' section"
-    fi
+    # Check for "Overview" section (standardized in #179)
+    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Overview"
 }
 
 test_recall_has_filter_options() {
@@ -149,11 +143,8 @@ test_feedback_has_subcommand_sections() {
 }
 
 test_feedback_has_when_to_use() {
-    # Accept either "When to Use" or "Overview" section (renamed in #179)
-    local file="$SKILLS_DIR/feedback/SKILL.md"
-    if ! grep -q "## When to Use" "$file" && ! grep -q "## Overview" "$file"; then
-        fail "feedback SKILL.md should have 'When to Use' or 'Overview' section"
-    fi
+    # Check for "Overview" section (standardized in #179)
+    assert_file_contains "$SKILLS_DIR/feedback/SKILL.md" "## Overview"
 }
 
 test_feedback_has_output_examples() {
