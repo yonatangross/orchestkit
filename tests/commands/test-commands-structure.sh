@@ -150,12 +150,12 @@ if [[ $MISSING_COMMANDS -eq 0 ]]; then
 fi
 
 # ============================================================================
-# TEST 4: Command count matches expected (17)
+# TEST 4: Command count matches expected (21)
 # ============================================================================
 echo ""
 echo -e "${BLUE}Test 4: Command count validation${NC}"
 
-EXPECTED_COMMANDS=20
+EXPECTED_COMMANDS=21
 ACTUAL_COMMANDS=$(find "$COMMANDS_DIR" -name "*.md" -type f | wc -l | tr -d ' ')
 ACTUAL_SKILLS=${#USER_INVOCABLE_SKILLS[@]}
 

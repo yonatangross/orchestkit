@@ -116,22 +116,41 @@ fi
 
 detect_pattern_category() {
     local text="$1"
+    
+    # Security: Limit input length to prevent ReDoS (max 10KB)
+    local max_length=10240
+    if [[ ${#text} -gt $max_length ]]; then
+        text="${text:0:$max_length}"
+    fi
+    
     local text_lower
     text_lower=$(echo "$text" | tr '[:upper:]' '[:lower:]')
 
     # Check for category keywords
     if [[ "$text_lower" == *"pagination"* || "$text_lower" == *"cursor"* || "$text_lower" == *"offset"* ]]; then
         echo "pagination"
+    elif [[ "$text_lower" == *"security"* || "$text_lower" == *"vulnerability"* || "$text_lower" == *"exploit"* || "$text_lower" == *"injection"* || "$text_lower" == *"xss"* || "$text_lower" == *"csrf"* || "$text_lower" == *"owasp"* || "$text_lower" == *"safety"* || "$text_lower" == *"guardrail"* ]]; then
+        echo "security"
     elif [[ "$text_lower" == *"database"* || "$text_lower" == *"sql"* || "$text_lower" == *"postgres"* || "$text_lower" == *"schema"* ]]; then
         echo "database"
     elif [[ "$text_lower" == *"api"* || "$text_lower" == *"endpoint"* || "$text_lower" == *"rest"* || "$text_lower" == *"graphql"* ]]; then
         echo "api"
     elif [[ "$text_lower" == *"auth"* || "$text_lower" == *"login"* || "$text_lower" == *"jwt"* || "$text_lower" == *"oauth"* ]]; then
         echo "authentication"
+    elif [[ "$text_lower" == *"test"* || "$text_lower" == *"testing"* || "$text_lower" == *"pytest"* || "$text_lower" == *"jest"* || "$text_lower" == *"vitest"* || "$text_lower" == *"coverage"* || "$text_lower" == *"mock"* || "$text_lower" == *"fixture"* || "$text_lower" == *"spec"* ]]; then
+        echo "testing"
+    elif [[ "$text_lower" == *"deploy"* || "$text_lower" == *"ci"* || "$text_lower" == *"cd"* || "$text_lower" == *"pipeline"* || "$text_lower" == *"docker"* || "$text_lower" == *"kubernetes"* || "$text_lower" == *"helm"* || "$text_lower" == *"terraform"* ]]; then
+        echo "deployment"
+    elif [[ "$text_lower" == *"observability"* || "$text_lower" == *"monitoring"* || "$text_lower" == *"logging"* || "$text_lower" == *"tracing"* || "$text_lower" == *"metrics"* || "$text_lower" == *"prometheus"* || "$text_lower" == *"grafana"* || "$text_lower" == *"langfuse"* ]]; then
+        echo "observability"
     elif [[ "$text_lower" == *"react"* || "$text_lower" == *"component"* || "$text_lower" == *"frontend"* || "$text_lower" == *"ui"* ]]; then
         echo "frontend"
     elif [[ "$text_lower" == *"performance"* || "$text_lower" == *"optimization"* || "$text_lower" == *"cache"* || "$text_lower" == *"index"* ]]; then
         echo "performance"
+    elif [[ "$text_lower" == *"llm"* || "$text_lower" == *"rag"* || "$text_lower" == *"embedding"* || "$text_lower" == *"vector"* || "$text_lower" == *"semantic"* || "$text_lower" == *"ai"* || "$text_lower" == *"ml"* || "$text_lower" == *"langchain"* || "$text_lower" == *"langgraph"* || "$text_lower" == *"mem0"* || "$text_lower" == *"openai"* || "$text_lower" == *"anthropic"* ]]; then
+        echo "ai-ml"
+    elif [[ "$text_lower" == *"etl"* || "$text_lower" == *"data"*"pipeline"* || "$text_lower" == *"streaming"* || "$text_lower" == *"batch"*"processing"* || "$text_lower" == *"dataflow"* || "$text_lower" == *"spark"* ]]; then
+        echo "data-pipeline"
     elif [[ "$text_lower" == *"architecture"* || "$text_lower" == *"design"* || "$text_lower" == *"structure"* ]]; then
         echo "architecture"
     elif [[ "$text_lower" == *"decided"* || "$text_lower" == *"chose"* || "$text_lower" == *"selected"* ]]; then

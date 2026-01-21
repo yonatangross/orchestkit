@@ -185,6 +185,7 @@ if [[ "$RUN_SECURITY" == "true" ]]; then
     run_test "Symlink Attack Tests" "$SCRIPT_DIR/security/test-symlink-attacks.sh" || true
     run_test "Input Validation Tests" "$SCRIPT_DIR/security/test-input-validation.sh" || true
     run_test "Additional Security Tests" "$SCRIPT_DIR/security/test-additional-security.sh" || true
+    run_test "Mem0 Security Tests" "$SCRIPT_DIR/security/test-mem0-security.sh" || true
 fi
 
 # ============================================================

@@ -23,6 +23,62 @@ Organize memories by scope for efficient retrieval:
 | `project-patterns`   | Code patterns and conventions     | "Components use kebab-case filenames"       |
 | `project-continuity` | Session handoff context           | "Working on auth refactor, PR #123 pending" |
 
+## Project Isolation
+
+Memories are isolated by project name extracted from `CLAUDE_PROJECT_DIR`:
+
+- Project name: `basename($CLAUDE_PROJECT_DIR)` (sanitized to lowercase, dashes)
+- Format: `{project-name}-{scope}`
+
+**Edge Case:** If two different repositories have the same directory name, they will share the same `user_id` scope. To avoid this:
+
+1. Use unique directory names for each project
+2. Or use `MEM0_ORG_ID` environment variable for additional namespace
+
+**Example:**
+- `/Users/alice/my-app` → `my-app-decisions` ✅
+- `/Users/bob/my-app` → `my-app-decisions` ⚠️ (collision if same mem0.ai project)
+- With `MEM0_ORG_ID=acme`: `/Users/alice/my-app` → `acme-my-app-decisions` ✅
+
+## Memory Categories
+
+Memories are automatically categorized based on content. Available categories:
+
+| Category | Keywords | Use Case |
+|----------|----------|----------|
+| `pagination` | pagination, cursor, offset | API pagination patterns |
+| `security` | security, vulnerability, OWASP | Security patterns and vulnerabilities |
+| `authentication` | auth, JWT, OAuth, token | Authentication patterns |
+| `testing` | test, pytest, jest, coverage | Testing strategies |
+| `deployment` | deploy, CI/CD, Docker, Kubernetes | Deployment patterns |
+| `observability` | monitoring, logging, tracing, metrics | Observability patterns |
+| `performance` | performance, cache, optimize | Performance optimization |
+| `ai-ml` | LLM, RAG, embedding, LangChain | AI/ML patterns |
+| `data-pipeline` | ETL, streaming, batch processing | Data pipeline patterns |
+| `database` | database, SQL, PostgreSQL, schema | Database patterns |
+| `api` | API, endpoint, REST, GraphQL | API design patterns |
+| `frontend` | React, component, UI, CSS | Frontend patterns |
+| `architecture` | architecture, design, system | Architecture patterns |
+| `pattern` | pattern, convention, style | General patterns |
+| `blocker` | blocked, issue, bug | Blockers and issues |
+| `constraint` | must, cannot, required | Constraints |
+| `decision` | chose, decided, selected | Decisions (default) |
+
+## Cross-Tool Memory
+
+Memories include `source_tool` metadata to support cross-tool memory sharing:
+
+- `source_tool: "skillforge-claude"` - Memories from Claude Code
+- `source_tool: "skillforge-cursor"` - Memories from Cursor (future)
+
+Query memories by tool:
+```bash
+# Query Claude Code memories
+filters={"AND": [{"metadata.source_tool": "skillforge-claude"}]}
+
+# Query all memories (any tool)
+filters={"AND": [{"user_id": "my-project-decisions"}]}
+```
 
 ## Setup
 
@@ -48,7 +104,7 @@ cp .env.example .env
 
 # Edit .env and add your API key
 MEM0_API_KEY=sk-your-api-key-here
-MEM0_ORG_ID=org_...      # Optional (Pro feature)
+MEM0_ORG_ID=org_...      # Optional (for organization-level scoping)
 MEM0_PROJECT_ID=proj_... # Optional (Pro feature)
 MEM0_WEBHOOK_URL=https://your-domain.com/webhook/mem0  # Optional
 ```
@@ -59,7 +115,7 @@ The scripts automatically load from `.env` if it exists.
 
 ```bash
 export MEM0_API_KEY="sk-..."
-export MEM0_ORG_ID="org_..."      # Optional (Pro feature)
+export MEM0_ORG_ID="org_..."      # Optional (for organization-level scoping)
 export MEM0_PROJECT_ID="proj_..." # Optional (Pro feature)
 ```
 
