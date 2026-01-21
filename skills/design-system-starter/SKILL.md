@@ -29,8 +29,8 @@ This skill provides comprehensive guidance for building robust, scalable design 
 - `references/component-patterns.md` - Architecture patterns
 - `references/component-examples.md` - Full component implementations
 - `references/theming.md` - Theme and dark mode patterns
-- `scripts/design-tokens-template.json` - W3C design token format
-- `scripts/component-template.tsx` - React component template
+- `assets/design-tokens-template.json` - W3C design token format
+- `assets/component-template.tsx` - React component template
 
 ```typescript
 // Example: Design token structure

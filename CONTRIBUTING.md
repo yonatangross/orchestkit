@@ -32,12 +32,14 @@ Welcome to the SkillForge plugin for Claude Code! We're excited that you're inte
 
 ```
 .claude/
-├── skills/               # 111 skills in flat CC 2.1.7 structure
+├── skills/               # 159 skills in flat CC 2.1.7 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
-│       └── templates/         # Optional: Code generation
-├── agents/               # 25 specialized AI personas
+│       ├── scripts/           # Optional: Executable code and generators
+│       ├── assets/            # Optional: Templates and copyable files
+│       └── checklists/        # Optional: Implementation checklists
+├── agents/               # 34 specialized AI personas
 └── context/              # Session and knowledge management
 hooks/                    # Lifecycle hooks
 ```

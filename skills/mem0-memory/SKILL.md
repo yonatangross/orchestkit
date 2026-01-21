@@ -86,6 +86,60 @@ Execute the script via Bash tool:
 - Use natural language queries
 - Search by topic, not exact phrases
 - Combine with scope filters when available
+- Enable graph (`--enable-graph`) to get relationship information in results
+
+**Graph Relationships in Search Results:**
+
+When `--enable-graph` is enabled, search results include:
+- `relations` array with relationship information
+- `related_via` field showing how results are connected
+- `relationship_summary` with relation types found
+
+### Graph Relationship Queries
+
+**Get Related Memories:**
+
+Query memories related to a given memory via graph traversal:
+
+```bash
+!bash skills/mem0-memory/scripts/get-related-memories.py \
+  --memory-id "mem_abc123" \
+  --depth 2 \
+  --relation-type "recommends"
+```
+
+**Traverse Graph:**
+
+Multi-hop graph traversal for complex relationship queries:
+
+```bash
+!bash skills/mem0-memory/scripts/traverse-graph.py \
+  --memory-id "mem_abc123" \
+  --depth 2 \
+  --relation-type "recommends"
+```
+
+**Example Use Cases:**
+
+1. **Multi-hop queries:**
+   ```
+   "What did database-engineer recommend about pagination?"
+   → Traverses: database-engineer → recommends → cursor-pagination
+   → Returns related memories with relationship context
+   ```
+
+2. **Context expansion:**
+   ```
+   Find a memory about "authentication"
+   → Get related memories via graph (depth 2)
+   → Discover related decisions, patterns, and recommendations
+   ```
+
+3. **Relationship filtering:**
+   ```
+   --relation-type "recommends"  # Only follow "recommends" relationships
+   --relation-type "uses"         # Only follow "uses" relationships
+   ```
 
 ### Listing Memories
 
@@ -199,8 +253,8 @@ PR #456 ready for review. Blocked on: DB migration approval."
 
 ```bash
 !bash skills/mem0-memory/scripts/export-memories.py \
-  --user-id "project-decisions" \
-  --schema "json"
+  --filters '{"user_id":"project-decisions"}' \
+  --schema '{"format":"json"}'
 ```
 
 **Retrieve export:**

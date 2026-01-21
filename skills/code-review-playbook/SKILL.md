@@ -331,5 +331,5 @@ cache.set(key, value, CACHE_TTL_SECONDS);
   - Requires: GitHub CLI (`gh`)
   - Uses `$ARGUMENTS` and `!command` for live PR data
   
-- **`scripts/review-feedback-template.md`** - Static review feedback template
-- **`scripts/pr-template.md`** - PR description template
+- **`assets/review-feedback-template.md`** - Static review feedback template
+- **`assets/pr-template.md`** - PR description template

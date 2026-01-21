@@ -602,6 +602,6 @@ async def get_analysis(
 
 ## Related Files
 
-- See `scripts/openapi-template.yaml` for full OpenAPI specification example
+- See `assets/openapi-template.yaml` for full OpenAPI specification example
 - See `examples/skillforge-api-design.md` for SkillForge-specific patterns
 - See SKILL.md for GraphQL and gRPC patterns

@@ -130,4 +130,4 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [Brief description]"
 - issue-progress-tracking: Auto-updates issue checkboxes from commits
 ## References
 
-- [Commit Template](references/commit-template.md)
+- [Commit Template](assets/commit-template.md)

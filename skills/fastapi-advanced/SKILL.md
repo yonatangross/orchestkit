@@ -429,7 +429,7 @@ async def lifespan(app: FastAPI):
   - Uses `$ARGUMENTS` and `!command` for project-specific configuration
   - Generates production-ready app with detected dependencies
   
-- **`scripts/fastapi-app.py`** - Static FastAPI application template
+- **`assets/fastapi-app-template.py`** - Static FastAPI application template
 
 ## Related Skills
 

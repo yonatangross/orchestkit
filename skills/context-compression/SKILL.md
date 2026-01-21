@@ -183,6 +183,13 @@ For detailed implementation and patterns, see:
 - **[Compression Strategies](references/compression-strategies.md)**: Detailed comparison of all strategies (anchored, opaque, regenerative, sliding window), implementation patterns, and decision flowcharts
 - **[Priority Management](references/priority-management.md)**: Compression triggers, CC 2.1.7 effective context, probe-based evaluation, SkillForge integration
 
+## Bundled Resources
+
+- `assets/anchored-summary-template.md` - Template for structured compression summaries with forced sections
+- `assets/compression-probes-template.md` - Probe templates for validating compression quality
+- `references/compression-strategies.md` - Detailed strategy comparisons
+- `references/priority-management.md` - Compression triggers and evaluation
+
 ---
 
 ## Related Skills

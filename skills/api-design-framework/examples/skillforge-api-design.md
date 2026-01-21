@@ -519,4 +519,4 @@ def get_artifact_repository() -> IArtifactRepository:
 
 - See `references/rest-patterns.md` for general REST patterns
 - See `streaming-api-patterns` skill for SSE implementation details
-- See `scripts/openapi-template.yaml` for OpenAPI specification template
+- See `assets/openapi-template.yaml` for OpenAPI specification template

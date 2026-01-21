@@ -5,6 +5,67 @@ All notable changes to the SkillForge Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.28.4] - 2026-01-21
+
+### Added
+
+- **Mem0 Enhancements** - Complete implementation of all Pro features
+  - **Graph Relationship Queries**: `get-related-memories.py` and `traverse-graph.py` scripts for multi-hop graph traversal
+  - **Webhook Automation**: Full webhook management with `list-webhooks.py`, `update-webhook.py`, `delete-webhook.py`, `webhook-receiver.py`
+  - **Analytics Tracking**: `mem0-analytics-tracker.sh` hook for continuous usage monitoring and `mem0-analytics-dashboard.sh` for reports
+  - **Batch Operations**: `migrate-metadata.py` for bulk metadata updates and `bulk-export.py` for multi-user exports
+  - **Export Automation**: `mem0-backup-setup.sh` hook for scheduled backups and export integration in compaction sync
+  - **Hook Integration**: 6 new hooks registered in plugin.json (SessionStart, PostToolUse, Setup events)
+  - Total: 23 Python scripts in `skills/mem0-memory/scripts/` (8 new enhancement scripts)
+
+### Changed
+
+- **Mem0 Integration**: Utilization score improved from 7.5/10 to 9.5/10
+  - Graph relationships integrated into `mem0-context-retrieval.sh`, `memory-context.sh`, `agent-memory-inject.sh`
+  - Webhook support added to `memory-bridge.sh` and `mem0-pre-compaction-sync.sh`
+  - Batch operations integrated into `mem0-pre-compaction-sync.sh` and `mem0-cleanup.sh`
+  - All hooks output CC 2.1.7 compliant JSON with graceful degradation
+
+### Testing
+
+- **Test Suite Updates**: Enhanced mem0 test coverage
+  - Updated `test-mem0-scripts.sh` to test all 23 scripts (added 8 new scripts)
+  - Created `test-mem0-enhancements.sh` integration test for graph, webhook, batch, and export flows
+  - Created `test-mem0-hooks.sh` unit test for hook structure, compliance, and graceful degradation
+
+---
+
+## [4.28.3] - 2026-01-21
+
+### Added
+
+- **Assets Folders for Skills** - Template files now properly organized in `assets/` directories
+  - 9 skills now have `assets/` folders following skill-creator standards
+  - Templates moved from `scripts/` or `references/` to `assets/` where appropriate
+  - Skills updated: design-system-starter, fastapi-advanced, api-design-framework, architecture-decision-record, code-review-playbook, create-pr, fix-issue, webapp-testing, context-compression
+  - New validation test: `tests/skills/structure/test-assets-directory.sh` validates assets/ structure
+
+### Changed
+
+- **Skill Structure** - Template files reorganized per skill-creator documentation
+  - Template files (meant to be copied/modified) moved to `assets/`
+  - Executable scripts remain in `scripts/`
+  - Reference documentation remains in `references/`
+  - All SKILL.md files updated with "Bundled Resources" sections documenting assets
+
+- **Test Coverage** - Enhanced skill structure validation
+  - `test-skill-md.sh` now validates `assets/` links in addition to `references/` and `scripts/`
+  - New `test-assets-directory.sh` validates assets/ folder structure, references, and naming
+  - Test automatically integrated into skill test suite
+
+### Fixed
+
+- Template file organization now follows skill-creator standards
+- All template references updated to point to `assets/` directories
+- Documentation consistency improved with standardized "Bundled Resources" sections
+
+---
+
 ## [4.28.2] - 2026-01-20
 
 ### Added

@@ -52,6 +52,17 @@ Consider performance implications:
 
 ---
 
+## Bundled Resources
+
+- `assets/openapi-template.yaml` - OpenAPI 3.1 specification template
+- `assets/asyncapi-template.yaml` - AsyncAPI specification template
+- `references/rest-api.md` - REST API design patterns
+- `references/graphql-api.md` - GraphQL API design patterns
+- `references/grpc-api.md` - gRPC API design patterns
+- `references/frontend-integration.md` - Frontend API integration patterns
+
+---
+
 ## Protocol References
 
 ### REST API Design

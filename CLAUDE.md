@@ -47,7 +47,8 @@ This document provides essential context for Claude Code when working with the S
 skills/<skill-name>/
 ├── SKILL.md            # Required: Overview and patterns (~500 tokens)
 ├── references/         # Optional: Specific implementations (~200 tokens)
-├── templates/          # Optional: Code generation templates (~300 tokens)
+├── scripts/            # Optional: Executable code and generators
+├── assets/             # Optional: Templates and copyable files
 └── checklists/         # Optional: Implementation checklists
 
 tests/
@@ -81,7 +82,8 @@ bin/                     # CLI utilities and scripts
 - **Discovery**: SKILL.md frontmatter (name, description, tags) - semantic matching
 - **Overview**: SKILL.md body (300-800 tokens) - patterns and best practices
 - **Specific**: `references/*.md` (90-300 tokens) - implementation guides
-- **Generate**: `templates/*` (150-400 tokens) - boilerplate generation
+- **Generate**: `assets/*` (templates, copyable files) - boilerplate and templates
+- **Execute**: `scripts/*` (executable code) - generators and utilities
 
 ---
 
@@ -229,8 +231,8 @@ Read skills/api-design-framework/SKILL.md
 # Step 2: If implementing specific pattern, read reference
 Read skills/api-design-framework/references/rest-pagination.md
 
-# Step 3: If generating code, use template
-Read skills/api-design-framework/templates/endpoint-template.py
+# Step 3: If generating code, use template from assets/
+Read skills/api-design-framework/assets/openapi-template.yaml
 ```
 
 ### 2. Hook Architecture (CC 2.1.7)
@@ -469,8 +471,13 @@ EOF
 # Step 3: Add references (optional)
 touch skills/my-skill/references/impl.md
 
-# Step 4: Validate
+# Step 4: Add assets if needed (optional - for templates/copyable files)
+mkdir -p skills/my-skill/assets
+touch skills/my-skill/assets/my-template.tsx
+
+# Step 5: Validate
 ./tests/skills/structure/test-skill-md.sh
+./tests/skills/structure/test-assets-directory.sh
 ```
 
 ### 2. Creating a New Agent (CC 2.1.6 Format)

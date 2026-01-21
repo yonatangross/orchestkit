@@ -135,7 +135,7 @@ Keep ADRs in version control alongside code:
 - [ ] Set Status to "Proposed" and review with team
 
 ### Option 2: Use Static Template
-- [ ] Copy ADR template from `scripts/adr-template.md`
+- [ ] Copy ADR template from `assets/adr-template.md`
 - [ ] Assign next sequential number (check existing ADRs)
 - [ ] Fill in Context: problem, constraints, requirements
 - [ ] Document Decision: what, why, how, who
@@ -155,7 +155,7 @@ Keep ADRs in version control alongside code:
   - Usage: `/create-adr [number] [title]`
   - Uses `$ARGUMENTS` and `!command` for dynamic context
   
-- **`scripts/adr-template.md`** - Static template for manual use
+- **`assets/adr-template.md`** - Static template for manual use
 
 ## Common Pitfalls to Avoid
 

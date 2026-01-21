@@ -118,4 +118,4 @@ Only use Task agents for:
 - review-pr: Review PRs after creation
 ## References
 
-- [PR Template](references/pr-template.md)
+- [PR Template](assets/pr-template.md)

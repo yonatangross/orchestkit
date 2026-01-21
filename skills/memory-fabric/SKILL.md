@@ -84,6 +84,7 @@ Parsed:
 ### Step 2: Execute Parallel Queries
 
 **Query Mem0 (semantic search):**
+
 ```bash
 !bash skills/mem0-memory/scripts/search-memories.py \
   --query "pagination approach recommend" \
@@ -93,6 +94,7 @@ Parsed:
 ```
 
 **Query Graph (entity search):**
+
 ```javascript
 mcp__memory__search_nodes({
   query: "pagination database-engineer"
@@ -118,6 +120,7 @@ Transform both sources to common format:
 ### Step 4: Deduplicate (>85% Similarity)
 
 When two results have >85% text similarity:
+
 1. Keep the one with higher relevance score
 2. Merge metadata from both sources
 3. Mark as "cross-validated" for authority boost
@@ -125,6 +128,7 @@ When two results have >85% text similarity:
 ### Step 5: Cross-Reference Boost
 
 If mem0 result mentions an entity that exists in graph:
+
 - Boost relevance score by 1.2x
 - Add graph relationships to result metadata
 
@@ -132,11 +136,13 @@ If mem0 result mentions an entity that exists in graph:
 
 Score = `recency_factor × relevance × source_authority`
 
-| Factor | Weight | Description |
-|--------|--------|-------------|
-| recency | 0.3 | Newer memories rank higher |
-| relevance | 0.5 | Semantic match quality |
-| source_authority | 0.2 | Graph entities boost, cross-validated boost |
+
+| Factor           | Weight | Description                                 |
+| ---------------- | ------ | ------------------------------------------- |
+| recency          | 0.3    | Newer memories rank higher                  |
+| relevance        | 0.5    | Semantic match quality                      |
+| source_authority | 0.2    | Graph entities boost, cross-validated boost |
+
 
 ## Result Format
 
@@ -185,15 +191,84 @@ Extracted:
 
 See `references/entity-extraction.md` for detailed extraction patterns.
 
+## Graph Relationship Traversal
+
+Memory Fabric supports multi-hop graph traversal for complex relationship queries.
+
+### Basic Graph Traversal
+
+**Query related memories:**
+
+```bash
+!bash skills/mem0-memory/scripts/get-related-memories.py \
+  --memory-id "mem_abc123" \
+  --depth 2 \
+  --relation-type "recommends"
+```
+
+**Multi-hop traversal:**
+
+```bash
+!bash skills/mem0-memory/scripts/traverse-graph.py \
+  --memory-id "mem_abc123" \
+  --depth 2 \
+  --relation-type "recommends"
+```
+
+### Relationship-Aware Search
+
+When searching with `--enable-graph`, results include relationship context:
+
+```bash
+!bash skills/mem0-memory/scripts/search-memories.py \
+  --query "pagination approach" \
+  --user-id "project-decisions" \
+  --enable-graph \
+  --limit 10
+```
+
+**Output includes:**
+
+- `relations` array with relationship information
+- `related_via` field showing how results are connected
+- `relationship_summary` with relation types found
+
+### Example: Multi-Hop Query
+
+```
+Query: "What did database-engineer recommend about pagination?"
+
+1. Search for "database-engineer pagination"
+   → Find memory: "database-engineer recommends cursor-pagination"
+
+2. Get related memories (depth 2)
+   → Traverse: database-engineer → recommends → cursor-pagination
+   → Find: "cursor-pagination uses offset-based approach"
+
+3. Return unified results with relationship context
+```
+
+### Integration with Graph Memory
+
+Memory Fabric combines mem0 graph relationships with knowledge graph entities:
+
+1. **mem0 search** with `--enable-graph` returns `relations` array
+2. **Graph traversal** expands context via `get-related-memories.py`
+3. **Knowledge graph** provides entity relationships via `mcp__memory__*`
+4. **Cross-reference** boosts relevance when entities match
+
 ## Integration Points
 
 ### With mem0-memory Skill
+
 Memory Fabric sits above mem0-memory, adding graph cross-referencing.
 
 ### With recall Skill
+
 When recall searches, it can optionally use Memory Fabric for unified results.
 
 ### With Hooks
+
 - `prompt/memory-fabric-context.sh` - Inject unified context at session start
 - `stop/memory-fabric-sync.sh` - Sync entities to graph at session end
 
@@ -209,6 +284,7 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 ## MCP Requirements
 
 **Required (PRIMARY):** Knowledge graph MCP server:
+
 ```json
 {
   "mcpServers": {
@@ -221,6 +297,7 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 ```
 
 **Optional (ENHANCEMENT):** Mem0 cloud for semantic search:
+
 ```json
 {
   "mcpServers": {
@@ -235,12 +312,14 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 
 ## Error Handling (Graph-First)
 
-| Scenario | Behavior |
-|----------|----------|
-| mem0 unavailable | Use graph-only (fully functional) |
-| graph unavailable | Error - graph is required |
+
+| Scenario                         | Behavior                                |
+| -------------------------------- | --------------------------------------- |
+| mem0 unavailable                 | Use graph-only (fully functional)       |
+| graph unavailable                | Error - graph is required               |
 | --mem0 flag without MEM0_API_KEY | Graph storage succeeds, warn about mem0 |
-| Query empty | Return recent memories from graph |
+| Query empty                      | Return recent memories from graph       |
+
 
 ## Related Skills
 
@@ -251,9 +330,12 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 
 ## Key Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Dedup threshold | 85% | Balances catching duplicates vs. preserving nuance |
-| Parallel queries | Always | Reduces latency, both sources are independent |
-| Cross-ref boost | 1.2x | Validated info more trustworthy but not dominant |
-| Ranking weights | 0.3/0.5/0.2 | Relevance most important, recency secondary |
+
+| Decision         | Choice      | Rationale                                          |
+| ---------------- | ----------- | -------------------------------------------------- |
+| Dedup threshold  | 85%         | Balances catching duplicates vs. preserving nuance |
+| Parallel queries | Always      | Reduces latency, both sources are independent      |
+| Cross-ref boost  | 1.2x        | Validated info more trustworthy but not dominant   |
+| Ranking weights  | 0.3/0.5/0.2 | Relevance most important, recency secondary        |
+
+

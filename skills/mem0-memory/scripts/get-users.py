@@ -30,7 +30,7 @@ def main():
             project_id=args.project_id
         )
 
-        result = client.get_users()
+        result = client.users()
 
         print(json.dumps({
             "success": True,

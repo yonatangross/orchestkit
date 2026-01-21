@@ -84,6 +84,12 @@ your-project/
 
 See `references/` for detailed agent patterns and commands.
 
+## Bundled Resources
+
+- `assets/playwright-test-template.ts` - Playwright test template with BasePage, ApiMocker, and CustomAssertions
+- `references/playwright-setup.md` - Playwright setup and configuration
+- `references/visual-regression.md` - Visual regression testing patterns
+
 ## Related Skills
 
 - `e2e-testing` - Core end-to-end testing patterns with Playwright

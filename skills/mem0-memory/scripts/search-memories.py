@@ -54,11 +54,41 @@ def main():
             enable_graph=args.enable_graph
         )
 
+        # Format relations array for better visibility
+        relations = result.get("relations", []) if args.enable_graph else []
+        formatted_relations = []
+        for rel in relations:
+            formatted_relations.append({
+                "type": rel.get("type", "unknown"),
+                "source_id": rel.get("source_id"),
+                "target_id": rel.get("target_id") or rel.get("memory_id"),
+                "strength": rel.get("strength", 1.0),
+                "description": f"{rel.get('type', 'related')} -> {rel.get('target_id', 'unknown')}"
+            })
+        
+        # Add relationship context to results
+        results_with_relations = []
+        for res in result.get("results", []):
+            res_copy = res.copy()
+            # Find relations for this result
+            result_relations = [
+                r for r in formatted_relations
+                if r.get("target_id") == res.get("id") or r.get("source_id") == res.get("id")
+            ]
+            if result_relations:
+                res_copy["related_via"] = result_relations
+            results_with_relations.append(res_copy)
+        
         print(json.dumps({
             "success": True,
             "count": len(result.get("results", [])),
-            "results": result.get("results", []),
-            "relations": result.get("relations", []) if args.enable_graph else []
+            "results": results_with_relations,
+            "relations": formatted_relations,
+            "graph_enabled": args.enable_graph,
+            "relationship_summary": {
+                "total_relations": len(formatted_relations),
+                "relation_types": list(set(r.get("type", "unknown") for r in formatted_relations))
+            } if formatted_relations else None
         }, indent=2))
 
     except ValueError as e:

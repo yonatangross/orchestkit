@@ -433,7 +433,8 @@ skillforge-claude-plugin/
 │   └── <skill-name>/
 │       ├── SKILL.md         # Overview + patterns (~500 tokens)
 │       ├── references/      # Deep-dive guides (~200 tokens)
-│       └── templates/       # Code generation (~300 tokens)
+│       ├── scripts/         # Executable code and generators
+│       └── assets/          # Templates and copyable files
 ├── agents/                  # 34 specialized agents
 │   └── <agent-name>.md      # Agent definition + skills
 ├── hooks/                   # 144 lifecycle hooks
