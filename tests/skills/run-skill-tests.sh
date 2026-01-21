@@ -43,6 +43,7 @@ declare -a TEST_ORDER=(
     "definition"
     "progressive-loading"
     "semantic-matching"
+    "scripts"
     "spawn"
     "tools"
     "quality-gates"
@@ -83,7 +84,7 @@ for arg in "$@"; do
             echo "  --help, -h          Show this help"
             echo ""
             echo "Categories:"
-            echo "  Skills:    structure, progressive-loading, semantic-matching, integration"
+            echo "  Skills:    structure, progressive-loading, semantic-matching, scripts, integration"
             echo "  Subagents: definition, spawn, quality-gates, tools"
             echo ""
             echo "Examples:"
@@ -167,6 +168,10 @@ get_category_dir() {
         structure|progressive-loading|semantic-matching)
             echo "$SKILLS_TESTS_DIR/$category"
             ;;
+        scripts)
+            # Script-enhanced skills tests
+            echo "$SKILLS_TESTS_DIR/scripts"
+            ;;
         integration)
             # Skills integration tests
             echo "$SKILLS_TESTS_DIR/integration"
@@ -185,7 +190,7 @@ get_category_type() {
     local category="$1"
 
     case "$category" in
-        structure|progressive-loading|semantic-matching|integration)
+        structure|progressive-loading|semantic-matching|scripts|integration)
             echo "skills"
             ;;
         definition|spawn|quality-gates|tools)
@@ -206,7 +211,7 @@ list_tests() {
 
     local found_skills=0
     local category
-    for category in structure progressive-loading semantic-matching integration; do
+    for category in structure progressive-loading semantic-matching scripts integration; do
         local dir
         dir=$(get_category_dir "$category")
         if [[ -n "$dir" && -d "$dir" ]]; then

@@ -13,7 +13,7 @@
 # 6. At least one code example (``` block)
 # 7. Token budget between 300-1500 tokens (chars/4)
 # 8. Has "Related Skills" or "Key Decisions" section
-# 9. No broken internal links to references/ or templates/
+# 9. No broken internal links to references/ or scripts/
 # 10. user-invocable field validation (18 commands, 97 internal)
 #
 # Usage: ./test-skill-md.sh [--verbose]
@@ -187,8 +187,8 @@ check_internal_links() {
         # Normalize path (remove ./ and handle ../)
         target_path=$(cd "$(dirname "$target_path")" 2>/dev/null && pwd)/$(basename "$target_path") 2>/dev/null || target_path=""
 
-        # Check if file exists (for references/ and templates/ specifically)
-        if [[ "$link" =~ (references/|templates/) ]] && [[ ! -f "$target_path" ]] && [[ ! -d "$target_path" ]]; then
+        # Check if file exists (for references/ and scripts/ specifically)
+        if [[ "$link" =~ (references/|scripts/) ]] && [[ ! -f "$target_path" ]] && [[ ! -d "$target_path" ]]; then
             broken_links+=("$link")
         fi
     done < <(grep -oE '\[([^\]]+)\]\(([^)]+)\)' "$file" 2>/dev/null | grep -oE '\(([^)]+)\)' | tr -d '()')
@@ -474,9 +474,9 @@ fi
 echo ""
 
 # ============================================================================
-# Test 9: No broken internal links to references/ or templates/
+# Test 9: No broken internal links to references/ or scripts/
 # ============================================================================
-echo -e "${CYAN}Test 9: Internal Link Validation${NC}"
+echo -e "${CYAN}Test 9: Internal Link Validation (references/ and scripts/)${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 broken_link_skills=()
@@ -496,7 +496,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
 done
 
 if [[ ${#broken_link_skills[@]} -eq 0 ]]; then
-    pass "All internal links to references/ and templates/ are valid"
+    pass "All internal links to references/ and scripts/ are valid"
 fi
 echo ""
 
