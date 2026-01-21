@@ -194,7 +194,7 @@ Design tokens are the atomic design decisions that define your system's visual l
 
 ## W3C Design Token Format
 
-For interoperability, use W3C Design Tokens format. See `templates/design-tokens-template.json` for a complete example.
+For interoperability, use W3C Design Tokens format. See `scripts/design-tokens-template.json` for a complete example.
 
 ## Implementation with Tailwind
 

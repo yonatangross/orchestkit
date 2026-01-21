@@ -378,7 +378,7 @@ Verify you are NOT doing these:
 
 ## Resources
 
-- **Templates**: See `templates/projection-template.py` for projection patterns
+- **Templates**: See `scripts/projection-template.py` for projection patterns
 - **Examples**: See `examples/inventory-cqrs.py` for event-sourced aggregate
 - **Related Skills**: `saga-patterns`, `outbox-pattern`, `message-queues`
 

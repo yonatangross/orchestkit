@@ -27,11 +27,11 @@ project/
 ├── skills/                    ✅ Token-optimized
 │   ├── langfuse-observability/
 │   │   ├── references/        ✅ 5 files
-│   │   ├── templates/         ✅ 2 files
+│   │   ├── scripts/         ✅ 2 files
 │   │   └── SKILL.md           ✅ Linked
 │   └── performance-optimization/
 │       ├── references/        ✅ 5 files
-│       └── templates/         ✅ 5 files
+│       └── scripts/         ✅ 5 files
 └── agents/                    ✅ 10 agents
 ```
 

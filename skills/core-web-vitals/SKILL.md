@@ -459,6 +459,6 @@ function Banner() {
 ## References
 
 - `references/rum-setup.md` - Complete RUM implementation
-- `templates/performance-monitoring.ts` - Monitoring template
+- `scripts/performance-monitoring.ts` - Monitoring template
 - `checklists/cwv-checklist.md` - Optimization checklist
 - `examples/cwv-examples.md` - Real-world optimization examples

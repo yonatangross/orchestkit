@@ -1,0 +1,174 @@
+{
+  "total_references": 39,
+  "by_skill": {
+    "advanced-guardrails": {
+      "count": 2,
+      "references": [
+        "templates/nemo-config.yaml](templates/nemo-config.yaml",
+        "templates/rails-pipeline.py](templates/rails-pipeline.py"
+      ]
+    },
+    "aggregate-patterns": {
+      "count": 1,
+      "references": [
+        "templates/aggregate-root-template.py"
+      ]
+    },
+    "architecture-decision-record": {
+      "count": 1,
+      "references": [
+        "templates/adr-template.md`"
+      ]
+    },
+    "auth-patterns": {
+      "count": 1,
+      "references": [
+        "templates/auth-middleware-template.py](templates/auth-middleware-template.py"
+      ]
+    },
+    "brainstorming": {
+      "count": 2,
+      "references": [
+        "templates/design-doc-template.md`",
+        "templates/decision-matrix-template.md`"
+      ]
+    },
+    "celery-advanced": {
+      "count": 3,
+      "references": [
+        "templates/canvas-workflow-template.py`",
+        "templates/priority-worker-template.py`",
+        "templates/celery-config-template.py`"
+      ]
+    },
+    "core-web-vitals": {
+      "count": 1,
+      "references": [
+        "templates/performance-monitoring.ts`"
+      ]
+    },
+    "design-system-starter": {
+      "count": 2,
+      "references": [
+        "templates/component-template.tsx`",
+        "templates/design-tokens-template.json`"
+      ]
+    },
+    "e2e-testing": {
+      "count": 1,
+      "references": [
+        "templates/page-object-template.ts](templates/page-object-template.ts"
+      ]
+    },
+    "form-state-patterns": {
+      "count": 1,
+      "references": [
+        "templates/form-template.tsx`"
+      ]
+    },
+    "image-optimization": {
+      "count": 1,
+      "references": [
+        "templates/image-component.tsx`"
+      ]
+    },
+    "input-validation": {
+      "count": 1,
+      "references": [
+        "templates/validation-schemas.ts](templates/validation-schemas.ts"
+      ]
+    },
+    "lazy-loading-patterns": {
+      "count": 1,
+      "references": [
+        "templates/lazy-component.tsx`"
+      ]
+    },
+    "llm-evaluation": {
+      "count": 1,
+      "references": [
+        "templates/evaluator-template.py](templates/evaluator-template.py"
+      ]
+    },
+    "llm-testing": {
+      "count": 1,
+      "references": [
+        "templates/llm-test-template.py](templates/llm-test-template.py"
+      ]
+    },
+    "msw-mocking": {
+      "count": 1,
+      "references": [
+        "templates/handlers-template.ts](templates/handlers-template.ts"
+      ]
+    },
+    "prompt-engineering-suite": {
+      "count": 3,
+      "references": [
+        "templates/cot-template.py](templates/cot-template.py",
+        "templates/jinja2-prompts.py](templates/jinja2-prompts.py",
+        "templates/few-shot-template.py](templates/few-shot-template.py"
+      ]
+    },
+    "property-based-testing": {
+      "count": 1,
+      "references": [
+        "templates/hypothesis-conftest.py"
+      ]
+    },
+    "pytest-advanced": {
+      "count": 1,
+      "references": [
+        "templates/conftest-template.py"
+      ]
+    },
+    "react-server-components-framework": {
+      "count": 3,
+      "references": [
+        "templates/ServerComponent.tsx`**",
+        "templates/ServerAction.tsx`**",
+        "templates/ClientComponent.tsx`**"
+      ]
+    },
+    "resilience-patterns": {
+      "count": 5,
+      "references": [
+        "templates/circuit-breaker.py`",
+        "templates/token-budget.py`",
+        "templates/retry-handler.py`",
+        "templates/llm-fallback-chain.py`",
+        "templates/bulkhead.py`"
+      ]
+    },
+    "responsive-patterns": {
+      "count": 1,
+      "references": [
+        "templates/responsive-card.tsx`"
+      ]
+    },
+    "scroll-driven-animations": {
+      "count": 1,
+      "references": [
+        "templates/parallax-section.tsx`"
+      ]
+    },
+    "tanstack-query-advanced": {
+      "count": 1,
+      "references": [
+        "templates/query-hooks-template.ts`"
+      ]
+    },
+    "view-transitions": {
+      "count": 1,
+      "references": [
+        "templates/view-transition-wrapper.tsx`"
+      ]
+    },
+    "zustand-patterns": {
+      "count": 1,
+      "references": [
+        "templates/store-template.ts`"
+      ]
+    }
+  }
+}

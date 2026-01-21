@@ -96,7 +96,7 @@ if scores["average"] > 0.7:
 | [references/evaluation-metrics.md](references/evaluation-metrics.md) | RAGAS & LLM-as-judge metrics |
 | [examples/evaluation-patterns.md](examples/evaluation-patterns.md) | Complete evaluation examples |
 | [checklists/evaluation-checklist.md](checklists/evaluation-checklist.md) | Setup and review checklists |
-| [templates/evaluator-template.py](templates/evaluator-template.py) | Starter evaluation template |
+| [scripts/evaluator-template.py](scripts/evaluator-template.py) | Starter evaluation template |
 
 ## Related Skills
 

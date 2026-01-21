@@ -384,4 +384,4 @@ node --inspect app.js
 - [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/performance/)
 - [React Profiler](https://react.dev/reference/react/Profiler)
 - [k6 Load Testing](https://k6.io/docs/)
-- See `templates/performance-metrics.ts` for Prometheus metrics setup
+- See `scripts/performance-metrics.ts` for Prometheus metrics setup

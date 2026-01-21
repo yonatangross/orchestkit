@@ -145,4 +145,4 @@ async def supervisor_node(state: AnalysisState):
 }
 ```
 
-See `templates/structured-logging.ts` for Winston setup.
+See `scripts/structured-logging.ts` for Winston setup.

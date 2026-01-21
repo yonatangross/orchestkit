@@ -450,9 +450,9 @@ For detailed implementation patterns, see:
 
 Production-ready code templates:
 
-- `templates/celery-config-template.py` - Complete production Celery configuration
-- `templates/canvas-workflow-template.py` - ETL pipeline using canvas patterns
-- `templates/priority-worker-template.py` - Multi-queue worker with per-user rate limiting
+- `scripts/celery-config-template.py` - Complete production Celery configuration
+- `scripts/canvas-workflow-template.py` - ETL pipeline using canvas patterns
+- `scripts/priority-worker-template.py` - Multi-queue worker with per-user rate limiting
 
 ## Checklists
 

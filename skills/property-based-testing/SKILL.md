@@ -127,7 +127,7 @@ def test_mutating(lst):
 
 - [Strategies Guide](references/strategies-guide.md) - Complete strategy reference
 - [Stateful Testing](references/stateful-testing.md) - State machine patterns
-- [Hypothesis Conftest](templates/hypothesis-conftest.py) - Production setup
+- [Hypothesis Conftest](scripts/hypothesis-conftest.py) - Production setup
 
 ## Capability Details
 

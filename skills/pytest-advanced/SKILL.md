@@ -132,7 +132,7 @@ def test_timeout():
 
 - [Xdist Parallel](references/xdist-parallel.md) - Parallel execution patterns
 - [Custom Plugins](references/custom-plugins.md) - Plugin and hook development
-- [Conftest Template](templates/conftest-template.py) - Production conftest.py
+- [Conftest Template](scripts/conftest-template.py) - Production conftest.py
 
 ## Capability Details
 

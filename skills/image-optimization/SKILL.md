@@ -437,6 +437,6 @@ export default async function Page() {
 ## References
 
 - `references/cdn-setup.md` - Image CDN configuration
-- `templates/image-component.tsx` - Reusable image wrapper
+- `scripts/image-component.tsx` - Reusable image wrapper
 - `checklists/image-checklist.md` - Optimization checklist
 - `examples/image-examples.md` - Real-world image patterns

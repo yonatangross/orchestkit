@@ -755,5 +755,5 @@ async def test_event_buffering():
 ## References
 
 - See `references/sse-deep-dive.md` for protocol details
-- See `templates/sse-endpoint-template.ts` for TypeScript client template
+- See `scripts/sse-endpoint-template.ts` for TypeScript client template
 - See sse-starlette documentation: https://github.com/sysid/sse-starlette

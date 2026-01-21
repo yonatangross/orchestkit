@@ -133,4 +133,4 @@ LIMIT 20;  -- Only scans 20 rows
 
 - [PostgreSQL Performance Tips](https://wiki.postgresql.org/wiki/Performance_Optimization)
 - [Use The Index, Luke](https://use-the-index-luke.com/)
-- See `templates/database-optimization.ts` for implementation patterns
+- See `scripts/database-optimization.ts` for implementation patterns

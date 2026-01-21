@@ -119,4 +119,4 @@ service.name = "analysis-worker"
 3. **Propagate context** - across HTTP, gRPC, message queues
 4. **Tag errors** - `error=true` for filtering
 
-See `templates/opentelemetry-tracing.ts` for complete setup.
+See `scripts/opentelemetry-tracing.ts` for complete setup.

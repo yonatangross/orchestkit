@@ -468,6 +468,6 @@ const schema = z.object({
 ## References
 
 - `references/validation-patterns.md` - Advanced Zod patterns
-- `templates/form-template.tsx` - Production form template
+- `scripts/form-template.tsx` - Production form template
 - `checklists/form-checklist.md` - Implementation checklist
 - `examples/form-examples.md` - Real-world form examples

@@ -257,8 +257,8 @@ return output_result.validated_output
 | [references/openai-guardrails.md](references/openai-guardrails.md) | OpenAI Moderation API integration |
 | [references/factuality-checking.md](references/factuality-checking.md) | Hallucination detection and grounding |
 | [references/red-teaming.md](references/red-teaming.md) | DeepTeam and adversarial testing |
-| [templates/nemo-config.yaml](templates/nemo-config.yaml) | Production NeMo configuration |
-| [templates/rails-pipeline.py](templates/rails-pipeline.py) | Complete guardrails pipeline |
+| [scripts/nemo-config.yaml](scripts/nemo-config.yaml) | Production NeMo configuration |
+| [scripts/rails-pipeline.py](scripts/rails-pipeline.py) | Complete guardrails pipeline |
 
 ## Related Skills
 

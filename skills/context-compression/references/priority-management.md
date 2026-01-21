@@ -268,5 +268,5 @@ def compress_and_update_todos(
 ## Related References
 
 - `compression-strategies.md` - Detailed strategy comparisons
-- `../templates/anchored-summary-template.md` - Template for structured summaries
+- `../scripts/anchored-summary-template.md` - Template for structured summaries
 - `../checklists/compression-checklist.md` - When and how to compress

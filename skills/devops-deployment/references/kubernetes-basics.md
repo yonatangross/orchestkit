@@ -163,7 +163,7 @@ spec:
 charts/app/
 ├── Chart.yaml
 ├── values.yaml
-├── templates/
+├── scripts/
 │   ├── deployment.yaml
 │   ├── service.yaml
 │   ├── ingress.yaml
@@ -183,4 +183,4 @@ charts/app/
 - Ingress for external access with TLS
 - HorizontalPodAutoscaler for scaling
 
-See `templates/k8s-manifests.yaml` and `templates/helm-values.yaml` for complete examples.
+See `scripts/k8s-manifests.yaml` and `scripts/helm-values.yaml` for complete examples.

@@ -442,4 +442,4 @@ font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
 
 - `references/container-queries.md` - Container query patterns
 - `references/fluid-typography.md` - Accessible fluid type scales
-- `templates/responsive-card.tsx` - Responsive card component
+- `scripts/responsive-card.tsx` - Responsive card component

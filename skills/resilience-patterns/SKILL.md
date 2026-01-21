@@ -225,11 +225,11 @@ Patterns specific to LLM API integrations.
 - `references/error-classification.md` - How to categorize errors
 
 ### Templates (Code Patterns)
-- `templates/circuit-breaker.py` - Ready-to-use circuit breaker class
-- `templates/bulkhead.py` - Semaphore-based bulkhead implementation
-- `templates/retry-handler.py` - Configurable retry decorator
-- `templates/llm-fallback-chain.py` - Multi-model fallback pattern
-- `templates/token-budget.py` - Token budget guard implementation
+- `scripts/circuit-breaker.py` - Ready-to-use circuit breaker class
+- `scripts/bulkhead.py` - Semaphore-based bulkhead implementation
+- `scripts/retry-handler.py` - Configurable retry decorator
+- `scripts/llm-fallback-chain.py` - Multi-model fallback pattern
+- `scripts/token-budget.py` - Token budget guard implementation
 
 ### Examples
 - `examples/skillforge-workflow-resilience.md` - Full SkillForge integration example

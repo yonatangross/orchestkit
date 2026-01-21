@@ -213,4 +213,4 @@ alembic downgrade -1
 
 **Critical: Test rollback procedures regularly!**
 
-See `templates/external-secrets.yaml` and `templates/argocd-application.yaml` for complete examples.
+See `scripts/external-secrets.yaml` and `scripts/argocd-application.yaml` for complete examples.

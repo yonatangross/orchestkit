@@ -154,7 +154,7 @@ Consider these optional next steps:
 - Break down the design into actionable implementation tasks
 - Create a git branch or workspace for isolated development
 
-Use templates in `templates/design-doc-template.md` and `templates/decision-matrix-template.md` for structured documentation.
+Use templates in `scripts/design-doc-template.md` and `scripts/decision-matrix-template.md` for structured documentation.
 
 ## Socratic Questioning Templates
 

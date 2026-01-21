@@ -180,4 +180,4 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
 ```
 
-See `templates/prometheus-metrics.ts` for complete setup.
+See `scripts/prometheus-metrics.ts` for complete setup.

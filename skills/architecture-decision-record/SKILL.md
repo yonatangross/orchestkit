@@ -128,7 +128,14 @@ Keep ADRs in version control alongside code:
 
 ## Quick Start Checklist
 
-- [ ] Copy ADR template from `/templates/adr-template.md`
+### Option 1: Use Script-Enhanced Generator (Recommended)
+- [ ] Run `/create-adr [number] [title]` to generate ADR with auto-filled context
+- [ ] ADR number, date, and author are auto-populated
+- [ ] Review and fill in decision details
+- [ ] Set Status to "Proposed" and review with team
+
+### Option 2: Use Static Template
+- [ ] Copy ADR template from `scripts/adr-template.md`
 - [ ] Assign next sequential number (check existing ADRs)
 - [ ] Fill in Context: problem, constraints, requirements
 - [ ] Document Decision: what, why, how, who
@@ -140,6 +147,15 @@ Keep ADRs in version control alongside code:
 - [ ] Update Status to "Accepted" after approval
 - [ ] Link ADR in implementation PR
 - [ ] Update Status to "Implemented" after deployment
+
+## Available Scripts
+
+- **`scripts/create-adr.md`** - Dynamic ADR generator with auto-filled context
+  - Auto-fills: ADR number, date, author, total ADRs count
+  - Usage: `/create-adr [number] [title]`
+  - Uses `$ARGUMENTS` and `!command` for dynamic context
+  
+- **`scripts/adr-template.md`** - Static template for manual use
 
 ## Common Pitfalls to Avoid
 

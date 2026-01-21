@@ -335,5 +335,5 @@ function Dashboard() {
 ## References
 
 - `references/middleware-composition.md` - Combining multiple middleware
-- `templates/store-template.ts` - Production-ready store template
+- `scripts/store-template.ts` - Production-ready store template
 - `checklists/zustand-checklist.md` - Implementation checklist

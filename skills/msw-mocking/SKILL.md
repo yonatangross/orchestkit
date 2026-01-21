@@ -107,7 +107,7 @@ expect(await screen.findByText('Success')).toBeInTheDocument()
 | [references/msw-2x-api.md](references/msw-2x-api.md) | Complete MSW 2.x API reference |
 | [examples/handler-patterns.md](examples/handler-patterns.md) | CRUD, auth, error, and upload examples |
 | [checklists/msw-setup-checklist.md](checklists/msw-setup-checklist.md) | Setup and review checklists |
-| [templates/handlers-template.ts](templates/handlers-template.ts) | Starter template for new handlers |
+| [scripts/handlers-template.ts](scripts/handlers-template.ts) | Starter template for new handlers |
 
 ## Related Skills
 

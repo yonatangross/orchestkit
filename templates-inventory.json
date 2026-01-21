@@ -1,0 +1,2145 @@
+{
+  "total_skills_with_templates": 106,
+  "total_template_files": 179,
+  "by_skill": {
+    "a11y-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/a11y-testing/templates/a11y-test-template.ts",
+          "relative_path": "skills/a11y-testing/templates/a11y-test-template.ts",
+          "name": "a11y-test-template.ts",
+          "type": "ts",
+          "size_bytes": 13042,
+          "category": "typescript"
+        }
+      ]
+    },
+    "advanced-guardrails": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/advanced-guardrails/templates/nemo-config.yaml",
+          "relative_path": "skills/advanced-guardrails/templates/nemo-config.yaml",
+          "name": "nemo-config.yaml",
+          "type": "yaml",
+          "size_bytes": 9383,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/advanced-guardrails/templates/rails-pipeline.py",
+          "relative_path": "skills/advanced-guardrails/templates/rails-pipeline.py",
+          "name": "rails-pipeline.py",
+          "type": "py",
+          "size_bytes": 20975,
+          "category": "python"
+        }
+      ]
+    },
+    "agent-browser": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/agent-browser/templates/authenticated-session.sh",
+          "relative_path": "skills/agent-browser/templates/authenticated-session.sh",
+          "name": "authenticated-session.sh",
+          "type": "sh",
+          "size_bytes": 5582,
+          "category": "shell"
+        },
+        {
+          "path": "skills/agent-browser/templates/capture-workflow.sh",
+          "relative_path": "skills/agent-browser/templates/capture-workflow.sh",
+          "name": "capture-workflow.sh",
+          "type": "sh",
+          "size_bytes": 1148,
+          "category": "shell"
+        },
+        {
+          "path": "skills/agent-browser/templates/form-automation.sh",
+          "relative_path": "skills/agent-browser/templates/form-automation.sh",
+          "name": "form-automation.sh",
+          "type": "sh",
+          "size_bytes": 5208,
+          "category": "shell"
+        }
+      ]
+    },
+    "agent-loops": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/agent-loops/templates/agent-workflow-template.ts",
+          "relative_path": "skills/agent-loops/templates/agent-workflow-template.ts",
+          "name": "agent-workflow-template.ts",
+          "type": "ts",
+          "size_bytes": 11244,
+          "category": "typescript"
+        }
+      ]
+    },
+    "agentic-rag-patterns": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/agentic-rag-patterns/templates/crag-workflow.py",
+          "relative_path": "skills/agentic-rag-patterns/templates/crag-workflow.py",
+          "name": "crag-workflow.py",
+          "type": "py",
+          "size_bytes": 18833,
+          "category": "python"
+        },
+        {
+          "path": "skills/agentic-rag-patterns/templates/self-rag-graph.py",
+          "relative_path": "skills/agentic-rag-patterns/templates/self-rag-graph.py",
+          "name": "self-rag-graph.py",
+          "type": "py",
+          "size_bytes": 16066,
+          "category": "python"
+        }
+      ]
+    },
+    "aggregate-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/aggregate-patterns/templates/aggregate-root-template.py",
+          "relative_path": "skills/aggregate-patterns/templates/aggregate-root-template.py",
+          "name": "aggregate-root-template.py",
+          "type": "py",
+          "size_bytes": 11087,
+          "category": "python"
+        }
+      ]
+    },
+    "alembic-migrations": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/alembic-migrations/templates/migration-template.py",
+          "relative_path": "skills/alembic-migrations/templates/migration-template.py",
+          "name": "migration-template.py",
+          "type": "py",
+          "size_bytes": 7075,
+          "category": "python"
+        }
+      ]
+    },
+    "alternative-agent-frameworks": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/alternative-agent-frameworks/templates/crewai-crew.py",
+          "relative_path": "skills/alternative-agent-frameworks/templates/crewai-crew.py",
+          "name": "crewai-crew.py",
+          "type": "py",
+          "size_bytes": 11916,
+          "category": "python"
+        },
+        {
+          "path": "skills/alternative-agent-frameworks/templates/openai-multi-agent.py",
+          "relative_path": "skills/alternative-agent-frameworks/templates/openai-multi-agent.py",
+          "name": "openai-multi-agent.py",
+          "type": "py",
+          "size_bytes": 14378,
+          "category": "python"
+        }
+      ]
+    },
+    "api-design-framework": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/api-design-framework/templates/asyncapi-template.yaml",
+          "relative_path": "skills/api-design-framework/templates/asyncapi-template.yaml",
+          "name": "asyncapi-template.yaml",
+          "type": "yaml",
+          "size_bytes": 14838,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/api-design-framework/templates/openapi-template.yaml",
+          "relative_path": "skills/api-design-framework/templates/openapi-template.yaml",
+          "name": "openapi-template.yaml",
+          "type": "yaml",
+          "size_bytes": 14208,
+          "category": "yaml"
+        }
+      ]
+    },
+    "api-versioning": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/api-versioning/templates/fastapi-versioned-router.py",
+          "relative_path": "skills/api-versioning/templates/fastapi-versioned-router.py",
+          "name": "fastapi-versioned-router.py",
+          "type": "py",
+          "size_bytes": 10871,
+          "category": "python"
+        }
+      ]
+    },
+    "architecture-decision-record": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/architecture-decision-record/templates/adr-frontmatter.yaml",
+          "relative_path": "skills/architecture-decision-record/templates/adr-frontmatter.yaml",
+          "name": "adr-frontmatter.yaml",
+          "type": "yaml",
+          "size_bytes": 2305,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/architecture-decision-record/templates/adr-template.md",
+          "relative_path": "skills/architecture-decision-record/templates/adr-template.md",
+          "name": "adr-template.md",
+          "type": "md",
+          "size_bytes": 2646,
+          "category": "markdown"
+        }
+      ]
+    },
+    "ascii-visualizer": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/ascii-visualizer/templates/diagram-templates.md",
+          "relative_path": "skills/ascii-visualizer/templates/diagram-templates.md",
+          "name": "diagram-templates.md",
+          "type": "md",
+          "size_bytes": 41236,
+          "category": "markdown"
+        }
+      ]
+    },
+    "asyncio-advanced": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/asyncio-advanced/templates/async-service-template.py",
+          "relative_path": "skills/asyncio-advanced/templates/async-service-template.py",
+          "name": "async-service-template.py",
+          "type": "py",
+          "size_bytes": 5523,
+          "category": "python"
+        }
+      ]
+    },
+    "auth-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/auth-patterns/templates/auth-middleware-template.py",
+          "relative_path": "skills/auth-patterns/templates/auth-middleware-template.py",
+          "name": "auth-middleware-template.py",
+          "type": "py",
+          "size_bytes": 7156,
+          "category": "python"
+        }
+      ]
+    },
+    "background-jobs": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/background-jobs/templates/arq-worker-template.py",
+          "relative_path": "skills/background-jobs/templates/arq-worker-template.py",
+          "name": "arq-worker-template.py",
+          "type": "py",
+          "size_bytes": 9035,
+          "category": "python"
+        }
+      ]
+    },
+    "biome-linting": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/biome-linting/templates/biome-strict.json",
+          "relative_path": "skills/biome-linting/templates/biome-strict.json",
+          "name": "biome-strict.json",
+          "type": "json",
+          "size_bytes": 2252,
+          "category": "json"
+        },
+        {
+          "path": "skills/biome-linting/templates/biome.json",
+          "relative_path": "skills/biome-linting/templates/biome.json",
+          "name": "biome.json",
+          "type": "json",
+          "size_bytes": 2511,
+          "category": "json"
+        },
+        {
+          "path": "skills/biome-linting/templates/github-action.yml",
+          "relative_path": "skills/biome-linting/templates/github-action.yml",
+          "name": "github-action.yml",
+          "type": "yml",
+          "size_bytes": 1895,
+          "category": "yaml"
+        }
+      ]
+    },
+    "brainstorming": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/brainstorming/templates/decision-matrix-template.md",
+          "relative_path": "skills/brainstorming/templates/decision-matrix-template.md",
+          "name": "decision-matrix-template.md",
+          "type": "md",
+          "size_bytes": 3439,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/brainstorming/templates/design-doc-template.md",
+          "relative_path": "skills/brainstorming/templates/design-doc-template.md",
+          "name": "design-doc-template.md",
+          "type": "md",
+          "size_bytes": 3344,
+          "category": "markdown"
+        }
+      ]
+    },
+    "browser-content-capture": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/browser-content-capture/templates/auth-capture.sh",
+          "relative_path": "skills/browser-content-capture/templates/auth-capture.sh",
+          "name": "auth-capture.sh",
+          "type": "sh",
+          "size_bytes": 2106,
+          "category": "shell"
+        },
+        {
+          "path": "skills/browser-content-capture/templates/capture-workflow.sh",
+          "relative_path": "skills/browser-content-capture/templates/capture-workflow.sh",
+          "name": "capture-workflow.sh",
+          "type": "sh",
+          "size_bytes": 1103,
+          "category": "shell"
+        },
+        {
+          "path": "skills/browser-content-capture/templates/multi-page-crawl.sh",
+          "relative_path": "skills/browser-content-capture/templates/multi-page-crawl.sh",
+          "name": "multi-page-crawl.sh",
+          "type": "sh",
+          "size_bytes": 1804,
+          "category": "shell"
+        }
+      ]
+    },
+    "caching-strategies": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/caching-strategies/templates/redis-cache-service.py",
+          "relative_path": "skills/caching-strategies/templates/redis-cache-service.py",
+          "name": "redis-cache-service.py",
+          "type": "py",
+          "size_bytes": 13081,
+          "category": "python"
+        }
+      ]
+    },
+    "celery-advanced": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/celery-advanced/templates/canvas-workflow-template.py",
+          "relative_path": "skills/celery-advanced/templates/canvas-workflow-template.py",
+          "name": "canvas-workflow-template.py",
+          "type": "py",
+          "size_bytes": 14113,
+          "category": "python"
+        },
+        {
+          "path": "skills/celery-advanced/templates/celery-config-template.py",
+          "relative_path": "skills/celery-advanced/templates/celery-config-template.py",
+          "name": "celery-config-template.py",
+          "type": "py",
+          "size_bytes": 10197,
+          "category": "python"
+        },
+        {
+          "path": "skills/celery-advanced/templates/priority-task-template.py",
+          "relative_path": "skills/celery-advanced/templates/priority-task-template.py",
+          "name": "priority-task-template.py",
+          "type": "py",
+          "size_bytes": 11714,
+          "category": "python"
+        }
+      ]
+    },
+    "clean-architecture": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/clean-architecture/templates/domain-entity-template.py",
+          "relative_path": "skills/clean-architecture/templates/domain-entity-template.py",
+          "name": "domain-entity-template.py",
+          "type": "py",
+          "size_bytes": 9543,
+          "category": "python"
+        }
+      ]
+    },
+    "code-review-playbook": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/code-review-playbook/templates/pr-template.md",
+          "relative_path": "skills/code-review-playbook/templates/pr-template.md",
+          "name": "pr-template.md",
+          "type": "md",
+          "size_bytes": 7189,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/code-review-playbook/templates/review-feedback-template.md",
+          "relative_path": "skills/code-review-playbook/templates/review-feedback-template.md",
+          "name": "review-feedback-template.md",
+          "type": "md",
+          "size_bytes": 7944,
+          "category": "markdown"
+        }
+      ]
+    },
+    "connection-pooling": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/connection-pooling/templates/pool-setup-template.py",
+          "relative_path": "skills/connection-pooling/templates/pool-setup-template.py",
+          "name": "pool-setup-template.py",
+          "type": "py",
+          "size_bytes": 7125,
+          "category": "python"
+        }
+      ]
+    },
+    "context-compression": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/context-compression/templates/anchored-summary-template.md",
+          "relative_path": "skills/context-compression/templates/anchored-summary-template.md",
+          "name": "anchored-summary-template.md",
+          "type": "md",
+          "size_bytes": 7421,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/context-compression/templates/compression-probes-template.md",
+          "relative_path": "skills/context-compression/templates/compression-probes-template.md",
+          "name": "compression-probes-template.md",
+          "type": "md",
+          "size_bytes": 9650,
+          "category": "markdown"
+        }
+      ]
+    },
+    "contract-testing": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/contract-testing/templates/consumer-test-template.py",
+          "relative_path": "skills/contract-testing/templates/consumer-test-template.py",
+          "name": "consumer-test-template.py",
+          "type": "py",
+          "size_bytes": 6451,
+          "category": "python"
+        },
+        {
+          "path": "skills/contract-testing/templates/provider-verification-template.py",
+          "relative_path": "skills/contract-testing/templates/provider-verification-template.py",
+          "name": "provider-verification-template.py",
+          "type": "py",
+          "size_bytes": 5990,
+          "category": "python"
+        }
+      ]
+    },
+    "core-web-vitals": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/core-web-vitals/templates/performance-monitoring.ts",
+          "relative_path": "skills/core-web-vitals/templates/performance-monitoring.ts",
+          "name": "performance-monitoring.ts",
+          "type": "ts",
+          "size_bytes": 17976,
+          "category": "typescript"
+        }
+      ]
+    },
+    "cqrs-patterns": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/cqrs-patterns/templates/command-bus-template.py",
+          "relative_path": "skills/cqrs-patterns/templates/command-bus-template.py",
+          "name": "command-bus-template.py",
+          "type": "py",
+          "size_bytes": 9372,
+          "category": "python"
+        },
+        {
+          "path": "skills/cqrs-patterns/templates/projection-template.py",
+          "relative_path": "skills/cqrs-patterns/templates/projection-template.py",
+          "name": "projection-template.py",
+          "type": "py",
+          "size_bytes": 12341,
+          "category": "python"
+        },
+        {
+          "path": "skills/cqrs-patterns/templates/query-handler-template.py",
+          "relative_path": "skills/cqrs-patterns/templates/query-handler-template.py",
+          "name": "query-handler-template.py",
+          "type": "py",
+          "size_bytes": 9950,
+          "category": "python"
+        }
+      ]
+    },
+    "dashboard-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/dashboard-patterns/templates/widget-card.tsx",
+          "relative_path": "skills/dashboard-patterns/templates/widget-card.tsx",
+          "name": "widget-card.tsx",
+          "type": "tsx",
+          "size_bytes": 3445,
+          "category": "typescript"
+        }
+      ]
+    },
+    "design-system-starter": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/design-system-starter/templates/component-template.tsx",
+          "relative_path": "skills/design-system-starter/templates/component-template.tsx",
+          "name": "component-template.tsx",
+          "type": "tsx",
+          "size_bytes": 6911,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/design-system-starter/templates/design-tokens-template.json",
+          "relative_path": "skills/design-system-starter/templates/design-tokens-template.json",
+          "name": "design-tokens-template.json",
+          "type": "json",
+          "size_bytes": 17128,
+          "category": "json"
+        }
+      ]
+    },
+    "devops-deployment": {
+      "template_count": 8,
+      "files": [
+        {
+          "path": "skills/devops-deployment/templates/Dockerfile",
+          "relative_path": "skills/devops-deployment/templates/Dockerfile",
+          "name": "Dockerfile",
+          "type": "other",
+          "size_bytes": 1084,
+          "category": "other"
+        },
+        {
+          "path": "skills/devops-deployment/templates/argocd-application.yaml",
+          "relative_path": "skills/devops-deployment/templates/argocd-application.yaml",
+          "name": "argocd-application.yaml",
+          "type": "yaml",
+          "size_bytes": 576,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/docker-compose.yml",
+          "relative_path": "skills/devops-deployment/templates/docker-compose.yml",
+          "name": "docker-compose.yml",
+          "type": "yml",
+          "size_bytes": 992,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/external-secrets.yaml",
+          "relative_path": "skills/devops-deployment/templates/external-secrets.yaml",
+          "name": "external-secrets.yaml",
+          "type": "yaml",
+          "size_bytes": 517,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/github-actions-pipeline.yml",
+          "relative_path": "skills/devops-deployment/templates/github-actions-pipeline.yml",
+          "name": "github-actions-pipeline.yml",
+          "type": "yml",
+          "size_bytes": 3319,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/helm-values.yaml",
+          "relative_path": "skills/devops-deployment/templates/helm-values.yaml",
+          "name": "helm-values.yaml",
+          "type": "yaml",
+          "size_bytes": 754,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/k8s-manifests.yaml",
+          "relative_path": "skills/devops-deployment/templates/k8s-manifests.yaml",
+          "name": "k8s-manifests.yaml",
+          "type": "yaml",
+          "size_bytes": 2241,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/devops-deployment/templates/terraform-aws.tf",
+          "relative_path": "skills/devops-deployment/templates/terraform-aws.tf",
+          "name": "terraform-aws.tf",
+          "type": "tf",
+          "size_bytes": 1955,
+          "category": "other"
+        }
+      ]
+    },
+    "distributed-locks": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/distributed-locks/templates/distributed-lock-template.py",
+          "relative_path": "skills/distributed-locks/templates/distributed-lock-template.py",
+          "name": "distributed-lock-template.py",
+          "type": "py",
+          "size_bytes": 11337,
+          "category": "python"
+        }
+      ]
+    },
+    "domain-driven-design": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/domain-driven-design/templates/entity-template.py",
+          "relative_path": "skills/domain-driven-design/templates/entity-template.py",
+          "name": "entity-template.py",
+          "type": "py",
+          "size_bytes": 6168,
+          "category": "python"
+        },
+        {
+          "path": "skills/domain-driven-design/templates/repository-template.py",
+          "relative_path": "skills/domain-driven-design/templates/repository-template.py",
+          "name": "repository-template.py",
+          "type": "py",
+          "size_bytes": 7982,
+          "category": "python"
+        },
+        {
+          "path": "skills/domain-driven-design/templates/value-object-template.py",
+          "relative_path": "skills/domain-driven-design/templates/value-object-template.py",
+          "name": "value-object-template.py",
+          "type": "py",
+          "size_bytes": 7262,
+          "category": "python"
+        }
+      ]
+    },
+    "e2e-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/e2e-testing/templates/page-object-template.ts",
+          "relative_path": "skills/e2e-testing/templates/page-object-template.ts",
+          "name": "page-object-template.ts",
+          "type": "ts",
+          "size_bytes": 5089,
+          "category": "typescript"
+        }
+      ]
+    },
+    "edge-computing-patterns": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/edge-computing-patterns/templates/edge-function.ts",
+          "relative_path": "skills/edge-computing-patterns/templates/edge-function.ts",
+          "name": "edge-function.ts",
+          "type": "ts",
+          "size_bytes": 11141,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/edge-computing-patterns/templates/edge-middleware.ts",
+          "relative_path": "skills/edge-computing-patterns/templates/edge-middleware.ts",
+          "name": "edge-middleware.ts",
+          "type": "ts",
+          "size_bytes": 12112,
+          "category": "typescript"
+        }
+      ]
+    },
+    "embeddings": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/embeddings/templates/embedding-pipeline.py",
+          "relative_path": "skills/embeddings/templates/embedding-pipeline.py",
+          "name": "embedding-pipeline.py",
+          "type": "py",
+          "size_bytes": 4279,
+          "category": "python"
+        }
+      ]
+    },
+    "error-handling-rfc9457": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/error-handling-rfc9457/templates/problem-detail-exceptions.py",
+          "relative_path": "skills/error-handling-rfc9457/templates/problem-detail-exceptions.py",
+          "name": "problem-detail-exceptions.py",
+          "type": "py",
+          "size_bytes": 11849,
+          "category": "python"
+        }
+      ]
+    },
+    "event-sourcing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/event-sourcing/templates/event-store-template.py",
+          "relative_path": "skills/event-sourcing/templates/event-store-template.py",
+          "name": "event-store-template.py",
+          "type": "py",
+          "size_bytes": 4795,
+          "category": "python"
+        }
+      ]
+    },
+    "evidence-verification": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/evidence-verification/templates/build-evidence.md",
+          "relative_path": "skills/evidence-verification/templates/build-evidence.md",
+          "name": "build-evidence.md",
+          "type": "md",
+          "size_bytes": 6985,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/evidence-verification/templates/evidence-checklist.md",
+          "relative_path": "skills/evidence-verification/templates/evidence-checklist.md",
+          "name": "evidence-checklist.md",
+          "type": "md",
+          "size_bytes": 3457,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/evidence-verification/templates/test-evidence.md",
+          "relative_path": "skills/evidence-verification/templates/test-evidence.md",
+          "name": "test-evidence.md",
+          "type": "md",
+          "size_bytes": 5067,
+          "category": "markdown"
+        }
+      ]
+    },
+    "fastapi-advanced": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/fastapi-advanced/templates/fastapi-app.py",
+          "relative_path": "skills/fastapi-advanced/templates/fastapi-app.py",
+          "name": "fastapi-app.py",
+          "type": "py",
+          "size_bytes": 11589,
+          "category": "python"
+        }
+      ]
+    },
+    "fine-tuning-customization": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/fine-tuning-customization/templates/dpo-training.py",
+          "relative_path": "skills/fine-tuning-customization/templates/dpo-training.py",
+          "name": "dpo-training.py",
+          "type": "py",
+          "size_bytes": 12068,
+          "category": "python"
+        },
+        {
+          "path": "skills/fine-tuning-customization/templates/lora-config.yaml",
+          "relative_path": "skills/fine-tuning-customization/templates/lora-config.yaml",
+          "name": "lora-config.yaml",
+          "type": "yaml",
+          "size_bytes": 5776,
+          "category": "yaml"
+        }
+      ]
+    },
+    "focus-management": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/focus-management/templates/focus-trap-template.tsx",
+          "relative_path": "skills/focus-management/templates/focus-trap-template.tsx",
+          "name": "focus-trap-template.tsx",
+          "type": "tsx",
+          "size_bytes": 13823,
+          "category": "typescript"
+        }
+      ]
+    },
+    "form-state-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/form-state-patterns/templates/form-template.tsx",
+          "relative_path": "skills/form-state-patterns/templates/form-template.tsx",
+          "name": "form-template.tsx",
+          "type": "tsx",
+          "size_bytes": 21875,
+          "category": "typescript"
+        }
+      ]
+    },
+    "function-calling": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/function-calling/templates/function-def.py",
+          "relative_path": "skills/function-calling/templates/function-def.py",
+          "name": "function-def.py",
+          "type": "py",
+          "size_bytes": 3949,
+          "category": "python"
+        }
+      ]
+    },
+    "golden-dataset-management": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/golden-dataset-management/templates/backup-script.py",
+          "relative_path": "skills/golden-dataset-management/templates/backup-script.py",
+          "name": "backup-script.py",
+          "type": "py",
+          "size_bytes": 13786,
+          "category": "python"
+        }
+      ]
+    },
+    "grpc-python": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/grpc-python/templates/grpc-client-template.py",
+          "relative_path": "skills/grpc-python/templates/grpc-client-template.py",
+          "name": "grpc-client-template.py",
+          "type": "py",
+          "size_bytes": 16660,
+          "category": "python"
+        },
+        {
+          "path": "skills/grpc-python/templates/grpc-server-template.py",
+          "relative_path": "skills/grpc-python/templates/grpc-server-template.py",
+          "name": "grpc-server-template.py",
+          "type": "py",
+          "size_bytes": 15927,
+          "category": "python"
+        },
+        {
+          "path": "skills/grpc-python/templates/proto-service-template.proto",
+          "relative_path": "skills/grpc-python/templates/proto-service-template.proto",
+          "name": "proto-service-template.proto",
+          "type": "proto",
+          "size_bytes": 10734,
+          "category": "other"
+        }
+      ]
+    },
+    "high-performance-inference": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/high-performance-inference/templates/quantization-config.py",
+          "relative_path": "skills/high-performance-inference/templates/quantization-config.py",
+          "name": "quantization-config.py",
+          "type": "py",
+          "size_bytes": 16517,
+          "category": "python"
+        },
+        {
+          "path": "skills/high-performance-inference/templates/vllm-server.py",
+          "relative_path": "skills/high-performance-inference/templates/vllm-server.py",
+          "name": "vllm-server.py",
+          "type": "py",
+          "size_bytes": 9213,
+          "category": "python"
+        }
+      ]
+    },
+    "idempotency-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/idempotency-patterns/templates/idempotency-middleware-template.py",
+          "relative_path": "skills/idempotency-patterns/templates/idempotency-middleware-template.py",
+          "name": "idempotency-middleware-template.py",
+          "type": "py",
+          "size_bytes": 10839,
+          "category": "python"
+        }
+      ]
+    },
+    "image-optimization": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/image-optimization/templates/image-component.tsx",
+          "relative_path": "skills/image-optimization/templates/image-component.tsx",
+          "name": "image-component.tsx",
+          "type": "tsx",
+          "size_bytes": 4852,
+          "category": "typescript"
+        }
+      ]
+    },
+    "input-validation": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/input-validation/templates/validation-schemas.ts",
+          "relative_path": "skills/input-validation/templates/validation-schemas.ts",
+          "name": "validation-schemas.ts",
+          "type": "ts",
+          "size_bytes": 7153,
+          "category": "typescript"
+        }
+      ]
+    },
+    "integration-testing": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/integration-testing/templates/pytest-integration.py",
+          "relative_path": "skills/integration-testing/templates/pytest-integration.py",
+          "name": "pytest-integration.py",
+          "type": "py",
+          "size_bytes": 8362,
+          "category": "python"
+        },
+        {
+          "path": "skills/integration-testing/templates/test-plan-template.md",
+          "relative_path": "skills/integration-testing/templates/test-plan-template.md",
+          "name": "test-plan-template.md",
+          "type": "md",
+          "size_bytes": 8785,
+          "category": "markdown"
+        }
+      ]
+    },
+    "langfuse-observability": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/langfuse-observability/templates/callback-handler.py",
+          "relative_path": "skills/langfuse-observability/templates/callback-handler.py",
+          "name": "callback-handler.py",
+          "type": "py",
+          "size_bytes": 7364,
+          "category": "python"
+        },
+        {
+          "path": "skills/langfuse-observability/templates/observe-decorator.py",
+          "relative_path": "skills/langfuse-observability/templates/observe-decorator.py",
+          "name": "observe-decorator.py",
+          "type": "py",
+          "size_bytes": 4425,
+          "category": "python"
+        }
+      ]
+    },
+    "langgraph-parallel": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/langgraph-parallel/templates/parallel-agent-fanout.py",
+          "relative_path": "skills/langgraph-parallel/templates/parallel-agent-fanout.py",
+          "name": "parallel-agent-fanout.py",
+          "type": "py",
+          "size_bytes": 9608,
+          "category": "python"
+        }
+      ]
+    },
+    "langgraph-routing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/langgraph-routing/templates/semantic-router.py",
+          "relative_path": "skills/langgraph-routing/templates/semantic-router.py",
+          "name": "semantic-router.py",
+          "type": "py",
+          "size_bytes": 16533,
+          "category": "python"
+        }
+      ]
+    },
+    "langgraph-supervisor": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/langgraph-supervisor/templates/content-analysis-graph.py",
+          "relative_path": "skills/langgraph-supervisor/templates/content-analysis-graph.py",
+          "name": "content-analysis-graph.py",
+          "type": "py",
+          "size_bytes": 13576,
+          "category": "python"
+        },
+        {
+          "path": "skills/langgraph-supervisor/templates/supervisor-workflow.py",
+          "relative_path": "skills/langgraph-supervisor/templates/supervisor-workflow.py",
+          "name": "supervisor-workflow.py",
+          "type": "py",
+          "size_bytes": 11163,
+          "category": "python"
+        }
+      ]
+    },
+    "lazy-loading-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/lazy-loading-patterns/templates/lazy-component.tsx",
+          "relative_path": "skills/lazy-loading-patterns/templates/lazy-component.tsx",
+          "name": "lazy-component.tsx",
+          "type": "tsx",
+          "size_bytes": 1941,
+          "category": "typescript"
+        }
+      ]
+    },
+    "llm-evaluation": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/llm-evaluation/templates/evaluator-template.py",
+          "relative_path": "skills/llm-evaluation/templates/evaluator-template.py",
+          "name": "evaluator-template.py",
+          "type": "py",
+          "size_bytes": 8187,
+          "category": "python"
+        }
+      ]
+    },
+    "llm-safety-patterns": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/llm-safety-patterns/templates/prompt_builder.py",
+          "relative_path": "skills/llm-safety-patterns/templates/prompt_builder.py",
+          "name": "prompt_builder.py",
+          "type": "py",
+          "size_bytes": 8491,
+          "category": "python"
+        },
+        {
+          "path": "skills/llm-safety-patterns/templates/safe_llm_call.py",
+          "relative_path": "skills/llm-safety-patterns/templates/safe_llm_call.py",
+          "name": "safe_llm_call.py",
+          "type": "py",
+          "size_bytes": 9189,
+          "category": "python"
+        }
+      ]
+    },
+    "llm-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/llm-testing/templates/llm-test-template.py",
+          "relative_path": "skills/llm-testing/templates/llm-test-template.py",
+          "name": "llm-test-template.py",
+          "type": "py",
+          "size_bytes": 10407,
+          "category": "python"
+        }
+      ]
+    },
+    "mcp-advanced-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/mcp-advanced-patterns/templates/mcp-server-template.py",
+          "relative_path": "skills/mcp-advanced-patterns/templates/mcp-server-template.py",
+          "name": "mcp-server-template.py",
+          "type": "py",
+          "size_bytes": 13497,
+          "category": "python"
+        }
+      ]
+    },
+    "mcp-security-hardening": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/mcp-security-hardening/templates/session-security.py",
+          "relative_path": "skills/mcp-security-hardening/templates/session-security.py",
+          "name": "session-security.py",
+          "type": "py",
+          "size_bytes": 14593,
+          "category": "python"
+        },
+        {
+          "path": "skills/mcp-security-hardening/templates/tool-allowlist.py",
+          "relative_path": "skills/mcp-security-hardening/templates/tool-allowlist.py",
+          "name": "tool-allowlist.py",
+          "type": "py",
+          "size_bytes": 13845,
+          "category": "python"
+        }
+      ]
+    },
+    "mem0-sync": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/mem0-sync/templates/sync-payload.json",
+          "relative_path": "skills/mem0-sync/templates/sync-payload.json",
+          "name": "sync-payload.json",
+          "type": "json",
+          "size_bytes": 2766,
+          "category": "json"
+        }
+      ]
+    },
+    "message-queues": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/message-queues/templates/queue-consumer-template.py",
+          "relative_path": "skills/message-queues/templates/queue-consumer-template.py",
+          "name": "queue-consumer-template.py",
+          "type": "py",
+          "size_bytes": 11959,
+          "category": "python"
+        }
+      ]
+    },
+    "msw-mocking": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/msw-mocking/templates/handlers-template.ts",
+          "relative_path": "skills/msw-mocking/templates/handlers-template.ts",
+          "name": "handlers-template.ts",
+          "type": "ts",
+          "size_bytes": 5870,
+          "category": "typescript"
+        }
+      ]
+    },
+    "observability-monitoring": {
+      "template_count": 5,
+      "files": [
+        {
+          "path": "skills/observability-monitoring/templates/alerting-rules.yml",
+          "relative_path": "skills/observability-monitoring/templates/alerting-rules.yml",
+          "name": "alerting-rules.yml",
+          "type": "yml",
+          "size_bytes": 3191,
+          "category": "yaml"
+        },
+        {
+          "path": "skills/observability-monitoring/templates/health-checks.ts",
+          "relative_path": "skills/observability-monitoring/templates/health-checks.ts",
+          "name": "health-checks.ts",
+          "type": "ts",
+          "size_bytes": 2628,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/observability-monitoring/templates/opentelemetry-tracing.ts",
+          "relative_path": "skills/observability-monitoring/templates/opentelemetry-tracing.ts",
+          "name": "opentelemetry-tracing.ts",
+          "type": "ts",
+          "size_bytes": 3848,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/observability-monitoring/templates/prometheus-metrics.ts",
+          "relative_path": "skills/observability-monitoring/templates/prometheus-metrics.ts",
+          "name": "prometheus-metrics.ts",
+          "type": "ts",
+          "size_bytes": 3353,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/observability-monitoring/templates/structured-logging.ts",
+          "relative_path": "skills/observability-monitoring/templates/structured-logging.ts",
+          "name": "structured-logging.ts",
+          "type": "ts",
+          "size_bytes": 3416,
+          "category": "typescript"
+        }
+      ]
+    },
+    "ollama-local": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/ollama-local/templates/ollama-provider-template.py",
+          "relative_path": "skills/ollama-local/templates/ollama-provider-template.py",
+          "name": "ollama-provider-template.py",
+          "type": "py",
+          "size_bytes": 13179,
+          "category": "python"
+        }
+      ]
+    },
+    "outbox-pattern": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/outbox-pattern/templates/outbox-publisher-template.py",
+          "relative_path": "skills/outbox-pattern/templates/outbox-publisher-template.py",
+          "name": "outbox-publisher-template.py",
+          "type": "py",
+          "size_bytes": 11457,
+          "category": "python"
+        }
+      ]
+    },
+    "performance-optimization": {
+      "template_count": 5,
+      "files": [
+        {
+          "path": "skills/performance-optimization/templates/api-optimization.ts",
+          "relative_path": "skills/performance-optimization/templates/api-optimization.ts",
+          "name": "api-optimization.ts",
+          "type": "ts",
+          "size_bytes": 3043,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/performance-optimization/templates/caching-patterns.ts",
+          "relative_path": "skills/performance-optimization/templates/caching-patterns.ts",
+          "name": "caching-patterns.ts",
+          "type": "ts",
+          "size_bytes": 2233,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/performance-optimization/templates/database-optimization.ts",
+          "relative_path": "skills/performance-optimization/templates/database-optimization.ts",
+          "name": "database-optimization.ts",
+          "type": "ts",
+          "size_bytes": 2440,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/performance-optimization/templates/frontend-optimization.tsx",
+          "relative_path": "skills/performance-optimization/templates/frontend-optimization.tsx",
+          "name": "frontend-optimization.tsx",
+          "type": "tsx",
+          "size_bytes": 3905,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/performance-optimization/templates/performance-metrics.ts",
+          "relative_path": "skills/performance-optimization/templates/performance-metrics.ts",
+          "name": "performance-metrics.ts",
+          "type": "ts",
+          "size_bytes": 2960,
+          "category": "typescript"
+        }
+      ]
+    },
+    "performance-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/performance-testing/templates/k6-script.js",
+          "relative_path": "skills/performance-testing/templates/k6-script.js",
+          "name": "k6-script.js",
+          "type": "js",
+          "size_bytes": 5373,
+          "category": "javascript"
+        }
+      ]
+    },
+    "pgvector-search": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/pgvector-search/templates/chunk-repository.py",
+          "relative_path": "skills/pgvector-search/templates/chunk-repository.py",
+          "name": "chunk-repository.py",
+          "type": "py",
+          "size_bytes": 10340,
+          "category": "python"
+        },
+        {
+          "path": "skills/pgvector-search/templates/search-service.py",
+          "relative_path": "skills/pgvector-search/templates/search-service.py",
+          "name": "search-service.py",
+          "type": "py",
+          "size_bytes": 5618,
+          "category": "python"
+        }
+      ]
+    },
+    "prompt-caching": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/prompt-caching/templates/prompt-cache-wrapper.py",
+          "relative_path": "skills/prompt-caching/templates/prompt-cache-wrapper.py",
+          "name": "prompt-cache-wrapper.py",
+          "type": "py",
+          "size_bytes": 10701,
+          "category": "python"
+        }
+      ]
+    },
+    "prompt-engineering-suite": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/prompt-engineering-suite/templates/cot-template.py",
+          "relative_path": "skills/prompt-engineering-suite/templates/cot-template.py",
+          "name": "cot-template.py",
+          "type": "py",
+          "size_bytes": 9756,
+          "category": "python"
+        },
+        {
+          "path": "skills/prompt-engineering-suite/templates/few-shot-template.py",
+          "relative_path": "skills/prompt-engineering-suite/templates/few-shot-template.py",
+          "name": "few-shot-template.py",
+          "type": "py",
+          "size_bytes": 13047,
+          "category": "python"
+        },
+        {
+          "path": "skills/prompt-engineering-suite/templates/jinja2-prompts.py",
+          "relative_path": "skills/prompt-engineering-suite/templates/jinja2-prompts.py",
+          "name": "jinja2-prompts.py",
+          "type": "py",
+          "size_bytes": 25091,
+          "category": "python"
+        }
+      ]
+    },
+    "property-based-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/property-based-testing/templates/hypothesis-conftest.py",
+          "relative_path": "skills/property-based-testing/templates/hypothesis-conftest.py",
+          "name": "hypothesis-conftest.py",
+          "type": "py",
+          "size_bytes": 4012,
+          "category": "python"
+        }
+      ]
+    },
+    "pytest-advanced": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/pytest-advanced/templates/conftest-template.py",
+          "relative_path": "skills/pytest-advanced/templates/conftest-template.py",
+          "name": "conftest-template.py",
+          "type": "py",
+          "size_bytes": 4571,
+          "category": "python"
+        }
+      ]
+    },
+    "quality-gates": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/quality-gates/templates/complexity-assessment.md",
+          "relative_path": "skills/quality-gates/templates/complexity-assessment.md",
+          "name": "complexity-assessment.md",
+          "type": "md",
+          "size_bytes": 4774,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/quality-gates/templates/gate-check-template.md",
+          "relative_path": "skills/quality-gates/templates/gate-check-template.md",
+          "name": "gate-check-template.md",
+          "type": "md",
+          "size_bytes": 8406,
+          "category": "markdown"
+        },
+        {
+          "path": "skills/quality-gates/templates/requirements-checklist.md",
+          "relative_path": "skills/quality-gates/templates/requirements-checklist.md",
+          "name": "requirements-checklist.md",
+          "type": "md",
+          "size_bytes": 9858,
+          "category": "markdown"
+        }
+      ]
+    },
+    "radix-primitives": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/radix-primitives/templates/composed-trigger.tsx",
+          "relative_path": "skills/radix-primitives/templates/composed-trigger.tsx",
+          "name": "composed-trigger.tsx",
+          "type": "tsx",
+          "size_bytes": 3498,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/radix-primitives/templates/custom-dialog.tsx",
+          "relative_path": "skills/radix-primitives/templates/custom-dialog.tsx",
+          "name": "custom-dialog.tsx",
+          "type": "tsx",
+          "size_bytes": 4499,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/radix-primitives/templates/custom-dropdown.tsx",
+          "relative_path": "skills/radix-primitives/templates/custom-dropdown.tsx",
+          "name": "custom-dropdown.tsx",
+          "type": "tsx",
+          "size_bytes": 7227,
+          "category": "typescript"
+        }
+      ]
+    },
+    "rag-retrieval": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/rag-retrieval/templates/rag-pipeline-template.ts",
+          "relative_path": "skills/rag-retrieval/templates/rag-pipeline-template.ts",
+          "name": "rag-pipeline-template.ts",
+          "type": "ts",
+          "size_bytes": 8985,
+          "category": "typescript"
+        }
+      ]
+    },
+    "rate-limiting": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/rate-limiting/templates/redis-rate-limiter.py",
+          "relative_path": "skills/rate-limiting/templates/redis-rate-limiter.py",
+          "name": "redis-rate-limiter.py",
+          "type": "py",
+          "size_bytes": 10489,
+          "category": "python"
+        }
+      ]
+    },
+    "react-aria-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/react-aria-patterns/templates/accessible-component-template.tsx",
+          "relative_path": "skills/react-aria-patterns/templates/accessible-component-template.tsx",
+          "name": "accessible-component-template.tsx",
+          "type": "tsx",
+          "size_bytes": 11681,
+          "category": "typescript"
+        }
+      ]
+    },
+    "react-server-components-framework": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/react-server-components-framework/templates/client-component-template.tsx",
+          "relative_path": "skills/react-server-components-framework/templates/client-component-template.tsx",
+          "name": "client-component-template.tsx",
+          "type": "tsx",
+          "size_bytes": 2078,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/react-server-components-framework/templates/server-action-template.ts",
+          "relative_path": "skills/react-server-components-framework/templates/server-action-template.ts",
+          "name": "server-action-template.ts",
+          "type": "ts",
+          "size_bytes": 6083,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/react-server-components-framework/templates/server-component-template.tsx",
+          "relative_path": "skills/react-server-components-framework/templates/server-component-template.tsx",
+          "name": "server-component-template.tsx",
+          "type": "tsx",
+          "size_bytes": 1928,
+          "category": "typescript"
+        }
+      ]
+    },
+    "release-management": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/release-management/templates/release-scripts.sh",
+          "relative_path": "skills/release-management/templates/release-scripts.sh",
+          "name": "release-scripts.sh",
+          "type": "sh",
+          "size_bytes": 10815,
+          "category": "shell"
+        }
+      ]
+    },
+    "render-optimization": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/render-optimization/templates/optimized-context.tsx",
+          "relative_path": "skills/render-optimization/templates/optimized-context.tsx",
+          "name": "optimized-context.tsx",
+          "type": "tsx",
+          "size_bytes": 6152,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/render-optimization/templates/virtualized-list.tsx",
+          "relative_path": "skills/render-optimization/templates/virtualized-list.tsx",
+          "name": "virtualized-list.tsx",
+          "type": "tsx",
+          "size_bytes": 3966,
+          "category": "typescript"
+        }
+      ]
+    },
+    "resilience-patterns": {
+      "template_count": 5,
+      "files": [
+        {
+          "path": "skills/resilience-patterns/templates/bulkhead.py",
+          "relative_path": "skills/resilience-patterns/templates/bulkhead.py",
+          "name": "bulkhead.py",
+          "type": "py",
+          "size_bytes": 14210,
+          "category": "python"
+        },
+        {
+          "path": "skills/resilience-patterns/templates/circuit-breaker.py",
+          "relative_path": "skills/resilience-patterns/templates/circuit-breaker.py",
+          "name": "circuit-breaker.py",
+          "type": "py",
+          "size_bytes": 12759,
+          "category": "python"
+        },
+        {
+          "path": "skills/resilience-patterns/templates/llm-fallback-chain.py",
+          "relative_path": "skills/resilience-patterns/templates/llm-fallback-chain.py",
+          "name": "llm-fallback-chain.py",
+          "type": "py",
+          "size_bytes": 14746,
+          "category": "python"
+        },
+        {
+          "path": "skills/resilience-patterns/templates/retry-handler.py",
+          "relative_path": "skills/resilience-patterns/templates/retry-handler.py",
+          "name": "retry-handler.py",
+          "type": "py",
+          "size_bytes": 13912,
+          "category": "python"
+        },
+        {
+          "path": "skills/resilience-patterns/templates/token-budget.py",
+          "relative_path": "skills/resilience-patterns/templates/token-budget.py",
+          "name": "token-budget.py",
+          "type": "py",
+          "size_bytes": 15249,
+          "category": "python"
+        }
+      ]
+    },
+    "saga-patterns": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/saga-patterns/templates/event-router-template.py",
+          "relative_path": "skills/saga-patterns/templates/event-router-template.py",
+          "name": "event-router-template.py",
+          "type": "py",
+          "size_bytes": 12577,
+          "category": "python"
+        },
+        {
+          "path": "skills/saga-patterns/templates/saga-orchestrator-template.py",
+          "relative_path": "skills/saga-patterns/templates/saga-orchestrator-template.py",
+          "name": "saga-orchestrator-template.py",
+          "type": "py",
+          "size_bytes": 14077,
+          "category": "python"
+        },
+        {
+          "path": "skills/saga-patterns/templates/saga-step-template.py",
+          "relative_path": "skills/saga-patterns/templates/saga-step-template.py",
+          "name": "saga-step-template.py",
+          "type": "py",
+          "size_bytes": 11996,
+          "category": "python"
+        }
+      ]
+    },
+    "security-scanning": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/security-scanning/templates/security-audit-template.md",
+          "relative_path": "skills/security-scanning/templates/security-audit-template.md",
+          "name": "security-audit-template.md",
+          "type": "md",
+          "size_bytes": 5288,
+          "category": "markdown"
+        }
+      ]
+    },
+    "semantic-caching": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/semantic-caching/templates/redis-cache.py",
+          "relative_path": "skills/semantic-caching/templates/redis-cache.py",
+          "name": "redis-cache.py",
+          "type": "py",
+          "size_bytes": 4532,
+          "category": "python"
+        },
+        {
+          "path": "skills/semantic-caching/templates/semantic-cache-service.py",
+          "relative_path": "skills/semantic-caching/templates/semantic-cache-service.py",
+          "name": "semantic-cache-service.py",
+          "type": "py",
+          "size_bytes": 9313,
+          "category": "python"
+        }
+      ]
+    },
+    "shadcn-patterns": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/shadcn-patterns/templates/custom-theme.css",
+          "relative_path": "skills/shadcn-patterns/templates/custom-theme.css",
+          "name": "custom-theme.css",
+          "type": "css",
+          "size_bytes": 6438,
+          "category": "other"
+        },
+        {
+          "path": "skills/shadcn-patterns/templates/cva-component.tsx",
+          "relative_path": "skills/shadcn-patterns/templates/cva-component.tsx",
+          "name": "cva-component.tsx",
+          "type": "tsx",
+          "size_bytes": 2882,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/shadcn-patterns/templates/extended-button.tsx",
+          "relative_path": "skills/shadcn-patterns/templates/extended-button.tsx",
+          "name": "extended-button.tsx",
+          "type": "tsx",
+          "size_bytes": 3736,
+          "category": "typescript"
+        }
+      ]
+    },
+    "sqlalchemy-2-async": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/sqlalchemy-2-async/templates/repository-template.py",
+          "relative_path": "skills/sqlalchemy-2-async/templates/repository-template.py",
+          "name": "repository-template.py",
+          "type": "py",
+          "size_bytes": 3511,
+          "category": "python"
+        }
+      ]
+    },
+    "stacked-prs": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/stacked-prs/templates/stack-scripts.sh",
+          "relative_path": "skills/stacked-prs/templates/stack-scripts.sh",
+          "name": "stack-scripts.sh",
+          "type": "sh",
+          "size_bytes": 10390,
+          "category": "shell"
+        }
+      ]
+    },
+    "strawberry-graphql": {
+      "template_count": 4,
+      "files": [
+        {
+          "path": "skills/strawberry-graphql/templates/dataloader-template.py",
+          "relative_path": "skills/strawberry-graphql/templates/dataloader-template.py",
+          "name": "dataloader-template.py",
+          "type": "py",
+          "size_bytes": 13095,
+          "category": "python"
+        },
+        {
+          "path": "skills/strawberry-graphql/templates/strawberry-fastapi-template.py",
+          "relative_path": "skills/strawberry-graphql/templates/strawberry-fastapi-template.py",
+          "name": "strawberry-fastapi-template.py",
+          "type": "py",
+          "size_bytes": 5304,
+          "category": "python"
+        },
+        {
+          "path": "skills/strawberry-graphql/templates/strawberry-schema-template.py",
+          "relative_path": "skills/strawberry-graphql/templates/strawberry-schema-template.py",
+          "name": "strawberry-schema-template.py",
+          "type": "py",
+          "size_bytes": 12422,
+          "category": "python"
+        },
+        {
+          "path": "skills/strawberry-graphql/templates/subscription-template.py",
+          "relative_path": "skills/strawberry-graphql/templates/subscription-template.py",
+          "name": "subscription-template.py",
+          "type": "py",
+          "size_bytes": 15613,
+          "category": "python"
+        }
+      ]
+    },
+    "streaming-api-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/streaming-api-patterns/templates/sse-endpoint-template.ts",
+          "relative_path": "skills/streaming-api-patterns/templates/sse-endpoint-template.ts",
+          "name": "sse-endpoint-template.ts",
+          "type": "ts",
+          "size_bytes": 2004,
+          "category": "typescript"
+        }
+      ]
+    },
+    "tanstack-query-advanced": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/tanstack-query-advanced/templates/query-hooks-template.ts",
+          "relative_path": "skills/tanstack-query-advanced/templates/query-hooks-template.ts",
+          "name": "query-hooks-template.ts",
+          "type": "ts",
+          "size_bytes": 16986,
+          "category": "typescript"
+        }
+      ]
+    },
+    "temporal-io": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/temporal-io/templates/saga-workflow-template.py",
+          "relative_path": "skills/temporal-io/templates/saga-workflow-template.py",
+          "name": "saga-workflow-template.py",
+          "type": "py",
+          "size_bytes": 8054,
+          "category": "python"
+        },
+        {
+          "path": "skills/temporal-io/templates/scheduled-workflow-template.py",
+          "relative_path": "skills/temporal-io/templates/scheduled-workflow-template.py",
+          "name": "scheduled-workflow-template.py",
+          "type": "py",
+          "size_bytes": 8365,
+          "category": "python"
+        },
+        {
+          "path": "skills/temporal-io/templates/temporal-worker-template.py",
+          "relative_path": "skills/temporal-io/templates/temporal-worker-template.py",
+          "name": "temporal-worker-template.py",
+          "type": "py",
+          "size_bytes": 5656,
+          "category": "python"
+        }
+      ]
+    },
+    "test-data-management": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/test-data-management/templates/factory-boy.py",
+          "relative_path": "skills/test-data-management/templates/factory-boy.py",
+          "name": "factory-boy.py",
+          "type": "py",
+          "size_bytes": 5879,
+          "category": "python"
+        }
+      ]
+    },
+    "type-safety-validation": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/type-safety-validation/templates/trpc-router.ts",
+          "relative_path": "skills/type-safety-validation/templates/trpc-router.ts",
+          "name": "trpc-router.ts",
+          "type": "ts",
+          "size_bytes": 10303,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/type-safety-validation/templates/zod-schema.ts",
+          "relative_path": "skills/type-safety-validation/templates/zod-schema.ts",
+          "name": "zod-schema.ts",
+          "type": "ts",
+          "size_bytes": 10309,
+          "category": "typescript"
+        }
+      ]
+    },
+    "unit-testing": {
+      "template_count": 2,
+      "files": [
+        {
+          "path": "skills/unit-testing/templates/pytest-fixture.py",
+          "relative_path": "skills/unit-testing/templates/pytest-fixture.py",
+          "name": "pytest-fixture.py",
+          "type": "py",
+          "size_bytes": 4242,
+          "category": "python"
+        },
+        {
+          "path": "skills/unit-testing/templates/test-case-template.md",
+          "relative_path": "skills/unit-testing/templates/test-case-template.md",
+          "name": "test-case-template.md",
+          "type": "md",
+          "size_bytes": 6821,
+          "category": "markdown"
+        }
+      ]
+    },
+    "vcr-http-recording": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/vcr-http-recording/templates/vcr-cassette.py",
+          "relative_path": "skills/vcr-http-recording/templates/vcr-cassette.py",
+          "name": "vcr-cassette.py",
+          "type": "py",
+          "size_bytes": 5445,
+          "category": "python"
+        }
+      ]
+    },
+    "view-transitions": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/view-transitions/templates/view-transition-wrapper.tsx",
+          "relative_path": "skills/view-transitions/templates/view-transition-wrapper.tsx",
+          "name": "view-transition-wrapper.tsx",
+          "type": "tsx",
+          "size_bytes": 2186,
+          "category": "typescript"
+        }
+      ]
+    },
+    "vite-advanced": {
+      "template_count": 3,
+      "files": [
+        {
+          "path": "skills/vite-advanced/templates/custom-plugin.ts",
+          "relative_path": "skills/vite-advanced/templates/custom-plugin.ts",
+          "name": "custom-plugin.ts",
+          "type": "ts",
+          "size_bytes": 5618,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/vite-advanced/templates/library-config.ts",
+          "relative_path": "skills/vite-advanced/templates/library-config.ts",
+          "name": "library-config.ts",
+          "type": "ts",
+          "size_bytes": 3918,
+          "category": "typescript"
+        },
+        {
+          "path": "skills/vite-advanced/templates/multi-environment-config.ts",
+          "relative_path": "skills/vite-advanced/templates/multi-environment-config.ts",
+          "name": "multi-environment-config.ts",
+          "type": "ts",
+          "size_bytes": 3209,
+          "category": "typescript"
+        }
+      ]
+    },
+    "wcag-compliance": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/wcag-compliance/templates/accessible-form-template.tsx",
+          "relative_path": "skills/wcag-compliance/templates/accessible-form-template.tsx",
+          "name": "accessible-form-template.tsx",
+          "type": "tsx",
+          "size_bytes": 14940,
+          "category": "typescript"
+        }
+      ]
+    },
+    "webapp-testing": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/webapp-testing/templates/playwright-test-template.ts",
+          "relative_path": "skills/webapp-testing/templates/playwright-test-template.ts",
+          "name": "playwright-test-template.ts",
+          "type": "ts",
+          "size_bytes": 13446,
+          "category": "typescript"
+        }
+      ]
+    },
+    "zero-downtime-migration": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/zero-downtime-migration/templates/expand-contract-template.py",
+          "relative_path": "skills/zero-downtime-migration/templates/expand-contract-template.py",
+          "name": "expand-contract-template.py",
+          "type": "py",
+          "size_bytes": 6048,
+          "category": "python"
+        }
+      ]
+    },
+    "zustand-patterns": {
+      "template_count": 1,
+      "files": [
+        {
+          "path": "skills/zustand-patterns/templates/store-template.ts",
+          "relative_path": "skills/zustand-patterns/templates/store-template.ts",
+          "name": "store-template.ts",
+          "type": "ts",
+          "size_bytes": 10377,
+          "category": "typescript"
+        }
+      ]
+    }
+  },
+  "by_type": {
+    "markdown": [
+      "skills/architecture-decision-record/templates/adr-template.md",
+      "skills/ascii-visualizer/templates/diagram-templates.md",
+      "skills/brainstorming/templates/decision-matrix-template.md",
+      "skills/brainstorming/templates/design-doc-template.md",
+      "skills/code-review-playbook/templates/pr-template.md",
+      "skills/code-review-playbook/templates/review-feedback-template.md",
+      "skills/context-compression/templates/anchored-summary-template.md",
+      "skills/context-compression/templates/compression-probes-template.md",
+      "skills/evidence-verification/templates/build-evidence.md",
+      "skills/evidence-verification/templates/evidence-checklist.md",
+      "skills/evidence-verification/templates/test-evidence.md",
+      "skills/integration-testing/templates/test-plan-template.md",
+      "skills/quality-gates/templates/complexity-assessment.md",
+      "skills/quality-gates/templates/gate-check-template.md",
+      "skills/quality-gates/templates/requirements-checklist.md",
+      "skills/security-scanning/templates/security-audit-template.md",
+      "skills/unit-testing/templates/test-case-template.md"
+    ],
+    "python": [
+      "skills/advanced-guardrails/templates/rails-pipeline.py",
+      "skills/agentic-rag-patterns/templates/crag-workflow.py",
+      "skills/agentic-rag-patterns/templates/self-rag-graph.py",
+      "skills/aggregate-patterns/templates/aggregate-root-template.py",
+      "skills/alembic-migrations/templates/migration-template.py",
+      "skills/alternative-agent-frameworks/templates/crewai-crew.py",
+      "skills/alternative-agent-frameworks/templates/openai-multi-agent.py",
+      "skills/api-versioning/templates/fastapi-versioned-router.py",
+      "skills/asyncio-advanced/templates/async-service-template.py",
+      "skills/auth-patterns/templates/auth-middleware-template.py",
+      "skills/background-jobs/templates/arq-worker-template.py",
+      "skills/caching-strategies/templates/redis-cache-service.py",
+      "skills/celery-advanced/templates/canvas-workflow-template.py",
+      "skills/celery-advanced/templates/celery-config-template.py",
+      "skills/celery-advanced/templates/priority-task-template.py",
+      "skills/clean-architecture/templates/domain-entity-template.py",
+      "skills/connection-pooling/templates/pool-setup-template.py",
+      "skills/contract-testing/templates/consumer-test-template.py",
+      "skills/contract-testing/templates/provider-verification-template.py",
+      "skills/cqrs-patterns/templates/command-bus-template.py",
+      "skills/cqrs-patterns/templates/projection-template.py",
+      "skills/cqrs-patterns/templates/query-handler-template.py",
+      "skills/distributed-locks/templates/distributed-lock-template.py",
+      "skills/domain-driven-design/templates/entity-template.py",
+      "skills/domain-driven-design/templates/repository-template.py",
+      "skills/domain-driven-design/templates/value-object-template.py",
+      "skills/embeddings/templates/embedding-pipeline.py",
+      "skills/error-handling-rfc9457/templates/problem-detail-exceptions.py",
+      "skills/event-sourcing/templates/event-store-template.py",
+      "skills/fastapi-advanced/templates/fastapi-app.py",
+      "skills/fine-tuning-customization/templates/dpo-training.py",
+      "skills/function-calling/templates/function-def.py",
+      "skills/golden-dataset-management/templates/backup-script.py",
+      "skills/grpc-python/templates/grpc-client-template.py",
+      "skills/grpc-python/templates/grpc-server-template.py",
+      "skills/high-performance-inference/templates/quantization-config.py",
+      "skills/high-performance-inference/templates/vllm-server.py",
+      "skills/idempotency-patterns/templates/idempotency-middleware-template.py",
+      "skills/integration-testing/templates/pytest-integration.py",
+      "skills/langfuse-observability/templates/callback-handler.py",
+      "skills/langfuse-observability/templates/observe-decorator.py",
+      "skills/langgraph-parallel/templates/parallel-agent-fanout.py",
+      "skills/langgraph-routing/templates/semantic-router.py",
+      "skills/langgraph-supervisor/templates/content-analysis-graph.py",
+      "skills/langgraph-supervisor/templates/supervisor-workflow.py",
+      "skills/llm-evaluation/templates/evaluator-template.py",
+      "skills/llm-safety-patterns/templates/prompt_builder.py",
+      "skills/llm-safety-patterns/templates/safe_llm_call.py",
+      "skills/llm-testing/templates/llm-test-template.py",
+      "skills/mcp-advanced-patterns/templates/mcp-server-template.py",
+      "skills/mcp-security-hardening/templates/session-security.py",
+      "skills/mcp-security-hardening/templates/tool-allowlist.py",
+      "skills/message-queues/templates/queue-consumer-template.py",
+      "skills/ollama-local/templates/ollama-provider-template.py",
+      "skills/outbox-pattern/templates/outbox-publisher-template.py",
+      "skills/pgvector-search/templates/chunk-repository.py",
+      "skills/pgvector-search/templates/search-service.py",
+      "skills/prompt-caching/templates/prompt-cache-wrapper.py",
+      "skills/prompt-engineering-suite/templates/cot-template.py",
+      "skills/prompt-engineering-suite/templates/few-shot-template.py",
+      "skills/prompt-engineering-suite/templates/jinja2-prompts.py",
+      "skills/property-based-testing/templates/hypothesis-conftest.py",
+      "skills/pytest-advanced/templates/conftest-template.py",
+      "skills/rate-limiting/templates/redis-rate-limiter.py",
+      "skills/resilience-patterns/templates/bulkhead.py",
+      "skills/resilience-patterns/templates/circuit-breaker.py",
+      "skills/resilience-patterns/templates/llm-fallback-chain.py",
+      "skills/resilience-patterns/templates/retry-handler.py",
+      "skills/resilience-patterns/templates/token-budget.py",
+      "skills/saga-patterns/templates/event-router-template.py",
+      "skills/saga-patterns/templates/saga-orchestrator-template.py",
+      "skills/saga-patterns/templates/saga-step-template.py",
+      "skills/semantic-caching/templates/redis-cache.py",
+      "skills/semantic-caching/templates/semantic-cache-service.py",
+      "skills/sqlalchemy-2-async/templates/repository-template.py",
+      "skills/strawberry-graphql/templates/dataloader-template.py",
+      "skills/strawberry-graphql/templates/strawberry-fastapi-template.py",
+      "skills/strawberry-graphql/templates/strawberry-schema-template.py",
+      "skills/strawberry-graphql/templates/subscription-template.py",
+      "skills/temporal-io/templates/saga-workflow-template.py",
+      "skills/temporal-io/templates/scheduled-workflow-template.py",
+      "skills/temporal-io/templates/temporal-worker-template.py",
+      "skills/test-data-management/templates/factory-boy.py",
+      "skills/unit-testing/templates/pytest-fixture.py",
+      "skills/vcr-http-recording/templates/vcr-cassette.py",
+      "skills/zero-downtime-migration/templates/expand-contract-template.py"
+    ],
+    "shell": [
+      "skills/agent-browser/templates/authenticated-session.sh",
+      "skills/agent-browser/templates/capture-workflow.sh",
+      "skills/agent-browser/templates/form-automation.sh",
+      "skills/browser-content-capture/templates/auth-capture.sh",
+      "skills/browser-content-capture/templates/capture-workflow.sh",
+      "skills/browser-content-capture/templates/multi-page-crawl.sh",
+      "skills/release-management/templates/release-scripts.sh",
+      "skills/stacked-prs/templates/stack-scripts.sh"
+    ],
+    "yaml": [
+      "skills/advanced-guardrails/templates/nemo-config.yaml",
+      "skills/api-design-framework/templates/asyncapi-template.yaml",
+      "skills/api-design-framework/templates/openapi-template.yaml",
+      "skills/architecture-decision-record/templates/adr-frontmatter.yaml",
+      "skills/biome-linting/templates/github-action.yml",
+      "skills/devops-deployment/templates/argocd-application.yaml",
+      "skills/devops-deployment/templates/docker-compose.yml",
+      "skills/devops-deployment/templates/external-secrets.yaml",
+      "skills/devops-deployment/templates/github-actions-pipeline.yml",
+      "skills/devops-deployment/templates/helm-values.yaml",
+      "skills/devops-deployment/templates/k8s-manifests.yaml",
+      "skills/fine-tuning-customization/templates/lora-config.yaml",
+      "skills/observability-monitoring/templates/alerting-rules.yml"
+    ],
+    "json": [
+      "skills/biome-linting/templates/biome-strict.json",
+      "skills/biome-linting/templates/biome.json",
+      "skills/design-system-starter/templates/design-tokens-template.json",
+      "skills/mem0-sync/templates/sync-payload.json"
+    ],
+    "typescript": [
+      "skills/a11y-testing/templates/a11y-test-template.ts",
+      "skills/agent-loops/templates/agent-workflow-template.ts",
+      "skills/core-web-vitals/templates/performance-monitoring.ts",
+      "skills/dashboard-patterns/templates/widget-card.tsx",
+      "skills/design-system-starter/templates/component-template.tsx",
+      "skills/e2e-testing/templates/page-object-template.ts",
+      "skills/edge-computing-patterns/templates/edge-function.ts",
+      "skills/edge-computing-patterns/templates/edge-middleware.ts",
+      "skills/focus-management/templates/focus-trap-template.tsx",
+      "skills/form-state-patterns/templates/form-template.tsx",
+      "skills/image-optimization/templates/image-component.tsx",
+      "skills/input-validation/templates/validation-schemas.ts",
+      "skills/lazy-loading-patterns/templates/lazy-component.tsx",
+      "skills/msw-mocking/templates/handlers-template.ts",
+      "skills/observability-monitoring/templates/health-checks.ts",
+      "skills/observability-monitoring/templates/opentelemetry-tracing.ts",
+      "skills/observability-monitoring/templates/prometheus-metrics.ts",
+      "skills/observability-monitoring/templates/structured-logging.ts",
+      "skills/performance-optimization/templates/api-optimization.ts",
+      "skills/performance-optimization/templates/caching-patterns.ts",
+      "skills/performance-optimization/templates/database-optimization.ts",
+      "skills/performance-optimization/templates/frontend-optimization.tsx",
+      "skills/performance-optimization/templates/performance-metrics.ts",
+      "skills/radix-primitives/templates/composed-trigger.tsx",
+      "skills/radix-primitives/templates/custom-dialog.tsx",
+      "skills/radix-primitives/templates/custom-dropdown.tsx",
+      "skills/rag-retrieval/templates/rag-pipeline-template.ts",
+      "skills/react-aria-patterns/templates/accessible-component-template.tsx",
+      "skills/react-server-components-framework/templates/client-component-template.tsx",
+      "skills/react-server-components-framework/templates/server-action-template.ts",
+      "skills/react-server-components-framework/templates/server-component-template.tsx",
+      "skills/render-optimization/templates/optimized-context.tsx",
+      "skills/render-optimization/templates/virtualized-list.tsx",
+      "skills/shadcn-patterns/templates/cva-component.tsx",
+      "skills/shadcn-patterns/templates/extended-button.tsx",
+      "skills/streaming-api-patterns/templates/sse-endpoint-template.ts",
+      "skills/tanstack-query-advanced/templates/query-hooks-template.ts",
+      "skills/type-safety-validation/templates/trpc-router.ts",
+      "skills/type-safety-validation/templates/zod-schema.ts",
+      "skills/view-transitions/templates/view-transition-wrapper.tsx",
+      "skills/vite-advanced/templates/custom-plugin.ts",
+      "skills/vite-advanced/templates/library-config.ts",
+      "skills/vite-advanced/templates/multi-environment-config.ts",
+      "skills/wcag-compliance/templates/accessible-form-template.tsx",
+      "skills/webapp-testing/templates/playwright-test-template.ts",
+      "skills/zustand-patterns/templates/store-template.ts"
+    ],
+    "javascript": [
+      "skills/performance-testing/templates/k6-script.js"
+    ],
+    "other": [
+      "skills/devops-deployment/templates/Dockerfile",
+      "skills/devops-deployment/templates/terraform-aws.tf",
+      "skills/grpc-python/templates/proto-service-template.proto",
+      "skills/shadcn-patterns/templates/custom-theme.css"
+    ]
+  }
+}

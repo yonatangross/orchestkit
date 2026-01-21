@@ -378,5 +378,5 @@ async def test_timing_header_present(client: AsyncClient):
 ## Related Files
 
 - See `examples/fastapi-middleware.md` for complete examples
-- See `templates/middleware-stack.py` for copy-paste template
+- See `scripts/middleware-stack.py` for copy-paste template
 - See SKILL.md for lifespan and dependencies

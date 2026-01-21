@@ -82,7 +82,7 @@ class OrderAggregate:
             raise DomainError(f"Cannot modify {self.status} order")
 ```
 
-See [aggregate-root-template.py](templates/aggregate-root-template.py) for complete implementation.
+See [aggregate-root-template.py](scripts/aggregate-root-template.py) for complete implementation.
 
 ## Key Decisions
 

@@ -134,7 +134,7 @@ SkillForge uses a multi-level caching strategy with Jinja2 templates as L4 fallb
 │  L4: Jinja2 Templates (local fallback)                      │
 │  └─► Uses TRUE Jinja2 {{ var }} syntax                      │
 │  └─► Variables passed at render time                        │
-│  └─► Located in: templates/*.j2                             │
+│  └─► Located in: scripts/*.j2                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,7 +150,7 @@ from app.shared.services.prompts.template_loader import render_template
 prompt = render_template("supervisor/routing.j2", agent_list=agent_list)
 ```
 
-**Template location:** `backend/app/shared/services/prompts/templates/`
+**Template location:** `backend/app/shared/services/prompts/scripts/`
 - `supervisor/routing.j2` - Supervisor routing prompt
 - `agents/tier1/*.j2` - Tier 1 universal agents
 - `agents/tier2/*.j2` - Tier 2 validation agents

@@ -177,4 +177,4 @@ jobs:
 5. **Secrets management** - use GitHub Secrets
 6. **Branch protection** - require passing tests
 
-See `templates/github-actions-pipeline.yml` for complete examples.
+See `scripts/github-actions-pipeline.yml` for complete examples.

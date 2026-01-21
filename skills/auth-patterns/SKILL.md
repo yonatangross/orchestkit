@@ -125,7 +125,7 @@ return "Invalid credentials"
 | [references/oauth-2.1-passkeys.md](references/oauth-2.1-passkeys.md) | OAuth 2.1, PKCE, Passkeys/WebAuthn |
 | [examples/auth-implementations.md](examples/auth-implementations.md) | Complete implementation examples |
 | [checklists/auth-checklist.md](checklists/auth-checklist.md) | Security checklist |
-| [templates/auth-middleware-template.py](templates/auth-middleware-template.py) | Flask/FastAPI middleware |
+| [scripts/auth-middleware-template.py](scripts/auth-middleware-template.py) | Flask/FastAPI middleware |
 
 ## Related Skills
 

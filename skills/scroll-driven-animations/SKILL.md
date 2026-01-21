@@ -448,4 +448,4 @@ function AnimatedSection({ children }: { children: React.ReactNode }) {
 
 - `references/css-scroll-timeline.md` - CSS scroll() and view() functions
 - `references/js-api.md` - JavaScript ScrollTimeline/ViewTimeline API
-- `templates/parallax-section.tsx` - React parallax component
+- `scripts/parallax-section.tsx` - React parallax component

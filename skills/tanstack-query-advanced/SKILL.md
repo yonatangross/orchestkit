@@ -440,6 +440,6 @@ useEffect(() => {
 ## References
 
 - `references/cache-strategies.md` - Cache invalidation patterns
-- `templates/query-hooks-template.ts` - Production query hook template
+- `scripts/query-hooks-template.ts` - Production query hook template
 - `checklists/tanstack-checklist.md` - Implementation checklist
 - `examples/tanstack-examples.md` - Real-world usage examples

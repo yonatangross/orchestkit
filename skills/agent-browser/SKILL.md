@@ -7,7 +7,7 @@ version: 1.0.0
 author: SkillForge AI Agent Hub
 tags: [browser, automation, headless, scraping, vercel, agent-browser, 2026]
 user-invocable: false
-allowed-tools: Bash(agent-browser:*)
+allowed-tools: Bash, Read, Write
 ---
 
 # Browser Automation with agent-browser

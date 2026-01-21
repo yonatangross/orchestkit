@@ -202,5 +202,5 @@ async def test_create_analysis_endpoint(client: TestClient, db: AsyncSession):
 ## Related Files
 
 - See `checklists/solid-checklist.md` for SOLID principles checklist
-- See `templates/domain-entity-template.py` for entity templates
+- See `scripts/domain-entity-template.py` for entity templates
 - See SKILL.md for DDD patterns

@@ -725,5 +725,5 @@ MAX_STRING_LENGTH = 500  # Increased from 200
 - [SkillForge Quality Initiative](../../../../docs/QUALITY_INITIATIVE_FIXES.md)
 - [Redis Connection Keepalive](../../../../backend/app/shared/services/cache/redis_connection.py)
 - [Hybrid Search Constants](../../../../backend/app/core/constants.py)
-- Template: `../templates/caching-patterns.ts`
-- Template: `../templates/database-optimization.ts`
+- Template: `../scripts/caching-patterns.ts`
+- Template: `../scripts/database-optimization.ts`

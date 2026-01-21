@@ -11,7 +11,7 @@ skills/<category>/<skill-name>/
 ├── SKILL.md                 # Current version
 ├── SKILL.md        # Current metadata
 ├── references/              # Current references
-├── templates/               # Current templates
+├── scripts/               # Current templates
 └── versions/
     ├── manifest.json        # Version history metadata
     ├── 1.0.0/

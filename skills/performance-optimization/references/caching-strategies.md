@@ -268,4 +268,4 @@ async function getAnalysis(id: string): Promise<Analysis> {
 
 - [Redis Best Practices](https://redis.io/docs/management/optimization/)
 - [HTTP Caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)
-- See `templates/caching-patterns.ts` for complete implementation
+- See `scripts/caching-patterns.ts` for complete implementation

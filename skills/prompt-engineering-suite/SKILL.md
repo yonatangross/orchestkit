@@ -172,9 +172,9 @@ response = llm.complete("Solve: 15% of 240. Think step by step.")
 | [references/few-shot-patterns.md](references/few-shot-patterns.md) | Example selection, ordering, formatting |
 | [references/prompt-versioning.md](references/prompt-versioning.md) | Langfuse integration, A/B testing |
 | [references/prompt-optimization.md](references/prompt-optimization.md) | DSPy, automatic tuning, evaluation |
-| [templates/cot-template.py](templates/cot-template.py) | Full Chain-of-Thought implementation |
-| [templates/few-shot-template.py](templates/few-shot-template.py) | Few-shot with dynamic example selection |
-| [templates/jinja2-prompts.py](templates/jinja2-prompts.py) | Jinja2 templates (2026): async, caching, LLM filters, Anthropic format |
+| [scripts/cot-template.py](scripts/cot-template.py) | Full Chain-of-Thought implementation |
+| [scripts/few-shot-template.py](scripts/few-shot-template.py) | Few-shot with dynamic example selection |
+| [scripts/jinja2-prompts.py](scripts/jinja2-prompts.py) | Jinja2 templates (2026): async, caching, LLM filters, Anthropic format |
 
 ## Related Skills
 

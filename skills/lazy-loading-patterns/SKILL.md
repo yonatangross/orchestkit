@@ -404,4 +404,4 @@ const Hero = lazy(() => import('./Hero')); // Delays LCP!
 
 - `references/route-splitting.md` - Route-based code splitting patterns
 - `references/intersection-observer.md` - Scroll-triggered lazy loading
-- `templates/lazy-component.tsx` - Lazy component template
+- `scripts/lazy-component.tsx` - Lazy component template

@@ -207,7 +207,7 @@ Track these metrics to validate CQRS adoption:
 
 ## Resources
 
-- **Templates**: See `templates/command-bus-template.py`, `templates/query-handler-template.py`, `templates/projection-template.py`
+- **Templates**: See `scripts/command-bus-template.py`, `scripts/query-handler-template.py`, `scripts/projection-template.py`
 - **Examples**: See `examples/inventory-cqrs.py`, `examples/user-management-cqrs.py`
 - **Related Skills**: `event-sourcing`, `saga-patterns`, `database-schema-designer`
 

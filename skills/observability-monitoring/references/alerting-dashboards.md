@@ -156,4 +156,4 @@ sum(rate(http_request_duration_seconds_count[30d]))
 - **Slack** - warnings (team channel)
 - **Email** - low priority (daily digest)
 
-See `templates/alerting-rules.yml` for complete examples.
+See `scripts/alerting-rules.yml` for complete examples.

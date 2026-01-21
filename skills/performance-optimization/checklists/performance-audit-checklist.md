@@ -647,8 +647,8 @@ speedup = before_latency / after_latency  # 17x
 ## References
 
 - Example: `../examples/skillforge-performance-wins.md`
-- Template: `../templates/caching-patterns.ts`
-- Template: `../templates/database-optimization.ts`
+- Template: `../scripts/caching-patterns.ts`
+- Template: `../scripts/database-optimization.ts`
 - [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/performance/)
 - [Lighthouse Documentation](https://developer.chrome.com/docs/lighthouse/)
 - [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)

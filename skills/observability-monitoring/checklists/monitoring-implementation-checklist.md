@@ -756,9 +756,9 @@ curl http://localhost:9090/api/v1/alerts
 
 ## References
 
-- Template: `../templates/structured-logging.ts`
-- Template: `../templates/prometheus-metrics.ts`
-- Template: `../templates/alerting-rules.yml`
+- Template: `../scripts/structured-logging.ts`
+- Template: `../scripts/prometheus-metrics.ts`
+- Template: `../scripts/alerting-rules.yml`
 - Example: `../examples/skillforge-monitoring-dashboard.md`
 - [Prometheus Best Practices](https://prometheus.io/docs/practices/)
 - [Grafana Documentation](https://grafana.com/docs/)

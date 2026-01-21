@@ -129,7 +129,7 @@ db.query('SELECT * FROM users WHERE name = ?', [name]);
 | [references/zod-v4-api.md](references/zod-v4-api.md) | Zod v4 API with coercion, transforms |
 | [examples/validation-patterns.md](examples/validation-patterns.md) | Complete validation examples |
 | [checklists/validation-checklist.md](checklists/validation-checklist.md) | Implementation checklist |
-| [templates/validation-schemas.ts](templates/validation-schemas.ts) | Ready-to-use schema templates |
+| [scripts/validation-schemas.ts](scripts/validation-schemas.ts) | Ready-to-use schema templates |
 
 ## Related Skills
 

@@ -47,4 +47,4 @@ logger.info({ userId: '123', action: 'login' }, 'User logged in');
 3. **Don't log secrets** - mask passwords, API keys
 4. **Use correlation IDs** - track requests across microservices
 
-See `templates/structured-logging.ts` for implementation.
+See `scripts/structured-logging.ts` for implementation.

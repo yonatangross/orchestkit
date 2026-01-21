@@ -1317,8 +1317,8 @@ Use this quick reference before creating or reviewing an ADR:
 ## Related Resources
 
 **Templates:**
-- `/templates/adr-template.md` - Standard ADR template
-- `/templates/adr-frontmatter.yaml` - YAML metadata for tooling
+- `/scripts/adr-template.md` - Standard ADR template
+- `/scripts/adr-frontmatter.yaml` - YAML metadata for tooling
 
 **Examples:**
 - `/examples/adr-0001-adopt-microservices.md` - Full example ADR

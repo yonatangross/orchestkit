@@ -115,7 +115,7 @@ async def test_llm_integration():
 | [references/deepeval-ragas-api.md](references/deepeval-ragas-api.md) | DeepEval & RAGAS API reference |
 | [examples/test-patterns.md](examples/test-patterns.md) | Complete test examples |
 | [checklists/llm-test-checklist.md](checklists/llm-test-checklist.md) | Setup and review checklists |
-| [templates/llm-test-template.py](templates/llm-test-template.py) | Starter test template |
+| [scripts/llm-test-template.py](scripts/llm-test-template.py) | Starter test template |
 
 ## Related Skills
 

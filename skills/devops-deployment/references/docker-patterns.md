@@ -177,4 +177,4 @@ volumes:
 - Volume mounts for hot reload during development
 - Named volumes for data persistence
 
-See `templates/Dockerfile` and `templates/docker-compose.yml` for complete examples.
+See `scripts/Dockerfile` and `scripts/docker-compose.yml` for complete examples.

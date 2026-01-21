@@ -190,9 +190,9 @@ grep -n "Parallel Routes" references/routing-patterns.md
 
 ## Templates
 
-- **`templates/ServerComponent.tsx`** - Basic async Server Component with data fetching
-- **`templates/ClientComponent.tsx`** - Interactive Client Component with hooks
-- **`templates/ServerAction.tsx`** - Server Action with validation and revalidation
+- **`scripts/ServerComponent.tsx`** - Basic async Server Component with data fetching
+- **`scripts/ClientComponent.tsx`** - Interactive Client Component with hooks
+- **`scripts/ServerAction.tsx`** - Server Action with validation and revalidation
 
 ---
 

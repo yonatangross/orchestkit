@@ -120,7 +120,7 @@ async def embed_text(text: str) -> list[float]:
 # backend/app/db/repositories/chunk_repository.py
 from templates.chunk_repository import ChunkRepository
 
-# Templates available in skill templates/chunk-repository.py
+# Templates available in skill scripts/chunk-repository.py
 # for full implementation
 ```
 
@@ -130,7 +130,7 @@ from templates.chunk_repository import ChunkRepository
 # backend/app/shared/services/search/search_service.py
 from templates.search_service import SearchService
 
-# Templates available in skill templates/search-service.py
+# Templates available in skill scripts/search-service.py
 # for full implementation
 ```
 

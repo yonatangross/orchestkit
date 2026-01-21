@@ -422,4 +422,4 @@ window.addEventListener('scroll', () => {
 
 - `references/react-router-integration.md` - React Router 7.x patterns
 - `references/mpa-transitions.md` - Cross-document transitions
-- `templates/view-transition-wrapper.tsx` - Transition wrapper component
+- `scripts/view-transition-wrapper.tsx` - Transition wrapper component

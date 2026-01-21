@@ -65,4 +65,4 @@ spec:
 - **Pros**: Limit blast radius, test with real traffic
 - **Cons**: Complex traffic management
 
-See `templates/argocd-application.yaml` for GitOps patterns.
+See `scripts/argocd-application.yaml` for GitOps patterns.

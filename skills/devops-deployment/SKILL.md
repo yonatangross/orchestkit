@@ -192,7 +192,7 @@ Key topics covered:
 charts/app/
 ├── Chart.yaml
 ├── values.yaml
-├── templates/
+├── scripts/
 │   ├── deployment.yaml
 │   ├── service.yaml
 │   ├── ingress.yaml

@@ -328,6 +328,6 @@ score = sum(
 
 ## Related References
 
-- `../templates/anchored-summary-template.md` - Template for structured summaries
+- `../scripts/anchored-summary-template.md` - Template for structured summaries
 - `../checklists/compression-checklist.md` - When and how to compress
 - `probe-based-evaluation.md` - Testing compression quality

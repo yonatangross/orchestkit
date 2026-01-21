@@ -239,4 +239,4 @@ du -sh dist/
 
 - [Core Web Vitals](https://web.dev/vitals/)
 - [React Profiler](https://react.dev/reference/react/Profiler)
-- See `templates/frontend-optimization.tsx` for complete examples
+- See `scripts/frontend-optimization.tsx` for complete examples

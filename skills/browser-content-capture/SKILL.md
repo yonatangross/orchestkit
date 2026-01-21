@@ -7,7 +7,7 @@ version: 2.0.0
 author: SkillForge AI Agent Hub
 tags: [browser, agent-browser, scraping, spa, authentication, 2026]
 user-invocable: false
-allowed-tools: Bash(agent-browser:*)
+allowed-tools: Bash, Read, Write
 ---
 
 # Browser Content Capture

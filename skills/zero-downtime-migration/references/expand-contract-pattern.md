@@ -212,4 +212,4 @@ WHERE relname = 'users';
 
 - `checklists/zero-downtime-checklist.md` - Pre-deployment verification
 - `examples/zero-downtime-examples.md` - Complete migration examples
-- `templates/expand-contract-template.py` - Alembic migration template
+- `scripts/expand-contract-template.py` - Alembic migration template

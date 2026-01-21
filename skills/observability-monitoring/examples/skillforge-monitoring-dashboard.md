@@ -575,8 +575,8 @@ async def readiness_check():
 
 ## References
 
-- Template: `../templates/structured-logging.ts`
-- Template: `../templates/prometheus-metrics.ts`
-- Template: `../templates/alerting-rules.yml`
+- Template: `../scripts/structured-logging.ts`
+- Template: `../scripts/prometheus-metrics.ts`
+- Template: `../scripts/alerting-rules.yml`
 - [SkillForge Redis Connection](../../../../backend/app/shared/services/cache/redis_connection.py)
 - [SkillForge Quality Initiative](../../../../docs/QUALITY_INITIATIVE_FIXES.md)

@@ -322,3 +322,14 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 **Solves:**
 - PR description format
 - Review checklist
+
+## Available Scripts
+
+- **`scripts/review-pr.md`** - Dynamic PR review with auto-fetched GitHub data
+  - Auto-fetches: PR title, author, state, changed files, diff stats, comments count
+  - Usage: `/review-pr [PR-number]`
+  - Requires: GitHub CLI (`gh`)
+  - Uses `$ARGUMENTS` and `!command` for live PR data
+  
+- **`scripts/review-feedback-template.md`** - Static review feedback template
+- **`scripts/pr-template.md`** - PR description template
