@@ -141,9 +141,9 @@ jobs:
           missing=0
           while IFS= read -r hook; do
             [[ -z "$hook" ]] && continue
-            # Replace variable with workspace (handles both CLAUDE_PLUGIN_ROOT and CLAUDE_PROJECT_DIR patterns)
-            resolved="${hook/'"${CLAUDE_PLUGIN_ROOT}"'/.}"
-            resolved="${resolved/'"$CLAUDE_PROJECT_DIR"'/.}"
+            # Replace variable patterns with current directory
+            # Handle: ${CLAUDE_PLUGIN_ROOT}, ${CLAUDE_PROJECT_DIR}, $CLAUDE_PROJECT_DIR
+            resolved=$(echo "$hook" | sed -e 's|\${CLAUDE_PLUGIN_ROOT}|.|g' -e 's|\${CLAUDE_PROJECT_DIR}|.|g' -e 's|\$CLAUDE_PROJECT_DIR|.|g')
             if [[ ! -f "$resolved" ]]; then
               echo "WARNING: Hook not found: $resolved"
               missing=$((missing + 1))
