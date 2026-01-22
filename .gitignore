@@ -79,7 +79,6 @@ __pycache__/
 *.pyo
 
 # IDE/Editor specific
-.cursor/
 .idea/
 .vscode/
 
@@ -92,4 +91,3 @@ __pycache__/
 !.claude/feedback/.gitkeep
 .claude/.satisfaction-counter
 .setup-complete
-.superdesign/
