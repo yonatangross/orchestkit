@@ -248,8 +248,9 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
         run_test "Agent Definitions" "$SCRIPT_DIR/subagents/definition/test-agent-definitions.sh" || true
     fi
 
-    # Commands directory validation (for autocomplete)
-    run_test "Commands Structure" "$SCRIPT_DIR/commands/test-commands-structure.sh" || true
+    # Plugin structure validation (CC 2.1.16 compliance)
+    run_test "Plugin JSON Schema" "$SCRIPT_DIR/plugins/test-plugin-json-schema.sh" || true
+    run_test "No Commands Directory" "$SCRIPT_DIR/plugins/test-no-commands-directory.sh" || true
 fi
 # ============================================================
 

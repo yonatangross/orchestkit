@@ -30,16 +30,14 @@ plugins/                 # Modular plugin bundles
 └── ork-<domain>/        # Domain-specific plugin (e.g., ork-core, ork-rag)
     ├── .claude-plugin/
     │   └── plugin.json  # Plugin manifest (hooks, metadata)
-    ├── commands/        # Slash commands (/commit, /verify, etc.)
     ├── agents/          # AI agent personas
     ├── skills/          # Knowledge modules with SKILL.md
     └── scripts/         # Hook executables
 
 # FULL TOOLKIT (root level - for development/reference)
-skills/                  # 162 skills (all domains)
+skills/                  # 162 skills (21 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
-commands/                # 21 commands (all domains)
-hooks/                   # 140 lifecycle hooks
+hooks/                   # 147 lifecycle hooks
 │   ├── setup/           # CC 2.1.11 Setup hooks (--init, --maintenance)
 │   ├── lifecycle/       # Session start/end hooks
 │   ├── permission/      # Auto-approval for safe operations
@@ -869,7 +867,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
 - **CC 2.1.9 Integration**: additionalContext, auto:N MCP, plansDirectory (v4.16.0)
-- **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 17 commands (v4.17.0)
+- **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 21 skills (v4.17.0)
 - **Git Enforcement**: Commit message, branch naming, atomic commits, issue creation (v4.18.0)
 - **CC 2.1.11 Integration**: Setup hooks (--init, --init-only, --maintenance), self-healing, maintenance automation (v4.19.0)
 - **Automatic Pattern Extraction**: Hook-driven pattern learning and anti-pattern warnings (#48, #49) (v4.19.0)
