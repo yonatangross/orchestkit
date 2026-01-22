@@ -188,6 +188,34 @@ Context percentages are calculated from:
 
 If numbers seem off, check for large files loaded in context.
 
+## VSCode Integration (CC 2.1.14)
+
+When using Claude Code in VSCode, additional features are available:
+
+### /usage Command
+
+Display current plan usage directly in VSCode:
+
+```bash
+/usage
+```
+
+Shows:
+- Tokens used in current billing period
+- Cost breakdown by model
+- Remaining quota (if applicable)
+
+### VSCode Status Bar
+
+The statusline integrates with VSCode's status bar. Configure in VSCode settings:
+
+```json
+{
+  "claudeCode.statusBar.enabled": true,
+  "claudeCode.statusBar.position": "right"
+}
+```
+
 ## Related Skills
 
 - `context-compression`: Reduce context when hitting limits
@@ -196,5 +224,6 @@ If numbers seem off, check for large files loaded in context.
 
 ## Version Requirements
 
-- **Claude Code**: >= 2.1.7
+- **Claude Code**: >= 2.1.14
 - **Fields Available**: CC 2.1.6 + CC 2.1.7 (turn.duration, context_window.effective, mcp.deferred)
+- **VSCode Features**: CC 2.1.14 (/usage command)

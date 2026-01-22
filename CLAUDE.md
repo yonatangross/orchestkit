@@ -718,6 +718,46 @@ Plugins can now declare minimum Claude Code version requirements:
 - **Context window fix**: Now uses 98% of context (was incorrectly limited to 65%)
 - **NPM deprecation notice**: Migrate to `/plugin install` from npm
 - **MCP timeout fix**: Improved connection reliability
+- **VSCode /usage command**: Display current plan usage in VSCode
+
+### NPM to Plugin Migration Guide
+
+As of CC 2.1.15, npm-based plugin installations are **deprecated**. Follow this guide to migrate:
+
+**Step 1: Remove npm installation**
+```bash
+# Check if installed via npm
+npm list -g | grep claude
+
+# Remove npm installations
+npm uninstall -g @anthropic/claude-plugin-orchestkit
+npm uninstall -g claude-code-plugins
+```
+
+**Step 2: Install via native plugin system**
+```bash
+# In Claude Code
+/plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+```
+
+**Step 3: Verify migration**
+```bash
+/ork:doctor
+```
+
+**Benefits of Native Plugin System:**
+| Feature | npm (deprecated) | /plugin install |
+|---------|-----------------|-----------------|
+| Version pinning | Package version only | Git SHA + tags |
+| Installation | Requires Node.js | Built-in |
+| Sandboxing | None | Full isolation |
+| Updates | `npm update` | `/plugin update` |
+| Marketplace | npm registry | Claude marketplace |
+
+**Timeline:**
+- **CC 2.1.15**: Deprecation warning shown
+- **CC 2.2.0** (est.): npm support removed
 
 ---
 
