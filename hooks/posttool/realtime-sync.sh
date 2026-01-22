@@ -384,6 +384,31 @@ EOF
             fi
         fi
 
+        # Try Mem0 CLI auto-sync (background execution)
+        MEM0_SCRIPT="${PLUGIN_ROOT}/skills/mem0-memory/scripts/crud/add-memory.py"
+        if [[ -f "$MEM0_SCRIPT" ]] && [[ -n "${MEM0_API_KEY:-}" ]]; then
+            log_sync "Auto-syncing via Mem0 CLI (background)"
+
+            # Build metadata JSON
+            METADATA=$(jq -n \
+                --arg cat "$CATEGORY" \
+                --arg session "${SESSION_ID}" \
+                --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                '{type:"decision",category:$cat,session:$session,timestamp:$ts,source:"realtime-sync"}')
+
+            # Execute in background (fire and forget)
+            (python3 "$MEM0_SCRIPT" \
+                --text "$DECISION" \
+                --user-id "$USER_ID" \
+                --metadata "$METADATA" \
+                --enable-graph \
+                >> "$LOG_FILE" 2>&1 &)
+
+            log_sync "Mem0 CLI sync dispatched for: ${DECISION:0:50}..."
+            output_silent_success
+            exit 0
+        fi
+
         # Fallback: Build suggestion message - Graph-First Architecture
         MSG=$(cat <<EOF
 [IMMEDIATE SYNC] Critical decision detected - store in knowledge graph now.
@@ -423,10 +448,38 @@ EOF
 
             PENDING_COUNT=$(get_pending_count)
 
-            # Only notify if queue is getting large (5+ items)
+            # Auto-sync when queue reaches threshold (5+ items)
             if [[ "$PENDING_COUNT" -ge 5 ]]; then
-                log_sync "BATCHED queue has $PENDING_COUNT items"
+                log_sync "BATCHED queue has $PENDING_COUNT items - triggering batch sync"
 
+                # Try Mem0 CLI batch sync (iterate through pending items)
+                MEM0_SCRIPT="${PLUGIN_ROOT}/skills/mem0-memory/scripts/crud/add-memory.py"
+                if [[ -f "$MEM0_SCRIPT" ]] && [[ -n "${MEM0_API_KEY:-}" ]] && [[ -f "$PENDING_SYNC_FILE" ]]; then
+                    # Execute batch sync in background - process each pending item
+                    (
+                        jq -c '.[]' "$PENDING_SYNC_FILE" 2>/dev/null | while read -r item; do
+                            TEXT=$(echo "$item" | jq -r '.decision // .text // ""')
+                            CAT=$(echo "$item" | jq -r '.category // "pattern"')
+                            UID=$(echo "$item" | jq -r '.user_id // "'"$USER_ID"'"')
+                            META=$(echo "$item" | jq -c '{type:"batched_pattern",category:.category,source:"realtime-sync"}')
+
+                            if [[ -n "$TEXT" ]]; then
+                                python3 "$MEM0_SCRIPT" \
+                                    --text "$TEXT" \
+                                    --user-id "$UID" \
+                                    --metadata "$META" \
+                                    --enable-graph 2>/dev/null
+                            fi
+                        done
+                        rm -f "$PENDING_SYNC_FILE"
+                    ) >> "$LOG_FILE" 2>&1 &
+
+                    log_sync "Mem0 batch sync dispatched for $PENDING_COUNT items"
+                    output_silent_success
+                    exit 0
+                fi
+
+                # Fallback to notification
                 MSG=$(cat <<EOF
 [BATCHED SYNC] ${PENDING_COUNT} patterns/conventions queued for graph sync.
 
