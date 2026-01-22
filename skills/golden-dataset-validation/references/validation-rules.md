@@ -6,7 +6,7 @@ Detailed validation rules for golden dataset integrity.
 
 ```python
 FORBIDDEN_URL_PATTERNS = [
-    "skillforge.dev",
+    "orchestkit.dev",
     "placeholder",
     "example.com",
     "localhost",

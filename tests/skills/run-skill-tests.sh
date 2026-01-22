@@ -125,7 +125,7 @@ trap "rm -f $RESULTS_FILE" EXIT
 
 # Export for test scripts
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-export SKILLFORGE_TEST_MODE=1
+export ORCHESTKIT_TEST_MODE=1
 
 # Make all test scripts executable
 find "$SKILLS_TESTS_DIR" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true

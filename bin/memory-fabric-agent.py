@@ -104,7 +104,7 @@ def get_project_id() -> str:
 def get_user_id(scope: str = "decisions", global_scope: bool = False) -> str:
     """Generate scoped user_id for mem0."""
     if global_scope:
-        return f"skillforge-global-{scope}"
+        return f"orchestkit-global-{scope}"
     return f"{get_project_id()}-{scope}"
 
 
@@ -195,7 +195,7 @@ def create_client():
     if not ANTHROPIC_AVAILABLE or Anthropic is None:
         raise ImportError(
             "anthropic package not installed. "
-            "Install with: pip install 'skillforge-claude-plugin[memory]'"
+            "Install with: pip install 'orchestkit[memory]'"
         )
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:

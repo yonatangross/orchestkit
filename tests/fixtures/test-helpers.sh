@@ -1,5 +1,5 @@
 #!/bin/bash
-# SkillForge Plugin Test Helpers
+# OrchestKit Plugin Test Helpers
 # Source this file in test scripts: source "$(dirname "$0")/../fixtures/test-helpers.sh"
 #
 # Version: 1.0.0
@@ -15,7 +15,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/hooks"
 FIXTURES_DIR="$PROJECT_ROOT/tests/fixtures"
-TEMP_DIR="${TMPDIR:-/tmp}/skillforge-tests-$$"
+TEMP_DIR="${TMPDIR:-/tmp}/orchestkit-tests-$$"
 
 # Export for hooks to use
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
@@ -54,7 +54,7 @@ setup_test_env() {
 
   # Override log directory for tests
   export HOOK_LOG_DIR="$TEMP_DIR/logs"
-  export SKILLFORGE_TEST_MODE=1
+  export ORCHESTKIT_TEST_MODE=1
 }
 
 # Cleanup test environment
@@ -509,7 +509,7 @@ check_command_injection() {
     echo "Usage: check_command_injection payload hook_path" >&2
     return 1
   fi
-  local marker="/tmp/skillforge-injection-test-$$"
+  local marker="/tmp/orchestkit-injection-test-$$"
 
   # Clean up any existing marker
   rm -f "$marker"

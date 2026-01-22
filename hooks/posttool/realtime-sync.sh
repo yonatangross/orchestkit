@@ -68,7 +68,7 @@ CONTEXT_EMERGENCY_THRESHOLD=85
 CONTEXT_CRITICAL_THRESHOLD=90
 
 # Agent SDK is available when memory agent exists and python3 is present
-# anthropic package is a required dependency (installed via pip install 'skillforge[memory]')
+# anthropic package is a required dependency (installed via pip install 'orchestkit[memory]')
 HAS_AGENT_SDK=false
 if [[ -f "$MEMORY_AGENT" ]] && command -v python3 &>/dev/null; then
     HAS_AGENT_SDK=true

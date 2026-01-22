@@ -232,13 +232,13 @@ Patterns specific to LLM API integrations.
 - `scripts/token-budget.py` - Token budget guard implementation
 
 ### Examples
-- `examples/skillforge-workflow-resilience.md` - Full OrchestKit integration example
+- `examples/orchestkit-workflow-resilience.md` - Full OrchestKit integration example
 
 ### Checklists
 - `checklists/pre-deployment-resilience.md` - Production readiness checklist
 - `checklists/circuit-breaker-setup.md` - Circuit breaker configuration guide
 
-## 2025 Best Practices
+## 2026 Best Practices
 
 1. **Adaptive Thresholds**: Use sliding windows, not fixed counters
 2. **Observability First**: Every circuit trip = alert + metric + trace

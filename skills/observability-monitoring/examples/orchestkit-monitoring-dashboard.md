@@ -309,19 +309,19 @@ histogram_quantile(0.95,
 
 **Find all errors in last hour:**
 ```logql
-{app="skillforge-backend"} |= "ERROR" | json
+{app="orchestkit-backend"} |= "ERROR" | json
 ```
 
 **Count errors by endpoint:**
 ```logql
 sum by (endpoint) (
-  count_over_time({app="skillforge-backend"} |= "ERROR" [5m])
+  count_over_time({app="orchestkit-backend"} |= "ERROR" [5m])
 )
 ```
 
 **Search for specific analysis:**
 ```logql
-{app="skillforge-backend"}
+{app="orchestkit-backend"}
 | json
 | analysis_id="550e8400-e29b-41d4-a716-446655440000"
 ```
@@ -329,7 +329,7 @@ sum by (endpoint) (
 **p95 LLM latency from logs:**
 ```logql
 quantile_over_time(0.95,
-  {app="skillforge-backend"}
+  {app="orchestkit-backend"}
   | json
   | event="llm_call_completed"
   | unwrap duration_seconds [5m]
@@ -356,7 +356,7 @@ groups:
     annotations:
       summary: "Service {{ $labels.job }} is down"
       description: "{{ $labels.instance }} has been down for 1 minute"
-      runbook_url: "https://wiki.skillforge.dev/runbooks/service-down"
+      runbook_url: "https://wiki.orchestkit.dev/runbooks/service-down"
 
   - alert: HighErrorRate
     expr: |

@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-hooks.sh - Unit tests for mem0 hooks
-# Part of SkillForge Claude Plugin test suite
+# Part of OrchestKit Claude Plugin test suite
 #
 # Tests:
 # 1. All new hooks are executable

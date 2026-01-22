@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # analytics-lib.sh - Anonymous analytics preparation
-# Part of SkillForge Claude Plugin
+# Part of OrchestKit Claude Plugin
 #
 # This library prepares anonymous, aggregated usage data for optional sharing.
 # CRITICAL: No PII (Personally Identifiable Information) is ever included.

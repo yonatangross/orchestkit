@@ -126,7 +126,7 @@ Return structured workflow design:
 
 ## Workflow Patterns
 
-### 1. Supervisor-Worker (SkillForge Default)
+### 1. Supervisor-Worker (OrchestKit Default)
 ```python
 from langgraph.graph import StateGraph, START, END
 

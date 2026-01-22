@@ -688,6 +688,6 @@ async def test_sse():
 
 ## Related Files
 
-- See `examples/skillforge-sse-implementation.md` for OrchestKit-specific patterns
+- See `examples/orchestkit-sse-implementation.md` for OrchestKit-specific patterns
 - See `scripts/sse-endpoint-template.ts` for TypeScript client template
 - See SKILL.md for WebSocket comparison and LLM streaming patterns

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # consent-manager.sh - GDPR-compliant consent management for anonymous analytics
-# Part of SkillForge Claude Plugin
+# Part of OrchestKit Claude Plugin
 #
 # This module implements the consent gate for analytics collection.
 # NO DATA IS COLLECTED OR TRANSMITTED WITHOUT EXPLICIT USER CONSENT.
@@ -254,7 +254,7 @@ show_opt_in_prompt() {
     cat << 'EOF'
 
 ┌─────────────────────────────────────────────────────────────┐
-│  📊 Help Improve SkillForge                                 │
+│  📊 Help Improve OrchestKit                                 │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
 │  Share anonymous usage statistics to help improve the       │
@@ -270,7 +270,7 @@ show_opt_in_prompt() {
 │  • Project names or file paths                              │
 │  • Personal information or mem0 data                        │
 │                                                             │
-│  You can change this anytime: /skf:feedback opt-out         │
+│  You can change this anytime: /ork:feedback opt-out         │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 
@@ -287,13 +287,13 @@ EOF
         record_consent
         echo ""
         echo "Thank you! Anonymous analytics sharing enabled."
-        echo "Disable anytime with: /skf:feedback opt-out"
+        echo "Disable anytime with: /ork:feedback opt-out"
         return 0
     else
         record_decline
         echo ""
         echo "No problem! Analytics sharing disabled."
-        echo "You can enable it anytime with: /skf:feedback opt-in"
+        echo "You can enable it anytime with: /ork:feedback opt-in"
         return 1
     fi
 }
@@ -335,7 +335,7 @@ show_reminder_prompt() {
 
 ┌──────────────────────────────────────────────────────────┐
 │ 📊 Quick reminder: Anonymous analytics help us improve   │
-│    SkillForge. Enable with: /skf:feedback opt-in        │
+│    OrchestKit. Enable with: /ork:feedback opt-in        │
 └──────────────────────────────────────────────────────────┘
 
 EOF
@@ -352,7 +352,7 @@ show_privacy_policy() {
     cat << 'EOF'
 
 ═══════════════════════════════════════════════════════════════════════════════
-                     SKILLFORGE ANONYMOUS ANALYTICS PRIVACY POLICY
+                     ORCHESTKIT ANONYMOUS ANALYTICS PRIVACY POLICY
 ═══════════════════════════════════════════════════════════════════════════════
 
 WHAT WE COLLECT (only with your consent)
@@ -405,17 +405,17 @@ HOW DATA IS PROTECTED
 YOUR RIGHTS
 ────────────────────────────────────────────────────────────────────────────────
 
-  • Opt-out anytime:     /skf:feedback opt-out
-  • View your data:      /skf:feedback export
-  • Check status:        /skf:feedback status
-  • View this policy:    /skf:feedback privacy
+  • Opt-out anytime:     /ork:feedback opt-out
+  • View your data:      /ork:feedback export
+  • Check status:        /ork:feedback status
+  • View this policy:    /ork:feedback privacy
 
 
 CONTACT
 ────────────────────────────────────────────────────────────────────────────────
 
-  Repository:  https://github.com/yonatangross/skillforge-claude-plugin
-  Issues:      https://github.com/yonatangross/skillforge-claude-plugin/issues
+  Repository:  https://github.com/yonatangross/orchestkit
+  Issues:      https://github.com/yonatangross/orchestkit/issues
 
 ═══════════════════════════════════════════════════════════════════════════════
 
@@ -459,15 +459,15 @@ show_consent_status() {
         echo "Last action: $last_action"
     else
         echo "Status: NOT CONFIGURED"
-        echo "Run /skf:feedback opt-in to enable"
+        echo "Run /ork:feedback opt-in to enable"
     fi
 
     echo ""
     echo "Commands:"
-    echo "  /skf:feedback opt-in   - Enable sharing"
-    echo "  /skf:feedback opt-out  - Disable sharing"
-    echo "  /skf:feedback export   - Export data for review"
-    echo "  /skf:feedback privacy  - View privacy policy"
+    echo "  /ork:feedback opt-in   - Enable sharing"
+    echo "  /ork:feedback opt-out  - Disable sharing"
+    echo "  /ork:feedback export   - Export data for review"
+    echo "  /ork:feedback privacy  - View privacy policy"
     echo ""
 }
 

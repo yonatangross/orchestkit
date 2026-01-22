@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://skillforge.dev/schemas/marketplace.schema.json",
+  "$id": "https://orchestkit.dev/schemas/marketplace.schema.json",
   "title": "Claude Code Marketplace Schema",
   "description": "Schema for validating marketplace.json plugin registry entries (compatible with Claude Code)",
   "type": "object",

@@ -39,7 +39,7 @@ Each agent → Separate user_id
 │   ├── Skills this agent uses
 │   └── Frontend-specific decisions
 │
-└── Shared memories → user_id: "skillforge:shared"
+└── Shared memories → user_id: "orchestkit:shared"
     ├── Skill definitions (shared across agents)
     ├── Technology definitions
     └── Category definitions
@@ -62,7 +62,7 @@ def get_agent_user_id(agent_name: str) -> str:
 
 def get_shared_user_id() -> str:
     """Generate user_id for shared memories (skills, tech, categories)."""
-    return "skillforge:shared"
+    return "orchestkit:shared"
 ```
 
 ### 2. Update Hook for Agent Context
@@ -111,8 +111,8 @@ def export_multi_agent_graph(agent_names: List[str] = None) -> Dict[str, Any]:
 
 ```
 agent:{agent-name}          # Agent-specific memories
-skillforge:shared          # Shared definitions (skills, tech, categories)
-skillforge:decisions       # Global decisions (if needed)
+orchestkit:shared          # Shared definitions (skills, tech, categories)
+orchestkit:decisions       # Global decisions (if needed)
 ```
 
 ## Migration Strategy

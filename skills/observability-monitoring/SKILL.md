@@ -168,7 +168,7 @@ async def analyze_content(url: str) -> AnalysisResult:
     # ... workflow implementation
 ```
 
-See `examples/skillforge-monitoring-dashboard.md` for real-world examples.
+See `examples/orchestkit-monitoring-dashboard.md` for real-world examples.
 
 ## Extended Thinking Triggers
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # feedback-lib.sh - Helper functions for feedback system
-# Part of SkillForge Claude Plugin
+# Part of OrchestKit Claude Plugin
 
 set -euo pipefail
 

@@ -169,7 +169,7 @@ test_user_id_format_validation() {
     local valid_user_ids=(
         "my-project-decisions"
         "acme-corp-my-project-patterns"
-        "skillforge-global-best-practices"
+        "orchestkit-global-best-practices"
         "user_123-decisions"
     )
     
@@ -354,8 +354,8 @@ test_global_user_id_with_org_id() {
     local global_id_no_org
     global_id_no_org=$(mem0_global_user_id "best-practices")
     
-    # Should use skillforge-global prefix
-    if [[ "$global_id_no_org" != "skillforge-global-best-practices" ]]; then
+    # Should use orchestkit-global prefix
+    if [[ "$global_id_no_org" != "orchestkit-global-best-practices" ]]; then
         echo "FAIL: Global user_id doesn't use default prefix: '$global_id_no_org'"
         return 1
     fi

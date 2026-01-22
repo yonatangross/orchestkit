@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-consent-manager.sh - Unit tests for consent-manager.sh
-# Part of SkillForge Claude Plugin (#59)
+# Part of OrchestKit Claude Plugin (#59)
 #
 # Tests GDPR-compliant consent management
 

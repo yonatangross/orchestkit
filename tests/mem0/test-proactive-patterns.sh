@@ -193,13 +193,13 @@ echo "=========================================="
 # Test global search for failed
 RESULT=$(mem0_search_global_by_outcome_json "authentication" "failed")
 assert_json_valid "$RESULT" "Global search returns valid JSON"
-assert_contains "$RESULT" "skillforge-global-best-practices" "Global search uses global user_id"
+assert_contains "$RESULT" "orchestkit-global-best-practices" "Global search uses global user_id"
 assert_contains "$RESULT" "failed" "Global search filters for failed outcome"
 
 # Test global search for success
 RESULT=$(mem0_search_global_by_outcome_json "jwt" "success")
 assert_contains "$RESULT" "success" "Global search can filter for success"
-assert_contains "$RESULT" "skillforge-global" "Global search uses global prefix"
+assert_contains "$RESULT" "orchestkit-global" "Global search uses global prefix"
 
 # -----------------------------------------------------------------------------
 # Test: antipattern-warning.sh Hook

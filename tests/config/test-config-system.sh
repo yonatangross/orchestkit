@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SkillForge Configuration System Test Suite
+# OrchestKit Configuration System Test Suite
 # Tests all configuration functionality
 
 set -euo pipefail
@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 CONFIG_LOADER="$PROJECT_ROOT/.claude/scripts/config-loader.sh"
 
-export SKILLFORGE_ROOT="$PROJECT_ROOT"
+export ORCHESTKIT_ROOT="$PROJECT_ROOT"
 
 # Colors
 RED='\033[0;31m'
@@ -41,7 +41,7 @@ test_case() {
 }
 
 echo "============================================"
-echo "  SkillForge Configuration System Tests"
+echo "  OrchestKit Configuration System Tests"
 echo "============================================"
 echo ""
 
@@ -93,7 +93,7 @@ echo ""
 echo "=== 3. Config Loader Tests ==="
 
 # Test with complete preset
-export SKILLFORGE_CONFIG="$PROJECT_ROOT/.claude/defaults/config.json"
+export ORCHESTKIT_CONFIG="$PROJECT_ROOT/.claude/defaults/config.json"
 
 # Preset detection
 preset=$("$CONFIG_LOADER" get-preset)
@@ -141,7 +141,7 @@ echo ""
 # -----------------------------------------------------------------------------
 echo "=== 4. Standard Preset Tests ==="
 
-export SKILLFORGE_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/standard.json"
+export ORCHESTKIT_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/standard.json"
 
 preset=$("$CONFIG_LOADER" get-preset)
 test_case "Get preset (standard)" "standard" "$preset"
@@ -164,7 +164,7 @@ echo ""
 # -----------------------------------------------------------------------------
 echo "=== 5. Lite Preset Tests ==="
 
-export SKILLFORGE_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/lite.json"
+export ORCHESTKIT_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/lite.json"
 
 preset=$("$CONFIG_LOADER" get-preset)
 test_case "Get preset (lite)" "lite" "$preset"
@@ -192,7 +192,7 @@ echo ""
 # -----------------------------------------------------------------------------
 echo "=== 6. Hooks-only Preset Tests ==="
 
-export SKILLFORGE_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/hooks-only.json"
+export ORCHESTKIT_CONFIG="$PROJECT_ROOT/.claude/defaults/presets/hooks-only.json"
 
 preset=$("$CONFIG_LOADER" get-preset)
 test_case "Get preset (hooks-only)" "hooks-only" "$preset"
@@ -232,7 +232,7 @@ cat > "$TEMP_CONFIG" << 'EOF'
 }
 EOF
 
-export SKILLFORGE_CONFIG="$TEMP_CONFIG"
+export ORCHESTKIT_CONFIG="$TEMP_CONFIG"
 
 # Safety hooks should STILL be enabled even if config tries to disable them
 result=$("$CONFIG_LOADER" is-hook-enabled "git-branch-protection.sh")

@@ -8,7 +8,7 @@
 
 ```python
 # WRONG - Placeholder URL
-analysis.url = "https://skillforge.dev/placeholder/doc-123"
+analysis.url = "https://orchestkit.dev/placeholder/doc-123"
 
 # Problems:
 # 1. Can't re-fetch content if needed
@@ -34,7 +34,7 @@ async def check_url_contract() -> list[str]:
 
     async with get_session() as session:
         query = select(Analysis).where(
-            Analysis.url.like("%skillforge.dev%") |
+            Analysis.url.like("%orchestkit.dev%") |
             Analysis.url.like("%placeholder%") |
             Analysis.url.like("%example.com%") |
             Analysis.url.like("%test.local%")

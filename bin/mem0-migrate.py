@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Mem0 Migration Utility for SkillForge
+Mem0 Migration Utility for OrchestKit
 
 Migrates existing Claude context data to Mem0 memory service.
 This is optional - users run it manually per-project.
@@ -167,7 +167,7 @@ def format_identity_memory(identity: dict) -> str:
 
 
 class Mem0Migrator:
-    """Handles migration of SkillForge context to Mem0."""
+    """Handles migration of OrchestKit context to Mem0."""
 
     def __init__(
         self,
@@ -180,7 +180,7 @@ class Mem0Migrator:
         self.verbose = verbose
         self.context_dir = project_dir / ".claude" / "context"
         self.project_name = get_project_name(project_dir)
-        self.user_id = f"skillforge-{self.project_name.lower().replace(' ', '-')}"
+        self.user_id = f"orchestkit-{self.project_name.lower().replace(' ', '-')}"
         self.client = None
         self.migrated_count = 0
         self.skipped_count = 0
@@ -241,7 +241,7 @@ class Mem0Migrator:
             return False
 
         metadata = {
-            "source": "skillforge-migration",
+            "source": "orchestkit-migration",
             "category": category,
             "source_file": source_file,
             "migrated": True,
@@ -355,7 +355,7 @@ class Mem0Migrator:
 
     def run(self) -> int:
         """Run the migration. Returns exit code (0 = success)."""
-        print(f"\n{Colors.BOLD}SkillForge -> Mem0 Migration{Colors.RESET}")
+        print(f"\n{Colors.BOLD}OrchestKit -> Mem0 Migration{Colors.RESET}")
         print(f"{'=' * 40}")
         print(f"Project: {self.project_name}")
         print(f"User ID: {self.user_id}")
@@ -406,7 +406,7 @@ class Mem0Migrator:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Migrate SkillForge context data to Mem0",
+        description="Migrate OrchestKit context data to Mem0",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:

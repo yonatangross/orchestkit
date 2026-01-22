@@ -116,15 +116,15 @@ services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: skillforge
+      POSTGRES_USER: orchestkit
       POSTGRES_PASSWORD: dev_password
-      POSTGRES_DB: skillforge_dev
+      POSTGRES_DB: orchestkit_dev
     ports:
       - "5437:5432"  # Avoid conflict with host postgres
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U skillforge"]
+      test: ["CMD-SHELL", "pg_isready -U orchestkit"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -144,7 +144,7 @@ services:
     ports:
       - "8500:8500"
     environment:
-      DATABASE_URL: postgresql://skillforge:dev_password@postgres:5432/skillforge_dev
+      DATABASE_URL: postgresql://orchestkit:dev_password@postgres:5432/orchestkit_dev
       REDIS_URL: redis://redis:6379
     depends_on:
       postgres:

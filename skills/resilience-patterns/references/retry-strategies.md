@@ -222,7 +222,7 @@ class RetryBudget:
         self.last_update = now
 ```
 
-## Best Practices (2025)
+## Best Practices (2026)
 
 ### 1. Set Appropriate Limits
 ```python

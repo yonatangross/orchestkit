@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/memory.schema.json",
-  "title": "SkillForge Memory Schema",
+  "$id": "https://github.com/yonatangross/orchestkit/schemas/memory.schema.json",
+  "title": "OrchestKit Memory Schema",
   "description": "Schema for mem0 semantic memory integration with graph memory and agent scoping (v1.1.0)",
   "type": "object",
   "definitions": {
@@ -36,20 +36,20 @@
         },
         "globalBestPractices": {
           "type": "string",
-          "pattern": "^skillforge-global-best-practices$",
+          "pattern": "^orchestkit-global-best-practices$",
           "description": "Cross-project best practices storage"
         },
         "globalDecisions": {
           "type": "string",
-          "pattern": "^skillforge-global-decisions$",
+          "pattern": "^orchestkit-global-decisions$",
           "description": "Cross-project decisions storage"
         }
       }
     },
     "agentIdPattern": {
       "type": "string",
-      "pattern": "^skf:[a-z0-9-]+$",
-      "description": "Pattern: skf:{agent-name} (e.g., skf:database-engineer)"
+      "pattern": "^ork:[a-z0-9-]+$",
+      "description": "Pattern: ork:{agent-name} (e.g., ork:database-engineer)"
     },
     "memoryCategories": {
       "type": "string",
@@ -103,7 +103,7 @@
             "timestamp": { "type": "string", "format": "date-time" },
             "stored_at": { "type": "string", "format": "date-time" },
             "session_id": { "type": "string" },
-            "source": { "type": "string", "enum": ["user", "agent", "hook", "auto", "skillforge-plugin"] },
+            "source": { "type": "string", "enum": ["user", "agent", "hook", "auto", "orchestkit-plugin"] },
             "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
             "project": { "type": "string" },
             "scope": { "type": "string" },

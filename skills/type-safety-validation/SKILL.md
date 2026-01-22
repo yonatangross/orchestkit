@@ -5,7 +5,7 @@ context: fork
 agent: frontend-ui-developer
 version: 1.1.0
 author: AI Agent Hub
-tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types, 2025]
+tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types, 2026]
 user-invocable: false
 ---
 

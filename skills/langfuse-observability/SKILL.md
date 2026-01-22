@@ -5,7 +5,7 @@ context: fork
 agent: metrics-architect
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2025]
+tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2026]
 user-invocable: false
 ---
 
@@ -26,7 +26,7 @@ user-invocable: false
 **OrchestKit Integration:**
 - **Status**: Migrated from LangSmith (Dec 2025)
 - **Location**: `backend/app/shared/services/langfuse/`
-- **MCP Server**: `skillforge-langfuse` (optional)
+- **MCP Server**: `orchestkit-langfuse` (optional)
 
 ---
 
@@ -67,7 +67,7 @@ langfuse.trace(
     user_id="user_123",
     session_id="session_abc",
     metadata={"content_type": "article", "agent_count": 8},
-    tags=["production", "skillforge"]
+    tags=["production", "orchestkit"]
 )
 ```
 
@@ -280,8 +280,8 @@ Key topics covered:
 - Quality score trends
 - Custom monitoring queries
 
-### skillforge-integration
-**Keywords:** skillforge, migration, setup, workflow integration
+### orchestkit-integration
+**Keywords:** orchestkit, migration, setup, workflow integration
 **Solves:**
 - How does OrchestKit use Langfuse?
 - Migrate from LangSmith to Langfuse

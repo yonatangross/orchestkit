@@ -307,7 +307,7 @@ valid_categories = [
 
 ### Querying
 1. Always use `enable_graph=True` for relationship queries
-2. Filter by `user_id: "skillforge:all-agents"` to scope to plugin
+2. Filter by `user_id: "orchestkit:all-agents"` to scope to plugin
 3. Use metadata filters for precise queries
 4. Wait 2-5 minutes after creating memories before querying relationships
 

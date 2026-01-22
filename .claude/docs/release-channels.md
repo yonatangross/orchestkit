@@ -5,7 +5,7 @@
 
 ## Overview
 
-Claude Code 2.1.3 introduced a release channel toggle allowing users to switch between stable and latest releases. This document explains how SkillForge works with each channel.
+Claude Code 2.1.3 introduced a release channel toggle allowing users to switch between stable and latest releases. This document explains how OrchestKit works with each channel.
 
 ## Channel Options
 
@@ -20,7 +20,7 @@ Claude Code 2.1.3 introduced a release channel toggle allowing users to switch b
 - Team environments
 - When stability is critical
 
-**SkillForge compatibility:**
+**OrchestKit compatibility:**
 - All features fully tested
 - Hook timeouts behave as documented
 - Permission rules validated
@@ -36,7 +36,7 @@ Claude Code 2.1.3 introduced a release channel toggle allowing users to switch b
 - Development environments
 - Feature experimentation
 
-**SkillForge compatibility:**
+**OrchestKit compatibility:**
 - May have untested edge cases
 - New features available sooner
 - Report issues if found
@@ -50,9 +50,9 @@ claude --version
 # Expected: Claude Code v2.1.4 or higher
 ```
 
-## SkillForge Channel Requirements
+## OrchestKit Channel Requirements
 
-| SkillForge Version | Min CC Version | Recommended Channel |
+| OrchestKit Version | Min CC Version | Recommended Channel |
 |-------------------|----------------|---------------------|
 | 4.7.0+ | 2.1.4 | stable |
 | 4.6.x | 2.1.2 | stable |
@@ -60,7 +60,7 @@ claude --version
 
 ## Features by CC Version
 
-### CC 2.1.3 Features Used by SkillForge
+### CC 2.1.3 Features Used by OrchestKit
 
 1. **10-Minute Hook Timeout**
    - Quality gate hooks can run full test suites
@@ -68,7 +68,7 @@ claude --version
    - LLM code review has time to complete
 
 2. **Unreachable Permission Rules Detection**
-   - `/skf:doctor` validates permission configurations
+   - `/ork:doctor` validates permission configurations
    - Warns about rules that can never match
 
 3. **Fixed Sub-Agent Model Selection**
@@ -111,9 +111,9 @@ If hooks that worked before start timing out:
 
 1. Check if you switched to an older CC version
 2. Verify timeout is set to 600000 (10 minutes) in settings.json
-3. Run `/skf:doctor` to validate hook configuration
+3. Run `/ork:doctor` to validate hook configuration
 
 ## References
 
 - [Claude Code Changelog](https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md)
-- [SkillForge CHANGELOG](../../CHANGELOG.md)
+- [OrchestKit CHANGELOG](../../CHANGELOG.md)

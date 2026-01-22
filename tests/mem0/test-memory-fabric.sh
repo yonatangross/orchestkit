@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-memory-fabric.sh - Integration tests for Memory Fabric
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests Memory Fabric v2.1 (Graph-First Architecture):

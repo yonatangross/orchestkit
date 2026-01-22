@@ -1,9 +1,9 @@
 ---
-description: Interactive SkillForge configuration wizard
+description: Interactive OrchestKit configuration wizard
 allowed-tools: Read, Edit, Write, Bash, AskUserQuestion
 ---
 
-# SkillForge Configuration
+# OrchestKit Configuration
 
 Load and follow the skill instructions from the `skills/configure/SKILL.md` file.
 

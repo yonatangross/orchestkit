@@ -199,8 +199,8 @@ def test_access_matrix(role, status):
 - Mock dependencies
 - Test React components
 
-### skillforge-strategy
-**Keywords:** skillforge, strategy, coverage, pyramid
+### orchestkit-strategy
+**Keywords:** orchestkit, strategy, coverage, pyramid
 **Solves:**
 - OrchestKit test strategy example
 - Test coverage targets

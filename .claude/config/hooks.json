@@ -1,7 +1,7 @@
 {
   "$schema": "../schemas/hook-config.schema.json",
   "version": "1.0.0",
-  "description": "Optional hook group configuration for SkillForge",
+  "description": "Optional hook group configuration for OrchestKit",
   "groups": {
     "multi_instance": {
       "enabled": false,

@@ -15,7 +15,7 @@ Usage:
     python analyze_errors.py --generate-rules   # Generate new rules (uses LLM)
 
 Cron setup:
-    0 2 * * * cd /path/to/SkillForge && poetry run python .claude/scripts/analyze_errors.py
+    0 2 * * * cd /path/to/OrchestKit && poetry run python .claude/scripts/analyze_errors.py
 """
 
 import json

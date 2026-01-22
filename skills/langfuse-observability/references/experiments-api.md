@@ -305,10 +305,10 @@ async def run_golden_experiment():
     # 1. Create dataset from golden analyses
     golden_analyses = await get_golden_analyses()
 
-    dataset = langfuse.create_dataset(name="skillforge-golden-v1")
+    dataset = langfuse.create_dataset(name="orchestkit-golden-v1")
     for analysis in golden_analyses:
         langfuse.create_dataset_item(
-            dataset_name="skillforge-golden-v1",
+            dataset_name="orchestkit-golden-v1",
             input={"url": analysis.url},
             expected_output=analysis.synthesis,
             metadata={"analysis_id": str(analysis.id)},
@@ -316,7 +316,7 @@ async def run_golden_experiment():
 
     # 2. Run experiment
     experiment_id, results = await run_experiment_with_eval(
-        dataset_name="skillforge-golden-v1",
+        dataset_name="orchestkit-golden-v1",
         experiment_name=f"quality-test-{datetime.now().isoformat()}",
     )
 
@@ -345,7 +345,7 @@ async def test_prompt_variants():
     for name, prompt in variants.items():
         # Create experiment
         exp_id, _ = await run_experiment(
-            dataset_name="skillforge-golden-v1",
+            dataset_name="orchestkit-golden-v1",
             experiment_name=f"prompt-variant-{name}",
             model_config={"prompt_template": prompt},
         )

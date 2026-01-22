@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/consent.schema.json",
-  "title": "SkillForge Consent Log Schema",
+  "$id": "https://github.com/yonatangross/orchestkit/schemas/consent.schema.json",
+  "title": "OrchestKit Consent Log Schema",
   "description": "Schema for GDPR-compliant consent audit trail",
   "type": "object",
   "properties": {

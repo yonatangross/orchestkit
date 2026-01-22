@@ -11,7 +11,7 @@
 [![Hooks](https://img.shields.io/badge/Hooks-144-orange?style=for-the-badge)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 
-[Why OrchestKit?](#why-skillforge) · [Quick Start](#quick-start) · [Commands](#commands) · [Skills](#skills) · [Agents](#agents) · [FAQ](#faq)
+[Why OrchestKit?](#why-orchestkit) · [Quick Start](#quick-start) · [Commands](#commands) · [Skills](#skills) · [Agents](#agents) · [FAQ](#faq)
 
 </div>
 
@@ -371,7 +371,7 @@ flowchart TB
         P["Your Prompt"]
     end
 
-    subgraph OrchestKit["🔷 SKILLFORGE PLUGIN"]
+    subgraph OrchestKit["🔷 ORCHESTKIT PLUGIN"]
         direction TB
 
         subgraph Hooks["🛡️ 144 HOOKS"]

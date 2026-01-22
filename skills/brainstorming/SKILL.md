@@ -30,7 +30,7 @@ Transform rough ideas into fully-formed designs through structured questioning a
 **Examples of clear requirements (no brainstorming needed):**
 - "Add a print button to this page"
 - "Fix this TypeError on line 42"
-- "Update the copyright year to 2025"
+- "Update the copyright year to 2026"
 - "Change the button color to #FF5733"
 
 ## The Three-Phase Process
@@ -367,7 +367,7 @@ that pattern with a new route handler..."
 - Start simple, scale later
 
 ### real-world-examples
-**Keywords:** example, skillforge, caching, dashboard, authentication
+**Keywords:** example, orchestkit, caching, dashboard, authentication
 **Solves:**
 - Show me real examples of brainstorming sessions
 - How was OrchestKit designed?

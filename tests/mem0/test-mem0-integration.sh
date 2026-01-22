@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-integration.sh - Integration tests for mem0 hooks and workflows
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests v1.1.0 features:
@@ -412,8 +412,8 @@ test_agent_memory_chain_propagation() {
     local stored_agent_id
     stored_agent_id=$(cat "$tracking_file" 2>/dev/null || echo "")
 
-    if [[ "$stored_agent_id" != "skf:database-engineer" ]]; then
-        test_fail "Expected 'skf:database-engineer', got '$stored_agent_id'"
+    if [[ "$stored_agent_id" != "ork:database-engineer" ]]; then
+        test_fail "Expected 'ork:database-engineer', got '$stored_agent_id'"
         return
     fi
 
@@ -454,8 +454,8 @@ test_cross_project_best_practices() {
     local global_user_id
     global_user_id=$(mem0_global_user_id "best-practices")
 
-    if [[ "$global_user_id" != "skillforge-global-best-practices" ]]; then
-        test_fail "Expected 'skillforge-global-best-practices', got '$global_user_id'"
+    if [[ "$global_user_id" != "orchestkit-global-best-practices" ]]; then
+        test_fail "Expected 'orchestkit-global-best-practices', got '$global_user_id'"
         return
     fi
 
@@ -473,7 +473,7 @@ test_cross_project_best_practices() {
     local user_id
     user_id=$(echo "$json_output" | jq -r '.user_id')
 
-    if [[ "$user_id" == "skillforge-global-best-practices" ]]; then
+    if [[ "$user_id" == "orchestkit-global-best-practices" ]]; then
         test_pass
     else
         test_fail "Expected global user_id, got '$user_id'"
@@ -492,7 +492,7 @@ test_graph_memory_relationships() {
 
     # Test mem0_add_memory_json with enable_graph=true
     local json_output
-    json_output=$(mem0_add_memory_json "agents" "database-engineer recommends pgvector for RAG" '{"category":"recommendation"}' "true" "skf:database-engineer" "false")
+    json_output=$(mem0_add_memory_json "agents" "database-engineer recommends pgvector for RAG" '{"category":"recommendation"}' "true" "ork:database-engineer" "false")
 
     # Validate JSON
     if ! echo "$json_output" | jq -e '.' >/dev/null 2>&1; then
@@ -513,10 +513,10 @@ test_graph_memory_relationships() {
     local agent_id
     agent_id=$(echo "$json_output" | jq -r '.agent_id // "missing"')
 
-    if [[ "$agent_id" == "skf:database-engineer" ]]; then
+    if [[ "$agent_id" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected agent_id='skf:database-engineer', got '$agent_id'"
+        test_fail "Expected agent_id='ork:database-engineer', got '$agent_id'"
     fi
 }
 
@@ -674,7 +674,7 @@ test_category_filter_with_agent_id() {
     local has_agent
     has_agent=$(echo "$search_json" | jq -r '.filters.AND[] | select(.agent_id) | .agent_id' 2>/dev/null || echo "")
 
-    if [[ "$filter_count" == "3" && "$has_category" == "performance" && "$has_agent" == "skf:database-engineer" ]]; then
+    if [[ "$filter_count" == "3" && "$has_category" == "performance" && "$has_agent" == "ork:database-engineer" ]]; then
         test_pass
     else
         test_fail "Filters incorrect: count=$filter_count, category='$has_category', agent='$has_agent'"
@@ -686,28 +686,28 @@ test_category_filter_with_agent_id() {
 # =============================================================================
 
 test_agent_id_format_validation() {
-    test_start "agent_id formatting with skf: prefix"
+    test_start "agent_id formatting with ork: prefix"
 
     # Source mem0 library
     source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
 
-    # Test formatting adds skf: prefix
+    # Test formatting adds ork: prefix
     local formatted1
     formatted1=$(mem0_format_agent_id "database-engineer")
 
-    if [[ "$formatted1" != "skf:database-engineer" ]]; then
-        test_fail "Expected 'skf:database-engineer', got '$formatted1'"
+    if [[ "$formatted1" != "ork:database-engineer" ]]; then
+        test_fail "Expected 'ork:database-engineer', got '$formatted1'"
         return
     fi
 
     # Test formatting is idempotent (doesn't double-prefix)
     local formatted2
-    formatted2=$(mem0_format_agent_id "skf:database-engineer")
+    formatted2=$(mem0_format_agent_id "ork:database-engineer")
 
-    if [[ "$formatted2" == "skf:database-engineer" ]]; then
+    if [[ "$formatted2" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected idempotent result 'skf:database-engineer', got '$formatted2'"
+        test_fail "Expected idempotent result 'ork:database-engineer', got '$formatted2'"
     fi
 }
 

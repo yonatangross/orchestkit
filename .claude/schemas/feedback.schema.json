@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/feedback.schema.json",
-  "title": "SkillForge Feedback Schema",
+  "$id": "https://github.com/yonatangross/orchestkit/schemas/feedback.schema.json",
+  "title": "OrchestKit Feedback Schema",
   "description": "Schema for feedback data collection and learning patterns",
   "type": "object",
   "definitions": {
@@ -580,7 +580,7 @@
         "plugin_version": {
           "type": "string",
           "pattern": "^\\d+\\.\\d+\\.\\d+$",
-          "description": "SkillForge plugin version"
+          "description": "OrchestKit plugin version"
         },
         "skill_usage": {
           "type": "object",

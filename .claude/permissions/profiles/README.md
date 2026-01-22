@@ -12,10 +12,10 @@ Pre-configured permission profiles for different development environments.
 
 ## Applying a Profile
 
-Use the `/skf:apply-permissions` command:
+Use the `/ork:apply-permissions` command:
 
 ```bash
-/skf:apply-permissions team
+/ork:apply-permissions team
 ```
 
 Or manually merge into `.claude/settings.json`:
@@ -58,7 +58,7 @@ Copy a profile and modify:
 ```bash
 cp .claude/permissions/profiles/team.json .claude/permissions/profiles/custom.json
 # Edit custom.json
-/skf:apply-permissions custom
+/ork:apply-permissions custom
 ```
 
 ## Security Notes

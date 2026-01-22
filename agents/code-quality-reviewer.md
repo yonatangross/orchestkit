@@ -212,7 +212,7 @@ field: str = Field(min_length=1, max_length=500)
 - Empty collection safety: `{% for item in items | default([]) %}`
 - Content truncation: Long code snippets limited to prevent overflow
 
-## Frontend 2025 Patterns Review (v3.7.0)
+## Frontend 2026 Patterns Review (v3.7.0)
 **MANDATORY for all React/TypeScript code reviews:**
 
 ### React 19 API Usage

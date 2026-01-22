@@ -759,7 +759,7 @@ curl http://localhost:9090/api/v1/alerts
 - Template: `../scripts/structured-logging.ts`
 - Template: `../scripts/prometheus-metrics.ts`
 - Template: `../scripts/alerting-rules.yml`
-- Example: `../examples/skillforge-monitoring-dashboard.md`
+- Example: `../examples/orchestkit-monitoring-dashboard.md`
 - [Prometheus Best Practices](https://prometheus.io/docs/practices/)
 - [Grafana Documentation](https://grafana.com/docs/)
 - [Loki Documentation](https://grafana.com/docs/loki/)

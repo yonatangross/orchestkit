@@ -1,6 +1,6 @@
 #!/bin/bash
 # Plugin Installation Validation Tests
-# Ensures SkillForge plugin structure is correct for Claude Code plugin system
+# Ensures OrchestKit plugin structure is correct for Claude Code plugin system
 # Updated for CC 2.1.7 flat skills structure
 set -euo pipefail
 
@@ -30,7 +30,7 @@ warn() {
 }
 
 echo "=============================================="
-echo "  SkillForge Plugin Installation Validation"
+echo "  OrchestKit Plugin Installation Validation"
 echo "=============================================="
 echo ""
 

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/skill-evolution.schema.json",
-  "title": "SkillForge Skill Evolution Schema",
+  "$id": "https://github.com/yonatangross/orchestkit/schemas/skill-evolution.schema.json",
+  "title": "OrchestKit Skill Evolution Schema",
   "description": "Schema for tracking skill evolution, versioning, and improvement suggestions",
   "type": "object",
   "definitions": {

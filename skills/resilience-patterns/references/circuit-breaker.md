@@ -53,7 +53,7 @@ The circuit breaker pattern prevents cascade failures by "tripping" when a downs
 | `slow_call_threshold` | 5s | Calls slower than this count as failures |
 | `slow_call_rate` | 50% | Percentage of slow calls to trip |
 
-## Best Practices (2025)
+## Best Practices (2026)
 
 ### 1. Use Sliding Windows, Not Fixed Counters
 ```python

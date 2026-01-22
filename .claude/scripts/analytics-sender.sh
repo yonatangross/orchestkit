@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # analytics-sender.sh - Optional network transmission for anonymous analytics
-# Part of SkillForge Claude Plugin
+# Part of OrchestKit Claude Plugin
 #
 # This module handles optional transmission of anonymous analytics to a server.
 # IMPORTANT: This is entirely optional and disabled by default.
@@ -28,10 +28,10 @@ SENT_LOG_FILE="${FEEDBACK_DIR}/analytics-sent.json"
 
 # Default analytics endpoint (can be overridden)
 # Empty by default - no network transmission without explicit configuration
-ANALYTICS_ENDPOINT="${SKILLFORGE_ANALYTICS_ENDPOINT:-}"
+ANALYTICS_ENDPOINT="${ORCHESTKIT_ANALYTICS_ENDPOINT:-}"
 
 # User agent string (no identifying info)
-USER_AGENT="SkillForge-Analytics/1.0"
+USER_AGENT="OrchestKit-Analytics/1.0"
 
 # =============================================================================
 # DEPENDENCIES
@@ -94,7 +94,7 @@ enable_transmission() {
     _source_consent_manager || return 1
 
     if ! has_consent; then
-        echo "ERROR: Must opt-in to analytics first (/skf:feedback opt-in)" >&2
+        echo "ERROR: Must opt-in to analytics first (/ork:feedback opt-in)" >&2
         return 1
     fi
 
@@ -140,14 +140,14 @@ send_analytics_report() {
     # Check transmission enabled
     if ! is_transmission_enabled; then
         echo "INFO: Network transmission not enabled. Use local export instead." >&2
-        echo "      Run: /skf:feedback export" >&2
+        echo "      Run: /ork:feedback export" >&2
         return 1
     fi
 
     # Check endpoint configured
     if [[ -z "$ANALYTICS_ENDPOINT" ]]; then
         echo "ERROR: No analytics endpoint configured" >&2
-        echo "       Set SKILLFORGE_ANALYTICS_ENDPOINT environment variable" >&2
+        echo "       Set ORCHESTKIT_ANALYTICS_ENDPOINT environment variable" >&2
         return 1
     fi
 
@@ -281,7 +281,7 @@ Last send success: $last_success
 
 Commands:
   Enable network:  Set enableNetworkTransmission in preferences
-  Local export:    /skf:feedback export
+  Local export:    /ork:feedback export
 
 EOF
 }

@@ -12,7 +12,7 @@ SKILLS_DIR="$REPO_ROOT/skills"
 HOOK_SCRIPT="$REPO_ROOT/hooks/subagent-start/subagent-validator.sh"
 
 # Test temp directory
-TEST_TMP="${TMPDIR:-/tmp}/skillforge-skill-validation-test-$$"
+TEST_TMP="${TMPDIR:-/tmp}/orchestkit-skill-validation-test-$$"
 mkdir -p "$TEST_TMP"
 trap 'rm -rf "$TEST_TMP"' EXIT
 

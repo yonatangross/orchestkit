@@ -233,7 +233,7 @@ Display the full privacy policy for anonymous analytics.
 **Output:**
 ```
 ═══════════════════════════════════════════════════════════════════
-              SKILLFORGE ANONYMOUS ANALYTICS PRIVACY POLICY
+              ORCHESTKIT ANONYMOUS ANALYTICS PRIVACY POLICY
 ═══════════════════════════════════════════════════════════════════
 
 WHAT WE COLLECT (only with your consent)

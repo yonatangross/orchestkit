@@ -162,5 +162,5 @@ This implementation follows GDPR requirements:
 
 ## Contact
 
-- **Repository**: https://github.com/yonatangross/skillforge-claude-plugin
-- **Issues**: https://github.com/yonatangross/skillforge-claude-plugin/issues
+- **Repository**: https://github.com/yonatangross/orchestkit-claude-plugin
+- **Issues**: https://github.com/yonatangross/orchestkit-claude-plugin/issues

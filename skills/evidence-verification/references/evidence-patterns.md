@@ -241,8 +241,8 @@ pytest tests/smoke/ --tb=short
 **Exit Code:** 0
 **Output:**
 ```
-deployment.apps/skillforge-backend configured
-service/skillforge-backend unchanged
+deployment.apps/orchestkit-backend configured
+service/orchestkit-backend unchanged
 ```
 
 ### Post-Deployment Verification
@@ -284,7 +284,7 @@ curl -X POST http://localhost:8500/api/v1/analyze \
   -d '{"url": "https://example.com"}'
 
 # Database integrity
-psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analyses;"
+psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analyses;"
 ```
 
 **Evidence Template:**

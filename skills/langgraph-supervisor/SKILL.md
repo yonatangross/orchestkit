@@ -205,8 +205,8 @@ def agent_node_factory(agent_name: str):
 - Define worker capabilities
 - Implement delegation logic
 
-### skillforge-workflow
-**Keywords:** skillforge, analysis, content, workflow
+### orchestkit-workflow
+**Keywords:** orchestkit, analysis, content, workflow
 **Solves:**
 - OrchestKit analysis workflow example
 - Production supervisor implementation

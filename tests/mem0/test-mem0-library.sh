@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-library.sh - Unit tests for mem0.sh library functions
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests:

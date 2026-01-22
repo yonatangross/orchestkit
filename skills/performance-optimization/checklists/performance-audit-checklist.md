@@ -646,7 +646,7 @@ speedup = before_latency / after_latency  # 17x
 
 ## References
 
-- Example: `../examples/skillforge-performance-wins.md`
+- Example: `../examples/orchestkit-performance-wins.md`
 - Template: `../scripts/caching-patterns.ts`
 - Template: `../scripts/database-optimization.ts`
 - [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/performance/)

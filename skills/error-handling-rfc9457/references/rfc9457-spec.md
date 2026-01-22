@@ -29,7 +29,7 @@ You can add custom members for additional context:
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/validation-error",
+  "type": "https://api.orchestkit.dev/problems/validation-error",
   "title": "Validation Error",
   "status": 422,
   "detail": "The request body contains invalid data",
@@ -69,9 +69,9 @@ Content-Type: application/problem+xml
 
 ```
 # Good: Specific, documented
-https://api.skillforge.dev/problems/rate-limit-exceeded
-https://api.skillforge.dev/problems/validation-error
-https://api.skillforge.dev/problems/resource-not-found
+https://api.orchestkit.dev/problems/rate-limit-exceeded
+https://api.orchestkit.dev/problems/validation-error
+https://api.orchestkit.dev/problems/resource-not-found
 
 # Bad: Generic, undocumented
 https://example.com/error
@@ -97,7 +97,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/validation-error",
+  "type": "https://api.orchestkit.dev/problems/validation-error",
   "title": "Validation Error",
   "status": 422,
   "detail": "One or more fields failed validation",
@@ -120,7 +120,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/authentication-required",
+  "type": "https://api.orchestkit.dev/problems/authentication-required",
   "title": "Authentication Required",
   "status": 401,
   "detail": "Access token is missing or invalid"
@@ -131,7 +131,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/insufficient-permissions",
+  "type": "https://api.orchestkit.dev/problems/insufficient-permissions",
   "title": "Insufficient Permissions",
   "status": 403,
   "detail": "You don't have permission to access this resource",
@@ -143,7 +143,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/resource-not-found",
+  "type": "https://api.orchestkit.dev/problems/resource-not-found",
   "title": "Resource Not Found",
   "status": 404,
   "detail": "Analysis with ID 'abc123' was not found",
@@ -156,7 +156,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/rate-limit-exceeded",
+  "type": "https://api.orchestkit.dev/problems/rate-limit-exceeded",
   "title": "Rate Limit Exceeded",
   "status": 429,
   "detail": "You have exceeded 100 requests per minute",
@@ -170,7 +170,7 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/resource-conflict",
+  "type": "https://api.orchestkit.dev/problems/resource-conflict",
   "title": "Resource Conflict",
   "status": 409,
   "detail": "A user with this email already exists",
@@ -182,12 +182,12 @@ Use `about:blank` when the problem has no additional semantics beyond the HTTP s
 
 ```json
 {
-  "type": "https://api.skillforge.dev/problems/internal-error",
+  "type": "https://api.orchestkit.dev/problems/internal-error",
   "title": "Internal Server Error",
   "status": 500,
   "detail": "An unexpected error occurred. Please try again later.",
   "trace_id": "trace-abc123",
-  "support_url": "https://support.skillforge.dev"
+  "support_url": "https://support.orchestkit.dev"
 }
 ```
 

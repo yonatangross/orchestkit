@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-agent-lifecycle-e2e.sh - End-to-end agent lifecycle tests
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests the full agent lifecycle:

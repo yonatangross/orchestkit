@@ -142,7 +142,7 @@ async def get_job_status(
 from celery import Celery
 
 celery_app = Celery(
-    "skillforge",
+    "orchestkit",
     broker="redis://redis:6379/0",
     backend="redis://redis:6379/1",
 )

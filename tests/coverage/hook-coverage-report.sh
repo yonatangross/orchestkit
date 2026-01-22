@@ -2,7 +2,7 @@
 # ============================================================================
 # Hook Test Coverage Report
 # ============================================================================
-# Analyzes test coverage for all hook categories in SkillForge.
+# Analyzes test coverage for all hook categories in OrchestKit.
 # Reports which hooks have dedicated tests vs which are untested.
 # ============================================================================
 

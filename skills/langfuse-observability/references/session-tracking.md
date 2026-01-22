@@ -76,7 +76,7 @@ langfuse.trace(
         "difficulty": "complex",
         "language": "en"
     },
-    tags=["production", "skillforge", "security"]
+    tags=["production", "orchestkit", "security"]
 )
 ```
 
@@ -181,7 +181,7 @@ async def run_content_analysis(analysis_id: str, content: str, user_id: str):
             "agent_count": 8,
             "environment": "production"
         },
-        tags=["skillforge", "production", "content-analysis"]
+        tags=["orchestkit", "production", "content-analysis"]
     )
 
     # All nested @observe calls inherit session_id

@@ -148,7 +148,7 @@ class Bulkhead:
             raise BulkheadTimeoutError(f"Tier {self.tier.name} timeout")
 ```
 
-## Best Practices (2025)
+## Best Practices (2026)
 
 ### 1. Size Based on Downstream Capacity
 ```python

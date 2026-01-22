@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # pattern-sync.sh - Cross-project pattern synchronization
-# Part of SkillForge Claude Plugin (#48)
+# Part of OrchestKit Claude Plugin (#48)
 #
 # Syncs learned patterns between project-level and global user-level storage
 # to share knowledge across repositories.

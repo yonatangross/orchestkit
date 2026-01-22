@@ -1,6 +1,6 @@
 # TypeScript 5.x Features for Type Safety
 
-Modern TypeScript features (5.0-5.7) for maximum type safety in 2025 applications.
+Modern TypeScript features (5.0-5.7) for maximum type safety in 2026 applications.
 
 ## TypeScript 5.7 Features (Latest)
 

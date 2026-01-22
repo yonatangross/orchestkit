@@ -141,7 +141,7 @@ test_get_agent_id() {
     local result
     result=$(get_agent_id "backend-architect")
 
-    assert_equals "skf:backend-architect" "$result"
+    assert_equals "ork:backend-architect" "$result"
 }
 
 # ============================================================================

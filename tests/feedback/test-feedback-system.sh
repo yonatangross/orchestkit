@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-feedback-system.sh - Tests for the feedback and analytics system
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests:

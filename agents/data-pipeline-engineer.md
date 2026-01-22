@@ -117,7 +117,7 @@ Return structured pipeline report:
 
 ### Chunking Strategy
 ```python
-# SkillForge standard: semantic boundaries with overlap
+# OrchestKit standard: semantic boundaries with overlap
 CHUNK_CONFIG = {
     "target_tokens": 500,      # ~400-600 tokens per chunk
     "max_tokens": 800,         # Hard limit
@@ -134,7 +134,7 @@ CHUNK_CONFIG = {
 ### Embedding Providers
 | Provider | Dimensions | Use Case | Cost |
 |----------|------------|----------|------|
-| Voyage AI voyage-3 | 1024 | Production (SkillForge) | $0.06/1M tokens |
+| Voyage AI voyage-3 | 1024 | Production (OrchestKit) | $0.06/1M tokens |
 | OpenAI text-embedding-3-large | 3072 | High-fidelity | $0.13/1M tokens |
 | Ollama nomic-embed-text | 768 | CI/testing (free) | $0 |
 

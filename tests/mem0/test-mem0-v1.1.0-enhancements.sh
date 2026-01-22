@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-v1.1.0-enhancements.sh - Unit tests for mem0.sh v1.1.0 enhancements
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests v1.1.0 features:
@@ -157,7 +157,7 @@ test_mem0_search_without_graph_flag() {
 # =============================================================================
 
 test_mem0_add_with_agent_id() {
-    test_start "mem0_add_memory_json includes agent_id with skf: prefix"
+    test_start "mem0_add_memory_json includes agent_id with ork: prefix"
 
     CLAUDE_PROJECT_DIR="/Users/test/my-project"
     local result
@@ -169,14 +169,14 @@ test_mem0_add_with_agent_id() {
         return
     fi
 
-    # Check agent_id field exists and has skf: prefix
+    # Check agent_id field exists and has ork: prefix
     local agent_id
     agent_id=$(echo "$result" | jq -r '.agent_id // empty')
 
-    if [[ "$agent_id" == "skf:database-engineer" ]]; then
+    if [[ "$agent_id" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected 'skf:database-engineer', got '$agent_id'"
+        test_fail "Expected 'ork:database-engineer', got '$agent_id'"
     fi
 }
 
@@ -185,7 +185,7 @@ test_mem0_add_with_prefixed_agent_id() {
 
     CLAUDE_PROJECT_DIR="/Users/test/my-project"
     local result
-    result=$(mem0_add_memory_json "agents" "Agent context" '{}' "false" "skf:database-engineer")
+    result=$(mem0_add_memory_json "agents" "Agent context" '{}' "false" "ork:database-engineer")
 
     # Check JSON is valid
     if ! echo "$result" | jq -e '.' >/dev/null 2>&1; then
@@ -197,10 +197,10 @@ test_mem0_add_with_prefixed_agent_id() {
     local agent_id
     agent_id=$(echo "$result" | jq -r '.agent_id // empty')
 
-    if [[ "$agent_id" == "skf:database-engineer" ]]; then
+    if [[ "$agent_id" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected 'skf:database-engineer', got '$agent_id' (possible double prefix)"
+        test_fail "Expected 'ork:database-engineer', got '$agent_id' (possible double prefix)"
     fi
 }
 
@@ -245,14 +245,14 @@ test_mem0_search_with_agent_id() {
         return
     fi
 
-    # Check filters include agent_id with skf: prefix
+    # Check filters include agent_id with ork: prefix
     local agent_filter
     agent_filter=$(echo "$result" | jq -r '.filters.AND[] | select(.agent_id) | .agent_id // empty')
 
-    if [[ "$agent_filter" == "skf:database-engineer" ]]; then
+    if [[ "$agent_filter" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected agent_id filter 'skf:database-engineer', got '$agent_filter'"
+        test_fail "Expected agent_id filter 'ork:database-engineer', got '$agent_filter'"
     fi
 }
 
@@ -291,10 +291,10 @@ test_mem0_global_user_id() {
     local result
     result=$(mem0_global_user_id "best-practices")
 
-    if [[ "$result" == "skillforge-global-best-practices" ]]; then
+    if [[ "$result" == "orchestkit-global-best-practices" ]]; then
         test_pass
     else
-        test_fail "Expected 'skillforge-global-best-practices', got '$result'"
+        test_fail "Expected 'orchestkit-global-best-practices', got '$result'"
     fi
 }
 
@@ -304,10 +304,10 @@ test_mem0_global_user_id_default() {
     local result
     result=$(mem0_global_user_id)
 
-    if [[ "$result" == "skillforge-global-best-practices" ]]; then
+    if [[ "$result" == "orchestkit-global-best-practices" ]]; then
         test_pass
     else
-        test_fail "Expected 'skillforge-global-best-practices', got '$result'"
+        test_fail "Expected 'orchestkit-global-best-practices', got '$result'"
     fi
 }
 
@@ -328,10 +328,10 @@ test_mem0_add_with_global_flag() {
     local user_id
     user_id=$(echo "$result" | jq -r '.user_id // empty')
 
-    if [[ "$user_id" == "skillforge-global-best-practices" ]]; then
+    if [[ "$user_id" == "orchestkit-global-best-practices" ]]; then
         test_pass
     else
-        test_fail "Expected 'skillforge-global-best-practices', got '$user_id'"
+        test_fail "Expected 'orchestkit-global-best-practices', got '$user_id'"
     fi
 }
 
@@ -493,12 +493,12 @@ test_validate_agent_id_known_agent() {
 }
 
 test_validate_agent_id_with_prefix() {
-    test_start "validate_agent_id handles skf: prefix"
+    test_start "validate_agent_id handles ork: prefix"
 
-    if validate_agent_id "skf:database-engineer" 2>/dev/null; then
+    if validate_agent_id "ork:database-engineer" 2>/dev/null; then
         test_pass
     else
-        test_fail "Expected validation to pass for 'skf:database-engineer'"
+        test_fail "Expected validation to pass for 'ork:database-engineer'"
     fi
 }
 
@@ -548,15 +548,15 @@ test_validate_agent_id_multiple_agents() {
 # =============================================================================
 
 test_mem0_format_agent_id() {
-    test_start "mem0_format_agent_id adds skf: prefix"
+    test_start "mem0_format_agent_id adds ork: prefix"
 
     local result
     result=$(mem0_format_agent_id "database-engineer")
 
-    if [[ "$result" == "skf:database-engineer" ]]; then
+    if [[ "$result" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected 'skf:database-engineer', got '$result'"
+        test_fail "Expected 'ork:database-engineer', got '$result'"
     fi
 }
 
@@ -564,12 +564,12 @@ test_mem0_format_agent_id_idempotent() {
     test_start "mem0_format_agent_id is idempotent"
 
     local result
-    result=$(mem0_format_agent_id "skf:database-engineer")
+    result=$(mem0_format_agent_id "ork:database-engineer")
 
-    if [[ "$result" == "skf:database-engineer" ]]; then
+    if [[ "$result" == "ork:database-engineer" ]]; then
         test_pass
     else
-        test_fail "Expected 'skf:database-engineer', got '$result' (double prefix?)"
+        test_fail "Expected 'ork:database-engineer', got '$result' (double prefix?)"
     fi
 }
 
@@ -595,7 +595,7 @@ test_mem0_add_with_graph_and_agent() {
     has_graph=$(echo "$result" | jq -r '.enable_graph // empty')
     agent_id=$(echo "$result" | jq -r '.agent_id // empty')
 
-    if [[ "$has_graph" == "true" ]] && [[ "$agent_id" == "skf:database-engineer" ]]; then
+    if [[ "$has_graph" == "true" ]] && [[ "$agent_id" == "ork:database-engineer" ]]; then
         test_pass
     else
         test_fail "Expected both enable_graph=true and agent_id, got graph='$has_graph', agent='$agent_id'"
@@ -620,7 +620,7 @@ test_mem0_search_with_graph_and_agent() {
     has_graph=$(echo "$result" | jq -r '.enable_graph // empty')
     agent_filter=$(echo "$result" | jq -r '.filters.AND[] | select(.agent_id) | .agent_id // empty')
 
-    if [[ "$has_graph" == "true" ]] && [[ "$agent_filter" == "skf:database-engineer" ]]; then
+    if [[ "$has_graph" == "true" ]] && [[ "$agent_filter" == "ork:database-engineer" ]]; then
         test_pass
     else
         test_fail "Expected both enable_graph=true and agent_id filter, got graph='$has_graph', agent='$agent_filter'"

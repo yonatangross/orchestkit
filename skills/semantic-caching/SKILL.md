@@ -135,8 +135,8 @@ async def get_llm_response(query: str, agent_type: str) -> dict:
 - Balance hit rate vs accuracy
 - Tune cache performance
 
-### skillforge-integration
-**Keywords:** skillforge, integration, roi, cost-savings
+### orchestkit-integration
+**Keywords:** orchestkit, integration, roi, cost-savings
 **Solves:**
 - Integrate caching with OrchestKit
 - Calculate ROI for caching

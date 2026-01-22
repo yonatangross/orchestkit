@@ -39,7 +39,7 @@ class ProblemDetail(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "type": "https://api.skillforge.dev/problems/validation-error",
+                "type": "https://api.orchestkit.dev/problems/validation-error",
                 "title": "Validation Error",
                 "status": 422,
                 "detail": "The url field is required",
@@ -121,7 +121,7 @@ class ResourceNotFoundError(ProblemException):
     ):
         super().__init__(
             status_code=404,
-            problem_type="https://api.skillforge.dev/problems/resource-not-found",
+            problem_type="https://api.orchestkit.dev/problems/resource-not-found",
             title="Resource Not Found",
             detail=f"{resource_type} with ID '{resource_id}' was not found",
             resource_type=resource_type,
@@ -139,7 +139,7 @@ class ValidationError(ProblemException):
     ):
         super().__init__(
             status_code=422,
-            problem_type="https://api.skillforge.dev/problems/validation-error",
+            problem_type="https://api.orchestkit.dev/problems/validation-error",
             title="Validation Error",
             detail=detail,
             errors=errors,
@@ -156,7 +156,7 @@ class ConflictError(ProblemException):
     ):
         super().__init__(
             status_code=409,
-            problem_type="https://api.skillforge.dev/problems/resource-conflict",
+            problem_type="https://api.orchestkit.dev/problems/resource-conflict",
             title="Resource Conflict",
             detail=detail,
             conflicting_field=conflicting_field,
@@ -174,7 +174,7 @@ class RateLimitError(ProblemException):
     ):
         super().__init__(
             status_code=429,
-            problem_type="https://api.skillforge.dev/problems/rate-limit-exceeded",
+            problem_type="https://api.orchestkit.dev/problems/rate-limit-exceeded",
             title="Rate Limit Exceeded",
             detail=f"You have exceeded {limit} requests per {window}",
             retry_after=retry_after,
@@ -189,7 +189,7 @@ class AuthenticationError(ProblemException):
     def __init__(self, detail: str = "Authentication is required"):
         super().__init__(
             status_code=401,
-            problem_type="https://api.skillforge.dev/problems/authentication-required",
+            problem_type="https://api.orchestkit.dev/problems/authentication-required",
             title="Authentication Required",
             detail=detail,
         )
@@ -205,7 +205,7 @@ class AuthorizationError(ProblemException):
     ):
         super().__init__(
             status_code=403,
-            problem_type="https://api.skillforge.dev/problems/insufficient-permissions",
+            problem_type="https://api.orchestkit.dev/problems/insufficient-permissions",
             title="Insufficient Permissions",
             detail=detail,
             required_permission=required_permission,
@@ -262,7 +262,7 @@ def setup_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=422,
             content={
-                "type": "https://api.skillforge.dev/problems/validation-error",
+                "type": "https://api.orchestkit.dev/problems/validation-error",
                 "title": "Validation Error",
                 "status": 422,
                 "detail": "Request validation failed",
@@ -290,7 +290,7 @@ def setup_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=409,
             content={
-                "type": "https://api.skillforge.dev/problems/resource-conflict",
+                "type": "https://api.orchestkit.dev/problems/resource-conflict",
                 "title": "Resource Conflict",
                 "status": 409,
                 "detail": detail,
@@ -323,14 +323,14 @@ def setup_exception_handlers(app: FastAPI):
         return JSONResponse(
             status_code=500,
             content={
-                "type": "https://api.skillforge.dev/problems/internal-error",
+                "type": "https://api.orchestkit.dev/problems/internal-error",
                 "title": "Internal Server Error",
                 "status": 500,
                 "detail": "An unexpected error occurred. Please try again later.",
                 "instance": request.url.path,
                 "trace_id": trace_id,
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "support_url": "https://support.skillforge.dev",
+                "support_url": "https://support.orchestkit.dev",
             },
             media_type="application/problem+json",
         )
@@ -401,7 +401,7 @@ router = APIRouter()
             "content": {
                 "application/problem+json": {
                     "example": {
-                        "type": "https://api.skillforge.dev/problems/resource-not-found",
+                        "type": "https://api.orchestkit.dev/problems/resource-not-found",
                         "title": "Resource Not Found",
                         "status": 404,
                         "detail": "Analysis with ID 'abc123' was not found",
@@ -434,7 +434,7 @@ async def test_not_found_returns_problem_detail(client: AsyncClient):
     assert response.headers["content-type"] == "application/problem+json"
 
     problem = response.json()
-    assert problem["type"] == "https://api.skillforge.dev/problems/resource-not-found"
+    assert problem["type"] == "https://api.orchestkit.dev/problems/resource-not-found"
     assert problem["status"] == 404
     assert "Analysis" in problem["detail"]
 
@@ -446,7 +446,7 @@ async def test_validation_error_includes_field_errors(client: AsyncClient):
     assert response.headers["content-type"] == "application/problem+json"
 
     problem = response.json()
-    assert problem["type"] == "https://api.skillforge.dev/problems/validation-error"
+    assert problem["type"] == "https://api.orchestkit.dev/problems/validation-error"
     assert "errors" in problem
     assert any(e["field"] == "url" for e in problem["errors"])
 ```

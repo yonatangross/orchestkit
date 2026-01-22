@@ -292,7 +292,7 @@ test_build_pattern_includes_source() {
     local json
     json=$(build_best_practice_json "success" "api" "REST endpoint pattern")
 
-    assert_json_field "$json" ".metadata.source" "skillforge-plugin"
+    assert_json_field "$json" ".metadata.source" "orchestkit-plugin"
 }
 
 # ============================================================================

@@ -5,7 +5,7 @@
 # Tests for memory/feedback slash commands (CC 2.1.3 merged with skills):
 # - /remember (skills/remember/SKILL.md)
 # - /recall (skills/recall/SKILL.md)
-# - /skf:feedback (skills/feedback/SKILL.md)
+# - /ork:feedback (skills/feedback/SKILL.md)
 # ============================================================================
 
 set -euo pipefail
@@ -127,10 +127,10 @@ test_recall_has_advanced_flags() {
 }
 
 # ============================================================================
-# /skf:feedback COMMAND TESTS
+# /ork:feedback COMMAND TESTS
 # ============================================================================
 
-describe "Command: /skf:feedback"
+describe "Command: /ork:feedback"
 
 test_feedback_command_exists() {
     assert_file_exists "$SKILLS_DIR/feedback/SKILL.md"

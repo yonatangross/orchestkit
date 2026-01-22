@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SkillForge Configuration Loader
+# OrchestKit Configuration Loader
 # Reads config.json and exports enabled/disabled items
 # Version: 1.0.1
 # FIX: Use proper null checking instead of // operator for boolean values
@@ -7,9 +7,9 @@
 set -euo pipefail
 
 # Configuration paths
-SKILLFORGE_ROOT="${SKILLFORGE_ROOT:-$HOME/.claude/plugins/skillforge}"
-CONFIG_FILE="${SKILLFORGE_CONFIG:-$SKILLFORGE_ROOT/config.json}"
-DEFAULT_CONFIG="$SKILLFORGE_ROOT/.claude/defaults/config.json"
+ORCHESTKIT_ROOT="${ORCHESTKIT_ROOT:-$HOME/.claude/plugins/orchestkit}"
+CONFIG_FILE="${ORCHESTKIT_CONFIG:-$ORCHESTKIT_ROOT/config.json}"
+DEFAULT_CONFIG="$ORCHESTKIT_ROOT/.claude/defaults/config.json"
 
 # -----------------------------------------------------------------------------
 # Helper: Get boolean value with proper null handling
@@ -300,7 +300,7 @@ get_summary() {
     local preset
     preset=$(echo "$config" | jq -r 'if .preset == null then "complete" else .preset end')
     
-    echo "SkillForge Configuration"
+    echo "OrchestKit Configuration"
     echo "------------------------"
     echo "Preset: $preset"
     echo ""

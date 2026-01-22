@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://skillforge.dev/schemas/config.schema.json",
-  "title": "SkillForge Configuration",
-  "description": "Configuration schema for SkillForge plugin customization",
+  "$id": "https://orchestkit.dev/schemas/config.schema.json",
+  "title": "OrchestKit Configuration",
+  "description": "Configuration schema for OrchestKit plugin customization",
   "type": "object",
   "required": ["version", "preset"],
   "properties": {

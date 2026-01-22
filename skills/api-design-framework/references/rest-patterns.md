@@ -223,7 +223,7 @@ app.include_router(
 
 ```
 GET /api/analyses
-Accept: application/vnd.skillforge.v2+json
+Accept: application/vnd.orchestkit.v2+json
 API-Version: v2
 ```
 
@@ -603,5 +603,5 @@ async def get_analysis(
 ## Related Files
 
 - See `assets/openapi-template.yaml` for full OpenAPI specification example
-- See `examples/skillforge-api-design.md` for OrchestKit-specific patterns
+- See `examples/orchestkit-api-design.md` for OrchestKit-specific patterns
 - See SKILL.md for GraphQL and gRPC patterns

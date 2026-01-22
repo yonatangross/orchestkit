@@ -1,4 +1,4 @@
-# Frontend API Integration (2025 Patterns)
+# Frontend API Integration (2026 Patterns)
 
 Type-safe API consumption with runtime validation.
 

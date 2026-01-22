@@ -1,5 +1,5 @@
 /**
- * Playwright Test Template for SkillForge
+ * Playwright Test Template for OrchestKit
  *
  * This template provides base test structures, page objects, and assertions
  * for E2E testing React applications with TypeScript.

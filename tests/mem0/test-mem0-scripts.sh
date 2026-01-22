@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-scripts.sh - Comprehensive tests for mem0 Python SDK scripts
-# Part of SkillForge Claude Plugin test suite
+# Part of OrchestKit Claude Plugin test suite
 #
 # Tests:
 # 1. Script structure (all 23 scripts + lib files exist)

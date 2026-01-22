@@ -410,7 +410,7 @@ class QualityAwareFallback:
         return response
 ```
 
-## Best Practices (2025)
+## Best Practices (2026)
 
 1. **Always have a fallback**: Even a cached or default response is better than an error
 2. **Monitor costs per-request**: Track token usage in traces (Langfuse)

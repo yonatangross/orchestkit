@@ -5,7 +5,7 @@ context: fork
 agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub
-tags: [streaming, sse, websocket, real-time, api, 2025]
+tags: [streaming, sse, websocket, real-time, api, 2026]
 user-invocable: false
 ---
 
@@ -222,7 +222,7 @@ class ReconnectingEventSource {
 }
 ```
 
-## Python Async Generator Cleanup (2025 Best Practice)
+## Python Async Generator Cleanup (2026 Best Practice)
 
 **CRITICAL**: Async generators can leak resources if not properly cleaned up. Python 3.10+ provides `aclosing()` from `contextlib` to guarantee cleanup.
 
@@ -447,8 +447,8 @@ async def test_stream_cleanup_on_error():
 - Implement automatic reconnection
 - Resume from Last-Event-ID
 
-### skillforge-sse
-**Keywords:** skillforge sse, event broadcaster, workflow events, analysis progress
+### orchestkit-sse
+**Keywords:** orchestkit sse, event broadcaster, workflow events, analysis progress
 **Solves:**
 - How does OrchestKit SSE work?
 - EventBroadcaster implementation

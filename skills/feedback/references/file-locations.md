@@ -184,7 +184,7 @@ Key functions:
 
 **Note:** Network transmission requires:
 1. User consent (`has_consent()` = true)
-2. Endpoint configured (`SKILLFORGE_ANALYTICS_ENDPOINT`)
+2. Endpoint configured (`ORCHESTKIT_ANALYTICS_ENDPOINT`)
 3. Network enabled (`enableNetworkTransmission` in preferences)
 
 ## Schemas

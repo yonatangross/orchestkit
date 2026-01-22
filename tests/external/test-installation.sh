@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-installation.sh - External installation validation tests
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests plugin installation in various repo types:

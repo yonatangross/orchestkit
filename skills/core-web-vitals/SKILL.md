@@ -1,6 +1,6 @@
 ---
 name: core-web-vitals
-description: Core Web Vitals optimization for LCP, INP, CLS with 2025/2026 thresholds, performance budgets, and RUM. Use when improving page performance, diagnosing CWV regressions, or setting performance budgets.
+description: Core Web Vitals optimization for LCP, INP, CLS with 2026 thresholds, performance budgets, and RUM. Use when improving page performance, diagnosing CWV regressions, or setting performance budgets.
 tags: [performance, core-web-vitals, lcp, inp, cls, lighthouse, rum, web-vitals]
 context: fork
 agent: frontend-ui-developer
@@ -12,9 +12,9 @@ user-invocable: false
 
 # Core Web Vitals
 
-Performance optimization for Google's Core Web Vitals - LCP, INP, CLS with 2025 thresholds.
+Performance optimization for Google's Core Web Vitals - LCP, INP, CLS with 2026 thresholds.
 
-## Core Web Vitals Thresholds (2025)
+## Core Web Vitals Thresholds (2026)
 
 | Metric | Good | Needs Improvement | Poor |
 |--------|------|-------------------|------|

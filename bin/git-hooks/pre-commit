@@ -1,5 +1,5 @@
 #!/bin/bash
-# Git Pre-commit Hook for SkillForge Plugin
+# Git Pre-commit Hook for OrchestKit Plugin
 # Mirrors CI checks - fail fast locally before pushing
 # Version: 2.0.0
 

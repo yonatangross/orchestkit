@@ -499,7 +499,7 @@ def main():
         print("   Trying legacy user_id...")
         full_graph_generated = generate_graph(
             "mem0-full-graph.html",
-            user_id="skillforge:all-agents",
+            user_id="orchestkit:all-agents",
             show_shared=True,
             format=args.format,
             limit=args.limit
@@ -538,7 +538,7 @@ def main():
             print("   Trying legacy user_id...")
             shared_generated = generate_graph(
                 "mem0-shared-knowledge.html",
-                user_id="skillforge:all-agents",
+                user_id="orchestkit:all-agents",
                 show_shared=True,
                 format=args.format,
                 limit=args.limit

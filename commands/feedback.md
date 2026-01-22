@@ -1,5 +1,5 @@
 ---
-description: Manage the SkillForge feedback system that learns from your usage
+description: Manage the OrchestKit feedback system that learns from your usage
 allowed-tools: Read, Edit, Write, Bash, AskUserQuestion
 ---
 

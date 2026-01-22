@@ -5,7 +5,7 @@ context: fork
 agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [golden-dataset, backup, data-protection, testing, regression, 2025]
+tags: [golden-dataset, backup, data-protection, testing, regression, 2026]
 allowed-tools:
   - Read
   - Grep
@@ -59,7 +59,7 @@ Golden dataset analyses MUST store **real canonical URLs**, not placeholders.
 
 ```python
 # WRONG - Placeholder URL (breaks restore)
-analysis.url = "https://skillforge.dev/placeholder/123"
+analysis.url = "https://orchestkit.dev/placeholder/123"
 
 # CORRECT - Real canonical URL (enables re-fetch if needed)
 analysis.url = "https://docs.python.org/3/library/asyncio.html"
@@ -145,7 +145,7 @@ poetry run python scripts/backup_golden_dataset.py restore
 | Check | Error/Warning | Description |
 |-------|---------------|-------------|
 | Count mismatch | Error | Analysis/chunk count differs from metadata |
-| Placeholder URLs | Error | URLs containing skillforge.dev or placeholder |
+| Placeholder URLs | Error | URLs containing orchestkit.dev or placeholder |
 | Missing embeddings | Error | Chunks without embeddings after restore |
 | Orphaned chunks | Warning | Chunks with no parent analysis |
 
@@ -233,8 +233,8 @@ For detailed implementation patterns, see:
 - Restore after data corruption
 - Rollback procedures
 
-### skillforge-golden-dataset
-**Keywords:** skillforge, 98 analyses, 415 chunks, retrieval evaluation, real world
+### orchestkit-golden-dataset
+**Keywords:** orchestkit, 98 analyses, 415 chunks, retrieval evaluation, real world
 **Solves:**
 - What is OrchestKit's golden dataset?
 - How does OrchestKit protect test data?

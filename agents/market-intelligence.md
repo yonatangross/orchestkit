@@ -45,7 +45,7 @@ Return structured market intelligence report:
 ```json
 {
   "market_report": {
-    "project": "skillforge-feature-x",
+    "project": "orchestkit-feature-x",
     "date": "2026-01-02",
     "confidence": "MEDIUM"
   },

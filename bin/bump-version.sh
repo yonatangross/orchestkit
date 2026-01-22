@@ -1,6 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-# Version Bump Script for SkillForge Plugin
+# Version Bump Script for OrchestKit Plugin
 # Usage: ./bin/bump-version.sh [major|minor|patch]
 # Default: patch
 #

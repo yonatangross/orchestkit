@@ -68,13 +68,13 @@ Memories are automatically categorized based on content. Available categories:
 
 Memories include `source_tool` metadata to support cross-tool memory sharing:
 
-- `source_tool: "skillforge-claude"` - Memories from Claude Code
-- `source_tool: "skillforge-cursor"` - Memories from Cursor (future)
+- `source_tool: "orchestkit-claude"` - Memories from Claude Code
+- `source_tool: "orchestkit-cursor"` - Memories from Cursor (future)
 
 Query memories by tool:
 ```bash
 # Query Claude Code memories
-filters={"AND": [{"metadata.source_tool": "skillforge-claude"}]}
+filters={"AND": [{"metadata.source_tool": "orchestkit-claude"}]}
 
 # Query all memories (any tool)
 filters={"AND": [{"user_id": "my-project-decisions"}]}
@@ -231,7 +231,7 @@ Multi-hop graph traversal for complex relationship queries:
 
 ```bash
 !bash skills/mem0-memory/scripts/crud/get-memories.py \
-  --user-id "project-skillforge" \
+  --user-id "project-orchestkit" \
   --filters '{"limit":100}'
 ```
 

@@ -288,7 +288,7 @@ The algorithm tracks these context types:
 
 **Case 2: Context already at 95%+**
 - Skip scoring (too late)
-- Immediately recommend compaction via `/skf:context-compression`
+- Immediately recommend compaction via `/ork:context-compression`
 - Warn: "Context critical. Use context-compression skill."
 
 **Case 3: All context highly relevant**

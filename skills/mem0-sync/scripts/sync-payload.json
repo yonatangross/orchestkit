@@ -14,7 +14,7 @@
       "stored_at": "{{timestamp}}",
       "has_blockers": "{{has_blockers}}",
       "has_next_steps": "{{has_next_steps}}",
-      "source": "skillforge-plugin"
+      "source": "orchestkit-plugin"
     },
     "enable_graph": true
   },
@@ -36,7 +36,7 @@
   "agent_pattern_success": {
     "text": "{{agent_type}}: {{pattern_description}}",
     "user_id": "{{project}}-agents",
-    "agent_id": "skf:{{agent_type}}",
+    "agent_id": "ork:{{agent_type}}",
     "metadata": {
       "category": "{{category}}",
       "outcome": "success",
@@ -49,7 +49,7 @@
   "agent_pattern_failed": {
     "text": "{{agent_type}}: {{pattern_description}}",
     "user_id": "{{project}}-agents",
-    "agent_id": "skf:{{agent_type}}",
+    "agent_id": "ork:{{agent_type}}",
     "metadata": {
       "category": "{{category}}",
       "outcome": "failed",
@@ -62,14 +62,14 @@
 
   "global_best_practice": {
     "text": "{{best_practice_description}}",
-    "user_id": "skillforge-global-best-practices",
+    "user_id": "orchestkit-global-best-practices",
     "metadata": {
       "category": "{{category}}",
       "outcome": "success",
       "original_project": "{{project}}",
       "original_agent": "{{agent}}",
       "stored_at": "{{timestamp}}",
-      "source": "skillforge-plugin"
+      "source": "orchestkit-plugin"
     },
     "enable_graph": true
   },
@@ -86,7 +86,7 @@
       "stored_at": "2026-01-17T15:00:00Z",
       "has_blockers": true,
       "has_next_steps": true,
-      "source": "skillforge-plugin"
+      "source": "orchestkit-plugin"
     },
     "enable_graph": true
   }

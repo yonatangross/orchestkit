@@ -330,7 +330,7 @@ For large tables, create indexes separately (not in transaction):
 poetry run alembic upgrade head
 
 # Manually create index CONCURRENTLY (no locks)
-psql -d skillforge -c "CREATE INDEX CONCURRENTLY idx_chunks_vector_hnsw ON analysis_chunks USING hnsw (vector vector_cosine_ops) WITH (m = 16, ef_construction = 64);"
+psql -d orchestkit -c "CREATE INDEX CONCURRENTLY idx_chunks_vector_hnsw ON analysis_chunks USING hnsw (vector vector_cosine_ops) WITH (m = 16, ef_construction = 64);"
 ```
 
 **Why?** `CREATE INDEX CONCURRENTLY` cannot run inside transaction blocks (Alembic uses transactions by default).

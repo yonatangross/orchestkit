@@ -10,20 +10,20 @@
 
 - [ ] **Database connection verified**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c "SELECT version();"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT version();"
   # Expected: PostgreSQL 16.x
   ```
 
 - [ ] **Database contains expected data**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
   # Expected: 98 (or current golden dataset size)
   ```
 
 - [ ] **Embeddings generated for all chunks**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analysis_chunks WHERE vector IS NULL;"
   # Expected: 0 (no chunks without embeddings)
   ```
@@ -32,14 +32,14 @@
 
 - [ ] **URL contract verified (no placeholder URLs)**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
-    "SELECT COUNT(*) FROM analyses WHERE url LIKE '%skillforge.dev%';"
+  psql -h localhost -p 5437 -U orchestkit -c \
+    "SELECT COUNT(*) FROM analyses WHERE url LIKE '%orchestkit.dev%';"
   # Expected: 0 (no placeholder URLs)
   ```
 
 - [ ] **All analyses have artifacts**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analyses a
      LEFT JOIN artifacts ar ON a.id = ar.analysis_id
      WHERE ar.id IS NULL AND a.status = 'completed';"
@@ -48,7 +48,7 @@
 
 - [ ] **No orphaned chunks**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analysis_chunks c
      LEFT JOIN analyses a ON c.analysis_id = a.id
      WHERE a.id IS NULL;"
@@ -189,13 +189,13 @@
 
 - [ ] **Database accessible**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c "SELECT 1;"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT 1;"
   # Expected: "1"
   ```
 
 - [ ] **Current data count known**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analyses;"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analyses;"
   # Note the count for comparison after restore
   ```
 
@@ -300,37 +300,37 @@
 - [ ] **Check database counts**
   ```bash
   # Analyses
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
   # Expected: 98
 
   # Artifacts
-  psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM artifacts;"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM artifacts;"
   # Expected: 98
 
   # Chunks
-  psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analysis_chunks;"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analysis_chunks;"
   # Expected: 415
   ```
 
 - [ ] **Verify embeddings generated**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT COUNT(*) FROM analysis_chunks WHERE vector IS NULL;"
   # Expected: 0 (all chunks have embeddings)
   ```
 
 - [ ] **Verify URL contract maintained**
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c \
-    "SELECT COUNT(*) FROM analyses WHERE url LIKE '%skillforge.dev%';"
+  psql -h localhost -p 5437 -U orchestkit -c \
+    "SELECT COUNT(*) FROM analyses WHERE url LIKE '%orchestkit.dev%';"
   # Expected: 0 (no placeholder URLs)
   ```
 
 - [ ] **Check sample data integrity**
   ```bash
   # Verify a known document exists
-  psql -h localhost -p 5437 -U skillforge -c \
+  psql -h localhost -p 5437 -U orchestkit -c \
     "SELECT title FROM analyses WHERE url = 'https://docs.python.org/3/library/asyncio.html';"
   # Expected: Row returned with title
   ```
@@ -446,7 +446,7 @@
 
 - [ ] **Import SQL dump**
   ```bash
-  psql -h localhost -p 5437 -U skillforge < \
+  psql -h localhost -p 5437 -U orchestkit < \
     /Users/yonatangross/coding/OrchestKit/backend/data/golden_dataset_dump.sql
   ```
 

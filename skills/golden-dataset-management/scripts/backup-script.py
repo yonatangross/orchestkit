@@ -301,7 +301,7 @@ async def verify_golden_dataset():
         # 2. Check URL contract
         print("\n2. Checking URL contract...")
         query = select(Analysis).where(
-            Analysis.url.like("%skillforge.dev%") |
+            Analysis.url.like("%orchestkit.dev%") |
             Analysis.url.like("%placeholder%")
         )
         result = await session.execute(query)

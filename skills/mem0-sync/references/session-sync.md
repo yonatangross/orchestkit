@@ -16,7 +16,7 @@ Detailed guide for syncing session summaries to Mem0.
     "stored_at": "2026-01-17T15:00:00Z",
     "has_blockers": false,
     "has_next_steps": true,
-    "source": "skillforge-plugin"
+    "source": "orchestkit-plugin"
   },
   "enable_graph": true
 }
@@ -67,7 +67,7 @@ mcp__mem0__add_memory({
     stored_at: "2026-01-17T15:00:00Z",
     has_blockers: true,
     has_next_steps: true,
-    source: "skillforge-plugin"
+    source: "orchestkit-plugin"
   },
   enable_graph: true
 })

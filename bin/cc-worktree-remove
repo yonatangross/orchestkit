@@ -9,7 +9,7 @@
 # - Optionally deletes the feature branch
 #
 # Version: 1.0.0
-# Part of SkillForge Multi-Worktree Coordination System
+# Part of OrchestKit Multi-Worktree Coordination System
 
 set -euo pipefail
 

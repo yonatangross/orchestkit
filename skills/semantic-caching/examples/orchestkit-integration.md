@@ -49,7 +49,7 @@ poetry install
 services:
   redis:
     image: redis/redis-stack:latest
-    container_name: skillforge-redis-cache
+    container_name: orchestkit-redis-cache
     ports:
       - "6379:6379"      # Redis
       - "8001:8001"      # RedisInsight
@@ -58,7 +58,7 @@ services:
     volumes:
       - redis-cache-data:/data
     networks:
-      - skillforge-network
+      - orchestkit-network
 
 volumes:
   redis-cache-data:
@@ -130,7 +130,7 @@ async def execute_agent_with_cache(
 
 ```python
 # backend/scripts/warm_cache_from_golden.py
-async def warm_skillforge_cache():
+async def warm_orchestkit_cache():
     """Warm cache with 98 golden analyses."""
 
     from app.db.repositories.analysis_repository import AnalysisRepository
@@ -165,7 +165,7 @@ async def warm_skillforge_cache():
     print(f"✅ Warmed cache with {warmed} entries from golden dataset")
 
 # Run it
-asyncio.run(warm_skillforge_cache())
+asyncio.run(warm_orchestkit_cache())
 ```
 
 ## Step 6: Add Cache Metrics Endpoint
@@ -194,8 +194,8 @@ async def cache_health_check():
 @router.post("/warm")
 async def warm_cache():
     """Warm cache from golden dataset (admin only)."""
-    from scripts.warm_cache_from_golden import warm_skillforge_cache
-    count = await warm_skillforge_cache()
+    from scripts.warm_cache_from_golden import warm_orchestkit_cache
+    count = await warm_orchestkit_cache()
     return {"warmed_entries": count}
 ```
 
@@ -240,7 +240,7 @@ export function CacheIndicator({ cacheLayer, costSaved }: CacheIndicatorProps) {
 from prometheus_client import Gauge
 
 cache_hit_rate = Gauge(
-    "skillforge_cache_hit_rate",
+    "orchestkit_cache_hit_rate",
     "Cache hit rate percentage",
     ["layer"]
 )
@@ -296,15 +296,15 @@ Grafana panel for OrchestKit cache performance:
 
 ```promql
 # Combined cache hit rate
-sum(rate(cache_hits_total{job="skillforge-backend"}[5m]))
+sum(rate(cache_hits_total{job="orchestkit-backend"}[5m]))
 /
 (
-  sum(rate(cache_hits_total{job="skillforge-backend"}[5m])) +
-  sum(rate(cache_misses_total{job="skillforge-backend"}[5m]))
+  sum(rate(cache_hits_total{job="orchestkit-backend"}[5m])) +
+  sum(rate(cache_misses_total{job="orchestkit-backend"}[5m]))
 )
 
 # Cost saved per hour
-sum(rate(llm_cost_saved_usd_total{job="skillforge-backend"}[1h])) * 3600
+sum(rate(llm_cost_saved_usd_total{job="orchestkit-backend"}[1h])) * 3600
 ```
 
 ## Testing
@@ -316,9 +316,9 @@ import pytest
 @pytest.mark.asyncio
 async def test_cache_warm_from_golden():
     """Test cache warming from golden dataset."""
-    from scripts.warm_cache_from_golden import warm_skillforge_cache
+    from scripts.warm_cache_from_golden import warm_orchestkit_cache
 
-    count = await warm_skillforge_cache()
+    count = await warm_orchestkit_cache()
 
     assert count >= 415  # 98 analyses × ~8 agents
     assert await semantic_cache.get_size() >= 415

@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-graph-first-architecture.sh - Comprehensive tests for Graph-First Architecture v2.1
-# Part of SkillForge Claude Plugin comprehensive test suite
+# Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
 # Tests Graph-First Architecture (v2.1) features:

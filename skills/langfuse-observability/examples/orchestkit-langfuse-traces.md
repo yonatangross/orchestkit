@@ -79,7 +79,7 @@ async def run_content_analysis(analysis_id: str, url: str) -> AnalysisResult:
             "workflow_type": "8-agent-supervisor",
             "version": "1.0.0"
         },
-        tags=["production", "skillforge", "langgraph"]
+        tags=["production", "orchestkit", "langgraph"]
     )
 
     # Step 1: Fetch content (nested span)

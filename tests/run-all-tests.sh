@@ -1,6 +1,6 @@
 #!/bin/bash
 # Main Test Runner
-# Executes all tests for the SkillForge Claude Plugin
+# Executes all tests for the OrchestKit Claude Plugin
 #
 # Usage: ./run-all-tests.sh [OPTIONS]
 #
@@ -96,7 +96,7 @@ export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
 echo ""
 echo -e "${BOLD}╔══════════════════════════════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}║        SkillForge Claude Plugin - Test Suite v3.0                ║${NC}"
+echo -e "${BOLD}║        OrchestKit Claude Plugin - Test Suite v3.0                ║${NC}"
 echo -e "${BOLD}╚══════════════════════════════════════════════════════════════════╝${NC}"
 echo ""
 

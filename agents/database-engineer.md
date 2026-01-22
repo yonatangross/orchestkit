@@ -120,7 +120,7 @@ Return structured findings:
 
 **pgvector Configuration:**
 ```sql
--- HNSW (recommended for SkillForge scale)
+-- HNSW (recommended for OrchestKit scale)
 CREATE INDEX idx_chunks_embedding_hnsw ON chunks
 USING hnsw (embedding vector_cosine_ops)
 WITH (m = 16, ef_construction = 64);

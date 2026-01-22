@@ -8,7 +8,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-USER_ID="skillforge:all-agents"
+USER_ID="orchestkit:all-agents"
 SEARCH_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/crud/search-memories.py"
 GET_RELATED_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/graph/get-related-memories.py"
 TRAVERSE_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/graph/traverse-graph.py"

@@ -142,8 +142,8 @@ async def get_user(
 from fastapi import Request
 
 MEDIA_TYPES = {
-    "application/vnd.skillforge.v1+json": 1,
-    "application/vnd.skillforge.v2+json": 2,
+    "application/vnd.orchestkit.v1+json": 1,
+    "application/vnd.orchestkit.v2+json": 2,
     "application/json": 2,  # Default to latest
 }
 

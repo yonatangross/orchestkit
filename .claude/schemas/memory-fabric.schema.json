@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://github.com/yonatangross/skillforge-claude-plugin/schemas/memory-fabric.schema.json",
+  "$id": "https://github.com/yonatangross/orchestkit/schemas/memory-fabric.schema.json",
   "title": "Memory Fabric Schema",
   "description": "Schema for graph-first memory system - knowledge graph PRIMARY, mem0 cloud OPTIONAL enhancement (v2.1.0)",
   "type": "object",
@@ -223,8 +223,8 @@
         },
         "agent_id": {
           "type": "string",
-          "pattern": "^skf:[a-z0-9-]+$",
-          "description": "Formatted agent ID (skf:agent-name)"
+          "pattern": "^ork:[a-z0-9-]+$",
+          "description": "Formatted agent ID (ork:agent-name)"
         },
         "domain_keywords": {
           "type": "array",

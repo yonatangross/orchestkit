@@ -65,7 +65,7 @@ cat .claude/rules/error_rules.json | jq '.rules[] | {id, signature, count: .occu
 
 ```
 pattern: role "X" does not exist
-fix: Use Docker connection: docker exec -it skillforge-postgres-dev psql -U skillforge_user -d skillforge_dev
+fix: Use Docker connection: docker exec -it orchestkit-postgres-dev psql -U orchestkit_user -d orchestkit_dev
 
 pattern: relation "X" does not exist
 fix: Check MCP postgres server connection string - may be connected to wrong database

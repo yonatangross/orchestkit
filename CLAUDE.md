@@ -549,7 +549,7 @@ cat > tests/security/test-my-hook.sh
 # - Secure API Endpoint: "create a secure /users endpoint"
 # - Full Stack Feature: "build a feature for user profiles"
 # - AI Integration: "add RAG to the app"
-# - Frontend 2025 Compliance: "modernize the frontend"
+# - Frontend 2026 Compliance: "modernize the frontend"
 
 # Manual workflow check:
 # Read plugin.json workflows array to see triggers and estimated tokens
@@ -720,7 +720,7 @@ hooks/setup/
 
 **Emergency Bypass:**
 ```bash
-SKILLFORGE_SKIP_SETUP=1 claude  # Skip all setup hooks
+ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 ```
 
 ### VSCode Plugin Enhancements

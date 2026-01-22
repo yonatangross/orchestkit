@@ -160,7 +160,7 @@ For each dimension, provide:
 1. [Improvement suggestion]
 ```
 
-## SkillForge-Specific Checks
+## OrchestKit-Specific Checks
 
 ### LLM Integration
 

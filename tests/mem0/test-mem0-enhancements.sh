@@ -1,6 +1,6 @@
 #!/bin/bash
 # test-mem0-enhancements.sh - Integration tests for mem0 enhancements
-# Part of SkillForge Claude Plugin test suite
+# Part of OrchestKit Claude Plugin test suite
 #
 # Tests:
 # 1. Graph relationship queries work end-to-end

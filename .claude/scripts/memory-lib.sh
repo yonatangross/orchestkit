@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # memory-lib.sh - Helper functions for mem0 semantic memory integration
-# Part of SkillForge Claude Plugin
+# Part of OrchestKit Claude Plugin
 #
 # NOTE: This extends hooks/_lib/mem0.sh with additional utilities.
 # For low-level mem0 operations, use hooks/_lib/mem0.sh directly.
@@ -56,10 +56,10 @@ get_continuity_user_id() {
 }
 
 # Generate agent_id for agent memories
-# Pattern: skf:{agent-name}
+# Pattern: ork:{agent-name}
 get_agent_id() {
     local agent_name="$1"
-    echo "skf:${agent_name}"
+    echo "ork:${agent_name}"
 }
 
 # =============================================================================

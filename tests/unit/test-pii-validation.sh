@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # test-pii-validation.sh - Unit tests for PII detection in analytics-lib.sh
-# Part of SkillForge Claude Plugin (#59)
+# Part of OrchestKit Claude Plugin (#59)
 #
 # Tests that PII (Personally Identifiable Information) is properly detected
 # and blocked from analytics exports.

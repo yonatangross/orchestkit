@@ -12,9 +12,9 @@
       "first_seen": "2026-01-02T00:00:00",
       "last_seen": "2026-01-02T00:00:00",
       "sample_input": {
-        "command": "psql -U postgres -d skillforge"
+        "command": "psql -U postgres -d orchestkit"
       },
-      "fix_suggestion": "Use correct Docker connection: docker exec -it skillforge-postgres-dev psql -U skillforge_user -d skillforge_dev",
+      "fix_suggestion": "Use correct Docker connection: docker exec -it orchestkit-postgres-dev psql -U orchestkit_user -d orchestkit_dev",
       "category": "database_connection"
     },
     {
@@ -40,7 +40,7 @@
       "first_seen": "2026-01-02T00:00:00",
       "last_seen": "2026-01-02T00:00:00",
       "sample_input": {
-        "command": "docker exec skillforge-postgres psql"
+        "command": "docker exec orchestkit-postgres psql"
       },
       "fix_suggestion": "PostgreSQL socket path issue. For Docker, use: docker exec -it CONTAINER_NAME psql -h localhost -U USER -d DATABASE",
       "category": "database_connection"

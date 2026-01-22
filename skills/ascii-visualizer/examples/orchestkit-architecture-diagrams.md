@@ -6,7 +6,7 @@ Complete ASCII architecture visualizations for the OrchestKit platform, showcasi
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                            SKILLFORGE PLATFORM                               │
+│                            ORCHESTKIT PLATFORM                               │
 │         Intelligent Learning Integration with Multi-Agent Analysis          │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -399,7 +399,7 @@ User         Frontend          API Gateway       LangGraph       PostgreSQL
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│                    SKILLFORGE DATABASE SCHEMA                     │
+│                    ORCHESTKIT DATABASE SCHEMA                     │
 │                      PostgreSQL + PGVector                        │
 └──────────────────────────────────────────────────────────────────┘
 

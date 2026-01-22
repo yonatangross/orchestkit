@@ -1,5 +1,5 @@
 #!/bin/bash
-# Git Pre-push Hook for SkillForge Plugin
+# Git Pre-push Hook for OrchestKit Plugin
 # Mirrors CI version-check.yml - fail fast locally before pushing
 # Version: 1.0.0
 

@@ -1,9 +1,9 @@
 ---
-description: SkillForge health diagnostics - validates configuration and reports issues
+description: OrchestKit health diagnostics - validates configuration and reports issues
 allowed-tools: Bash, Read, Glob, Grep
 ---
 
-# SkillForge Health Diagnostics
+# OrchestKit Health Diagnostics
 
 Load and follow the skill instructions from the `skills/doctor/SKILL.md` file.
 

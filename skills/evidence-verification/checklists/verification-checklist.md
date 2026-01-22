@@ -133,7 +133,7 @@
 
 - [ ] **Database integrity verified** (if applicable)
   ```bash
-  psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analyses;"
+  psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analyses;"
   ```
 
 - [ ] **Event streaming verified** (if applicable)

@@ -91,7 +91,7 @@ async def verify_golden_dataset() -> dict:
 
         # 2. Check URL contract
         query = select(Analysis).where(
-            Analysis.url.like("%skillforge.dev%") |
+            Analysis.url.like("%orchestkit.dev%") |
             Analysis.url.like("%placeholder%")
         )
         result = await session.execute(query)
@@ -228,8 +228,8 @@ alembic upgrade head
 # Fresh dev environment, need golden dataset
 
 # 1. Clone repo (includes backup)
-git clone https://github.com/your-org/skillforge
-cd skillforge/backend
+git clone https://github.com/your-org/orchestkit
+cd orchestkit/backend
 
 # 2. Setup DB
 docker compose up -d postgres
@@ -250,7 +250,7 @@ Golden dataset analyses MUST store **real canonical URLs**, not placeholders.
 
 ```python
 # WRONG - Placeholder URL (breaks restore)
-analysis.url = "https://skillforge.dev/placeholder/123"
+analysis.url = "https://orchestkit.dev/placeholder/123"
 
 # CORRECT - Real canonical URL (enables re-fetch if needed)
 analysis.url = "https://docs.python.org/3/library/asyncio.html"
@@ -268,7 +268,7 @@ def verify_url_contract(analyses: list[Analysis]) -> list[str]:
     """Find analyses with placeholder URLs."""
     invalid = []
     for analysis in analyses:
-        if "skillforge.dev" in analysis.url or "placeholder" in analysis.url:
+        if "orchestkit.dev" in analysis.url or "placeholder" in analysis.url:
             invalid.append(analysis.id)
     return invalid
 ```

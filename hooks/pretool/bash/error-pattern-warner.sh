@@ -37,14 +37,14 @@ PATTERN_HINTS=""
 # We look for patterns in the command that have caused errors before
 
 # Common database connection patterns that often fail
-if echo "$COMMAND" | grep -qE "psql.*-U\s+(postgres|skillforge|root)"; then
+if echo "$COMMAND" | grep -qE "psql.*-U\s+(postgres|orchestkit|root)"; then
   # Check if this matches a known failure pattern
   if jq -e '.rules[] | select(.tool == "Bash" and (.signature | contains("role")))' "$RULES_FILE" >/dev/null 2>&1; then
-    PATTERN_HINTS="$PATTERN_HINTS | DB role error: use docker exec -it <container> psql -U skillforge_user"
+    PATTERN_HINTS="$PATTERN_HINTS | DB role error: use docker exec -it <container> psql -U orchestkit_user"
     warn_with_box "Potential Connection Issue" "This psql command uses a role that has failed before.
 
 Check your database connection settings:
-- Docker: docker exec -it skillforge-postgres-dev psql -U skillforge_user -d skillforge_dev
+- Docker: docker exec -it orchestkit-postgres-dev psql -U orchestkit_user -d orchestkit_dev
 - Local: Verify role exists with: \\du
 
 Command: ${COMMAND:0:100}..."

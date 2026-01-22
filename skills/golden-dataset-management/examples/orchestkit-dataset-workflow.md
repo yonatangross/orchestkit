@@ -65,9 +65,9 @@ poetry run python scripts/backup_golden_dataset.py verify | grep "placeholder UR
 ```
 
 **Invalid URLs (will break restore):**
-- `https://docs.skillforge.dev/placeholder/123`
-- `https://learn.skillforge.dev/fake-content`
-- `https://content.skillforge.dev/test`
+- `https://docs.orchestkit.dev/placeholder/123`
+- `https://learn.orchestkit.dev/fake-content`
+- `https://content.orchestkit.dev/test`
 
 **Valid URLs:**
 - `https://docs.python.org/3/library/asyncio.html`
@@ -90,12 +90,12 @@ poetry run python scripts/backup_golden_dataset.py verify | grep "placeholder UR
 cd /Users/yonatangross/coding/OrchestKit/backend
 
 # Check database connection
-psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
+psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
 # Expected: 98
 
 # Verify URL contract
-psql -h localhost -p 5437 -U skillforge -c \
-  "SELECT COUNT(*) FROM analyses WHERE url LIKE '%skillforge.dev%';"
+psql -h localhost -p 5437 -U orchestkit -c \
+  "SELECT COUNT(*) FROM analyses WHERE url LIKE '%orchestkit.dev%';"
 # Expected: 0 (no placeholder URLs)
 ```
 
@@ -195,7 +195,7 @@ poetry run python scripts/backup_golden_dataset.py verify
 # Expected: "BACKUP IS VALID"
 
 # Check database is empty (or ready to replace)
-psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analyses;"
+psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analyses;"
 # If > 0 and you want to replace, use --replace flag
 ```
 
@@ -258,18 +258,18 @@ poetry run python scripts/backup_golden_dataset.py restore --replace
 
 ```bash
 # Check counts
-psql -h localhost -p 5437 -U skillforge -c \
+psql -h localhost -p 5437 -U orchestkit -c \
   "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
 # Expected: 98
 
-psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM artifacts;"
+psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM artifacts;"
 # Expected: 98
 
-psql -h localhost -p 5437 -U skillforge -c "SELECT COUNT(*) FROM analysis_chunks;"
+psql -h localhost -p 5437 -U orchestkit -c "SELECT COUNT(*) FROM analysis_chunks;"
 # Expected: 415
 
 # Check embeddings generated
-psql -h localhost -p 5437 -U skillforge -c \
+psql -h localhost -p 5437 -U orchestkit -c \
   "SELECT COUNT(*) FROM analysis_chunks WHERE vector IS NULL;"
 # Expected: 0 (all chunks should have embeddings)
 
@@ -365,7 +365,7 @@ poetry run pytest tests/smoke/retrieval/test_retrieval_quality.py -v
 # Expected: test_query_langgraph_streaming_1 PASSED
 
 # Verify new document in database
-psql -h localhost -p 5437 -U skillforge -c \
+psql -h localhost -p 5437 -U orchestkit -c \
   "SELECT title FROM analyses WHERE url = 'https://blog.langchain.dev/streaming-in-langgraph/';"
 # Expected: "Streaming in LangGraph: A Complete Guide"
 ```
@@ -440,9 +440,9 @@ jobs:
         run: |
           docker run -d \
             --name postgres \
-            -e POSTGRES_USER=skillforge \
-            -e POSTGRES_PASSWORD=skillforge \
-            -e POSTGRES_DB=skillforge \
+            -e POSTGRES_USER=orchestkit \
+            -e POSTGRES_PASSWORD=orchestkit \
+            -e POSTGRES_DB=orchestkit \
             -p 5437:5432 \
             pgvector/pgvector:pg16
 
@@ -451,21 +451,21 @@ jobs:
 
       - name: Run migrations
         env:
-          DATABASE_URL: postgresql://skillforge:skillforge@localhost:5437/skillforge
+          DATABASE_URL: postgresql://orchestkit:orchestkit@localhost:5437/orchestkit
         run: |
           cd backend
           poetry run alembic upgrade head
 
       - name: Restore current backup (to have data to backup)
         env:
-          DATABASE_URL: postgresql://skillforge:skillforge@localhost:5437/skillforge
+          DATABASE_URL: postgresql://orchestkit:orchestkit@localhost:5437/orchestkit
         run: |
           cd backend
           poetry run python scripts/backup_golden_dataset.py restore
 
       - name: Create fresh backup
         env:
-          DATABASE_URL: postgresql://skillforge:skillforge@localhost:5437/skillforge
+          DATABASE_URL: postgresql://orchestkit:orchestkit@localhost:5437/orchestkit
         run: |
           cd backend
           poetry run python scripts/backup_golden_dataset.py backup
@@ -523,7 +523,7 @@ poetry run python scripts/backup_golden_dataset.py verify
 poetry run python scripts/backup_golden_dataset.py restore --replace
 
 # Step 5: Verify restoration
-psql -h localhost -p 5437 -U skillforge -c \
+psql -h localhost -p 5437 -U orchestkit -c \
   "SELECT COUNT(*) FROM analyses WHERE status = 'completed';"
 # Expected: 98
 
@@ -549,8 +549,8 @@ curl -f http://localhost:8500/health
 
 ```bash
 # Step 1: Clone repository (includes backup in version control)
-git clone https://github.com/your-org/skillforge.git
-cd skillforge
+git clone https://github.com/your-org/orchestkit.git
+cd orchestkit
 
 # Step 2: Setup backend
 cd backend
@@ -609,17 +609,17 @@ npm run dev
 **Error:**
 ```
 WARNING: 5 analyses still use placeholder URLs
-(example: https://docs.skillforge.dev/placeholder/123)
+(example: https://docs.orchestkit.dev/placeholder/123)
 ```
 
 **Solution:**
 ```bash
 # Identify analyses with placeholder URLs
-psql -h localhost -p 5437 -U skillforge -c \
-  "SELECT id, url FROM analyses WHERE url LIKE '%skillforge.dev%';"
+psql -h localhost -p 5437 -U orchestkit -c \
+  "SELECT id, url FROM analyses WHERE url LIKE '%orchestkit.dev%';"
 
 # Update with real canonical URLs
-psql -h localhost -p 5437 -U skillforge -c \
+psql -h localhost -p 5437 -U orchestkit -c \
   "UPDATE analyses
    SET url = 'https://docs.python.org/3/library/asyncio.html'
    WHERE id = '550e8400-e29b-41d4-a716-446655440000';"

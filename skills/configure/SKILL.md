@@ -138,7 +138,7 @@ When enabled:
 
 ## Step 7: Preview & Save
 
-Save to: `~/.claude/plugins/skillforge/config.json`
+Save to: `~/.claude/plugins/orchestkit/config.json`
 
 ```json
 {

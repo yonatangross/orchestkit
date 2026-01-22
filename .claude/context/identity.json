@@ -9,11 +9,11 @@
   },
 
   "project": {
-    "name": "SkillForge",
-    "display_name": "SkillForge Complete",
+    "name": "OrchestKit",
+    "display_name": "OrchestKit Complete",
     "type": "Claude Code Plugin Ecosystem",
     "version": "4.17.0",
-    "repository": "https://github.com/yonatangross/skillforge-claude-plugin"
+    "repository": "https://github.com/yonatangross/orchestkit"
   },
 
   "constraints": [

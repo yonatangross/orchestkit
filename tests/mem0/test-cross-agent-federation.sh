@@ -206,11 +206,11 @@ else
 fi
 
 # Check primary agent is in filter
-assert_contains "$RESULT" "skf:database-engineer" "Cross-agent search includes primary agent"
+assert_contains "$RESULT" "ork:database-engineer" "Cross-agent search includes primary agent"
 
 # Check related agents are in filter
-assert_contains "$RESULT" "skf:backend-system-architect" "Cross-agent search includes related backend-system-architect"
-assert_contains "$RESULT" "skf:security-auditor" "Cross-agent search includes related security-auditor"
+assert_contains "$RESULT" "ork:backend-system-architect" "Cross-agent search includes related backend-system-architect"
+assert_contains "$RESULT" "ork:security-auditor" "Cross-agent search includes related security-auditor"
 
 # -----------------------------------------------------------------------------
 # Test: mem0_cross_project_search_json Function
@@ -236,7 +236,7 @@ else
 fi
 
 # Check global user_id is used
-assert_contains "$RESULT" "skillforge-global-best-practices" "Cross-project search uses global user_id"
+assert_contains "$RESULT" "orchestkit-global-best-practices" "Cross-project search uses global user_id"
 
 # Check enable_graph is true
 if echo "$RESULT" | jq -e '.enable_graph == true' >/dev/null 2>&1; then
