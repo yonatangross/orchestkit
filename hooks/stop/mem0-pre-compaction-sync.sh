@@ -239,13 +239,66 @@ SESSION_TEXT="Session Summary: ${SUMMARY_TEXT:-Session work}"
 [[ -n "${NEXT_STEPS:-}" ]] && SESSION_TEXT="${SESSION_TEXT} | Next: $NEXT_STEPS"
 
 # Build script command for session summary
-SESSION_CMD="bash $SCRIPT_PATH --text \"$SESSION_TEXT\" --user-id \"$CONTINUITY_USER_ID\" --metadata '$SESSION_METADATA' --enable-graph"
+SESSION_CMD="python3 $SCRIPT_PATH --text \"$SESSION_TEXT\" --user-id \"$CONTINUITY_USER_ID\" --metadata '$SESSION_METADATA' --enable-graph"
 
-# Update skill message to include script command
-SKILL_MSG="[Mem0 Sync] $SUMMARY - Execute: $SESSION_CMD"
+# -----------------------------------------------------------------------------
+# Auto-Execute Mem0 Sync (v1.8.0)
+# -----------------------------------------------------------------------------
+
+LOG_FILE="${CLAUDE_PROJECT_DIR:-.}/.claude/logs/mem0-sync.log"
+mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null || true
+
+# Try auto-sync via Mem0 CLI if MEM0_API_KEY is available
+if [[ -f "$SCRIPT_PATH" ]] && [[ -n "${MEM0_API_KEY:-}" ]]; then
+    echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Auto-sync triggered for session summary" >> "$LOG_FILE"
+
+    # Execute sync in background (don't block Stop hook)
+    (python3 "$SCRIPT_PATH" \
+        --text "$SESSION_TEXT" \
+        --user-id "$CONTINUITY_USER_ID" \
+        --metadata "$SESSION_METADATA" \
+        --enable-graph >> "$LOG_FILE" 2>&1 &)
+
+    # Also sync pending patterns if any
+    if [[ "$PATTERN_COUNT" -gt 0 ]] && [[ -f "$PATTERNS_LOG" ]]; then
+        AGENTS_USER_ID=$(mem0_user_id "$MEM0_SCOPE_AGENTS")
+
+        # Sync each pending pattern
+        jq -c 'select(.pending_sync == true)' "$PATTERNS_LOG" 2>/dev/null | while read -r pattern_json; do
+            PATTERN_TEXT=$(echo "$pattern_json" | jq -r '.pattern // ""')
+            PATTERN_AGENT=$(echo "$pattern_json" | jq -r '.agent_id // ""')
+            PATTERN_CATEGORY=$(echo "$pattern_json" | jq -r '.category // "pattern"')
+
+            if [[ -n "$PATTERN_TEXT" ]]; then
+                PATTERN_META=$(jq -n \
+                    --arg agent "$PATTERN_AGENT" \
+                    --arg category "$PATTERN_CATEGORY" \
+                    --arg project "$PROJECT_ID" \
+                    '{type: "agent_pattern", agent_id: $agent, category: $category, project: $project, source: "orchestkit-plugin"}')
+
+                (python3 "$SCRIPT_PATH" \
+                    --text "$PATTERN_TEXT" \
+                    --user-id "$AGENTS_USER_ID" \
+                    --agent-id "$PATTERN_AGENT" \
+                    --metadata "$PATTERN_META" \
+                    --enable-graph >> "$LOG_FILE" 2>&1 &)
+            fi
+        done
+
+        # Mark patterns as synced by removing pending_sync flag
+        if [[ -f "$PATTERNS_LOG" ]]; then
+            jq -c '.pending_sync = false' "$PATTERNS_LOG" > "${PATTERNS_LOG}.tmp" 2>/dev/null && \
+                mv "${PATTERNS_LOG}.tmp" "$PATTERNS_LOG" 2>/dev/null || true
+        fi
+    fi
+
+    SKILL_MSG="[Mem0 Sync] Auto-synced: $SUMMARY"
+else
+    # Fallback to manual sync suggestion
+    SKILL_MSG="[Mem0 Sync] $SUMMARY - Execute: $SESSION_CMD"
+fi
 
 # Output Stop hook compliant JSON (no hookSpecificOutput for Stop events)
-# The systemMessage provides all context needed for Claude to run the script
 jq -n \
     --arg msg "$SKILL_MSG" \
     '{

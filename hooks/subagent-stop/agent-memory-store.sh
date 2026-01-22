@@ -82,11 +82,6 @@ if [[ -n "$_HOOK_INPUT" ]]; then
     DURATION=$(echo "$_HOOK_INPUT" | jq -r '.duration_ms // 0' 2>/dev/null || echo "0")
 fi
 
-# Try to get agent_id from tracking file (set by pretool hook)
-if [[ -f "$AGENT_TRACKING_DIR/current-agent-id" ]]; then
-    AGENT_ID=$(cat "$AGENT_TRACKING_DIR/current-agent-id" 2>/dev/null || echo "")
-fi
-
 # If no agent type, silent success
 if [[ -z "$AGENT_TYPE" ]]; then
     log_hook "No agent type in input, skipping"
@@ -94,10 +89,12 @@ if [[ -z "$AGENT_TYPE" ]]; then
     exit 0
 fi
 
-# Build agent_id if not set
-if [[ -z "$AGENT_ID" ]]; then
-    AGENT_ID="ork:$AGENT_TYPE"
-fi
+# Always build agent_id from the extracted AGENT_TYPE to avoid stale tracking file data
+# The tracking file can have stale values from previous sessions
+AGENT_ID="ork:$AGENT_TYPE"
+
+# Clean up tracking file to prevent stale data
+rm -f "$AGENT_TRACKING_DIR/current-agent-id" 2>/dev/null || true
 
 log_hook "Processing completion for agent: $AGENT_TYPE (agent_id: $AGENT_ID, success: $SUCCESS)"
 
@@ -252,8 +249,5 @@ else
     log_hook "No patterns extracted from $AGENT_TYPE output"
     echo '{"continue":true,"suppressOutput":true}'
 fi
-
-# Clean up tracking file
-rm -f "$AGENT_TRACKING_DIR/current-agent-id" 2>/dev/null || true
 
 exit 0
