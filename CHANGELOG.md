@@ -59,37 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [4.28.3] - 2026-01-21
-
-### Added
-
-- **Assets Folders for Skills** - Template files now properly organized in `assets/` directories
-  - 9 skills now have `assets/` folders following skill-creator standards
-  - Templates moved from `scripts/` or `references/` to `assets/` where appropriate
-  - Skills updated: design-system-starter, fastapi-advanced, api-design-framework, architecture-decision-record, code-review-playbook, create-pr, fix-issue, webapp-testing, context-compression
-  - New validation test: `tests/skills/structure/test-assets-directory.sh` validates assets/ structure
-
-### Changed
-
-- **Skill Structure** - Template files reorganized per skill-creator documentation
-  - Template files (meant to be copied/modified) moved to `assets/`
-  - Executable scripts remain in `scripts/`
-  - Reference documentation remains in `references/`
-  - All SKILL.md files updated with "Bundled Resources" sections documenting assets
-
-- **Test Coverage** - Enhanced skill structure validation
-  - `test-skill-md.sh` now validates `assets/` links in addition to `references/` and `scripts/`
-  - New `test-assets-directory.sh` validates assets/ folder structure, references, and naming
-  - Test automatically integrated into skill test suite
-
-### Fixed
-
-- Template file organization now follows skill-creator standards
-- All template references updated to point to `assets/` directories
-- Documentation consistency improved with standardized "Bundled Resources" sections
-
----
-
 ## [4.28.2] - 2026-01-20
 
 ### Added
