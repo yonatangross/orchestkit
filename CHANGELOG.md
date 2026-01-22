@@ -5,6 +5,30 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Repository Rename**: Complete rebrand from "SkillForge" to "OrchestKit"
+  - Repository renamed from `skillforge-claude-plugin` to `orchestkit`
+  - Plugin command prefix changed from `/skf:` to `/ork:`
+  - All branding references updated: "SkillForge" → "OrchestKit"
+  - Package name updated: `skillforge-claude-plugin` → `orchestkit`
+  - All file names with "skillforge" renamed to "orchestkit" (18 example files)
+  - Updated all repository URLs, installation paths, and documentation references
+  - Environment variables renamed: `SKILLFORGE_*` → `ORCHESTKIT_*`
+  - Mem0 user IDs and source identifiers updated: `skf:` → `ork:`, `skillforge-*` → `orchestkit-*`
+  - JSON schema `$id` URLs and patterns updated
+  - Copyright year updated to 2026
+  - All skill author fields updated to "OrchestKit"
+  - All agent ID prefixes updated from `skf:` to `ork:`
+
+### Fixed
+
+- Updated year references from 2025 to 2026 where appropriate (current year tags, thresholds, compliance names)
+
+---
+
 ## [4.28.4] - 2026-01-21
 
 ### Added
@@ -508,7 +532,7 @@ See `skills/agent-browser/checklists/migration-checklist.md` for complete migrat
   - `zustand-patterns`: Zustand 5.x state management with slices, middleware, Immer
   - `tanstack-query-advanced`: TanStack Query v5 patterns for infinite queries, optimistic updates
   - `form-state-patterns`: React Hook Form v7 with Zod validation, React 19 useActionState
-  - `core-web-vitals`: LCP, INP, CLS optimization with 2025/2026 thresholds
+  - `core-web-vitals`: LCP, INP, CLS optimization with 2026 thresholds
   - `image-optimization`: Next.js 15 Image, AVIF/WebP, blur placeholders, CDN loaders
   - `render-optimization`: React Compiler, memoization, TanStack Virtual
   - `shadcn-patterns`: CVA variants, OKLCH theming, cn() utility
@@ -876,7 +900,7 @@ orchestkit/
 
 **Documentation**
 - Fixed plugin installation commands in README.md and CLAUDE.md
-  - Removed non-existent tier-specific install commands (`@skillforge/standard`, etc.)
+  - Removed non-existent tier-specific install commands (`@orchestkit/standard`, etc.)
   - Use correct plugin name: `/plugin install skf`
   - Direct users to `/ork:configure` for tier selection after installation
 
@@ -1049,8 +1073,8 @@ This release fully leverages Claude Code 2.1.3 features for a comprehensive upgr
 ### Changed
 
 **Plugin Namespace Rename**
-- Renamed plugin from `skillforge-complete` to `skf` for shorter agent prefixes
-- Agents now appear as `ork:debug-investigator` instead of `skillforge-complete:debug-investigator`
+- Renamed plugin from `orchestkit-complete` to `ork` for shorter agent prefixes
+- Agents now appear as `ork:debug-investigator` instead of `orchestkit-complete:debug-investigator`
 
 **Silent Hooks on Success**
 - PreToolUse Task hooks now silent on success (no stderr output)
@@ -1235,7 +1259,7 @@ This release fully leverages Claude Code 2.1.1 capabilities, upgrading the plugi
 **Workflow Auto-Triggers** (all 5 workflows)
 - Keyword detection with 0.8 confidence threshold
 - Auto-launch capability for matching patterns
-- Keywords for: frontend-2025-compliance, api-design-compliance, security-audit-workflow, data-pipeline-workflow, ai-integration-workflow
+- Keywords for: frontend-2026-compliance, api-design-compliance, security-audit-workflow, data-pipeline-workflow, ai-integration-workflow
 
 **Dependency Graph**
 - 42 skill-to-agent mappings across 8 domains
@@ -1337,7 +1361,7 @@ This release fully leverages Claude Code 2.1.1 capabilities, upgrading the plugi
 - `design-system-starter` - Added animation-tokens to provides
 
 #### Workflow Updates
-- `frontend-2025-compliance` - Added Motion and i18n skills, updated checklist with skeleton pulse, AnimatePresence, i18n dates
+- `frontend-2026-compliance` - Added Motion and i18n skills, updated checklist with skeleton pulse, AnimatePresence, i18n dates
 
 #### Pattern Updates
 - New `frontend-animation-patterns.md` context pattern
