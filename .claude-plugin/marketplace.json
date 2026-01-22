@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "orchestkit-complete",
-      "description": "Full OrchestKit toolkit — 161 skills, 34 agents, 140 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
+      "description": "Full OrchestKit toolkit — 161 skills, 34 agents, 147 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
       "version": "5.0.0",
       "author": {
         "name": "Yonatan Gross",

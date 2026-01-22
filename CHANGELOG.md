@@ -434,7 +434,7 @@ See `skills/agent-browser/checklists/migration-checklist.md` for complete migrat
 ### Added
 
 - **CC 2.1.x Compliance & Hook Optimizations**
-  - Ensure 100% CC 2.1.7 JSON output compliance across all 140 hooks
+  - Ensure 100% CC 2.1.7 JSON output compliance across all 147 hooks
   - Add `output_silent_success`, `output_with_context`, `output_block` functions
   - Configure MCP auto:N thresholds (context7:75, memory:90, mem0:85, playwright:50)
   - Add statusline context_window config for CC 2.1.6
