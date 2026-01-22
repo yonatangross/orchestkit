@@ -48,6 +48,7 @@ if echo "$COMMAND" | grep -qiE "(rollback|revert|downgrade)"; then
   }
 }
 EOF
+    output_silent_success
     exit 0
 fi
 
@@ -62,6 +63,7 @@ if echo "$COMMAND" | grep -qiE "(terraform|kubectl|helm|docker.*push)"; then
   }
 }
 EOF
+    output_silent_success
     exit 0
 fi
 

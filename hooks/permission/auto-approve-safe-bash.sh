@@ -52,6 +52,7 @@ for pattern in "${SAFE_PATTERNS[@]}"; do
     log_hook "Auto-approved: matches safe pattern '$pattern'"
     # Silent approval - no user-visible output
     output_silent_allow
+    output_silent_success
     exit 0
   fi
 done

@@ -69,6 +69,7 @@ for pattern in "${DANGEROUS_PATTERNS[@]}"; do
           permissionDecisionReason: $reason
         }
       }'
+    output_silent_success
     exit 0
   fi
 done

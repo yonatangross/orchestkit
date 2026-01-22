@@ -88,6 +88,7 @@ Use a feature branch instead:
       additionalContext: "Protected branches (main, master, dev, develop) cannot be created directly. Use: feature/*, fix/*, hotfix/*, issue/*-description, docs/*, test/*, refactor/*"
     }
   }'
+  output_silent_success
   exit 0
 fi
 
@@ -128,4 +129,5 @@ jq -n --arg msg "$ERROR_MSG" --arg ctx "$ADDITIONAL_CONTEXT" '{
     additionalContext: $ctx
   }
 }'
+output_silent_success
 exit 0

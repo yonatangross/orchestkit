@@ -41,6 +41,7 @@ if [[ -z "$COMMITS" ]]; then
 
   log_permission_feedback "allow" "gh release create - no commits found"
   output_allow_with_context "$CONTEXT"
+  output_silent_success
   exit 0
 fi
 
@@ -126,4 +127,5 @@ COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
 
 log_permission_feedback "allow" "gh release create with changelog ($COMMIT_COUNT commits)"
 output_allow_with_context "$CHANGELOG"
+output_silent_success
 exit 0

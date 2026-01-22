@@ -38,6 +38,7 @@ case "$FILE_PATH" in
   }
 }
 EOF
+        output_silent_success
         exit 0
         ;;
     *)

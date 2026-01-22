@@ -261,4 +261,5 @@ esac
 # Log timing
 log_hook_timing "setup-check"
 
+output_silent_success
 exit 0

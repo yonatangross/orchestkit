@@ -83,6 +83,7 @@ if [[ ${#SYNCED_FILES[@]} -gt 0 ]]; then
   CONTEXT="Auto-synced versions to v$VERSION: ${SYNCED_FILES[*]}"
   log_permission_feedback "allow" "version-sync: synced ${#SYNCED_FILES[@]} files to v$VERSION"
   output_allow_with_context "$CONTEXT"
+  output_silent_success
   exit 0
 fi
 

@@ -128,4 +128,5 @@ jq -n \
         systemMessage: $msg
     }'
 
+output_silent_success
 exit 0

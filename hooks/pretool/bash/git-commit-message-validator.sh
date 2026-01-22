@@ -40,6 +40,7 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
   log_permission_feedback "allow" "Heredoc commit - injecting format guidance"
   output_allow_with_context "$CONTEXT"
+  output_silent_success
   exit 0
 fi
 
@@ -52,6 +53,7 @@ Types: feat|fix|refactor|docs|test|chore|style|perf|ci|build"
 
   log_permission_feedback "allow" "Interactive commit - injecting guidance"
   output_allow_with_context "$CONTEXT"
+  output_silent_success
   exit 0
 fi
 
@@ -71,6 +73,7 @@ if [[ "$COMMIT_MSG" =~ $CONVENTIONAL_PATTERN ]] || [[ "$COMMIT_MSG" =~ $SIMPLE_P
 Consider shortening: ${TITLE_LINE:0:50}..."
     log_permission_feedback "allow" "Valid commit but long title ($TITLE_LEN chars)"
     output_allow_with_context "$CONTEXT"
+    output_silent_success
     exit 0
   fi
 
@@ -117,4 +120,5 @@ jq -n --arg msg "$ERROR_MSG" '{
     permissionDecisionReason: "Invalid conventional commit format"
   }
 }'
+output_silent_success
 exit 0

@@ -43,6 +43,7 @@ if [[ "$FILE_PATH" == "${CLAUDE_PROJECT_DIR:-$(pwd)}"* ]]; then
   log_hook "Auto-approved: within project directory"
   # Silent approval - no user-visible output
   output_silent_allow
+  output_silent_success
   exit 0
 fi
 

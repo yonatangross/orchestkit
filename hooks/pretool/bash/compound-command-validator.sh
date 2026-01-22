@@ -100,6 +100,7 @@ Please review and modify your command to remove the dangerous operation."
       permissionDecisionReason: "Dangerous compound command detected"
     }
   }'
+  output_silent_success
   exit 0
 fi
 

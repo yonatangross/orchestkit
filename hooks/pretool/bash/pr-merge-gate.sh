@@ -131,10 +131,12 @@ Proceeding - but consider addressing warnings."
 
   log_hook "PR/merge gate passed with warnings"
   output_allow_with_context "$WARNING_MSG"
+  output_silent_success
   exit 0
 fi
 
 # Clean pass
 log_hook "PR/merge gate passed cleanly for $CHECK_TYPE"
 output_allow_with_context "PR/Merge Gate: All checks passed for $CHECK_TYPE on branch $CURRENT_BRANCH"
+output_silent_success
 exit 0

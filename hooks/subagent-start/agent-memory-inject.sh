@@ -275,4 +275,5 @@ jq -n \
         }
     }'
 
+output_silent_success
 exit 0

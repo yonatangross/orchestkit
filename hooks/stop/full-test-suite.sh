@@ -106,14 +106,17 @@ main() {
         if run_tests; then
             log "=== All tests passed ==="
             echo "$(date +%s)" > "${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/logs/.last-test-run"
+            output_silent_success
             exit 0
         else
             log "=== Some tests failed ==="
             # Don't block - just log the failure
+            output_silent_success
             exit 0
         fi
     fi
 
+    output_silent_success
     exit 0
 }
 

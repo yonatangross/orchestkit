@@ -29,6 +29,7 @@ fi
 
 # Skip test files and non-code files
 if [[ "$IS_TEST_FILE" == "true" ]] || [[ ! "$FILE_PATH" =~ \.(ts|tsx|js|jsx|py)$ ]]; then
+    output_silent_success
     exit 0
 fi
 

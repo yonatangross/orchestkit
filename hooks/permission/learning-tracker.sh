@@ -71,6 +71,7 @@ if [[ "$TOOL_NAME" == "Bash" && -n "$COMMAND" ]]; then
         log_hook "Command matches learned auto-approve pattern"
         # Auto-approve silently
         output_silent_allow
+        output_silent_success
         exit 0
     fi
 

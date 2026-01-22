@@ -342,6 +342,7 @@ if [[ ${#WARNINGS[@]} -gt 0 ]]; then
     echo "" >&2
     echo "Review warnings before proceeding with merge" >&2
     echo "" >&2
+    output_silent_success
     exit 0
 fi
 

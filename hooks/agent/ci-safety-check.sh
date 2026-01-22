@@ -49,6 +49,7 @@ if echo "$COMMAND" | grep -qiE "(deploy|release|publish)"; then
   }
 }
 EOF
+    output_silent_success
     exit 0
 fi
 

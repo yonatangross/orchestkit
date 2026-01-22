@@ -17,4 +17,5 @@ log_hook "Auto-approving readonly: $TOOL_NAME"
 # Silent approval - no user-visible output
 output_silent_allow
 
+output_silent_success
 exit 0

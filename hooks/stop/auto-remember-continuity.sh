@@ -111,4 +111,5 @@ jq -n \
         stopPrompt: $prompt
     }'
 
+output_silent_success
 exit 0

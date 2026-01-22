@@ -100,4 +100,5 @@ fi
 
 log_permission_feedback "allow" "gh issue create with guidance"
 output_allow_with_context "$CONTEXT"
+output_silent_success
 exit 0

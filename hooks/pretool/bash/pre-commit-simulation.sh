@@ -272,6 +272,7 @@ All linting and type checks passed for staged files."
 
   log_permission_feedback "allow" "Pre-commit simulation passed ($CHECKS_RUN)"
   output_allow_with_context "$CONTEXT"
+  output_silent_success
   exit 0
 fi
 
@@ -289,4 +290,5 @@ $(echo -e "$ISSUES")
 
 log_permission_feedback "allow" "Pre-commit simulation found warnings ($CHECKS_RUN)"
 output_allow_with_context "$CONTEXT"
+output_silent_success
 exit 0

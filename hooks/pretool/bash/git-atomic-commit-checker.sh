@@ -47,6 +47,7 @@ Consider:
 
       log_permission_feedback "allow" "Large commit warning: $MODIFIED_FILES files with -a flag"
       output_allow_with_context "$GUIDANCE"
+      output_silent_success
       exit 0
     fi
   fi
@@ -103,6 +104,7 @@ Atomic commits benefit:
 
   log_permission_feedback "allow" "Very large commit warning: $STAGED_FILES files, $TOTAL_LINES lines"
   output_allow_with_context "$GUIDANCE"
+  output_silent_success
   exit 0
 fi
 
@@ -114,6 +116,7 @@ Consider if this is truly one logical change. Use 'git add -p' for precise stagi
 
   log_permission_feedback "allow" "Medium commit: $STAGED_FILES files, $TOTAL_LINES lines"
   output_allow_with_context "$GUIDANCE"
+  output_silent_success
   exit 0
 fi
 

@@ -410,6 +410,7 @@ main() {
   # Output based on mode
   if [[ "$MODE" == "--background" ]]; then
     # Background mode - silent
+    output_silent_success
     exit 0
   elif [[ -n "$summary" ]]; then
     jq -nc --arg ctx "Maintenance: $summary" \
