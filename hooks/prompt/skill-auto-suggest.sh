@@ -396,6 +396,7 @@ main() {
                 '{
                     "continue": true,
                     "hookSpecificOutput": {
+                        "hookEventName": "UserPromptSubmit",
                         "additionalContext": $suggestion
                     }
                 }'

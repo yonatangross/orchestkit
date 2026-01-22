@@ -67,7 +67,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │    151 hooks  │    │  161 skills   │    │   34 agents   │
+        │    140 hooks  │    │  161 skills   │    │   34 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -157,7 +157,7 @@ You should see:
 ✅ Plugin loaded successfully
 ✅ 161 skills available
 ✅ 34 agents ready
-✅ 151 hooks active
+✅ 140 hooks active
 ```
 
 ### Try These

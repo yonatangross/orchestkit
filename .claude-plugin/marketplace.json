@@ -13,6 +13,18 @@
   },
   "plugins": [
     {
+      "name": "orchestkit-complete",
+      "description": "Full OrchestKit toolkit — 161 skills, 34 agents, 140 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
+      "version": "5.0.0",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonatan2gross@gmail.com"
+      },
+      "source": ".",
+      "category": "development",
+      "featured": true
+    },
+    {
       "name": "ork-core",
       "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Required for all other OrchestKit plugins.",
       "version": "5.0.0",
@@ -20,7 +32,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-core",
+      "source": "plugins/ork-core",
       "category": "development"
     },
     {
@@ -31,7 +43,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-context",
+      "source": "plugins/ork-context",
       "category": "development"
     },
     {
@@ -42,7 +54,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-memory",
+      "source": "plugins/ork-memory",
       "category": "development"
     },
     {
@@ -53,7 +65,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-rag",
+      "source": "plugins/ork-rag",
       "category": "ai"
     },
     {
@@ -64,7 +76,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-rag-advanced",
+      "source": "plugins/ork-rag-advanced",
       "category": "ai"
     },
     {
@@ -75,7 +87,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-langgraph-core",
+      "source": "plugins/ork-langgraph-core",
       "category": "ai"
     },
     {
@@ -86,7 +98,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-langgraph-advanced",
+      "source": "plugins/ork-langgraph-advanced",
       "category": "ai"
     },
     {
@@ -97,7 +109,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-llm-core",
+      "source": "plugins/ork-llm-core",
       "category": "ai"
     },
     {
@@ -108,7 +120,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-llm-advanced",
+      "source": "plugins/ork-llm-advanced",
       "category": "ai"
     },
     {
@@ -119,7 +131,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-ai-observability",
+      "source": "plugins/ork-ai-observability",
       "category": "ai"
     },
     {
@@ -130,7 +142,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-data-engineering",
+      "source": "plugins/ork-data-engineering",
       "category": "data"
     },
     {
@@ -141,7 +153,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-evaluation",
+      "source": "plugins/ork-evaluation",
       "category": "data"
     },
     {
@@ -152,7 +164,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-product",
+      "source": "plugins/ork-product",
       "category": "product"
     },
     {
@@ -163,7 +175,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-fastapi",
+      "source": "plugins/ork-fastapi",
       "category": "backend"
     },
     {
@@ -174,7 +186,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-database",
+      "source": "plugins/ork-database",
       "category": "backend"
     },
     {
@@ -185,7 +197,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-async",
+      "source": "plugins/ork-async",
       "category": "backend"
     },
     {
@@ -196,7 +208,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-architecture",
+      "source": "plugins/ork-architecture",
       "category": "backend"
     },
     {
@@ -207,7 +219,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-backend-advanced",
+      "source": "plugins/ork-backend-advanced",
       "category": "backend"
     },
     {
@@ -218,7 +230,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-react-core",
+      "source": "plugins/ork-react-core",
       "category": "frontend"
     },
     {
@@ -229,7 +241,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-ui-design",
+      "source": "plugins/ork-ui-design",
       "category": "frontend"
     },
     {
@@ -240,7 +252,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-frontend-performance",
+      "source": "plugins/ork-frontend-performance",
       "category": "frontend"
     },
     {
@@ -251,7 +263,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-frontend-advanced",
+      "source": "plugins/ork-frontend-advanced",
       "category": "frontend"
     },
     {
@@ -262,7 +274,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-testing-core",
+      "source": "plugins/ork-testing-core",
       "category": "testing"
     },
     {
@@ -273,7 +285,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-testing-e2e",
+      "source": "plugins/ork-testing-e2e",
       "category": "testing"
     },
     {
@@ -284,7 +296,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-security",
+      "source": "plugins/ork-security",
       "category": "security"
     },
     {
@@ -295,7 +307,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-cicd",
+      "source": "plugins/ork-cicd",
       "category": "devops"
     },
     {
@@ -306,7 +318,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-infrastructure",
+      "source": "plugins/ork-infrastructure",
       "category": "devops"
     },
     {
@@ -317,7 +329,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-git",
+      "source": "plugins/ork-git",
       "category": "development"
     },
     {
@@ -328,7 +340,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-accessibility",
+      "source": "plugins/ork-accessibility",
       "category": "accessibility"
     },
     {
@@ -339,7 +351,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-workflows-core",
+      "source": "plugins/ork-workflows-core",
       "category": "development"
     },
     {
@@ -350,7 +362,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-workflows-advanced",
+      "source": "plugins/ork-workflows-advanced",
       "category": "development"
     },
     {
@@ -361,7 +373,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-mcp",
+      "source": "plugins/ork-mcp",
       "category": "development"
     },
     {
@@ -372,7 +384,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "ork-graphql",
+      "source": "plugins/ork-graphql",
       "category": "backend"
     }
   ]

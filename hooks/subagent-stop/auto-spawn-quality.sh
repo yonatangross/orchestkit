@@ -25,7 +25,7 @@ mkdir -p "$LOG_DIR" 2>/dev/null || true
 mkdir -p "$(dirname "$SPAWN_QUEUE")" 2>/dev/null || true
 
 # Extract agent information from hook input
-AGENT_TYPE=$(echo "$_HOOK_INPUT" | jq -r '.subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
+AGENT_TYPE=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.subagent_type // .subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
 SESSION_ID=$(echo "$_HOOK_INPUT" | jq -r '.session_id // ""' 2>/dev/null || echo "")
 AGENT_OUTPUT=$(echo "$_HOOK_INPUT" | jq -r '.agent_output // .output // ""' 2>/dev/null || echo "")
 ERROR=$(echo "$_HOOK_INPUT" | jq -r '.error // ""' 2>/dev/null || echo "")

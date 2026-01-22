@@ -19,7 +19,7 @@ LOG_DIR="$PROJECT_DIR/.claude/logs/multi-claude"
 mkdir -p "$LOG_DIR" 2>/dev/null || true
 
 # Extract agent info from hook input
-AGENT_NAME=$(echo "$_HOOK_INPUT" | jq -r '.subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
+AGENT_NAME=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.subagent_type // .subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
 AGENT_OUTPUT=$(echo "$_HOOK_INPUT" | jq -r '.agent_output // .output // ""' 2>/dev/null || echo "")
 
 # Log function

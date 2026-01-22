@@ -39,7 +39,10 @@ set -euo pipefail
 [[ -z "${MEM0_GLOBAL_PREFIX:-}" ]] && readonly MEM0_GLOBAL_PREFIX="orchestkit-global"
 
 # Organization ID for organization-level scoping (optional)
-[[ -z "${MEM0_ORG_ID:-}" ]] && readonly MEM0_ORG_ID=""
+# Don't make readonly if already set (e.g., from .env) to avoid double-readonly errors
+if [[ -z "${MEM0_ORG_ID:-}" ]]; then
+    MEM0_ORG_ID=""
+fi
 
 # Valid scopes array for validation
 [[ -z "${MEM0_VALID_SCOPES:-}" ]] && readonly MEM0_VALID_SCOPES=("$MEM0_SCOPE_DECISIONS" "$MEM0_SCOPE_PATTERNS" "$MEM0_SCOPE_CONTINUITY" "$MEM0_SCOPE_AGENTS" "$MEM0_SCOPE_BEST_PRACTICES")

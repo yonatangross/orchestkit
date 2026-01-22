@@ -52,6 +52,17 @@ Example:
 Session Summary: Implemented cursor pagination | Blockers: JWT validation failing | Next: Add unit tests; Update docs
 ```
 
+## Script Execution
+
+```bash
+# Execute via Python SDK script
+python3 skills/mem0-memory/scripts/crud/add-memory.py \
+  --text "Session Summary: Implemented cursor pagination | Blockers: JWT validation failing | Next: Add unit tests" \
+  --user-id "myproject-continuity" \
+  --metadata '{"type":"session_summary","status":"in_progress","project":"myproject","has_blockers":true,"has_next_steps":true}' \
+  --enable-graph
+```
+
 ## MCP Execution
 
 ```javascript

@@ -1,0 +1,1 @@
+../../agents/event-driven-architect.md

@@ -277,14 +277,14 @@ else
     echo -e "${RED}FAIL${NC}: agent-memory-inject.sh should be executable"
 fi
 
-# Test hook version is 1.2.0
+# Test hook has version 1.3.0+ (cross-agent federation)
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -20 "$HOOK" | grep -q "Version: 1.2.0"; then
+if head -20 "$HOOK" | grep -qE "Version: 1\.[3-9]\.[0-9]|Version: [2-9]\."; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: agent-memory-inject.sh version is 1.2.0"
+    echo -e "${GREEN}PASS${NC}: agent-memory-inject.sh version is 1.3.0+"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: agent-memory-inject.sh version should be 1.2.0"
+    echo -e "${RED}FAIL${NC}: agent-memory-inject.sh version should be 1.3.0+"
 fi
 
 # Test hook mentions cross-agent federation

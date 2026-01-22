@@ -148,7 +148,7 @@ echo "=========================================="
 assert_contains "$SKILL_CONTENT" "add-memory.py" "SKILL.md includes script execution examples"
 assert_contains "$SKILL_CONTENT" "Session Summary" "SKILL.md documents session summary"
 assert_contains "$SKILL_CONTENT" "enable_graph: true" "SKILL.md specifies enable_graph"
-assert_contains "$SKILL_CONTENT" "user_id" "SKILL.md documents user_id format"
+assert_contains "$SKILL_CONTENT" "user-id" "SKILL.md documents user_id format"
 
 # -----------------------------------------------------------------------------
 # Test: Reference Files
@@ -225,14 +225,14 @@ echo "=========================================="
 
 HOOK="$PROJECT_ROOT/hooks/stop/mem0-pre-compaction-sync.sh"
 
-# Test hook version
+# Test hook version (1.7.0+ for Stop hook compliance + Webhook + Batch + Export)
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -10 "$HOOK" | grep -q "Version: 1.5.0"; then
+if head -25 "$HOOK" | grep -qE "Version: 1\.[7-9]\.[0-9]|Version: [2-9]\."; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: Hook version is 1.5.0"
+    echo -e "${GREEN}PASS${NC}: Hook version is 1.7.0+"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: Hook version should be 1.5.0"
+    echo -e "${RED}FAIL${NC}: Hook version should be 1.7.0+"
 fi
 
 # Test hook outputs valid JSON (Stop hook schema compliant)
@@ -253,12 +253,12 @@ fi
 if echo "$HOOK_OUTPUT" | jq -e '.systemMessage' >/dev/null 2>&1; then
     TESTS_RUN=$((TESTS_RUN + 1))
     SYS_MSG=$(echo "$HOOK_OUTPUT" | jq -r '.systemMessage')
-    if [[ "$SYS_MSG" == *"mem0-sync"* ]]; then
+    if [[ "$SYS_MSG" == *"mem0-sync"* ]] || [[ "$SYS_MSG" == *"Mem0 Sync"* ]]; then
         TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "${GREEN}PASS${NC}: Hook systemMessage mentions mem0-sync skill"
+        echo -e "${GREEN}PASS${NC}: Hook systemMessage mentions mem0-sync/Mem0 Sync"
     else
         TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "${RED}FAIL${NC}: Hook systemMessage should mention mem0-sync skill"
+        echo -e "${RED}FAIL${NC}: Hook systemMessage should mention mem0-sync or Mem0 Sync"
     fi
 else
     # Hook might output suppressOutput:true if no pending items

@@ -11,7 +11,7 @@ export _HOOK_INPUT
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Extract agent name from stdin JSON (subagent_type field from SubagentStop hook)
-AGENT_NAME=$(echo "$_HOOK_INPUT" | jq -r '.subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
+AGENT_NAME=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.subagent_type // .subagent_type // .agent_type // "unknown"' 2>/dev/null || echo "unknown")
 
 # List of valid pipeline agent names
 VALID_AGENTS=(

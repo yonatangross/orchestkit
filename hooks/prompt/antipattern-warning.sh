@@ -262,6 +262,7 @@ EOF
             '{
                 "continue": true,
                 "hookSpecificOutput": {
+                    "hookEventName": "UserPromptSubmit",
                     "additionalContext": $warning
                 }
             }'
@@ -283,6 +284,7 @@ EOF
                 '{
                     "continue": true,
                     "hookSpecificOutput": {
+                        "hookEventName": "UserPromptSubmit",
                         "additionalContext": $hint
                     }
                 }'

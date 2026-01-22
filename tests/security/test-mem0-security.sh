@@ -87,23 +87,23 @@ test_redos_attack() {
     redos_payload=$(python3 -c "print('a' * 50000 + 'b')" 2>/dev/null || printf 'a%.0s' {1..50000} && echo 'b')
     
     # Test category detection with ReDoS payload
+    # Use Python for reliable cross-platform millisecond timing
     local start_time
-    start_time=$(date +%s%N 2>/dev/null || date +%s)
-    
+    start_time=$(python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null || date +%s)
+
     local result
     result=$(detect_best_practice_category "$redos_payload" 2>/dev/null || echo "timeout")
-    
+
     local end_time
-    end_time=$(date +%s%N 2>/dev/null || date +%s)
-    
-    # Calculate duration (handle both nanosecond and second precision)
+    end_time=$(python3 -c "import time; print(int(time.time() * 1000))" 2>/dev/null || date +%s)
+
+    # Calculate duration in milliseconds
     local duration
-    if [[ "$start_time" =~ ^[0-9]{10}$ ]] && [[ "$end_time" =~ ^[0-9]{10}$ ]]; then
-        # Nanosecond precision
-        duration=$(( (end_time - start_time) / 1000000 ))  # Convert to milliseconds
-    else
-        # Second precision
+    # If timestamps are in seconds (10 digits), convert to ms; otherwise assume ms
+    if [[ ${#start_time} -eq 10 ]]; then
         duration=$(( (end_time - start_time) * 1000 ))
+    else
+        duration=$(( end_time - start_time ))
     fi
     
     # Should complete in < 1000ms (1 second) due to length limit

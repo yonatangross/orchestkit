@@ -78,7 +78,7 @@ AGENT_ID=""
 # Try to extract subagent_type from the hook input
 if [[ -n "$_HOOK_INPUT" ]]; then
     # Try multiple fields for agent identification
-    AGENT_TYPE=$(echo "$_HOOK_INPUT" | jq -r '.subagent_type // .type // ""' 2>/dev/null || echo "")
+    AGENT_TYPE=$(echo "$_HOOK_INPUT" | jq -r '.tool_input.subagent_type // .subagent_type // .type // ""' 2>/dev/null || echo "")
 
     # Also check for explicit agent_id in input
     AGENT_ID=$(echo "$_HOOK_INPUT" | jq -r '.agent_id // ""' 2>/dev/null || echo "")

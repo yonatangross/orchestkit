@@ -13,6 +13,9 @@ export _HOOK_INPUT
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../_lib/common.sh"
 
+# Get output from hook input JSON (CC 2.1.7 format)
+CC_TOOL_OUTPUT=$(echo "$_HOOK_INPUT" | jq -r '.tool_result // .output // ""' 2>/dev/null || echo "")
+
 if [ -z "$CC_TOOL_OUTPUT" ]; then
   output_silent_success
   exit 0

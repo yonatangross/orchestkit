@@ -330,14 +330,14 @@ else
     echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh should be executable"
 fi
 
-# Test hook version is 1.5.0 (Stop hook schema compliance)
+# Test hook version is 1.7.0+ (Stop hook schema compliance + Webhook + Batch + Export)
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -10 "$HOOK" | grep -q "Version: 1.5.0"; then
+if head -25 "$HOOK" | grep -qE "Version: 1\.[7-9]\.[0-9]|Version: [2-9]\."; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: mem0-pre-compaction-sync.sh version is 1.5.0"
+    echo -e "${GREEN}PASS${NC}: mem0-pre-compaction-sync.sh version is 1.7.0+"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh version should be 1.5.0"
+    echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.sh version should be 1.7.0+"
 fi
 
 # Test hook mentions Session Continuity 2.0
@@ -391,14 +391,14 @@ else
     echo -e "${RED}FAIL${NC}: mem0-context-retrieval.sh should be executable"
 fi
 
-# Test hook version is 1.3.0
+# Test hook version is 2.1.0+ (graph-first architecture)
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -15 "$HOOK" | grep -q "Version: 1.3.0"; then
+if head -15 "$HOOK" | grep -qE "Version: 2\.[1-9]\.[0-9]|Version: [3-9]\."; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: mem0-context-retrieval.sh version is 1.3.0"
+    echo -e "${GREEN}PASS${NC}: mem0-context-retrieval.sh version is 2.1.0+"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: mem0-context-retrieval.sh version should be 1.3.0"
+    echo -e "${RED}FAIL${NC}: mem0-context-retrieval.sh version should be 2.1.0+"
 fi
 
 # Test hook mentions time-filtered search
