@@ -198,6 +198,7 @@ main() {
 
     # Only process Write/Edit tools
     if [[ "$tool_name" != "Write" && "$tool_name" != "Edit" ]]; then
+        output_silent_success
         exit 0
     fi
 
@@ -206,6 +207,7 @@ main() {
     file_path=$(echo "$hook_input" | jq -r '.tool_input.file_path // ""')
 
     if [[ -z "$file_path" ]]; then
+        output_silent_success
         exit 0
     fi
 
@@ -215,6 +217,7 @@ main() {
 
     if [[ -z "$skill_id" ]]; then
         # No recent skill usage - nothing to track
+        output_silent_success
         exit 0
     fi
 
@@ -239,6 +242,7 @@ main() {
     fi
 
     if [[ -z "$edit_content" ]]; then
+        output_silent_success
         exit 0
     fi
 

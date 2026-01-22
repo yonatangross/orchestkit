@@ -19,6 +19,7 @@ if [[ "$TOOL_NAME" =~ ^(Read|Glob|Grep)$ ]]; then
   READ_COUNT=$(($(cat "$READ_COUNT_FILE" 2>/dev/null || echo 0) + 1))
   echo "$READ_COUNT" > "$READ_COUNT_FILE"
   if [[ $((READ_COUNT % 10)) -ne 0 ]]; then
+    output_silent_success
     exit 0
   fi
 fi

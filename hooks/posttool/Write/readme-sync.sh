@@ -198,4 +198,5 @@ log_hook "README_SYNC: $CHANGE_TYPE change suggests README update"
 
 # Output using CC 2.1.9 additionalContext format
 output_with_context "$CONTEXT_MSG"
+output_silent_success
 exit 0

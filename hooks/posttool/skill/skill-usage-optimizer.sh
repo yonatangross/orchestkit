@@ -197,4 +197,5 @@ else
     output_silent_success
 fi
 
+output_silent_success
 exit 0
