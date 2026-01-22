@@ -18,8 +18,8 @@ source "$SCRIPT_DIR/../_lib/common.sh"
 FILE_PATH="${TOOL_INPUT_FILE_PATH:-}"
 CONTENT="${TOOL_OUTPUT_CONTENT:-}"
 
-[[ -z "$FILE_PATH" ]] && exit 0
-[[ -z "$CONTENT" ]] && exit 0
+[[ -z "$FILE_PATH" ]] && { output_silent_success; exit 0; }
+[[ -z "$CONTENT" ]] && { output_silent_success; exit 0; }
 
 # Load established patterns
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || echo "${CLAUDE_PROJECT_DIR:-.}")
