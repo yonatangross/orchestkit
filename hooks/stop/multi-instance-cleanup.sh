@@ -56,46 +56,38 @@ stop_heartbeat() {
 release_locks() {
     log "Releasing all locks..."
 
+    # Schema: file_locks (file_path TEXT PRIMARY KEY, instance_id TEXT NOT NULL, acquired_at TEXT NOT NULL)
+    # Delete locks owned by this instance (correct column is instance_id, not locked_by)
     sqlite3 "$DB_PATH" << EOF
 -- Release all locks held by this instance
-UPDATE file_locks
-SET locked_by = NULL,
-    lock_type = 'none',
-    locked_at = NULL
-WHERE locked_by = '$INSTANCE_ID';
-
--- Log lock releases
-INSERT INTO audit_log (instance_id, action_type, target_type, target_id, details)
-SELECT '$INSTANCE_ID', 'lock_release', 'file', file_path,
-       '{"reason": "session_cleanup", "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}'
-FROM file_locks
-WHERE locked_by = '$INSTANCE_ID';
+DELETE FROM file_locks
+WHERE instance_id = '$INSTANCE_ID';
 EOF
 
     log "All locks released"
 }
 
-# Abandon work claims
+# Abandon work claims (if work_claims table exists)
 handle_work_claims() {
     log "Handling work claims..."
 
-    sqlite3 "$DB_PATH" << EOF
+    # Check if work_claims table exists before attempting updates
+    local has_claims_table
+    has_claims_table=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='work_claims';" 2>/dev/null || echo "0")
+
+    if [[ "$has_claims_table" == "1" ]]; then
+        sqlite3 "$DB_PATH" << EOF
 -- Mark active claims as abandoned
 UPDATE work_claims
 SET status = 'abandoned',
     completed_at = datetime('now')
 WHERE instance_id = '$INSTANCE_ID'
   AND status = 'active';
-
--- Log abandonment
-INSERT INTO audit_log (instance_id, action_type, target_type, target_id, details)
-SELECT '$INSTANCE_ID', 'claim_abandon', 'work', claim_id,
-       '{"reason": "session_cleanup"}'
-FROM work_claims
-WHERE instance_id = '$INSTANCE_ID' AND status = 'abandoned';
 EOF
-
-    log "Work claims handled"
+        log "Work claims handled"
+    else
+        log "No work_claims table, skipping"
+    fi
 }
 
 # Share any new knowledge discovered this session
@@ -114,33 +106,34 @@ share_session_knowledge() {
     fi
 }
 
-# Update instance status
+# Update instance status (if instances table exists)
 update_instance_status() {
-    sqlite3 "$DB_PATH" << EOF
+    # Check if instances table exists (schema has 'instances' with 'id' not 'instance_id')
+    local has_instances_table
+    has_instances_table=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='instances';" 2>/dev/null || echo "0")
+
+    if [[ "$has_instances_table" == "1" ]]; then
+        sqlite3 "$DB_PATH" << EOF
 UPDATE instances
 SET status = 'terminated',
     last_heartbeat = datetime('now')
-WHERE instance_id = '$INSTANCE_ID';
-
--- Log termination
-INSERT INTO audit_log (instance_id, action_type, target_type, target_id, details)
-VALUES (
-    '$INSTANCE_ID',
-    'instance_stop',
-    'instance',
-    '$INSTANCE_ID',
-    '{"reason": "session_end", "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}'
-);
+WHERE id = '$INSTANCE_ID';
 EOF
-
-    log "Instance status updated to terminated"
+        log "Instance status updated to terminated"
+    else
+        log "No instances table, skipping status update"
+    fi
 }
 
-# Broadcast shutdown message
+# Broadcast shutdown message (if messages table exists)
 broadcast_shutdown() {
-    local message_id="msg-$(head -c 8 /dev/urandom | xxd -p 2>/dev/null || openssl rand -hex 8)"
+    # Check if messages table exists
+    local has_messages_table
+    has_messages_table=$(sqlite3 "$DB_PATH" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='messages';" 2>/dev/null || echo "0")
 
-    sqlite3 "$DB_PATH" << EOF
+    if [[ "$has_messages_table" == "1" ]]; then
+        local message_id="msg-$(head -c 8 /dev/urandom | xxd -p 2>/dev/null || openssl rand -hex 8)"
+        sqlite3 "$DB_PATH" << EOF
 INSERT INTO messages (
     message_id,
     from_instance,
@@ -151,14 +144,16 @@ INSERT INTO messages (
 ) VALUES (
     '$message_id',
     '$INSTANCE_ID',
-    NULL,  -- Broadcast to all
+    NULL,
     'shutdown',
     '{"instance_id": "$INSTANCE_ID", "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}',
     datetime('now', '+1 hour')
 );
 EOF
-
-    log "Shutdown broadcast sent"
+        log "Shutdown broadcast sent"
+    else
+        log "No messages table, skipping broadcast"
+    fi
 }
 
 # Cleanup instance-specific files (optional)
@@ -175,8 +170,6 @@ cleanup_instance_files() {
 print_summary() {
     log "=== Cleanup Summary ==="
     log "Instance: $INSTANCE_ID"
-    log "Locks released: $(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM audit_log WHERE instance_id = '$INSTANCE_ID' AND action_type = 'lock_release' AND timestamp > datetime('now', '-1 minute')")"
-    log "Work claims abandoned: $(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM work_claims WHERE instance_id = '$INSTANCE_ID' AND status = 'abandoned'")"
     log "Status: terminated"
     log "======================"
 }

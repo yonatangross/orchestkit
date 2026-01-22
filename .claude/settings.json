@@ -76,6 +76,18 @@
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/hooks/pretool/bash/agent-browser-safety.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/pretool/bash/changelog-generator.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/pretool/bash/version-sync.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/skill/merge-readiness-checker.sh"
           }
         ]
       },
@@ -188,6 +200,18 @@
           {
             "type": "command",
             "command": "${CLAUDE_PROJECT_DIR}/hooks/agent/security-command-audit.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/agent/a11y-lint-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/agent/ci-safety-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/hooks/agent/deployment-safety-check.sh"
           }
         ]
       }

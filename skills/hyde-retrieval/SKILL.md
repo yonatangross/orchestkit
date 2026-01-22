@@ -1,6 +1,7 @@
 ---
 name: hyde-retrieval
 description: HyDE (Hypothetical Document Embeddings) for improved semantic retrieval. Use when queries don't match document vocabulary, retrieval quality is poor, or implementing advanced RAG patterns.
+tags: [rag, retrieval, hyde, semantic-search]
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0

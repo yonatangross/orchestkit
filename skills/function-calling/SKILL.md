@@ -1,6 +1,7 @@
 ---
 name: function-calling
 description: LLM function calling and tool use patterns. Use when enabling LLMs to call external tools, defining tool schemas, implementing tool execution loops, or getting structured output from LLMs.
+tags: [llm, tools, function-calling, structured-output]
 context: fork
 agent: llm-integrator
 version: 1.0.0

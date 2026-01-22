@@ -1,6 +1,7 @@
 ---
 name: performance-testing
 description: Performance and load testing with k6 and Locust. Use when validating system performance under load, stress testing, identifying bottlenecks, or establishing performance baselines.
+tags: [testing, performance, load, stress]
 context: fork
 agent: metrics-architect
 version: 1.0.0

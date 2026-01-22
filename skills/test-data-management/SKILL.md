@@ -1,6 +1,7 @@
 ---
 name: test-data-management
 description: Test data management with fixtures and factories. Use when creating test data strategies, implementing data factories, managing fixtures, or seeding test databases.
+tags: [testing, fixtures, factories, data]
 context: fork
 agent: test-generator
 version: 1.0.0

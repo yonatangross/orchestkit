@@ -1,6 +1,7 @@
 ---
 name: embeddings
 description: Text embeddings for semantic search and similarity. Use when converting text to vectors, choosing embedding models, implementing chunking strategies, or building document similarity features.
+tags: [ai, embeddings, vectors, semantic-search, similarity]
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0

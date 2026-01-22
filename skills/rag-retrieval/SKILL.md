@@ -1,6 +1,7 @@
 ---
 name: rag-retrieval
 description: Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, constructing context from retrieved documents, adding citations, or implementing hybrid search.
+tags: [rag, retrieval, llm, context, grounding]
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0

@@ -1,6 +1,7 @@
 ---
 name: owasp-top-10
 description: OWASP Top 10 security vulnerabilities and mitigations. Use when conducting security audits, implementing security controls, or reviewing code for common vulnerabilities.
+tags: [security, owasp, vulnerabilities, audit]
 context: fork
 agent: security-auditor
 allowed-tools:

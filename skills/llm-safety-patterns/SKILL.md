@@ -1,6 +1,7 @@
 ---
 name: llm-safety-patterns
 description: Security patterns for LLM integrations including prompt injection defense and hallucination prevention. Use when implementing context separation, validating LLM outputs, or protecting against prompt injection attacks.
+tags: [ai, safety, guardrails, security, llm]
 context: fork
 agent: security-auditor
 version: 1.0.0

@@ -1,6 +1,7 @@
 ---
 name: langgraph-human-in-loop
 description: LangGraph human-in-the-loop patterns. Use when implementing approval workflows, manual review gates, user feedback integration, or interactive agent supervision.
+tags: [langgraph, human-in-loop, review, approval]
 context: fork
 agent: workflow-architect
 version: 1.0.0

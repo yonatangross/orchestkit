@@ -1,6 +1,7 @@
 ---
 name: agent-loops
 description: Agentic workflow patterns for autonomous LLM reasoning. Use when building ReAct agents, implementing reasoning loops, or creating LLMs that plan and execute multi-step tasks.
+tags: [ai, llm, agents, react, reasoning, autonomous]
 context: fork
 agent: workflow-architect
 version: 1.0.0

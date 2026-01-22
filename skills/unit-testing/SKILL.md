@@ -1,6 +1,7 @@
 ---
 name: unit-testing
 description: Unit testing patterns and best practices. Use when writing isolated unit tests, implementing AAA pattern, designing test isolation, or setting coverage targets for business logic.
+tags: [testing, unit, tdd, coverage]
 context: fork
 agent: test-generator
 version: 1.0.0

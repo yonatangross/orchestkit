@@ -1,6 +1,7 @@
 ---
 name: integration-testing
 description: Integration testing patterns for APIs and components. Use when testing component interactions, API endpoints with test databases, or service layer integration.
+tags: [testing, integration, api, database]
 context: fork
 agent: test-generator
 version: 1.0.0

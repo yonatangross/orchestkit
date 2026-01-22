@@ -1,6 +1,7 @@
 ---
 name: assess-complexity
 description: Assess task complexity with automated codebase metrics. Use before starting work to determine if task needs breakdown.
+context: fork
 user-invocable: true
 argument-hint: [file-or-directory]
 allowed-tools:
