@@ -2,10 +2,14 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
   "version": "5.0.0",
+  "engine": ">=2.1.15",
   "description": "Modular AI Development Toolkit — Install only what you need",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
   },
   "plugins": [
     {
@@ -16,7 +20,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-core",
+      "source": "ork-core",
       "category": "development"
     },
     {
@@ -27,7 +31,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-context",
+      "source": "ork-context",
       "category": "development"
     },
     {
@@ -38,7 +42,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-memory",
+      "source": "ork-memory",
       "category": "development"
     },
     {
@@ -49,7 +53,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-rag",
+      "source": "ork-rag",
       "category": "ai"
     },
     {
@@ -60,7 +64,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-rag-advanced",
+      "source": "ork-rag-advanced",
       "category": "ai"
     },
     {
@@ -71,7 +75,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-langgraph-core",
+      "source": "ork-langgraph-core",
       "category": "ai"
     },
     {
@@ -82,7 +86,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-langgraph-advanced",
+      "source": "ork-langgraph-advanced",
       "category": "ai"
     },
     {
@@ -93,7 +97,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-llm-core",
+      "source": "ork-llm-core",
       "category": "ai"
     },
     {
@@ -104,7 +108,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-llm-advanced",
+      "source": "ork-llm-advanced",
       "category": "ai"
     },
     {
@@ -115,7 +119,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-ai-observability",
+      "source": "ork-ai-observability",
       "category": "ai"
     },
     {
@@ -126,7 +130,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-data-engineering",
+      "source": "ork-data-engineering",
       "category": "data"
     },
     {
@@ -137,7 +141,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-evaluation",
+      "source": "ork-evaluation",
       "category": "data"
     },
     {
@@ -148,7 +152,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-product",
+      "source": "ork-product",
       "category": "product"
     },
     {
@@ -159,7 +163,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-fastapi",
+      "source": "ork-fastapi",
       "category": "backend"
     },
     {
@@ -170,7 +174,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-database",
+      "source": "ork-database",
       "category": "backend"
     },
     {
@@ -181,7 +185,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-async",
+      "source": "ork-async",
       "category": "backend"
     },
     {
@@ -192,7 +196,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-architecture",
+      "source": "ork-architecture",
       "category": "backend"
     },
     {
@@ -203,7 +207,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-backend-advanced",
+      "source": "ork-backend-advanced",
       "category": "backend"
     },
     {
@@ -214,7 +218,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-react-core",
+      "source": "ork-react-core",
       "category": "frontend"
     },
     {
@@ -225,7 +229,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-ui-design",
+      "source": "ork-ui-design",
       "category": "frontend"
     },
     {
@@ -236,7 +240,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-frontend-performance",
+      "source": "ork-frontend-performance",
       "category": "frontend"
     },
     {
@@ -247,7 +251,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-frontend-advanced",
+      "source": "ork-frontend-advanced",
       "category": "frontend"
     },
     {
@@ -258,7 +262,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-testing-core",
+      "source": "ork-testing-core",
       "category": "testing"
     },
     {
@@ -269,7 +273,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-testing-e2e",
+      "source": "ork-testing-e2e",
       "category": "testing"
     },
     {
@@ -280,7 +284,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-security",
+      "source": "ork-security",
       "category": "security"
     },
     {
@@ -291,7 +295,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-cicd",
+      "source": "ork-cicd",
       "category": "devops"
     },
     {
@@ -302,7 +306,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-infrastructure",
+      "source": "ork-infrastructure",
       "category": "devops"
     },
     {
@@ -313,7 +317,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-git",
+      "source": "ork-git",
       "category": "development"
     },
     {
@@ -324,7 +328,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-accessibility",
+      "source": "ork-accessibility",
       "category": "accessibility"
     },
     {
@@ -335,7 +339,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-workflows-core",
+      "source": "ork-workflows-core",
       "category": "development"
     },
     {
@@ -346,7 +350,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-workflows-advanced",
+      "source": "ork-workflows-advanced",
       "category": "development"
     },
     {
@@ -357,7 +361,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-mcp",
+      "source": "ork-mcp",
       "category": "development"
     },
     {
@@ -368,7 +372,7 @@
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
-      "source": "./plugins/ork-graphql",
+      "source": "ork-graphql",
       "category": "backend"
     }
   ]

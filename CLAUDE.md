@@ -78,7 +78,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.11 (CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory, session ID substitution)
+- **Claude Code**: >= 2.1.15 (CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
 
@@ -601,6 +601,8 @@ CLAUDE_PROJECT_DIR=<path-to-user-project>
 CLAUDE_PLUGIN_ROOT=<path-to-cached-plugin>  # Set when installed via /plugin install
 CLAUDE_SESSION_ID=<session-uuid>
 CLAUDE_AGENT_ID=<agent-id-if-subagent>
+ORCHESTKIT_SKIP_SETUP=1  # Skip Setup hook entirely (runs before SessionStart) - use if startup hangs
+ORCHESTKIT_SKIP_SLOW_HOOKS=1  # Skip slow SessionStart hooks (pattern-sync, dependency-check, coordination) for faster startup
 ```
 
 ### Common Tasks
@@ -689,6 +691,36 @@ Hooks use `${CLAUDE_SESSION_ID}` directly without fallback patterns (CC 2.1.9 gu
 
 ---
 
+## CC 2.1.14-2.1.15 Features
+
+### Plugin Versioning (CC 2.1.14)
+Pin plugins to specific git commits for reproducible installations:
+```bash
+# Pin to specific commit
+/plugin install user/plugin@abc123
+
+# Pin to tag
+/plugin install user/plugin@v1.0.0
+```
+
+### Engine Field (CC 2.1.15)
+Plugins can now declare minimum Claude Code version requirements:
+```json
+{
+  "name": "my-plugin",
+  "engine": ">=2.1.15"
+}
+```
+
+### Other 2.1.14-2.1.15 Features
+- **Bash history autocomplete**: Use `!` + Tab to search command history
+- **Plugin search**: Search marketplace with `/plugin search <query>`
+- **Context window fix**: Now uses 98% of context (was incorrectly limited to 65%)
+- **NPM deprecation notice**: Migrate to `/plugin install` from npm
+- **MCP timeout fix**: Improved connection reliability
+
+---
+
 ## CC 2.1.11 Features
 
 ### Setup Hook Event
@@ -742,10 +774,10 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 ## Version Information
 
 - **Current Version**: 4.28.3 (as of 2026-01-18)
-- **Claude Code Requirement**: >= 2.1.11
+- **Claude Code Requirement**: >= 2.1.15
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (151 hooks)
+- **Hook Architecture**: CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (151 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -792,6 +824,11 @@ tail -f hooks/logs/*.log
 4. **Lock timeout**: Run `.claude/coordination/lib/coordination.sh cleanup`
 5. **Context budget exceeded**: Use progressive loading, don't load entire directories
 6. **Agent skills not injected**: Verify agent uses CC 2.1.6 frontmatter with `skills:` array
+7. **Claude Code hangs on startup**: 
+   - **Quick fix**: Use `ORCHESTKIT_SKIP_SETUP=1 claude` to bypass Setup hook (runs before SessionStart)
+   - **Full bypass**: Use `ORCHESTKIT_SKIP_SLOW_HOOKS=1 claude` to skip all slow hooks
+   - **Both**: `ORCHESTKIT_SKIP_SETUP=1 ORCHESTKIT_SKIP_SLOW_HOOKS=1 claude` for maximum speed
+   - Setup hook runs FIRST and can block - this is usually the culprit
 
 ---
 

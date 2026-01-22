@@ -2,6 +2,7 @@
 # dependency-version-check.sh - Check for outdated dependencies at session start
 # Hook: SessionStart (#136)
 # CC 2.1.7 Compliant
+# Optimized with timeout, caching, and fast-exit to prevent startup hangs
 #
 # Parses:
 # - package.json (Node.js)
@@ -18,12 +19,26 @@
 set -euo pipefail
 
 # Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
+if [[ -t 0 ]]; then
+    _HOOK_INPUT=""
+else
+    _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 # Source common utilities
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../../_lib/common.sh"
+
+# Start timing
+start_hook_timing
+
+# Bypass if slow hooks are disabled
+if should_skip_slow_hooks; then
+    log_hook "Skipping dependency check (ORCHESTKIT_SKIP_SLOW_HOOKS=1)"
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+fi
 
 # -----------------------------------------------------------------------------
 # Configuration
@@ -336,6 +351,17 @@ main() {
     local total_critical=0
     local total_high=0
 
+    # Fast exit: Check if any package files exist
+    if [[ ! -f "$proj_dir/package.json" ]] && \
+       [[ ! -f "$proj_dir/requirements.txt" ]] && \
+       [[ ! -f "$proj_dir/pyproject.toml" ]] && \
+       [[ ! -f "$proj_dir/go.mod" ]]; then
+        log_dep "No package files found, skipping check"
+        save_cache "none"
+        output_silent_success
+        return 0
+    fi
+
     # Check cache first
     local cached
     cached=$(get_cached_warnings)
@@ -347,7 +373,7 @@ main() {
         else
             output_silent_success
         fi
-        exit 0
+        return 0
     fi
 
     # Check for package.json
@@ -428,4 +454,12 @@ main() {
     fi
 }
 
-main "$@"
+# Run main with timeout (2 seconds max for SessionStart hooks)
+# Since all functions are defined in this script, we can call main directly with timeout
+if run_with_timeout 2 main "$@"; then
+    log_hook_timing "dependency-version-check"
+else
+    log_dep "Dependency check timed out or failed"
+    # On timeout, output silent success to not block startup
+    output_silent_success
+fi

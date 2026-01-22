@@ -4,7 +4,11 @@ set -euo pipefail
 # Hook: SessionEnd
 
 # Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
+if [[ -t 0 ]]; then
+  _HOOK_INPUT=""
+else
+  _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"

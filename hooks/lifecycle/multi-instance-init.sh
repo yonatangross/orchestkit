@@ -7,7 +7,11 @@
 set -euo pipefail
 
 # Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
+if [[ -t 0 ]]; then
+    _HOOK_INPUT=""
+else
+    _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 # =============================================================================
@@ -36,6 +40,16 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Source common library if available
 if [[ -f "$SCRIPT_DIR/../_lib/common.sh" ]]; then
     source "$SCRIPT_DIR/../_lib/common.sh"
+fi
+
+# Start timing
+start_hook_timing
+
+# Bypass if slow hooks are disabled
+if should_skip_slow_hooks; then
+    log "Skipping multi-instance init (ORCHESTKIT_SKIP_SLOW_HOOKS=1)"
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
 fi
 
 # Configuration paths
@@ -319,23 +333,25 @@ main() {
         exit 0
     }
 
-    # Cleanup stale instances
-    cleanup_stale_instances
+    # Cleanup stale instances with timeout
+    run_with_timeout 1 cleanup_stale_instances || log "Warning: Cleanup timed out"
 
-    # Check if we already have an instance running
+    # Check if we already have an instance running (with timeout)
     if [[ -f "$INSTANCE_DIR/id.json" ]] && [[ -f "$INSTANCE_DIR/heartbeat.pid" ]]; then
         local existing_pid
-        existing_pid=$(cat "$INSTANCE_DIR/heartbeat.pid")
-        if kill -0 "$existing_pid" 2>/dev/null; then
+        existing_pid=$(cat "$INSTANCE_DIR/heartbeat.pid" 2>/dev/null || echo "")
+        if [[ -n "$existing_pid" ]] && kill -0 "$existing_pid" 2>/dev/null; then
             local existing_id
-            existing_id=$(jq -r '.instance_id' "$INSTANCE_DIR/id.json")
-            log "Reusing existing instance: $existing_id"
+            existing_id=$(jq -r '.instance_id' "$INSTANCE_DIR/id.json" 2>/dev/null || echo "")
+            if [[ -n "$existing_id" ]]; then
+                log "Reusing existing instance: $existing_id"
 
-            # Update heartbeat
-            sqlite3 "$DB_PATH" "UPDATE instances SET last_heartbeat = datetime('now'), status = 'active' WHERE instance_id = '$existing_id'"
+                # Update heartbeat with timeout
+                run_with_timeout 1 sqlite3 "$DB_PATH" "UPDATE instances SET last_heartbeat = datetime('now'), status = 'active' WHERE instance_id = '$existing_id'" 2>/dev/null || true
 
-            echo '{"continue":true,"suppressOutput":true}'
-            exit 0
+                echo '{"continue":true,"suppressOutput":true}'
+                exit 0
+            fi
         fi
     fi
 
@@ -343,23 +359,30 @@ main() {
     local instance_id
     instance_id=$(generate_instance_id)
 
-    # Create identity and register
+    # Create identity and register (with timeout)
     create_instance_identity "$instance_id"
-    register_instance "$instance_id"
+    run_with_timeout 2 register_instance "$instance_id" || {
+        log "Warning: Registration timed out, continuing anyway"
+    }
 
-    # Start heartbeat
+    # Start heartbeat (non-blocking)
     start_heartbeat "$instance_id"
 
-    # Load shared knowledge
-    load_shared_knowledge "$instance_id"
+    # Load shared knowledge with timeout
+    run_with_timeout 1 load_shared_knowledge "$instance_id" || log "Warning: Knowledge loading timed out"
 
-    # Check for pending messages
-    check_pending_messages "$instance_id"
+    # Check for pending messages with timeout
+    run_with_timeout 1 check_pending_messages "$instance_id" || log "Warning: Message check timed out"
 
     log "Multi-instance coordination initialized successfully"
 }
 
-# Run main and output CC 2.1.7 compliant JSON
-main "$@"
+# Run main with timeout (2 seconds max for SessionStart hooks)
+if run_with_timeout 2 bash -c "$(declare -f main init_database cleanup_stale_instances generate_instance_id create_instance_identity register_instance start_heartbeat load_shared_knowledge check_pending_messages); main"; then
+    log_hook_timing "multi-instance-init"
+else
+    log "Multi-instance init timed out or failed"
+fi
+
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

@@ -6,10 +6,17 @@ set -euo pipefail
 # Supports agent_type for context-aware initialization
 
 # Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
+if [[ -t 0 ]]; then
+  _HOOK_INPUT=""
+else
+  _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"
+
+# Start timing
+start_hook_timing
 
 log_hook "Session starting - loading context (Protocol 2.0)"
 
@@ -76,6 +83,9 @@ if [[ $CONTEXT_LOADED -gt 0 ]]; then
     log_hook "Session context loaded (Protocol 2.0)"
   fi
 fi
+
+# Log timing
+log_hook_timing "session-context-loader"
 
 echo '{"continue":true,"suppressOutput":true}'
 exit 0

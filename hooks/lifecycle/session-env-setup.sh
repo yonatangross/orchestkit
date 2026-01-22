@@ -6,14 +6,21 @@ set -euo pipefail
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
 # Also check for HOOK_INPUT from parent dispatcher (CC 2.1.6 format)
+# CRITICAL: Use completely non-blocking approach - don't read stdin at all if not available
+# The read command can still block even with -t flag in some edge cases
 if [[ -n "${HOOK_INPUT:-}" ]]; then
   _HOOK_INPUT="$HOOK_INPUT"
 else
-  _HOOK_INPUT=$(cat)
+  # Completely skip stdin reading - it's not critical for this hook
+  # If HOOK_INPUT is needed, it will be provided via environment variable
+  _HOOK_INPUT=""
 fi
 export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"
+
+# Start timing
+start_hook_timing
 
 log_hook "Setting up session environment"
 
@@ -59,8 +66,8 @@ if [[ -f "$SESSION_STATE" ]] && [[ -n "$AGENT_TYPE" ]]; then
   fi
 fi
 
-# Check git status
-BRANCH=$(get_current_branch)
+# Check git status with timeout (non-blocking)
+BRANCH=$(run_with_timeout 0.5 get_current_branch 2>/dev/null || echo "")
 if [[ -n "$BRANCH" ]]; then
   log_hook "Git branch: $BRANCH"
 fi
@@ -69,6 +76,9 @@ fi
 if [[ -n "$AGENT_TYPE" ]]; then
   log_hook "Agent type: $AGENT_TYPE"
 fi
+
+# Log timing
+log_hook_timing "session-env-setup"
 
 # Output systemMessage for user visibility
 echo '{"continue":true,"suppressOutput":true}'

@@ -4,7 +4,11 @@ set -euo pipefail
 # Hook: UserPromptSubmit
 
 # Read stdin BEFORE sourcing common.sh to avoid subshell issues
-_HOOK_INPUT=$(cat)
+if [[ -t 0 ]]; then
+  _HOOK_INPUT=""
+else
+  _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 source "$(dirname "$0")/../_lib/common.sh"

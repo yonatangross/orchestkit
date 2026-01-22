@@ -20,6 +20,11 @@ export CLAUDE_PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Enable LSP tool for code intelligence
 export ENABLE_LSP_TOOL=1
 
+# Avoid slow or hanging hooks in dev mode unless explicitly disabled
+: "${ORCHESTKIT_SKIP_SETUP:=1}"
+: "${ORCHESTKIT_SKIP_SLOW_HOOKS:=1}"
+export ORCHESTKIT_SKIP_SETUP ORCHESTKIT_SKIP_SLOW_HOOKS
+
 # Note: ANTHROPIC_API_KEY not needed for Claude Code (uses claude.ai login)
 # Only needed for standalone bin/memory-fabric-agent.py script
 # If you need it, run: export ANTHROPIC_API_KEY manually before the script

@@ -217,11 +217,40 @@ jobs:
 
           echo "All skills are valid!"
 
+  # Job 8: Skill Sync Drift Detection
+  skill-sync-validation:
+    name: Skill Sync Drift
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Make scripts executable
+        run: chmod +x bin/*.sh
+
+      - name: Check for skill drift
+        run: |
+          echo "Checking for drift between root skills and plugin skills..."
+
+          # Run sync validation
+          ./bin/sync-skills.sh validate --quiet
+
+          echo "No skill drift detected!"
+
+      - name: Check for orphan skills
+        run: |
+          echo "Checking for orphan skills in plugins..."
+
+          # Run orphan check
+          ./bin/sync-skills.sh validate --check-orphans --quiet
+
   # Summary Job
   validation-summary:
     name: Validation Summary
     runs-on: ubuntu-latest
-    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation]
+    needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation, skill-sync-validation]
     if: always()
     steps:
       - name: Check results
@@ -230,13 +259,14 @@ jobs:
           echo "  Plugin Validation Summary"
           echo "========================================"
           echo ""
-          echo "Syntax Validation:   ${{ needs.syntax-validation.result }}"
-          echo "Schema Validation:   ${{ needs.schema-validation.result }}"
-          echo "Hook Unit Tests:     ${{ needs.hook-unit-tests.result }}"
-          echo "Integration Tests:   ${{ needs.integration-tests.result }}"
-          echo "Manifest Validation: ${{ needs.manifest-validation.result }}"
-          echo "Counts Validation:   ${{ needs.counts-validation.result }}"
-          echo "Skills Validation:   ${{ needs.skills-validation.result }}"
+          echo "Syntax Validation:     ${{ needs.syntax-validation.result }}"
+          echo "Schema Validation:     ${{ needs.schema-validation.result }}"
+          echo "Hook Unit Tests:       ${{ needs.hook-unit-tests.result }}"
+          echo "Integration Tests:     ${{ needs.integration-tests.result }}"
+          echo "Manifest Validation:   ${{ needs.manifest-validation.result }}"
+          echo "Counts Validation:     ${{ needs.counts-validation.result }}"
+          echo "Skills Validation:     ${{ needs.skills-validation.result }}"
+          echo "Skill Sync Validation: ${{ needs.skill-sync-validation.result }}"
           echo ""
 
           # Fail if any required job failed
@@ -245,7 +275,8 @@ jobs:
              [[ "${{ needs.hook-unit-tests.result }}" != "success" ]] || \
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
              [[ "${{ needs.manifest-validation.result }}" != "success" ]] || \
-             [[ "${{ needs.counts-validation.result }}" != "success" ]]; then
+             [[ "${{ needs.counts-validation.result }}" != "success" ]] || \
+             [[ "${{ needs.skill-sync-validation.result }}" != "success" ]]; then
             echo "Some validations failed!"
             exit 1
           fi

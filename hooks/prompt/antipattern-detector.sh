@@ -4,7 +4,6 @@ set -euo pipefail
 # CC 2.1.7 Compliant: Suggests checking mem0 for known failed patterns
 #
 # Purpose:
-# - When user prompt mentions implementation patterns
 # - Suggest checking mem0 for previously failed approaches
 # - Warn before repeating past mistakes
 #
@@ -12,7 +11,11 @@ set -euo pipefail
 # Part of mem0 Semantic Memory Integration (#49)
 
 # Read stdin BEFORE sourcing to avoid subshell issues
-_HOOK_INPUT=$(cat)
+if [[ -t 0 ]]; then
+    _HOOK_INPUT=""
+else
+    _HOOK_INPUT=$(cat 2>/dev/null || true)
+fi
 export _HOOK_INPUT
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
