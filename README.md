@@ -3,13 +3,16 @@
 
 # OrchestKit Claude Plugin
 
-### Stop satisficing your codebase to Claude. Start shipping.
+### Stop explaining your stack. Start shipping.
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.11-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-161-blue?style=for-the-badge)](./skills)
+**162 skills · 34 agents · 147 hooks · 33 modular plugins**
+
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.16-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Skills](https://img.shields.io/badge/Skills-162-blue?style=for-the-badge)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-34-green?style=for-the-badge)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-151-orange?style=for-the-badge)](./hooks)
+[![Hooks](https://img.shields.io/badge/Hooks-147-orange?style=for-the-badge)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
 [Why OrchestKit?](#why-orchestkit) · [Quick Start](#quick-start) · [Commands](#commands) · [Skills](#skills) · [Agents](#agents) · [FAQ](#faq)
 
@@ -17,11 +20,29 @@
 
 ---
 
+<!-- Demo GIF placeholder - see issue #187 -->
+<!-- <p align="center"><img src="assets/demo.gif" alt="OrchestKit Demo" width="600"></p> -->
+
+## Quick Start
+
+```bash
+# Install in 30 seconds
+/plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+
+# Verify installation
+/ork:doctor
+```
+
+**That's it.** Skills auto-activate based on your prompts. Hooks protect your code automatically.
+
+---
+
 ## Why OrchestKit?
 
 **The Problem:** Every Claude Code session starts from zero. You explain your stack, your patterns, your preferences—again and again.
 
-**The Solution:** OrchestKit gives Claude persistent knowledge of 161 production patterns, 34 specialized agents, and 151 security/quality hooks that work automatically.
+**The Solution:** OrchestKit gives Claude persistent knowledge of 162 production patterns, 34 specialized agents, and 147 security/quality hooks that work automatically.
 
 <table>
 <tr>
@@ -67,7 +88,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │    147 hooks  │    │  161 skills   │    │   34 agents   │
+        │   147 hooks   │    │  162 skills   │    │   34 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -136,51 +157,40 @@ flowchart LR
 
 ---
 
-## Quick Start
-
-### Installation (30 seconds)
+## See It In Action
 
 ```bash
-# From Claude Code
-/plugin marketplace add yonatangross/orchestkit
-/plugin install ork
+# Commit with automatic validation
+/ork:commit
 ```
-
-> **⚠️ NPM Deprecation Notice (CC 2.1.15)**
->
-> As of Claude Code 2.1.15, npm-based plugin installations are **deprecated**.
-> If you previously installed OrchestKit via npm, please migrate:
->
-> ```bash
-> # Remove npm installation (if applicable)
-> npm uninstall -g @anthropic/claude-plugin-orchestkit
->
-> # Install via native plugin system
-> /plugin install ork@orchestkit
-> ```
->
-> The native `/plugin install` system provides better version control with git SHA/tag pinning.
-
-### Verify It Works
+```
+✓ Pre-commit checks passed
+✓ Tests: 42 passed
+✓ Security scan: clean
+✓ Commit created: feat(api): add user endpoint
+```
 
 ```bash
-/ork:doctor
+# Verify your implementation works
+/ork:verify
 ```
-
-You should see:
 ```
-✅ Plugin loaded successfully
-✅ 161 skills available
-✅ 34 agents ready
-✅ 147 hooks active
+Running 3 verification agents in parallel...
+├─ test-generator: 4 tests added, coverage 67% → 82%
+├─ security-auditor: No vulnerabilities found
+└─ code-quality-reviewer: LGTM, minor suggestions noted
 ```
-
-### Try These
 
 ```bash
-/ork:commit        # Commit with checks
-/ork:review-pr     # Code review checklist
-/ork:explore       # Analyze codebase
+# Explore unfamiliar codebase
+/ork:explore
+```
+```
+Codebase Analysis:
+├─ Backend: FastAPI + SQLAlchemy 2.0 (12 endpoints)
+├─ Frontend: React 19 + Vite (23 components)
+├─ Database: PostgreSQL + pgvector
+└─ Key patterns: Cursor pagination, JWT auth, SSE events
 ```
 
 ---
@@ -189,13 +199,45 @@ You should see:
 
 **33 domain-specific plugins** — install only what you need:
 
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         PLUGIN ARCHITECTURE                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                    orchestkit-complete                              │   │
+│   │              Full toolkit: all 33 plugins                           │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│            ┌───────────────────────┼───────────────────────┐                │
+│            ▼                       ▼                       ▼                │
+│   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
+│   │   🧠 AI/LLM     │    │   ⚡ Backend    │    │   🎨 Frontend   │        │
+│   │   7 plugins     │    │   6 plugins     │    │   4 plugins     │        │
+│   │                 │    │                 │    │                 │        │
+│   │ • ork-rag       │    │ • ork-fastapi   │    │ • ork-react-core│        │
+│   │ • ork-langgraph │    │ • ork-database  │    │ • ork-ui-design │        │
+│   │ • ork-llm-*     │    │ • ork-async     │    │ • ork-frontend-*│        │
+│   └─────────────────┘    └─────────────────┘    └─────────────────┘        │
+│                                                                             │
+│   ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐        │
+│   │   🧪 Testing    │    │   🔒 Security   │    │   🚀 DevOps     │        │
+│   │   2 plugins     │    │   1 plugin      │    │   3 plugins     │        │
+│   │                 │    │                 │    │                 │        │
+│   │ • ork-testing-* │    │ • ork-security  │    │ • ork-cicd      │        │
+│   │ • ork-e2e       │    │                 │    │ • ork-git       │        │
+│   └─────────────────┘    └─────────────────┘    └─────────────────┘        │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
 ### Installation Options
 
 ```bash
-# Full toolkit (all 33 plugins)
+# Full toolkit (recommended for new users)
 /plugin install ork@orchestkit
 
-# Individual domains
+# Individual domains (advanced)
 /plugin install ork-core@orchestkit           # Core foundation (required)
 /plugin install ork-rag@orchestkit            # RAG & retrieval
 /plugin install ork-fastapi@orchestkit        # FastAPI backend
@@ -203,18 +245,23 @@ You should see:
 /plugin install ork-testing-core@orchestkit   # Testing patterns
 ```
 
-### Plugin Categories
+<details>
+<summary><strong>📦 All 33 Plugins by Category</strong></summary>
 
 | Category | Plugins | Description |
 |----------|---------|-------------|
 | **Core** | `ork-core`, `ork-context`, `ork-memory` | Foundation, context management, persistence |
-| **AI/LLM** | `ork-rag`, `ork-rag-advanced`, `ork-langgraph-*`, `ork-llm-*`, `ork-ai-observability` | RAG, agents, LLM patterns (7 plugins) |
-| **Backend** | `ork-fastapi`, `ork-database`, `ork-async`, `ork-architecture`, `ork-backend-advanced` | APIs, databases, async (5 plugins) |
-| **Frontend** | `ork-react-core`, `ork-ui-design`, `ork-frontend-*` | React, UI, performance (4 plugins) |
+| **AI/LLM** | `ork-rag`, `ork-rag-advanced`, `ork-langgraph-core`, `ork-langgraph-advanced`, `ork-llm-core`, `ork-llm-advanced`, `ork-ai-observability` | RAG, agents, LLM patterns (7 plugins) |
+| **Backend** | `ork-fastapi`, `ork-database`, `ork-async`, `ork-architecture`, `ork-backend-advanced`, `ork-graphql` | APIs, databases, async (6 plugins) |
+| **Frontend** | `ork-react-core`, `ork-ui-design`, `ork-frontend-performance`, `ork-frontend-advanced` | React, UI, performance (4 plugins) |
 | **Testing** | `ork-testing-core`, `ork-testing-e2e` | Unit, integration, E2E (2 plugins) |
-| **Security** | `ork-security` | OWASP, auth, validation |
-| **DevOps** | `ork-cicd`, `ork-infrastructure`, `ork-git` | CI/CD, infra, git workflows |
-| **Other** | `ork-accessibility`, `ork-workflows-*`, `ork-mcp`, `ork-graphql`, `ork-product`, `ork-evaluation` | Specialized domains |
+| **Security** | `ork-security` | OWASP, auth, validation, guardrails |
+| **DevOps** | `ork-cicd`, `ork-infrastructure`, `ork-git` | CI/CD, infra, git workflows (3 plugins) |
+| **Data** | `ork-data-engineering`, `ork-evaluation` | ETL, embeddings, golden datasets (2 plugins) |
+| **Workflows** | `ork-workflows-core`, `ork-workflows-advanced` | Implementation, verification flows (2 plugins) |
+| **Other** | `ork-accessibility`, `ork-mcp`, `ork-product` | A11y, MCP servers, product management (3 plugins) |
+
+</details>
 
 ---
 
@@ -271,7 +318,7 @@ You should see:
 
 ## Skills
 
-**161 skills** with progressive loading (~70% token savings):
+**162 skills** with progressive loading (~70% token savings):
 
 ### 🤖 AI & ML — 27 skills
 
@@ -319,7 +366,7 @@ You should see:
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
 <details>
-<summary><strong>📁 View all 161 skills</strong></summary>
+<summary><strong>📁 View all 162 skills</strong></summary>
 
 ```bash
 ls skills/
@@ -422,7 +469,7 @@ flowchart TB
     subgraph OrchestKit["🔷 ORCHESTKIT PLUGIN"]
         direction TB
 
-        subgraph Hooks["🛡️ 151 HOOKS"]
+        subgraph Hooks["🛡️ 147 HOOKS"]
             direction LR
             H1["PreToolUse"]
             H2["PostToolUse"]
@@ -495,7 +542,7 @@ orchestkit/
 │       └── assets/          # Templates and copyable files
 ├── agents/                  # 34 specialized agents
 ├── commands/                # 21 slash commands
-├── hooks/                   # 151 lifecycle hooks
+├── hooks/                   # 147 lifecycle hooks
 └── tests/                   # Validation suite
 ```
 
@@ -618,11 +665,14 @@ Yes! OrchestKit is additive—it won't modify your files. Skills and agents acti
 <details>
 <summary><strong>❓ Claude Code version requirements?</strong></summary>
 
-Requires **Claude Code ≥2.1.11** for full features:
+Requires **Claude Code ≥2.1.16** for full features:
 - CC 2.1.6: Agent skill injection
 - CC 2.1.7: Parallel hook execution
 - CC 2.1.9: additionalContext injection
 - CC 2.1.11: Setup hooks
+- CC 2.1.14: Plugin versioning (git SHA/tag pinning)
+- CC 2.1.15: Engine field, plugin search
+- CC 2.1.16: Task dependencies, VSCode native plugins
 
 </details>
 
@@ -649,7 +699,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## What's New
 
-**v4.27.4** — README overhaul with improved visualizations, grouped commands/agents/skills, Mermaid diagrams
+**v4.28.x** — CC 2.1.16 support, README marketplace alignment, subagent compatibility
+
+**Recent:**
+- CC 2.1.16: Task dependencies, VSCode native plugins
+- agent-browser CLI integration (93% less context vs Playwright MCP)
+- 33 modular plugins for selective installation
+- AI safety skills (guardrails, prompt injection defense)
 
 [Full Changelog →](./CHANGELOG.md)
 

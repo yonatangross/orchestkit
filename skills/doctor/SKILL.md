@@ -2,7 +2,7 @@
 name: doctor
 description: OrchestKit health diagnostics command that validates plugin configuration and reports issues. Use when running doctor checks or troubleshooting plugin health.
 context: inherit
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks]
 user-invocable: true
@@ -19,6 +19,7 @@ The `/ork:doctor` command performs comprehensive health checks on your OrchestKi
 3. **Schema Compliance** - Validates JSON files against schemas
 4. **Coordination System** - Checks lock health and registry integrity
 5. **Context Budget** - Monitors token usage against budget
+6. **Claude Code Version** - Validates CC >= 2.1.16 for full feature support
 
 ## Overview
 
@@ -137,19 +138,47 @@ Context Budget: 1850/2200 tokens (84%)
 - knowledge/: 1200 tokens
 ```
 
+### 6. Claude Code Version
+
+Validates runtime Claude Code version meets minimum requirements:
+
+```bash
+# Checks performed:
+# - Runtime version >= 2.1.16 (minimum for OrchestKit 5.x)
+# - Feature availability detection (Task tools, VSCode plugins)
+# - Upgrade guidance for older versions
+```
+
+**Output:**
+```
+Claude Code Version: 2.1.16 (OK)
+- Task Management: available (TaskCreate, TaskUpdate, TaskGet, TaskList)
+- VSCode Plugins: available
+- Engine requirement: >=2.1.16 (satisfied)
+```
+
+**Upgrade guidance (if older version):**
+```
+Claude Code Version: 2.1.14 (OUTDATED)
+- Missing features: Task Management, VSCode native plugins
+- Upgrade: Run 'claude update' or reinstall from https://claude.ai/download
+- Some OrchestKit features may not work correctly
+```
+
 ## Report Format
 
 ```
 +==================================================================+
 |                    OrchestKit Health Report                       |
 +==================================================================+
-| Version: 4.7.2  |  CC: 2.1.4  |  Channel: stable                 |
+| Version: 5.0.0  |  CC: 2.1.16  |  Channel: stable                |
 +==================================================================+
 | Permission Rules     | 12/12 reachable                           |
 | Hooks                | 93/93 valid                               |
 | Schemas              | 15/15 compliant                           |
 | Context Budget       | 1850/2200 tokens (84%)                    |
 | Coordination         | 0 stale locks                             |
+| CC Version           | 2.1.16 (OK)                               |
 +==================================================================+
 ```
 
@@ -163,6 +192,7 @@ Context Budget: 1850/2200 tokens (84%)
 | Schema error | Invalid JSON | Run schema validation script |
 | Budget warning | >80% context used | Review loaded skills |
 | Coordination error | Stale locks | Run cleanup script |
+| CC version warning | Outdated Claude Code | Run `claude update` to upgrade |
 
 ## Troubleshooting
 

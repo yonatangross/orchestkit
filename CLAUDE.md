@@ -6,7 +6,7 @@ This document provides essential context for Claude Code when working with the O
 
 **OrchestKit Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **161 skills**: Reusable knowledge modules in flat structure (including 7 new frontend performance skills)
+- **162 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
 - **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **21 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
 - **147 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
@@ -36,7 +36,7 @@ plugins/                 # Modular plugin bundles
     └── scripts/         # Hook executables
 
 # FULL TOOLKIT (root level - for development/reference)
-skills/                  # 161 skills (all domains)
+skills/                  # 162 skills (all domains)
 agents/                  # 34 agents (all domains)
 commands/                # 21 commands (all domains)
 hooks/                   # 140 lifecycle hooks
@@ -78,7 +78,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Claude Code**: >= 2.1.15 (CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
+- **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
 
@@ -633,7 +633,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-161 skills in flat structure at `skills/`. Common skill types include:
+162 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability, agentic-rag-patterns, prompt-engineering-suite, alternative-agent-frameworks, high-performance-inference, fine-tuning-customization (27 skills)
 - **AI Security**: MCP security hardening, advanced guardrails, LLM safety patterns (3 skills - NEW)
@@ -761,6 +761,52 @@ npm uninstall -g claude-code-plugins
 
 ---
 
+## CC 2.1.16 Features
+
+### Task Management System
+CC 2.1.16 introduces native task tracking with four new tools:
+
+| Tool | Purpose |
+|------|---------|
+| `TaskCreate` | Create tasks with subject, description, activeForm |
+| `TaskUpdate` | Update status, set dependencies (blocks/blockedBy) |
+| `TaskGet` | Retrieve full task details including blockers |
+| `TaskList` | View all tasks with status summary |
+
+**Status Workflow:**
+```
+pending → in_progress → completed
+```
+
+**Dependency Tracking:**
+```json
+// Task #3 blocked until #1 and #2 complete
+{"taskId": "3", "addBlockedBy": ["1", "2"]}
+```
+
+**Best Practices:**
+- Use imperative form for subject: "Add authentication" (not "Adding")
+- Use present continuous for activeForm: "Adding authentication"
+- Keep tasks atomic and independently completable
+- Mark completed only when work is fully verified
+
+See `skills/task-dependency-patterns` for comprehensive patterns.
+
+### VSCode Native Plugin Management
+VSCode extension now supports plugin operations directly in the UI:
+
+- **Install plugins**: Click to install from marketplace
+- **Manage plugins**: View installed plugins, enable/disable
+- **Trust warnings**: Security prompts before installation
+- **Install counts**: See plugin popularity in listings
+
+### Bug Fixes
+- **OOM prevention**: Better memory management for large contexts
+- **Context warning accuracy**: Improved 90% context warning thresholds
+- **Session title handling**: Fixed title persistence issues
+
+---
+
 ## CC 2.1.11 Features
 
 ### Setup Hook Event
@@ -814,10 +860,10 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 ## Version Information
 
 - **Current Version**: 4.28.3 (as of 2026-01-18)
-- **Claude Code Requirement**: >= 2.1.15
+- **Claude Code Requirement**: >= 2.1.16
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (147 hooks)
+- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (147 hooks)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -831,6 +877,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Frontend Skills Expansion**: lazy-loading-patterns, view-transitions, scroll-driven-animations, responsive-patterns, pwa-patterns, recharts-patterns, dashboard-patterns + performance-engineer agent (v4.26.0)
 - **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
 - **agent-browser Integration**: Replaced Playwright MCP with Vercel agent-browser CLI (93% less context, Snapshot + Refs workflow) (v4.28.0)
+- **CC 2.1.16 Integration**: Task Management System (TaskCreate, TaskUpdate, TaskGet, TaskList), VSCode native plugins, new task-dependency-patterns skill (v5.0.0)
 
 ---
 

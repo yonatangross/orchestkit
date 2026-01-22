@@ -68,6 +68,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Migration Scripts**: `bin/restructure-plugins.sh`, `bin/migrate-to-plugins.sh`
 
+- **CC 2.1.16 Support**: Full Claude Code 2.1.16 integration
+  - **Task Management System**: Native task tracking with TaskCreate, TaskUpdate, TaskGet, TaskList
+  - **New Skill**: `task-dependency-patterns` - Comprehensive patterns for task decomposition, dependency chains, status workflow, multi-agent coordination
+  - **Doctor Enhancement**: Added 6th health check for CC version validation (>= 2.1.16)
+  - **workflow-architect Agent**: Added task-dependency-patterns skill
+  - **Engine Field Updates**: All 33 plugin manifests updated to `engine: ">=2.1.16"`
+  - **VSCode Plugin Support**: Documentation for native plugin management in VSCode extension
+
 ### Changed
 
 - **Plugin Structure**: Restructured to Claude Code marketplace standards (code.claude.com/docs/en/plugins-reference)
@@ -77,6 +85,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Each plugin is self-contained with its own skills, agents, commands
 
 - **Documentation**: Updated README.md and CLAUDE.md with modular plugin structure
+
+- **Skills Count**: 161 → 162 (added task-dependency-patterns)
+
+- **Doctor Skill**: Version bumped to 2.0.0 with 6 health checks (was 5)
 
 ---
 

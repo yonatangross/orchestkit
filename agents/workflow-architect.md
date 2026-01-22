@@ -26,6 +26,7 @@ skills:
   - langfuse-observability
   - observability-monitoring
   - context-compression
+  - task-dependency-patterns
   - remember
   - recall
 ---
