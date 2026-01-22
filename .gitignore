@@ -92,3 +92,4 @@ __pycache__/
 !.claude/feedback/.gitkeep
 .claude/.satisfaction-counter
 .setup-complete
+.superdesign/
