@@ -22,6 +22,9 @@ export * from './lib/retry-manager.js';
 export * from './lib/calibration-engine.js';
 export * from './lib/multi-agent-coordinator.js';
 
+// Re-export decision history module (Issues #203, #206, #207, #208)
+export * from './lib/decision-history.js';
+
 // Import hook implementations
 // Permission hooks
 import { autoApproveReadonly } from './permission/auto-approve-readonly.js';

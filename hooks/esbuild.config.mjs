@@ -46,8 +46,7 @@ const commonBuildOptions = {
 };
 
 /**
- * Build split bundles (one per event type)
- * No unified bundle - split bundles are verified stable
+ * Build split bundles (one per event type) + unified bundle for CLI tools
  */
 async function buildSplitBundles() {
   const startTime = Date.now();
@@ -88,6 +87,29 @@ async function buildSplitBundles() {
     console.log(`  ${name}.mjs: ${stats.bundles[name].sizeKB} KB (${outputFile.exports.length} exports)`);
   }
 
+  // Also build unified bundle for CLI tools (decision-history, etc.)
+  const unifiedResult = await build({
+    ...commonBuildOptions,
+    entryPoints: ['./src/index.ts'],
+    outfile: './dist/hooks.mjs',
+    banner: {
+      js: `// OrchestKit Hooks - Unified Bundle (for CLI tools)
+// Generated: ${new Date().toISOString()}
+// Use split bundles (permission.mjs, pretool.mjs, etc.) for hooks
+`,
+    },
+  });
+
+  const unifiedOutput = unifiedResult.metafile.outputs['dist/hooks.mjs'];
+  stats.bundles['hooks'] = {
+    size: unifiedOutput.bytes,
+    sizeKB: (unifiedOutput.bytes / 1024).toFixed(2),
+    exports: unifiedOutput.exports.length,
+    unified: true,
+  };
+
+  console.log(`\n  hooks.mjs (unified): ${stats.bundles['hooks'].sizeKB} KB (for CLI tools)`);
+
   stats.buildTimeMs = Date.now() - startTime;
   stats.totalSizeKB = (stats.totalSize / 1024).toFixed(2);
   stats.avgBundleSizeKB = (stats.totalSize / Object.keys(entryPoints).length / 1024).toFixed(2);
@@ -95,8 +117,8 @@ async function buildSplitBundles() {
   writeFileSync('./dist/bundle-stats.json', JSON.stringify(stats, null, 2));
 
   console.log(`\nBuild complete in ${stats.buildTimeMs}ms`);
-  console.log(`Total: ${stats.totalSizeKB} KB (11 bundles)`);
-  console.log(`Average per-bundle: ${stats.avgBundleSizeKB} KB`);
+  console.log(`Split bundles: ${stats.totalSizeKB} KB (${Object.keys(entryPoints).length} bundles)`);
+  console.log(`Unified bundle: ${stats.bundles['hooks'].sizeKB} KB`);
 }
 
 /**

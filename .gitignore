@@ -73,6 +73,10 @@ HOOK_SECURITY_*.txt
 # Orchestration runtime state (session-specific)
 .claude/orchestration/
 
+# Hooks runtime artifacts (created during hook execution)
+hooks/.claude/
+hooks/dist/*.map
+
 # Python caches
 .mypy_cache/
 .pytest_cache/
