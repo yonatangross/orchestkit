@@ -279,7 +279,7 @@ export function readHookInput(): HookInput {
 
     return JSON.parse(input);
   } catch {
-    return { tool_name: '', session_id: SESSION_ID, tool_input: {} };
+    return { tool_name: '', session_id: getSessionId(), tool_input: {} };
   }
 }
 

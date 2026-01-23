@@ -1,18 +1,22 @@
 /**
  * Feedback Loop - SubagentStop Hook
  * CC 2.1.7 Compliant: includes continue field in all outputs
+ * CC 2.1.16 Compliant: Integrates with Task Management System
  *
  * Purpose:
  * - Captures agent completion context
  * - Routes findings to relevant downstream agents
  * - Logs to decision-log.json
+ * - Updates CC 2.1.16 Task status (Issue #197)
  *
- * Version: 1.0.0 (TypeScript port)
+ * Version: 2.0.0 (Task Integration)
  */
 
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
+import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
+import { PIPELINES } from '../lib/multi-agent-coordinator.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -47,9 +51,29 @@ function logFeedback(message: string): void {
 }
 
 /**
- * Get downstream agents based on completed agent type
+ * Get downstream agents from PIPELINES definitions or fallback mapping
  */
 function getDownstreamAgents(agent: string): string {
+  // First, check if agent is part of an active pipeline
+  const activePipeline = getActivePipeline();
+  if (activePipeline) {
+    const pipelineDef = PIPELINES.find(p => p.type === activePipeline.type);
+    if (pipelineDef) {
+      // Find current step
+      const currentStepIdx = pipelineDef.steps.findIndex(s => s.agent === agent);
+      if (currentStepIdx >= 0) {
+        // Get next steps that depend on this one
+        const nextAgents = pipelineDef.steps
+          .filter((s, idx) => s.dependsOn.includes(currentStepIdx) && idx > currentStepIdx)
+          .map(s => s.agent);
+        if (nextAgents.length > 0) {
+          return nextAgents.join(' ');
+        }
+      }
+    }
+  }
+
+  // Fallback: static mapping for non-pipeline scenarios
   const mapping: Record<string, string> = {
     // Product thinking pipeline
     'market-intelligence': 'product-strategist',
@@ -59,16 +83,13 @@ function getDownstreamAgents(agent: string): string {
     'requirements-translator': 'metrics-architect',
     'metrics-architect': 'backend-system-architect',
     // Full-stack pipeline
-    'backend-system-architect': 'frontend-ui-developer database-engineer',
+    'backend-system-architect': 'frontend-ui-developer',
     'frontend-ui-developer': 'test-generator',
-    'test-generator': 'code-quality-reviewer',
-    'code-quality-reviewer': 'security-auditor',
+    'test-generator': 'security-auditor',
     // AI integration pipeline
     'workflow-architect': 'llm-integrator',
     'llm-integrator': 'data-pipeline-engineer',
-    'data-pipeline-engineer': 'code-quality-reviewer',
-    // Database pipeline
-    'database-engineer': 'backend-system-architect',
+    'data-pipeline-engineer': 'test-generator',
     // UI pipeline
     'rapid-ui-designer': 'frontend-ui-developer',
     'ux-researcher': 'rapid-ui-designer',
@@ -106,6 +127,13 @@ function getFeedbackCategory(agent: string): string {
   return categories[agent] || 'general';
 }
 
+/**
+ * Get instance ID consistently
+ */
+function getInstanceId(): string {
+  return process.env.CLAUDE_INSTANCE_ID || `${require('os').hostname()}-${process.pid}`;
+}
+
 function extractFindingsSummary(output: string): string {
   let summary = output.substring(0, 500);
   if (output.length > 500) {
@@ -129,6 +157,7 @@ interface DecisionEntry {
     downstream_agents: string[];
   };
   status: string;
+  task_id?: string;  // CC 2.1.16 integration
 }
 
 interface DecisionLog {
@@ -144,7 +173,8 @@ function writeDecision(
   summary: string,
   downstreamAgents: string,
   status: string,
-  timestamp: string
+  timestamp: string,
+  taskId?: string
 ): void {
   const decisionLog = getDecisionLog();
   const logDir = decisionLog.substring(0, decisionLog.lastIndexOf('/'));
@@ -161,26 +191,24 @@ function writeDecision(
       log = JSON.parse(readFileSync(decisionLog, 'utf8'));
     } catch {
       log = {
-        schema_version: '1.0.0',
+        schema_version: '2.0.0',
         log_created_at: timestamp,
         decisions: [],
       };
     }
   } else {
     log = {
-      schema_version: '1.0.0',
+      schema_version: '2.0.0',
       log_created_at: timestamp,
       decisions: [],
     };
   }
 
-  const instanceId = process.env.CLAUDE_INSTANCE_ID || `${require('os').hostname()}-${process.pid}`;
-
   const decisionEntry: DecisionEntry = {
     decision_id: decisionId,
     timestamp,
     made_by: {
-      instance_id: instanceId,
+      instance_id: getInstanceId(),
       agent_type: agentType,
     },
     category,
@@ -191,6 +219,7 @@ function writeDecision(
       downstream_agents: downstreamAgents.split(' ').filter(Boolean),
     },
     status,
+    task_id: taskId,
   };
 
   log.decisions.push(decisionEntry);
@@ -212,6 +241,7 @@ interface HandoffContext {
   session_id: string;
   status: string;
   feedback_loop: boolean;
+  task_id?: string;  // CC 2.1.16 integration
 }
 
 function createHandoffContext(
@@ -220,7 +250,8 @@ function createHandoffContext(
   summary: string,
   decisionId: string,
   sessionId: string,
-  timestamp: string
+  timestamp: string,
+  taskId?: string
 ): void {
   if (!downstreamAgents) {
     return;
@@ -248,6 +279,7 @@ function createHandoffContext(
       session_id: sessionId,
       status: 'pending',
       feedback_loop: true,
+      task_id: taskId,
     };
 
     try {
@@ -291,7 +323,11 @@ export function feedbackLoop(input: HookInput): HookResult {
     .padStart(4, '0');
   const decisionId = `DEC-${dateStr}-${randomNum}`;
 
-  // Determine downstream agents
+  // CC 2.1.16: Look up associated task
+  const task = getTaskByAgent(agentType);
+  const taskId = task?.taskId;
+
+  // Determine downstream agents (use pipeline-aware routing)
   const downstreamAgents = getDownstreamAgents(agentType);
 
   // Get feedback category
@@ -308,12 +344,18 @@ export function feedbackLoop(input: HookInput): HookResult {
     status = 'completed';
   }
 
-  // Write to decision log
-  writeDecision(decisionId, agentType, category, summary, downstreamAgents, status, timestamp);
+  // CC 2.1.16: Update task status in registry
+  if (taskId) {
+    updateTaskStatus(taskId, status === 'completed' ? 'completed' : 'failed');
+    logFeedback(`Updated task ${taskId} status to ${status}`);
+  }
 
-  // Create handoff context for downstream agents
+  // Write to decision log (now includes task_id)
+  writeDecision(decisionId, agentType, category, summary, downstreamAgents, status, timestamp, taskId);
+
+  // Create handoff context for downstream agents (now includes task_id)
   if (downstreamAgents) {
-    createHandoffContext(agentType, downstreamAgents, summary, decisionId, sessionId, timestamp);
+    createHandoffContext(agentType, downstreamAgents, summary, decisionId, sessionId, timestamp, taskId);
     logFeedback(`Routed findings to downstream agents: ${downstreamAgents}`);
   } else {
     logFeedback(`No downstream agents for ${agentType} (terminal agent)`);
@@ -324,6 +366,7 @@ export function feedbackLoop(input: HookInput): HookResult {
 Agent: ${agentType}
 Category: ${category}
 Decision ID: ${decisionId}
+Task ID: ${taskId || 'none'}
 Timestamp: ${timestamp}
 Status: ${status}
 Downstream: ${downstreamAgents || 'none'}
@@ -334,7 +377,7 @@ Summary: ${summary}`);
   if (downstreamAgents) {
     return {
       continue: true,
-      systemMessage: `Feedback loop: routed to ${downstreamAgents}`,
+      systemMessage: `Feedback loop: routed to ${downstreamAgents}${taskId ? ` (task: ${taskId})` : ''}`,
     };
   }
 
