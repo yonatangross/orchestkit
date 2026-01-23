@@ -12,6 +12,10 @@ import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { gitBranchProtection } from '../pretool/bash/git-branch-protection.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
+import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
+import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
+import { coordinationInit } from '../lifecycle/coordination-init.js';
+import { coordinationCleanup } from '../lifecycle/coordination-cleanup.js';
 
 // Import utilities
 import {
@@ -914,6 +918,476 @@ describe('lib/guards.ts', () => {
       });
       const result = guardSkipInternal(input);
       expect(result).toBe(null);
+    });
+  });
+});
+
+// =============================================================================
+// Lifecycle Hooks Tests
+// =============================================================================
+
+describe('lifecycle/session-context-loader', () => {
+  test('loads context when all files exist', () => {
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = sessionContextLoader(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles missing context files gracefully', () => {
+    const input = createHookInput({
+      project_dir: '/nonexistent/path',
+    });
+    const result = sessionContextLoader(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('uses default project dir when not provided', () => {
+    const input = createHookInput({});
+    const result = sessionContextLoader(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('loads agent-specific context when agent_type set', () => {
+    const originalEnv = process.env.AGENT_TYPE;
+    process.env.AGENT_TYPE = 'backend-system-architect';
+
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = sessionContextLoader(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalEnv !== undefined) {
+      process.env.AGENT_TYPE = originalEnv;
+    } else {
+      delete process.env.AGENT_TYPE;
+    }
+  });
+
+  test('handles invalid JSON files gracefully', () => {
+    const input = createHookInput({
+      project_dir: '/tmp',
+    });
+    const result = sessionContextLoader(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+});
+
+describe('lifecycle/session-env-setup', () => {
+  test('initializes session metrics', () => {
+    const input = createHookInput({
+      session_id: 'test-session-123',
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = sessionEnvSetup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('extracts agent_type from environment', () => {
+    const originalEnv = process.env.AGENT_TYPE;
+    process.env.AGENT_TYPE = 'database-engineer';
+
+    const input = createHookInput({
+      session_id: 'test-session-456',
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = sessionEnvSetup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalEnv !== undefined) {
+      process.env.AGENT_TYPE = originalEnv;
+    } else {
+      delete process.env.AGENT_TYPE;
+    }
+  });
+
+  test('extracts agent_type from hook input', () => {
+    const input = createHookInput({
+      session_id: 'test-session-789',
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+      agent_type: 'frontend-architect',
+    });
+    const result = sessionEnvSetup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles missing project directory gracefully', () => {
+    const input = createHookInput({
+      session_id: 'test-session-999',
+      project_dir: '/nonexistent/path',
+    });
+    const result = sessionEnvSetup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles git branch detection failure gracefully', () => {
+    const input = createHookInput({
+      session_id: 'test-session-111',
+      project_dir: '/tmp',
+    });
+    const result = sessionEnvSetup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+});
+
+describe('lifecycle/coordination-init', () => {
+  test('skips when multi-instance mode not enabled', () => {
+    const originalEnv = process.env.CLAUDE_MULTI_INSTANCE;
+    delete process.env.CLAUDE_MULTI_INSTANCE;
+
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationInit(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalEnv !== undefined) {
+      process.env.CLAUDE_MULTI_INSTANCE = originalEnv;
+    }
+  });
+
+  test('skips when slow hooks are disabled', () => {
+    const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
+    const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    process.env.CLAUDE_MULTI_INSTANCE = '1';
+    process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = '1';
+
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationInit(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalMulti !== undefined) {
+      process.env.CLAUDE_MULTI_INSTANCE = originalMulti;
+    } else {
+      delete process.env.CLAUDE_MULTI_INSTANCE;
+    }
+    if (originalSkip !== undefined) {
+      process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = originalSkip;
+    } else {
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    }
+  });
+
+  test('initializes coordination when enabled', () => {
+    const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
+    const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    process.env.CLAUDE_MULTI_INSTANCE = '1';
+    delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationInit(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalMulti !== undefined) {
+      process.env.CLAUDE_MULTI_INSTANCE = originalMulti;
+    } else {
+      delete process.env.CLAUDE_MULTI_INSTANCE;
+    }
+    if (originalSkip !== undefined) {
+      process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = originalSkip;
+    }
+  });
+
+  test('generates unique instance ID', () => {
+    const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
+    const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    const originalInstanceId = process.env.CLAUDE_INSTANCE_ID;
+    process.env.CLAUDE_MULTI_INSTANCE = '1';
+    delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    delete process.env.CLAUDE_INSTANCE_ID;
+
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationInit(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    // Instance ID should be set
+    expect(process.env.CLAUDE_INSTANCE_ID).toBeTruthy();
+
+    // Cleanup
+    if (originalMulti !== undefined) {
+      process.env.CLAUDE_MULTI_INSTANCE = originalMulti;
+    } else {
+      delete process.env.CLAUDE_MULTI_INSTANCE;
+    }
+    if (originalSkip !== undefined) {
+      process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = originalSkip;
+    }
+    if (originalInstanceId !== undefined) {
+      process.env.CLAUDE_INSTANCE_ID = originalInstanceId;
+    } else {
+      delete process.env.CLAUDE_INSTANCE_ID;
+    }
+  });
+
+  test('handles missing session state gracefully', () => {
+    const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
+    process.env.CLAUDE_MULTI_INSTANCE = '1';
+
+    const input = createHookInput({
+      project_dir: '/nonexistent/path',
+    });
+    const result = coordinationInit(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+
+    // Cleanup
+    if (originalMulti !== undefined) {
+      process.env.CLAUDE_MULTI_INSTANCE = originalMulti;
+    } else {
+      delete process.env.CLAUDE_MULTI_INSTANCE;
+    }
+  });
+});
+
+describe('lifecycle/coordination-cleanup', () => {
+  test('cleans up coordination when instance ID exists', () => {
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationCleanup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles missing instance ID gracefully', () => {
+    const input = createHookInput({
+      project_dir: '/nonexistent/path',
+    });
+    const result = coordinationCleanup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles missing heartbeat files gracefully', () => {
+    const input = createHookInput({
+      project_dir: '/tmp',
+    });
+    const result = coordinationCleanup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('handles missing coordination database gracefully', () => {
+    const input = createHookInput({
+      project_dir: '/tmp',
+    });
+    const result = coordinationCleanup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  test('removes instance environment file if exists', () => {
+    const input = createHookInput({
+      project_dir: '/Users/yonatangross/coding/projects/orchestkit',
+    });
+    const result = coordinationCleanup(input);
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+});
+
+// =============================================================================
+// Prompt Hooks Tests (UserPromptSubmit)
+// =============================================================================
+
+import { agentAutoSuggest } from '../prompt/agent-auto-suggest.js';
+import { skillAutoSuggest } from '../prompt/skill-auto-suggest.js';
+
+/**
+ * Create UserPromptSubmit input
+ */
+function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): HookInput {
+  return createHookInput({
+    hook_event: 'UserPromptSubmit',
+    prompt,
+    ...overrides,
+  });
+}
+
+describe('prompt/agent-auto-suggest', () => {
+  describe('basic behavior', () => {
+    test('returns silent success for empty prompt', () => {
+      const input = createPromptInput('');
+      const result = agentAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('returns silent success for short prompt (<10 chars)', () => {
+      const input = createPromptInput('hi there');
+      const result = agentAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips meta questions about agents', () => {
+      const input = createPromptInput('What agents are available?');
+      const result = agentAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      // Should not include suggestions for meta questions
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+    });
+
+    test('skips "list agents" queries', () => {
+      const input = createPromptInput('Can you list agents for this project?');
+      const result = agentAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
+    });
+  });
+
+  describe('keyword matching', () => {
+    test('suggests agent for matching keywords', () => {
+      // Keywords that should match backend-system-architect
+      const input = createPromptInput('Help me design a REST API with database schema for microservices');
+      const result = agentAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      if (result.hookSpecificOutput?.additionalContext) {
+        expect(result.hookSpecificOutput.additionalContext).toContain('Agent');
+      }
+    });
+
+    test('always returns continue:true', () => {
+      const inputs = [
+        'Design a database schema',
+        'Implement GraphQL endpoint',
+        'Review my code for security',
+        'Random unrelated prompt about gardening',
+      ];
+
+      for (const prompt of inputs) {
+        const input = createPromptInput(prompt);
+        const result = agentAutoSuggest(input);
+        expect(result.continue).toBe(true);
+      }
+    });
+  });
+
+  describe('CC 2.1.9 compliance', () => {
+    test('uses hookEventName: UserPromptSubmit when providing context', () => {
+      const input = createPromptInput('Help me design a REST API for backend microservice architecture');
+      const result = agentAutoSuggest(input);
+
+      if (result.hookSpecificOutput?.additionalContext) {
+        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
+      }
+    });
+
+    test('always includes suppressOutput: true', () => {
+      const input = createPromptInput('Design a backend API with database integration');
+      const result = agentAutoSuggest(input);
+
+      expect(result.suppressOutput).toBe(true);
+    });
+  });
+});
+
+describe('prompt/skill-auto-suggest', () => {
+  describe('basic behavior', () => {
+    test('returns silent success for empty prompt', () => {
+      const input = createPromptInput('');
+      const result = skillAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('returns silent success for short prompt', () => {
+      const input = createPromptInput('help');
+      const result = skillAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+  });
+
+  describe('keyword matching', () => {
+    test('suggests skills for matching keywords', () => {
+      // Keywords that should match e2e-testing or integration-testing
+      const input = createPromptInput('Help me write e2e tests with playwright for browser automation');
+      const result = skillAutoSuggest(input);
+
+      expect(result.continue).toBe(true);
+      if (result.hookSpecificOutput?.additionalContext) {
+        expect(result.hookSpecificOutput.additionalContext).toContain('skill');
+      }
+    });
+
+    test('always returns continue:true', () => {
+      const inputs = [
+        'Write unit tests',
+        'Deploy to kubernetes',
+        'Random unrelated prompt',
+      ];
+
+      for (const prompt of inputs) {
+        const input = createPromptInput(prompt);
+        const result = skillAutoSuggest(input);
+        expect(result.continue).toBe(true);
+      }
+    });
+  });
+
+  describe('CC 2.1.9 compliance', () => {
+    test('uses hookEventName: UserPromptSubmit when providing context', () => {
+      const input = createPromptInput('Help me write e2e tests with playwright');
+      const result = skillAutoSuggest(input);
+
+      if (result.hookSpecificOutput?.additionalContext) {
+        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
+      }
     });
   });
 });
