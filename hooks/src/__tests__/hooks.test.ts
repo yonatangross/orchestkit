@@ -1103,7 +1103,9 @@ describe('lifecycle/coordination-init', () => {
   test('initializes coordination when enabled', () => {
     const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
     const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+    const originalSessionId = process.env.CLAUDE_SESSION_ID;
     process.env.CLAUDE_MULTI_INSTANCE = '1';
+    process.env.CLAUDE_SESSION_ID = 'test-session-coord-init';
     delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
 
     const input = createHookInput({
@@ -1123,13 +1125,20 @@ describe('lifecycle/coordination-init', () => {
     if (originalSkip !== undefined) {
       process.env.ORCHESTKIT_SKIP_SLOW_HOOKS = originalSkip;
     }
+    if (originalSessionId !== undefined) {
+      process.env.CLAUDE_SESSION_ID = originalSessionId;
+    } else {
+      delete process.env.CLAUDE_SESSION_ID;
+    }
   });
 
   test('generates unique instance ID', () => {
     const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
     const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
     const originalInstanceId = process.env.CLAUDE_INSTANCE_ID;
+    const originalSessionId = process.env.CLAUDE_SESSION_ID;
     process.env.CLAUDE_MULTI_INSTANCE = '1';
+    process.env.CLAUDE_SESSION_ID = 'test-session-unique-id';
     delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
     delete process.env.CLAUDE_INSTANCE_ID;
 
@@ -1157,11 +1166,18 @@ describe('lifecycle/coordination-init', () => {
     } else {
       delete process.env.CLAUDE_INSTANCE_ID;
     }
+    if (originalSessionId !== undefined) {
+      process.env.CLAUDE_SESSION_ID = originalSessionId;
+    } else {
+      delete process.env.CLAUDE_SESSION_ID;
+    }
   });
 
   test('handles missing session state gracefully', () => {
     const originalMulti = process.env.CLAUDE_MULTI_INSTANCE;
+    const originalSessionId = process.env.CLAUDE_SESSION_ID;
     process.env.CLAUDE_MULTI_INSTANCE = '1';
+    process.env.CLAUDE_SESSION_ID = 'test-session-missing-state';
 
     const input = createHookInput({
       project_dir: '/nonexistent/path',
@@ -1176,6 +1192,11 @@ describe('lifecycle/coordination-init', () => {
       process.env.CLAUDE_MULTI_INSTANCE = originalMulti;
     } else {
       delete process.env.CLAUDE_MULTI_INSTANCE;
+    }
+    if (originalSessionId !== undefined) {
+      process.env.CLAUDE_SESSION_ID = originalSessionId;
+    } else {
+      delete process.env.CLAUDE_SESSION_ID;
     }
   });
 });

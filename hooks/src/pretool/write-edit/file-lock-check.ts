@@ -42,9 +42,10 @@ function isCoordinationEnabled(projectDir: string): boolean {
 
 /**
  * Get current instance ID
+ * CC 2.1.9+ guarantees CLAUDE_SESSION_ID availability
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_SESSION_ID || `instance-${process.pid}`;
+  return process.env.CLAUDE_SESSION_ID!;
 }
 
 /**

@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-01-23T15:02:47.213Z",
-  "buildTimeMs": 21,
-  "size": 279319,
-  "sizeKB": "272.77",
+  "generatedAt": "2026-01-23T15:37:53.122Z",
+  "buildTimeMs": 41,
+  "size": 279254,
+  "sizeKB": "272.71",
   "inputs": 153,
   "exports": [
     "createGuard",

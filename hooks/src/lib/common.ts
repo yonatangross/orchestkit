@@ -12,7 +12,6 @@ import type { HookResult, HookInput } from '../types.js';
 
 const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
 const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || '.';
-const SESSION_ID = process.env.CLAUDE_SESSION_ID || 'unknown';
 
 /**
  * Get the log directory path
@@ -40,9 +39,11 @@ export function getPluginRoot(): string {
 
 /**
  * Get the session ID
+ * CC 2.1.9+ guarantees CLAUDE_SESSION_ID availability - no fallback needed
+ * Read dynamically to support testing
  */
 export function getSessionId(): string {
-  return SESSION_ID;
+  return process.env.CLAUDE_SESSION_ID!;
 }
 
 // -----------------------------------------------------------------------------
@@ -230,7 +231,7 @@ export function logPermissionFeedback(
 
     const timestamp = new Date().toISOString();
     const toolName = input?.tool_name || process.env.HOOK_TOOL_NAME || 'unknown';
-    const sessionId = input?.session_id || SESSION_ID;
+    const sessionId = input?.session_id || getSessionId();
 
     appendFileSync(
       logFile,
@@ -273,7 +274,7 @@ export function readHookInput(): HookInput {
 
     const input = Buffer.concat(chunks).toString('utf8').trim();
     if (!input) {
-      return { tool_name: '', session_id: SESSION_ID, tool_input: {} };
+      return { tool_name: '', session_id: getSessionId(), tool_input: {} };
     }
 
     return JSON.parse(input);
