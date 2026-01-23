@@ -4,12 +4,17 @@
     "position": "START",
     "token_budget": 400,
     "auto_load": "on_trigger",
-    "triggers": ["decision", "why", "rationale", "chose", "trade-off"],
+    "triggers": [
+      "decision",
+      "why",
+      "rationale",
+      "chose",
+      "trade-off"
+    ],
     "compress_after_days": 30,
     "archive_to": "../archive/decisions/",
     "description": "Recent architectural decisions - loaded on relevant keywords"
   },
-
   "decisions": [
     {
       "id": "context-engineering-2.0",
