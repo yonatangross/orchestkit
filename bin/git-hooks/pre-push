@@ -110,6 +110,69 @@ if [[ $MISMATCH -eq 1 ]]; then
 fi
 echo "OK (all at v$PLUGIN_V)"
 
+# ===== Unit Tests =====
+echo -n "  Running unit tests... "
+
+# Cross-platform timeout function
+run_with_timeout() {
+  local timeout_secs=$1
+  shift
+  if command -v timeout &>/dev/null; then
+    timeout "$timeout_secs" "$@"
+  elif command -v gtimeout &>/dev/null; then
+    gtimeout "$timeout_secs" "$@"
+  else
+    # Fallback: use perl alarm (works on macOS)
+    perl -e "alarm $timeout_secs; exec @ARGV" "$@"
+  fi
+}
+
+UNIT_TEST_ERRORS=0
+if [[ -d "tests/unit" ]]; then
+  for test_file in tests/unit/test-*.sh; do
+    if [[ -x "$test_file" ]]; then
+      if ! run_with_timeout 60 bash "$test_file" >/dev/null 2>&1; then
+        if [[ $UNIT_TEST_ERRORS -eq 0 ]]; then
+          echo "FAILED"
+        fi
+        echo "    FAIL: $(basename "$test_file")"
+        UNIT_TEST_ERRORS=$((UNIT_TEST_ERRORS + 1))
+      fi
+    fi
+  done
+fi
+
+if [[ $UNIT_TEST_ERRORS -gt 0 ]]; then
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Unit tests failed! ($UNIT_TEST_ERRORS test file(s) failed)"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run individual tests to see failures:"
+  echo "║  for f in tests/unit/test-*.sh; do bash \"\$f\"; done"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Security Tests =====
+echo -n "  Running security tests... "
+
+if [[ -x "tests/security/run-security-tests.sh" ]]; then
+  if ! ./tests/security/run-security-tests.sh >/dev/null 2>&1; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Security tests failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: ./tests/security/run-security-tests.sh"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+else
+  echo "SKIP (not found)"
+fi
+
 echo ""
 echo "Pre-push validation passed"
 exit 0
