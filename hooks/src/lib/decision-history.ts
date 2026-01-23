@@ -715,6 +715,33 @@ ${decision.entities?.length ? `${COLORS.cyan}Related Entities${COLORS.reset}\n${
 // =============================================================================
 
 /**
+ * Sanitize text for Mermaid diagram compatibility
+ * Mermaid timeline has strict syntax - colons, brackets, and special chars break parsing
+ */
+function sanitizeMermaidText(text: string, maxLength: number = 30): string {
+  return text
+    .slice(0, maxLength)
+    // Remove markdown formatting
+    .replace(/\*\*/g, '')
+    .replace(/\*/g, '')
+    .replace(/`/g, '')
+    // Remove quotes (can break Mermaid parsing)
+    .replace(/["']/g, '')
+    // Replace colons with dashes (colon is Mermaid delimiter)
+    .replace(/:/g, '-')
+    // Remove brackets and special chars that break Mermaid
+    .replace(/[[\]{}()|#<>&;\\]/g, '')
+    // Remove leading slashes (for commands like /ork-doctor)
+    .replace(/^\/+/, '')
+    // Replace multiple spaces/dashes with single
+    .replace(/\s+/g, ' ')
+    .replace(/-+/g, '-')
+    // Remove leading/trailing dashes and spaces
+    .replace(/^[-\s]+|[-\s]+$/g, '')
+    .trim();
+}
+
+/**
  * Format decisions as Mermaid timeline diagram
  */
 export function formatMermaid(
@@ -734,7 +761,8 @@ export function formatMermaid(
   });
 
   for (const [group, items] of sortedGroups.slice(0, 10)) {
-    const label = groupBy === 'cc_version' ? `CC ${group}` : group;
+    // Sanitize section label
+    const label = groupBy === 'cc_version' ? `CC ${group}` : sanitizeMermaidText(group, 20);
     output += `    section ${label}\n`;
 
     // Take top 3 high-impact decisions per group
@@ -743,15 +771,14 @@ export function formatMermaid(
       .slice(0, 3);
 
     for (const d of topItems) {
-      // Sanitize for Mermaid: remove colons and special chars
-      const summary = d.summary
-        .slice(0, 35)
-        .replace(/:/g, '-')
-        .replace(/[[\]{}|]/g, '')
-        .trim();
+      // Sanitize summary and category for Mermaid
+      const summary = sanitizeMermaidText(d.summary, 30);
+      const category = sanitizeMermaidText(d.category, 15);
 
-      const category = d.category.replace(/:/g, '-');
-      output += `        ${summary} : ${category}\n`;
+      // Only add if we have valid content after sanitization
+      if (summary.length > 0) {
+        output += `        ${summary} : ${category}\n`;
+      }
     }
   }
 
