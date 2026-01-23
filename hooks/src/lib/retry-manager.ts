@@ -44,6 +44,7 @@ const NON_RETRYABLE_ERRORS = [
   /permission denied/i,
   /access denied/i,
   /not found.*(?:file|module|package)/i,
+  /(?:file|module|package)\s+not\s+found/i,
   /missing required/i,
   /invalid (?:api|token|key)/i,
   /authentication failed/i,
