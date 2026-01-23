@@ -47,6 +47,143 @@ import { fileGuard } from './pretool/write-edit/file-guard.js';
 import { fileLockCheck } from './pretool/write-edit/file-lock-check.js';
 import { multiInstanceLock } from './pretool/write-edit/multi-instance-lock.js';
 
+// PreTool/Write hooks
+import { architectureChangeDetector } from './pretool/Write/architecture-change-detector.js';
+import { codeQualityGate } from './pretool/Write/code-quality-gate.js';
+import { docstringEnforcer } from './pretool/Write/docstring-enforcer.js';
+import { securityPatternValidator } from './pretool/Write/security-pattern-validator.js';
+
+// PreTool/MCP hooks
+import { context7Tracker } from './pretool/mcp/context7-tracker.js';
+import { memoryFabricInit } from './pretool/mcp/memory-fabric-init.js';
+import { memoryValidator } from './pretool/mcp/memory-validator.js';
+import { sequentialThinkingAuto } from './pretool/mcp/sequential-thinking-auto.js';
+
+// PreTool/InputMod hooks
+import { writeHeaders } from './pretool/input-mod/write-headers.js';
+
+// PreTool/Skill hooks
+import { skillTracker } from './pretool/skill/skill-tracker.js';
+
+// Skill hooks (24)
+import { backendFileNaming } from './skill/backend-file-naming.js';
+import { backendLayerValidator } from './skill/backend-layer-validator.js';
+import { coverageCheck } from './skill/coverage-check.js';
+import { coverageThresholdGate } from './skill/coverage-threshold-gate.js';
+import { crossInstanceTestValidator } from './skill/cross-instance-test-validator.js';
+import { decisionEntityExtractor } from './skill/decision-entity-extractor.js';
+import { designDecisionSaver } from './skill/design-decision-saver.js';
+import { diPatternEnforcer } from './skill/di-pattern-enforcer.js';
+import { duplicateCodeDetector } from './skill/duplicate-code-detector.js';
+import { evalMetricsCollector } from './skill/eval-metrics-collector.js';
+import { evidenceCollector } from './skill/evidence-collector.js';
+import { importDirectionEnforcer } from './skill/import-direction-enforcer.js';
+import { mem0DecisionSaver } from './skill/mem0-decision-saver.js';
+import { mergeConflictPredictor } from './skill/merge-conflict-predictor.js';
+import { mergeReadinessChecker } from './skill/merge-readiness-checker.js';
+import { migrationValidator } from './skill/migration-validator.js';
+import { patternConsistencyEnforcer } from './skill/pattern-consistency-enforcer.js';
+import { redactSecrets } from './skill/redact-secrets.js';
+import { reviewSummaryGenerator } from './skill/review-summary-generator.js';
+import { securitySummary } from './skill/security-summary.js';
+import { structureLocationValidator } from './skill/structure-location-validator.js';
+import { testLocationValidator } from './skill/test-location-validator.js';
+import { testPatternValidator } from './skill/test-pattern-validator.js';
+import { testRunner } from './skill/test-runner.js';
+
+// Prompt hooks (UserPromptSubmit)
+import { antipatternDetector } from './prompt/antipattern-detector.js';
+import { antipatternWarning } from './prompt/antipattern-warning.js';
+import { contextInjector } from './prompt/context-injector.js';
+import { contextPruningAdvisor } from './prompt/context-pruning-advisor.js';
+import { memoryContext } from './prompt/memory-context.js';
+import { satisfactionDetector } from './prompt/satisfaction-detector.js';
+import { skillAutoSuggest } from './prompt/skill-auto-suggest.js';
+import { todoEnforcer } from './prompt/todo-enforcer.js';
+
+// SubagentStart hooks (4)
+import { agentMemoryInject } from './subagent-start/agent-memory-inject.js';
+import { contextGate } from './subagent-start/context-gate.js';
+import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
+import { subagentValidator } from './subagent-start/subagent-validator.js';
+
+// SubagentStop hooks (9)
+import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
+import { autoSpawnQuality } from './subagent-stop/auto-spawn-quality.js';
+import { contextPublisher } from './subagent-stop/context-publisher.js';
+import { feedbackLoop } from './subagent-stop/feedback-loop.js';
+import { handoffPreparer } from './subagent-stop/handoff-preparer.js';
+import { multiClaudeVerifier } from './subagent-stop/multi-claude-verifier.js';
+import { outputValidator } from './subagent-stop/output-validator.js';
+import { subagentCompletionTracker } from './subagent-stop/subagent-completion-tracker.js';
+import { subagentQualityGate } from './subagent-stop/subagent-quality-gate.js';
+
+// Notification hooks (2)
+import { desktopNotification } from './notification/desktop.js';
+import { soundNotification } from './notification/sound.js';
+
+// Stop hooks (11)
+import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
+import { autoSaveContext } from './stop/auto-save-context.js';
+import { cleanupInstance } from './stop/cleanup-instance.js';
+import { contextCompressor } from './stop/context-compressor.js';
+import { fullTestSuite } from './stop/full-test-suite.js';
+import { issueWorkSummary } from './stop/issue-work-summary.js';
+import { mem0PreCompactionSync } from './stop/mem0-pre-compaction-sync.js';
+import { multiInstanceCleanup } from './stop/multi-instance-cleanup.js';
+import { securityScanAggregator } from './stop/security-scan-aggregator.js';
+import { sessionPatterns } from './stop/session-patterns.js';
+import { taskCompletionCheck } from './stop/task-completion-check.js';
+
+// Setup hooks (7)
+import { firstRunSetup } from './setup/first-run-setup.js';
+import { mem0AnalyticsDashboard } from './setup/mem0-analytics-dashboard.js';
+import { mem0BackupSetup } from './setup/mem0-backup-setup.js';
+import { mem0Cleanup } from './setup/mem0-cleanup.js';
+import { setupCheck } from './setup/setup-check.js';
+import { setupMaintenance } from './setup/setup-maintenance.js';
+import { setupRepair } from './setup/setup-repair.js';
+
+// Agent hooks (6)
+import { a11yLintCheck } from './agent/a11y-lint-check.js';
+import { blockWrites } from './agent/block-writes.js';
+import { ciSafetyCheck } from './agent/ci-safety-check.js';
+import { deploymentSafetyCheck } from './agent/deployment-safety-check.js';
+import { migrationSafetyCheck } from './agent/migration-safety-check.js';
+import { securityCommandAudit } from './agent/security-command-audit.js';
+
+// PostTool hooks - Root (12)
+import { auditLogger } from './posttool/audit-logger.js';
+import { autoLint } from './posttool/auto-lint.js';
+import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
+import { coordinationHeartbeat } from './posttool/coordination-heartbeat.js';
+import { errorCollector } from './posttool/error-collector.js';
+import { errorSolutionSuggester } from './posttool/error-solution-suggester.js';
+import { errorTracker } from './posttool/error-tracker.js';
+import { mem0WebhookHandler } from './posttool/mem0-webhook-handler.js';
+import { memoryBridge } from './posttool/memory-bridge.js';
+import { realtimeSync } from './posttool/realtime-sync.js';
+import { sessionMetrics } from './posttool/session-metrics.js';
+import { skillEditTracker } from './posttool/skill-edit-tracker.js';
+
+// PostTool/Write hooks (5)
+import { codeStyleLearner } from './posttool/write/code-style-learner.js';
+import { coveragePredictor } from './posttool/write/coverage-predictor.js';
+import { namingConventionLearner } from './posttool/write/naming-convention-learner.js';
+import { readmeSync } from './posttool/write/readme-sync.js';
+import { releaseLockOnCommit } from './posttool/write/release-lock-on-commit.js';
+
+// PostTool/Bash hooks (3)
+import { issueProgressCommenter } from './posttool/bash/issue-progress-commenter.js';
+import { issueSubtaskUpdater } from './posttool/bash/issue-subtask-updater.js';
+import { patternExtractor } from './posttool/bash/pattern-extractor.js';
+
+// PostTool/Skill hooks (1)
+import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
+
+// PostTool/Write-Edit hooks (1)
+import { fileLockRelease } from './posttool/write-edit/file-lock-release.js';
+
 import type { HookFn } from './types.js';
 
 /**
@@ -88,6 +225,143 @@ export const hooks: Record<string, HookFn> = {
   'pretool/write-edit/file-guard': fileGuard,
   'pretool/write-edit/file-lock-check': fileLockCheck,
   'pretool/write-edit/multi-instance-lock': multiInstanceLock,
+
+  // PreTool/Write hooks (4)
+  'pretool/Write/architecture-change-detector': architectureChangeDetector,
+  'pretool/Write/code-quality-gate': codeQualityGate,
+  'pretool/Write/docstring-enforcer': docstringEnforcer,
+  'pretool/Write/security-pattern-validator': securityPatternValidator,
+
+  // PreTool/MCP hooks (4)
+  'pretool/mcp/context7-tracker': context7Tracker,
+  'pretool/mcp/memory-fabric-init': memoryFabricInit,
+  'pretool/mcp/memory-validator': memoryValidator,
+  'pretool/mcp/sequential-thinking-auto': sequentialThinkingAuto,
+
+  // PreTool/InputMod hooks (1)
+  'pretool/input-mod/write-headers': writeHeaders,
+
+  // PreTool/Skill hooks (1)
+  'pretool/skill/skill-tracker': skillTracker,
+
+  // Prompt hooks (8) - UserPromptSubmit
+  'prompt/antipattern-detector': antipatternDetector,
+  'prompt/antipattern-warning': antipatternWarning,
+  'prompt/context-injector': contextInjector,
+  'prompt/context-pruning-advisor': contextPruningAdvisor,
+  'prompt/memory-context': memoryContext,
+  'prompt/satisfaction-detector': satisfactionDetector,
+  'prompt/skill-auto-suggest': skillAutoSuggest,
+  'prompt/todo-enforcer': todoEnforcer,
+
+  // SubagentStart hooks (4)
+  'subagent-start/agent-memory-inject': agentMemoryInject,
+  'subagent-start/context-gate': contextGate,
+  'subagent-start/subagent-context-stager': subagentContextStager,
+  'subagent-start/subagent-validator': subagentValidator,
+
+  // SubagentStop hooks (9)
+  'subagent-stop/agent-memory-store': agentMemoryStore,
+  'subagent-stop/auto-spawn-quality': autoSpawnQuality,
+  'subagent-stop/context-publisher': contextPublisher,
+  'subagent-stop/feedback-loop': feedbackLoop,
+  'subagent-stop/handoff-preparer': handoffPreparer,
+  'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
+  'subagent-stop/output-validator': outputValidator,
+  'subagent-stop/subagent-completion-tracker': subagentCompletionTracker,
+  'subagent-stop/subagent-quality-gate': subagentQualityGate,
+
+  // Notification hooks (2)
+  'notification/desktop': desktopNotification,
+  'notification/sound': soundNotification,
+
+  // Skill hooks (24)
+  'skill/backend-file-naming': backendFileNaming,
+  'skill/backend-layer-validator': backendLayerValidator,
+  'skill/coverage-check': coverageCheck,
+  'skill/coverage-threshold-gate': coverageThresholdGate,
+  'skill/cross-instance-test-validator': crossInstanceTestValidator,
+  'skill/decision-entity-extractor': decisionEntityExtractor,
+  'skill/design-decision-saver': designDecisionSaver,
+  'skill/di-pattern-enforcer': diPatternEnforcer,
+  'skill/duplicate-code-detector': duplicateCodeDetector,
+  'skill/eval-metrics-collector': evalMetricsCollector,
+  'skill/evidence-collector': evidenceCollector,
+  'skill/import-direction-enforcer': importDirectionEnforcer,
+  'skill/mem0-decision-saver': mem0DecisionSaver,
+  'skill/merge-conflict-predictor': mergeConflictPredictor,
+  'skill/merge-readiness-checker': mergeReadinessChecker,
+  'skill/migration-validator': migrationValidator,
+  'skill/pattern-consistency-enforcer': patternConsistencyEnforcer,
+  'skill/redact-secrets': redactSecrets,
+  'skill/review-summary-generator': reviewSummaryGenerator,
+  'skill/security-summary': securitySummary,
+  'skill/structure-location-validator': structureLocationValidator,
+  'skill/test-location-validator': testLocationValidator,
+  'skill/test-pattern-validator': testPatternValidator,
+  'skill/test-runner': testRunner,
+
+  // Stop hooks (11)
+  'stop/auto-remember-continuity': autoRememberContinuity,
+  'stop/auto-save-context': autoSaveContext,
+  'stop/cleanup-instance': cleanupInstance,
+  'stop/context-compressor': contextCompressor,
+  'stop/full-test-suite': fullTestSuite,
+  'stop/issue-work-summary': issueWorkSummary,
+  'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
+  'stop/multi-instance-cleanup': multiInstanceCleanup,
+  'stop/security-scan-aggregator': securityScanAggregator,
+  'stop/session-patterns': sessionPatterns,
+  'stop/task-completion-check': taskCompletionCheck,
+
+  // Setup hooks (7)
+  'setup/first-run-setup': firstRunSetup,
+  'setup/mem0-analytics-dashboard': mem0AnalyticsDashboard,
+  'setup/mem0-backup-setup': mem0BackupSetup,
+  'setup/mem0-cleanup': mem0Cleanup,
+  'setup/setup-check': setupCheck,
+  'setup/setup-maintenance': setupMaintenance,
+  'setup/setup-repair': setupRepair,
+
+  // Agent hooks (6)
+  'agent/a11y-lint-check': a11yLintCheck,
+  'agent/block-writes': blockWrites,
+  'agent/ci-safety-check': ciSafetyCheck,
+  'agent/deployment-safety-check': deploymentSafetyCheck,
+  'agent/migration-safety-check': migrationSafetyCheck,
+  'agent/security-command-audit': securityCommandAudit,
+
+  // PostTool hooks - Root (12)
+  'posttool/audit-logger': auditLogger,
+  'posttool/auto-lint': autoLint,
+  'posttool/context-budget-monitor': contextBudgetMonitor,
+  'posttool/coordination-heartbeat': coordinationHeartbeat,
+  'posttool/error-collector': errorCollector,
+  'posttool/error-solution-suggester': errorSolutionSuggester,
+  'posttool/error-tracker': errorTracker,
+  'posttool/mem0-webhook-handler': mem0WebhookHandler,
+  'posttool/memory-bridge': memoryBridge,
+  'posttool/realtime-sync': realtimeSync,
+  'posttool/session-metrics': sessionMetrics,
+  'posttool/skill-edit-tracker': skillEditTracker,
+
+  // PostTool/Write hooks (5)
+  'posttool/write/code-style-learner': codeStyleLearner,
+  'posttool/write/coverage-predictor': coveragePredictor,
+  'posttool/write/naming-convention-learner': namingConventionLearner,
+  'posttool/write/readme-sync': readmeSync,
+  'posttool/write/release-lock-on-commit': releaseLockOnCommit,
+
+  // PostTool/Bash hooks (3)
+  'posttool/bash/issue-progress-commenter': issueProgressCommenter,
+  'posttool/bash/issue-subtask-updater': issueSubtaskUpdater,
+  'posttool/bash/pattern-extractor': patternExtractor,
+
+  // PostTool/Skill hooks (1)
+  'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
+
+  // PostTool/Write-Edit hooks (1)
+  'posttool/write-edit/file-lock-release': fileLockRelease,
 };
 
 /**

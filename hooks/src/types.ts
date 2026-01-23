@@ -41,6 +41,30 @@ export interface HookInput {
   prompt?: string;
   /** Project directory */
   project_dir?: string;
+
+  // SubagentStart/SubagentStop specific fields
+  /** Agent type for subagent hooks */
+  subagent_type?: string;
+  /** Agent type (alternative field name) */
+  agent_type?: string;
+  /** Agent ID */
+  agent_id?: string;
+  /** Agent output (SubagentStop) */
+  agent_output?: string;
+  /** Output (alternative field name) */
+  output?: string;
+  /** Error from subagent */
+  error?: string;
+  /** Duration in milliseconds */
+  duration_ms?: number;
+  /** Tool result (SubagentStop) */
+  tool_result?: string;
+
+  // Notification specific fields
+  /** Notification message */
+  message?: string;
+  /** Notification type */
+  notification_type?: string;
 }
 
 /**
@@ -70,7 +94,7 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PermissionRequest';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PermissionRequest' | 'UserPromptSubmit';
   /** Permission decision (PermissionRequest hooks) */
   permissionDecision?: 'allow' | 'deny';
   /** Reason for permission decision */

@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-01-23T04:17:01.234Z",
-  "buildTimeMs": 32,
-  "size": 36455,
-  "sizeKB": "35.60",
-  "inputs": 32,
+  "generatedAt": "2026-01-23T14:36:57.124Z",
+  "buildTimeMs": 42,
+  "size": 250070,
+  "sizeKB": "244.21",
+  "inputs": 135,
   "exports": [
     "createGuard",
     "escapeRegex",
@@ -47,6 +47,7 @@
     "outputBlock",
     "outputDeny",
     "outputError",
+    "outputPromptContext",
     "outputSilentAllow",
     "outputSilentSuccess",
     "outputWarning",

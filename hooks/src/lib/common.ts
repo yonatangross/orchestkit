@@ -83,12 +83,31 @@ export function outputBlock(reason: string): HookResult {
 
 /**
  * Output with additionalContext - injects context before tool execution (CC 2.1.9)
+ * For PostToolUse hooks (hookEventName optional)
  */
 export function outputWithContext(ctx: string): HookResult {
   return {
     continue: true,
     suppressOutput: true,
-    hookSpecificOutput: { additionalContext: ctx },
+    hookSpecificOutput: {
+      hookEventName: 'PostToolUse',
+      additionalContext: ctx,
+    },
+  };
+}
+
+/**
+ * Output with additionalContext for UserPromptSubmit hooks (CC 2.1.9)
+ * hookEventName is REQUIRED for UserPromptSubmit
+ */
+export function outputPromptContext(ctx: string): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: ctx,
+    },
   };
 }
 

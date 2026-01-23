@@ -1,44 +1,5 @@
 #!/bin/bash
-# Runs on Stop for llm-evaluation skill
-# Collects and summarizes evaluation metrics
-set -euo pipefail
-
-# Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
-# Dont export - large inputs overflow environment
-
-echo "::group::LLM Evaluation Summary"
-
-# Check for evaluation results
-if [ -f "eval_results.json" ]; then
-  echo "Evaluation results found:"
-  cat eval_results.json | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-if isinstance(data, dict):
-    for key, value in data.items():
-        if isinstance(value, (int, float)):
-            print(f'  {key}: {value:.2f}' if isinstance(value, float) else f'  {key}: {value}')
-" 2>/dev/null || cat eval_results.json | head -20
-fi
-
-# Check for deepeval results
-if [ -d ".deepeval" ]; then
-  echo ""
-  echo "DeepEval results directory found"
-  ls -la .deepeval/ 2>/dev/null | tail -5
-fi
-
-# Check for ragas results
-if [ -f "ragas_results.json" ]; then
-  echo ""
-  echo "RAGAS evaluation results found"
-fi
-
-echo ""
-echo "Evaluation complete - review metrics above"
-echo "::endgroup::"
-
-# Output systemMessage for user visibility
-echo '{"continue":true,"suppressOutput":true}'
-exit 0
+# Eval Metrics Collector - Collects LLM evaluation metrics
+# Hook: Stop
+# CC 2.1.7 Compliant
+exec node "${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-.}}/hooks/bin/run-hook.mjs" "skill/eval-metrics-collector"

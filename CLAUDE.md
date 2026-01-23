@@ -37,11 +37,29 @@ plugins/                 # Modular plugin bundles
 # FULL TOOLKIT (root level - for development/reference)
 skills/                  # 162 skills (21 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
-hooks/                   # 147 lifecycle hooks
+hooks/                   # 147 lifecycle hooks (27 TypeScript, 120 Bash)
+│   ├── src/             # TypeScript source (NEW - Phase 1: 27 hooks)
+│   │   ├── index.ts     # Hook registry + exports
+│   │   ├── types.ts     # HookInput, HookResult interfaces
+│   │   ├── lib/         # Shared utilities
+│   │   │   ├── common.ts   # Logging, output builders
+│   │   │   ├── git.ts      # Git operations
+│   │   │   └── guards.ts   # Hook guards
+│   │   ├── permission/  # Permission hooks (4)
+│   │   └── pretool/     # PreTool hooks (23)
+│   │       ├── bash/    # Bash command hooks (20)
+│   │       └── write-edit/  # File operation hooks (3)
+│   ├── dist/            # Compiled ESM bundle
+│   │   └── hooks.mjs    # Single bundled file (35.60 KB)
+│   ├── bin/
+│   │   └── run-hook.mjs # CLI runner
+│   ├── package.json     # NPM package config
+│   ├── tsconfig.json    # TypeScript config
+│   ├── esbuild.config.mjs  # Bundle config
 │   ├── setup/           # CC 2.1.11 Setup hooks (--init, --maintenance)
 │   ├── lifecycle/       # Session start/end hooks
-│   ├── permission/      # Auto-approval for safe operations
-│   ├── pretool/         # Pre-execution validation
+│   ├── permission/      # Auto-approval for safe operations (deprecated - migrated to src/)
+│   ├── pretool/         # Pre-execution validation (deprecated - migrated to src/)
 │   ├── posttool/        # Post-execution logging and metrics
 │   ├── prompt/          # Prompt enhancement and context injection
 │   └── stop/            # Conversation stop handlers
@@ -75,7 +93,8 @@ bin/                     # CLI utilities and scripts
 ## Tech Stack
 
 ### Core Plugin Technology
-- **Language**: Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
+- **Language**: TypeScript + Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
+- **Hook Infrastructure**: TypeScript ESM (27/147 hooks migrated, 35.60 KB bundle) + Bash legacy
 - **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
@@ -150,6 +169,21 @@ hooks/pretool/bash/git-branch-protection.sh
 
 # Clear hook logs
 rm -rf hooks/logs/*.log
+```
+
+### TypeScript Hook Development
+```bash
+# Build TypeScript hooks
+cd hooks && npm run build
+
+# Type check hooks
+cd hooks && npm run typecheck
+
+# Watch mode for development
+cd hooks && npm run dev
+
+# Validate hook bundle
+ls -lh hooks/dist/hooks.mjs
 ```
 
 ### Coordination System
@@ -861,7 +895,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Claude Code Requirement**: >= 2.1.16
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (147 hooks)
+- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (147 hooks: 27 TypeScript, 120 Bash)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -876,6 +910,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
 - **agent-browser Integration**: Replaced Playwright MCP with Vercel agent-browser CLI (93% less context, Snapshot + Refs workflow) (v4.28.0)
 - **CC 2.1.16 Integration**: Task Management System (TaskCreate, TaskUpdate, TaskGet, TaskList), VSCode native plugins, new task-dependency-patterns skill (v5.0.0)
+- **TypeScript Hook Migration**: Phase 1 complete (27/147 hooks), 35.60 KB bundle, ESM architecture with shared utilities (v5.1.0)
 
 ---
 

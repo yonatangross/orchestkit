@@ -1,29 +1,4 @@
 #!/bin/bash
-set -euo pipefail
-# Task Completion Check - Verifies tasks are properly completed before stop
-# Hook: Stop
-
-# Read and discard stdin to prevent broken pipe errors in hook chain
-_HOOK_INPUT=$(cat 2>/dev/null || true)
-# Dont export - large inputs overflow environment
-
-source "$(dirname "$0")/../_lib/common.sh"
-
-log_hook "Stop hook - checking task completion"
-
-# Check if there are any in-progress todos
-# This is informational only - doesn't block stop
-
-TODOS_FILE="/tmp/claude-active-todos.json"
-if [[ -f "$TODOS_FILE" ]]; then
-  IN_PROGRESS=$(jq '[.[] | select(.status == "in_progress")] | length' "$TODOS_FILE" 2>/dev/null)
-
-  if [[ "$IN_PROGRESS" -gt 0 ]]; then
-    warn "$IN_PROGRESS task(s) still in progress"
-    log_hook "WARNING: $IN_PROGRESS tasks in progress at stop"
-  fi
-fi
-
-# Output systemMessage for user visibility
-echo '{"continue":true,"suppressOutput":true}'
-exit 0
+# Task Completion Check - Stop Hook
+# Verifies tasks are properly completed before stop
+exec node "${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-.}}/hooks/bin/run-hook.mjs" "stop/task-completion-check"
