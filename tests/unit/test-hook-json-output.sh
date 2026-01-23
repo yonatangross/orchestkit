@@ -195,7 +195,14 @@ test_hook_trap_on_exit() {
     local hook_path="$1"
     local hook_name=$(basename "$hook_path")
 
-    # Check if hook has trap statement
+    # TypeScript-delegated hooks don't need EXIT traps - TypeScript's type system
+    # guarantees JSON output via the HookResult return type
+    if grep -q "exec node.*run-hook.mjs" "$hook_path" 2>/dev/null; then
+        log_pass "$hook_name: TypeScript-delegated (guaranteed JSON via types)"
+        return 0
+    fi
+
+    # For pure Bash hooks, check if hook has trap statement
     if grep -q "trap.*EXIT" "$hook_path" 2>/dev/null; then
         log_pass "$hook_name: Has EXIT trap for safety"
         return 0

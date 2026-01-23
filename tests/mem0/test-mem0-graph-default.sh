@@ -9,10 +9,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Source mem0 library
-source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+# Source shared test helpers (includes mem0 helper functions)
+source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-# Test counters
+# Test counters (reset from test-helpers.sh)
 TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0

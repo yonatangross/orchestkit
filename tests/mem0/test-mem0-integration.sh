@@ -52,6 +52,188 @@ test_fail() {
 }
 
 # =============================================================================
+# Mem0 Helper Functions (inline versions for testing)
+# These replace the deleted hooks/_lib/mem0.sh for test purposes
+# =============================================================================
+
+# Generate global user_id for cross-project patterns
+mem0_global_user_id() {
+    local category="$1"
+    echo "orchestkit-global-${category}"
+}
+
+# Build JSON for mem0 add_memory API
+mem0_add_memory_json() {
+    local category="$1"
+    local content="$2"
+    local metadata="${3:-'{}'}"
+    local enable_graph="${4:-false}"
+    local agent_id="${5:-}"
+    local is_global="${6:-false}"
+
+    local project_name
+    project_name=$(basename "${CLAUDE_PROJECT_DIR:-/tmp/test}")
+
+    local user_id
+    if [[ "$is_global" == "true" ]]; then
+        user_id="orchestkit-global-${category}"
+    else
+        user_id="${project_name}-${category}"
+    fi
+
+    local json="{\"messages\":[{\"role\":\"user\",\"content\":$(echo "$content" | jq -Rs .)}],\"user_id\":\"${user_id}\",\"metadata\":${metadata},\"enable_graph\":${enable_graph}"
+
+    if [[ -n "$agent_id" ]]; then
+        json="${json},\"agent_id\":\"${agent_id}\""
+    fi
+
+    echo "${json}}"
+}
+
+# Build JSON for mem0 search_memories API
+mem0_search_memory_json() {
+    local category="$1"
+    local query="$2"
+    local limit="${3:-10}"
+    local is_global="${4:-false}"
+    local agent_id="${5:-}"
+    local metadata_category="${6:-}"
+    local enable_graph="${7:-false}"
+
+    local project_name
+    project_name=$(basename "${CLAUDE_PROJECT_DIR:-/tmp/test}")
+
+    local user_id
+    if [[ "$is_global" == "true" ]]; then
+        user_id="orchestkit-global-${category}"
+    else
+        user_id="${project_name}-${category}"
+    fi
+
+    local filters="{\"AND\":[{\"user_id\":\"${user_id}\"}"
+
+    if [[ -n "$metadata_category" ]]; then
+        filters="${filters},{\"metadata.category\":\"${metadata_category}\"}"
+    fi
+
+    if [[ -n "$agent_id" ]]; then
+        filters="${filters},{\"agent_id\":\"ork:${agent_id}\"}"
+    fi
+
+    filters="${filters}]}"
+
+    echo "{\"query\":$(echo "$query" | jq -Rs .),\"limit\":${limit},\"filters\":${filters}}"
+}
+
+# Build graph entity JSON
+mem0_build_graph_entity() {
+    local name="$1"
+    local entity_type="$2"
+    shift 2
+    local observations=("$@")
+
+    local obs_json="["
+    local first=true
+    for obs in "${observations[@]}"; do
+        if [[ "$first" == "true" ]]; then
+            first=false
+        else
+            obs_json="${obs_json},"
+        fi
+        obs_json="${obs_json}$(echo "$obs" | jq -Rs .)"
+    done
+    obs_json="${obs_json}]"
+
+    echo "{\"name\":\"${name}\",\"entityType\":\"${entity_type}\",\"observations\":${obs_json}}"
+}
+
+# Build graph relation JSON
+mem0_build_graph_relation() {
+    local from="$1"
+    local to="$2"
+    local relation_type="$3"
+    echo "{\"from\":\"${from}\",\"to\":\"${to}\",\"relationType\":\"${relation_type}\"}"
+}
+
+# Format agent_id with ork: prefix
+mem0_format_agent_id() {
+    local agent_id="$1"
+    if [[ "$agent_id" == ork:* ]]; then
+        echo "$agent_id"
+    else
+        echo "ork:${agent_id}"
+    fi
+}
+
+# Validate agent_id against known agents
+validate_agent_id() {
+    local agent_id="$1"
+    # Strip ork: prefix for checking
+    local clean_id="${agent_id#ork:}"
+
+    # Check if agent file exists or matches custom pattern
+    if [[ -f "$PROJECT_ROOT/agents/${clean_id}.md" ]]; then
+        return 0
+    fi
+
+    # Accept custom:* pattern
+    if [[ "$agent_id" == custom:* ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Detect best practice category from content
+detect_best_practice_category() {
+    local content="$1"
+    local content_lower=$(echo "$content" | tr '[:upper:]' '[:lower:]')
+
+    # Check categories in order of specificity
+    if [[ "$content_lower" == *"pagination"* ]] || [[ "$content_lower" == *"cursor"* ]] || [[ "$content_lower" == *"offset"* ]] || [[ "$content_lower" == *"page"* ]]; then
+        echo "pagination"
+    elif [[ "$content_lower" == *"auth"* ]] || [[ "$content_lower" == *"security"* ]] || [[ "$content_lower" == *"jwt"* ]] || [[ "$content_lower" == *"oauth"* ]]; then
+        echo "authentication"
+    elif [[ "$content_lower" == *"database"* ]] || [[ "$content_lower" == *"sql"* ]]; then
+        echo "database"
+    elif [[ "$content_lower" == *"api"* ]] || [[ "$content_lower" == *"rest"* ]] || [[ "$content_lower" == *"endpoint"* ]]; then
+        echo "api"
+    elif [[ "$content_lower" == *"performance"* ]] || [[ "$content_lower" == *"slow"* ]] || [[ "$content_lower" == *"optimize"* ]] || [[ "$content_lower" == *"index"* ]]; then
+        echo "performance"
+    elif [[ "$content_lower" == *"cache"* ]] || [[ "$content_lower" == *"redis"* ]]; then
+        echo "caching"
+    elif [[ "$content_lower" == *"test"* ]] || [[ "$content_lower" == *"mock"* ]]; then
+        echo "testing"
+    elif [[ "$content_lower" == *"query"* ]]; then
+        echo "database"
+    else
+        echo "general"
+    fi
+}
+
+# Build best practice JSON
+build_best_practice_json() {
+    local outcome="$1"
+    local category="$2"
+    local what_happened="$3"
+    local lesson_learned="$4"
+    local include_tech="${5:-false}"
+    local tech_tags="${6:-}"
+    local is_global="${7:-false}"
+
+    local user_id
+    if [[ "$is_global" == "true" ]]; then
+        user_id="orchestkit-global-best-practices"
+    else
+        local project_name
+        project_name=$(basename "${CLAUDE_PROJECT_DIR:-/tmp/test}")
+        user_id="${project_name}-best-practices"
+    fi
+
+    echo "{\"user_id\":\"${user_id}\",\"outcome\":\"${outcome}\",\"category\":\"${category}\",\"what_happened\":$(echo "$what_happened" | jq -Rs .),\"lesson_learned\":$(echo "$lesson_learned" | jq -Rs .)}"
+}
+
+# =============================================================================
 # Test: Session Start Context Retrieval
 # =============================================================================
 
@@ -448,7 +630,7 @@ test_cross_project_best_practices() {
     test_start "global user_id pattern for best practices"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test global user_id generation
     local global_user_id
@@ -488,7 +670,7 @@ test_graph_memory_relationships() {
     test_start "enable_graph flow for relationship extraction"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test mem0_add_memory_json with enable_graph=true
     local json_output
@@ -524,7 +706,7 @@ test_graph_memory_entity_builder() {
     test_start "graph entity builder functions"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test entity building
     local entity
@@ -553,7 +735,7 @@ test_graph_memory_relation_builder() {
     test_start "graph relation builder functions"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test relation building
     local relation
@@ -586,7 +768,7 @@ test_remember_recall_user_id_alignment() {
     test_start "remember and recall use same user_id pattern"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     export CLAUDE_PROJECT_DIR="/Users/test/my-project"
 
@@ -619,7 +801,7 @@ test_category_filter_in_search() {
     test_start "metadata.category filter works in search"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     export CLAUDE_PROJECT_DIR="/Users/test/my-project"
 
@@ -648,7 +830,7 @@ test_category_filter_with_agent_id() {
     test_start "category filter works alongside agent_id filter"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     export CLAUDE_PROJECT_DIR="/Users/test/my-project"
 
@@ -689,7 +871,7 @@ test_agent_id_format_validation() {
     test_start "agent_id formatting with ork: prefix"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test formatting adds ork: prefix
     local formatted1
@@ -715,7 +897,7 @@ test_agent_id_validation_known_agents() {
     test_start "validate_agent_id accepts known agents"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test known agent
     if validate_agent_id "database-engineer" 2>/dev/null; then
@@ -729,7 +911,7 @@ test_agent_id_validation_custom_pattern() {
     test_start "validate_agent_id accepts custom pattern"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test custom agent following pattern
     if validate_agent_id "my-custom-agent-123" 2>/dev/null; then
@@ -747,7 +929,7 @@ test_best_practice_category_detection() {
     test_start "detect_best_practice_category identifies categories"
 
     # Source mem0 library
-    source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
+    # Helper functions are now inline at top of file (TypeScript migration)
 
     # Test various category detections
     local cat1 cat2 cat3

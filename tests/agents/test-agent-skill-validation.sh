@@ -71,7 +71,9 @@ EOF
   local stderr_output
 
   # Run hook with our test directory
-  stderr_output=$(echo "$input" | CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
+  # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
+  # CLAUDE_PROJECT_DIR points to test dir for agents/skills lookup
+  stderr_output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
 
   # Should contain warning about missing skills
   if [[ "$stderr_output" == *"missing skill"* ]] && [[ "$stderr_output" == *"non-existent-skill-12345"* ]]; then
@@ -126,7 +128,8 @@ EOF
   local input='{"tool_input":{"subagent_type":"test-continue-agent","description":"Test"},"session_id":"test-123"}'
   local stdout_output
 
-  stdout_output=$(echo "$input" | CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>/dev/null) || true
+  # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
+  stdout_output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>/dev/null) || true
 
   # Should output valid JSON with continue: true
   if echo "$stdout_output" | jq -e '.continue == true' >/dev/null 2>&1; then
