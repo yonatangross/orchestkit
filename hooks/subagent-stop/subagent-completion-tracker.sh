@@ -1,23 +1,4 @@
 #!/bin/bash
-set -euo pipefail
-# Subagent Completion Tracker - Minimal hook
+# Subagent Completion Tracker - Logs completion events for session correlation
 # Hook: SubagentStop
-#
-# LIMITATION: Claude Code SubagentStop does NOT provide subagent_type.
-# Available fields: session_id, transcript_path, permission_mode, hook_event_name
-#
-# Subagent TYPE tracking is done in PreToolUse (subagent-validator.sh)
-# This hook only logs completion events for session correlation.
-
-# Read stdin BEFORE sourcing common.sh to avoid subshell issues
-_HOOK_INPUT=$(cat)
-# Dont export - large inputs overflow environment
-
-source "$(dirname "$0")/../_lib/common.sh"
-
-SESSION_ID=$(get_session_id)
-log_hook "Subagent completed (session: $SESSION_ID)"
-
-# Output systemMessage for user visibility
-echo '{"continue":true,"suppressOutput":true}'
-exit 0
+exec node "${CLAUDE_PLUGIN_ROOT:-${CLAUDE_PROJECT_DIR:-.}}/hooks/bin/run-hook.mjs" "subagent-stop/subagent-completion-tracker"
