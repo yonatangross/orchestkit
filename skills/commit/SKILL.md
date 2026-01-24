@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 allowedTools: [Bash]
+skills: [git-recovery-command]
 ---
 
 # Smart Commit

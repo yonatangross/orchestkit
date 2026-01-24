@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 allowedTools: [Bash]
+skills: [commit, review-pr]
 ---
 
 # Create Pull Request

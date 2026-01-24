@@ -33,6 +33,8 @@ interface TaskEntry {
   status: 'pending' | 'in_progress' | 'completed' | 'failed';
   pipelineId?: string;
   pipelineStep?: number;
+  blockedBy?: string[];
+  blocks?: string[];
 }
 
 /** Task registry for session */
@@ -101,6 +103,33 @@ function saveRegistry(registry: TaskRegistry): void {
 // -----------------------------------------------------------------------------
 
 /**
+ * Get action-specific activeForm based on agent type
+ */
+function getActiveFormForAgent(agent: string, description: string): string {
+  const actionMap: Record<string, string> = {
+    'backend-system-architect': 'Designing',
+    'frontend-ui-developer': 'Building',
+    'test-generator': 'Writing tests for',
+    'security-auditor': 'Auditing',
+    'workflow-architect': 'Architecting',
+    'database-engineer': 'Implementing database for',
+    'llm-integrator': 'Integrating LLM for',
+    'code-quality-reviewer': 'Reviewing',
+    'ux-researcher': 'Researching UX for',
+    'product-strategist': 'Strategizing',
+    'debug-investigator': 'Investigating',
+    'performance-engineer': 'Optimizing',
+    'accessibility-specialist': 'Auditing accessibility for',
+    'infrastructure-architect': 'Designing infrastructure for',
+    'data-pipeline-engineer': 'Building pipeline for',
+  };
+
+  const action = actionMap[agent] || 'Working on';
+  const shortDesc = description.slice(0, 40).toLowerCase();
+  return `${action} ${shortDesc}`;
+}
+
+/**
  * Generate TaskCreate instruction for an agent dispatch
  */
 export function generateTaskCreateInstruction(
@@ -124,7 +153,7 @@ export function generateTaskCreateInstruction(
   return {
     subject: `${agentTitle}: ${description.slice(0, 50)}`,
     description: `Agent dispatched automatically at ${confidence}% confidence.\n\n${description}`,
-    activeForm: `Working with ${agentTitle}`,
+    activeForm: getActiveFormForAgent(agent, description),
     metadata: fullMetadata,
   };
 }
@@ -210,7 +239,9 @@ export function registerTask(
   agent: string,
   confidence: number,
   pipelineId?: string,
-  pipelineStep?: number
+  pipelineStep?: number,
+  blockedBy?: string[],
+  blocks?: string[]
 ): void {
   const registry = loadRegistry();
 
@@ -229,6 +260,8 @@ export function registerTask(
     status: 'pending',
     pipelineId,
     pipelineStep,
+    blockedBy,
+    blocks,
   });
 
   saveRegistry(registry);

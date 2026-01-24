@@ -1,12 +1,13 @@
 ---
 name: recall
 description: Search and retrieve decisions and patterns from knowledge graph. Use when recalling patterns, retrieving memories, finding past decisions.
-context: inherit
+context: none
 version: 2.1.0
 author: OrchestKit
 tags: [memory, search, decisions, patterns, graph-memory, mem0, unified-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob]
+skills: [remember]
 ---
 
 # Recall - Search Knowledge Graph

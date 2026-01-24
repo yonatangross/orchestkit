@@ -1,12 +1,13 @@
 ---
 name: remember
 description: Store decisions and patterns in knowledge graph with optional cloud sync. Use when saving patterns, storing decisions, remembering approaches that worked.
-context: inherit
+context: none
 version: 2.1.0
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory, mem0, unified-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob]
+skills: [recall]
 ---
 
 # Remember - Store Decisions and Patterns

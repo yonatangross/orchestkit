@@ -6,6 +6,7 @@ user-invocable: true
 allowedTools: [Read, Grep, Glob]
 auto-invoke: session-start
 context: inherit
+skills: [recall, remember]
 agent: null
 version: 1.0.0
 allowed-tools: [Read, mcp__mem0__search_memories, mcp__mem0__get_memories, mcp__memory__search_nodes, mcp__memory__read_graph]

@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [verification, testing, quality, validation]
 user-invocable: true
 allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task]
+skills: [code-review-playbook, security-scanning, evidence-verification]
 ---
 
 # Verify Feature

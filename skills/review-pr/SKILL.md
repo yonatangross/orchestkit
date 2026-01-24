@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task]
+skills: [code-review-playbook, security-scanning, type-safety-validation]
 ---
 
 # Review PR

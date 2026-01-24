@@ -8,6 +8,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: true
 allowedTools: [Task, Read, Grep, Glob]
+skills: [architecture-decision-record, api-design-framework, design-system-starter]
 ---
 
 # Brainstorming Ideas Into Designs

@@ -6,7 +6,8 @@ version: 1.0.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging]
 user-invocable: true
-allowedTools: [Bash]
+allowedTools: [Bash, Read, Write, Edit, Task, Grep, Glob]
+skills: [commit, explore, verify, debug-investigator]
 ---
 
 # Fix Issue
@@ -48,8 +49,8 @@ mcp__memory__search_nodes(query="issue $ARGUMENTS")
 
 | Agent | Task |
 |-------|------|
-| Explore #1 | Root cause analysis |
-| Explore #2 | Impact analysis |
+| debug-investigator #1 | Root cause analysis |
+| debug-investigator #2 | Impact analysis |
 | backend-system-architect | Backend fix design |
 | frontend-ui-developer | Frontend fix design |
 | code-quality-reviewer | Test requirements |
@@ -110,7 +111,7 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [Brief description]"
 - Phase 6 (Implementation): 2 agents
 
 **Agents Used:**
-- 2 Explore (root cause, impact)
+- 2 debug-investigator (root cause, impact)
 - 1 backend-system-architect
 - 1 frontend-ui-developer
 - 2 code-quality-reviewer

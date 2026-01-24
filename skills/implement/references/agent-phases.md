@@ -2,10 +2,10 @@
 
 ## Phase 3: Architecture Design (5 Agents)
 
-### Agent 1: Plan
+### Agent 1: Workflow Architect
 ```python
 Task(
-  subagent_type="Plan",
+  subagent_type="workflow-architect",
   prompt="""ARCHITECTURE PLANNING
 
   Feature: $ARGUMENTS
@@ -74,10 +74,10 @@ Task(
 )
 ```
 
-### Agent 4: AI/ML Engineer
+### Agent 4: LLM Integrator
 ```python
 Task(
-  subagent_type="ai-ml-engineer",
+  subagent_type="llm-integrator",
   prompt="""AI/ML INTEGRATION ANALYSIS
 
   Feature: $ARGUMENTS

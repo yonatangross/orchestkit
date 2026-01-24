@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents]
 user-invocable: true
 allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task]
+skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify]
 ---
 
 # Implement Feature
@@ -63,7 +64,7 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 | Agent | Focus |
 |-------|-------|
-| Plan | Architecture planning, dependency graph |
+| workflow-architect | Architecture planning, dependency graph |
 | backend-system-architect | API, services, database |
 | frontend-ui-developer | Components, state, hooks |
 | llm-integrator | LLM integration (if needed) |
@@ -71,7 +72,7 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 ```python
 # PARALLEL - All agents in ONE message
-Task(subagent_type="Plan", prompt="...", run_in_background=True)
+Task(subagent_type="workflow-architect", prompt="...", run_in_background=True)
 Task(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
 Task(subagent_type="frontend-ui-developer", prompt="...", run_in_background=True)
 Task(subagent_type="llm-integrator", prompt="...", run_in_background=True)

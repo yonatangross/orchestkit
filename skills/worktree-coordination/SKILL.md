@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [coordination, worktree, multi-instance, locking, parallel-development, 2026]
 user-invocable: true
 allowedTools: [Read, Write, Bash, Grep, Glob]
+skills: [git-workflow, commit, stacked-prs]
 ---
 
 # Worktree Coordination Skill

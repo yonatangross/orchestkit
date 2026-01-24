@@ -99,7 +99,7 @@ Task(
 
 ```python
 Task(
-    subagent_type="Explore",
+    subagent_type="workflow-architect",
     prompt="""DIFFICULTY CLASSIFICATION
 
     Analyze document complexity for retrieval testing:
@@ -134,7 +134,7 @@ Task(
 
 ```python
 Task(
-    subagent_type="Explore",
+    subagent_type="data-pipeline-engineer",
     prompt="""DOMAIN TAGGING
 
     Extract domain tags for this content:
@@ -170,7 +170,7 @@ Task(
 
 ```python
 Task(
-    subagent_type="Explore",
+    subagent_type="test-generator",
     prompt="""TEST QUERY GENERATION
 
     Generate test queries for this golden dataset document:

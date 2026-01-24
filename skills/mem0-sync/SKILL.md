@@ -6,6 +6,7 @@ user-invocable: true
 allowedTools: [Read, Grep, Glob]
 auto-invoke: session-end
 context: inherit
+skills: [recall, remember]
 ---
 
 # Mem0 Auto-Sync

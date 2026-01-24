@@ -6,7 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase]
 user-invocable: true
-allowedTools: [Read, Grep, Glob]
+allowedTools: [Read, Grep, Glob, Task]
 ---
 
 # Codebase Exploration

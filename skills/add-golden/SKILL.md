@@ -6,7 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [curation, golden-dataset, evaluation, testing]
 user-invocable: true
-allowedTools: [Read, Write, Edit, Grep, Glob]
+allowedTools: [Read, Write, Edit, Grep, Glob, Task]
 ---
 
 # Add to Golden Dataset
@@ -41,9 +41,9 @@ Extract document structure:
 | Agent | Task |
 |-------|------|
 | code-quality-reviewer | Quality evaluation |
-| Explore #1 | Difficulty classification |
-| Explore #2 | Domain tagging |
-| Explore #3 | Test query generation |
+| workflow-architect | Difficulty classification |
+| data-pipeline-engineer | Domain tagging |
+| test-generator | Test query generation |
 
 ### Quality Dimensions
 
@@ -97,7 +97,9 @@ Validate fixture consistency after writing.
 
 **Total Parallel Agents: 4**
 - 1 code-quality-reviewer
-- 3 Explore agents
+- 1 workflow-architect
+- 1 data-pipeline-engineer
+- 1 test-generator
 
 **Quality Gates:**
 - Minimum score: 0.55 for review

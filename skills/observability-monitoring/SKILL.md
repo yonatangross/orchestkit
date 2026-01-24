@@ -6,7 +6,7 @@ context: fork
 agent: metrics-architect
 version: 1.0.0
 category: Operations & Reliability
-agents: [backend-system-architect, code-quality-reviewer, ai-ml-engineer]
+agents: [backend-system-architect, code-quality-reviewer, llm-integrator]
 keywords: [observability, monitoring, logging, metrics, tracing, alerts, Prometheus, OpenTelemetry]
 author: OrchestKit
 user-invocable: false
