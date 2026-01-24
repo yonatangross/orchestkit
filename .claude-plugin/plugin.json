@@ -262,10 +262,6 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/a11y-lint-check"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/ci-safety-check"
           },
           {
@@ -393,10 +389,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/decision-entity-extractor"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/skill/skill-usage-optimizer"
           }
         ]
@@ -423,12 +415,7 @@
     "PermissionRequest": [
       {
         "matcher": "Read|Glob|Grep",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs permission/auto-approve-readonly"
-          }
-        ]
+        "hooks": []
       },
       {
         "matcher": "Bash",
@@ -614,15 +601,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/design-decision-saver"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/evidence-collector"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/mem0-decision-saver"
           },
           {
             "type": "command",
@@ -755,10 +734,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/agent-memory-store"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/subagent-completion-tracker"
           },
           {
             "type": "command",

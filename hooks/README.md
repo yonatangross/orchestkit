@@ -116,7 +116,7 @@ Execute AFTER a tool completes, used for logging and tracking.
 
 **Examples:**
 - `posttool/audit-logger` - Log all tool executions
-- `posttool/error-tracker` - Track and categorize errors
+- `posttool/unified-error-handler` - Track and categorize errors
 - `posttool/memory-bridge` - Sync important info to knowledge graph
 
 ### Prompt Hooks (UserPromptSubmit)
