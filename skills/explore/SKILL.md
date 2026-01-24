@@ -2,7 +2,7 @@
 name: explore
 description: Deep codebase exploration with parallel specialized agents. Use when exploring a repo, finding files, or discovering architecture with the explore agent.
 context: fork
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase]
 user-invocable: true
@@ -72,22 +72,34 @@ Launch 4 specialized explorers in ONE message with `run_in_background: true`:
 # PARALLEL - All 4 in ONE message
 Task(
   subagent_type="Explore",
-  prompt="Code Structure: Find all files, classes, functions related to: $ARGUMENTS",
+  prompt="""Code Structure: Find all files, classes, functions related to: $ARGUMENTS
+
+  SUMMARY: End with: "RESULT: [N] files, [M] classes - [key location, e.g., 'src/auth/']"
+  """,
   run_in_background=True
 )
 Task(
   subagent_type="Explore",
-  prompt="Data Flow: Trace entry points, processing, storage for: $ARGUMENTS",
+  prompt="""Data Flow: Trace entry points, processing, storage for: $ARGUMENTS
+
+  SUMMARY: End with: "RESULT: [entry] → [processing] → [storage] - [N] hop flow"
+  """,
   run_in_background=True
 )
 Task(
   subagent_type="backend-system-architect",
-  prompt="Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS",
+  prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
+
+  SUMMARY: End with: "RESULT: [pattern name] - [N] integrations, [M] dependencies"
+  """,
   run_in_background=True
 )
 Task(
   subagent_type="frontend-ui-developer",
-  prompt="Frontend Analysis: Find components, state management, routes for: $ARGUMENTS",
+  prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
+
+  SUMMARY: End with: "RESULT: [N] components, [state lib] - [key route]"
+  """,
   run_in_background=True
 )
 ```
