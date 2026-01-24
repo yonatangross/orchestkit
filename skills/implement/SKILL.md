@@ -6,7 +6,7 @@ version: 1.1.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task]
+allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, mcp__context7__query-docs, mcp__mem0__add-memory]
 skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify]
 ---
 

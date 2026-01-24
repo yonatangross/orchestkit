@@ -3,10 +3,10 @@ name: mem0-memory
 description: Long-term semantic memory across sessions using Mem0. Use when you need to remember, recall, or forget information across sessions, or when referencing what we discussed last time or in a previous session.
 tags: [memory, mem0, persistence, context]
 context: fork
-agent: any
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+allowedTools: [Bash, Read, mcp__mem0__add_memory, mcp__mem0__search_memories, mcp__mem0__get_memories, mcp__mem0__delete_memory]
 ---
 
 # Mem0 Memory Management

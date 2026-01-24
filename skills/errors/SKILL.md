@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
+allowedTools: [Read, Bash, Grep]
 ---
 
 # Error Pattern Analysis
