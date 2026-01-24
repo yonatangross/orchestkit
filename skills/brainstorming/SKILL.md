@@ -3,10 +3,10 @@ name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 2.0.0
+version: 3.0.0
 author: OrchestKit
 user-invocable: true
-allowedTools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+allowedTools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design-framework, design-system-starter, recall, remember]
 ---
 
@@ -14,11 +14,9 @@ skills: [architecture-decision-record, api-design-framework, design-system-start
 
 ## Overview
 
-Transform rough ideas into fully-formed designs through structured questioning and alternative exploration.
+Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
-**Core principle:** Ask questions to understand, explore alternatives, present design incrementally for validation.
-
-**Announce skill usage at start of session.**
+**Core principle:** Analyze the topic, select the most relevant agents dynamically, explore alternatives in parallel, present design incrementally.
 
 ## When NOT to Use This Skill
 
@@ -27,156 +25,308 @@ Transform rough ideas into fully-formed designs through structured questioning a
 - Only one obvious approach exists
 - User has already designed the solution (just needs implementation)
 - Time-sensitive bug fix or urgent production issue
-- User explicitly says "just implement it" without questions
 
 **Examples of clear requirements (no brainstorming needed):**
 - "Add a print button to this page"
 - "Fix this TypeError on line 42"
-- "Update the copyright year to 2026"
 - "Change the button color to #FF5733"
 
-## The Three-Phase Process
+## The Five-Phase Process
 
-| Phase | Key Activities | Tool Usage | Output |
-|-------|----------------|------------|--------|
-| **1. Understanding** | Ask questions (one at a time) | AskUserQuestion for choices | Purpose, constraints, criteria |
-| **2. Exploration** | Propose 2-3 approaches | AskUserQuestion for approach selection | Architecture options with trade-offs |
-| **3. Design Presentation** | Present in 200-300 word sections | Open-ended questions | Complete design with validation |
+| Phase | Key Activities | Agents/Tools | Output |
+|-------|----------------|--------------|--------|
+| **0. Topic Analysis** | Classify topic, select agents | Keyword matching | Agent list, skill list |
+| **1. Memory + Context** | Search past decisions, check codebase | mcp__memory, Grep/Glob | Prior patterns, existing code |
+| **2. Parallel Research** | 3-5 agents explore in parallel | Dynamic agent selection | Multiple perspectives |
+| **3. Synthesis** | Combine agent outputs | Trade-off table | 2-3 unified approaches |
+| **4. Design Presentation** | Present incrementally | AskUserQuestion | Validated design |
 
-### Phase 1: Understanding
+---
 
-**Goal:** Gather purpose, constraints, and success criteria.
+## Phase 0: Topic Analysis & Agent Selection (MANDATORY)
 
-**Process:**
-- **Memory Check First:** Search graph for similar past brainstorms
-  ```python
-  mcp__memory__search_nodes(query="{feature topic}")
-  ```
-- Check current project state in working directory
-- Ask ONE question at a time to refine the idea
-- Use AskUserQuestion tool when presenting multiple choice options
-- Gather: Purpose, constraints, success criteria
+**Goal:** Identify topic domain and dynamically select the most relevant agents.
 
-**Tool Usage:**
-Use AskUserQuestion for clarifying questions with 2-4 clear options.
-
-Example: "Where should the authentication data be stored?" with options for Session storage, Local storage, Cookies, each with trade-off descriptions.
-
-See `references/example-session-auth.md` for complete Phase 1 example.
-
-### Phase 2: Exploration
-
-**Goal:** Propose 2-3 different architectural approaches with explicit trade-offs.
-
-**Process:**
-- Propose 2-3 different approaches
-- For each: Core architecture, trade-offs, complexity assessment
-- Use AskUserQuestion tool to present approaches as structured choices
-- Include trade-off comparison table when helpful
-
-**Trade-off Format:**
-
-| Approach | Pros | Cons | Complexity |
-|----------|------|------|------------|
-| Option 1 | Benefits | Drawbacks | Low/Med/High |
-| Option 2 | Benefits | Drawbacks | Low/Med/High |
-| Option 3 | Benefits | Drawbacks | Low/Med/High |
-
-**Parallel Agent Research (Optional for Complex Features):**
-
-For complex features requiring deep exploration, launch 3 agents in ONE message:
+### Step 1: Create Brainstorming Task
 
 ```python
-# PARALLEL - All 3 in ONE message
+TaskCreate(
+  subject="Brainstorm: {topic}",
+  description="Design exploration for {topic} with parallel agent research",
+  activeForm="Brainstorming {topic}"
+)
+```
+
+### Step 2: Classify Topic Keywords
+
+Parse the brainstorming topic for domain keywords:
+
+| Domain | Keywords to Detect |
+|--------|-------------------|
+| **Backend/API** | api, endpoint, REST, GraphQL, backend, server, route |
+| **Frontend/UI** | UI, component, React, frontend, page, form, dashboard |
+| **Database** | database, schema, query, SQL, PostgreSQL, migration |
+| **Auth/Security** | auth, login, JWT, OAuth, security, permission, role |
+| **AI/LLM** | AI, LLM, RAG, embeddings, prompt, agent, workflow |
+| **Performance** | performance, slow, optimize, cache, speed, latency |
+| **Testing** | test, coverage, quality, e2e, unit, integration |
+| **DevOps** | deploy, CI/CD, Docker, Kubernetes, infrastructure |
+| **Real-time** | websocket, SSE, real-time, live, streaming, notification |
+
+### Step 3: Select Agents Dynamically
+
+**Agent Selection Matrix:**
+
+| Detected Domain | Primary Agents | Skills to Read |
+|-----------------|----------------|----------------|
+| Backend/API | `backend-system-architect`, `security-auditor` | api-design-framework, error-handling-rfc9457 |
+| Frontend/UI | `frontend-ui-developer`, `ux-researcher` | react-server-components-framework, design-system-starter |
+| Database | `backend-system-architect` | database-schema-designer, sqlalchemy-2-async |
+| Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns, owasp-top-10 |
+| AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval, langgraph-state, embeddings |
+| Performance | `performance-engineer`, `backend-system-architect` | core-web-vitals, caching-strategies |
+| Testing | `test-generator`, `code-quality-reviewer` | unit-testing, integration-testing |
+| DevOps | `infrastructure-architect`, `ci-cd-engineer` | devops-deployment |
+| Real-time | `backend-system-architect`, `frontend-ui-developer` | streaming-api-patterns, message-queues |
+
+**Always include:** `workflow-architect` (system design perspective)
+
+**Selection Rule:** Pick 3-5 agents based on detected domains. If multiple domains detected, include agents from each.
+
+### Example Topic Analysis
+
+**Topic:** "brainstorm user authentication with social login"
+
+```
+Keywords detected: auth, login, social
+Domains: Auth/Security, Backend/API
+Selected agents:
+  1. workflow-architect (always)
+  2. security-auditor (auth/security)
+  3. backend-system-architect (auth + API)
+  4. frontend-ui-developer (login UI)
+Selected skills to read:
+  - auth-patterns
+  - owasp-top-10
+  - api-design-framework
+```
+
+---
+
+## Phase 1: Memory Check + Codebase Context
+
+**Goal:** Gather existing knowledge before parallel research.
+
+### Step 1: Search Knowledge Graph
+
+```python
+# Check for similar past brainstorms/decisions
+mcp__memory__search_nodes(query="{topic}")
+mcp__memory__search_nodes(query="{primary domain} patterns")
+```
+
+### Step 2: Check Existing Codebase
+
+```python
+# PARALLEL - Quick codebase scan
+Grep(pattern="{topic keywords}", output_mode="files_with_matches")
+Glob(pattern="**/*{topic}*")
+```
+
+### Step 3: Summarize Context
+
+Document:
+- Prior decisions found in memory
+- Existing patterns in codebase
+- Constraints from current architecture
+
+---
+
+## Phase 2: Parallel Agent Research (3-5 Agents)
+
+**Goal:** Get diverse perspectives from dynamically selected agents.
+
+### Dispatch Pattern
+
+Launch ALL selected agents in ONE message with `run_in_background: true`:
+
+```python
+# Example for "user authentication with social login"
+# PARALLEL - All agents in ONE message
+
 Task(
   subagent_type="workflow-architect",
-  prompt="Research architecture approaches for: {feature}. Return 2-3 options with trade-offs.",
+  prompt="""BRAINSTORM RESEARCH: user authentication with social login
+
+  Analyze system design approaches:
+  1. Identify 2-3 architectural patterns
+  2. Consider: session vs JWT, OAuth flow, token storage
+  3. Return trade-off matrix with complexity ratings
+
+  Output format:
+  {approaches: [{name, description, pros, cons, complexity}]}""",
   run_in_background=True
 )
+
+Task(
+  subagent_type="security-auditor",
+  prompt="""SECURITY ANALYSIS: user authentication with social login
+
+  Evaluate security considerations:
+  1. OAuth vulnerabilities (CSRF, token theft)
+  2. Session management risks
+  3. Secure token storage options
+  4. OWASP auth best practices
+
+  Output format:
+  {risks: [...], recommendations: [...], must_haves: [...]}""",
+  run_in_background=True
+)
+
 Task(
   subagent_type="backend-system-architect",
-  prompt="Evaluate backend patterns for: {feature}. Consider API, database, async needs.",
+  prompt="""BACKEND DESIGN: user authentication with social login
+
+  Design backend implementation:
+  1. API endpoint structure
+  2. Database schema for users/sessions
+  3. OAuth provider integration pattern
+  4. Error handling approach
+
+  Output format:
+  {endpoints: [...], schema: {...}, patterns: [...]}""",
   run_in_background=True
 )
+
 Task(
-  subagent_type="ux-researcher",
-  prompt="Research UX patterns for: {feature}. Consider user flows and accessibility.",
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND UX: user authentication with social login
+
+  Design frontend experience:
+  1. Login page component structure
+  2. OAuth redirect flow UX
+  3. Error states and loading states
+  4. Accessibility requirements
+
+  Output format:
+  {components: [...], user_flow: [...], a11y: [...]}""",
   run_in_background=True
 )
 ```
 
-Synthesize agent outputs into unified trade-off table.
+### Wait and Collect Results
 
-See `references/example-session-dashboard.md` for complete Phase 2 example with SSE vs WebSockets vs Polling comparison.
+```python
+# Update task status
+TaskUpdate(taskId="1", status="in_progress", activeForm="Collecting agent research")
 
-### Phase 3: Design Presentation
+# Results arrive via background task completion
+# Synthesize in Phase 3
+```
+
+---
+
+## Phase 3: Synthesis
+
+**Goal:** Combine agent outputs into unified approaches.
+
+### Step 1: Merge Agent Perspectives
+
+For each agent result:
+1. Extract key recommendations
+2. Identify conflicts between agents
+3. Note unanimous agreements
+
+### Step 2: Build Trade-off Table
+
+| Approach | Architecture | Security | UX | Complexity | Recommendation |
+|----------|-------------|----------|-----|------------|----------------|
+| Option A | [from workflow-architect] | [from security-auditor] | [from frontend] | Low/Med/High | Best for: ... |
+| Option B | [from workflow-architect] | [from security-auditor] | [from frontend] | Low/Med/High | Best for: ... |
+| Option C | [from workflow-architect] | [from security-auditor] | [from frontend] | Low/Med/High | Best for: ... |
+
+### Step 3: Present to User
+
+Use AskUserQuestion with synthesized options:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "Which authentication approach fits your needs?",
+    "header": "Auth Design",
+    "options": [
+      {"label": "Option A: JWT + Redis", "description": "Stateless, scalable, requires Redis"},
+      {"label": "Option B: Session cookies", "description": "Simple, stateful, no extra infra"},
+      {"label": "Option C: OAuth-only", "description": "Delegate to providers, minimal backend"}
+    ]
+  }]
+)
+```
+
+---
+
+## Phase 4: Design Presentation
 
 **Goal:** Present complete design incrementally, validating each section.
 
-**Process:**
-- Present in 200-300 word sections
-- Cover: Architecture, components, data flow, error handling, testing
-- Ask after each section: "Does this look right so far?"
-- Use open-ended questions to allow freeform feedback
+### Present in 200-300 Word Sections
 
-**Typical Sections:**
-1. Architecture overview
-2. Component details
-3. Data flow
-4. Error handling
-5. Security considerations
-6. Implementation priorities
+1. **Architecture Overview** - High-level system design
+2. **Component Details** - Specific implementation pieces
+3. **Data Flow** - How data moves through the system
+4. **Error Handling** - Failure modes and recovery
+5. **Security Considerations** - From security-auditor insights
+6. **Implementation Priorities** - What to build first
 
-**Validation Pattern:**
-After each section, pause for feedback before proceeding to next section.
+### Validation Pattern
 
-## Tool Usage Guidelines
+After each section:
+- "Does this look right so far?"
+- Wait for feedback before proceeding
+- Be ready to backtrack if new constraints emerge
 
-### Use AskUserQuestion Tool For:
-- Phase 1: Clarifying questions with 2-4 clear options
-- Phase 2: Architectural approach selection (2-3 alternatives)
-- Any decision with distinct, mutually exclusive choices
-- When options have clear trade-offs to explain
+### Store Decision in Memory
 
-**Benefits:**
-- Structured presentation of options with descriptions
-- Clear trade-off visibility
-- Forces explicit choice (prevents vague "maybe both" responses)
+```python
+# After user approves design
+mcp__memory__create_entities(entities=[{
+  "name": "{topic}-design-decision",
+  "entityType": "Decision",
+  "observations": ["Chose {approach} because {rationale}"]
+}])
 
-### Use Open-Ended Questions For:
-- Phase 3: Design validation
-- When detailed feedback or explanation is needed
-- When the user should describe their own requirements
-- When structured options would limit creative input
+# Mark task complete
+TaskUpdate(taskId="1", status="completed")
+```
 
-## Non-Linear Progression
+---
 
-**Flexibility is key.** Go backward when needed - don't force linear progression.
+## Quick Reference: Agent Selection by Topic
 
-**Return to Phase 1 when:**
-- User reveals new constraint during Phase 2 or 3
-- Validation shows fundamental gap in requirements
-- Something doesn't make sense
+| Topic Example | Agents to Spawn |
+|---------------|-----------------|
+| "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
+| "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher, performance-engineer |
+| "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer, backend-system-architect |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
+| "brainstorm real-time notifications" | workflow-architect, backend-system-architect, frontend-ui-developer |
+| "brainstorm database schema" | workflow-architect, backend-system-architect |
+| "brainstorm CI/CD pipeline" | workflow-architect, ci-cd-engineer, infrastructure-architect |
 
-**Return to Phase 2 when:**
-- User questions the chosen approach during Phase 3
-- New information suggests a different approach would be better
-
-**Continue forward when:**
-- All requirements are clear
-- Chosen approach is validated
-- No new constraints emerge
+---
 
 ## Key Principles
 
 | Principle | Application |
 |-----------|-------------|
-| **One question at a time** | Phase 1: Single question per message, use AskUserQuestion for choices |
-| **Structured choices** | Use AskUserQuestion tool for 2-4 options with trade-offs |
-| **YAGNI ruthlessly** | Remove unnecessary features from all designs |
-| **Explore alternatives** | Always propose 2-3 approaches before settling |
-| **Incremental validation** | Present design in sections, validate each |
-| **Flexible progression** | Go backward when needed - flexibility > rigidity |
+| **Dynamic agent selection** | Don't hardcode - select agents based on topic keywords |
+| **Parallel research** | Launch 3-5 agents in ONE message for speed |
+| **Memory-first** | Always check graph for past decisions before research |
+| **Task tracking** | Use TaskCreate/TaskUpdate for progress visibility |
+| **Synthesize, don't dump** | Combine agent outputs into unified trade-offs |
+| **YAGNI ruthlessly** | Remove unnecessary complexity from all designs |
+
+See `references/example-session-dashboard.md` for complete Phase 2 example with SSE vs WebSockets vs Polling comparison.
 
 ## After Brainstorming Completes
 
@@ -329,7 +479,7 @@ that pattern with a new route handler..."
 
 ---
 
-**Version:** 2.0.0 (January 2026)
+**Version:** 3.0.0 (January 2026)
 **Status:** Production patterns from OrchestKit brainstorming sessions
 
 ## Related Skills
@@ -343,9 +493,10 @@ that pattern with a new route handler..."
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Question format | One at a time | Prevents information overload, maintains conversation flow |
-| Tool for choices | AskUserQuestion | Structured options with trade-offs, forces explicit selection |
-| Phase progression | Non-linear allowed | New constraints may require backtracking to earlier phases |
+| Agent selection | Dynamic based on topic | Different topics need different expertise - no hardcoding |
+| Parallel research | 3-5 agents in ONE message | Speed through parallelism, diverse perspectives |
+| Memory integration | Check graph before research | Avoid re-discovering known patterns |
+| Task tracking | TaskCreate/Update throughout | Progress visibility, structured workflow |
 | Design presentation | 200-300 word sections | Incremental validation prevents large design misalignment |
 | Alternative proposals | Always 2-3 options | Demonstrates exploration, reveals trade-offs |
 
