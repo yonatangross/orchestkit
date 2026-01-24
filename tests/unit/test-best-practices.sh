@@ -434,23 +434,24 @@ test_feedback_skill_has_capabilities() {
 }
 
 # ============================================================================
-# HOOK TESTS
+# HOOK TESTS (TypeScript - migrated from bash in v5.1.0)
 # ============================================================================
 
 describe "Best Practice Library: Hooks"
 
 test_antipattern_hook_exists() {
-    assert_file_exists "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh"
+    # Hooks migrated to TypeScript in v5.1.0
+    assert_file_exists "$PROJECT_ROOT/hooks/src/prompt/antipattern-warning.ts"
 }
 
-test_antipattern_hook_is_executable() {
-    [[ -x "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" ]] || fail "Hook should be executable"
+test_antipattern_hook_compiled() {
+    # TypeScript hooks compile to prompt.mjs bundle
+    assert_file_exists "$PROJECT_ROOT/hooks/dist/prompt.mjs"
 }
 
-test_antipattern_hook_has_shebang() {
-    local first_line
-    first_line=$(head -1 "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh")
-    assert_contains "$first_line" "#!/"
+test_antipattern_hook_has_export() {
+    # TypeScript hook should export the handler function (antipatternWarning)
+    grep -qi "export.*function.*antipattern" "$PROJECT_ROOT/hooks/src/prompt/antipattern-warning.ts" 2>/dev/null || fail "Hook should export antipattern handler"
 }
 
 # ============================================================================
