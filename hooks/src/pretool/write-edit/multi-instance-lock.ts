@@ -46,9 +46,11 @@ function generateLockId(): string {
 
 /**
  * Get current instance ID
+ * CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability,
+ * but we add a defensive fallback to prevent crashes.
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_SESSION_ID || `instance-${process.pid}`;
+  return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}`;
 }
 
 /**

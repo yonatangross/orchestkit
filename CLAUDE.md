@@ -6,10 +6,10 @@ This document provides essential context for Claude Code when working with the O
 
 **OrchestKit Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **162 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
+- **163 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
 - **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
-- **21 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **147 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
+- **22 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
+- **148 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -35,22 +35,22 @@ plugins/                 # Modular plugin bundles
     └── scripts/         # Hook executables
 
 # FULL TOOLKIT (root level - for development/reference)
-skills/                  # 162 skills (21 user-invocable, 141 internal)
+skills/                  # 163 skills (22 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
-hooks/                   # 147 lifecycle hooks (27 TypeScript, 120 Bash)
-│   ├── src/             # TypeScript source (NEW - Phase 1: 27 hooks)
-│   │   ├── index.ts     # Hook registry + exports
+hooks/                   # 148 lifecycle hooks (156 TypeScript in split bundles, 148 Bash)
+│   ├── src/             # TypeScript source (Phase 4: 156 hooks in 11 bundles)
+│   │   ├── index.ts     # Unified hook registry + exports
 │   │   ├── types.ts     # HookInput, HookResult interfaces
-│   │   ├── lib/         # Shared utilities
-│   │   │   ├── common.ts   # Logging, output builders
-│   │   │   ├── git.ts      # Git operations
-│   │   │   └── guards.ts   # Hook guards
-│   │   ├── permission/  # Permission hooks (4)
-│   │   └── pretool/     # PreTool hooks (23)
-│   │       ├── bash/    # Bash command hooks (20)
-│   │       └── write-edit/  # File operation hooks (3)
-│   ├── dist/            # Compiled ESM bundle
-│   │   └── hooks.mjs    # Single bundled file (35.60 KB)
+│   │   ├── entries/     # Split bundle entry points
+│   │   └── lib/         # Shared utilities
+│   ├── dist/            # Compiled ESM bundles
+│   │   ├── permission.mjs   # 8.35 KB
+│   │   ├── pretool.mjs      # 47.68 KB
+│   │   ├── posttool.mjs     # 58.16 KB
+│   │   ├── prompt.mjs       # 56.91 KB
+│   │   ├── lifecycle.mjs    # 31.45 KB
+│   │   ├── subagent.mjs     # 56.16 KB
+│   │   └── hooks.mjs        # 324.25 KB (unified for CLI)
 │   ├── bin/
 │   │   └── run-hook.mjs # CLI runner
 │   ├── package.json     # NPM package config
@@ -94,7 +94,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: TypeScript + Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Hook Infrastructure**: TypeScript ESM (27/147 hooks migrated, 35.60 KB bundle) + Bash legacy
+- **Hook Infrastructure**: TypeScript ESM (156 hooks in 11 split bundles, 381 KB total) + Bash legacy (148 hooks)
 - **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
@@ -439,6 +439,87 @@ The plugin automatically extracts and learns from development patterns without m
 
 **No manual commands required** - all extraction and warnings happen automatically via hooks.
 
+### 11. Agent Orchestration Layer (#197)
+Intelligent agent dispatch system that automatically spawns specialized agents based on prompt analysis.
+
+**Architecture:**
+```
+UserPromptSubmit
+      │
+      ▼
+┌─────────────────┐
+│ Intent Classifier│  Hybrid scoring: 30% keyword + 25% phrase +
+│ (85%+ accuracy) │  20% context + 15% co-occurrence + 10% negation
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│            Decision Engine                   │
+│  ≥85%: AUTO-DISPATCH  │  ≥80%: SKILL-INJECT │
+│  ≥70%: STRONG RECOMMEND │  ≥50%: SUGGEST    │
+└────────────────────────────────────────────-┘
+         │
+         ▼
+┌─────────────────┐     ┌─────────────────┐
+│ Agent Spawned   │────►│ CC 2.1.16 Task  │
+│ (Task tool)     │     │ TaskCreate      │
+└────────┬────────┘     └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Calibration     │  Records outcomes, adjusts keyword weights
+│ Engine          │  for continuous accuracy improvement
+└─────────────────┘
+```
+
+**Confidence Thresholds:**
+| Threshold | Value | Action |
+|-----------|-------|--------|
+| AUTO_DISPATCH | 85% | Immediately spawn agent |
+| SKILL_INJECT | 80% | Auto-inject skill content |
+| STRONG_RECOMMEND | 70% | Strong recommendation |
+| SUGGEST | 50% | Suggestion only |
+| MINIMUM | 40% | Filter threshold |
+
+**Multi-Agent Pipelines (5 predefined):**
+- `product-thinking`: market-intelligence → product-strategist → prioritization-analyst → business-case-builder → requirements-translator → metrics-architect
+- `full-stack-feature`: backend-system-architect → frontend-ui-developer → test-generator → security-auditor
+- `ai-integration`: workflow-architect → llm-integrator → data-pipeline-engineer → test-generator
+- `security-audit`: security-auditor → security-layer-auditor → test-generator
+- `frontend-compliance`: ux-researcher → rapid-ui-designer → frontend-ui-developer
+
+**Pipeline Detection Triggers:**
+- "should we build" → product-thinking pipeline
+- "full-stack feature" → full-stack-feature pipeline
+- "add RAG/LLM" → ai-integration pipeline
+
+**Key Files:**
+```
+hooks/src/lib/
+├── intent-classifier.ts      # Hybrid scoring engine
+├── orchestration-types.ts    # THRESHOLDS, type definitions
+├── orchestration-state.ts    # Session state management
+├── task-integration.ts       # CC 2.1.16 bridge
+├── retry-manager.ts          # Exponential backoff + alternatives
+├── calibration-engine.ts     # Outcome learning
+└── multi-agent-coordinator.ts # Pipeline definitions
+
+hooks/src/prompt/
+├── agent-orchestrator.ts     # Auto-dispatch hook
+├── skill-injector.ts         # Skill auto-injection
+└── pipeline-detector.ts      # Pipeline detection
+```
+
+**Retry Logic:**
+- Max 3 retries with exponential backoff (2^n seconds, capped at 30s)
+- Suggests alternative agents after failures
+- Keeps task in_progress during retry, marks blocked on give-up
+
+**Calibration:**
+- Records: agent, confidence, outcome (success/partial/failure/rejected)
+- Adjusts keyword weights: +3 for success, -3 for failure (capped at ±15)
+- Stored in `.claude/feedback/calibration-data.json`
+
 ---
 
 ## What NOT to Do
@@ -665,7 +746,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-162 skills in flat structure at `skills/`. Common skill types include:
+163 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability, agentic-rag-patterns, prompt-engineering-suite, alternative-agent-frameworks, high-performance-inference, fine-tuning-customization (27 skills)
 - **AI Security**: MCP security hardening, advanced guardrails, LLM safety patterns (3 skills - NEW)
@@ -891,17 +972,17 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 4.28.3 (as of 2026-01-18)
+- **Current Version**: 5.1.0 (as of 2026-01-23)
 - **Claude Code Requirement**: >= 2.1.16
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (147 hooks: 27 TypeScript, 120 Bash)
+- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (148 hooks: 156 TypeScript in split bundles, 148 Bash)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
 - **Security Testing**: Comprehensive 8-layer framework added in v4.5.1
 - **CC 2.1.9 Integration**: additionalContext, auto:N MCP, plansDirectory (v4.16.0)
-- **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 21 skills (v4.17.0)
+- **User-Invocable Skills**: CC 2.1.3 `user-invocable` field for 22 skills (v4.17.0)
 - **Git Enforcement**: Commit message, branch naming, atomic commits, issue creation (v4.18.0)
 - **CC 2.1.11 Integration**: Setup hooks (--init, --init-only, --maintenance), self-healing, maintenance automation (v4.19.0)
 - **Automatic Pattern Extraction**: Hook-driven pattern learning and anti-pattern warnings (#48, #49) (v4.19.0)
@@ -910,7 +991,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
 - **agent-browser Integration**: Replaced Playwright MCP with Vercel agent-browser CLI (93% less context, Snapshot + Refs workflow) (v4.28.0)
 - **CC 2.1.16 Integration**: Task Management System (TaskCreate, TaskUpdate, TaskGet, TaskList), VSCode native plugins, new task-dependency-patterns skill (v5.0.0)
-- **TypeScript Hook Migration**: Phase 1 complete (27/147 hooks), 35.60 KB bundle, ESM architecture with shared utilities (v5.1.0)
+- **TypeScript Hook Migration**: Phase 4 complete (156 TypeScript hooks in 11 split bundles, 381 KB total), ~77% load size reduction per hook type (v5.1.0)
 
 ---
 
@@ -952,4 +1033,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-22 (v4.28.0)
+**Last Updated**: 2026-01-23 (v5.1.0)

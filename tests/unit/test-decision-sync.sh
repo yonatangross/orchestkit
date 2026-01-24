@@ -262,7 +262,8 @@ test_pull_shows_instructions() {
     local output
     output=$(CLAUDE_PROJECT_DIR="$TEMP_DIR" "$DECISION_SYNC" pull 2>&1)
 
-    assert_contains "$output" "search-memories.py"
+    # Updated: now uses MCP tools instead of Python scripts
+    assert_contains "$output" "mcp__mem0__search_memory"
 }
 
 test_pull_shows_user_id() {
@@ -333,7 +334,8 @@ test_export_outputs_format_instructions() {
     local output
     output=$(CLAUDE_PROJECT_DIR="$TEMP_DIR" "$DECISION_SYNC" export 2>&1)
 
-    assert_contains "$output" "add-memory.py"
+    # Updated: now uses MCP tools instead of Python scripts
+    assert_contains "$output" "mcp__mem0__add_memory"
 }
 
 test_export_includes_decision_content() {

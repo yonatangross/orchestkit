@@ -1,47 +1,12 @@
-#!/bin/bash
-# Decision Sync Pull - SessionStart Hook
-# CC 2.1.7 Compliant: uses hookSpecificOutput.additionalContext
-# Reminds about retrieving past decisions from mem0 on session start
-#
-# Part of mem0 Semantic Memory Integration (#47)
+#!/usr/bin/env bash
+# decision-sync-pull - Lifecycle Hook
+# Delegates to TypeScript implementation via hooks bundle
+# CC 2.1.17 Compliant
 
 set -euo pipefail
 
-# Read and discard stdin to prevent broken pipe errors in hook chain
-if [[ -t 0 ]]; then
-    _HOOK_INPUT=""
-else
-    _HOOK_INPUT=$(cat 2>/dev/null || true)
-fi
-# Dont export - large inputs overflow environment
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOKS_ROOT="$(dirname "$SCRIPT_DIR")"
 
-# Log to hooks log
-LOG_DIR="${CLAUDE_PROJECT_DIR:-.}/.claude/logs"
-mkdir -p "$LOG_DIR" 2>/dev/null || true
-LOG_FILE="$LOG_DIR/hooks.log"
-
-log_hook() {
-    local msg="$1"
-    echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] [decision-sync-pull] $msg" >> "$LOG_FILE" 2>/dev/null || true
-}
-
-# Get project ID for user_id hint
-get_project_id() {
-    local project_root="${CLAUDE_PROJECT_DIR:-$(pwd)}"
-    basename "$project_root" | tr '[:upper:]' '[:lower:]' | tr ' ' '-'
-}
-
-project_id=$(get_project_id)
-user_id="${project_id}-decisions"
-
-log_hook "Session starting - decision recall available with user_id: $user_id"
-
-# Output CC 2.1.7 compliant JSON
-# Note: SessionStart hooks don't support hookSpecificOutput.additionalContext
-log_hook "Decision memory available: user_id='${user_id}' for ${project_id}"
-
-echo '{"continue":true,"suppressOutput":true}'
-
-exit 0
+# Delegate to TypeScript bundle
+exec node "$HOOKS_ROOT/bin/run-hook.mjs" "lifecycle/decision-sync-pull"

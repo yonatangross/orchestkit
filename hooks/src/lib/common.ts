@@ -8,11 +8,8 @@ import type { HookResult, HookInput } from '../types.js';
 
 // -----------------------------------------------------------------------------
 // Environment and Paths
+// All functions read env vars dynamically to support testing
 // -----------------------------------------------------------------------------
-
-const PLUGIN_ROOT = process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
-const PROJECT_DIR = process.env.CLAUDE_PROJECT_DIR || '.';
-const SESSION_ID = process.env.CLAUDE_SESSION_ID || 'unknown';
 
 /**
  * Get the log directory path
@@ -21,28 +18,33 @@ export function getLogDir(): string {
   if (process.env.CLAUDE_PLUGIN_ROOT) {
     return `${process.env.HOME}/.claude/logs/ork`;
   }
-  return `${PROJECT_DIR}/.claude/logs`;
+  return `${getProjectDir()}/.claude/logs`;
 }
 
 /**
  * Get the project directory
+ * Read dynamically to support testing
  */
 export function getProjectDir(): string {
-  return PROJECT_DIR;
+  return process.env.CLAUDE_PROJECT_DIR || '.';
 }
 
 /**
  * Get the plugin root directory
+ * Read dynamically to support testing
  */
 export function getPluginRoot(): string {
-  return PLUGIN_ROOT;
+  return process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
 }
 
 /**
  * Get the session ID
+ * CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability, but we add
+ * a defensive fallback to prevent hook crashes during edge cases.
+ * Read dynamically to support testing.
  */
 export function getSessionId(): string {
-  return SESSION_ID;
+  return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}-${Date.now()}`;
 }
 
 // -----------------------------------------------------------------------------
@@ -230,7 +232,7 @@ export function logPermissionFeedback(
 
     const timestamp = new Date().toISOString();
     const toolName = input?.tool_name || process.env.HOOK_TOOL_NAME || 'unknown';
-    const sessionId = input?.session_id || SESSION_ID;
+    const sessionId = input?.session_id || getSessionId();
 
     appendFileSync(
       logFile,
@@ -273,12 +275,12 @@ export function readHookInput(): HookInput {
 
     const input = Buffer.concat(chunks).toString('utf8').trim();
     if (!input) {
-      return { tool_name: '', session_id: SESSION_ID, tool_input: {} };
+      return { tool_name: '', session_id: getSessionId(), tool_input: {} };
     }
 
     return JSON.parse(input);
   } catch {
-    return { tool_name: '', session_id: SESSION_ID, tool_input: {} };
+    return { tool_name: '', session_id: getSessionId(), tool_input: {} };
   }
 }
 

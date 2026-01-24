@@ -91,35 +91,58 @@ test_sed_normalization() {
   fi
 }
 
-# Test the bash dispatcher normalization integration
+# Test the hook normalization integration (TypeScript or Bash)
 test_dispatcher_integration() {
   log_info "Testing dispatcher normalization integration..."
 
-  local dispatcher="$PROJECT_ROOT/hooks/pretool/bash/dangerous-command-blocker.sh"
+  # TypeScript implementation (new hooks architecture)
+  local ts_impl="$PROJECT_ROOT/hooks/src/pretool/bash/dangerous-command-blocker.ts"
+  # Bash implementation (legacy)
+  local bash_dispatcher="$PROJECT_ROOT/hooks/pretool/bash/dangerous-command-blocker.sh"
 
-  if [[ -f "$dispatcher" ]]; then
-    # Check that the dispatcher includes normalization (uses NORMALIZED_COMMAND variable)
-    if grep -q "NORMALIZED_COMMAND" "$dispatcher"; then
-      log_pass "Dispatcher includes normalization variable"
+  # Prefer TypeScript implementation if it exists
+  if [[ -f "$ts_impl" ]]; then
+    # Check that TypeScript uses normalizeCommand function
+    if grep -q "normalizeCommand" "$ts_impl"; then
+      log_pass "TypeScript hook uses normalizeCommand function"
     else
-      log_fail "Dispatcher missing normalization"
+      log_fail "TypeScript hook missing normalization"
     fi
 
-    # Check that it uses normalized command for checks (same variable)
-    if grep -q '\$NORMALIZED_COMMAND' "$dispatcher"; then
-      log_pass "Dispatcher uses normalized command for security checks"
+    # Check that it uses normalized command for checks
+    if grep -q "normalizedCommand" "$ts_impl"; then
+      log_pass "TypeScript hook uses normalized command variable"
     else
-      log_fail "Dispatcher not using normalized command"
+      log_fail "TypeScript hook not using normalized command"
     fi
 
-    # Check for CC 2.1.7 comment (updated from 2.1.6)
-    if grep -q "CC 2.1.7" "$dispatcher"; then
-      log_pass "Dispatcher has CC 2.1.7 security documentation"
+    # Check for CC 2.1.7 comment
+    if grep -q "CC 2.1.7" "$ts_impl"; then
+      log_pass "TypeScript hook has CC 2.1.7 security documentation"
     else
-      log_fail "Dispatcher missing CC 2.1.7 documentation"
+      log_fail "TypeScript hook missing CC 2.1.7 documentation"
+    fi
+  elif [[ -f "$bash_dispatcher" ]]; then
+    # Fallback to bash implementation check
+    if grep -q "NORMALIZED_COMMAND" "$bash_dispatcher"; then
+      log_pass "Bash dispatcher includes normalization variable"
+    else
+      log_fail "Bash dispatcher missing normalization"
+    fi
+
+    if grep -q '\$NORMALIZED_COMMAND' "$bash_dispatcher"; then
+      log_pass "Bash dispatcher uses normalized command for security checks"
+    else
+      log_fail "Bash dispatcher not using normalized command"
+    fi
+
+    if grep -q "CC 2.1.7" "$bash_dispatcher"; then
+      log_pass "Bash dispatcher has CC 2.1.7 security documentation"
+    else
+      log_fail "Bash dispatcher missing CC 2.1.7 documentation"
     fi
   else
-    log_fail "Dispatcher not found at: $dispatcher"
+    log_fail "No hook implementation found at: $ts_impl or $bash_dispatcher"
   fi
 }
 

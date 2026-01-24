@@ -5,14 +5,61 @@
 
 set -euo pipefail
 
+# Ensure valid JSON output on any exit
+trap 'echo "{\"continue\":true,\"suppressOutput\":true}"' EXIT
+
 # Read stdin BEFORE any processing
 _HOOK_INPUT=$(cat)
 # NOTE: Dont export - large inputs overflow environment
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/../../_lib/common.sh"
-
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../.." && pwd)}"
+
+# =============================================================================
+# Inline common functions (self-contained hook - no external dependencies)
+# =============================================================================
+
+get_field() {
+    local filter="$1"
+    echo "$_HOOK_INPUT" | jq -r "$filter // \"\"" 2>/dev/null || echo ""
+}
+
+output_silent_success() {
+    trap - EXIT  # Clear trap before outputting
+    echo '{"continue":true,"suppressOutput":true}'
+    exit 0
+}
+
+output_block() {
+    local reason="$1"
+    trap - EXIT  # Clear trap before outputting
+    echo "{\"continue\":false,\"decision\":\"block\",\"reason\":$(echo "$reason" | jq -Rs .)}"
+    exit 0
+}
+
+log_hook() {
+    local msg="$1"
+    echo "[multi-instance-lock] $msg" >&2
+}
+
+log_permission_feedback() {
+    # Log to stderr for debugging, no-op in production
+    :
+}
+
+guard_tool() {
+    local tool_name
+    tool_name=$(get_field '.tool_name // ""')
+    for allowed in "$@"; do
+        [[ "$tool_name" == "$allowed" ]] && return 0
+    done
+    output_silent_success
+}
+
+sqlite_escape() {
+    local input="$1"
+    echo "$input" | sed "s/'/''/g"
+}
 INSTANCE_DIR="$PROJECT_ROOT/.instance"
 DB_PATH="$PROJECT_ROOT/.claude/coordination/.claude.db"
 

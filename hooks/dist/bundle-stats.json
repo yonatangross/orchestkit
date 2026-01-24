@@ -1,60 +1,72 @@
 {
-  "generatedAt": "2026-01-23T15:02:47.213Z",
-  "buildTimeMs": 21,
-  "size": 279319,
-  "sizeKB": "272.77",
-  "inputs": 153,
-  "exports": [
-    "createGuard",
-    "escapeRegex",
-    "extractIssueNumber",
-    "getCurrentBranch",
-    "getDefaultBranch",
-    "getField",
-    "getGitStatus",
-    "getHook",
-    "getLogDir",
-    "getPluginRoot",
-    "getProjectDir",
-    "getRepoRoot",
-    "getSessionId",
-    "guardBash",
-    "guardCodeFiles",
-    "guardFileExtension",
-    "guardGitCommand",
-    "guardMultiInstance",
-    "guardNontrivialBash",
-    "guardPathPattern",
-    "guardPythonFiles",
-    "guardSkipInternal",
-    "guardTestFiles",
-    "guardTool",
-    "guardTypescriptFiles",
-    "guardWriteEdit",
-    "hasUncommittedChanges",
-    "hooks",
-    "isBashInput",
-    "isEditInput",
-    "isGitRepo",
-    "isProtectedBranch",
-    "isReadInput",
-    "isWriteInput",
-    "listHooks",
-    "logHook",
-    "logPermissionFeedback",
-    "normalizeCommand",
-    "outputAllowWithContext",
-    "outputBlock",
-    "outputDeny",
-    "outputError",
-    "outputPromptContext",
-    "outputSilentAllow",
-    "outputSilentSuccess",
-    "outputWarning",
-    "outputWithContext",
-    "readHookInput",
-    "runGuards",
-    "runHook",
-    "validateBranchName"
-  ]
+  "generatedAt": "2026-01-23T17:57:28.873Z",
+  "buildTimeMs": 57,
+  "mode": "split",
+  "bundles": {
+    "permission": {
+      "size": 8554,
+      "sizeKB": "8.35",
+      "exports": 41
+    },
+    "pretool": {
+      "size": 49004,
+      "sizeKB": "47.86",
+      "exports": 50
+    },
+    "posttool": {
+      "size": 59560,
+      "sizeKB": "58.16",
+      "exports": 35
+    },
+    "prompt": {
+      "size": 58276,
+      "sizeKB": "56.91",
+      "exports": 89
+    },
+    "lifecycle": {
+      "size": 32206,
+      "sizeKB": "31.45",
+      "exports": 35
+    },
+    "stop": {
+      "size": 34023,
+      "sizeKB": "33.23",
+      "exports": 35
+    },
+    "subagent": {
+      "size": 57503,
+      "sizeKB": "56.16",
+      "exports": 66
+    },
+    "notification": {
+      "size": 5074,
+      "sizeKB": "4.96",
+      "exports": 26
+    },
+    "setup": {
+      "size": 24823,
+      "sizeKB": "24.24",
+      "exports": 26
+    },
+    "skill": {
+      "size": 52874,
+      "sizeKB": "51.63",
+      "exports": 35
+    },
+    "agent": {
+      "size": 8505,
+      "sizeKB": "8.31",
+      "exports": 41
+    },
+    "hooks": {
+      "size": 332483,
+      "sizeKB": "324.69",
+      "exports": 137,
+      "unified": true
+    }
+  },
+  "totalSize": 390402,
+  "totalSizeKB": "381.25",
+  "inputs": 38,
+  "avgBundleSizeKB": "34.66"
 }

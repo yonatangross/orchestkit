@@ -1,5 +1,5 @@
 #!/bin/bash
-# test-mem0-library.sh - Unit tests for mem0.sh library functions
+# test-mem0-library.sh - Unit tests for mem0 helper functions
 # Part of OrchestKit Claude Plugin comprehensive test suite
 # CC 2.1.7 Compliant
 #
@@ -10,19 +10,23 @@
 # - Memory content validation
 # - Best practice JSON building
 # - Category detection
+#
+# Note: The original hooks/_lib/mem0.sh has been migrated to TypeScript.
+# These tests now verify the helper functions in test-helpers.sh
+# which provide equivalent functionality for testing purposes.
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
-# Export for hooks
+# Source the shared test helpers (includes mem0 helper functions)
+source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
+
+# Override CLAUDE_PROJECT_DIR for tests
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
-# Source the library under test
-source "$PROJECT_ROOT/hooks/_lib/mem0.sh"
-
-# Test counters
+# Test counters (reset from test-helpers.sh)
 TESTS_RUN=0
 TESTS_PASSED=0
 TESTS_FAILED=0

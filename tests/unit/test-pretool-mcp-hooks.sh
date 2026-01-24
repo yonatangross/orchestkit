@@ -146,8 +146,9 @@ test_agent_browser_safety_allows_safe_urls() {
 
     local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://example.com"}}'
     local output
-    # Pass input via _HOOK_INPUT env var (init_hook_input doesn't read stdin to prevent hanging)
-    output=$(_HOOK_INPUT="$input" bash "$hook" 2>/dev/null) || true
+    # Pipe input via stdin (TypeScript hooks read from stdin)
+    # Use perl for cross-platform timeout (works on macOS and Linux)
+    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
     if ! strip_ansi "$output" | jq -e '.continue == true' >/dev/null 2>&1; then
@@ -163,8 +164,9 @@ test_agent_browser_safety_blocks_file_protocol() {
 
     local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open file:///etc/passwd"}}'
     local output
-    # Pass input via _HOOK_INPUT env var (init_hook_input doesn't read stdin to prevent hanging)
-    output=$(_HOOK_INPUT="$input" bash "$hook" 2>/dev/null) || true
+    # Pipe input via stdin (TypeScript hooks read from stdin)
+    # Use perl for cross-platform timeout (works on macOS and Linux)
+    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
     if ! strip_ansi "$output" | jq -e '.continue == false' >/dev/null 2>&1; then
@@ -180,8 +182,9 @@ test_agent_browser_safety_blocks_auth_domains() {
 
     local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://accounts.google.com"}}'
     local output
-    # Pass input via _HOOK_INPUT env var (init_hook_input doesn't read stdin to prevent hanging)
-    output=$(_HOOK_INPUT="$input" bash "$hook" 2>/dev/null) || true
+    # Pipe input via stdin (TypeScript hooks read from stdin)
+    # Use perl for cross-platform timeout (works on macOS and Linux)
+    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
     if ! strip_ansi "$output" | jq -e '.continue == false' >/dev/null 2>&1; then
@@ -197,8 +200,9 @@ test_agent_browser_safety_skips_non_browser_commands() {
 
     local input='{"tool_name":"Bash","tool_input":{"command":"ls -la"}}'
     local output
-    # Pass input via _HOOK_INPUT env var (init_hook_input doesn't read stdin to prevent hanging)
-    output=$(_HOOK_INPUT="$input" bash "$hook" 2>/dev/null) || true
+    # Pipe input via stdin (TypeScript hooks read from stdin)
+    # Use perl for cross-platform timeout (works on macOS and Linux)
+    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$hook" 2>/dev/null) || true
 
     assert_valid_json "$output"
     if ! strip_ansi "$output" | jq -e '.continue == true' >/dev/null 2>&1; then

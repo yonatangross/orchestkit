@@ -1,0 +1,132 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://orchestkit.dev/schemas/decision.json",
+  "title": "Decision",
+  "description": "Architecture decision record for OrchestKit",
+  "type": "object",
+  "required": ["id", "date", "summary", "category", "impact", "status", "source"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]{3,50}$",
+      "description": "Unique identifier in kebab-case"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Decision date (YYYY-MM-DD)"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 100,
+      "description": "Brief description of the decision"
+    },
+    "rationale": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Why this decision was made"
+    },
+    "cc_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Claude Code version when decision was made"
+    },
+    "plugin_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "OrchestKit plugin version"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "architecture",
+        "api",
+        "database",
+        "security",
+        "testing",
+        "deployment",
+        "observability",
+        "frontend",
+        "performance",
+        "ai-ml",
+        "data-pipeline",
+        "authentication",
+        "pagination",
+        "lifecycle",
+        "decision"
+      ],
+      "description": "Decision category"
+    },
+    "impact": {
+      "type": "string",
+      "enum": ["high", "medium", "low"],
+      "description": "Impact level of the decision"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["proposed", "implemented", "deprecated", "superseded"],
+      "description": "Current status of the decision"
+    },
+    "best_practice": {
+      "type": "string",
+      "maxLength": 50,
+      "description": "Related best practice name"
+    },
+    "alternatives": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 5,
+      "description": "Rejected alternatives"
+    },
+    "trade_offs": {
+      "type": "string",
+      "maxLength": 300,
+      "description": "Known trade-offs of this decision"
+    },
+    "entities": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 10,
+      "description": "Related entities (technologies, patterns)"
+    },
+    "supersedes": {
+      "type": "string",
+      "description": "ID of decision this supersedes"
+    },
+    "superseded_by": {
+      "type": "string",
+      "description": "ID of decision that supersedes this"
+    },
+    "related": {
+      "type": "array",
+      "items": { "type": "string" },
+      "maxItems": 5,
+      "description": "Related decision IDs"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["mem0", "changelog", "session", "extracted"],
+      "description": "Source of this decision"
+    },
+    "agent_name": {
+      "type": "string",
+      "description": "Agent that made the decision"
+    },
+    "skill": {
+      "type": "string",
+      "description": "Skill context for the decision"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Creation timestamp"
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last update timestamp"
+    }
+  },
+  "additionalProperties": false
+}

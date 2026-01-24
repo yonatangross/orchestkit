@@ -9,7 +9,7 @@
  * CC 2.1.9 Compliant: Uses suppressOutput for silent operation
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
@@ -303,7 +303,7 @@ export function issueSubtaskUpdater(input: HookInput): HookResult {
 
   // Check each unchecked task for a match
   let matched = false;
-  const sessionId = getSessionId().replace(/[^a-zA-Z0-9_-]/g, '');
+  const sessionId = (input.session_id || getSessionId()).replace(/[^a-zA-Z0-9_-]/g, '');
   const progressFile = `/tmp/claude-session-${sessionId}/issue-progress.json`;
 
   for (const checkboxText of uncheckedTasks) {

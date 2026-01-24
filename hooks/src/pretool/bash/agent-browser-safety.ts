@@ -23,6 +23,15 @@ const BLOCKED_URL_PATTERNS = [
   /intranet\./i,
   /\.local\//i,
   /file:\/\//i,
+  // Auth/OAuth provider domains - sensitive login pages
+  /accounts\.google\.com/i,
+  /login\.microsoftonline\.com/i,
+  /auth0\.com/i,
+  /okta\.com/i,
+  /login\.live\.com/i,
+  /appleid\.apple\.com/i,
+  /github\.com\/login/i,
+  /gitlab\.com\/users\/sign_in/i,
 ];
 
 /**

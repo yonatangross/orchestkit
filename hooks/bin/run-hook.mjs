@@ -5,20 +5,65 @@
  * Usage: run-hook.mjs <hook-name>
  * Example: run-hook.mjs permission/auto-approve-readonly
  *
+ * Loads event-specific split bundles for fast startup (~89% smaller than unified)
  * Reads hook input from stdin, executes the hook, outputs result to stdout.
  */
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { existsSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+const distDir = join(__dirname, '..', 'dist');
 
-// Dynamic import the hooks module (built by esbuild)
+/**
+ * Map hook name prefix to bundle name
+ */
+function getBundleName(hookName) {
+  const prefix = hookName.split('/')[0];
+  const bundleMap = {
+    permission: 'permission',
+    pretool: 'pretool',
+    posttool: 'posttool',
+    prompt: 'prompt',
+    lifecycle: 'lifecycle',
+    stop: 'stop',
+    'subagent-start': 'subagent',
+    'subagent-stop': 'subagent',
+    notification: 'notification',
+    setup: 'setup',
+    skill: 'skill',
+    agent: 'agent',
+  };
+  return bundleMap[prefix] || null;
+}
+
+/**
+ * Load the appropriate split bundle for the hook
+ */
+async function loadBundle(hookName) {
+  const bundleName = getBundleName(hookName);
+  if (!bundleName) return null;
+
+  const bundlePath = join(distDir, `${bundleName}.mjs`);
+  if (!existsSync(bundlePath)) return null;
+
+  return await import(bundlePath);
+}
+
+const hookName = process.argv[2];
+
+// If no hook name provided, output silent success
+if (!hookName) {
+  console.log('{"continue":true,"suppressOutput":true}');
+  process.exit(0);
+}
+
+// Load the appropriate bundle
 let hooks;
 try {
-  const hooksPath = join(__dirname, '..', 'dist', 'hooks.mjs');
-  hooks = await import(hooksPath);
+  hooks = await loadBundle(hookName);
 } catch (err) {
   // Bundle not found - likely not built yet
   // Output silent success to not block Claude Code
@@ -26,10 +71,7 @@ try {
   process.exit(0);
 }
 
-const hookName = process.argv[2];
-
-// If no hook name provided, output silent success
-if (!hookName) {
+if (!hooks) {
   console.log('{"continue":true,"suppressOutput":true}');
   process.exit(0);
 }

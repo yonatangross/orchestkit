@@ -16,12 +16,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-MEM0_LIB="$PROJECT_ROOT/hooks/_lib/mem0.sh"
+# Note: mem0 functions are now provided by test-helpers.sh
+# The old hooks/_lib/mem0.sh has been migrated to TypeScript (v5.1.0)
 
-# Source mem0.sh early to initialize all readonly vars and arrays
+# Set up test environment
 export CLAUDE_PROJECT_DIR="${TEMP_DIR:-/tmp}/test-project"
 mkdir -p "$CLAUDE_PROJECT_DIR"
-source "$MEM0_LIB"
+
+# Initialize constants that tests expect (previously from mem0.sh)
+MEM0_SCOPE_BEST_PRACTICES="best-practices"
+MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices")
 
 # Skill paths (CC 2.1.6 nested structure)
 REMEMBER_SKILL="$PROJECT_ROOT/skills/remember"
@@ -29,15 +33,13 @@ RECALL_SKILL="$PROJECT_ROOT/skills/recall"
 BEST_PRACTICES_SKILL="$PROJECT_ROOT/skills/best-practices"
 FEEDBACK_SKILL="$PROJECT_ROOT/skills/feedback"
 
-# Helper to source mem0 with clean environment
+# Helper to set up clean test environment
+# Note: mem0 functions are now in test-helpers.sh, no need to source a library
 source_mem0_clean() {
-    # Set up test environment - readonly vars from mem0.sh are already initialized
-    # on first source, so we just need to ensure CLAUDE_PROJECT_DIR is set
+    # Set up test environment
     export CLAUDE_PROJECT_DIR="$TEMP_DIR/test-project"
     mkdir -p "$CLAUDE_PROJECT_DIR"
-
-    # Source mem0.sh - will skip readonly var initialization if already set
-    source "$MEM0_LIB" 2>/dev/null || true
+    # mem0 functions are already available from test-helpers.sh
 }
 
 # ============================================================================

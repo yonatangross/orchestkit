@@ -23,8 +23,10 @@ export function coordinationHeartbeat(_input: HookInput): HookResult {
 
   try {
     // Load instance ID if available
+    // CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability,
+    // but we add a defensive fallback to prevent crashes.
     const instanceEnv = `${projectDir}/.claude/.instance_env`;
-    let instanceId = process.env.CLAUDE_SESSION_ID || '';
+    let instanceId = process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}`;
 
     if (existsSync(instanceEnv)) {
       const content = readFileSync(instanceEnv, 'utf8');

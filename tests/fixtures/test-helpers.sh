@@ -692,3 +692,546 @@ assert_contains_either() {
     return 1
   fi
 }
+
+# ============================================================================
+# MEM0 TESTING HELPERS
+# ============================================================================
+# These functions replace the deleted hooks/_lib/mem0.sh library
+# for use in mem0 integration tests
+
+# Get global user ID for a category
+# Usage: mem0_global_user_id ["best-practices"]
+mem0_global_user_id() {
+    local category="${1:-best-practices}"
+    echo "orchestkit-global-${category}"
+}
+
+# Get project ID from CLAUDE_PROJECT_DIR
+# Usage: mem0_get_project_id
+mem0_get_project_id() {
+    local project_dir="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+    local project_name
+    project_name=$(basename "$project_dir")
+
+    # Handle edge case of root directory or empty name
+    if [[ -z "$project_name" || "$project_name" == "/" ]]; then
+        project_name="orchestkit-fallback"
+    fi
+
+    # Sanitize: lowercase, replace spaces and special chars with dashes
+    local sanitized
+    sanitized=$(echo "$project_name" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//')
+
+    # Ensure non-empty result
+    if [[ -z "$sanitized" ]]; then
+        echo "orchestkit-fallback"
+    else
+        echo "$sanitized"
+    fi
+}
+
+# Get user ID for a specific scope
+# Usage: mem0_user_id "decisions"
+mem0_user_id() {
+    local scope="${1:-continuity}"
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    case "$scope" in
+        decisions|continuity|agents|patterns|best-practices)
+            echo "${project_id}-${scope}"
+            ;;
+        *)
+            # Default to continuity for invalid scopes
+            echo "${project_id}-continuity"
+            ;;
+    esac
+}
+
+# Build JSON for adding a memory
+# Usage: mem0_add_memory_json "scope" "content" ["metadata_json"] ["enable_graph"] ["agent_id"] ["global"]
+mem0_add_memory_json() {
+    local category="$1"
+    local content="$2"
+    local metadata="${3:-{}}"
+    local enable_graph="${4:-false}"
+    local agent_id="${5:-}"
+    local global="${6:-false}"
+
+    # Validate metadata is valid JSON, default to empty object if not
+    if ! echo "$metadata" | jq -e '.' >/dev/null 2>&1; then
+        metadata='{}'
+    fi
+
+    local user_id
+    if [[ "$global" == "true" ]]; then
+        user_id=$(mem0_global_user_id "$category")
+    else
+        user_id=$(mem0_user_id "$category")
+    fi
+
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    # Build base JSON
+    local json
+    json=$(jq -n \
+        --arg content "$content" \
+        --arg user_id "$user_id" \
+        --arg project "$project_id" \
+        --arg source "orchestkit-plugin" \
+        --arg stored_at "$(date -Iseconds)" \
+        --argjson metadata "$metadata" \
+        '{
+            text: $content,
+            user_id: $user_id,
+            metadata: ($metadata + {project: $project, source: $source, stored_at: $stored_at})
+        }')
+
+    # Add enable_graph if true
+    if [[ "$enable_graph" == "true" ]]; then
+        json=$(echo "$json" | jq '. + {enable_graph: true}')
+    fi
+
+    # Add agent_id if provided
+    if [[ -n "$agent_id" ]]; then
+        # Format agent_id with ork: prefix if not already present
+        local formatted_agent_id="$agent_id"
+        if [[ "$agent_id" != ork:* ]]; then
+            formatted_agent_id="ork:$agent_id"
+        fi
+        json=$(echo "$json" | jq --arg aid "$formatted_agent_id" '. + {agent_id: $aid}')
+    fi
+
+    echo "$json"
+}
+
+# Build JSON for searching memories (simple version)
+# Usage: mem0_search_json "continuity" "query" [limit]
+mem0_search_json() {
+    local category="$1"
+    local query="$2"
+    local limit="${3:-10}"
+    local user_id
+    user_id=$(mem0_user_id "$category")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --argjson limit "$limit" \
+        '{
+            query: $query,
+            user_id: $user_id,
+            limit: $limit
+        }'
+}
+
+# Build JSON for searching memories (full version with all options)
+# Usage: mem0_search_memory_json "scope" "query" [limit] ["enable_graph"] ["agent_id"] ["category_filter"]
+mem0_search_memory_json() {
+    local scope="$1"
+    local query="$2"
+    local limit="${3:-10}"
+    local enable_graph="${4:-false}"
+    local agent_id="${5:-}"
+    local category_filter="${6:-}"
+
+    local user_id
+    user_id=$(mem0_user_id "$scope")
+
+    # Build filters array
+    local filters='{"AND":[]}'
+
+    # Add user_id filter
+    filters=$(echo "$filters" | jq --arg uid "$user_id" '.AND += [{"user_id": $uid}]')
+
+    # Add category filter if provided
+    if [[ -n "$category_filter" ]]; then
+        filters=$(echo "$filters" | jq --arg cat "$category_filter" '.AND += [{"metadata.category": $cat}]')
+    fi
+
+    # Add agent_id filter if provided
+    if [[ -n "$agent_id" ]]; then
+        local formatted_agent_id="$agent_id"
+        if [[ "$agent_id" != ork:* ]]; then
+            formatted_agent_id="ork:$agent_id"
+        fi
+        filters=$(echo "$filters" | jq --arg aid "$formatted_agent_id" '.AND += [{agent_id: $aid}]')
+    fi
+
+    # Build base JSON
+    local json
+    json=$(jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --argjson limit "$limit" \
+        --argjson filters "$filters" \
+        '{
+            query: $query,
+            user_id: $user_id,
+            limit: $limit,
+            filters: $filters
+        }')
+
+    # Add enable_graph if true
+    if [[ "$enable_graph" == "true" ]]; then
+        json=$(echo "$json" | jq '. + {enable_graph: true}')
+    fi
+
+    echo "$json"
+}
+
+# Build graph entity JSON
+# Usage: mem0_build_graph_entity "name" "entityType" "observation1" ["observation2" ...]
+mem0_build_graph_entity() {
+    local name="$1"
+    local entity_type="$2"
+    shift 2  # Remove first two args
+
+    # Build observations array from remaining args
+    local observations='[]'
+    for obs in "$@"; do
+        observations=$(echo "$observations" | jq --arg o "$obs" '. += [$o]')
+    done
+
+    jq -n \
+        --arg name "$name" \
+        --arg type "$entity_type" \
+        --argjson observations "$observations" \
+        '{
+            name: $name,
+            entityType: $type,
+            observations: $observations
+        }'
+}
+
+# Build graph relation JSON
+# Usage: mem0_build_graph_relation "from" "to" "relationType"
+mem0_build_graph_relation() {
+    local from="$1"
+    local to="$2"
+    local relation_type="$3"
+
+    jq -n \
+        --arg from "$from" \
+        --arg to "$to" \
+        --arg type "$relation_type" \
+        '{
+            from: $from,
+            to: $to,
+            relationType: $type
+        }'
+}
+
+# Format agent ID for mem0 (with ork: prefix)
+# Usage: mem0_format_agent_id "my-agent"
+mem0_format_agent_id() {
+    local agent_name="$1"
+    # If already has ork: prefix, return as-is
+    if [[ "$agent_name" == ork:* ]]; then
+        echo "$agent_name"
+    else
+        echo "ork:$agent_name"
+    fi
+}
+
+# Build entities array from multiple entity JSON strings
+# Usage: mem0_build_entities_array "$entity1" "$entity2" ...
+mem0_build_entities_array() {
+    local result='[]'
+    for entity in "$@"; do
+        result=$(echo "$result" | jq --argjson e "$entity" '. += [$e]')
+    done
+    echo "$result"
+}
+
+# Build relations array from multiple relation JSON strings
+# Usage: mem0_build_relations_array "$rel1" "$rel2" ...
+mem0_build_relations_array() {
+    local result='[]'
+    for rel in "$@"; do
+        result=$(echo "$result" | jq --argjson r "$rel" '. += [$r]')
+    done
+    echo "$result"
+}
+
+# Validate agent ID format
+# Usage: validate_agent_id "my-agent"
+# Returns 0 if valid, 1 if invalid
+validate_agent_id() {
+    local agent_id="$1"
+
+    # Remove ork: prefix if present
+    local name="$agent_id"
+    if [[ "$agent_id" == ork:* ]]; then
+        name="${agent_id#ork:}"
+    fi
+
+    # Valid agent IDs: lowercase, numbers, hyphens only
+    # Pattern: ^[a-z][a-z0-9-]*[a-z0-9]$ or single letter
+    if [[ "$name" =~ ^[a-z][a-z0-9-]*$ ]]; then
+        return 0
+    fi
+
+    return 1
+}
+
+# Detect best practice category from content
+# Usage: detect_best_practice_category "The SQL query was slow"
+detect_best_practice_category() {
+    local content="$1"
+    local content_lower
+    content_lower=$(echo "$content" | tr '[:upper:]' '[:lower:]')
+
+    # Check categories in order of specificity
+    # Note: Check performance early because "slow" is more specific than general "query"
+    if [[ "$content_lower" =~ (pagination|cursor|offset|page) ]]; then
+        echo "pagination"
+    elif [[ "$content_lower" =~ (jwt|oauth|auth|token|login|password|session) ]]; then
+        echo "authentication"
+    elif [[ "$content_lower" =~ (slow|latency|performance|cache|optimize) ]]; then
+        echo "performance"
+    elif [[ "$content_lower" =~ (sql|database|postgres|mysql|query|index|migration) ]]; then
+        echo "database"
+    elif [[ "$content_lower" =~ (api|rest|endpoint|route|http|graphql) ]]; then
+        echo "api"
+    elif [[ "$content_lower" =~ (react|component|frontend|css|html|ui|ux) ]]; then
+        echo "frontend"
+    elif [[ "$content_lower" =~ (test|coverage|mock|fixture|assert) ]]; then
+        echo "testing"
+    elif [[ "$content_lower" =~ (security|vulnerability|injection|xss|csrf) ]]; then
+        echo "security"
+    else
+        echo "decision"
+    fi
+}
+
+# Build best practice JSON
+# Usage: build_best_practice_json "success" "api" "content" ["lesson"]
+build_best_practice_json() {
+    local outcome="$1"
+    local category="$2"
+    local content="$3"
+    local lesson="${4:-}"
+    local user_id
+    user_id=$(mem0_user_id "best-practices")
+    local project_id
+    project_id=$(mem0_get_project_id)
+
+    local metadata
+    if [[ -n "$lesson" ]]; then
+        metadata=$(jq -n \
+            --arg outcome "$outcome" \
+            --arg category "$category" \
+            --arg lesson "$lesson" \
+            --arg project "$project_id" \
+            --arg source "orchestkit-plugin" \
+            --arg stored_at "$(date -Iseconds)" \
+            '{outcome: $outcome, category: $category, lesson: $lesson, project: $project, source: $source, stored_at: $stored_at}')
+    else
+        metadata=$(jq -n \
+            --arg outcome "$outcome" \
+            --arg category "$category" \
+            --arg project "$project_id" \
+            --arg source "orchestkit-plugin" \
+            --arg stored_at "$(date -Iseconds)" \
+            '{outcome: $outcome, category: $category, project: $project, source: $source, stored_at: $stored_at}')
+    fi
+
+    jq -n \
+        --arg content "$content" \
+        --arg user_id "$user_id" \
+        --argjson metadata "$metadata" \
+        '{
+            text: $content,
+            user_id: $user_id,
+            metadata: $metadata
+        }'
+}
+
+# Search by outcome JSON builder
+# Usage: mem0_search_by_outcome_json "best-practices" "query" "failed"
+mem0_search_by_outcome_json() {
+    local category="$1"
+    local query="$2"
+    local outcome="$3"
+    local user_id
+    user_id=$(mem0_user_id "$category")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg outcome "$outcome" \
+        '{
+            query: $query,
+            user_id: $user_id,
+            outcome: $outcome,
+            enable_graph: true
+        }'
+}
+
+# Search antipatterns JSON builder
+# Usage: mem0_search_antipatterns_json "offset pagination" ["category"] [limit]
+mem0_search_antipatterns_json() {
+    local query="$1"
+    local category="${2:-}"
+    local limit="${3:-5}"
+    local user_id
+    user_id=$(mem0_user_id "best-practices")
+
+    if [[ -n "$category" ]]; then
+        jq -n \
+            --arg query "$query" \
+            --arg user_id "$user_id" \
+            --arg category "$category" \
+            --argjson limit "$limit" \
+            '{
+                query: $query,
+                user_id: $user_id,
+                category: $category,
+                outcome: "failed",
+                limit: $limit
+            }'
+    else
+        jq -n \
+            --arg query "$query" \
+            --arg user_id "$user_id" \
+            --argjson limit "$limit" \
+            '{
+                query: $query,
+                user_id: $user_id,
+                outcome: "failed",
+                limit: $limit
+            }'
+    fi
+}
+
+# Search best practices JSON builder
+# Usage: mem0_search_best_practices_json "cursor pagination" ["category"]
+mem0_search_best_practices_json() {
+    local query="$1"
+    local category="${2:-}"
+    local user_id
+    user_id=$(mem0_user_id "best-practices")
+
+    if [[ -n "$category" ]]; then
+        jq -n \
+            --arg query "$query" \
+            --arg user_id "$user_id" \
+            --arg category "$category" \
+            '{
+                query: $query,
+                user_id: $user_id,
+                category: $category,
+                outcome: "success",
+                enable_graph: true
+            }'
+    else
+        jq -n \
+            --arg query "$query" \
+            --arg user_id "$user_id" \
+            '{
+                query: $query,
+                user_id: $user_id,
+                outcome: "success",
+                enable_graph: true
+            }'
+    fi
+}
+
+# Global search by outcome JSON builder
+# Usage: mem0_search_global_by_outcome_json "authentication" "failed"
+mem0_search_global_by_outcome_json() {
+    local query="$1"
+    local outcome="$2"
+    local user_id
+    user_id=$(mem0_global_user_id "best-practices")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg outcome "$outcome" \
+        '{
+            query: $query,
+            user_id: $user_id,
+            outcome: $outcome,
+            enable_graph: true
+        }'
+}
+
+# Check if context directory exists
+# Usage: has_context_dir
+has_context_dir() {
+    local context_dir="${CLAUDE_PROJECT_DIR:-.}/.claude/context"
+    [[ -d "$context_dir" ]]
+}
+
+# Get context directory path
+# Usage: get_context_dir
+get_context_dir() {
+    echo "${CLAUDE_PROJECT_DIR:-.}/.claude/context"
+}
+
+# Validate memory content
+# Usage: validate_memory_content "content" [min_length]
+validate_memory_content() {
+    local content="$1"
+    local min_length="${2:-1}"
+
+    if [[ -z "$content" ]]; then
+        return 1
+    fi
+
+    if [[ ${#content} -lt $min_length ]]; then
+        return 1
+    fi
+
+    return 0
+}
+
+# Check if mem0 is available (mock for tests)
+# Usage: is_mem0_available
+is_mem0_available() {
+    # Check for mem0 config file
+    local config_file="$HOME/.mem0/config.json"
+    [[ -f "$config_file" ]]
+}
+
+# Check for antipattern query builder (used by best practices tests)
+# Usage: check_for_antipattern_query "query text"
+check_for_antipattern_query() {
+    local query="$1"
+    local category
+    category=$(detect_best_practice_category "$query")
+    local user_id
+    user_id=$(mem0_user_id "best-practices")
+
+    jq -n \
+        --arg query "$query" \
+        --arg user_id "$user_id" \
+        --arg category "$category" \
+        '{
+            query: $query,
+            user_id: $user_id,
+            limit: 5,
+            filters: {
+                AND: [
+                    {"metadata.category": $category},
+                    {"metadata.outcome": "failed"}
+                ]
+            }
+        }'
+}
+
+# ============================================================================
+# SQLITE HELPERS (moved from hooks/_lib/common.sh after TS migration v5.1.0)
+# ============================================================================
+
+# Escape single quotes for SQLite
+# Usage: sqlite_escape "value"
+sqlite_escape() {
+    local input="${1:-}"
+    # Double all single quotes for SQLite escaping
+    # Use sed for reliable cross-platform escaping
+    printf '%s' "$input" | sed "s/'/''/g"
+}

@@ -144,11 +144,17 @@ test_all_prompt_hooks_have_suppress_output() {
 
     for hook in "${hooks[@]}"; do
         if [[ -f "$hook" ]]; then
-            # Check that hook outputs suppressOutput:true on silent success
-            grep -q "suppressOutput" "$hook" || {
-                echo "FAIL: $hook missing suppressOutput"
+            # Check that hook either:
+            # 1. Delegates to TypeScript via run-hook.mjs (modern pattern)
+            # 2. Contains suppressOutput directly (legacy pattern)
+            if grep -q "run-hook.mjs" "$hook"; then
+                continue  # TypeScript handles suppressOutput
+            elif grep -q "suppressOutput" "$hook"; then
+                continue  # Legacy pattern with suppressOutput
+            else
+                echo "FAIL: $hook missing suppressOutput or TypeScript delegation"
                 return 1
-            }
+            fi
         fi
     done
 }

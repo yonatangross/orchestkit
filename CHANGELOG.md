@@ -5,7 +5,7 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [5.1.0] - 2026-01-23
 
 ### Added
 
@@ -76,6 +76,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Engine Field Updates**: All 33 plugin manifests updated to `engine: ">=2.1.16"`
   - **VSCode Plugin Support**: Documentation for native plugin management in VSCode extension
 
+- **Decision History Dashboard** (#203, #206, #207, #208): TypeScript CLI for visualizing architecture decisions
+  - **CHANGELOG Parser** (#206): `hooks/src/lib/decision-history.ts` parses Keep a Changelog format
+  - **Decision Aggregator** (#207): Merges session, CHANGELOG, and coordination sources
+  - **CLI Dashboard** (#208): `hooks/bin/decision-history.mjs` with 7 commands (list, show, timeline, stats, mermaid, sync, search)
+  - **Mermaid Generator** (#203): Generate timeline diagrams for documentation
+  - **Skill Update**: `skills/decision-history/SKILL.md` v2.0.0 with TypeScript implementation
+  - Restored unified bundle (`hooks.mjs`) for CLI tools in esbuild config
+
+- **TypeScript/ESM Hook Migration Phase 4** (#200): Complete code splitting architecture
+  - **11 Split Bundles**: Event-based bundles for faster per-hook load times (~77% reduction)
+    - `permission.mjs` (8.35 KB), `pretool.mjs` (47.68 KB), `posttool.mjs` (58.16 KB)
+    - `prompt.mjs` (56.91 KB), `lifecycle.mjs` (31.45 KB), `stop.mjs` (33.23 KB)
+    - `subagent.mjs` (56.16 KB), `notification.mjs` (4.96 KB), `setup.mjs` (24.24 KB)
+    - `skill.mjs` (51.63 KB), `agent.mjs` (8.31 KB)
+  - **Unified Bundle**: `hooks.mjs` (324.25 KB) retained for CLI tools like decision-history
+  - **156 TypeScript Hooks**: All hooks migrated to TypeScript with shared utilities
+  - **Build Optimization**: esbuild 0.27.2 with `drop: ['debugger']` in production
+  - **Test Suite**: 372 tests (39 new split bundle tests)
+  - **Performance**: Build time ~60ms, average bundle 34.64 KB per event type
+
 ### Changed
 
 - **Plugin Structure**: Restructured to Claude Code marketplace standards (code.claude.com/docs/en/plugins-reference)
@@ -86,7 +106,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Documentation**: Updated README.md and CLAUDE.md with modular plugin structure
 
-- **Skills Count**: 161 → 162 (added task-dependency-patterns)
+- **Skills Count**: 161 → 163 (added task-dependency-patterns, decision-history v2.0.0)
+
+- **User-Invocable Skills**: 21 → 22 (decision-history now user-invocable)
 
 - **Doctor Skill**: Version bumped to 2.0.0 with 6 health checks (was 5)
 

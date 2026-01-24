@@ -13,9 +13,11 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 - **Session lifecycle** - Setup, initialization, cleanup, and maintenance
 
 **Architecture:**
-- TypeScript source → ESM bundle → Single-file deployment
-- Zero dependencies in production bundle
-- CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
+- TypeScript source → ESM split bundles → Event-based deployment
+- 11 event-specific bundles + 1 unified bundle for CLI tools
+- 89% per-load savings (~35KB average vs 324KB unified)
+- Zero dependencies in production bundles
+- CC 2.1.17 compliant (engine field), CC 2.1.16 compliant (Task Management), CC 2.1.9 compliant (additionalContext)
 
 ---
 
@@ -24,8 +26,20 @@ The hooks system intercepts Claude Code operations at various lifecycle points t
 ```
 hooks/
 ├── src/                     # TypeScript source files
-│   ├── index.ts            # Hook registry and exports
+│   ├── index.ts            # Main hook registry and exports
 │   ├── types.ts            # TypeScript type definitions
+│   ├── entries/            # Event-based entry points (Phase 4)
+│   │   ├── permission.ts   # Permission hooks entry (8KB)
+│   │   ├── pretool.ts      # PreToolUse hooks entry (48KB)
+│   │   ├── posttool.ts     # PostToolUse hooks entry (58KB)
+│   │   ├── prompt.ts       # UserPromptSubmit hooks entry (57KB)
+│   │   ├── lifecycle.ts    # SessionStart/SessionEnd entry (31KB)
+│   │   ├── stop.ts         # Stop event hooks entry (33KB)
+│   │   ├── subagent.ts     # SubagentStart/Stop entry (56KB)
+│   │   ├── notification.ts # Notification hooks entry (5KB)
+│   │   ├── setup.ts        # Setup hooks entry (24KB)
+│   │   ├── skill.ts        # Skill hooks entry (52KB)
+│   │   └── agent.ts        # Agent hooks entry (8KB)
 │   ├── lib/                # Shared utilities
 │   │   ├── common.ts       # Logging, output builders, environment
 │   │   ├── git.ts          # Git operations and validation
@@ -52,18 +66,27 @@ hooks/
 │   ├── setup/              # Setup and maintenance hooks (7)
 │   ├── agent/              # Agent-specific hooks (6)
 │   └── skill/              # Skill validation hooks (24)
-├── dist/                   # Compiled output
-│   ├── hooks.mjs           # Single bundled ESM file (~35 KB)
-│   ├── hooks.mjs.map       # Source map for debugging
+├── dist/                   # Compiled output (11 split bundles + 1 unified)
+│   ├── permission.mjs      # Permission bundle (8KB)
+│   ├── pretool.mjs         # PreToolUse bundle (48KB)
+│   ├── posttool.mjs        # PostToolUse bundle (58KB)
+│   ├── prompt.mjs          # UserPromptSubmit bundle (57KB)
+│   ├── lifecycle.mjs       # Lifecycle bundle (31KB)
+│   ├── stop.mjs            # Stop bundle (33KB)
+│   ├── subagent.mjs        # Subagent bundle (56KB)
+│   ├── notification.mjs    # Notification bundle (5KB)
+│   ├── setup.mjs           # Setup bundle (24KB)
+│   ├── skill.mjs           # Skill bundle (52KB)
+│   ├── agent.mjs           # Agent bundle (8KB)
+│   ├── hooks.mjs           # Unified bundle for CLI tools (324KB)
 │   └── bundle-stats.json   # Build metrics
 ├── bin/
-│   └── run-hook.mjs        # CLI runner for hook execution
+│   └── run-hook.mjs        # CLI runner (loads event-specific bundles)
 ├── package.json            # NPM configuration
 ├── tsconfig.json           # TypeScript configuration
-├── esbuild.config.mjs      # Build configuration
-└── (legacy bash hooks)     # 120 bash hooks not yet migrated
+└── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 147 hooks (27 TypeScript, 120 Bash legacy)
+**Total:** 156 hooks (all TypeScript)
 ```
 
 ---
@@ -620,11 +643,29 @@ export function myHook(input: HookInput): HookResult {
 
 ## Performance Considerations
 
-### Bundle Size
+### Bundle Architecture (Phase 4 Split Bundles)
 
-- **Target:** < 100 KB
-- **Current:** ~35 KB (well within target)
-- **Strategy:** Single-file ESM bundle, no external dependencies
+**Per-Event Loading:** Each hook event loads only its specific bundle:
+
+| Bundle | Size | Exports | When Loaded |
+|--------|------|---------|-------------|
+| permission.mjs | 8KB | 41 | PermissionRequest events |
+| pretool.mjs | 48KB | 50 | PreToolUse events |
+| posttool.mjs | 58KB | 35 | PostToolUse events |
+| prompt.mjs | 57KB | 89 | UserPromptSubmit events |
+| lifecycle.mjs | 31KB | 35 | SessionStart/SessionEnd |
+| stop.mjs | 33KB | 35 | Stop events |
+| subagent.mjs | 56KB | 66 | SubagentStart/Stop |
+| notification.mjs | 5KB | 26 | Notification events |
+| setup.mjs | 24KB | 26 | Setup/maintenance |
+| skill.mjs | 52KB | 35 | Skill operations |
+| agent.mjs | 8KB | 41 | Agent operations |
+| hooks.mjs (unified) | 324KB | 136 | CLI tools only |
+
+**Performance Gains:**
+- **89% per-load savings:** Average ~35KB loaded per hook vs 324KB unified
+- **Split total:** 381KB (across 11 bundles)
+- **Typical load:** 8-58KB depending on event type
 
 ### Hook Execution Time
 
@@ -639,6 +680,7 @@ export function myHook(input: HookInput): HookResult {
 3. **Avoid I/O:** Minimize file system operations
 4. **Cache results:** Store expensive computations
 5. **Skip trivial:** Use guards to skip echo, ls, pwd, etc.
+6. **Bundle-aware:** Place hooks in correct entry point for optimal loading
 
 ---
 
@@ -694,43 +736,55 @@ npm run typecheck
 
 ---
 
-## Migration from Bash
+## Adding Hooks to Split Bundles
 
-120 bash hooks remain in legacy directories. Migration checklist:
+When adding new hooks, place them in the appropriate entry point for optimal bundle loading:
 
-1. **Read original bash hook** - Understand logic
-2. **Port to TypeScript** - Use types.ts interfaces
-3. **Add guards** - Use guards.ts helpers
-4. **Add logging** - Use logHook for tracking
-5. **Write tests** - Add unit tests
-6. **Register hook** - Add to src/index.ts
-7. **Build and test** - Verify bundle works
-8. **Update .claude/settings.json** - Point to TS version
-9. **Remove bash version** - Delete old hook
+### Step 1: Identify Event Type
 
-**Example Migration:**
+| Event | Entry Point | Bundle |
+|-------|-------------|--------|
+| PermissionRequest | src/entries/permission.ts | permission.mjs |
+| PreToolUse | src/entries/pretool.ts | pretool.mjs |
+| PostToolUse | src/entries/posttool.ts | posttool.mjs |
+| UserPromptSubmit | src/entries/prompt.ts | prompt.mjs |
+| SessionStart/End | src/entries/lifecycle.ts | lifecycle.mjs |
+| Stop | src/entries/stop.ts | stop.mjs |
+| SubagentStart/Stop | src/entries/subagent.ts | subagent.mjs |
+| Notification | src/entries/notification.ts | notification.mjs |
+| Setup | src/entries/setup.ts | setup.mjs |
+| Skill-specific | src/entries/skill.ts | skill.mjs |
+| Agent-specific | src/entries/agent.ts | agent.mjs |
 
-```bash
-# Before (bash)
-#!/usr/bin/env bash
-if [[ "$TOOL_NAME" != "Bash" ]]; then
-  echo '{"continue":true,"suppressOutput":true}'
-  exit 0
-fi
-# ... logic ...
-```
+### Step 2: Register in Entry Point
 
 ```typescript
-// After (TypeScript)
-import { guardBash, outputSilentSuccess } from './lib/guards.js';
+// In src/entries/pretool.ts (example)
+import { myNewHook } from '../pretool/bash/my-new-hook.js';
 
-export function myHook(input: HookInput): HookResult {
-  const guardResult = guardBash(input);
-  if (guardResult) return guardResult;
+export const hooks: Record<string, HookFn> = {
+  // ... existing hooks ...
+  'pretool/bash/my-new-hook': myNewHook,
+};
+```
 
-  // ... logic ...
-  return outputSilentSuccess();
-}
+### Step 3: Export from Main Index
+
+Also add to `src/index.ts` for CLI tools that use the unified bundle:
+
+```typescript
+export { myNewHook } from './pretool/bash/my-new-hook.js';
+```
+
+### Step 4: Update run-hook.mjs (if new category)
+
+If adding a new hook category, update `bin/run-hook.mjs` bundleMap:
+
+```javascript
+const bundleMap = {
+  // ... existing mappings ...
+  'my-category': 'my-bundle',
+};
 ```
 
 ---
@@ -747,6 +801,8 @@ export function myHook(input: HookInput): HookResult {
 ---
 
 **Last Updated:** 2026-01-23
-**Version:** 1.0.0 (Phase 1: 27/147 hooks migrated)
-**Bundle Size:** 35.60 KB
-**Claude Code Requirement:** >= 2.1.16
+**Version:** 2.0.0 (Phase 4: Code splitting complete)
+**Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
+**Hooks:** 156 TypeScript hooks
+**Average Bundle:** ~35KB per event
+**Claude Code Requirement:** >= 2.1.17

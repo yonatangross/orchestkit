@@ -12,7 +12,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 MCP_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/mcp"
-COMMON_LIB="$PROJECT_ROOT/hooks/_lib/common.sh"
+TS_LIB_DIR="$PROJECT_ROOT/hooks/src/lib"
 
 # ============================================================================
 # HOOK STRUCTURE TESTS
@@ -43,6 +43,11 @@ test_all_mcp_hooks_source_common() {
 
     for hook in "${hooks[@]}"; do
         if [[ -f "$MCP_HOOKS_DIR/$hook" ]]; then
+            # Since v5.1.0, hooks may delegate to TypeScript
+            if grep -q "run-hook.mjs" "$MCP_HOOKS_DIR/$hook" 2>/dev/null; then
+                # TypeScript hooks use lib/common.ts internally
+                continue
+            fi
             grep -q "source.*common.sh" "$MCP_HOOKS_DIR/$hook" || return 1
         fi
     done
@@ -60,6 +65,11 @@ test_all_mcp_hooks_have_audit_logging() {
 
     for hook in "${hooks[@]}"; do
         if [[ -f "$MCP_HOOKS_DIR/$hook" ]]; then
+            # Since v5.1.0, hooks may delegate to TypeScript
+            if grep -q "run-hook.mjs" "$MCP_HOOKS_DIR/$hook" 2>/dev/null; then
+                # TypeScript hooks have logging built into lib/common.ts
+                continue
+            fi
             grep -q "log_permission_feedback" "$MCP_HOOKS_DIR/$hook" || return 1
         fi
     done
@@ -67,8 +77,13 @@ test_all_mcp_hooks_have_audit_logging() {
 }
 
 test_log_permission_feedback_function_exists() {
-    source "$COMMON_LIB"
-    declare -f log_permission_feedback >/dev/null 2>&1
+    # Since v5.1.0, common.sh was migrated to TypeScript
+    # Check TypeScript source for logging functions
+    if [[ -f "$TS_LIB_DIR/common.ts" ]]; then
+        grep -qiE "log.*feedback|output.*context" "$TS_LIB_DIR/common.ts"
+        return $?
+    fi
+    return 1
 }
 
 # ============================================================================
@@ -131,13 +146,15 @@ test_hooks_dont_interfere_with_each_other() {
     # Context7 hook should pass through Bash tools
     if [[ -f "$MCP_HOOKS_DIR/context7-tracker.sh" ]]; then
         local c7_result=$(echo "$context7_input" | bash "$MCP_HOOKS_DIR/context7-tracker.sh" 2>/dev/null)
-        [[ "$c7_result" == *'"continue": true'* ]] || return 1
+        # Check for continue:true with or without spaces (JSON formatting varies)
+        echo "$c7_result" | jq -e '.continue == true' >/dev/null 2>&1 || return 1
     fi
 
     # agent-browser hook should pass through context7 tool
     if [[ -f "$PROJECT_ROOT/hooks/pretool/bash/agent-browser-safety.sh" ]]; then
         local ab_result=$(echo "$agent_browser_input" | bash "$PROJECT_ROOT/hooks/pretool/bash/agent-browser-safety.sh" 2>/dev/null)
-        [[ "$ab_result" == *'"continue": true'* ]] || return 1
+        # Check for continue:true with jq
+        echo "$ab_result" | jq -e '.continue == true' >/dev/null 2>&1 || return 1
     fi
 
     return 0

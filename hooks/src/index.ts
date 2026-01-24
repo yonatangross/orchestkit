@@ -13,6 +13,18 @@ export * from './lib/common.js';
 export * from './lib/git.js';
 export * from './lib/guards.js';
 
+// Re-export orchestration modules (Issue #197)
+export * from './lib/orchestration-types.js';
+export * from './lib/intent-classifier.js';
+export * from './lib/orchestration-state.js';
+export * from './lib/task-integration.js';
+export * from './lib/retry-manager.js';
+export * from './lib/calibration-engine.js';
+export * from './lib/multi-agent-coordinator.js';
+
+// Re-export decision history module (Issues #203, #206, #207, #208)
+export * from './lib/decision-history.js';
+
 // Import hook implementations
 // Permission hooks
 import { autoApproveReadonly } from './permission/auto-approve-readonly.js';
@@ -102,13 +114,19 @@ import { skillAutoSuggest } from './prompt/skill-auto-suggest.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
 import { agentAutoSuggest } from './prompt/agent-auto-suggest.js';
 
-// SubagentStart hooks (4)
+// Prompt hooks - Orchestration (Issue #197)
+import { agentOrchestrator } from './prompt/agent-orchestrator.js';
+import { skillInjector } from './prompt/skill-injector.js';
+import { pipelineDetector } from './prompt/pipeline-detector.js';
+
+// SubagentStart hooks (5)
 import { agentMemoryInject } from './subagent-start/agent-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
+import { taskLinker } from './subagent-start/task-linker.js';
 
-// SubagentStop hooks (9)
+// SubagentStop hooks (11)
 import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
 import { autoSpawnQuality } from './subagent-stop/auto-spawn-quality.js';
 import { contextPublisher } from './subagent-stop/context-publisher.js';
@@ -118,12 +136,14 @@ import { multiClaudeVerifier } from './subagent-stop/multi-claude-verifier.js';
 import { outputValidator } from './subagent-stop/output-validator.js';
 import { subagentCompletionTracker } from './subagent-stop/subagent-completion-tracker.js';
 import { subagentQualityGate } from './subagent-stop/subagent-quality-gate.js';
+import { taskCompleter } from './subagent-stop/task-completer.js';
+import { retryHandler } from './subagent-stop/retry-handler.js';
 
 // Notification hooks (2)
 import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
-// Stop hooks (11)
+// Stop hooks (12)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
 import { cleanupInstance } from './stop/cleanup-instance.js';
@@ -135,6 +155,7 @@ import { multiInstanceCleanup } from './stop/multi-instance-cleanup.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
 import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
+import { calibrationPersist } from './stop/calibration-persist.js';
 
 // Setup hooks (7)
 import { firstRunSetup } from './setup/first-run-setup.js';
@@ -153,7 +174,7 @@ import { deploymentSafetyCheck } from './agent/deployment-safety-check.js';
 import { migrationSafetyCheck } from './agent/migration-safety-check.js';
 import { securityCommandAudit } from './agent/security-command-audit.js';
 
-// PostTool hooks - Root (12)
+// PostTool hooks - Root (13)
 import { auditLogger } from './posttool/audit-logger.js';
 import { autoLint } from './posttool/auto-lint.js';
 import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
@@ -166,6 +187,7 @@ import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
 import { skillEditTracker } from './posttool/skill-edit-tracker.js';
+import { calibrationTracker } from './posttool/calibration-tracker.js';
 
 // PostTool/Write hooks (5)
 import { codeStyleLearner } from './posttool/write/code-style-learner.js';
@@ -264,7 +286,7 @@ export const hooks: Record<string, HookFn> = {
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
 
-  // Prompt hooks (9) - UserPromptSubmit
+  // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/context-injector': contextInjector,
@@ -274,14 +296,19 @@ export const hooks: Record<string, HookFn> = {
   'prompt/skill-auto-suggest': skillAutoSuggest,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/agent-auto-suggest': agentAutoSuggest,
+  // Orchestration hooks (Issue #197)
+  'prompt/agent-orchestrator': agentOrchestrator,
+  'prompt/skill-injector': skillInjector,
+  'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (4)
+  // SubagentStart hooks (5)
   'subagent-start/agent-memory-inject': agentMemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
+  'subagent-start/task-linker': taskLinker,
 
-  // SubagentStop hooks (9)
+  // SubagentStop hooks (11)
   'subagent-stop/agent-memory-store': agentMemoryStore,
   'subagent-stop/auto-spawn-quality': autoSpawnQuality,
   'subagent-stop/context-publisher': contextPublisher,
@@ -291,6 +318,8 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/output-validator': outputValidator,
   'subagent-stop/subagent-completion-tracker': subagentCompletionTracker,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,
+  'subagent-stop/task-completer': taskCompleter,
+  'subagent-stop/retry-handler': retryHandler,
 
   // Notification hooks (2)
   'notification/desktop': desktopNotification,
@@ -322,7 +351,7 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
 
-  // Stop hooks (11)
+  // Stop hooks (12)
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
   'stop/cleanup-instance': cleanupInstance,
@@ -334,6 +363,7 @@ export const hooks: Record<string, HookFn> = {
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
+  'stop/calibration-persist': calibrationPersist,
 
   // Setup hooks (7)
   'setup/first-run-setup': firstRunSetup,
@@ -352,7 +382,7 @@ export const hooks: Record<string, HookFn> = {
   'agent/migration-safety-check': migrationSafetyCheck,
   'agent/security-command-audit': securityCommandAudit,
 
-  // PostTool hooks - Root (12)
+  // PostTool hooks - Root (13)
   'posttool/audit-logger': auditLogger,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
@@ -365,6 +395,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
+  'posttool/calibration-tracker': calibrationTracker,
 
   // PostTool/Write hooks (5)
   'posttool/write/code-style-learner': codeStyleLearner,

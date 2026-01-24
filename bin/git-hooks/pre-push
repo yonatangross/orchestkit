@@ -110,6 +110,117 @@ if [[ $MISMATCH -eq 1 ]]; then
 fi
 echo "OK (all at v$PLUGIN_V)"
 
+# ===== Unit Tests (mirrors CI exactly) =====
+echo -n "  Running unit tests... "
+
+# Cross-platform timeout function
+run_with_timeout() {
+  local timeout_secs=$1
+  shift
+  if command -v timeout &>/dev/null; then
+    timeout "$timeout_secs" "$@"
+  elif command -v gtimeout &>/dev/null; then
+    gtimeout "$timeout_secs" "$@"
+  else
+    # Fallback: use perl alarm (works on macOS)
+    perl -e "alarm $timeout_secs; exec @ARGV" "$@"
+  fi
+}
+
+# CI test list - must match .github/workflows/ci.yml exactly
+CI_UNIT_TESTS=(
+  # Core validation tests
+  tests/unit/test-json-validity.sh
+  tests/unit/test-hook-executability.sh
+  tests/unit/test-context-schemas.sh
+  tests/unit/test-hooks-unit.sh
+  tests/unit/test-shell-syntax.sh
+  tests/unit/test-hook-json-output.sh
+  tests/unit/test-edge-cases.sh
+  tests/unit/test-count-components.sh
+  # Hook-specific tests
+  tests/unit/test-best-practices.sh
+  tests/unit/test-lifecycle-hooks.sh
+  tests/unit/test-pretool-all-hooks.sh
+  tests/unit/test-pretool-mcp-hooks.sh
+  tests/unit/test-pretool-skill-hooks.sh
+  tests/unit/test-pretool-task-hooks.sh
+  tests/unit/test-permission-posttool-hooks.sh
+  tests/unit/test-prompt-hooks.sh
+  tests/unit/test-file-lock-hooks.sh
+  tests/unit/test-subagent-hooks.sh
+  tests/unit/test-skill-hooks.sh
+  tests/unit/test-learning-tracker-hook.sh
+  # Memory and context tests
+  tests/unit/test-mem0-prompt-hooks.sh
+  tests/unit/test-memory-lib.sh
+  tests/unit/test-memory-commands.sh
+  tests/unit/test-memory-context-hook.sh
+  tests/unit/test-mcp-pretool-hooks.sh
+  tests/unit/test-agent-memory-hooks.sh
+  # Coordination tests
+  tests/unit/test-coordination-lib.sh
+  tests/unit/test-decision-sync.sh
+  tests/unit/test-pattern-sync.sh
+  tests/unit/test-worktree-cli.sh
+  # Analytics and feedback tests
+  tests/unit/test-analytics.sh
+  tests/unit/test-feedback-lib.sh
+  tests/unit/test-satisfaction-detection.sh
+  tests/unit/test-consent-manager.sh
+  # Skill and agent unit tests
+  tests/unit/test-skill-analytics.sh
+  tests/unit/test-skill-edit-tracker.sh
+  tests/unit/test-agent-performance.sh
+  # Other unit tests
+  tests/unit/test-pii-validation.sh
+  tests/unit/test-evolution-engine.sh
+  tests/unit/test-version-manager.sh
+)
+
+UNIT_TEST_ERRORS=0
+for test_file in "${CI_UNIT_TESTS[@]}"; do
+  if [[ -f "$test_file" ]]; then
+    if ! run_with_timeout 60 bash "$test_file" >/dev/null 2>&1; then
+      if [[ $UNIT_TEST_ERRORS -eq 0 ]]; then
+        echo "FAILED"
+      fi
+      echo "    FAIL: $(basename "$test_file")"
+      UNIT_TEST_ERRORS=$((UNIT_TEST_ERRORS + 1))
+    fi
+  fi
+done
+
+if [[ $UNIT_TEST_ERRORS -gt 0 ]]; then
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Unit tests failed! ($UNIT_TEST_ERRORS test file(s) failed)"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run failing tests to see details"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Security Tests =====
+echo -n "  Running security tests... "
+
+if [[ -x "tests/security/run-security-tests.sh" ]]; then
+  if ! ./tests/security/run-security-tests.sh >/dev/null 2>&1; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Security tests failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: ./tests/security/run-security-tests.sh"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+else
+  echo "SKIP (not found)"
+fi
+
 echo ""
 echo "Pre-push validation passed"
 exit 0

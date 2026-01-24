@@ -124,10 +124,14 @@ SATISFACTION_NEGATIVE_SHORT=(
 
 # Initialize feedback directory and files
 init_feedback() {
-    mkdir -p "$FEEDBACK_DIR"
+    # Create directory with explicit sync for macOS CI compatibility
+    mkdir -p "$FEEDBACK_DIR" 2>/dev/null || true
+    # Ensure directory is visible to filesystem (macOS race condition fix)
+    [[ -d "$FEEDBACK_DIR" ]] || mkdir -p "$FEEDBACK_DIR"
 
     # Create metrics.json if not exists
     if [[ ! -f "$METRICS_FILE" ]]; then
+        mkdir -p "$(dirname "$METRICS_FILE")" 2>/dev/null || true
         cat > "$METRICS_FILE" << 'EOF'
 {
   "version": "1.0",
@@ -141,6 +145,7 @@ EOF
 
     # Create learned-patterns.json if not exists
     if [[ ! -f "$PATTERNS_FILE" ]]; then
+        mkdir -p "$(dirname "$PATTERNS_FILE")" 2>/dev/null || true
         cat > "$PATTERNS_FILE" << 'EOF'
 {
   "version": "1.0",
@@ -153,6 +158,7 @@ EOF
 
     # Create preferences.json if not exists
     if [[ ! -f "$PREFERENCES_FILE" ]]; then
+        mkdir -p "$(dirname "$PREFERENCES_FILE")" 2>/dev/null || true
         cat > "$PREFERENCES_FILE" << 'EOF'
 {
   "version": "1.0",
@@ -170,6 +176,7 @@ EOF
 
     # Create satisfaction.json if not exists
     if [[ ! -f "$SATISFACTION_FILE" ]]; then
+        mkdir -p "$(dirname "$SATISFACTION_FILE")" 2>/dev/null || true
         cat > "$SATISFACTION_FILE" << 'EOF'
 {
   "version": "1.0",

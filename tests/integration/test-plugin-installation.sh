@@ -180,12 +180,22 @@ fi
 echo ""
 
 # =============================================================================
-# Test 6: common.sh uses PLUGIN_ROOT
+# Test 6: Common library plugin compatibility (TypeScript or Bash)
 # =============================================================================
 echo "--- Test 6: common.sh plugin compatibility ---"
 
+# Since v5.1.0, common.sh was migrated to TypeScript
+COMMON_TS="$PLUGIN_ROOT/hooks/src/lib/common.ts"
 COMMON_SH="$PLUGIN_ROOT/hooks/_lib/common.sh"
-if [[ -f "$COMMON_SH" ]]; then
+
+if [[ -f "$COMMON_TS" ]]; then
+  # TypeScript version - check for project dir functions
+  if grep -qE "getProjectDir|CLAUDE_PROJECT_DIR|CLAUDE_PLUGIN_ROOT" "$COMMON_TS"; then
+    pass "common.ts (TypeScript) has plugin path handling"
+  else
+    fail "common.ts missing plugin path handling"
+  fi
+elif [[ -f "$COMMON_SH" ]]; then
   if grep -q 'PLUGIN_ROOT=' "$COMMON_SH"; then
     pass "common.sh defines PLUGIN_ROOT variable"
   else
@@ -198,7 +208,7 @@ if [[ -f "$COMMON_SH" ]]; then
     fail "common.sh does not reference CLAUDE_PLUGIN_ROOT"
   fi
 else
-  fail "hooks/_lib/common.sh not found"
+  fail "Neither hooks/src/lib/common.ts nor hooks/_lib/common.sh found"
 fi
 
 echo ""

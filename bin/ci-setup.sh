@@ -52,7 +52,59 @@ main() {
         log_warn "Unknown OS: $(uname), skipping package setup"
     fi
 
+        # Build TypeScript hooks (required for tests that use TypeScript hooks)
+    build_typescript_hooks
+
     log_info "CI environment setup complete!"
+}
+
+# ============================================================================
+# TYPESCRIPT HOOKS BUILD
+# ============================================================================
+
+build_typescript_hooks() {
+    log_info "Building TypeScript hooks..."
+
+    # Check if Node.js is available
+    if ! command -v node &> /dev/null; then
+        log_warn "Node.js not found, skipping TypeScript hook build"
+        return 0
+    fi
+
+    local hooks_dir
+    hooks_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/hooks"
+
+    if [[ ! -d "$hooks_dir" ]]; then
+        log_warn "Hooks directory not found at $hooks_dir, skipping build"
+        return 0
+    fi
+
+    # Check if package.json exists
+    if [[ ! -f "$hooks_dir/package.json" ]]; then
+        log_warn "No package.json in hooks directory, skipping build"
+        return 0
+    fi
+
+    # Install dependencies and build
+    pushd "$hooks_dir" > /dev/null
+
+    log_info "Installing hook dependencies..."
+    npm ci --silent 2>/dev/null || npm install --silent
+
+    log_info "Building hook bundle..."
+    if npm run build --silent; then
+        log_info "TypeScript hooks built successfully"
+        # Verify the bundle was created
+        if [[ -f "dist/hooks.mjs" ]]; then
+            log_info "Hook bundle verified: dist/hooks.mjs ($(du -h dist/hooks.mjs | cut -f1))"
+        else
+            log_warn "Hook bundle not found after build"
+        fi
+    else
+        log_warn "Hook build failed, some tests may fail"
+    fi
+
+    popd > /dev/null
 }
 
 # ============================================================================

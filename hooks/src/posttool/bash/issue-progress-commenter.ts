@@ -12,7 +12,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, getField, getSessionId, logHook } from '../../lib/common.js';
 
 interface ProgressFile {
   session_id: string;
@@ -252,8 +252,8 @@ export function issueProgressCommenter(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Sanitize session ID
-  const sessionId = getSessionId().replace(/[^a-zA-Z0-9_-]/g, '');
+  // Sanitize session ID - prefer input.session_id, fallback to getSessionId()
+  const sessionId = (input.session_id || getSessionId()).replace(/[^a-zA-Z0-9_-]/g, '');
   const progressFile = `/tmp/claude-session-${sessionId}/issue-progress.json`;
 
   queueCommitProgress(issueNum, commit, branch, progressFile, sessionId);

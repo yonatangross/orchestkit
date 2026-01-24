@@ -39,6 +39,7 @@ echo ""
 
 # Test helper: run hook with JSON input
 # Uses perl for timeout (available on macOS and Linux)
+# Timeout increased to 15s for TypeScript hooks that need to load Node.js runtime
 run_hook() {
     local hook_path="$1"
     local input_json="$2"
@@ -47,9 +48,9 @@ run_hook() {
     local output_file="$TEST_TMP/output.txt"
     local error_file="$TEST_TMP/error.txt"
 
-    # Run hook with piped input (5 second timeout using perl)
+    # Run hook with piped input (15 second timeout using perl for TypeScript hooks)
     local actual_exit=0
-    echo "$input_json" | perl -e 'alarm 5; exec @ARGV' bash "$hook_path" > "$output_file" 2> "$error_file" || actual_exit=$?
+    echo "$input_json" | perl -e 'alarm 15; exec @ARGV' bash "$hook_path" > "$output_file" 2> "$error_file" || actual_exit=$?
 
     # Exit code 142 = SIGALRM (timeout)
     if [[ $actual_exit -eq 142 ]]; then

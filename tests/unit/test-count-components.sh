@@ -142,11 +142,12 @@ test_count_sanity() {
         log_fail "Agents count out of range: $agents (expected 15-40)"
     fi
 
-    # Commands should be 15-30
-    if [[ "$commands" -ge 15 && "$commands" -le 30 ]]; then
-        log_pass "Commands count in expected range (15-30): $commands"
+    # Commands count: 0 is valid (deprecated in favor of user-invocable skills)
+    # Non-zero should be in range 15-30 if commands directory is used
+    if [[ "$commands" -eq 0 ]] || [[ "$commands" -ge 15 && "$commands" -le 30 ]]; then
+        log_pass "Commands count acceptable (0 or 15-30): $commands"
     else
-        log_fail "Commands count out of range: $commands (expected 15-30)"
+        log_fail "Commands count out of range: $commands (expected 0 or 15-30)"
     fi
 
     # Hooks should be 80-160 (updated for version-sync hook)
