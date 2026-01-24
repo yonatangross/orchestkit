@@ -60,15 +60,18 @@ is_hook_path() {
 validate_run_hook_command() {
     local cmd="$1"
 
-    # Remove trailing quotes
+    # Remove leading and trailing quotes
     cmd="${cmd%\"}"
     cmd="${cmd%\'}"
+    cmd="${cmd#\"}"
+    cmd="${cmd#\'}"
 
     # Check if this is a run-hook.mjs command
     if [[ "$cmd" == *"run-hook.mjs"* ]]; then
         # Check if run-hook.mjs exists
         local runner_path="$REPO_ROOT/hooks/bin/run-hook.mjs"
         if [[ ! -f "$runner_path" ]]; then
+            echo "  DEBUG: run-hook.mjs not found at $runner_path" >&2
             return 1
         fi
 
@@ -81,7 +84,11 @@ validate_run_hook_command() {
             local ts_path="$REPO_ROOT/hooks/src/${handler}.ts"
             if [[ -f "$ts_path" ]]; then
                 return 0  # Valid
+            else
+                echo "  DEBUG: TypeScript not found at $ts_path" >&2
             fi
+        else
+            echo "  DEBUG: Could not extract handler from: $cmd" >&2
         fi
         return 1  # Invalid - handler not found
     fi
