@@ -1,1 +1,0 @@
-../../../commands/git-recovery-command.md

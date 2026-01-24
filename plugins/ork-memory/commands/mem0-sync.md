@@ -1,1 +1,0 @@
-../../../commands/mem0-sync.md

@@ -23,9 +23,6 @@
   "skills": {
     "directory": "skills"
   },
-  "commands": {
-    "directory": "commands"
-  },
   "hooks": {
     "SessionStart": [
       {

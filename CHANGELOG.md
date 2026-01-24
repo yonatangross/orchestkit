@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.4] - 2026-01-24
+
+### Fixed
+
+- **Plugin update fails "not found in marketplace"**: Aligned marketplace plugin name with plugin.json (#213)
+  - Renamed `orchestkit-complete` → `ork` in marketplace.json plugins[0].name
+  - CC looks up plugin by name from plugin.json, now both match
+- **Broken symlinks in modular plugins**: Removed 21 broken symlinks pointing to non-existent `commands/` directory
+  - CC 2.1.7+ uses `user-invocable: true` in SKILL.md, not separate commands directory
+  - Removed legacy `commands` directory declaration from ork-core plugin.json
+
+---
+
+
 ## [5.1.3] - 2026-01-24
 
 ### Fixed

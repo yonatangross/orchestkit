@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "5.1.3",
+  "version": "5.1.4",
   "engine": ">=2.1.19",
   "description": "Modular AI Development Toolkit — Install only what you need",
   "owner": {
@@ -13,9 +13,9 @@
   },
   "plugins": [
     {
-      "name": "orchestkit-complete",
-      "description": "Full OrchestKit toolkit — 161 skills, 34 agents, 147 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
-      "version": "5.1.3",
+      "name": "ork",
+      "description": "Full OrchestKit toolkit — 163 skills, 34 agents, 148 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
+      "version": "5.1.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
