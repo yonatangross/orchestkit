@@ -6,7 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
-allowedTools: [Bash]
+allowedTools: [Bash, Task]
 skills: [commit, review-pr]
 ---
 

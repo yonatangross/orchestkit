@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [curation, golden-dataset, evaluation, testing]
 user-invocable: true
 allowedTools: [Read, Write, Edit, Grep, Glob, Task]
+skills: [golden-dataset-validation, llm-evaluation, test-data-management]
 ---
 
 # Add to Golden Dataset
