@@ -178,14 +178,12 @@ test_plugin_version_requirement
 
 log_section "Test 6: Compound command validator exists"
 test_compound_validator_exists() {
-  local validator="$PROJECT_ROOT/hooks/pretool/bash/compound-command-validator.sh"
+  # Check for TypeScript source (Phase 4 migration)
+  local ts_validator="$PROJECT_ROOT/hooks/src/pretool/bash/compound-command-validator.ts"
+  local runner="$PROJECT_ROOT/hooks/bin/run-hook.mjs"
 
-  if [[ -f "$validator" ]]; then
-    if [[ -x "$validator" ]]; then
-      log_pass "Compound command validator exists and is executable"
-    else
-      log_fail "Compound command validator exists but not executable"
-    fi
+  if [[ -f "$ts_validator" ]] && [[ -f "$runner" ]]; then
+    log_pass "Compound command validator exists (TypeScript)"
   else
     log_fail "Compound command validator not found"
   fi

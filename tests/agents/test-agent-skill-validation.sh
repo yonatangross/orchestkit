@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Test: Validates runtime skill validation in subagent-validator.sh
+# Test: Validates runtime skill validation in subagent-validator
 # Ensures agents referencing non-existent skills produce warnings
 # GitHub Issue: #60
+# Updated for Phase 4 TypeScript migration
 
 set -euo pipefail
 
@@ -9,7 +10,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/agents"
 SKILLS_DIR="$REPO_ROOT/skills"
-HOOK_SCRIPT="$REPO_ROOT/hooks/subagent-start/subagent-validator.sh"
+# Phase 4: Use TypeScript hook via run-hook.mjs
+HOOK_RUNNER="$REPO_ROOT/hooks/bin/run-hook.mjs"
+HOOK_HANDLER="subagent-start/subagent-validator"
+
+# Function to run the TypeScript hook
+run_hook() {
+  local input="$1"
+  echo "$input" | node "$HOOK_RUNNER" "$HOOK_HANDLER" 2>&1
+}
 
 # Test temp directory
 TEST_TMP="${TMPDIR:-/tmp}/orchestkit-skill-validation-test-$$"
@@ -27,15 +36,15 @@ test_valid_agent_no_warnings() {
   echo -n "Test 1: Valid agent (backend-system-architect) produces no warnings... "
 
   local input='{"tool_input":{"subagent_type":"backend-system-architect","description":"Test"},"session_id":"test-123"}'
-  local stderr_output
+  local output
 
-  # Run hook and capture stderr
-  stderr_output=$(echo "$input" | CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
+  # Run hook and capture all output
+  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
 
   # Should not contain "missing skill" warning
-  if [[ "$stderr_output" == *"missing skill"* ]]; then
+  if [[ "$output" == *"missing skill"* ]]; then
     echo "FAIL"
-    echo "  Unexpected warning: $stderr_output"
+    echo "  Unexpected warning: $output"
     return 1
   else
     echo "PASS"
@@ -68,20 +77,20 @@ EOF
   cp "$test_agent" "$TEST_TMP/agents/test-missing-skill-agent.md"
 
   local input='{"tool_input":{"subagent_type":"test-missing-skill-agent","description":"Test"},"session_id":"test-123"}'
-  local stderr_output
+  local output
 
   # Run hook with our test directory
   # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
   # CLAUDE_PROJECT_DIR points to test dir for agents/skills lookup
-  stderr_output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
+  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input") || true
 
   # Should contain warning about missing skills
-  if [[ "$stderr_output" == *"missing skill"* ]] && [[ "$stderr_output" == *"non-existent-skill-12345"* ]]; then
+  if [[ "$output" == *"missing skill"* ]] && [[ "$output" == *"non-existent-skill-12345"* ]]; then
     echo "PASS"
     return 0
   else
     echo "FAIL"
-    echo "  Expected warning about missing skills, got: $stderr_output"
+    echo "  Expected warning about missing skills, got: $output"
     return 1
   fi
 }
@@ -91,14 +100,14 @@ test_builtin_type_no_warning() {
   echo -n "Test 3: Builtin type (Explore) produces no skill warnings... "
 
   local input='{"tool_input":{"subagent_type":"Explore","description":"Test"},"session_id":"test-123"}'
-  local stderr_output
+  local output
 
-  stderr_output=$(echo "$input" | CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
+  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
 
   # Should not contain any warnings
-  if [[ "$stderr_output" == *"missing skill"* ]]; then
+  if [[ "$output" == *"missing skill"* ]]; then
     echo "FAIL"
-    echo "  Unexpected warning for builtin type: $stderr_output"
+    echo "  Unexpected warning for builtin type: $output"
     return 1
   else
     echo "PASS"
@@ -126,18 +135,22 @@ Test
 EOF
 
   local input='{"tool_input":{"subagent_type":"test-continue-agent","description":"Test"},"session_id":"test-123"}'
-  local stdout_output
+  local output
 
   # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
-  stdout_output=$(echo "$input" | CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" bash "$HOOK_SCRIPT" 2>/dev/null) || true
+  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input" 2>/dev/null) || true
+
+  # Output may contain warning lines + JSON. Extract the last line which should be JSON.
+  local json_line
+  json_line=$(echo "$output" | grep -E '^\{.*\}$' | tail -1)
 
   # Should output valid JSON with continue: true
-  if echo "$stdout_output" | jq -e '.continue == true' >/dev/null 2>&1; then
+  if echo "$json_line" | jq -e '.continue == true' >/dev/null 2>&1; then
     echo "PASS"
     return 0
   else
     echo "FAIL"
-    echo "  Expected JSON with continue:true, got: $stdout_output"
+    echo "  Expected JSON with continue:true, got: $output"
     return 1
   fi
 }
@@ -154,12 +167,12 @@ test_all_real_agents_valid() {
     agent_name=$(basename "$agent_file" .md)
 
     local input="{\"tool_input\":{\"subagent_type\":\"$agent_name\",\"description\":\"Test\"},\"session_id\":\"test-123\"}"
-    local stderr_output
+    local output
 
-    stderr_output=$(echo "$input" | CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$HOOK_SCRIPT" 2>&1 >/dev/null) || true
+    output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
 
-    if [[ "$stderr_output" == *"missing skill"* ]]; then
-      invalid_agents+=("$agent_name: $stderr_output")
+    if [[ "$output" == *"missing skill"* ]]; then
+      invalid_agents+=("$agent_name: $output")
     fi
   done
 
@@ -178,27 +191,28 @@ test_all_real_agents_valid() {
 
 # Test 6: Performance test - validation should complete quickly
 test_validation_performance() {
-  echo -n "Test 6: Skill validation completes in <100ms... "
+  echo -n "Test 6: Skill validation completes in <200ms... "
 
   local input='{"tool_input":{"subagent_type":"backend-system-architect","description":"Test"},"session_id":"test-123"}'
 
-  # Run 5 times and measure
+  # Run 5 times and measure (TypeScript hooks have more overhead than shell)
   local start_ms end_ms duration_ms
   start_ms=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s%3N)
 
   for i in {1..5}; do
-    echo "$input" | CLAUDE_PROJECT_DIR="$REPO_ROOT" bash "$HOOK_SCRIPT" >/dev/null 2>&1 || true
+    CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input" >/dev/null 2>&1 || true
   done
 
   end_ms=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s%3N)
   duration_ms=$((end_ms - start_ms))
   local avg_ms=$((duration_ms / 5))
 
-  if [[ $avg_ms -lt 100 ]]; then
+  # TypeScript hooks have ~50-100ms JIT overhead, allow 200ms
+  if [[ $avg_ms -lt 200 ]]; then
     echo "PASS (${avg_ms}ms avg)"
     return 0
   else
-    echo "FAIL (${avg_ms}ms avg, expected <100ms)"
+    echo "FAIL (${avg_ms}ms avg, expected <200ms)"
     return 1
   fi
 }
