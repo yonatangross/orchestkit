@@ -11,6 +11,11 @@ import {
   videoDemoSchema,
   calculateVideoDemoMetadata,
 } from "./components/VideoDemo";
+import {
+  ShowcaseDemo,
+  showcaseDemoSchema,
+  calculateShowcaseMetadata,
+} from "./components/ShowcaseDemo";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -61,6 +66,22 @@ export const RemotionRoot: React.FC = () => {
             after: "Instant productivity",
           },
           ccVersion: "CC 2.1.16",
+        }}
+      />
+
+      {/* 30-second Plugin Showcase - All commands */}
+      <Composition
+        id="ShowcaseDemo"
+        component={ShowcaseDemo}
+        durationInFrames={900} // Overridden by calculateMetadata
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={showcaseDemoSchema}
+        calculateMetadata={calculateShowcaseMetadata}
+        defaultProps={{
+          terminalVideo: "showcase.mp4",
+          primaryColor: "#8b5cf6",
         }}
       />
 
