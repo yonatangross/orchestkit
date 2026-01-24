@@ -237,4 +237,4 @@ python3 skills/mem0-memory/scripts/utils/verify-architecture.py
 - `scripts/utils/agent-queries.py` - Query helper functions
 - `scripts/crud/search-memories.py` - Search with metadata filters
 - `scripts/visualization/visualize-mem0-graph.py` - Graph visualization with filtering
-- `hooks/skill/mem0-decision-saver.sh` - Auto-detects agent context
+- `hooks/src/skill/decision-processor.ts` - Auto-detects agent context

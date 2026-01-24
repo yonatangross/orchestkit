@@ -53,7 +53,7 @@ Leverages CC 2.1.3's unreachable permission rules detection:
 **Output:**
 ```
 Permission Rules: 12/12 reachable
-- auto-approve-readonly.sh: OK
+- auto-approve-safe-bash (TypeScript): OK
 - auto-approve-safe-bash.sh: OK (3 patterns)
 - auto-approve-project-writes.sh: OK
 ```

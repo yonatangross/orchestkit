@@ -25,7 +25,6 @@ skills:
 hooks:
   PostToolUse:
     - matcher: "Write"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/agent/a11y-lint-check.sh"
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.

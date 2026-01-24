@@ -67,7 +67,7 @@ def get_shared_user_id() -> str:
 
 ### 2. Update Hook for Agent Context
 
-**File:** `hooks/skill/mem0-decision-saver.sh`
+**File:** `hooks/src/skill/decision-processor.ts`
 
 ```bash
 # Detect if we're in an agent context
@@ -208,7 +208,7 @@ user_id: "agent:backend-system-architect"
 ## Implementation Checklist
 
 - [ ] Update `create-all-agent-memories.py` to use `agent:{name}` user_id
-- [ ] Update `mem0-decision-saver.sh` hook to detect agent context
+- [ ] Update `decision-processor.ts` hook to detect agent context
 - [ ] Update visualization scripts to support multi-agent graphs
 - [ ] Create migration script for existing memories
 - [ ] Update documentation with new user_id patterns
@@ -218,6 +218,6 @@ user_id: "agent:backend-system-architect"
 ## Related Files
 
 - `skills/mem0-memory/scripts/create/create-all-agent-memories.py`
-- `hooks/skill/mem0-decision-saver.sh`
+- `hooks/src/skill/decision-processor.ts`
 - `skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py`
 - `skills/mem0-memory/SKILL.md`

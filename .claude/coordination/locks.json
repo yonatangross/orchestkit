@@ -1,1 +1,13 @@
-{"locks":[]}
+{
+  "locks": [
+    {
+      "lock_id": "lock-1769274253277-a6zuldto",
+      "file_path": "CLAUDE.md",
+      "lock_type": "exclusive_write",
+      "instance_id": "fallback-99334",
+      "acquired_at": "2026-01-24T17:04:13.277Z",
+      "expires_at": "2026-01-24T17:05:13.277Z",
+      "reason": "Modifying via Edit"
+    }
+  ]
+}

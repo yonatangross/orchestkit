@@ -19,9 +19,9 @@ skills:
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/gh-issue-creation-guide.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/gh-issue-creation-guide"
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/changelog-generator.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
 ---
 ## Directive
 Manage GitHub releases, milestones, changelogs, and semantic versioning with focus on release automation, sprint tracking, and project roadmap coordination.

@@ -71,7 +71,7 @@ def check_metadata_fields(file_path: Path) -> Tuple[bool, List[str]]:
 def check_hook_agent_detection() -> Tuple[bool, List[str]]:
     """Check if hook detects agent context."""
     issues = []
-    hook_path = PROJECT_ROOT / "hooks" / "skill" / "mem0-decision-saver.sh"
+    hook_path = PROJECT_ROOT / "hooks" / "skill" / "decision-processor.ts"
     
     if not hook_path.exists():
         issues.append("Hook file not found")
@@ -241,12 +241,12 @@ def main():
     print("Checking hook...")
     hook_ok, hook_issues = check_hook_agent_detection()
     status = "✓" if hook_ok else "✗"
-    print(f"  {status} mem0-decision-saver.sh")
+    print(f"  {status} decision-processor.ts")
     if hook_issues:
         for issue in hook_issues:
             print(f"    - {issue}")
     all_passed = all_passed and hook_ok
-    results.append(("mem0-decision-saver.sh", hook_ok, hook_issues))
+    results.append(("decision-processor.ts", hook_ok, hook_issues))
     
     print()
     

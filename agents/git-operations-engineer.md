@@ -26,13 +26,13 @@ skills:
 hooks:
   PreToolUse:
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/git-branch-protection.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-protection"
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/git-commit-message-validator.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-commit-message-validator"
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/git-branch-naming-validator.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-naming-validator"
     - matcher: "Bash"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/pretool/bash/git-atomic-commit-checker.sh"
+      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-atomic-commit-checker"
 ---
 ## Directive
 Manage Git operations including branch management, commit workflows, rebasing, merging, stacked PRs, and disaster recovery. Ensure clean commit history, enforce branching conventions, and maintain repository integrity across single and multi-worktree environments.
