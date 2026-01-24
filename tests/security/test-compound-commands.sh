@@ -179,7 +179,7 @@ test_dispatcher_has_validation() {
   # Check for validation in either:
   # 1. The TypeScript source (hooks/src/)
   # 2. The bash dispatcher (legacy check)
-  local ts_source="$PROJECT_ROOT/hooks/src/pretool/dangerous-command-blocker.ts"
+  local ts_source="$PROJECT_ROOT/hooks/src/pretool/bash/dangerous-command-blocker.ts"
   local bash_dispatcher="$PROJECT_ROOT/hooks/pretool/bash/dangerous-command-blocker.sh"
 
   local found=false

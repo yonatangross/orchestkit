@@ -9,7 +9,7 @@
 # Note: LSP servers (pyright-langserver, typescript-language-server, etc.) are
 # external commands, not hook files - they are skipped.
 #
-# CC 2.1.7 Compliant
+# CC 2.1.7 Compliant - Updated for TypeScript hooks with run-hook.mjs
 
 set -euo pipefail
 
@@ -55,6 +55,39 @@ is_hook_path() {
     fi
 }
 
+# Function to validate run-hook.mjs based commands
+# Format: run-hook.mjs <handler-type>/<handler-name>
+validate_run_hook_command() {
+    local cmd="$1"
+
+    # Remove trailing quotes
+    cmd="${cmd%\"}"
+    cmd="${cmd%\'}"
+
+    # Check if this is a run-hook.mjs command
+    if [[ "$cmd" == *"run-hook.mjs"* ]]; then
+        # Check if run-hook.mjs exists
+        local runner_path="$REPO_ROOT/hooks/bin/run-hook.mjs"
+        if [[ ! -f "$runner_path" ]]; then
+            return 1
+        fi
+
+        # Extract handler path (e.g., "agent/ci-safety-check" or "pretool/bash/git-validator")
+        # Match pattern: word/word or word/word/word at end of string
+        local handler=$(echo "$cmd" | grep -oE '[a-z]+/[a-z-]+(/[a-z-]+)?$' || true)
+
+        if [[ -n "$handler" ]]; then
+            # Check if TypeScript source exists
+            local ts_path="$REPO_ROOT/hooks/src/${handler}.ts"
+            if [[ -f "$ts_path" ]]; then
+                return 0  # Valid
+            fi
+        fi
+        return 1  # Invalid - handler not found
+    fi
+    return 2  # Not a run-hook command
+}
+
 echo "--- Part 1: plugin.json Hooks ---"
 echo ""
 
@@ -71,19 +104,25 @@ if command -v jq >/dev/null 2>&1; then
                 if is_hook_path "$hook_cmd"; then
                     ((TOTAL_HOOKS++)) || true
 
-                    resolved_path=$(resolve_hook_path "$hook_cmd")
-
-                    if [[ -f "$resolved_path" ]]; then
+                    # First check if it's a run-hook.mjs command
+                    if validate_run_hook_command "$hook_cmd"; then
                         ((VALID_HOOKS++)) || true
-                        if [[ -x "$resolved_path" ]]; then
-                            ((EXECUTABLE_HOOKS++)) || true
-                        else
-                            echo "WARN: Hook exists but not executable: $resolved_path"
-                        fi
+                        ((EXECUTABLE_HOOKS++)) || true
                     else
-                        echo "FAIL: plugin.json - Hook path not found: $hook_cmd"
-                        echo "      Resolved to: $resolved_path"
-                        FAILED=1
+                        resolved_path=$(resolve_hook_path "$hook_cmd")
+
+                        if [[ -f "$resolved_path" ]]; then
+                            ((VALID_HOOKS++)) || true
+                            if [[ -x "$resolved_path" ]]; then
+                                ((EXECUTABLE_HOOKS++)) || true
+                            else
+                                echo "WARN: Hook exists but not executable: $resolved_path"
+                            fi
+                        else
+                            echo "FAIL: plugin.json - Hook path not found: $hook_cmd"
+                            echo "      Resolved to: $resolved_path"
+                            FAILED=1
+                        fi
                     fi
                 fi
             fi
@@ -137,18 +176,25 @@ for agent_file in "$AGENTS_DIR"/*.md; do
                     ((AGENT_HOOKS++)) || true
                     ((TOTAL_HOOKS++)) || true
 
-                    resolved_path=$(resolve_hook_path "$hook_cmd")
-
-                    if [[ -f "$resolved_path" ]]; then
+                    # Check if this is a run-hook.mjs command
+                    if validate_run_hook_command "$hook_cmd"; then
                         ((AGENT_VALID++)) || true
                         ((VALID_HOOKS++)) || true
-                        if [[ -x "$resolved_path" ]]; then
-                            ((EXECUTABLE_HOOKS++)) || true
-                        fi
+                        ((EXECUTABLE_HOOKS++)) || true
                     else
-                        echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
-                        echo "      Resolved to: $resolved_path"
-                        FAILED=1
+                        resolved_path=$(resolve_hook_path "$hook_cmd")
+
+                        if [[ -f "$resolved_path" ]]; then
+                            ((AGENT_VALID++)) || true
+                            ((VALID_HOOKS++)) || true
+                            if [[ -x "$resolved_path" ]]; then
+                                ((EXECUTABLE_HOOKS++)) || true
+                            fi
+                        else
+                            echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
+                            echo "      Resolved to: $resolved_path"
+                            FAILED=1
+                        fi
                     fi
                 fi
             fi
