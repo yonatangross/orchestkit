@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.4] - 2026-01-24
+
+### Fixed
+
+- **Plugin update fails "not found in marketplace"**: Renamed root plugin from `orchestkit-complete` to `ork` in marketplace.json (#213)
+  - CC looks for plugin by name from plugin.json (`ork`) but marketplace listed `orchestkit-complete`
+  - Now both match, enabling proper update flow
+
+---
+
+
 ## [5.1.3] - 2026-01-24
 
 ### Fixed
