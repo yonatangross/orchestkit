@@ -2,11 +2,11 @@
 name: add-golden
 description: Curate and add documents to the golden dataset with multi-agent validation. Use when adding test data, creating golden datasets, saving examples.
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [curation, golden-dataset, evaluation, testing]
 user-invocable: true
-allowedTools: [Read, Write, Edit, Grep, Glob, Task]
+allowedTools: [Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 skills: [golden-dataset-validation, llm-evaluation, test-data-management]
 ---
 
@@ -20,6 +20,34 @@ Multi-agent curation workflow for adding high-quality documents.
 /add-golden https://example.com/article
 /add-golden https://arxiv.org/abs/2312.xxxxx
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main curation task IMMEDIATELY
+TaskCreate(
+  subject="Add to golden dataset: {url}",
+  description="Multi-agent curation workflow",
+  activeForm="Curating document"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Fetch and extract content", activeForm="Fetching content")
+TaskCreate(subject="Run quality analysis", activeForm="Analyzing quality")
+TaskCreate(subject="Validate and check duplicates", activeForm="Validating")
+TaskCreate(subject="Get user approval", activeForm="Awaiting approval")
+TaskCreate(subject="Write to dataset", activeForm="Writing to dataset")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+---
 
 ## Phase 1: Input Collection
 
@@ -39,12 +67,67 @@ Extract document structure:
 
 ## Phase 3: Parallel Analysis (4 Agents)
 
-| Agent | Task |
-|-------|------|
-| code-quality-reviewer | Quality evaluation |
-| workflow-architect | Difficulty classification |
-| data-pipeline-engineer | Domain tagging |
-| test-generator | Test query generation |
+Launch ALL 4 agents in ONE message with `run_in_background: true`:
+
+```python
+# PARALLEL - All 4 agents in ONE message
+Task(
+  subagent_type="code-quality-reviewer",
+  prompt="""QUALITY EVALUATION for document: $ARGUMENTS
+
+  Evaluate content quality:
+  1. Accuracy of technical content
+  2. Writing coherence and clarity
+  3. Depth of coverage
+  4. Relevance to domain
+
+  SUMMARY: End with: "RESULT: Score [N.NN] - [INCLUDE|REVIEW|EXCLUDE]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="workflow-architect",
+  prompt="""DIFFICULTY CLASSIFICATION for: $ARGUMENTS
+
+  Classify retrieval difficulty:
+  1. How direct are the keywords?
+  2. Requires paraphrasing to find?
+  3. Multi-hop reasoning needed?
+  4. Edge cases or adversarial queries?
+
+  SUMMARY: End with: "RESULT: [trivial|easy|medium|hard|adversarial]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="data-pipeline-engineer",
+  prompt="""DOMAIN TAGGING for: $ARGUMENTS
+
+  Identify domain tags:
+  1. Primary technology domain
+  2. Secondary domains
+  3. Use case categories
+  4. Skill level (beginner/intermediate/advanced)
+
+  SUMMARY: End with: "RESULT: [N] tags - [primary domain]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="test-generator",
+  prompt="""TEST QUERY GENERATION for: $ARGUMENTS
+
+  Generate test queries:
+  1. Direct keyword queries
+  2. Paraphrased queries
+  3. Multi-concept queries
+  4. Edge case queries
+
+  SUMMARY: End with: "RESULT: [N] queries generated - [difficulty mix]"
+  """,
+  run_in_background=True
+)
+```
 
 ### Quality Dimensions
 
