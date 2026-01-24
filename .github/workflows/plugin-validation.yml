@@ -108,6 +108,12 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
+      - name: Make test scripts executable
+        run: chmod +x tests/**/*.sh
+
+      - name: Validate marketplace.json schema
+        run: ./tests/schemas/test-marketplace-schema.sh
+
       - name: Validate plugin.json structure
         run: |
           echo "Checking .claude-plugin/plugin.json..."
