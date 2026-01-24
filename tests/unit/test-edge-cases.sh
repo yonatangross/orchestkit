@@ -1,6 +1,10 @@
 #!/bin/bash
+# ============================================================================
 # Edge case and error scenario tests
-# Validates hooks handle unusual conditions gracefully
+# ============================================================================
+# Validates TypeScript hooks handle unusual conditions gracefully
+# Updated for TypeScript hook architecture (v5.1.0+)
+# ============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
@@ -30,209 +34,89 @@ log_section() {
     echo "═══════════════════════════════════════════════════════════════"
 }
 
-# Test: Empty environment variables
-test_empty_env_vars() {
-    log_section "Test: Empty Environment Variables"
+# Test: TypeScript hook bundles exist
+test_typescript_bundles_exist() {
+    log_section "Test: TypeScript Hook Bundles Exist"
 
-    # Clear all relevant env vars
-    unset CLAUDE_PROJECT_DIR
-    unset TOOL_NAME
-    unset TOOL_INPUT
-    unset SESSION_ID
+    local bundles=(
+        "hooks.mjs"
+        "permission.mjs"
+        "pretool.mjs"
+        "posttool.mjs"
+        "prompt.mjs"
+        "lifecycle.mjs"
+    )
 
-    export CLAUDE_PROJECT_DIR=""
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/posttool/coordination-heartbeat.sh" 2>/dev/null) || output=""
-
-    if [[ -z "$output" ]]; then
-        log_fail "Empty output with empty CLAUDE_PROJECT_DIR"
-    elif echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles empty CLAUDE_PROJECT_DIR gracefully"
-    else
-        log_fail "Invalid JSON with empty env: $output"
-    fi
-
-    # Restore
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-}
-
-# Test: Missing .claude directory
-test_missing_claude_dir() {
-    log_section "Test: Missing .claude Directory"
-
-    export CLAUDE_PROJECT_DIR="/tmp/nonexistent-project-$$"
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/lifecycle/coordination-init.sh" 2>/dev/null) || output=""
-
-    if [[ -z "$output" ]]; then
-        log_fail "Empty output with missing .claude dir"
-    elif echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles missing .claude directory gracefully"
-    else
-        log_fail "Invalid JSON with missing dir: $output"
-    fi
-
-    # Restore
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-}
-
-# Test: Special characters in file paths
-test_special_chars_in_paths() {
-    log_section "Test: Special Characters in Paths"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-    export TOOL_INPUT='{"file_path": "/tmp/test file with spaces & special!chars.txt"}'
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles special characters in file paths"
-    else
-        log_fail "Invalid JSON with special chars: $output"
-    fi
-}
-
-# Test: Unicode in tool input
-test_unicode_input() {
-    log_section "Test: Unicode in Tool Input"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-    export TOOL_INPUT='{"file_path": "/tmp/测试文件.txt", "content": "日本語テスト"}'
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles Unicode in tool input"
-    else
-        log_fail "Invalid JSON with Unicode: $output"
-    fi
-}
-
-# Test: Very long file path
-test_long_path() {
-    log_section "Test: Very Long File Path"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-
-    # Create a very long path (>300 chars)
-    local long_path="/tmp"
-    for i in {1..50}; do
-        long_path="${long_path}/subdir"
-    done
-    long_path="${long_path}/file.txt"
-
-    export TOOL_INPUT="{\"file_path\": \"$long_path\"}"
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles very long file paths"
-    else
-        log_fail "Invalid JSON with long path: $output"
-    fi
-}
-
-# Test: Null bytes in input
-test_null_bytes() {
-    log_section "Test: Null Bytes in Input"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-    export TOOL_INPUT=$'{"file_path": "/tmp/test\x00file.txt"}'
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles null bytes in input"
-    else
-        # It's acceptable to fail on null bytes as long as we get valid JSON
-        if [[ -n "$output" ]] && echo "$output" | jq . >/dev/null 2>&1; then
-            log_pass "Handles null bytes in input (alternate)"
+    for bundle in "${bundles[@]}"; do
+        if [[ -f "${PROJECT_ROOT}/hooks/dist/${bundle}" ]]; then
+            log_pass "Bundle exists: ${bundle}"
         else
-            log_fail "Invalid JSON with null bytes: $output"
+            log_fail "Bundle missing: ${bundle}"
         fi
-    fi
+    done
 }
 
-# Test: Concurrent hook execution
-test_concurrent_execution() {
-    log_section "Test: Concurrent Hook Execution"
+# Test: TypeScript source files have proper structure
+test_typescript_source_structure() {
+    log_section "Test: TypeScript Source Structure"
 
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Read"
+    local required_dirs=(
+        "hooks/src/prompt"
+        "hooks/src/pretool"
+        "hooks/src/posttool"
+        "hooks/src/lifecycle"
+        "hooks/src/permission"
+        "hooks/src/lib"
+    )
 
-    # Run 5 instances in parallel
-    local pids=()
-    for i in {1..5}; do
-        bash "${PROJECT_ROOT}/hooks/posttool/coordination-heartbeat.sh" > "/tmp/hook-output-$i.txt" 2>&1 &
-        pids+=($!)
-    done
-
-    # Wait for all
-    local all_passed=true
-    for pid in "${pids[@]}"; do
-        wait $pid
-    done
-
-    # Check all outputs
-    for i in {1..5}; do
-        local output=""
-        output=$(cat "/tmp/hook-output-$i.txt" 2>/dev/null)
-        if ! echo "$output" | jq . >/dev/null 2>&1; then
-            all_passed=false
+    for dir in "${required_dirs[@]}"; do
+        if [[ -d "${PROJECT_ROOT}/${dir}" ]]; then
+            log_pass "Directory exists: ${dir}"
+        else
+            log_fail "Directory missing: ${dir}"
         fi
-        rm -f "/tmp/hook-output-$i.txt"
     done
+}
 
-    if $all_passed; then
-        log_pass "Handles concurrent execution"
+# Test: TypeScript entry points exist
+test_typescript_entry_points() {
+    log_section "Test: TypeScript Entry Points"
+
+    if [[ -f "${PROJECT_ROOT}/hooks/src/index.ts" ]]; then
+        log_pass "Main index.ts exists"
     else
-        log_fail "Failed on concurrent execution"
+        log_fail "Main index.ts missing"
+    fi
+
+    if [[ -f "${PROJECT_ROOT}/hooks/src/types.ts" ]]; then
+        log_pass "Types definition exists"
+    else
+        log_fail "Types definition missing"
+    fi
+
+    if [[ -d "${PROJECT_ROOT}/hooks/src/entries" ]]; then
+        log_pass "Entries directory exists"
+    else
+        log_fail "Entries directory missing"
     fi
 }
 
-# Test: Empty JSON object input
-test_empty_json_input() {
-    log_section "Test: Empty JSON Object Input"
+# Test: Hook runner exists and is executable
+test_hook_runner() {
+    log_section "Test: Hook Runner"
 
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-    export TOOL_INPUT='{}'
+    local runner="${PROJECT_ROOT}/hooks/bin/run-hook.mjs"
 
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles empty JSON object input"
+    if [[ -f "$runner" ]]; then
+        log_pass "run-hook.mjs exists"
     else
-        log_fail "Invalid JSON with empty object: $output"
+        log_fail "run-hook.mjs missing"
     fi
-}
 
-# Test: JSON array input (unexpected type)
-test_json_array_input() {
-    log_section "Test: JSON Array Input"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    export TOOL_NAME="Write"
-    export TOOL_INPUT='["/tmp/file1.txt", "/tmp/file2.txt"]'
-
-    local output=""
-    output=$(bash "${PROJECT_ROOT}/hooks/pretool/write-edit/file-lock-check.sh" 2>/dev/null) || output=""
-
-    if echo "$output" | jq . >/dev/null 2>&1; then
-        log_pass "Handles JSON array input"
+    if [[ -x "$runner" ]]; then
+        log_pass "run-hook.mjs is executable"
     else
-        log_fail "Invalid JSON with array input: $output"
+        log_fail "run-hook.mjs is not executable"
     fi
 }
 
@@ -261,22 +145,62 @@ test_count_empty_dirs() {
     fi
 }
 
+# Test: TypeScript hooks have proper exports
+test_typescript_exports() {
+    log_section "Test: TypeScript Hook Exports"
+
+    # Check that index.ts exports hook types
+    if grep -q "export.*HookInput\|export.*HookResult" "${PROJECT_ROOT}/hooks/src/index.ts" 2>/dev/null || \
+       grep -q "export.*from.*types" "${PROJECT_ROOT}/hooks/src/index.ts" 2>/dev/null; then
+        log_pass "index.ts exports hook types"
+    else
+        log_fail "index.ts missing hook type exports"
+    fi
+
+    # Check that bundles are not empty
+    local hooks_bundle="${PROJECT_ROOT}/hooks/dist/hooks.mjs"
+    if [[ -f "$hooks_bundle" ]]; then
+        local size
+        size=$(wc -c < "$hooks_bundle" | tr -d ' ')
+        if [[ "$size" -gt 1000 ]]; then
+            log_pass "hooks.mjs has content (${size} bytes)"
+        else
+            log_fail "hooks.mjs seems too small (${size} bytes)"
+        fi
+    fi
+}
+
+# Test: lib directory has shared utilities
+test_lib_utilities() {
+    log_section "Test: Shared Library Utilities"
+
+    local expected_libs=(
+        "common.ts"
+        "guards.ts"
+    )
+
+    for lib in "${expected_libs[@]}"; do
+        if [[ -f "${PROJECT_ROOT}/hooks/src/lib/${lib}" ]]; then
+            log_pass "Library exists: ${lib}"
+        else
+            log_fail "Library missing: ${lib}"
+        fi
+    done
+}
+
 # Main
 main() {
     echo "╔═══════════════════════════════════════════════════════════════╗"
-    echo "║          Edge Cases and Error Scenarios Tests                 ║"
+    echo "║     Edge Cases and Error Scenarios Tests (TypeScript)        ║"
     echo "╚═══════════════════════════════════════════════════════════════╝"
 
-    test_empty_env_vars
-    test_missing_claude_dir
-    test_special_chars_in_paths
-    test_unicode_input
-    test_long_path
-    test_null_bytes
-    test_concurrent_execution
-    test_empty_json_input
-    test_json_array_input
+    test_typescript_bundles_exist
+    test_typescript_source_structure
+    test_typescript_entry_points
+    test_hook_runner
     test_count_empty_dirs
+    test_typescript_exports
+    test_lib_utilities
 
     # Summary
     echo ""

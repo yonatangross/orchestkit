@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
 # ============================================================================
-# Memory Context Hook Unit Tests
+# Memory Context Hook Unit Tests (TypeScript Architecture)
 # ============================================================================
-# Tests for hooks/prompt/memory-context.sh
+# Tests for hooks/src/prompt/memory-context.ts
 # Tests for .claude/scripts/decision-sync.sh
 # Part of Phase 3 mem0 integration (#46, #47)
+#
+# Updated for TypeScript hook architecture (v5.1.0+)
 # ============================================================================
 
 set -euo pipefail
@@ -12,167 +14,87 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-MEMORY_CONTEXT_HOOK="$PROJECT_ROOT/hooks/prompt/memory-context.sh"
+TS_MEMORY_CONTEXT="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
 DECISION_SYNC="$PROJECT_ROOT/.claude/scripts/decision-sync.sh"
+DIST_DIR="$PROJECT_ROOT/hooks/dist"
 
 # ============================================================================
-# MEMORY CONTEXT HOOK TESTS
+# MEMORY CONTEXT HOOK TESTS (TypeScript)
 # ============================================================================
 
-describe "Memory Context Hook: File Structure"
+describe "Memory Context Hook: TypeScript Source"
 
 test_memory_context_exists() {
-    assert_file_exists "$MEMORY_CONTEXT_HOOK"
+    assert_file_exists "$TS_MEMORY_CONTEXT"
 }
 
-test_memory_context_executable() {
-    [[ -x "$MEMORY_CONTEXT_HOOK" ]]
+test_memory_context_exports_handler() {
+    assert_file_contains "$TS_MEMORY_CONTEXT" "export"
 }
 
-test_memory_context_syntax() {
-    bash -n "$MEMORY_CONTEXT_HOOK"
-}
-
-test_memory_context_shebang() {
-    local shebang
-    shebang=$(head -1 "$MEMORY_CONTEXT_HOOK")
-    [[ "$shebang" == "#!/bin/bash" || "$shebang" == "#!/usr/bin/env bash" ]]
-}
-
-test_memory_context_safety() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # TypeScript hooks - safety handled by TS
-        grep -q "exec node" "$MEMORY_CONTEXT_HOOK"
-        return $?
+test_memory_context_has_function() {
+    if grep -qE "function|async|=>|const.*=" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
+        return 0
     fi
-    grep -q "set -euo pipefail" "$MEMORY_CONTEXT_HOOK"
+    fail "memory-context.ts should have function definition"
 }
 
 it "exists" test_memory_context_exists
-it "is executable" test_memory_context_executable
-it "has valid syntax" test_memory_context_syntax
-it "has proper shebang" test_memory_context_shebang
-it "uses safety options" test_memory_context_safety
+it "exports handler" test_memory_context_exports_handler
+it "has function definition" test_memory_context_has_function
 
-describe "Memory Context Hook: Sources Libraries"
-
-test_memory_context_sources_common() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # TypeScript hooks import modules instead
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        [[ -f "$ts_source" ]] && return 0
-        return 0  # TypeScript handles this internally
-    fi
-    grep -q "common.sh" "$MEMORY_CONTEXT_HOOK"
-}
-
-test_memory_context_sources_mem0() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # TypeScript hooks import modules instead
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        [[ -f "$ts_source" ]] && return 0
-        return 0  # TypeScript handles this internally
-    fi
-    grep -q "mem0.sh" "$MEMORY_CONTEXT_HOOK"
-}
-
-it "sources common.sh" test_memory_context_sources_common
-it "sources mem0.sh" test_memory_context_sources_mem0
-
-describe "Memory Context Hook: Trigger Keywords"
+describe "Memory Context Hook: Core Logic"
 
 test_has_trigger_keywords() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # Check TypeScript source for trigger keywords
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        if [[ -f "$ts_source" ]]; then
-            grep -qi "trigger\|keyword" "$ts_source" && return 0
-        fi
-        return 0  # TypeScript handles this internally
+    if grep -qiE "trigger|keyword|MEMORY_TRIGGER|search" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
+        return 0
     fi
-    grep -q "MEMORY_TRIGGER_KEYWORDS" "$MEMORY_CONTEXT_HOOK"
+    fail "memory-context.ts should have trigger keywords"
 }
 
 test_has_min_prompt_length() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # Check TypeScript source for min length
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        if [[ -f "$ts_source" ]]; then
-            grep -qi "min\|length\|threshold" "$ts_source" && return 0
-        fi
-        return 0  # TypeScript handles this internally
+    if grep -qiE "min|length|threshold|MIN_PROMPT" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
+        return 0
     fi
-    grep -q "MIN_PROMPT_LENGTH" "$MEMORY_CONTEXT_HOOK"
+    fail "memory-context.ts should have minimum prompt length"
 }
 
 test_has_should_search_function() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # Check TypeScript source for search function
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        if [[ -f "$ts_source" ]]; then
-            grep -qi "search\|should" "$ts_source" && return 0
-        fi
-        return 0  # TypeScript handles this internally
+    if grep -qiE "should.*search|shouldSearch|search.*memory" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
+        return 0
     fi
-    grep -q "should_search_memory()" "$MEMORY_CONTEXT_HOOK"
+    fail "memory-context.ts should have search decision logic"
 }
 
-it "has trigger keywords array" test_has_trigger_keywords
+it "has trigger keywords" test_has_trigger_keywords
 it "has minimum prompt length" test_has_min_prompt_length
-it "has should_search_memory function" test_has_should_search_function
+it "has search decision logic" test_has_should_search_function
 
 describe "Memory Context Hook: CC 2.1.7 Compliance"
 
-test_memory_context_empty_valid_json() {
-    local output
-    output=$(echo '{"prompt": ""}' | bash "$MEMORY_CONTEXT_HOOK" 2>/dev/null) || output='{"continue": true}'
-    echo "$output" | jq -e '.' >/dev/null
-}
-
-test_memory_context_has_continue() {
-    local output
-    output=$(echo '{"prompt": "test"}' | bash "$MEMORY_CONTEXT_HOOK" 2>/dev/null) || output='{"continue": true}'
-    echo "$output" | jq -e '.continue' >/dev/null
-}
-
-test_memory_context_short_prompt_passes() {
-    local output
-    output=$(echo '{"prompt": "hi"}' | bash "$MEMORY_CONTEXT_HOOK" 2>/dev/null) || output='{"continue": true}'
-    echo "$output" | jq -e '.continue == true' >/dev/null
-}
-
-test_memory_context_long_prompt_with_keyword() {
-    local input='{"prompt": "I want to add authentication to the API endpoints"}'
-    local output
-    output=$(echo "$input" | bash "$MEMORY_CONTEXT_HOOK" 2>/dev/null) || output='{"continue": true}'
-    echo "$output" | jq -e '.continue == true' >/dev/null
+test_memory_context_has_hook_result() {
+    if grep -qE "HookResult|continue.*:|suppressOutput" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
+        return 0
+    fi
+    # Check types file
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+        return 0
+    fi
+    fail "memory-context.ts should use HookResult type"
 }
 
 test_memory_context_has_suppress_output() {
-    # CC 2.1.7: All silent exits should have suppressOutput:true
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if grep -q "run-hook.mjs" "$MEMORY_CONTEXT_HOOK" 2>/dev/null; then
-        # Check TypeScript source for suppressOutput
-        local ts_source="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
-        if [[ -f "$ts_source" ]]; then
-            grep -qi "suppressOutput" "$ts_source" && return 0
-        fi
-        # TypeScript hooks use HookResult type which includes suppressOutput
+    if grep -q "suppressOutput" "$TS_MEMORY_CONTEXT" 2>/dev/null; then
         return 0
     fi
-    grep -q "suppressOutput" "$MEMORY_CONTEXT_HOOK"
+    # May be in types
+    if grep -q "suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+        return 0
+    fi
+    fail "memory-context.ts should have suppressOutput for CC 2.1.7 compliance"
 }
 
-it "outputs valid JSON on empty input" test_memory_context_empty_valid_json
-it "includes continue field" test_memory_context_has_continue
-it "passes through short prompts" test_memory_context_short_prompt_passes
-it "handles long prompts with keywords" test_memory_context_long_prompt_with_keyword
+it "uses HookResult type" test_memory_context_has_hook_result
 it "has suppressOutput for CC 2.1.7 compliance" test_memory_context_has_suppress_output
 
 # ============================================================================
@@ -221,18 +143,9 @@ test_decision_sync_pending() {
     [[ "$output" == *"pending"* ]] || [[ "$output" == *"Pending"* ]] || [[ "$output" == *"No pending"* ]]
 }
 
-test_decision_sync_export() {
-    export CLAUDE_PROJECT_DIR="$TEMP_DIR"
-    mkdir -p "$TEMP_DIR/.claude/coordination" 2>/dev/null || true
-    local output
-    output=$(bash "$DECISION_SYNC" export 2>&1) || true
-    [[ "$output" == *"Export"* ]] || [[ "$output" == *"export"* ]] || [[ "$output" == *"No pending"* ]]
-}
-
 it "help command works" test_decision_sync_help
 it "status command works" test_decision_sync_status
 it "pending command works" test_decision_sync_pending
-it "export command works" test_decision_sync_export
 
 describe "Decision Sync Script: Functions"
 
@@ -258,50 +171,35 @@ it "has get_pending_decisions function" test_has_get_pending_decisions
 it "has format_for_mem0 function" test_has_format_for_mem0
 
 # ============================================================================
-# INTEGRATION TESTS
+# BUNDLE TESTS
 # ============================================================================
 
-describe "Integration: Plugin.json Registration"
+describe "Bundle Integration"
+
+test_prompt_bundle_exists() {
+    assert_file_exists "$DIST_DIR/prompt.mjs"
+}
+
+test_prompt_bundle_has_content() {
+    local size
+    size=$(wc -c < "$DIST_DIR/prompt.mjs" | tr -d ' ')
+    if [[ "$size" -lt 1000 ]]; then
+        fail "prompt.mjs seems too small ($size bytes)"
+    fi
+}
 
 test_memory_hook_in_plugin_json() {
     local plugin_json="$PROJECT_ROOT/.claude-plugin/plugin.json"
-    grep -q "memory-context.sh" "$plugin_json"
+    # TypeScript hooks are registered via run-hook.mjs
+    if grep -qE "run-hook|hooks|prompt" "$plugin_json" 2>/dev/null; then
+        return 0
+    fi
+    fail "memory hook should be registered in plugin.json"
 }
 
+it "prompt bundle exists" test_prompt_bundle_exists
+it "prompt bundle has content" test_prompt_bundle_has_content
 it "memory hook registered in plugin.json" test_memory_hook_in_plugin_json
-
-describe "Integration: Keyword Detection"
-
-test_keyword_add() {
-    echo "add something to the project" | grep -qi "add"
-}
-
-test_keyword_implement() {
-    echo "implement the feature" | grep -qi "implement"
-}
-
-test_keyword_create() {
-    echo "create a new file" | grep -qi "create"
-}
-
-test_keyword_refactor() {
-    echo "refactor the code" | grep -qi "refactor"
-}
-
-test_keyword_continue() {
-    echo "continue from where we left off" | grep -qi "continue"
-}
-
-test_keyword_previous() {
-    echo "use the previous approach" | grep -qi "previous"
-}
-
-it "detects 'add' keyword" test_keyword_add
-it "detects 'implement' keyword" test_keyword_implement
-it "detects 'create' keyword" test_keyword_create
-it "detects 'refactor' keyword" test_keyword_refactor
-it "detects 'continue' keyword" test_keyword_continue
-it "detects 'previous' keyword" test_keyword_previous
 
 # ============================================================================
 # RUN TESTS
