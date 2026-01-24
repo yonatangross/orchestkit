@@ -2,12 +2,12 @@
 name: verify
 description: Comprehensive feature verification with parallel analysis agents. Use when verifying implementations, testing changes, validating features, or checking correctness.
 context: fork
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList]
-skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, unit-testing, integration-testing]
+allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, unit-testing, integration-testing, recall]
 ---
 
 # Verify Feature

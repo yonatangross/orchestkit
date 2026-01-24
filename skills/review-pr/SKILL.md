@@ -2,12 +2,12 @@
 name: review-pr
 description: Comprehensive PR review with 6-7 parallel specialized agents. Use when reviewing pull requests, checking PRs, code review.
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task]
-skills: [code-review-playbook, security-scanning, type-safety-validation]
+allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+skills: [code-review-playbook, security-scanning, type-safety-validation, recall]
 ---
 
 # Review PR

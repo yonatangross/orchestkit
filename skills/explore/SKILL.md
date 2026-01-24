@@ -2,11 +2,12 @@
 name: explore
 description: Deep codebase exploration with parallel specialized agents. Use when exploring a repo, finding files, or discovering architecture with the explore agent.
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Task, mcp__memory__search_nodes]
+allowedTools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+skills: [ascii-visualizer, architecture-decision-record, recall, clean-architecture]
 ---
 
 # Codebase Exploration
@@ -36,10 +37,35 @@ mcp__memory__search_nodes(query="$ARGUMENTS")
 mcp__memory__search_nodes(query="architecture")
 ```
 
-### Phase 3: Parallel Deep Exploration
+### Phase 3: Parallel Deep Exploration (4 Agents)
 
-Launch 4 specialized explorers in ONE message:
+Launch 4 specialized explorers in ONE message with `run_in_background: true`:
 
+```python
+# PARALLEL - All 4 in ONE message
+Task(
+  subagent_type="Explore",
+  prompt="Code Structure: Find all files, classes, functions related to: $ARGUMENTS",
+  run_in_background=True
+)
+Task(
+  subagent_type="Explore",
+  prompt="Data Flow: Trace entry points, processing, storage for: $ARGUMENTS",
+  run_in_background=True
+)
+Task(
+  subagent_type="backend-system-architect",
+  prompt="Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS",
+  run_in_background=True
+)
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="Frontend Analysis: Find components, state management, routes for: $ARGUMENTS",
+  run_in_background=True
+)
+```
+
+**Explorer Roles:**
 1. **Code Structure Explorer** - Files, classes, functions
 2. **Data Flow Explorer** - Entry points, processing, storage
 3. **Backend Architect** - Patterns, integration, dependencies

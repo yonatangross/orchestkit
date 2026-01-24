@@ -3,11 +3,11 @@ name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit
 user-invocable: true
-allowedTools: [Task, Read, Grep, Glob]
-skills: [architecture-decision-record, api-design-framework, design-system-starter]
+allowedTools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+skills: [architecture-decision-record, api-design-framework, design-system-starter, recall, remember]
 ---
 
 # Brainstorming Ideas Into Designs
@@ -48,6 +48,10 @@ Transform rough ideas into fully-formed designs through structured questioning a
 **Goal:** Gather purpose, constraints, and success criteria.
 
 **Process:**
+- **Memory Check First:** Search graph for similar past brainstorms
+  ```python
+  mcp__memory__search_nodes(query="{feature topic}")
+  ```
 - Check current project state in working directory
 - Ask ONE question at a time to refine the idea
 - Use AskUserQuestion tool when presenting multiple choice options
@@ -77,6 +81,31 @@ See `references/example-session-auth.md` for complete Phase 1 example.
 | Option 1 | Benefits | Drawbacks | Low/Med/High |
 | Option 2 | Benefits | Drawbacks | Low/Med/High |
 | Option 3 | Benefits | Drawbacks | Low/Med/High |
+
+**Parallel Agent Research (Optional for Complex Features):**
+
+For complex features requiring deep exploration, launch 3 agents in ONE message:
+
+```python
+# PARALLEL - All 3 in ONE message
+Task(
+  subagent_type="workflow-architect",
+  prompt="Research architecture approaches for: {feature}. Return 2-3 options with trade-offs.",
+  run_in_background=True
+)
+Task(
+  subagent_type="backend-system-architect",
+  prompt="Evaluate backend patterns for: {feature}. Consider API, database, async needs.",
+  run_in_background=True
+)
+Task(
+  subagent_type="ux-researcher",
+  prompt="Research UX patterns for: {feature}. Consider user flows and accessibility.",
+  run_in_background=True
+)
+```
+
+Synthesize agent outputs into unified trade-off table.
 
 See `references/example-session-dashboard.md` for complete Phase 2 example with SSE vs WebSockets vs Polling comparison.
 
