@@ -34,9 +34,24 @@ CONTENT_TYPE="${1:-}"
 CONTENT_SOURCE="${2:-}"
 STYLE="${3:-standard}"
 FORMAT="${4:-horizontal,vertical}"
+CINEMATIC_MODE=false
+AGENTS_COUNT=6
+
+# Parse flags
+for arg in "$@"; do
+    case $arg in
+        --cinematic)
+            CINEMATIC_MODE=true
+            STYLE="cinematic"
+            ;;
+        --agents=*)
+            AGENTS_COUNT="${arg#*=}"
+            ;;
+    esac
+done
 
 if [[ -z "$CONTENT_TYPE" ]] || [[ -z "$CONTENT_SOURCE" ]]; then
-    echo "Usage: $0 <type> <source> [style] [format]"
+    echo "Usage: $0 <type> <source> [style] [format] [--cinematic] [--agents=N]"
     echo ""
     echo "Types:"
     echo "  skill    - OrchestKit skill (source: skill name)"
@@ -48,6 +63,10 @@ if [[ -z "$CONTENT_TYPE" ]] || [[ -z "$CONTENT_SOURCE" ]]; then
     echo ""
     echo "Styles: quick, standard, tutorial, cinematic"
     echo "Formats: horizontal, vertical, square (comma-separated)"
+    echo ""
+    echo "Flags:"
+    echo "  --cinematic  Enable cinematic mode with parallel agents"
+    echo "  --agents=N   Number of agents to show (default: 6)"
     exit 1
 fi
 
@@ -124,6 +143,264 @@ extract_plugin_metadata() {
 
     log_success "Extracted plugin metadata: $DEMO_NAME v$PLUGIN_VERSION"
 }
+
+# ==================== CINEMATIC MODE FUNCTIONS ====================
+
+# Generate parallel agent spawning section
+generate_parallel_agent_section() {
+    local agents="$1"
+    local output_script="$2"
+
+    IFS=',' read -ra AGENT_ARRAY <<< "$agents"
+    local agent_count=${#AGENT_ARRAY[@]}
+
+    cat >> "$output_script" << 'PARALLEL_HEADER'
+    echo
+    echo -e "${YELLOW}⚡${RESET} Spawning parallel agents via Task tool..."
+    sleep 0.3
+PARALLEL_HEADER
+
+    # Create tasks for each agent
+    local task_ids=""
+    local i=1
+    for agent in "${AGENT_ARRAY[@]}"; do
+        task_ids="$task_ids#$i "
+        cat >> "$output_script" << TASK_CREATE
+    echo -e "\${CYAN}◆\${RESET} TaskCreate: Created task #${i} \"${agent}\""
+    sleep 0.15
+TASK_CREATE
+        ((i++))
+    done
+
+    cat >> "$output_script" << PARALLEL_EXEC
+    echo
+    echo -e "\${CYAN}◆\${RESET} TaskUpdate: Tasks ${task_ids}→ in_progress (PARALLEL)"
+    sleep 0.4
+    echo
+PARALLEL_EXEC
+
+    # Show interleaved progress
+    cat >> "$output_script" << 'PROGRESS_HEADER'
+    # Interleaved progress display
+    progress_values=()
+PROGRESS_HEADER
+
+    for ((j=0; j<agent_count; j++)); do
+        cat >> "$output_script" << INIT_PROGRESS
+    progress_values+=("0")
+INIT_PROGRESS
+    done
+
+    cat >> "$output_script" << 'PROGRESS_LOOP'
+    for step in 1 2 3 4 5; do
+        line=""
+        for idx in "${!progress_values[@]}"; do
+            val=${progress_values[$idx]}
+            new_val=$((val + RANDOM % 25 + 10))
+            if [ $new_val -gt 100 ]; then new_val=100; fi
+            progress_values[$idx]=$new_val
+            line="$line #$((idx+1)): ${new_val}% |"
+        done
+        printf "\r   ${DIM}[Progress: ${line%|}]${RESET}"
+        sleep 0.3
+    done
+    echo
+    echo
+PROGRESS_LOOP
+
+    # Complete tasks
+    i=1
+    for agent in "${AGENT_ARRAY[@]}"; do
+        cat >> "$output_script" << TASK_COMPLETE
+    echo -e "\${GREEN}✓\${RESET} Task #${i} (${agent}) completed"
+    sleep 0.2
+TASK_COMPLETE
+        ((i++))
+    done
+
+    cat >> "$output_script" << PARALLEL_FOOTER
+    echo
+    echo -e "\${GREEN}◆\${RESET} All ${agent_count} agents completed in parallel!"
+    sleep 0.3
+PARALLEL_FOOTER
+}
+
+# Generate task dependency section
+generate_task_dependency_section() {
+    local output_script="$1"
+
+    cat >> "$output_script" << 'DEPS_SECTION'
+    echo
+    echo -e "${CYAN}◆${RESET} Setting up task dependencies..."
+    sleep 0.3
+
+    # Independent tasks
+    echo -e "${CYAN}◆${RESET} TaskCreate: #1 \"Analyze code\" (no blockers)"
+    sleep 0.15
+    echo -e "${CYAN}◆${RESET} TaskCreate: #2 \"Security scan\" (no blockers)"
+    sleep 0.15
+    echo -e "${CYAN}◆${RESET} TaskCreate: #3 \"Run tests\" (no blockers)"
+    sleep 0.15
+
+    # Dependent task
+    echo -e "${CYAN}◆${RESET} TaskCreate: #4 \"Generate report\" (blockedBy: #1, #2, #3)"
+    sleep 0.3
+    echo
+
+    # Execute independent tasks
+    echo -e "${CYAN}◆${RESET} TaskUpdate: #1, #2, #3 → in_progress (PARALLEL)"
+    sleep 0.5
+
+    spinner "[Task #1] Analyzing code..." 10
+    echo -e "${GREEN}✓${RESET} Task #1 completed"
+    sleep 0.2
+
+    spinner "[Task #2] Scanning security..." 12
+    echo -e "${GREEN}✓${RESET} Task #2 completed"
+    sleep 0.2
+
+    spinner "[Task #3] Running tests..." 15
+    echo -e "${GREEN}✓${RESET} Task #3 completed"
+    sleep 0.3
+
+    # Unblock and execute dependent task
+    echo
+    echo -e "${YELLOW}◆${RESET} Task #4 unblocked (3/3 dependencies resolved)"
+    sleep 0.3
+    echo -e "${CYAN}◆${RESET} TaskUpdate: #4 → in_progress"
+
+    spinner "[Task #4] Generating report..." 8
+    echo -e "${GREEN}✓${RESET} Task #4 completed"
+    sleep 0.3
+
+    echo
+    echo -e "${GREEN}◆${RESET} All tasks completed with dependencies resolved!"
+DEPS_SECTION
+}
+
+# Generate hook trigger section
+generate_hook_trigger_section() {
+    local hook_type="${1:-PreToolUse}"
+    local output_script="$2"
+
+    cat >> "$output_script" << HOOK_SECTION
+    echo
+    echo -e "\${DIM}────────────────────────────────────────\${RESET}"
+    echo -e "\${CYAN}◆\${RESET} Hook triggered: \${YELLOW}${hook_type}\${RESET}"
+    sleep 0.2
+    echo -e "  \${DIM}→ Running permission check...\${RESET}"
+    sleep 0.15
+    echo -e "  \${DIM}→ Validating context budget...\${RESET}"
+    sleep 0.15
+    echo -e "  \${DIM}→ Checking skill injection...\${RESET}"
+    sleep 0.15
+    echo -e "\${GREEN}✓\${RESET} Hook approved execution"
+    echo -e "\${DIM}────────────────────────────────────────\${RESET}"
+    sleep 0.3
+HOOK_SECTION
+}
+
+# Generate cinematic skill demo script
+generate_cinematic_skill_script() {
+    local name="$1"
+    local output_script="${OUTPUT_DIR}/scripts/demo-${name}-cinematic.sh"
+
+    cat > "$output_script" << 'SCRIPT_HEADER'
+#!/usr/bin/env bash
+# Auto-generated CINEMATIC skill demo script
+# Features: parallel agents, task dependencies, hook visualization
+set -euo pipefail
+
+GREEN="\033[32m"
+YELLOW="\033[33m"
+CYAN="\033[36m"
+MAGENTA="\033[35m"
+DIM="\033[2m"
+BOLD="\033[1m"
+RESET="\033[0m"
+
+SPINNERS=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+
+spinner() {
+    local message="$1"
+    local cycles="${2:-15}"
+    local i=0
+    for ((c=0; c<cycles; c++)); do
+        printf "\r${CYAN}${SPINNERS[$i]} ${message}${RESET}"
+        i=$(( (i + 1) % ${#SPINNERS[@]} ))
+        sleep 0.1
+    done
+    printf "\r%-70s\r" " "
+}
+
+main() {
+    clear
+
+    # Enhanced status bar
+    echo -e "${DIM}[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞${RESET}"
+    echo -e "${DIM}>> bypass permissions on (shift+Tab to cycle)${RESET}"
+    echo
+
+SCRIPT_HEADER
+
+    # Add skill activation with hook
+    cat >> "$output_script" << ACTIVATION
+    # Skill activation
+    echo -e "\${CYAN}◆\${RESET} Activating skill: \${MAGENTA}${DEMO_NAME}\${RESET}"
+    sleep 0.3
+    echo -e "  \${DIM}→ Reading skills/${name}/SKILL.md\${RESET}"
+    sleep 0.2
+ACTIVATION
+
+    if [[ -n "${RELATED_SKILLS:-}" ]]; then
+        cat >> "$output_script" << RELATED
+    echo -e "  \${DIM}→ Auto-injecting: ${RELATED_SKILLS}\${RESET}"
+    sleep 0.2
+RELATED
+    fi
+
+    cat >> "$output_script" << DESC
+    echo -e "\${GREEN}✓\${RESET} ${DEMO_DESCRIPTION}"
+    sleep 0.5
+    echo
+
+DESC
+
+    # Add hook trigger visualization
+    generate_hook_trigger_section "UserPromptSubmit" "$output_script"
+
+    # Add parallel agents section for skills that use agents
+    if [[ "$name" == "verify" ]] || [[ "$name" == "review-pr" ]] || [[ "$name" == "explore" ]]; then
+        local agents="code-reviewer,security-auditor,test-generator,performance-engineer,accessibility-specialist,documentation-specialist"
+        if [[ "$name" == "explore" ]]; then
+            agents="codebase-analyzer,pattern-detector,architecture-mapper"
+        fi
+        generate_parallel_agent_section "$agents" "$output_script"
+    fi
+
+    # Add task dependency section
+    generate_task_dependency_section "$output_script"
+
+    # Add completion
+    cat >> "$output_script" << COMPLETE
+
+    echo
+    echo -e "\${GREEN}\${BOLD}✓ ${DEMO_NAME} completed successfully!\${RESET}"
+    echo
+    echo -e "\${DIM}────────────────────────────────────────\${RESET}"
+    echo -e "Stats: \${CYAN}6 agents\${RESET} | \${GREEN}4 tasks\${RESET} | \${YELLOW}2m 15s\${RESET}"
+    echo -e "\${DIM}────────────────────────────────────────\${RESET}"
+}
+
+main
+COMPLETE
+
+    chmod +x "$output_script"
+    log_success "Generated cinematic script: $output_script"
+}
+
+# ==================== STANDARD MODE FUNCTIONS ====================
 
 # Generate skill demo script
 generate_skill_script() {
@@ -517,7 +794,7 @@ generate_tape() {
     local name="$1"
     local format="$2"  # horizontal, vertical, or square
 
-    local width height fontsize padding suffix
+    local width height fontsize padding suffix script_name sleep_time
     case "$format" in
         horizontal)
             width=1400; height=650; fontsize=18; padding=30; suffix=""
@@ -529,6 +806,16 @@ generate_tape() {
             width=1080; height=1080; fontsize=20; padding=35; suffix="-square"
             ;;
     esac
+
+    # Use cinematic script if in cinematic mode
+    if [[ "$CINEMATIC_MODE" == "true" ]]; then
+        script_name="demo-${name}-cinematic.sh"
+        sleep_time="25s"  # Longer for cinematic
+        suffix="${suffix}-cinematic"
+    else
+        script_name="demo-${name}.sh"
+        sleep_time="12s"
+    fi
 
     local tape_file="${OUTPUT_DIR}/tapes/sim-${name}${suffix}.tape"
 
@@ -544,12 +831,56 @@ Set Padding ${padding}
 Set Framerate 30
 Set TypingSpeed 50ms
 
-Type "../scripts/demo-${name}.sh"
+Type "../scripts/${script_name}"
 Enter
-Sleep 12s
+Sleep ${sleep_time}
 TAPE
 
     log_success "Generated tape: $tape_file"
+}
+
+# Generate cinematic VHS tape with enhanced settings
+generate_cinematic_tape() {
+    local name="$1"
+    local format="$2"
+
+    local width height fontsize padding suffix
+    case "$format" in
+        horizontal)
+            width=1920; height=1080; fontsize=20; padding=40; suffix="-cinematic"
+            ;;
+        vertical)
+            width=1080; height=1920; fontsize=24; padding=50; suffix="-vertical-cinematic"
+            ;;
+    esac
+
+    local tape_file="${OUTPUT_DIR}/tapes/sim-${name}${suffix}.tape"
+
+    cat > "$tape_file" << TAPE
+Output ../output/${name}-demo${suffix}.mp4
+Set Shell "bash"
+Set FontFamily "Menlo"
+Set FontSize ${fontsize}
+Set Width ${width}
+Set Height ${height}
+Set Theme "Dracula"
+Set Padding ${padding}
+Set Framerate 30
+Set TypingSpeed 40ms
+Set CursorBlink true
+
+# Cinematic intro delay
+Sleep 1s
+
+Type "../scripts/demo-${name}-cinematic.sh"
+Enter
+Sleep 30s
+
+# Cinematic outro
+Sleep 1s
+TAPE
+
+    log_success "Generated cinematic tape: $tape_file"
 }
 
 # Main execution
@@ -565,7 +896,11 @@ main() {
         skill)
             extract_skill_metadata "$CONTENT_SOURCE"
             demo_name="$CONTENT_SOURCE"
-            generate_skill_script "$demo_name"
+            if [[ "$CINEMATIC_MODE" == "true" ]]; then
+                generate_cinematic_skill_script "$demo_name"
+            else
+                generate_skill_script "$demo_name"
+            fi
             ;;
         agent)
             extract_agent_metadata "$CONTENT_SOURCE"
@@ -600,18 +935,34 @@ main() {
     # Generate VHS tapes for requested formats
     IFS=',' read -ra FORMATS <<< "$FORMAT"
     for fmt in "${FORMATS[@]}"; do
-        generate_tape "$demo_name" "$fmt"
+        if [[ "$CINEMATIC_MODE" == "true" ]]; then
+            generate_cinematic_tape "$demo_name" "$fmt"
+        else
+            generate_tape "$demo_name" "$fmt"
+        fi
     done
 
     echo
     log_success "Generation complete!"
     echo
-    echo "Next steps:"
-    echo "  1. cd ${OUTPUT_DIR}/tapes"
-    echo "  2. vhs sim-${demo_name}.tape"
-    echo "  3. Copy output to public/ folder"
-    echo "  4. Add Remotion composition"
-    echo "  5. Render final video"
+    if [[ "$CINEMATIC_MODE" == "true" ]]; then
+        echo "Next steps (CINEMATIC MODE):"
+        echo "  1. cd ${OUTPUT_DIR}/tapes"
+        echo "  2. vhs sim-${demo_name}-cinematic.tape"
+        echo "  3. (Optional) Generate Manim animation:"
+        echo "     cd ${PROJECT_ROOT}/skills/manim-visualizer/scripts"
+        echo "     python generate.py agent-spawning --preset verify"
+        echo "  4. Copy outputs to public/ folder"
+        echo "  5. Preview: cd ${OUTPUT_DIR} && npm run preview"
+        echo "  6. Render: npx remotion render ${demo_name^}CinematicDemo"
+    else
+        echo "Next steps:"
+        echo "  1. cd ${OUTPUT_DIR}/tapes"
+        echo "  2. vhs sim-${demo_name}.tape"
+        echo "  3. Copy output to public/ folder"
+        echo "  4. Add Remotion composition"
+        echo "  5. Render final video"
+    fi
 }
 
 main
