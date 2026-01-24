@@ -3,7 +3,6 @@ name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 tags: [planning, ideation, creativity, design]
 context: fork
-agent: product-strategist
 version: 1.0.0
 author: OrchestKit
 user-invocable: true

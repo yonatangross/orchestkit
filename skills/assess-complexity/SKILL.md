@@ -4,6 +4,7 @@ description: Assess task complexity with automated codebase metrics. Use before 
 context: fork
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash]
+skills: [quality-gates, brainstorming]
 argument-hint: [file-or-directory]
 tags:
   - quality-gates
