@@ -95,7 +95,7 @@ bin/                     # CLI utilities and scripts
 ### Core Plugin Technology
 - **Language**: TypeScript (hooks), JSON (schemas, config), Markdown (skills, agents)
 - **Hook Infrastructure**: TypeScript ESM (144 hooks in 11 split bundles, 379 KB total)
-- **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
+- **Claude Code**: >= 2.1.19 (CC 2.1.19 modernization, CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
 
@@ -546,6 +546,31 @@ hooks/src/prompt/
    - {"taskId": "3", "addBlockedBy": ["1", "2"]}
 ```
 
+**activeForm Examples (action-specific, not generic):**
+| Task Type | Subject (imperative) | activeForm (continuous) |
+|-----------|---------------------|------------------------|
+| API design | Design user endpoints | Designing user endpoints |
+| Database | Create schema migration | Creating schema migration |
+| Frontend | Build login component | Building login component |
+| Tests | Write integration tests | Writing integration tests |
+| Review | Audit security patterns | Auditing security patterns |
+
+**Task Creation Responsibility:**
+- **Orchestrator creates**: Pipeline tasks (auto via multi-agent-coordinator), auto-dispatched agent tasks
+- **User creates**: Ad-hoc feature work, investigation/research tasks
+- **Agents create**: Sub-tasks for complex work, related parallel work
+
+**Failure Handling:**
+- If task fails (tests don't pass, errors occur): Keep as `in_progress`, create blocker task
+- If blocked by external dependency: Create new task describing the blocker
+- NEVER mark `completed` if work is partial or has unresolved errors
+- CC 2.1.16 has no `failed` status - use `pending` for retry or create new task
+
+**Owner Field (multi-agent):**
+- Set `owner` when claiming a task: `{"taskId": "1", "owner": "backend-system-architect"}`
+- Clear owner when releasing: `{"taskId": "1", "owner": ""}`
+- Check owner before claiming to avoid conflicts
+
 **Example for "Implement user authentication":**
 ```
 #1. [pending] Create User model schema
@@ -554,6 +579,13 @@ hooks/src/prompt/
 #4. [pending] Add auth middleware (blockedBy: #3)
 #5. [pending] Write integration tests (blockedBy: #4)
 ```
+
+**Anti-Patterns:**
+- Creating tasks for trivial single-line changes
+- Creating circular dependencies (A blocks B, B blocks A)
+- Over-blocking (task D blockedBy [A, B, C] when only C matters)
+- Leaving tasks `in_progress` indefinitely when blocked
+- Marking `completed` before verification
 
 **DO NOT skip Task Management** - It provides:
 - Progress visibility for the user
@@ -1076,4 +1108,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-24 (v5.1.1)
+**Last Updated**: 2026-01-24 (v5.1.5)
