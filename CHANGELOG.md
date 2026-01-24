@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [5.1.1] - 2026-01-24
 
+### Fixed
+
+- **marketplace.json schema errors**: Removed invalid plugin fields (`source`, `featured`, `engine`) that caused CC validation errors (#213)
+- **Corrupted version string**: Fixed `orchestkit-complete` plugin version
+
+### Added
+
+- **Marketplace schema validation**: CI test (`tests/schemas/test-marketplace-schema.sh`) prevents future schema errors
+- **Engine requirement**: Updated to `>=2.1.19` to leverage latest CC features
+
 ### Changed
 
 - **agent-browser skill**: Synced to upstream v0.7.0
