@@ -38,7 +38,7 @@ plugins/                 # Modular plugin bundles
 skills/                  # 163 skills (22 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
 hooks/                   # 148 lifecycle hooks (156 TypeScript in split bundles, 148 Bash)
-│   ├── src/             # TypeScript source (Phase 4: 153 hooks in 11 bundles)
+│   ├── src/             # TypeScript source (Phase 4: 144 hooks in 11 bundles)
 │   │   ├── index.ts     # Unified hook registry + exports
 │   │   ├── types.ts     # HookInput, HookResult interfaces
 │   │   ├── entries/     # Split bundle entry points
@@ -94,7 +94,7 @@ bin/                     # CLI utilities and scripts
 
 ### Core Plugin Technology
 - **Language**: TypeScript + Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Hook Infrastructure**: TypeScript ESM (153 hooks in 11 split bundles, 381 KB total) + Bash legacy (148 hooks)
+- **Hook Infrastructure**: TypeScript ESM (144 hooks in 11 split bundles, 381 KB total) + Bash legacy (148 hooks)
 - **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow

@@ -12,18 +12,16 @@ export * from '../lib/git.js';
 
 // Skill hooks (24)
 import { backendFileNaming } from '../skill/backend-file-naming.js';
+import { decisionProcessor } from '../skill/decision-processor.js';
 import { backendLayerValidator } from '../skill/backend-layer-validator.js';
 import { coverageCheck } from '../skill/coverage-check.js';
 import { coverageThresholdGate } from '../skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from '../skill/cross-instance-test-validator.js';
-import { decisionEntityExtractor } from '../skill/decision-entity-extractor.js';
-import { designDecisionSaver } from '../skill/design-decision-saver.js';
 import { diPatternEnforcer } from '../skill/di-pattern-enforcer.js';
 import { duplicateCodeDetector } from '../skill/duplicate-code-detector.js';
 import { evalMetricsCollector } from '../skill/eval-metrics-collector.js';
 import { evidenceCollector } from '../skill/evidence-collector.js';
 import { importDirectionEnforcer } from '../skill/import-direction-enforcer.js';
-import { mem0DecisionSaver } from '../skill/mem0-decision-saver.js';
 import { mergeConflictPredictor } from '../skill/merge-conflict-predictor.js';
 import { mergeReadinessChecker } from '../skill/merge-readiness-checker.js';
 import { migrationValidator } from '../skill/migration-validator.js';
@@ -43,18 +41,16 @@ import type { HookFn } from '../types.js';
  */
 export const hooks: Record<string, HookFn> = {
   'skill/backend-file-naming': backendFileNaming,
+  'skill/decision-processor': decisionProcessor,
   'skill/backend-layer-validator': backendLayerValidator,
   'skill/coverage-check': coverageCheck,
   'skill/coverage-threshold-gate': coverageThresholdGate,
   'skill/cross-instance-test-validator': crossInstanceTestValidator,
-  'skill/decision-entity-extractor': decisionEntityExtractor,
-  'skill/design-decision-saver': designDecisionSaver,
   'skill/di-pattern-enforcer': diPatternEnforcer,
   'skill/duplicate-code-detector': duplicateCodeDetector,
   'skill/eval-metrics-collector': evalMetricsCollector,
   'skill/evidence-collector': evidenceCollector,
   'skill/import-direction-enforcer': importDirectionEnforcer,
-  'skill/mem0-decision-saver': mem0DecisionSaver,
   'skill/merge-conflict-predictor': mergeConflictPredictor,
   'skill/merge-readiness-checker': mergeReadinessChecker,
   'skill/migration-validator': migrationValidator,

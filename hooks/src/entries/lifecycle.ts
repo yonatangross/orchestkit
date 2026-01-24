@@ -14,8 +14,6 @@ export * from '../lib/git.js';
 import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { coordinationCleanup } from '../lifecycle/coordination-cleanup.js';
 import { coordinationInit } from '../lifecycle/coordination-init.js';
-import { decisionSyncPull } from '../lifecycle/decision-sync-pull.js';
-import { decisionSyncPush } from '../lifecycle/decision-sync-push.js';
 import { instanceHeartbeat } from '../lifecycle/instance-heartbeat.js';
 import { mem0AnalyticsTracker } from '../lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from '../lifecycle/mem0-context-retrieval.js';
@@ -38,8 +36,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
   'lifecycle/coordination-cleanup': coordinationCleanup,
   'lifecycle/coordination-init': coordinationInit,
-  'lifecycle/decision-sync-pull': decisionSyncPull,
-  'lifecycle/decision-sync-push': decisionSyncPush,
   'lifecycle/instance-heartbeat': instanceHeartbeat,
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,

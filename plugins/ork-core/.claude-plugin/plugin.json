@@ -1,7 +1,7 @@
 {
   "name": "ork-core",
   "version": "5.0.0",
-  "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Required for all other OrchestKit plugins.",
+  "description": "Core OrchestKit foundation \u2014 essential skills, agents, and hooks. Required for all other OrchestKit plugins.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

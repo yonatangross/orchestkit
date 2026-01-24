@@ -30,7 +30,6 @@ import { feedbackLoop } from '../subagent-stop/feedback-loop.js';
 import { handoffPreparer } from '../subagent-stop/handoff-preparer.js';
 import { multiClaudeVerifier } from '../subagent-stop/multi-claude-verifier.js';
 import { outputValidator } from '../subagent-stop/output-validator.js';
-import { subagentCompletionTracker } from '../subagent-stop/subagent-completion-tracker.js';
 import { subagentQualityGate } from '../subagent-stop/subagent-quality-gate.js';
 import { taskCompleter } from '../subagent-stop/task-completer.js';
 import { retryHandler } from '../subagent-stop/retry-handler.js';
@@ -56,7 +55,6 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/handoff-preparer': handoffPreparer,
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
   'subagent-stop/output-validator': outputValidator,
-  'subagent-stop/subagent-completion-tracker': subagentCompletionTracker,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,
   'subagent-stop/task-completer': taskCompleter,
   'subagent-stop/retry-handler': retryHandler,

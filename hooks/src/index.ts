@@ -27,7 +27,6 @@ export * from './lib/decision-history.js';
 
 // Import hook implementations
 // Permission hooks
-import { autoApproveReadonly } from './permission/auto-approve-readonly.js';
 import { autoApproveSafeBash } from './permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from './permission/auto-approve-project-writes.js';
 import { learningTracker } from './permission/learning-tracker.js';
@@ -76,18 +75,16 @@ import { skillTracker } from './pretool/skill/skill-tracker.js';
 
 // Skill hooks (24)
 import { backendFileNaming } from './skill/backend-file-naming.js';
+import { decisionProcessor } from './skill/decision-processor.js';
 import { backendLayerValidator } from './skill/backend-layer-validator.js';
 import { coverageCheck } from './skill/coverage-check.js';
 import { coverageThresholdGate } from './skill/coverage-threshold-gate.js';
 import { crossInstanceTestValidator } from './skill/cross-instance-test-validator.js';
-import { decisionEntityExtractor } from './skill/decision-entity-extractor.js';
-import { designDecisionSaver } from './skill/design-decision-saver.js';
 import { diPatternEnforcer } from './skill/di-pattern-enforcer.js';
 import { duplicateCodeDetector } from './skill/duplicate-code-detector.js';
 import { evalMetricsCollector } from './skill/eval-metrics-collector.js';
 import { evidenceCollector } from './skill/evidence-collector.js';
 import { importDirectionEnforcer } from './skill/import-direction-enforcer.js';
-import { mem0DecisionSaver } from './skill/mem0-decision-saver.js';
 import { mergeConflictPredictor } from './skill/merge-conflict-predictor.js';
 import { mergeReadinessChecker } from './skill/merge-readiness-checker.js';
 import { migrationValidator } from './skill/migration-validator.js';
@@ -131,7 +128,6 @@ import { feedbackLoop } from './subagent-stop/feedback-loop.js';
 import { handoffPreparer } from './subagent-stop/handoff-preparer.js';
 import { multiClaudeVerifier } from './subagent-stop/multi-claude-verifier.js';
 import { outputValidator } from './subagent-stop/output-validator.js';
-import { subagentCompletionTracker } from './subagent-stop/subagent-completion-tracker.js';
 import { subagentQualityGate } from './subagent-stop/subagent-quality-gate.js';
 import { taskCompleter } from './subagent-stop/task-completer.js';
 import { retryHandler } from './subagent-stop/retry-handler.js';
@@ -164,7 +160,6 @@ import { setupMaintenance } from './setup/setup-maintenance.js';
 import { setupRepair } from './setup/setup-repair.js';
 
 // Agent hooks (6)
-import { a11yLintCheck } from './agent/a11y-lint-check.js';
 import { blockWrites } from './agent/block-writes.js';
 import { ciSafetyCheck } from './agent/ci-safety-check.js';
 import { deploymentSafetyCheck } from './agent/deployment-safety-check.js';
@@ -173,12 +168,10 @@ import { securityCommandAudit } from './agent/security-command-audit.js';
 
 // PostTool hooks - Root (13)
 import { auditLogger } from './posttool/audit-logger.js';
+import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
 import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
 import { coordinationHeartbeat } from './posttool/coordination-heartbeat.js';
-import { errorCollector } from './posttool/error-collector.js';
-import { errorSolutionSuggester } from './posttool/error-solution-suggester.js';
-import { errorTracker } from './posttool/error-tracker.js';
 import { mem0WebhookHandler } from './posttool/mem0-webhook-handler.js';
 import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
@@ -208,8 +201,6 @@ import { fileLockRelease } from './posttool/write-edit/file-lock-release.js';
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { coordinationCleanup } from './lifecycle/coordination-cleanup.js';
 import { coordinationInit } from './lifecycle/coordination-init.js';
-import { decisionSyncPull } from './lifecycle/decision-sync-pull.js';
-import { decisionSyncPush } from './lifecycle/decision-sync-push.js';
 import { instanceHeartbeat } from './lifecycle/instance-heartbeat.js';
 import { mem0AnalyticsTracker } from './lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from './lifecycle/mem0-context-retrieval.js';
@@ -233,7 +224,6 @@ import type { HookFn } from './types.js';
  */
 export const hooks: Record<string, HookFn> = {
   // Permission hooks (4)
-  'permission/auto-approve-readonly': autoApproveReadonly,
   'permission/auto-approve-safe-bash': autoApproveSafeBash,
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
@@ -310,7 +300,6 @@ export const hooks: Record<string, HookFn> = {
   'subagent-stop/handoff-preparer': handoffPreparer,
   'subagent-stop/multi-claude-verifier': multiClaudeVerifier,
   'subagent-stop/output-validator': outputValidator,
-  'subagent-stop/subagent-completion-tracker': subagentCompletionTracker,
   'subagent-stop/subagent-quality-gate': subagentQualityGate,
   'subagent-stop/task-completer': taskCompleter,
   'subagent-stop/retry-handler': retryHandler,
@@ -321,18 +310,16 @@ export const hooks: Record<string, HookFn> = {
 
   // Skill hooks (24)
   'skill/backend-file-naming': backendFileNaming,
+  'skill/decision-processor': decisionProcessor,
   'skill/backend-layer-validator': backendLayerValidator,
   'skill/coverage-check': coverageCheck,
   'skill/coverage-threshold-gate': coverageThresholdGate,
   'skill/cross-instance-test-validator': crossInstanceTestValidator,
-  'skill/decision-entity-extractor': decisionEntityExtractor,
-  'skill/design-decision-saver': designDecisionSaver,
   'skill/di-pattern-enforcer': diPatternEnforcer,
   'skill/duplicate-code-detector': duplicateCodeDetector,
   'skill/eval-metrics-collector': evalMetricsCollector,
   'skill/evidence-collector': evidenceCollector,
   'skill/import-direction-enforcer': importDirectionEnforcer,
-  'skill/mem0-decision-saver': mem0DecisionSaver,
   'skill/merge-conflict-predictor': mergeConflictPredictor,
   'skill/merge-readiness-checker': mergeReadinessChecker,
   'skill/migration-validator': migrationValidator,
@@ -369,7 +356,6 @@ export const hooks: Record<string, HookFn> = {
   'setup/setup-repair': setupRepair,
 
   // Agent hooks (6)
-  'agent/a11y-lint-check': a11yLintCheck,
   'agent/block-writes': blockWrites,
   'agent/ci-safety-check': ciSafetyCheck,
   'agent/deployment-safety-check': deploymentSafetyCheck,
@@ -378,12 +364,10 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool hooks - Root (13)
   'posttool/audit-logger': auditLogger,
+  'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
   'posttool/coordination-heartbeat': coordinationHeartbeat,
-  'posttool/error-collector': errorCollector,
-  'posttool/error-solution-suggester': errorSolutionSuggester,
-  'posttool/error-tracker': errorTracker,
   'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
@@ -413,8 +397,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
   'lifecycle/coordination-cleanup': coordinationCleanup,
   'lifecycle/coordination-init': coordinationInit,
-  'lifecycle/decision-sync-pull': decisionSyncPull,
-  'lifecycle/decision-sync-push': decisionSyncPush,
   'lifecycle/instance-heartbeat': instanceHeartbeat,
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,

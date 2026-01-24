@@ -11,7 +11,6 @@ export * from '../lib/common.js';
 export * from '../lib/guards.js';
 
 // Import hook implementations
-import { autoApproveReadonly } from '../permission/auto-approve-readonly.js';
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { autoApproveProjectWrites } from '../permission/auto-approve-project-writes.js';
 import { learningTracker } from '../permission/learning-tracker.js';
@@ -22,7 +21,6 @@ import type { HookFn } from '../types.js';
  * Permission hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  'permission/auto-approve-readonly': autoApproveReadonly,
   'permission/auto-approve-safe-bash': autoApproveSafeBash,
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,

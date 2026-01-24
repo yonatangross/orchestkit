@@ -234,7 +234,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/error-collector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/unified-error-handler"
           },
           {
             "type": "command",
@@ -298,14 +298,6 @@
       {
         "matcher": "Bash",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/error-tracker"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/error-solution-suggester"
-          },
           {
             "type": "command",
             "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/redact-secrets"

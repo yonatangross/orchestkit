@@ -7,7 +7,6 @@ import { describe, test, expect, beforeEach, vi } from 'vitest';
 import type { HookInput, HookResult } from '../types.js';
 
 // Import hooks to test
-import { autoApproveReadonly } from '../permission/auto-approve-readonly.js';
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
 import { gitValidator } from '../pretool/bash/git-validator.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
@@ -92,38 +91,6 @@ function createReadInput(file_path: string, overrides: Partial<HookInput> = {}):
 // Permission Hooks Tests
 // =============================================================================
 
-describe('permission/auto-approve-readonly', () => {
-  test('auto-approves Read tool', () => {
-    const input = createReadInput('/test/file.ts');
-    const result = autoApproveReadonly(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-    expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
-  });
-
-  test('auto-approves Glob tool', () => {
-    const input = createHookInput({
-      tool_name: 'Glob',
-      tool_input: { pattern: '**/*.ts' },
-    });
-    const result = autoApproveReadonly(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
-  });
-
-  test('auto-approves Grep tool', () => {
-    const input = createHookInput({
-      tool_name: 'Grep',
-      tool_input: { pattern: 'import.*from' },
-    });
-    const result = autoApproveReadonly(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
-  });
-});
 
 describe('permission/auto-approve-safe-bash', () => {
   describe('safe git commands', () => {

@@ -10,9 +10,6 @@ export { auditLogger } from './audit-logger.js';
 export { autoLint } from './auto-lint.js';
 export { contextBudgetMonitor } from './context-budget-monitor.js';
 export { coordinationHeartbeat } from './coordination-heartbeat.js';
-export { errorCollector } from './error-collector.js';
-export { errorSolutionSuggester } from './error-solution-suggester.js';
-export { errorTracker } from './error-tracker.js';
 export { mem0WebhookHandler } from './mem0-webhook-handler.js';
 export { memoryBridge } from './memory-bridge.js';
 export { realtimeSync } from './realtime-sync.js';
@@ -36,3 +33,4 @@ export { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
 
 // Write-edit hooks
 export { fileLockRelease } from './write-edit/file-lock-release.js';
+export { unifiedErrorHandler } from './unified-error-handler.js';
