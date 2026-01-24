@@ -9,7 +9,7 @@ This document provides essential context for Claude Code when working with the O
 - **163 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
 - **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
 - **22 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
-- **148 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
+- **144 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
 
@@ -37,7 +37,7 @@ plugins/                 # Modular plugin bundles
 # FULL TOOLKIT (root level - for development/reference)
 skills/                  # 163 skills (22 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
-hooks/                   # 148 lifecycle hooks (156 TypeScript in split bundles, 148 Bash)
+hooks/                   # 144 TypeScript hooks in 11 split bundles
 │   ├── src/             # TypeScript source (Phase 4: 144 hooks in 11 bundles)
 │   │   ├── index.ts     # Unified hook registry + exports
 │   │   ├── types.ts     # HookInput, HookResult interfaces
@@ -93,8 +93,8 @@ bin/                     # CLI utilities and scripts
 ## Tech Stack
 
 ### Core Plugin Technology
-- **Language**: TypeScript + Bash (hooks), JSON (schemas, config), Markdown (skills, agents)
-- **Hook Infrastructure**: TypeScript ESM (144 hooks in 11 split bundles, 381 KB total) + Bash legacy (148 hooks)
+- **Language**: TypeScript (hooks), JSON (schemas, config), Markdown (skills, agents)
+- **Hook Infrastructure**: TypeScript ESM (144 hooks in 11 split bundles, 379 KB total)
 - **Claude Code**: >= 2.1.16 (CC 2.1.16 Task Management + VSCode plugins, CC 2.1.15 plugin engine field, CC 2.1.14 plugin versioning, CC 2.1.11 Setup hooks, CC 2.1.9 additionalContext, auto:N MCP, plansDirectory)
 - **MCP Integration**: Optional - Context7, Sequential Thinking, Memory (configure via /ork:configure, auto-enable via auto:N thresholds)
 - **Browser Automation**: agent-browser CLI (Vercel) - 93% less context vs Playwright MCP, Snapshot + Refs workflow
@@ -976,7 +976,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **Claude Code Requirement**: >= 2.1.16
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
-- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (148 hooks: 156 TypeScript in split bundles, 148 Bash)
+- **Hook Architecture**: CC 2.1.16 task dependencies + CC 2.1.15 engine field + CC 2.1.14 plugin versioning + CC 2.1.11 Setup hooks + CC 2.1.9 additionalContext + CC 2.1.7 native parallel (144 TypeScript hooks in 11 bundles)
 - **Context Protocol**: 2.0.0 (tiered, attention-aware)
 - **Memory Fabric**: v2.1.0 (graph-first architecture, knowledge graph PRIMARY, mem0 optional enhancement)
 - **Coordination System**: Multi-worktree support added in v4.6.0
@@ -991,7 +991,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 - **AI/ML Roadmap 2026**: 8 new AI security/ML skills + 2 agents (ai-safety-auditor, prompt-engineer) (v4.27.0)
 - **agent-browser Integration**: Replaced Playwright MCP with Vercel agent-browser CLI (93% less context, Snapshot + Refs workflow) (v4.28.0)
 - **CC 2.1.16 Integration**: Task Management System (TaskCreate, TaskUpdate, TaskGet, TaskList), VSCode native plugins, new task-dependency-patterns skill (v5.0.0)
-- **TypeScript Hook Migration**: Phase 4 complete (156 TypeScript hooks in 11 split bundles, 381 KB total), ~77% load size reduction per hook type (v5.1.0)
+- **TypeScript Hook Migration**: Phase 4 complete (144 TypeScript hooks in 11 split bundles, 379 KB total), ~77% load size reduction per hook type (v5.1.0)
 
 ---
 

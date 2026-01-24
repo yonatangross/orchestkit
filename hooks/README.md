@@ -803,6 +803,6 @@ const bundleMap = {
 **Last Updated:** 2026-01-23
 **Version:** 2.0.0 (Phase 4: Code splitting complete)
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 156 TypeScript hooks
+**Hooks:** 144 TypeScript hooks
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.17
