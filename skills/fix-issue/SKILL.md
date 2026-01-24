@@ -2,7 +2,7 @@
 name: fix-issue
 description: Fix GitHub issue with parallel analysis and implementation. Use when fixing issues, resolving bugs, closing GitHub issues.
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging]
 user-invocable: true
@@ -20,6 +20,35 @@ Systematic issue resolution with 5-7 parallel agents.
 /fix-issue 123
 /fix-issue 456
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main fix task IMMEDIATELY
+TaskCreate(
+  subject="Fix issue #{number}",
+  description="Systematic issue resolution with parallel analysis",
+  activeForm="Fixing issue #{number}"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Understand the issue", activeForm="Understanding issue")
+TaskCreate(subject="Analyze root cause", activeForm="Analyzing root cause")
+TaskCreate(subject="Design fix approach", activeForm="Designing fix")
+TaskCreate(subject="Implement fix", activeForm="Implementing fix")
+TaskCreate(subject="Validate fix", activeForm="Validating fix")
+TaskCreate(subject="Create PR", activeForm="Creating PR")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+---
 
 ## Phase 1: Understand the Issue
 
@@ -47,15 +76,78 @@ mcp__memory__search_nodes(query="issue $ARGUMENTS")
 
 ## Phase 4: Parallel Analysis (5 Agents)
 
-| Agent | Task |
-|-------|------|
-| debug-investigator #1 | Root cause analysis |
-| debug-investigator #2 | Impact analysis |
-| backend-system-architect | Backend fix design |
-| frontend-ui-developer | Frontend fix design |
-| code-quality-reviewer | Test requirements |
+Launch ALL 5 agents in ONE message with `run_in_background: true`:
 
-All 5 agents run in ONE message, then synthesize fix plan.
+```python
+# PARALLEL - All 5 agents in ONE message
+Task(
+  subagent_type="debug-investigator",
+  prompt="""ROOT CAUSE ANALYSIS for issue #$ARGUMENTS
+
+  Investigate the root cause:
+  1. Trace the error from symptoms to source
+  2. Identify the exact code location
+  3. Determine why this code is failing
+
+  SUMMARY: End with: "RESULT: Root cause in [file:line] - [brief explanation]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="debug-investigator",
+  prompt="""IMPACT ANALYSIS for issue #$ARGUMENTS
+
+  Analyze the impact:
+  1. What functionality is affected?
+  2. What other code depends on this?
+  3. What tests need updating?
+
+  SUMMARY: End with: "RESULT: Impacts [N] files, [M] tests - [scope]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND FIX DESIGN for issue #$ARGUMENTS
+
+  Design the backend fix:
+  1. What code changes are needed?
+  2. API or database changes?
+  3. Error handling improvements?
+
+  SUMMARY: End with: "RESULT: Fix in [N] files - [key change]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND FIX DESIGN for issue #$ARGUMENTS
+
+  Design the frontend fix:
+  1. Component changes needed?
+  2. State management updates?
+  3. Error handling improvements?
+
+  SUMMARY: End with: "RESULT: Fix in [N] components - [key change]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="test-generator",
+  prompt="""TEST REQUIREMENTS for issue #$ARGUMENTS
+
+  Identify test requirements:
+  1. Tests to prevent regression?
+  2. Existing tests to update?
+  3. Edge cases to cover?
+
+  SUMMARY: End with: "RESULT: Add [N] tests, update [M] - [key test]"
+  """,
+  run_in_background=True
+)
+```
+
+Wait for all agents, then synthesize into fix plan.
 
 ## Phase 5: Context7 for Patterns
 

@@ -2,7 +2,7 @@
 name: review-pr
 description: Comprehensive PR review with 6-7 parallel specialized agents. Use when reviewing pull requests, checking PRs, code review.
 context: fork
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
@@ -20,6 +20,34 @@ Deep code review using 6-7 parallel specialized agents.
 /review-pr 123
 /review-pr feature-branch
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main review task IMMEDIATELY
+TaskCreate(
+  subject="Review PR #{number}",
+  description="Comprehensive code review with parallel agents",
+  activeForm="Reviewing PR #{number}"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Gather PR information", activeForm="Gathering PR information")
+TaskCreate(subject="Launch review agents", activeForm="Dispatching review agents")
+TaskCreate(subject="Run validation checks", activeForm="Running validation checks")
+TaskCreate(subject="Synthesize review", activeForm="Synthesizing review")
+TaskCreate(subject="Submit review", activeForm="Submitting review")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+---
 
 ## Phase 1: Gather PR Information
 
@@ -63,12 +91,90 @@ Launch SIX specialized reviewers in ONE message with `run_in_background: true`:
 
 ```python
 # PARALLEL - All 6 agents in ONE message
-Task(subagent_type="code-quality-reviewer", prompt="Review readability...", run_in_background=True)
-Task(subagent_type="code-quality-reviewer", prompt="Review type safety...", run_in_background=True)
-Task(subagent_type="security-auditor", prompt="Security audit...", run_in_background=True)
-Task(subagent_type="test-generator", prompt="Test coverage...", run_in_background=True)
-Task(subagent_type="backend-system-architect", prompt="API review...", run_in_background=True)
-Task(subagent_type="frontend-ui-developer", prompt="React review...", run_in_background=True)
+Task(
+  subagent_type="code-quality-reviewer",
+  prompt="""CODE QUALITY REVIEW for PR $ARGUMENTS
+
+  Review code readability and maintainability:
+  1. Naming conventions and clarity
+  2. Function/method complexity (cyclomatic < 10)
+  3. DRY violations and code duplication
+  4. SOLID principles adherence
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="code-quality-reviewer",
+  prompt="""TYPE SAFETY REVIEW for PR $ARGUMENTS
+
+  Review type safety and validation:
+  1. TypeScript strict mode compliance
+  2. Zod/Pydantic schema usage
+  3. No `any` types or type assertions
+  4. Exhaustive switch/union handling
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="security-auditor",
+  prompt="""SECURITY REVIEW for PR $ARGUMENTS
+
+  Security audit:
+  1. Secrets/credentials in code
+  2. Injection vulnerabilities (SQL, XSS)
+  3. Authentication/authorization checks
+  4. Dependency vulnerabilities
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="test-generator",
+  prompt="""TEST COVERAGE REVIEW for PR $ARGUMENTS
+
+  Review test quality:
+  1. Test coverage for changed code
+  2. Edge cases and error paths tested
+  3. Meaningful assertions (not just truthy)
+  4. No flaky tests (timing, external deps)
+
+  SUMMARY: End with: "RESULT: [N]% coverage, [M] gaps - [key missing test]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND REVIEW for PR $ARGUMENTS
+
+  Review backend code:
+  1. API design and REST conventions
+  2. Async/await patterns and error handling
+  3. Database query efficiency (N+1)
+  4. Transaction boundaries
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND REVIEW for PR $ARGUMENTS
+
+  Review frontend code:
+  1. React 19 patterns (hooks, server components)
+  2. State management correctness
+  3. Accessibility (a11y) compliance
+  4. Performance (memoization, lazy loading)
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
+  """,
+  run_in_background=True
+)
 ```
 
 ### Optional: AI Code Review
@@ -76,7 +182,20 @@ Task(subagent_type="frontend-ui-developer", prompt="React review...", run_in_bac
 If PR includes AI/ML code, add 7th agent:
 
 ```python
-Task(subagent_type="llm-integrator", prompt="Review LLM patterns...", run_in_background=True)
+Task(
+  subagent_type="llm-integrator",
+  prompt="""LLM CODE REVIEW for PR $ARGUMENTS
+
+  Review AI/LLM integration:
+  1. Prompt injection prevention
+  2. Token limit handling
+  3. Caching strategy
+  4. Error handling and fallbacks
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
+  """,
+  run_in_background=True
+)
 ```
 
 ## Phase 4: Run Validation
