@@ -25,7 +25,8 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # =============================================================================
 ACTUAL_SKILLS=$(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-ACTUAL_HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+# Count TypeScript hooks (excluding entries, lib, tests, index.ts, types.ts)
+ACTUAL_HOOKS=$(find "$PROJECT_ROOT/hooks/src" -name "*.ts" -type f 2>/dev/null | grep -v __tests__ | grep -v '/lib/' | grep -v 'index.ts' | grep -v 'types.ts' | grep -v '/entries/' | wc -l | tr -d ' ')
 
 # =============================================================================
 # DECLARED COUNTS (from .claude-plugin/plugin.json description string)
@@ -45,8 +46,8 @@ DESCRIPTION=$(jq -r '.description' "$PLUGIN_JSON")
 DECLARED_SKILLS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ skills' | head -1 | grep -oE '[0-9]+' || echo "0")
 # Agents: "N agents"
 DECLARED_AGENTS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ agents' | head -1 | grep -oE '[0-9]+' || echo "0")
-# Hooks: "N hooks" - match exactly "N hooks" pattern (not "N X hooks")
-DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ hooks' | head -1 | grep -oE '[0-9]+' || echo "0")
+# Hooks: "N hooks" or "N TypeScript hooks" pattern
+DECLARED_HOOKS=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ (TypeScript )?hooks' | head -1 | grep -oE '[0-9]+' || echo "0")
 
 # =============================================================================
 # VALIDATION

@@ -17,12 +17,8 @@
     "quality",
     "architecture"
   ],
-  "agents": {
-    "directory": "agents"
-  },
-  "skills": {
-    "directory": "skills"
-  },
+  "agents": "./agents/",
+  "skills": "./skills/",
   "hooks": {
     "SessionStart": [
       {

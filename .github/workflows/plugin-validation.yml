@@ -117,6 +117,9 @@ jobs:
       - name: Validate plugin.json schema
         run: ./tests/schemas/test-plugin-schema.sh
 
+      - name: Validate plugin.json CC 2.1.19 format (skills/agents)
+        run: ./tests/plugins/test-plugin-json-schema.sh
+
       - name: Validate plugin.json structure (legacy)
         run: |
           echo "Checking .claude-plugin/plugin.json..."
