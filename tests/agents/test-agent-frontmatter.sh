@@ -16,7 +16,7 @@ REQUIRED_FIELDS=(
   "skills:"
 )
 
-VALID_MODELS=("opus" "sonnet" "haiku")
+VALID_MODELS=("opus" "sonnet" "haiku" "inherit")
 
 FAILED=0
 

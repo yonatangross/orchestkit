@@ -153,7 +153,17 @@ jobs:
             # Replace variable patterns with current directory
             # Handle: ${CLAUDE_PLUGIN_ROOT}, ${CLAUDE_PROJECT_DIR}, $CLAUDE_PROJECT_DIR
             resolved=$(echo "$hook" | sed -e 's|\${CLAUDE_PLUGIN_ROOT}|.|g' -e 's|\${CLAUDE_PROJECT_DIR}|.|g' -e 's|\$CLAUDE_PROJECT_DIR|.|g')
-            if [[ ! -f "$resolved" ]]; then
+
+            # Handle command-style hooks (e.g., "node ./hooks/bin/run-hook.mjs lifecycle/...")
+            # Extract the script path if it starts with "node "
+            if [[ "$resolved" == node\ * ]]; then
+              # Extract the script path (second word)
+              script_path=$(echo "$resolved" | awk '{print $2}')
+              if [[ ! -f "$script_path" ]]; then
+                echo "WARNING: Node script not found: $script_path"
+                missing=$((missing + 1))
+              fi
+            elif [[ ! -f "$resolved" ]]; then
               echo "WARNING: Hook not found: $resolved"
               missing=$((missing + 1))
             fi
