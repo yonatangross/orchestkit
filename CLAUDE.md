@@ -520,6 +520,49 @@ hooks/src/prompt/
 - Adjusts keyword weights: +3 for success, -3 for failure (capped at ±15)
 - Stored in `.claude/feedback/calibration-data.json`
 
+### 12. Task Management (CC 2.1.16) - CRITICAL
+**ALWAYS use TaskCreate proactively** when starting non-trivial work. This is NOT optional.
+
+**When to use TaskCreate:**
+- User request involves 3+ distinct steps
+- Implementing a feature that touches multiple files
+- Fixing a bug that requires investigation + implementation + verification
+- Any work that would benefit from progress tracking
+
+**Required workflow:**
+```
+1. TaskCreate - Create tasks BEFORE starting work
+   - Use imperative subject: "Add authentication"
+   - Use continuous activeForm: "Adding authentication"
+
+2. TaskUpdate status: "in_progress" - When starting a task
+
+3. TaskUpdate status: "completed" - When task is FULLY verified
+   - Only mark complete after tests pass
+   - Only mark complete after manual verification
+
+4. TaskUpdate addBlockedBy - For dependent tasks
+   - Task #3 depends on #1 and #2:
+   - {"taskId": "3", "addBlockedBy": ["1", "2"]}
+```
+
+**Example for "Implement user authentication":**
+```
+#1. [pending] Create User model schema
+#2. [pending] Add auth endpoints (blockedBy: #1)
+#3. [pending] Implement JWT token handling (blockedBy: #2)
+#4. [pending] Add auth middleware (blockedBy: #3)
+#5. [pending] Write integration tests (blockedBy: #4)
+```
+
+**DO NOT skip Task Management** - It provides:
+- Progress visibility for the user
+- Structured execution tracking
+- Dependency management for parallel work
+- Clear completion criteria
+
+See `skills/task-dependency-patterns` for comprehensive patterns.
+
 ---
 
 ## What NOT to Do
