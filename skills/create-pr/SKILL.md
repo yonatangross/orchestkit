@@ -2,7 +2,7 @@
 name: create-pr
 description: Create GitHub pull requests with validation and auto-generated descriptions. Use when creating pull requests, opening PRs, submitting code for review.
 context: fork
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
@@ -19,6 +19,33 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 ```bash
 /create-pr
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to show progress:**
+
+```python
+# 1. Create main PR task IMMEDIATELY
+TaskCreate(
+  subject="Create PR for {branch}",
+  description="PR creation with parallel validation agents",
+  activeForm="Creating pull request"
+)
+
+# 2. Create subtasks for phases
+TaskCreate(subject="Pre-flight checks", activeForm="Running pre-flight checks")
+TaskCreate(subject="Run parallel validation agents", activeForm="Validating with agents")
+TaskCreate(subject="Run local tests", activeForm="Running local tests")
+TaskCreate(subject="Create PR on GitHub", activeForm="Creating GitHub PR")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting phase
+TaskUpdate(taskId="2", status="completed")    # When phase done
+```
+
+---
 
 ## Workflow
 

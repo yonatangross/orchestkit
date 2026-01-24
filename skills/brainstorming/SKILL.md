@@ -3,7 +3,7 @@ name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 3.0.0
+version: 3.1.0
 author: OrchestKit
 user-invocable: true
 allowedTools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
@@ -17,6 +17,49 @@ skills: [architecture-decision-record, api-design-framework, design-system-start
 Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
 **Core principle:** Analyze the topic, select the most relevant agents dynamically, explore alternatives in parallel, present design incrementally.
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, you MUST create tasks to track progress.**
+
+### Immediate First Action (No Exceptions)
+
+```python
+# 1. Create main brainstorming task IMMEDIATELY
+TaskCreate(
+  subject="Brainstorm: {user's topic}",
+  description="Design exploration with parallel agent research",
+  activeForm="Analyzing brainstorming topic"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Analyze topic and select agents", activeForm="Analyzing topic keywords")
+TaskCreate(subject="Search memory for past decisions", activeForm="Searching knowledge graph")
+TaskCreate(subject="Launch parallel agent research", activeForm="Dispatching research agents")
+TaskCreate(subject="Synthesize agent outputs", activeForm="Synthesizing research")
+TaskCreate(subject="Present design options", activeForm="Presenting design options")
+```
+
+### Progress Updates (REQUIRED)
+
+Update task status as you progress through phases:
+
+```python
+# When starting a phase
+TaskUpdate(taskId="2", status="in_progress")
+
+# When completing a phase
+TaskUpdate(taskId="2", status="completed")
+
+# When starting next phase
+TaskUpdate(taskId="3", status="in_progress")
+```
+
+**Why this matters:** Users see task progress in the CLI status line. Without TaskCreate/TaskUpdate, they see nothing and think the system is stuck.
+
+---
 
 ## When NOT to Use This Skill
 
