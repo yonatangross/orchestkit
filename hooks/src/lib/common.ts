@@ -47,6 +47,45 @@ export function getSessionId(): string {
   return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}-${Date.now()}`;
 }
 
+/**
+ * Get cached git branch (set at session start or first call)
+ * Caches result in process.env to avoid repeated execSync calls
+ */
+export function getCachedBranch(projectDir?: string): string {
+  if (process.env.ORCHESTKIT_BRANCH) {
+    return process.env.ORCHESTKIT_BRANCH;
+  }
+
+  const { execSync } = require('node:child_process');
+  try {
+    const branch = execSync('git branch --show-current', {
+      cwd: projectDir || getProjectDir(),
+      encoding: 'utf8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    process.env.ORCHESTKIT_BRANCH = branch;
+    return branch;
+  } catch {
+    return 'unknown';
+  }
+}
+
+/**
+ * Get log level (debug|info|warn|error, default: warn)
+ */
+export function getLogLevel(): string {
+  return process.env.ORCHESTKIT_LOG_LEVEL || 'warn';
+}
+
+/**
+ * Check if should log at given level
+ */
+export function shouldLog(level: 'debug' | 'info' | 'warn' | 'error'): boolean {
+  const levels = ['debug', 'info', 'warn', 'error'];
+  return levels.indexOf(level) >= levels.indexOf(getLogLevel());
+}
+
 // -----------------------------------------------------------------------------
 // Output Helpers (CC 2.1.7+ compliant)
 // -----------------------------------------------------------------------------
@@ -165,7 +204,7 @@ export function outputDeny(reason: string): HookResult {
 }
 
 // -----------------------------------------------------------------------------
-// Logging
+// Logging (with log level guard for performance)
 // -----------------------------------------------------------------------------
 
 const LOG_ROTATION_MAX_SIZE = 200 * 1024; // 200KB
@@ -199,8 +238,14 @@ function ensureDir(dir: string): void {
 
 /**
  * Log to hook log file with automatic rotation
+ * Respects ORCHESTKIT_LOG_LEVEL (default: warn, skips debug logs in production)
  */
-export function logHook(hookName: string, message: string): void {
+export function logHook(hookName: string, message: string, level: 'debug' | 'info' | 'warn' | 'error' = 'debug'): void {
+  // Skip if below log level threshold (big perf win - avoids I/O)
+  if (!shouldLog(level)) {
+    return;
+  }
+
   const logDir = getLogDir();
   const logFile = `${logDir}/hooks.log`;
 
@@ -209,7 +254,7 @@ export function logHook(hookName: string, message: string): void {
     rotateLogFile(logFile, LOG_ROTATION_MAX_SIZE);
 
     const timestamp = new Date().toISOString().replace('T', ' ').slice(0, 19);
-    appendFileSync(logFile, `[${timestamp}] [${hookName}] ${message}\n`);
+    appendFileSync(logFile, `[${timestamp}] [${level.toUpperCase()}] [${hookName}] ${message}\n`);
   } catch {
     // Ignore logging errors - don't block hook execution
   }
@@ -217,11 +262,12 @@ export function logHook(hookName: string, message: string): void {
 
 /**
  * Log permission decision for audit trail (CC 2.1.7 feature)
+ * Always logs (security audit trail) - not affected by log level
  */
 export function logPermissionFeedback(
   decision: 'allow' | 'deny' | 'warn',
   reason: string,
-  input?: HookInput
+  input?: HookInput | Record<string, unknown>
 ): void {
   const logDir = getLogDir();
   const logFile = `${logDir}/permission-feedback.log`;
@@ -231,8 +277,8 @@ export function logPermissionFeedback(
     rotateLogFile(logFile, PERMISSION_LOG_MAX_SIZE);
 
     const timestamp = new Date().toISOString();
-    const toolName = input?.tool_name || process.env.HOOK_TOOL_NAME || 'unknown';
-    const sessionId = input?.session_id || getSessionId();
+    const toolName = (input as HookInput)?.tool_name || process.env.HOOK_TOOL_NAME || 'unknown';
+    const sessionId = (input as HookInput)?.session_id || getSessionId();
 
     appendFileSync(
       logFile,

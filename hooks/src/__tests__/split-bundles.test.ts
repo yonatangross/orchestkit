@@ -281,8 +281,8 @@ describe('Cross-Bundle Consistency', () => {
 
     const totalHooks = bundles.reduce((sum, bundle) => sum + Object.keys(bundle).length, 0);
 
-    // Should have 156 hooks total
-    expect(totalHooks).toBe(156);
+    // Should have 153 hooks total
+    expect(totalHooks).toBe(153);
   });
 });
 
@@ -310,7 +310,7 @@ describe('Hook Execution Smoke Tests', () => {
   });
 
   test('pretool hooks return valid HookResult', async () => {
-    const resultOrPromise = pretoolBundle.hooks['pretool/bash/git-branch-protection']({
+    const resultOrPromise = pretoolBundle.hooks['pretool/bash/git-validator']({
       ...baseInput,
       tool_name: 'Bash',
       tool_input: { command: 'git status' },

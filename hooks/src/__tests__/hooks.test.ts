@@ -9,7 +9,7 @@ import type { HookInput, HookResult } from '../types.js';
 // Import hooks to test
 import { autoApproveReadonly } from '../permission/auto-approve-readonly.js';
 import { autoApproveSafeBash } from '../permission/auto-approve-safe-bash.js';
-import { gitBranchProtection } from '../pretool/bash/git-branch-protection.js';
+import { gitValidator } from '../pretool/bash/git-validator.js';
 import { dangerousCommandBlocker } from '../pretool/bash/dangerous-command-blocker.js';
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
 import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
@@ -256,7 +256,7 @@ describe('permission/auto-approve-safe-bash', () => {
 // PreTool/Bash Hooks Tests
 // =============================================================================
 
-describe('pretool/bash/git-branch-protection', () => {
+describe('pretool/bash/git-validator', () => {
   describe('protected branch detection', () => {
     test('detects protected branches correctly', () => {
       // This test validates the isProtectedBranch utility function
@@ -306,7 +306,7 @@ describe('pretool/bash/git-branch-protection', () => {
   describe('non-git commands', () => {
     test('ignores non-git commands', () => {
       const input = createBashInput('npm test');
-      const result = gitBranchProtection(input);
+      const result = gitValidator(input);
 
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);

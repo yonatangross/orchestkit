@@ -34,10 +34,7 @@ import { learningTracker } from './permission/learning-tracker.js';
 
 // PreTool/Bash hooks
 import { dangerousCommandBlocker } from './pretool/bash/dangerous-command-blocker.js';
-import { gitBranchProtection } from './pretool/bash/git-branch-protection.js';
-import { gitCommitMessageValidator } from './pretool/bash/git-commit-message-validator.js';
-import { gitBranchNamingValidator } from './pretool/bash/git-branch-naming-validator.js';
-import { gitAtomicCommitChecker } from './pretool/bash/git-atomic-commit-checker.js';
+import { gitValidator } from './pretool/bash/git-validator.js';
 import { compoundCommandValidator } from './pretool/bash/compound-command-validator.js';
 import { defaultTimeoutSetter } from './pretool/bash/default-timeout-setter.js';
 import { errorPatternWarner } from './pretool/bash/error-pattern-warner.js';
@@ -241,12 +238,9 @@ export const hooks: Record<string, HookFn> = {
   'permission/auto-approve-project-writes': autoApproveProjectWrites,
   'permission/learning-tracker': learningTracker,
 
-  // PreTool/Bash hooks (20)
+  // PreTool/Bash hooks (17 - consolidated git hooks)
   'pretool/bash/dangerous-command-blocker': dangerousCommandBlocker,
-  'pretool/bash/git-branch-protection': gitBranchProtection,
-  'pretool/bash/git-commit-message-validator': gitCommitMessageValidator,
-  'pretool/bash/git-branch-naming-validator': gitBranchNamingValidator,
-  'pretool/bash/git-atomic-commit-checker': gitAtomicCommitChecker,
+  'pretool/bash/git-validator': gitValidator,
   'pretool/bash/compound-command-validator': compoundCommandValidator,
   'pretool/bash/default-timeout-setter': defaultTimeoutSetter,
   'pretool/bash/error-pattern-warner': errorPatternWarner,
