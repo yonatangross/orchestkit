@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "5.1.5",
+  "version": "5.2.0",
   "description": "Comprehensive AI-assisted development toolkit with 164 skills (23 user-invocable, 141 internal), 34 agents, 144 TypeScript hooks, Memory Fabric v2.1, and production-ready patterns for modern full-stack development including AI/ML Roadmap 2026",
   "author": {
     "name": "Yonatan Gross",

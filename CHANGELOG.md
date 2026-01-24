@@ -5,6 +5,28 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.0] - 2026-01-24
+
+### Added
+
+- **New `/assess` skill (v1.0.0)**: Rate quality 0-10 with 6-dimension scoring (Correctness, Maintainability, Performance, Security, Scalability, Testability), pros/cons analysis, alternatives comparison, and improvement prioritization
+- **Enhanced user-invocable skills with 2026 best practices**:
+  - `brainstorming` v4.1.0: Refactored to progressive loading (~800 tokens vs 6881), divergent-first phase, devil's advocate agent
+  - `explore` v2.0.0: Code Health Assessment (0-10), Dependency Hotspot Map, Product Perspective Agent
+  - `implement` v2.0.0: Post-Implementation Reflection, Git Worktree Isolation, Scope Creep Detector
+  - `verify` v3.0.0: Nuanced Grading (0-10), Alternative Comparison, Policy-as-Code support
+  - `fix-issue` v2.0.0: Hypothesis-Based RCA with confidence scores, Similar Issue Detection, Runbook Generation
+  - `add-golden` v2.0.0: Quality Score Explanation, Bias Detection Agent, Silver→Gold Workflow
+- **~50 new reference/asset files** following CC 2.1.7 progressive loading structure across all 7 enhanced skills
+- **Skill count**: 163 → 164 skills (23 user-invocable, 141 internal)
+
+### Changed
+
+- `task-dependency-patterns`: Added Related Skills section
+
+---
+
+
 ## [5.1.5] - 2026-01-24
 
 ### Added
