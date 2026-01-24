@@ -2,12 +2,12 @@
 name: fix-issue
 description: Fix GitHub issue with parallel analysis and implementation. Use when fixing issues, resolving bugs, closing GitHub issues.
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Task, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
-skills: [commit, explore, verify, debug-investigator]
+allowedTools: [Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
+skills: [commit, explore, verify, debug-investigator, recall]
 ---
 
 # Fix Issue

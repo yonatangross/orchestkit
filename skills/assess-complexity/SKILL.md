@@ -3,8 +3,8 @@ name: assess-complexity
 description: Assess task complexity with automated codebase metrics. Use before starting work to determine if task needs breakdown.
 context: fork
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Bash]
-skills: [quality-gates, brainstorming]
+allowedTools: [Read, Grep, Glob, Bash, Task, mcp__memory__search_nodes]
+skills: [quality-gates, brainstorming, recall]
 argument-hint: [file-or-directory]
 tags:
   - quality-gates

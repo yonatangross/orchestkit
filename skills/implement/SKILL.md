@@ -2,12 +2,12 @@
 name: implement
 description: Full-power feature implementation with parallel subagents, skills, and MCPs. Use when implementing features, building features, creating features, or developing features.
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, mcp__context7__query-docs, mcp__mem0__add-memory]
-skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify]
+allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
+skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, recall]
 ---
 
 # Implement Feature
