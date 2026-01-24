@@ -3,7 +3,7 @@ name: brainstorming
 description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
 tags: [planning, ideation, creativity, design]
 context: fork
-version: 3.1.0
+version: 3.2.0
 author: OrchestKit
 user-invocable: true
 allowedTools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
@@ -207,7 +207,11 @@ Task(
   3. Return trade-off matrix with complexity ratings
 
   Output format:
-  {approaches: [{name, description, pros, cons, complexity}]}""",
+  {approaches: [{name, description, pros, cons, complexity}]}
+
+  SUMMARY: End with exactly this format:
+  "RESULT: Found [N] approaches - [brief list, e.g., 'JWT+Redis, Session cookies, OAuth-only']"
+  """,
   run_in_background=True
 )
 
@@ -222,7 +226,11 @@ Task(
   4. OWASP auth best practices
 
   Output format:
-  {risks: [...], recommendations: [...], must_haves: [...]}""",
+  {risks: [...], recommendations: [...], must_haves: [...]}
+
+  SUMMARY: End with exactly this format:
+  "RESULT: [PASS|WARN|CRITICAL] - [N] risks, [M] must-haves - [key concern]"
+  """,
   run_in_background=True
 )
 
@@ -237,7 +245,11 @@ Task(
   4. Error handling approach
 
   Output format:
-  {endpoints: [...], schema: {...}, patterns: [...]}""",
+  {endpoints: [...], schema: {...}, patterns: [...]}
+
+  SUMMARY: End with exactly this format:
+  "RESULT: [N] endpoints, [M] tables - [key pattern, e.g., 'Repository + JWT middleware']"
+  """,
   run_in_background=True
 )
 
@@ -252,7 +264,11 @@ Task(
   4. Accessibility requirements
 
   Output format:
-  {components: [...], user_flow: [...], a11y: [...]}""",
+  {components: [...], user_flow: [...], a11y: [...]}
+
+  SUMMARY: End with exactly this format:
+  "RESULT: [N] components - [key UX decision, e.g., 'Social buttons + email fallback']"
+  """,
   run_in_background=True
 )
 ```

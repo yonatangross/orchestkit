@@ -2,7 +2,7 @@
 name: create-pr
 description: Create GitHub pull requests with validation and auto-generated descriptions. Use when creating pull requests, opening PRs, submitting code for review.
 context: fork
-version: 2.1.0
+version: 2.2.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
@@ -84,7 +84,10 @@ Task(
   1. Check for secrets/credentials in diff
   2. Dependency vulnerabilities (npm audit/pip-audit)
   3. OWASP Top 10 quick scan
-  Return: {status: PASS/BLOCK, issues: [...]}""",
+  Return: {status: PASS/BLOCK, issues: [...]}
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] issues: [brief list or 'clean']"
+  """,
   run_in_background=True
 )
 Task(
@@ -92,7 +95,10 @@ Task(
   prompt="""Test coverage verification:
   1. Run test suite with coverage
   2. Identify untested code in changed files
-  Return: {coverage: N%, passed: N/N, gaps: [...]}""",
+  Return: {coverage: N%, passed: N/N, gaps: [...]}
+
+  SUMMARY: End with: "RESULT: [N]% coverage, [passed]/[total] tests - [status]"
+  """,
   run_in_background=True
 )
 Task(
@@ -101,7 +107,10 @@ Task(
   1. Run linting (ruff/eslint)
   2. Type checking (mypy/tsc)
   3. Check for anti-patterns
-  Return: {lint_errors: N, type_errors: N, issues: [...]}""",
+  Return: {lint_errors: N, type_errors: N, issues: [...]}
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] lint, [M] type errors"
+  """,
   run_in_background=True
 )
 ```
