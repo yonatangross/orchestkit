@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "5.1.1",
+  "version": "5.1.2",
   "engine": ">=2.1.16",
   "description": "Comprehensive AI-assisted development toolkit with 163 skills (22 user-invocable, 141 internal), 34 agents, 148 hooks, Memory Fabric v2.1, and production-ready patterns for modern full-stack development including AI/ML Roadmap 2026",
   "author": {

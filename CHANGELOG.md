@@ -5,11 +5,18 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.1.2] - 2026-01-24
+
+### Fixed
+
+- **marketplace.json source field**: Restored required `source` field (was incorrectly removed in 5.1.1). CC schema requires `source` to locate plugin directories (#213)
+- **Schema test accuracy**: Fixed test to validate `source` as required field, not invalid. Added E2E path existence validation
+
 ## [5.1.1] - 2026-01-24
 
 ### Fixed
 
-- **marketplace.json schema errors**: Removed invalid plugin fields (`source`, `featured`, `engine`) that caused CC validation errors (#213)
+- **marketplace.json schema errors**: Removed invalid plugin fields (`featured`, `engine`) that caused CC validation errors (#213)
 - **Corrupted version string**: Fixed `orchestkit-complete` plugin version
 
 ### Added

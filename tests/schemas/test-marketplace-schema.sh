@@ -2,9 +2,10 @@
 # test-marketplace-schema.sh - Validate marketplace.json schema compliance
 # Ensures marketplace.json conforms to Claude Code's expected schema
 #
-# Valid root fields: $schema, name, version, engine, description, owner, metadata, plugins
-# Valid plugin fields: name, description, version, author, category
-# Invalid plugin fields: source, featured, engine (these cause CC schema errors)
+# Based on official CC marketplace format from anthropics/claude-code:
+# - Required plugin fields: name, description, source, category
+# - Optional plugin fields: version, author
+# - Invalid plugin fields: featured, engine (these cause CC schema errors)
 
 set -euo pipefail
 
@@ -115,10 +116,13 @@ echo ""
 echo "6. Validating plugin entries..."
 
 # Fields that are NOT allowed in plugin entries (cause CC schema errors)
-invalid_plugin_fields='["source", "featured", "engine"]'
+invalid_plugin_fields='["featured", "engine"]'
 
-# Required plugin fields
-required_plugin_fields=("name" "description" "version")
+# Required plugin fields (based on official CC marketplace)
+required_plugin_fields=("name" "description" "source" "category")
+
+# Valid plugin fields
+valid_plugin_fields='["name", "description", "source", "category", "version", "author"]'
 
 plugin_count=$(jq '.plugins | length' "$MARKETPLACE_FILE")
 log_info "Found $plugin_count plugins"
@@ -126,7 +130,7 @@ log_info "Found $plugin_count plugins"
 for i in $(seq 0 $((plugin_count - 1))); do
     plugin_name=$(jq -r ".plugins[$i].name // \"plugin_$i\"" "$MARKETPLACE_FILE")
 
-    # Check for invalid fields
+    # Check for invalid fields (featured, engine)
     invalid_fields=$(jq -r --argjson invalid "$invalid_plugin_fields" ".plugins[$i] | keys | map(select(. as \$k | \$invalid | index(\$k))) | .[]" "$MARKETPLACE_FILE")
     if [[ -n "$invalid_fields" ]]; then
         while IFS= read -r field; do
@@ -142,14 +146,44 @@ for i in $(seq 0 $((plugin_count - 1))); do
         fi
     done
 
-    # Validate plugin version format
+    # Validate plugin version format (if present)
     plugin_version=$(jq -r ".plugins[$i].version // \"\"" "$MARKETPLACE_FILE")
     if [[ -n "$plugin_version" && ! "$plugin_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
         log_error "Plugin '$plugin_name' has invalid version: '$plugin_version'"
     fi
+
+    # Validate source field format
+    source=$(jq -r ".plugins[$i].source // \"\"" "$MARKETPLACE_FILE")
+    if [[ -n "$source" ]]; then
+        # Source should be a relative path starting with . or ./
+        if [[ ! "$source" =~ ^\.(/|$) ]]; then
+            log_warning "Plugin '$plugin_name' source '$source' should be relative path (e.g., './plugins/...')"
+        fi
+    fi
 done
 
-# 7. Summary
+# 7. E2E validation: Check that plugin source paths exist
+echo ""
+echo "7. Validating plugin source paths exist..."
+for i in $(seq 0 $((plugin_count - 1))); do
+    plugin_name=$(jq -r ".plugins[$i].name // \"plugin_$i\"" "$MARKETPLACE_FILE")
+    source=$(jq -r ".plugins[$i].source // \"\"" "$MARKETPLACE_FILE")
+
+    if [[ -n "$source" ]]; then
+        # Resolve relative to ROOT_DIR
+        full_path="${ROOT_DIR}/${source}"
+        if [[ ! -d "$full_path" ]]; then
+            log_error "Plugin '$plugin_name' source path does not exist: $source"
+        else
+            # Check if plugin has plugin.json
+            if [[ "$source" != "." && ! -f "$full_path/.claude-plugin/plugin.json" && ! -f "$full_path/plugin.json" ]]; then
+                log_warning "Plugin '$plugin_name' has no plugin.json at $source"
+            fi
+        fi
+    fi
+done
+
+# 8. Summary
 echo ""
 echo "========================================"
 echo "  Validation Summary"
