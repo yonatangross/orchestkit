@@ -84,12 +84,13 @@ Provide present-continuous form for spinner display:
 - Leaving tasks in_progress when blocked
 - Not marking tasks completed after finishing
 
-## Integration
+## Related Skills
 
-Works with:
-- `worktree-coordination` - Multi-instance task coordination
-- `implement` - Implementation workflow with task tracking
-- `verify` - Verification tasks and checklists
+- `worktree-coordination` - Multi-instance task coordination across git worktrees
+- `implement` - Implementation workflow with task tracking and progress updates
+- `verify` - Verification tasks and completion checklists
+- `fix-issue` - Issue resolution with hypothesis-based RCA tracking
+- `brainstorming` - Design exploration with parallel agent tasks
 
 ## References
 

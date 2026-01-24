@@ -6,9 +6,9 @@ This document provides essential context for Claude Code when working with the O
 
 **OrchestKit Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **163 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
+- **164 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
 - **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
-- **22 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
+- **23 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
 - **144 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
@@ -35,7 +35,7 @@ plugins/                 # Modular plugin bundles
     └── scripts/         # Hook executables
 
 # FULL TOOLKIT (root level - for development/reference)
-skills/                  # 163 skills (22 user-invocable, 141 internal)
+skills/                  # 164 skills (23 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
 hooks/                   # 144 TypeScript hooks in 11 split bundles
 │   ├── src/             # TypeScript source (Phase 4: 144 hooks in 11 bundles)
@@ -821,7 +821,7 @@ ls agents/
 
 ## Skills Overview (CC 2.1.7)
 
-163 skills in flat structure at `skills/`. Common skill types include:
+164 skills in flat structure at `skills/`. Common skill types include:
 
 - **AI/LLM**: RAG, embeddings, agents, caching, observability, agentic-rag-patterns, prompt-engineering-suite, alternative-agent-frameworks, high-performance-inference, fine-tuning-customization (27 skills)
 - **AI Security**: MCP security hardening, advanced guardrails, LLM safety patterns (3 skills - NEW)
