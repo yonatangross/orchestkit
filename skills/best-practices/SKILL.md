@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [best-practices, patterns, anti-patterns, mem0, learning]
 user-invocable: false
+allowedTools: [Read, mcp__mem0__search_memories]
 ---
 
 # Best Practices - View Your Pattern Library

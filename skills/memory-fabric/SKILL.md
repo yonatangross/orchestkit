@@ -6,6 +6,7 @@ version: 2.1.0
 author: OrchestKit
 tags: [memory, orchestration, graph-first, graph, mem0, unified-search, deduplication, cross-reference]
 user-invocable: false
+allowedTools: [Read, Bash, mcp__memory__search_nodes, mcp__mem0__search_memories]
 ---
 
 # Memory Fabric - Graph-First Orchestration

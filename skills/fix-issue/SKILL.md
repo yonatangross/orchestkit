@@ -6,7 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Task, Grep, Glob]
+allowedTools: [Bash, Read, Write, Edit, Task, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
 skills: [commit, explore, verify, debug-investigator]
 ---
 
