@@ -2,7 +2,7 @@
 name: explore
 description: Deep codebase exploration with parallel specialized agents. Use when exploring a repo, finding files, or discovering architecture with the explore agent.
 context: fork
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase]
 user-invocable: true
@@ -19,6 +19,33 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 ```bash
 /explore authentication
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to show progress:**
+
+```python
+# 1. Create main exploration task IMMEDIATELY
+TaskCreate(
+  subject="Explore: {topic}",
+  description="Deep codebase exploration for {topic}",
+  activeForm="Exploring {topic}"
+)
+
+# 2. Create subtasks for phases
+TaskCreate(subject="Initial file search", activeForm="Searching files")
+TaskCreate(subject="Check knowledge graph", activeForm="Checking memory")
+TaskCreate(subject="Launch exploration agents", activeForm="Dispatching explorers")
+TaskCreate(subject="Generate exploration report", activeForm="Generating report")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+---
 
 ## Workflow
 
