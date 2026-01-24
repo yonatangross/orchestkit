@@ -41,10 +41,11 @@ count_commands() {
     fi
 }
 
-# Count hooks (shell scripts in hooks dir, excluding _lib)
+# Count hooks (TypeScript files in hooks/src, excluding __tests__ and lib)
+# Migrated from shell scripts to TypeScript in v5.1.0
 count_hooks() {
-    if [[ -d "$PROJECT_ROOT/hooks" ]]; then
-        find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/hooks/src" ]]; then
+        find "$PROJECT_ROOT/hooks/src" -name "*.ts" -type f ! -path "*/__tests__/*" ! -path "*/lib/*" ! -name "index.ts" ! -name "types.ts" 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
