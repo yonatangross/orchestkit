@@ -2,7 +2,7 @@
 name: verify
 description: Comprehensive feature verification with parallel analysis agents. Use when verifying implementations, testing changes, validating features, or checking correctness.
 context: fork
-version: 2.1.0
+version: 2.2.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents]
 user-invocable: true
@@ -125,7 +125,10 @@ Task(
     "type_check": {"tool": "...", "exit_code": 0, "errors": 0},
     "patterns": {"violations": [], "compliance": "PASS/FAIL"},
     "approval": {"status": "APPROVED/NEEDS_FIXES", "blockers": []}
-  }""",
+  }
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] lint, [M] type errors"
+  """,
   run_in_background=True
 )
 
@@ -148,7 +151,10 @@ Task(
     "secrets_detected": [...],
     "recommendations": [...],
     "approval": {"status": "PASS/BLOCK", "blockers": []}
-  }""",
+  }
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] vulns, [M] secrets - [key finding]"
+  """,
   run_in_background=True
 )
 
@@ -170,7 +176,10 @@ Task(
     "gaps": ["file:line - reason"],
     "quality_issues": ["test_name - issue"],
     "approval": {"status": "PASS/FAIL", "blockers": []}
-  }""",
+  }
+
+  SUMMARY: End with: "RESULT: [N]% coverage, [passed]/[total] - [key gap]"
+  """,
   run_in_background=True
 )
 
@@ -192,7 +201,10 @@ Task(
     "error_handling": {"rfc9457": true/false, "issues": []},
     "async_safety": {"timeouts": true/false, "issues": []},
     "approval": {"status": "PASS/FAIL", "blockers": []}
-  }""",
+  }
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] API issues: [key finding]"
+  """,
   run_in_background=True
 )
 
@@ -216,7 +228,10 @@ Task(
     "ux_patterns": {"skeletons": true/false, "prefetching": true/false},
     "accessibility": {"wcag_issues": []},
     "approval": {"status": "PASS/FAIL", "blockers": []}
-  }""",
+  }
+
+  SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] UI issues: [key finding]"
+  """,
   run_in_background=True
 )
 ```

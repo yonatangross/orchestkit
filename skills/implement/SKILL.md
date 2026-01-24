@@ -2,7 +2,7 @@
 name: implement
 description: Full-power feature implementation with parallel subagents, skills, and MCPs. Use when implementing features, building features, creating features, or developing features.
 context: fork
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents]
 user-invocable: true
@@ -21,6 +21,35 @@ Maximum utilization of parallel subagent execution for feature implementation.
 /implement real-time notifications
 /implement dashboard analytics
 ```
+
+---
+
+## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
+
+**BEFORE doing ANYTHING else, create tasks to track progress:**
+
+```python
+# 1. Create main implementation task IMMEDIATELY
+TaskCreate(
+  subject="Implement: {feature}",
+  description="Full-stack implementation with parallel agents",
+  activeForm="Implementing {feature}"
+)
+
+# 2. Create subtasks for each phase
+TaskCreate(subject="Research best practices", activeForm="Researching best practices")
+TaskCreate(subject="Design architecture", activeForm="Designing architecture")
+TaskCreate(subject="Implement backend", activeForm="Implementing backend")
+TaskCreate(subject="Implement frontend", activeForm="Implementing frontend")
+TaskCreate(subject="Write tests", activeForm="Writing tests")
+TaskCreate(subject="Integration verification", activeForm="Verifying integration")
+
+# 3. Update status as you progress
+TaskUpdate(taskId="2", status="in_progress")  # When starting
+TaskUpdate(taskId="2", status="completed")    # When done
+```
+
+---
 
 ## Phase 1: Discovery & Planning
 
@@ -72,11 +101,76 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 ```python
 # PARALLEL - All agents in ONE message
-Task(subagent_type="workflow-architect", prompt="...", run_in_background=True)
-Task(subagent_type="backend-system-architect", prompt="...", run_in_background=True)
-Task(subagent_type="frontend-ui-developer", prompt="...", run_in_background=True)
-Task(subagent_type="llm-integrator", prompt="...", run_in_background=True)
-Task(subagent_type="ux-researcher", prompt="...", run_in_background=True)
+Task(
+  subagent_type="workflow-architect",
+  prompt="""ARCHITECTURE DESIGN for: $ARGUMENTS
+
+  Design system architecture:
+  1. Component breakdown and boundaries
+  2. Data flow between components
+  3. Integration points and dependencies
+  4. Implementation order (dependency graph)
+
+  SUMMARY: End with: "RESULT: [N] components, [M] integrations - [key pattern]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND DESIGN for: $ARGUMENTS
+
+  Design backend implementation:
+  1. API endpoints and contracts
+  2. Database schema changes
+  3. Service layer patterns
+  4. Error handling approach
+
+  SUMMARY: End with: "RESULT: [N] endpoints, [M] tables - [key decision]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND DESIGN for: $ARGUMENTS
+
+  Design frontend implementation:
+  1. Component hierarchy
+  2. State management approach
+  3. API integration hooks
+  4. Loading and error states
+
+  SUMMARY: End with: "RESULT: [N] components, [state lib] - [key pattern]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="llm-integrator",
+  prompt="""AI INTEGRATION DESIGN for: $ARGUMENTS (if applicable)
+
+  Design AI/LLM integration:
+  1. LLM provider and model selection
+  2. Prompt templates and caching
+  3. Token limits and cost control
+  4. Error handling and fallbacks
+
+  SUMMARY: End with: "RESULT: [provider], [N] prompts - [caching strategy]"
+  """,
+  run_in_background=True
+)
+Task(
+  subagent_type="ux-researcher",
+  prompt="""UX ANALYSIS for: $ARGUMENTS
+
+  Analyze user experience:
+  1. User flow and interactions
+  2. Accessibility requirements
+  3. Error states and feedback
+  4. Loading patterns
+
+  SUMMARY: End with: "RESULT: [N] flows, [a11y level] - [key UX decision]"
+  """,
+  run_in_background=True
+)
 ```
 
 ## Phase 4: Parallel Implementation (8 Agents)
