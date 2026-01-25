@@ -80,7 +80,7 @@ validate_run_hook_command() {
 
         if [[ -n "$handler" ]]; then
             # Check if TypeScript source exists
-            local ts_path="$REPO_ROOT/hooks/src/${handler}.ts"
+            local ts_path="$REPO_ROOT/src/hooks/src/${handler}.ts"
             if [[ -f "$ts_path" ]]; then
                 return 0  # Valid
             fi
