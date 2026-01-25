@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `manifests/` directory: 34 plugin definition files (JSON format)
   - `src/` directory: Single source of truth for all skills, agents, and hook references
   - `.gitignore`: Added `plugins/` and `.claude-plugin/marketplace.json` (generated files)
+  - Removed 61 previously-tracked files from `plugins/` (now fully generated)
 
 ### Documentation
 
