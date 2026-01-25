@@ -125,17 +125,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Missing hook command field** (#224): `lifecycle/decision-sync-pull` hook in SessionStart was missing its `command` field, causing silent failure
-- **Plugin validation**: Added Test 6 to `test-plugin-json-schema.sh` that validates all hook entries with `type='command'` have a `command` field
-
-### Changed
-
-- **`fix-issue` skill v2.0.1**: Enforced feature branch and regression test as MANDATORY requirements
-  - Phase 6: Added CRITICAL sections for feature branch workflow
-  - Phase 8: Prioritized automated tests over process checks for prevention
-  - Key Decisions: Added feature branch and test as MANDATORY
+- TODO: Describe your changes here
 
 ---
+
 
 ## [5.2.0] - 2026-01-24
 
