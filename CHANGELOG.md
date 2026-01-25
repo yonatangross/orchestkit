@@ -5,6 +5,23 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.6] - 2026-01-25
+
+### Added
+
+- **Auto-generate commands/ from user-invocable skills** (#231): Workaround for Claude Code bug where skills with `user-invocable: true` aren't discovered
+  - Related CC bug: https://github.com/anthropics/claude-code/issues/20802
+  - Build script now scans skills for `user-invocable: true` and generates `commands/*.md`
+  - Each plugin gets commands only for its included skills
+  - 22 commands generated for main ork plugin, 38 total across all plugins
+  - Can be removed when CC fixes the upstream bug
+
+### Changed
+
+- **Build system v2.1.0**: Added command generation phase
+  - Commands auto-generated with proper frontmatter (description, allowed-tools)
+  - Build summary now shows command count
+
 ## [5.2.5] - 2026-01-25
 
 ### Fixed
