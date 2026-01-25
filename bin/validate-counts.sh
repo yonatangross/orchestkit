@@ -31,9 +31,13 @@ ACTUAL_HOOKS=$(find "$PROJECT_ROOT/hooks/src" -name "*.ts" -type f 2>/dev/null |
 # =============================================================================
 # DECLARED COUNTS (from .claude-plugin/plugin.json description string)
 # =============================================================================
-PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
+# Try plugins/ork/plugin.json first (new structure), then fall back to root (old structure)
+PLUGIN_JSON="$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 if [[ ! -f "$PLUGIN_JSON" ]]; then
-    echo "ERROR: .claude-plugin/plugin.json not found at $PLUGIN_JSON"
+    PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
+fi
+if [[ ! -f "$PLUGIN_JSON" ]]; then
+    echo "ERROR: plugin.json not found at plugins/ork/.claude-plugin/ or .claude-plugin/"
     exit 1
 fi
 

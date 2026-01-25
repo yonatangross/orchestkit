@@ -14,14 +14,14 @@
   "plugins": [
     {
       "name": "ork",
-      "description": "Full OrchestKit toolkit — 164 skills, 34 agents, 144 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
+      "description": "Full OrchestKit toolkit — 163 skills, 34 agents, 144 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
       "version": "5.2.2",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
       "category": "development",
-      "source": "./"
+      "source": "./plugins/ork"
     },
     {
       "name": "ork-core",
@@ -355,7 +355,7 @@
     },
     {
       "name": "ork-workflows-advanced",
-      "description": "Workflows Advanced — claude-hud, feedback, add-golden, worktree-coordination, browser-content-capture",
+      "description": "Workflows Advanced — feedback, add-golden, worktree-coordination, browser-content-capture",
       "version": "5.0.0",
       "author": {
         "name": "Yonatan Gross",

@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**164 skills · 34 agents · 144 hooks · 33 modular plugins**
+**163 skills · 34 agents · 144 hooks · 33 modular plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.19-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-164-blue?style=for-the-badge)](./skills)
@@ -88,7 +88,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │   144 hooks   │    │  164 skills   │    │   34 agents   │
+        │   144 hooks   │    │  163 skills   │    │   34 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -302,7 +302,6 @@ Codebase Analysis:
 |---------|-------------|
 | `/ork:doctor` | Check plugin health |
 | `/ork:configure` | Setup MCP servers |
-| `/ork:claude-hud` | Configure context window HUD |
 
 ### 📋 Other Workflows
 
@@ -318,7 +317,7 @@ Codebase Analysis:
 
 ## Skills
 
-**164 skills** with progressive loading (~70% token savings):
+**163 skills** with progressive loading (~70% token savings):
 
 ### 🤖 AI & ML — 27 skills
 
@@ -366,7 +365,7 @@ Codebase Analysis:
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
 <details>
-<summary><strong>📁 View all 164 skills</strong></summary>
+<summary><strong>📁 View all 163 skills</strong></summary>
 
 ```bash
 ls skills/

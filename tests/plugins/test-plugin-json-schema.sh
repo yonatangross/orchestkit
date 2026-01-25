@@ -236,12 +236,12 @@ echo "=============================================="
 echo "plugin.json CC 2.1.19 Schema Compliance"
 echo "=============================================="
 
-# 1. Test root plugin
-ROOT_PLUGIN="$PROJECT_ROOT/.claude-plugin/plugin.json"
-if [[ -f "$ROOT_PLUGIN" ]]; then
-    validate_plugin_schema "$ROOT_PLUGIN" "Root Plugin (ork)"
+# 1. Test main ork plugin (now at plugins/ork/)
+MAIN_PLUGIN="$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
+if [[ -f "$MAIN_PLUGIN" ]]; then
+    validate_plugin_schema "$MAIN_PLUGIN" "Main Plugin (ork)"
 else
-    echo -e "${YELLOW}WARN${NC}: Root plugin.json not found at $ROOT_PLUGIN"
+    echo -e "${YELLOW}WARN${NC}: Main ork plugin.json not found at $MAIN_PLUGIN"
     ((TOTAL_WARNINGS++))
 fi
 

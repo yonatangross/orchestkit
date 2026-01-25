@@ -6,9 +6,9 @@ This document provides essential context for Claude Code when working with the O
 
 **OrchestKit Complete** is a comprehensive AI-assisted development toolkit that transforms Claude Code into a full-stack development powerhouse. It provides:
 
-- **164 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
+- **163 skills**: Reusable knowledge modules in flat structure (including task-dependency-patterns for CC 2.1.16)
 - **34 agents**: Specialized AI personas with native skill injection (CC 2.1.6)
-- **23 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
+- **22 user-invocable skills**: Pre-configured workflows (CC 2.1.3 unified skills/commands with `user-invocable: true`)
 - **144 hooks**: Lifecycle automation via CC 2.1.11 Setup hooks + CC 2.1.7 native parallel execution
 - **Progressive Loading**: Semantic discovery system that loads skills on-demand based on task context
 - **Context Window HUD**: Real-time context usage monitoring with CC 2.1.6 statusline integration
@@ -35,7 +35,7 @@ plugins/                 # Modular plugin bundles
     └── scripts/         # Hook executables
 
 # FULL TOOLKIT (root level - for development/reference)
-skills/                  # 164 skills (23 user-invocable, 141 internal)
+skills/                  # 163 skills (22 user-invocable, 141 internal)
 agents/                  # 34 agents (all domains)
 hooks/                   # 144 TypeScript hooks in 11 split bundles
 │   ├── src/             # TypeScript source (Phase 4: 144 hooks in 11 bundles)
@@ -405,7 +405,7 @@ Use the statusline to monitor context usage:
 [CTX: 97%] ██████████████████ - RED: COMPACT NOW
 ```
 
-Use `/ork:claude-hud` to configure statusline display.
+Use the `claude-hud` plugin (`/claude-hud:configure`) to configure statusline display.
 
 ### 10. Automatic Pattern Extraction (#48, #49)
 The plugin automatically extracts and learns from development patterns without manual intervention:

@@ -13,7 +13,6 @@ INHERIT_SKILLS=(
   "commit"
   "configure"
   "doctor"
-  "claude-hud"
   "errors"
 )
 

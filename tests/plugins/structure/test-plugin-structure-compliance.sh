@@ -100,8 +100,8 @@ fi
 # Test 4: .claude-plugin/plugin.json does NOT have inline hooks
 # -----------------------------------------------------------------------------
 echo ""
-echo "Test 4: .claude-plugin/plugin.json does NOT have inline hooks"
-PLUGIN_JSON="$PROJECT_ROOT/.claude-plugin/plugin.json"
+echo "Test 4: plugins/ork/.claude-plugin/plugin.json does NOT have inline hooks"
+PLUGIN_JSON="$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 if [[ -f "$PLUGIN_JSON" ]]; then
     # Check if hooks field exists and has content
     if jq -e '.hooks' "$PLUGIN_JSON" >/dev/null 2>&1; then
@@ -193,12 +193,14 @@ echo ""
 echo "Test 8: marketplace.json validation"
 MARKETPLACE_JSON="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_JSON" ]]; then
-    # Check main ork plugin source
+    # Check main ork plugin source (should be ./plugins/ork, NOT ./ to prevent auto-install)
     ORK_SOURCE=$(jq -r '.plugins[] | select(.name == "ork") | .source' "$MARKETPLACE_JSON" 2>/dev/null)
-    if [[ "$ORK_SOURCE" == "./" ]]; then
-        pass "Main ork plugin has correct source (./)"
+    if [[ "$ORK_SOURCE" == "./plugins/ork" ]]; then
+        pass "Main ork plugin has correct source (./plugins/ork)"
+    elif [[ "$ORK_SOURCE" == "./" ]]; then
+        fail "Main ork plugin uses root source (./) - this causes auto-install! Use ./plugins/ork"
     else
-        fail "Main ork plugin has incorrect source: $ORK_SOURCE (expected ./)"
+        fail "Main ork plugin has incorrect source: $ORK_SOURCE (expected ./plugins/ork)"
     fi
 
     # Check engine requirement
