@@ -36,7 +36,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # 163 skills in flat CC 2.1.7 structure
+├── skills/               # 179 skills in flat CC 2.1.7 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations

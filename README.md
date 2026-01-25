@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**174 skills · 35 agents · 144 hooks · 33 modular plugins**
+**179 skills · 35 agents · 144 hooks · 33 modular plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.19-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-164-blue?style=for-the-badge)](./skills)
@@ -88,7 +88,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │   144 hooks   │    │  174 skills   │    │   35 agents   │
+        │   144 hooks   │    │  179 skills   │    │   35 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -317,7 +317,7 @@ Codebase Analysis:
 
 ## Skills
 
-**174 skills** with progressive loading (~70% token savings):
+**179 skills** with progressive loading (~70% token savings):
 
 ### 🤖 AI & ML — 27 skills
 
@@ -365,7 +365,7 @@ Codebase Analysis:
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
 <details>
-<summary><strong>📁 View all 174 skills</strong></summary>
+<summary><strong>📁 View all 179 skills</strong></summary>
 
 ```bash
 ls skills/
@@ -687,7 +687,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/      # 174 skills (single source of truth - edit these)
+├── skills/      # 179 skills (single source of truth - edit these)
 ├── agents/      # 35 agents (single source of truth - edit these)
 └── hooks/       # 144 hooks (single source of truth - edit these)
 

@@ -1,64 +1,5 @@
 {
-  "name": "ork",
-  "version": "5.2.1",
-  "description": "Comprehensive AI-assisted development toolkit with 170 skills (24 user-invocable, 146 internal), 35 agents, 144 hooks, Memory Fabric v2.1, and production-ready patterns for modern full-stack development including AI/ML Roadmap 2026",
-  "author": {
-    "name": "Yonatan Gross",
-    "email": "yonatan2gross@gmail.com",
-    "url": "https://github.com/yonatangross/orchestkit"
-  },
-  "homepage": "https://github.com/yonatangross/orchestkit",
-  "repository": "https://github.com/yonatangross/orchestkit",
-  "license": "MIT",
-  "lspServers": {
-    "pyright": {
-      "command": "pyright-langserver",
-      "args": [
-        "--stdio"
-      ],
-      "extensionToLanguage": {
-        ".py": "python",
-        ".pyi": "python"
-      }
-    },
-    "typescript": {
-      "command": "typescript-language-server",
-      "args": [
-        "--stdio"
-      ],
-      "extensionToLanguage": {
-        ".ts": "typescript",
-        ".tsx": "typescriptreact",
-        ".js": "javascript",
-        ".jsx": "javascriptreact",
-        ".mts": "typescript",
-        ".cts": "typescript",
-        ".mjs": "javascript",
-        ".cjs": "javascript"
-      }
-    }
-  },
-  "keywords": [
-    "ai-development",
-    "langgraph",
-    "fastapi",
-    "react",
-    "typescript",
-    "python",
-    "multi-agent",
-    "rag",
-    "semantic-search",
-    "code-quality",
-    "security",
-    "testing",
-    "observability",
-    "progressive-loading",
-    "skill-system",
-    "agent-framework",
-    "mcp-integration"
-  ],
-  "skills": "./skills/",
-  "agents": "./agents/",
+  "description": "OrchestKit hooks - 144 TypeScript hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -541,6 +482,11 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/instance-heartbeat"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/decision-sync-pull",
+            "background": true
           },
           {
             "type": "command",

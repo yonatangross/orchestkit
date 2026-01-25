@@ -6,6 +6,7 @@ import {
   spring,
   interpolate,
 } from "remotion";
+import { ORCHESTKIT_STATS } from "../../constants";
 
 interface CTASceneProps {
   installCommand?: string;
@@ -200,7 +201,7 @@ export const CTAOverlay: React.FC<CTAOverlayProps> = ({
             fontFamily: "Menlo, monospace",
           }}
         >
-          170 skills * 35 agents * CC 2.1.16
+          {ORCHESTKIT_STATS.skills} skills * {ORCHESTKIT_STATS.agents} agents * {ORCHESTKIT_STATS.ccVersion}
         </div>
       </div>
     </AbsoluteFill>

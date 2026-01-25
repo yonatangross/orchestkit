@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **174 skills**: Reusable knowledge modules
+- **179 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
 - **144 hooks**: TypeScript lifecycle automation
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 174 skills
+├── skills/             # 179 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,7 +149,7 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-174 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+179 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 ### Agents
 34 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
