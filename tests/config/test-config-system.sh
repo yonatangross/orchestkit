@@ -50,7 +50,7 @@ echo ""
 # -----------------------------------------------------------------------------
 echo "=== 1. JSON Syntax Tests ==="
 
-for f in .claude-plugin/plugin.json \
+for f in plugins/ork/.claude-plugin/plugin.json \
          .claude/schemas/config.schema.json \
          .claude/defaults/config.json \
          .claude/defaults/presets/*.json; do
