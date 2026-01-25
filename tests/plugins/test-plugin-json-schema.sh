@@ -187,6 +187,40 @@ validate_plugin_schema() {
     esac
     echo ""
 
+    # ============================================================================
+    # Test 6: Hook entries have required command field (CC 2.1.19)
+    # ============================================================================
+    echo "Test 6: Hook Command Field Validation"
+    echo "────────────────────────────────────────"
+
+    if [[ "$hooks_type" == "object" ]]; then
+        # Check all hook entries with type="command" have a command field
+        local missing_command=0
+        local hook_locations=""
+
+        # Iterate through all hook events and their entries
+        for event in $(jq -r '.hooks | keys[]' "$PLUGIN_JSON" 2>/dev/null); do
+            # Check array-style hooks (e.g., SessionStart with hooks array)
+            local entries=$(jq -r ".hooks[\"$event\"][] | .hooks[]? // . | select(.type == \"command\" and .command == null) | \"$event\"" "$PLUGIN_JSON" 2>/dev/null | wc -l | tr -d ' ')
+            if [[ "$entries" -gt 0 ]]; then
+                missing_command=$((missing_command + entries))
+                hook_locations+="$event, "
+            fi
+        done
+
+        if [[ $missing_command -eq 0 ]]; then
+            echo -e "  ${GREEN}PASS${NC}: All hook entries with type='command' have command field"
+        else
+            echo -e "  ${RED}FAIL${NC}: $missing_command hook(s) missing 'command' field"
+            echo "        Events with issues: ${hook_locations%, }"
+            echo "        Fix: Add 'command' field to each hook with type='command'"
+            ((FAILED++))
+        fi
+    else
+        echo -e "  ${GREEN}PASS${NC}: No inline hooks to validate"
+    fi
+    echo ""
+
     # Return failures count
     TOTAL_FAILED=$((TOTAL_FAILED + FAILED))
     TOTAL_WARNINGS=$((TOTAL_WARNINGS + WARNINGS))
