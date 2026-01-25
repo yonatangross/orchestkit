@@ -1,8 +1,37 @@
 ---
 name: heygen-avatars
-description: Best practices for HeyGen - AI avatar video creation API
+description: Best practices for HeyGen - AI avatar video creation API. Use when creating AI avatar videos, generating talking head videos, or integrating HeyGen with Remotion.
 tags: [heygen, video, avatar, ai, api, text-to-video, remotion]
 ---
+
+# HeyGen Avatars
+
+AI avatar video creation using HeyGen API for talking head videos, avatar generation, and text-to-video workflows.
+
+## Quick Start
+
+```typescript
+// Check remaining quota
+const response = await fetch("https://api.heygen.com/v2/user/remaining_quota", {
+  headers: { "X-Api-Key": process.env.HEYGEN_API_KEY! }
+});
+
+// Generate avatar video
+const video = await fetch("https://api.heygen.com/v2/video/generate", {
+  method: "POST",
+  headers: {
+    "X-Api-Key": process.env.HEYGEN_API_KEY!,
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    video_inputs: [{
+      character: { type: "avatar", avatar_id: "your-avatar-id" },
+      voice: { type: "text", input_text: "Hello world!", voice_id: "your-voice-id" }
+    }],
+    dimension: { width: 1280, height: 720 }
+  })
+});
+```
 
 ## When to use
 

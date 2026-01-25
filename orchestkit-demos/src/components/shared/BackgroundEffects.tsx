@@ -454,15 +454,7 @@ export const ConfettiBurst: React.FC<ConfettiBurstProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const relativeFrame = frame - startFrame;
-
-  if (relativeFrame < 0 || relativeFrame > duration) {
-    return null;
-  }
-
-  const progress = relativeFrame / duration;
-
-  // Generate particles with deterministic properties
+  // Generate particles with deterministic properties (must be before early return)
   const particles = React.useMemo(() => {
     return Array.from({ length: particleCount }, (_, i) => {
       const angle = (i / particleCount) * Math.PI * 2 + Math.sin(i * 0.5) * 0.5;
@@ -475,6 +467,14 @@ export const ConfettiBurst: React.FC<ConfettiBurstProps> = ({
       return { angle, velocity, rotationSpeed, size, color, shape };
     });
   }, [particleCount, colors]);
+
+  const relativeFrame = frame - startFrame;
+
+  if (relativeFrame < 0 || relativeFrame > duration) {
+    return null;
+  }
+
+  const progress = relativeFrame / duration;
 
   return (
     <AbsoluteFill style={{ pointerEvents: "none", overflow: "hidden" }}>

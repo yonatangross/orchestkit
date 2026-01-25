@@ -379,7 +379,6 @@ export const HighlightCaption: React.FC<HighlightCaptionProps> = ({
                 i === currentHighlight ? highlightColor : "transparent",
               padding: "4px 12px",
               borderRadius: 6,
-              transition: "all 0.15s ease",
             }}
           >
             {word}

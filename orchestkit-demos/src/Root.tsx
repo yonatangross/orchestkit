@@ -20,6 +20,9 @@ import {
   MarketplaceIntro,
   marketplaceIntroSchema,
 } from "./components/MarketplaceIntro";
+// HeyGen integration (experimental - isolated for future use)
+// import { HeyGenDemo } from "./components/HeyGenDemo";
+// import { InstallWithAvatarDemo, installWithAvatarDemoSchema } from "./components/InstallWithAvatarDemo";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -55,6 +58,43 @@ export const RemotionRoot: React.FC = () => {
         }}
       />
 
+      {/* ==================== HEYGEN DEMOS (Experimental - Disabled) ====================
+
+      HeyGen integration is preserved but isolated for future use.
+      To re-enable:
+      1. Uncomment imports at top of file
+      2. Uncomment compositions below
+      3. Run: npm run heygen:test to verify API
+      4. Run: npm run heygen:generate:install to create avatar video
+
+      <Composition
+        id="HeyGenDemo"
+        component={HeyGenDemo}
+        durationInFrames={FPS * 60}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        defaultProps={{ avatarVideoUrl: "", showPlaceholder: true }}
+      />
+
+      <Composition
+        id="InstallWithAvatarDemo"
+        component={InstallWithAvatarDemo}
+        durationInFrames={FPS * 30}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={installWithAvatarDemoSchema}
+        defaultProps={{
+          avatarVideoUrl: "videos/install-avatar.mp4",
+          terminalVideoUrl: "install-demo.mp4",
+          showPlaceholder: false,
+          primaryColor: "#8b5cf6",
+        }}
+      />
+
+      ==================== END HEYGEN DEMOS ==================== */}
+
       {/* ==================== HORIZONTAL 16:9 DEMOS ==================== */}
 
       {/* /plugin install - Video-driven duration (2026 pattern) */}
@@ -79,7 +119,7 @@ export const RemotionRoot: React.FC = () => {
             "Missing best practices",
           ],
           stats: [
-            { value: "168", label: "skills", color: "#8b5cf6" },
+            { value: "169", label: "skills", color: "#8b5cf6" },
             { value: "35", label: "agents", color: "#22c55e" },
             { value: "148", label: "hooks", color: "#f59e0b" },
           ],

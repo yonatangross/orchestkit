@@ -200,7 +200,7 @@ export const CinematicDemo: React.FC<CinematicDemoProps> = ({
         <CTAScene
           installCommand="/plugin install ork"
           primaryColor={primaryColor}
-          stats={{ skills: 168, agents: 35 }}
+          stats={{ skills: 169, agents: 35 }}
           ccVersion={ccVersion}
         />
       </Sequence>

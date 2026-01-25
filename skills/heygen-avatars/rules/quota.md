@@ -14,7 +14,7 @@ HeyGen uses a credit-based system for video generation. Understanding quota mana
 ### curl
 
 ```bash
-curl -X GET "https://api.heygen.com/v1/video_generate.quota" \
+curl -X GET "https://api.heygen.com/v2/user/remaining_quota" \
   -H "X-Api-Key: $HEYGEN_API_KEY"
 ```
 
@@ -24,17 +24,20 @@ curl -X GET "https://api.heygen.com/v1/video_generate.quota" \
 interface QuotaResponse {
   error: null | string;
   data: {
-    remaining_quota: number;
-    used_quota: number;
+    remaining_quota: number; // In seconds
+    details?: {
+      api: number;
+    };
   };
 }
 
-const response = await fetch("https://api.heygen.com/v1/video_generate.quota", {
+const response = await fetch("https://api.heygen.com/v2/user/remaining_quota", {
   headers: { "X-Api-Key": process.env.HEYGEN_API_KEY! },
 });
 
 const { data }: QuotaResponse = await response.json();
-console.log(`Remaining credits: ${data.remaining_quota}`);
+const credits = Math.round(data.remaining_quota / 60);
+console.log(`Remaining quota: ${data.remaining_quota} seconds (~${credits} credits)`);
 ```
 
 ### Python
@@ -44,7 +47,7 @@ import requests
 import os
 
 response = requests.get(
-    "https://api.heygen.com/v1/video_generate.quota",
+    "https://api.heygen.com/v2/user/remaining_quota",
     headers={"X-Api-Key": os.environ["HEYGEN_API_KEY"]}
 )
 
@@ -58,11 +61,15 @@ print(f"Remaining credits: {data['remaining_quota']}")
 {
   "error": null,
   "data": {
-    "remaining_quota": 450,
-    "used_quota": 50
+    "remaining_quota": 3600,
+    "details": {
+      "api": 3600
+    }
   }
 }
 ```
+
+**Note:** The `remaining_quota` is returned in seconds. Divide by 60 to get approximate credits (e.g., 3600 seconds = 60 credits).
 
 ## Credit Consumption
 
@@ -84,7 +91,7 @@ Always verify sufficient quota before generating videos:
 async function generateVideoWithQuotaCheck(videoConfig: VideoConfig) {
   // Check quota first
   const quotaResponse = await fetch(
-    "https://api.heygen.com/v1/video_generate.quota",
+    "https://api.heygen.com/v2/user/remaining_quota",
     { headers: { "X-Api-Key": process.env.HEYGEN_API_KEY! } }
   );
 
@@ -112,7 +119,7 @@ async function generateVideoWithQuotaCheck(videoConfig: VideoConfig) {
 ```typescript
 async function logQuotaUsage() {
   const response = await fetch(
-    "https://api.heygen.com/v1/video_generate.quota",
+    "https://api.heygen.com/v2/user/remaining_quota",
     { headers: { "X-Api-Key": process.env.HEYGEN_API_KEY! } }
   );
 
@@ -136,7 +143,7 @@ const QUOTA_WARNING_THRESHOLD = 50;
 
 async function checkQuotaWithAlert() {
   const response = await fetch(
-    "https://api.heygen.com/v1/video_generate.quota",
+    "https://api.heygen.com/v2/user/remaining_quota",
     { headers: { "X-Api-Key": process.env.HEYGEN_API_KEY! } }
   );
 

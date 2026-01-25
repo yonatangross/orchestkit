@@ -185,7 +185,7 @@ export const ShowcaseDemo: React.FC<ShowcaseDemoProps> = ({
           >
             {[
               { value: "23", label: "commands" },
-              { value: "168", label: "skills" },
+              { value: "169", label: "skills" },
               { value: "35", label: "agents" },
             ].map((stat, i) => (
               <div

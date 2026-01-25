@@ -239,7 +239,6 @@ export const BarChart: React.FC<BarChartProps> = ({
                   backgroundColor: color,
                   borderRadius: barHeight / 4,
                   boxShadow: `0 0 12px ${color}40`,
-                  transition: "width 0.1s ease-out",
                 }}
               />
             </div>

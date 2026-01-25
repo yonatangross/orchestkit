@@ -23,7 +23,7 @@ export const HookScene: React.FC<HookSceneProps> = ({
   hook,
   ccVersion,
   primaryColor,
-  stats = { skills: 168, agents: 35 },
+  stats = { skills: 169, agents: 35 },
 }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();

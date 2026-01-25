@@ -22,7 +22,7 @@ export const CTAScene: React.FC<CTASceneProps> = ({
   installCommand = "/plugin install ork",
   primaryColor = "#8b5cf6",
   secondaryColor = "#6366f1",
-  stats = { skills: 168, agents: 35 },
+  stats = { skills: 169, agents: 35 },
   ccVersion = "CC 2.1.16",
 }) => {
   const frame = useCurrentFrame();
@@ -200,7 +200,7 @@ export const CTAOverlay: React.FC<CTAOverlayProps> = ({
             fontFamily: "Menlo, monospace",
           }}
         >
-          168 skills * 35 agents * CC 2.1.16
+          170 skills * 35 agents * CC 2.1.16
         </div>
       </div>
     </AbsoluteFill>

@@ -302,7 +302,7 @@ const CTAPhase: React.FC<{
             fontFamily: "Menlo, monospace",
           }}
         >
-          163 skills * 34 agents
+          170 skills * 35 agents
         </div>
 
         {/* Swipe up hint */}

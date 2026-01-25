@@ -385,7 +385,7 @@ const StatsScene: React.FC<SceneProps> = ({
 }) => {
   const stats = [
     { value: 23, label: "Commands", color: primaryColor! },
-    { value: 168, label: "Skills", color: secondaryColor! },
+    { value: 169, label: "Skills", color: secondaryColor! },
     { value: 35, label: "Agents", color: accentColor! },
     { value: 148, label: "Hooks", color: "#f59e0b" },
   ];
@@ -1044,7 +1044,7 @@ const CTAScene: React.FC<SceneProps> = ({
           gap: 14,
         }}
       >
-        {["168 Skills", "35 Agents", "148 Hooks"].map((text, i) => {
+        {["169 Skills", "35 Agents", "148 Hooks"].map((text, i) => {
           const pillProgress = pillsProgress(i);
           return (
             <span

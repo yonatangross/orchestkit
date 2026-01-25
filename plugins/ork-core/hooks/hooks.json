@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "5.2.1",
-  "description": "Comprehensive AI-assisted development toolkit with 169 skills (23 user-invocable, 146 internal), 35 agents, 144 hooks, Memory Fabric v2.1, and production-ready patterns for modern full-stack development including AI/ML Roadmap 2026",
+  "description": "Comprehensive AI-assisted development toolkit with 170 skills (24 user-invocable, 146 internal), 35 agents, 144 hooks, Memory Fabric v2.1, and production-ready patterns for modern full-stack development including AI/ML Roadmap 2026",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -541,10 +541,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/instance-heartbeat"
-          },
-          {
-            "type": "command",
-            "background": true
           },
           {
             "type": "command",

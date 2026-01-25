@@ -54,7 +54,7 @@ export const videoDemoSchema = z.object({
     label: z.string(),
     color: z.string().optional(),
   })).default([
-    { value: "168", label: "skills", color: "#8b5cf6" },
+    { value: "169", label: "skills", color: "#8b5cf6" },
     { value: "35", label: "agents", color: "#22c55e" },
     { value: "148", label: "hooks", color: "#f59e0b" },
   ]),
@@ -80,8 +80,8 @@ export const calculateVideoDemoMetadata = async ({
       width: 1920,
       height: 1080,
     };
-  } catch (e) {
-    console.warn("Could not get video metadata:", e);
+  } catch {
+    // Fallback to default duration if video metadata unavailable
     return {
       durationInFrames: 300, // 10s default
       fps: 30,
