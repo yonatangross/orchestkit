@@ -202,8 +202,8 @@ See `references/agent-demo-recipe.md` for complete implementation.
 #### Seconds 10-13: Feature List
 - **Visual**: Quick flash of capabilities
 - **Text**:
-  - "163 Skills"
-  - "34 Agents"
+  - "179 Skills"
+  - "35 Agents"
   - "144 Hooks"
 - **Animation**: Each stat pops in
 - **Audio**: Rapid confirmation tones

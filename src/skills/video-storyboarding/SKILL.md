@@ -87,7 +87,7 @@ attention_phase:
 OrchestKit Example:
 ```
 Scene: Terminal with rapid-fire commands
-Hook: "179 skills. 34 agents. One plugin."
+Hook: "179 skills. 35 agents. One plugin."
 Visual: Animated skill icons flowing into Claude
 Duration: 8 seconds
 ```
@@ -216,12 +216,12 @@ content:
     the memory of a senior developer?
 
   on_screen_text:
-    - text: "163 Skills"
+    - text: "179 Skills"
       position: "center"
       animation: "scale-in"
       timing: "0:02-0:04"
 
-    - text: "34 Agents"
+    - text: "35 Agents"
       position: "center"
       animation: "scale-in"
       timing: "0:04-0:06"
@@ -518,7 +518,7 @@ scenes:
     timing: "0:00-0:08"
     narration: "What if Claude Code remembered everything a senior developer knows?"
     visuals: "Skill icons flowing into Claude logo"
-    text: "163 Skills • 34 Agents • 144 Hooks"
+    text: "179 Skills • 35 Agents • 144 Hooks"
 
   - id: 2
     phase: interest
@@ -539,7 +539,7 @@ scenes:
     timing: "0:28-0:42"
     narration: "Built-in quality gates catch issues before they ship. Hooks validate every step."
     visuals: "Hook execution with green checkmarks"
-    text: "144 Quality Hooks"
+    text: "147 Quality Hooks"
 
   - id: 5
     phase: desire

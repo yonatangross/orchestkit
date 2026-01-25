@@ -157,7 +157,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 ### Hooks
 144 TypeScript hooks in 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
-**Async Execution**: 20 hooks use `async: true` for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
+**Async Execution**: 31 hooks use `async: true` for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
 ---
 
@@ -228,6 +228,6 @@ CLAUDE_SESSION_ID     # Current session UUID
 
 - **Current**: 5.2.8
 - **Claude Code**: >= 2.1.19
-- **Hooks**: 144 TypeScript (11 split bundles, 20 async)
+- **Hooks**: 144 TypeScript (11 split bundles, 31 async)
 
 See `CHANGELOG.md` for detailed version history and features.

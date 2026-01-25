@@ -5,6 +5,7 @@ context: inherit
 version: 2.0.0
 author: OrchestKit
 tags: [demo, video, vhs, asciinema, terminal, recording, cli]
+user-invocable: false
 ---
 
 # Terminal Demo Generator

@@ -95,7 +95,7 @@ Complete reference for entity types, categories, relationships, metadata schema,
 - `mcp-skills` - MCP patterns
 
 ### Entity Categories
-- `agents` - All 34 agents
+- `agents` - All 35 agents
 - `technologies` - All technologies
 - `architecture-decisions` - Architecture decisions
 - `relationships` - Relationship memories

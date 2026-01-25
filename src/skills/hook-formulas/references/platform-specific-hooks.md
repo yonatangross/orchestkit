@@ -203,7 +203,7 @@ Longer format allows for authority hooks:
 Here's my setup after 30 days."
 [Full workflow tour and review]
 
-"163 AI skills for developers: The ones that actually matter"
+"179 AI skills for developers: The ones that actually matter"
 [Curated skill showcase with real examples]
 
 "Parallel AI agents changed how I code. Full breakdown."
@@ -350,7 +350,7 @@ After [experience], here's what I found:"
 
 Now I invoke skills.
 
-The difference: 163 battle-tested patterns vs. making it up each time."
+The difference: 179 battle-tested patterns vs. making it up each time."
 
 "Your AI assistant is goldfish-brained.
 
@@ -398,8 +398,8 @@ Thumbnail creates question. Hook answers it.
 ### OrchestKit Thumbnail Ideas
 
 ```
-Thumbnail: Face + "163 Skills?!"
-Hook: "I discovered a Claude plugin with 163 specialized skills. Here's the 5 that matter."
+Thumbnail: Face + "179 Skills?!"
+Hook: "I discovered a Claude plugin with 179 specialized skills. Here's the 5 that matter."
 
 Thumbnail: Before (chaos code) / After (clean)
 Hook: "Same PR. Before and after AI review. The difference is embarrassing."
