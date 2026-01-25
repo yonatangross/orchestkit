@@ -401,6 +401,130 @@ export function myHook(input: HookInput): HookResult {
 
 ---
 
+## Async Hooks (CC 2.1.19+)
+
+### Overview
+
+Async hooks execute in the background without blocking the main conversation flow. This is ideal for:
+- **Analytics and metrics** - Track usage patterns without slowing responses
+- **Network I/O** - External API calls (webhooks, sync operations)
+- **Session startup** - Heavy initialization that doesn't need to complete before user interaction
+
+### Configuration
+
+Add `async: true` and `timeout` to hook definitions in `hooks.json`:
+
+```json
+{
+  "type": "command",
+  "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/session-metrics",
+  "async": true,
+  "timeout": 30
+}
+```
+
+### Async vs Synchronous Hooks
+
+| Aspect | Synchronous | Async |
+|--------|-------------|-------|
+| Blocking | Yes - waits for completion | No - runs in background |
+| Result handling | Immediate response processing | Notified on completion |
+| Use case | Validation, blocking, context injection | Analytics, logging, external calls |
+| Timeout | Default 2 minutes | Explicit timeout required |
+
+### When to Use Async Hooks
+
+**Use async for:**
+- Session metrics and audit logging
+- Pattern extraction and learning
+- External API calls (GitHub, mem0, webhooks)
+- Non-critical sync operations
+- Any hook that doesn't need to block execution
+
+**Keep synchronous for:**
+- Security validation (must block dangerous commands)
+- Permission decisions (must respond before execution)
+- Context injection (must add context before tool runs)
+- Quality gates (must validate before allowing writes)
+
+### Current Async Hooks (20 total)
+
+**SessionStart (7 hooks)** - Startup optimization:
+- `mem0-context-retrieval` - Load context from cloud memory
+- `mem0-webhook-setup` - Configure memory webhooks
+- `mem0-analytics-tracker` - Initialize analytics
+- `pattern-sync-pull` - Pull learned patterns
+- `coordination-init` - Multi-instance coordination
+- `decision-sync-pull` - Pull decision history
+- `dependency-version-check` - Check for outdated deps
+
+**PostToolUse Analytics (7 hooks)** - Non-blocking metrics:
+- `session-metrics` - Track tool usage
+- `audit-logger` - Log all operations
+- `calibration-tracker` - Calibration metrics
+- `code-style-learner` - Extract code style patterns
+- `naming-convention-learner` - Extract naming conventions
+- `skill-usage-optimizer` - Track skill patterns
+- `realtime-sync` - Real-time state sync
+
+**Network I/O (6 hooks)** - External API calls:
+- `pattern-extractor` - Extract patterns from git
+- `issue-progress-commenter` - Comment on GitHub issues
+- `issue-subtask-updater` - Update subtask checkboxes
+- `mem0-webhook-handler` - Process memory webhooks
+- `coordination-heartbeat` - Multi-instance heartbeat
+- `memory-bridge` - Sync to knowledge graph
+
+### Timeout Recommendations
+
+| Hook Category | Recommended Timeout | Rationale |
+|---------------|---------------------|-----------|
+| Local analytics | 10-30s | Fast local operations |
+| Memory sync | 30s | Cloud API calls |
+| GitHub operations | 30-60s | Rate limit handling |
+| Heavy processing | 60s | Complex extraction |
+
+### Error Handling
+
+Async hooks should handle errors gracefully:
+
+```typescript
+export function myAsyncHook(input: HookInput): HookResult {
+  try {
+    // External API call or heavy processing
+    await syncToCloud(data);
+    return outputSilentSuccess();
+  } catch (err) {
+    // Log error but don't fail - async hooks shouldn't block
+    logHook('my-async-hook', `Error (non-blocking): ${err.message}`);
+    return outputSilentSuccess();
+  }
+}
+```
+
+### Migration from background: true
+
+The `background: true` flag (CC 2.1.19) was replaced by `async: true` for clarity:
+
+```json
+// Old (deprecated)
+{
+  "type": "command",
+  "command": "...",
+  "background": true
+}
+
+// New (CC 2.1.19+)
+{
+  "type": "command",
+  "command": "...",
+  "async": true,
+  "timeout": 30
+}
+```
+
+---
+
 ## CC 2.1.9 Compliance
 
 ### additionalContext Feature
@@ -800,9 +924,11 @@ const bundleMap = {
 
 ---
 
-**Last Updated:** 2026-01-23
-**Version:** 2.0.0 (Phase 4: Code splitting complete)
+**Last Updated:** 2026-01-26
+**Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 144 TypeScript hooks
+**Hooks:** 144 TypeScript hooks (20 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.17
+**Claude Code Requirement:** >= 2.1.19
+
+See [docs/async-hooks.md](docs/async-hooks.md) for detailed async hook patterns.
