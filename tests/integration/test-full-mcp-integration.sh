@@ -15,7 +15,7 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 # Phase 4: MCP hooks migrated to TypeScript
 MCP_TS_DIR="$PROJECT_ROOT/src/hooks/src/pretool/mcp"
 TS_LIB_DIR="$PROJECT_ROOT/src/hooks/src/lib"
-HOOK_RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+HOOK_RUNNER="$PROJECT_ROOT/src/src/hooks/bin/run-hook.mjs"
 
 # Run TypeScript hook via run-hook.mjs
 run_hook() {

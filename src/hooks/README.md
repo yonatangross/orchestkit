@@ -273,7 +273,7 @@ Add hook registration to `.claude/settings.json`:
     "PreToolUse": [
       {
         "name": "My Hook",
-        "path": "./hooks/bin/run-hook.mjs pretool/bash/my-hook",
+        "path": "./src/hooks/bin/run-hook.mjs pretool/bash/my-hook",
         "matcher": "Bash"
       }
     ]

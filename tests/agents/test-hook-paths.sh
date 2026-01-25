@@ -69,7 +69,7 @@ validate_run_hook_command() {
     # Check if this is a run-hook.mjs command
     if [[ "$cmd" == *"run-hook.mjs"* ]]; then
         # Check if run-hook.mjs exists
-        local runner_path="$REPO_ROOT/hooks/bin/run-hook.mjs"
+        local runner_path="$REPO_ROOT/src/hooks/bin/run-hook.mjs"
         if [[ ! -f "$runner_path" ]]; then
             return 1
         fi

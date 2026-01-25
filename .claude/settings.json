@@ -7,87 +7,87 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/git-branch-protection"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/git-branch-protection"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/compound-command-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/compound-command-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/error-pattern-warner"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/error-pattern-warner"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/issue-docs-requirement"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/issue-docs-requirement"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/multi-instance-quality-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/multi-instance-quality-gate"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/default-timeout-setter"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/default-timeout-setter"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/conflict-predictor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/conflict-predictor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/git-commit-message-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/git-commit-message-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/git-branch-naming-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/git-branch-naming-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/git-atomic-commit-checker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/git-atomic-commit-checker"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/gh-issue-creation-guide"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/gh-issue-creation-guide"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/pr-merge-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/pr-merge-gate"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/pre-commit-simulation"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/pre-commit-simulation"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/license-compliance"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/license-compliance"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/affected-tests-finder"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/affected-tests-finder"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/agent-browser-safety"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/agent-browser-safety"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/bash/version-sync"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/bash/version-sync"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/merge-readiness-checker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/merge-readiness-checker"
           }
         ]
       },
@@ -96,47 +96,47 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/write-edit/file-guard"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/write-edit/file-guard"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/input-mod/write-headers"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/input-mod/write-headers"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/backend-file-naming"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/backend-file-naming"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/structure-location-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/structure-location-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/test-location-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/test-location-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/Write/architecture-change-detector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/Write/architecture-change-detector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/Write/security-pattern-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/Write/security-pattern-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/write-edit/multi-instance-lock"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/write-edit/multi-instance-lock"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/write-edit/file-lock-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/write-edit/file-lock-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/Write/docstring-enforcer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/Write/docstring-enforcer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/Write/code-quality-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/Write/code-quality-gate"
           }
         ]
       },
@@ -145,7 +145,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/skill/skill-tracker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/skill/skill-tracker"
           }
         ]
       },
@@ -154,7 +154,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/mcp/context7-tracker"
           }
         ]
       },
@@ -163,7 +163,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/mcp/memory-fabric-init",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/mcp/memory-fabric-init",
             "once": true
           }
         ]
@@ -173,7 +173,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/mcp/memory-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/mcp/memory-validator"
           }
         ]
       },
@@ -182,7 +182,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs pretool/mcp/sequential-thinking-auto"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs pretool/mcp/sequential-thinking-auto"
           }
         ]
       },
@@ -191,23 +191,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs agent/block-writes"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs agent/block-writes"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs agent/migration-safety-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs agent/migration-safety-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs agent/security-command-audit"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs agent/security-command-audit"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs agent/ci-safety-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs agent/ci-safety-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs agent/deployment-safety-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs agent/deployment-safety-check"
           }
         ]
       }
@@ -218,23 +218,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/session-metrics"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/session-metrics"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/audit-logger"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/audit-logger"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/context-budget-monitor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/context-budget-monitor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/unified-error-handler"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/unified-error-handler"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/calibration-tracker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/calibration-tracker"
           }
         ]
       },
@@ -243,51 +243,51 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write-edit/file-lock-release"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write-edit/file-lock-release"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write/code-style-learner"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write/code-style-learner"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write/naming-convention-learner"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write/naming-convention-learner"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/auto-lint"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/auto-lint"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write/readme-sync"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write/readme-sync"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/skill-edit-tracker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/skill-edit-tracker"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/backend-layer-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/backend-layer-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/import-direction-enforcer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/import-direction-enforcer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/merge-conflict-predictor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/merge-conflict-predictor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write/coverage-predictor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write/coverage-predictor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/write/release-lock-on-commit"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/write/release-lock-on-commit"
           }
         ]
       },
@@ -296,23 +296,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/redact-secrets"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/redact-secrets"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/bash/pattern-extractor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/bash/pattern-extractor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/bash/issue-progress-commenter"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/bash/issue-progress-commenter"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/bash/issue-subtask-updater"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/bash/issue-subtask-updater"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/mem0-webhook-handler"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/mem0-webhook-handler"
           }
         ]
       },
@@ -321,7 +321,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/coordination-heartbeat"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/coordination-heartbeat"
           }
         ]
       },
@@ -330,7 +330,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/skill/skill-usage-optimizer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/skill/skill-usage-optimizer"
           }
         ]
       },
@@ -339,7 +339,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/memory-bridge"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/memory-bridge"
           }
         ]
       },
@@ -348,7 +348,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs posttool/realtime-sync"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs posttool/realtime-sync"
           }
         ]
       }
@@ -363,11 +363,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs permission/auto-approve-safe-bash"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs permission/auto-approve-safe-bash"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs permission/learning-tracker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs permission/learning-tracker"
           }
         ]
       },
@@ -376,7 +376,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs permission/auto-approve-project-writes"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs permission/auto-approve-project-writes"
           }
         ]
       }
@@ -386,51 +386,51 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/context-injector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/context-injector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/todo-enforcer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/todo-enforcer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/memory-context"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/memory-context"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/satisfaction-detector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/satisfaction-detector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/antipattern-detector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/antipattern-detector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/antipattern-warning"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/antipattern-warning"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/skill-auto-suggest"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/skill-auto-suggest"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/context-pruning-advisor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/context-pruning-advisor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/agent-auto-suggest"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/agent-auto-suggest"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/agent-orchestrator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/agent-orchestrator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/skill-injector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/skill-injector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs prompt/pipeline-detector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs prompt/pipeline-detector"
           }
         ]
       }
@@ -440,52 +440,52 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/session-context-loader"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/session-context-loader"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/session-env-setup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/session-env-setup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/mem0-context-retrieval",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/mem0-context-retrieval",
             "background": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/mem0-webhook-setup",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/mem0-webhook-setup",
             "background": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/mem0-analytics-tracker",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/mem0-analytics-tracker",
             "background": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-pull",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/pattern-sync-pull",
             "background": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/analytics-consent-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/analytics-consent-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/multi-instance-init"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/multi-instance-init"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/coordination-init",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/coordination-init",
             "background": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/instance-heartbeat"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/instance-heartbeat"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/dependency-version-check",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/dependency-version-check",
             "background": true
           }
         ]
@@ -496,19 +496,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/coordination-cleanup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/coordination-cleanup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/session-metrics-summary"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/session-metrics-summary"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/session-cleanup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/session-cleanup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-push"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs lifecycle/pattern-sync-push"
           }
         ]
       }
@@ -518,99 +518,99 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/multi-instance-cleanup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/multi-instance-cleanup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/cleanup-instance"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/cleanup-instance"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/task-completion-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/task-completion-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/auto-save-context"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/auto-save-context"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/coverage-check"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/coverage-check"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/evidence-collector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/evidence-collector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/mem0-pre-compaction-sync"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/mem0-pre-compaction-sync"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/context-compressor"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/context-compressor"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/auto-remember-continuity"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/auto-remember-continuity"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/full-test-suite"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/full-test-suite"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/security-scan-aggregator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/security-scan-aggregator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/coverage-threshold-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/coverage-threshold-gate"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/cross-instance-test-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/cross-instance-test-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/di-pattern-enforcer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/di-pattern-enforcer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/duplicate-code-detector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/duplicate-code-detector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/eval-metrics-collector"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/eval-metrics-collector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/migration-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/migration-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/review-summary-generator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/review-summary-generator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/security-summary"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/security-summary"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/test-pattern-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/test-pattern-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs skill/test-runner"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs skill/test-runner"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/session-patterns"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/session-patterns"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/issue-work-summary"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/issue-work-summary"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs stop/calibration-persist"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs stop/calibration-persist"
           }
         ]
       }
@@ -620,23 +620,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-start/subagent-context-stager"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-start/subagent-context-stager"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-start/agent-memory-inject"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-start/agent-memory-inject"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-start/subagent-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-start/subagent-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-start/context-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-start/context-gate"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-start/task-linker"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-start/task-linker"
           }
         ]
       }
@@ -646,43 +646,43 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/output-validator"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/output-validator"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/context-publisher"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/context-publisher"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/handoff-preparer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/handoff-preparer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/feedback-loop"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/feedback-loop"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/auto-spawn-quality"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/auto-spawn-quality"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/multi-claude-verifier"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/multi-claude-verifier"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/agent-memory-store"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/agent-memory-store"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/subagent-quality-gate"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/subagent-quality-gate"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/task-completer"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/task-completer"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs subagent-stop/retry-handler"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs subagent-stop/retry-handler"
           }
         ]
       }
@@ -692,11 +692,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs notification/desktop"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs notification/desktop"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs notification/sound"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs notification/sound"
           }
         ]
       }
@@ -706,33 +706,33 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/setup-check",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/setup-check",
             "once": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/first-run-setup",
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/first-run-setup",
             "once": true
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/setup-maintenance"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/setup-maintenance"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/mem0-backup-setup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/mem0-backup-setup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/mem0-cleanup"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/mem0-cleanup"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/mem0-analytics-dashboard"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/mem0-analytics-dashboard"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PROJECT_DIR}/hooks/bin/run-hook.mjs setup/setup-repair"
+            "command": "node ${CLAUDE_PROJECT_DIR}/src/hooks/bin/run-hook.mjs setup/setup-repair"
           }
         ]
       }

@@ -86,12 +86,12 @@ test_typescript_hooks_exist() {
 test_typescript_runner_exists() {
     test_start "TypeScript hook runner exists"
 
-    local runner_file="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+    local runner_file="$PROJECT_ROOT/src/src/hooks/bin/run-hook.mjs"
 
     if [[ -f "$runner_file" ]]; then
         test_pass
     else
-        test_fail "hooks/bin/run-hook.mjs not found"
+        test_fail "src/hooks/bin/run-hook.mjs not found"
     fi
 }
 

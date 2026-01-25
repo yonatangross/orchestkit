@@ -168,7 +168,7 @@ test_posttool_bundle_has_content() {
 }
 
 test_run_hook_runner_exists() {
-    assert_file_exists "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/src/hooks/bin/run-hook.mjs"
 }
 
 # ============================================================================

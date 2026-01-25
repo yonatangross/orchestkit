@@ -8,7 +8,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-HOOK_RUNNER="${PROJECT_ROOT}/hooks/bin/run-hook.mjs"
+HOOK_RUNNER="${PROJECT_ROOT}/src/hooks/bin/run-hook.mjs"
 
 echo "🧪 Testing Multi-Instance Quality Gates"
 echo ""

@@ -11,7 +11,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 AGENTS_DIR="$REPO_ROOT/src/agents"
 SKILLS_DIR="$REPO_ROOT/skills"
 # Phase 4: Use TypeScript hook via run-hook.mjs
-HOOK_RUNNER="$REPO_ROOT/hooks/bin/run-hook.mjs"
+HOOK_RUNNER="$REPO_ROOT/src/hooks/bin/run-hook.mjs"
 HOOK_HANDLER="subagent-start/subagent-validator"
 
 # Function to run the TypeScript hook
@@ -80,7 +80,7 @@ EOF
   local output
 
   # Run hook with our test directory
-  # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
+  # CLAUDE_PLUGIN_ROOT points to real repo for src/hooks/bin/run-hook.mjs
   # CLAUDE_PROJECT_DIR points to test dir for agents/skills lookup
   output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input") || true
 
@@ -137,7 +137,7 @@ EOF
   local input='{"tool_input":{"subagent_type":"test-continue-agent","description":"Test"},"session_id":"test-123"}'
   local output
 
-  # CLAUDE_PLUGIN_ROOT points to real repo for hooks/bin/run-hook.mjs
+  # CLAUDE_PLUGIN_ROOT points to real repo for src/hooks/bin/run-hook.mjs
   output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input" 2>/dev/null) || true
 
   # Output may contain warning lines + JSON. Extract the last line which should be JSON.

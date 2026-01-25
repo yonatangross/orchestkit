@@ -180,7 +180,7 @@ log_section "Test 6: Compound command validator exists"
 test_compound_validator_exists() {
   # Check for TypeScript source (Phase 4 migration)
   local ts_validator="$PROJECT_ROOT/src/hooks/src/pretool/bash/compound-command-validator.ts"
-  local runner="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+  local runner="$PROJECT_ROOT/src/src/hooks/bin/run-hook.mjs"
 
   if [[ -f "$ts_validator" ]] && [[ -f "$runner" ]]; then
     log_pass "Compound command validator exists (TypeScript)"

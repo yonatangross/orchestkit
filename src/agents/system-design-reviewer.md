@@ -21,7 +21,7 @@ skills:
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/block-writes"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
 ---
 # System Design Reviewer Agent
 

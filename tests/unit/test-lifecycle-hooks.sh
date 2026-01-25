@@ -240,7 +240,7 @@ test_lifecycle_bundle_exports_handlers() {
 }
 
 test_run_hook_runner_exists() {
-    assert_file_exists "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/src/hooks/bin/run-hook.mjs"
 }
 
 # ============================================================================

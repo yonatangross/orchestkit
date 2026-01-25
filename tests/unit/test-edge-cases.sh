@@ -105,7 +105,7 @@ test_typescript_entry_points() {
 test_hook_runner() {
     log_section "Test: Hook Runner"
 
-    local runner="${PROJECT_ROOT}/hooks/bin/run-hook.mjs"
+    local runner="${PROJECT_ROOT}/src/hooks/bin/run-hook.mjs"
 
     if [[ -f "$runner" ]]; then
         log_pass "run-hook.mjs exists"
