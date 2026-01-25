@@ -32,9 +32,10 @@ fi
 # ===== Version Check =====
 echo -n "  Checking version bump... "
 
-# Get versions
-PR_VERSION=$(jq -r '.version' .claude-plugin/plugin.json 2>/dev/null || echo "")
-MAIN_VERSION=$(git show origin/main:.claude-plugin/plugin.json 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
+# Get versions (plugin.json moved to plugins/ork/ in marketplace restructure)
+PLUGIN_JSON="plugins/ork/.claude-plugin/plugin.json"
+PR_VERSION=$(jq -r '.version' "$PLUGIN_JSON" 2>/dev/null || echo "")
+MAIN_VERSION=$(git show "origin/main:$PLUGIN_JSON" 2>/dev/null | jq -r '.version' 2>/dev/null || echo "")
 
 if [[ -z "$PR_VERSION" ]]; then
   echo "FAILED (cannot read version)"
@@ -91,7 +92,7 @@ echo "OK"
 # ===== Version Sync Check =====
 echo -n "  Checking version sync... "
 
-PLUGIN_V=$(jq -r '.version' .claude-plugin/plugin.json 2>/dev/null)
+PLUGIN_V=$(jq -r '.version' plugins/ork/.claude-plugin/plugin.json 2>/dev/null)
 MARKET_V=$(jq -r '.version' .claude-plugin/marketplace.json 2>/dev/null)
 PYPROJ_V=$(grep -E '^version\s*=' pyproject.toml 2>/dev/null | sed -E 's/.*"([^"]*)".*/\1/')
 

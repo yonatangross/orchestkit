@@ -61,27 +61,38 @@ fi
 echo ""
 
 # =============================================================================
-# Test 2: .claude-plugin/plugin.json exists (required manifest)
+# Test 2: Plugin manifest exists (marketplace architecture)
 # =============================================================================
 echo "--- Test 2: Plugin manifest ---"
 
-if [[ -f "$PLUGIN_ROOT/.claude-plugin/plugin.json" ]]; then
-  pass ".claude-plugin/plugin.json exists"
+# New marketplace architecture: plugin.json is at plugins/ork/.claude-plugin/plugin.json
+# Root .claude-plugin/ only contains marketplace.json
+PLUGIN_JSON="$PLUGIN_ROOT/plugins/ork/.claude-plugin/plugin.json"
+
+if [[ -f "$PLUGIN_JSON" ]]; then
+  pass "plugins/ork/.claude-plugin/plugin.json exists"
 
   # Validate JSON structure
-  if jq -e '.name' "$PLUGIN_ROOT/.claude-plugin/plugin.json" > /dev/null 2>&1; then
+  if jq -e '.name' "$PLUGIN_JSON" > /dev/null 2>&1; then
     pass "plugin.json has 'name' field"
   else
     fail "plugin.json missing 'name' field"
   fi
 
-  if jq -e '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" > /dev/null 2>&1; then
+  if jq -e '.version' "$PLUGIN_JSON" > /dev/null 2>&1; then
     pass "plugin.json has 'version' field"
   else
     fail "plugin.json missing 'version' field"
   fi
 else
-  fail ".claude-plugin/plugin.json missing (required for plugin system)"
+  fail "plugins/ork/.claude-plugin/plugin.json missing (required for plugin system)"
+fi
+
+# Verify marketplace.json exists at root
+if [[ -f "$PLUGIN_ROOT/.claude-plugin/marketplace.json" ]]; then
+  pass ".claude-plugin/marketplace.json exists"
+else
+  fail ".claude-plugin/marketplace.json missing"
 fi
 
 echo ""
@@ -218,7 +229,7 @@ echo ""
 # =============================================================================
 echo "--- Test 7: Version validation ---"
 
-PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" 2>/dev/null || echo "")
+PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/plugins/ork/.claude-plugin/plugin.json" 2>/dev/null || echo "")
 
 if [[ -n "$PLUGIN_VERSION" && "$PLUGIN_VERSION" != "null" ]]; then
   # Validate semver format (basic check)
