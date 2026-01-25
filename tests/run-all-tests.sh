@@ -251,6 +251,10 @@ if [[ "$RUN_SKILLS" == "true" ]]; then
     # Plugin structure validation (CC 2.1.16 compliance)
     run_test "Plugin JSON Schema" "$SCRIPT_DIR/plugins/test-plugin-json-schema.sh" || true
     run_test "No Commands Directory" "$SCRIPT_DIR/plugins/test-no-commands-directory.sh" || true
+
+    # Plugin structure compliance tests (hooks location)
+    run_test "Plugin Structure Compliance" "$SCRIPT_DIR/plugins/structure/test-plugin-structure-compliance.sh" || true
+    run_test "Hooks Location" "$SCRIPT_DIR/plugins/structure/test-hooks-location.sh" || true
 fi
 # ============================================================
 
