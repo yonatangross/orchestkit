@@ -500,6 +500,45 @@ export const ThumbnailTemplate: React.FC<{
 };
 ```
 
+## CRITICAL: First Frame Animation Gotchas
+
+### Spring Animation - Never Start at Zero
+
+**PROBLEM**: Raw `spring()` starts at 0, making frame 0 invisible.
+
+```typescript
+// ❌ BAD - First frame is invisible (scale=0)
+const scale = spring({ frame, fps, config: { damping: 15, stiffness: 150 } });
+
+// ✅ GOOD - Always visible (0.9 → 1.0)
+const scale = 0.9 + 0.1 * spring({ frame, fps, config: { damping: 15, stiffness: 150 } });
+
+// ✅ GOOD - Explicit minimum scale
+const scale = Math.max(0.85, spring({ frame, fps, config: { damping: 15, stiffness: 150 } }));
+```
+
+### Opacity at Frame 0
+
+```typescript
+// ❌ BAD - Content invisible at frame 0
+const opacity = interpolate(frame, [0, 15], [0, 1], { extrapolateRight: "clamp" });
+
+// ✅ GOOD - First line visible immediately
+const opacity = line.frame === 0 ? 1 : interpolate(frame - line.frame, [0, 8], [0, 1], { extrapolateRight: "clamp" });
+```
+
+### Checklist for Frame 0
+
+```
+FIRST FRAME VISIBILITY CHECKLIST
+================================
+[ ] No spring animations starting at raw 0
+[ ] No opacity starting at 0 for initial content
+[ ] Background/container visible immediately
+[ ] Key message readable at frame 0
+[ ] Test with: npx remotion still CompositionName out.png --frame=0
+```
+
 ## OrchestKit-Specific Thumbnail Patterns
 
 ### Developer Tool Thumbnails
