@@ -1047,7 +1047,7 @@ ORCHESTKIT_SKIP_SETUP=1 claude  # Skip all setup hooks
 
 ## Version Information
 
-- **Current Version**: 5.2.0 (as of 2026-01-23)
+- **Current Version**: 5.2.2 (as of 2026-01-23)
 - **Claude Code Requirement**: >= 2.1.16
 - **Skills Structure**: CC 2.1.7 native flat (skills/<skill>/)
 - **Agent Format**: CC 2.1.6 native (skills array in frontmatter)
@@ -1108,4 +1108,4 @@ tail -f hooks/logs/*.log
 
 ---
 
-**Last Updated**: 2026-01-24 (v5.1.5)
+**Last Updated**: 2026-01-25 (v5.1.5)

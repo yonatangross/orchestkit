@@ -87,42 +87,42 @@ fi
 echo ""
 
 # =============================================================================
-# Test 3: Hook paths are valid in plugin.json (plugin system architecture)
+# Test 3: Hook paths are valid in hooks/hooks.json (Claude Code plugin standard)
 # =============================================================================
 echo "--- Test 3: Hook paths validation ---"
 
-# Hooks are defined in .claude-plugin/plugin.json with ${CLAUDE_PLUGIN_ROOT} paths
+# Claude Code expects hooks in hooks/hooks.json (not inline in plugin.json)
 # This is the correct architecture for Claude Code plugins
-PLUGIN_CONFIG="$PLUGIN_ROOT/.claude-plugin/plugin.json"
-if [[ -f "$PLUGIN_CONFIG" ]]; then
+HOOKS_CONFIG="$PLUGIN_ROOT/hooks/hooks.json"
+if [[ -f "$HOOKS_CONFIG" ]]; then
   # Check that hooks configuration exists
-  if jq -e '.hooks' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
-    pass "plugin.json has hooks configuration"
+  if jq -e '.hooks' "$HOOKS_CONFIG" > /dev/null 2>&1; then
+    pass "hooks/hooks.json has hooks configuration"
   else
-    fail "plugin.json missing hooks configuration"
+    fail "hooks/hooks.json missing hooks configuration"
   fi
 
   # Check hooks use CLAUDE_PLUGIN_ROOT (required for installed plugins)
-  if grep -q 'CLAUDE_PLUGIN_ROOT' "$PLUGIN_CONFIG"; then
-    pass "plugin.json uses CLAUDE_PLUGIN_ROOT paths"
+  if grep -q 'CLAUDE_PLUGIN_ROOT' "$HOOKS_CONFIG"; then
+    pass "hooks/hooks.json uses CLAUDE_PLUGIN_ROOT paths"
   else
-    fail "plugin.json hook paths should use CLAUDE_PLUGIN_ROOT"
+    fail "hooks/hooks.json hook paths should use CLAUDE_PLUGIN_ROOT"
   fi
 
   # Verify at least PreToolUse and PostToolUse hooks exist
-  if jq -e '.hooks.PreToolUse' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
-    pass "plugin.json has PreToolUse hooks"
+  if jq -e '.hooks.PreToolUse' "$HOOKS_CONFIG" > /dev/null 2>&1; then
+    pass "hooks/hooks.json has PreToolUse hooks"
   else
-    fail "plugin.json missing PreToolUse hooks"
+    fail "hooks/hooks.json missing PreToolUse hooks"
   fi
 
-  if jq -e '.hooks.PostToolUse' "$PLUGIN_CONFIG" > /dev/null 2>&1; then
-    pass "plugin.json has PostToolUse hooks"
+  if jq -e '.hooks.PostToolUse' "$HOOKS_CONFIG" > /dev/null 2>&1; then
+    pass "hooks/hooks.json has PostToolUse hooks"
   else
-    fail "plugin.json missing PostToolUse hooks"
+    fail "hooks/hooks.json missing PostToolUse hooks"
   fi
 else
-  fail "plugin.json not found"
+  fail "hooks/hooks.json not found (Claude Code expects hooks here, not in plugin.json)"
 fi
 echo ""
 
