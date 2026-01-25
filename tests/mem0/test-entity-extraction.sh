@@ -10,7 +10,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 # Hook under test
-HOOK="$PROJECT_ROOT/hooks/skill/decision-entity-extractor.sh"
+HOOK="$PROJECT_ROOT/src/hooks/skill/decision-entity-extractor.sh"
 
 # Test counters
 TESTS_RUN=0

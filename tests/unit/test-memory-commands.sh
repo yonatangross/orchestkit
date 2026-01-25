@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 # CC 2.1.3: Commands merged with skills
-SKILLS_DIR="$PROJECT_ROOT/skills"
+SKILLS_DIR="$PROJECT_ROOT/src/skills"
 
 # ============================================================================
 # /remember COMMAND TESTS

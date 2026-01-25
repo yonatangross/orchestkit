@@ -66,7 +66,7 @@ while IFS= read -r skill_file; do
         ((MISSING_USE_WHEN++)) || true
     fi
 
-done < <(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null)
+done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)
 
 echo
 echo "=========================================="

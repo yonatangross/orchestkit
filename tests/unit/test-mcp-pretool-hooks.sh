@@ -12,7 +12,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-MCP_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/mcp"
+MCP_HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/mcp"
 
 # ============================================================================
 # CONTEXT7 TRACKER TESTS
@@ -46,7 +46,7 @@ test_context7_ignores_non_context7_tools() {
 
 describe "Bash Hooks: agent-browser Safety"
 
-BASH_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/bash"
+BASH_HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/bash"
 
 test_agent_browser_blocks_file_protocol() {
     local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"

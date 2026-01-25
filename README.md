@@ -679,13 +679,77 @@ Requires **Claude Code ≥2.1.16** for full features:
 
 ## Development
 
+### Development Workflow
+
+OrchestKit uses a **build system** to assemble modular plugins from source files.
+
+#### Project Structure
+
+```
+src/
+├── skills/      # 163 skills (single source of truth - edit these)
+├── agents/      # 34 agents (single source of truth - edit these)
+└── hooks/       # 144 hooks (single source of truth - edit these)
+
+manifests/       # Plugin definitions (34 manifests - edit these)
+├── ork.json
+├── ork-rag.json
+└── ...
+
+scripts/
+└── build-plugins.sh  # Assembles plugins from src/ + manifests/
+
+plugins/         # Generated (DO NOT EDIT - created by build script)
+├── ork/
+├── ork-rag/
+└── ...
+
+.claude-plugin/
+└── marketplace.json  # Generated marketplace manifest
+```
+
+**Important:** Always edit files in `src/` and `manifests/`, not `plugins/`. The `plugins/` directory is regenerated on every build.
+
+#### Building Plugins
+
+```bash
+# Build all plugins (two methods)
+npm run build
+# OR
+bash scripts/build-plugins.sh
+
+# Test local installation
+/plugin marketplace add file://$(pwd)
+/plugin install ork-rag
+
+# Verify
+/ork:doctor
+```
+
+#### Development Cycle
+
+1. Edit source files in `src/skills/`, `src/agents/`, or `manifests/`
+2. Run `npm run build` to regenerate `plugins/`
+3. Test changes locally
+4. Commit changes (only `src/` and `manifests/` are tracked in git)
+
 ### Running Tests
 
 ```bash
-./tests/run-all-tests.sh              # All 88 tests
-./tests/security/run-security-tests.sh # Security (must pass)
-./tests/skills/test-skill-structure.sh # Validate skills
-./tests/agents/test-agent-frontmatter.sh # Validate agents
+# Run all tests
+npm test
+# OR
+./tests/run-all-tests.sh
+
+# Individual test suites
+npm run test:security    # Security tests (must pass)
+npm run test:skills      # Validate skill structure
+npm run test:agents      # Validate agent frontmatter
+
+# Or use bash directly
+./tests/security/run-security-tests.sh
+./tests/skills/test-skill-structure.sh
+./tests/agents/test-agent-frontmatter.sh
 ```
 
 ### Contributing

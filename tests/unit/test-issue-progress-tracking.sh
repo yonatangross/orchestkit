@@ -99,13 +99,13 @@ echo "=========================================="
 
 test_progress_commenter_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "issue-progress-commenter.sh has valid bash syntax"
 }
 
 test_progress_commenter_executable() {
     TESTS_RUN=$((TESTS_RUN + 1))
-    if [[ -x "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" ]]; then
+    if [[ -x "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" ]]; then
         echo -e "${GREEN}✓${NC} issue-progress-commenter.sh is executable"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
@@ -116,28 +116,28 @@ test_progress_commenter_executable() {
 
 test_progress_commenter_empty_input() {
     local output
-    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
+    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Progress commenter handles empty input gracefully"
 }
 
 test_progress_commenter_non_commit() {
     local input='{"tool_input": {"command": "ls -la"}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Progress commenter ignores non-commit commands"
 }
 
 test_progress_commenter_failed_commit() {
     local input='{"tool_input": {"command": "git commit -m \"test\""}, "tool_result": {"exit_code": "1"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Progress commenter ignores failed commits"
 }
 
 test_progress_commenter_json_output() {
     local input='{"tool_input": {"command": "git commit -m \"feat(#123): Add feature\""}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" 2>/dev/null)
     # Should always return valid JSON with continue: true
     assert_contains "$output" '"continue": true' "Progress commenter returns valid JSON"
     assert_contains "$output" '"suppressOutput": true' "Progress commenter suppresses output"
@@ -154,13 +154,13 @@ echo "=========================================="
 
 test_subtask_updater_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "issue-subtask-updater.sh has valid bash syntax"
 }
 
 test_subtask_updater_executable() {
     TESTS_RUN=$((TESTS_RUN + 1))
-    if [[ -x "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" ]]; then
+    if [[ -x "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" ]]; then
         echo -e "${GREEN}✓${NC} issue-subtask-updater.sh is executable"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
@@ -171,21 +171,21 @@ test_subtask_updater_executable() {
 
 test_subtask_updater_empty_input() {
     local output
-    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
+    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Subtask updater handles empty input gracefully"
 }
 
 test_subtask_updater_non_commit() {
     local input='{"tool_input": {"command": "npm test"}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Subtask updater ignores non-commit commands"
 }
 
 test_subtask_updater_json_output() {
     local input='{"tool_input": {"command": "git commit -m \"feat(#123): Add tests\""}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-123" "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Subtask updater returns valid JSON"
     assert_contains "$output" '"suppressOutput": true' "Subtask updater suppresses output"
 }
@@ -201,13 +201,13 @@ echo "=========================================="
 
 test_work_summary_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "issue-work-summary.sh has valid bash syntax"
 }
 
 test_work_summary_executable() {
     TESTS_RUN=$((TESTS_RUN + 1))
-    if [[ -x "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" ]]; then
+    if [[ -x "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" ]]; then
         echo -e "${GREEN}✓${NC} issue-work-summary.sh is executable"
         TESTS_PASSED=$((TESTS_PASSED + 1))
     else
@@ -218,13 +218,13 @@ test_work_summary_executable() {
 
 test_work_summary_no_progress_file() {
     local output
-    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="nonexistent-session" "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" 2>/dev/null)
+    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="nonexistent-session" "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Work summary handles missing progress file"
 }
 
 test_work_summary_json_output() {
     local output
-    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-session" "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" 2>/dev/null)
+    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" CLAUDE_SESSION_ID="test-session" "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Work summary returns valid JSON"
     assert_contains "$output" '"suppressOutput": true' "Work summary suppresses output"
 }
@@ -239,12 +239,12 @@ echo "Skill File Tests"
 echo "=========================================="
 
 test_skill_file_exists() {
-    assert_file_exists "$PROJECT_ROOT/skills/issue-progress-tracking/SKILL.md" "issue-progress-tracking SKILL.md exists"
+    assert_file_exists "$PROJECT_ROOT/src/skills/issue-progress-tracking/SKILL.md" "issue-progress-tracking SKILL.md exists"
 }
 
 test_skill_has_frontmatter() {
     local content
-    content=$(head -20 "$PROJECT_ROOT/skills/issue-progress-tracking/SKILL.md")
+    content=$(head -20 "$PROJECT_ROOT/src/skills/issue-progress-tracking/SKILL.md")
     assert_contains "$content" "name: issue-progress-tracking" "Skill has name in frontmatter"
     assert_contains "$content" "description:" "Skill has description in frontmatter"
     assert_contains "$content" "tags:" "Skill has tags in frontmatter"
@@ -262,20 +262,20 @@ echo "=========================================="
 test_session_id_sanitization() {
     # Verify hooks sanitize session ID to prevent path traversal
     local content
-    content=$(cat "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh")
+    content=$(cat "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh")
     assert_contains "$content" "SAFE_SESSION_ID" "issue-progress-commenter.sh sanitizes session ID"
 
-    content=$(cat "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh")
+    content=$(cat "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh")
     assert_contains "$content" "SAFE_SESSION_ID" "issue-subtask-updater.sh sanitizes session ID"
 
-    content=$(cat "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh")
+    content=$(cat "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh")
     assert_contains "$content" "SAFE_SESSION_ID" "issue-work-summary.sh sanitizes session ID"
 }
 
 test_path_traversal_blocked() {
     # Verify path traversal characters are stripped
     local content
-    content=$(cat "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh")
+    content=$(cat "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh")
     assert_contains "$content" '[^a-zA-Z0-9_-]' "Session ID sanitization strips special characters"
 }
 
@@ -292,9 +292,9 @@ test_no_declare_A() {
     local count
     set +e
     count=$(grep -l "declare -A" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" \
-        "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" \
+        "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" \
         2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"
@@ -305,9 +305,9 @@ test_no_declare_g() {
     local count
     set +e
     count=$(grep -l "declare -g" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" \
-        "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" \
+        "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" \
         2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"
@@ -318,9 +318,9 @@ test_no_readarray() {
     local count
     set +e
     count=$(grep -lE "readarray|mapfile" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-progress-commenter.sh" \
-        "$PROJECT_ROOT/hooks/posttool/bash/issue-subtask-updater.sh" \
-        "$PROJECT_ROOT/hooks/stop/issue-work-summary.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-progress-commenter.sh" \
+        "$PROJECT_ROOT/src/hooks/posttool/bash/issue-subtask-updater.sh" \
+        "$PROJECT_ROOT/src/hooks/stop/issue-work-summary.sh" \
         2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"

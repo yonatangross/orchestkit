@@ -10,10 +10,10 @@ Architecture (v2.1 Graph-First):
 - OPTIONAL: mcp__mem0__* (cloud semantic search) - requires MEM0_API_KEY
 
 Called by:
-- hooks/posttool/realtime-sync.sh (for immediate/batched syncs)
-- hooks/posttool/memory-bridge.sh (for bidirectional sync)
-- skills/recall/SKILL.md (for unified search)
-- skills/remember/SKILL.md (for graph-first write)
+- src/hooks/posttool/realtime-sync.sh (for immediate/batched syncs)
+- src/hooks/posttool/memory-bridge.sh (for bidirectional sync)
+- src/skills/recall/SKILL.md (for unified search)
+- src/skills/remember/SKILL.md (for graph-first write)
 
 Usage:
     python3 memory-fabric-agent.py search "query" [project_id] [--limit N] [--mem0]

@@ -13,9 +13,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 # Phase 4: MCP hooks migrated to TypeScript
-MCP_TS_DIR="$PROJECT_ROOT/hooks/src/pretool/mcp"
-TS_LIB_DIR="$PROJECT_ROOT/hooks/src/lib"
-HOOK_RUNNER="$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+MCP_TS_DIR="$PROJECT_ROOT/src/hooks/src/pretool/mcp"
+TS_LIB_DIR="$PROJECT_ROOT/src/hooks/src/lib"
+HOOK_RUNNER="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 
 # Run TypeScript hook via run-hook.mjs
 run_hook() {
@@ -105,7 +105,7 @@ test_context7_returns_valid_json() {
 
 test_agent_browser_returns_valid_json() {
     # Phase 4: Use TypeScript hook via run-hook.mjs
-    [[ ! -f "$PROJECT_ROOT/hooks/src/pretool/bash/agent-browser-safety.ts" ]] && skip "agent-browser-safety.ts not found"
+    [[ ! -f "$PROJECT_ROOT/src/hooks/src/pretool/bash/agent-browser-safety.ts" ]] && skip "agent-browser-safety.ts not found"
 
     local input='{"tool_input":{"command":"agent-browser open https://example.com"},"session_id":"test-123"}'
     local result=$(run_hook "pretool/bash/agent-browser-safety" "$input")
@@ -157,7 +157,7 @@ test_hooks_dont_interfere_with_each_other() {
     fi
 
     # agent-browser hook should pass through context7 tool
-    if [[ -f "$PROJECT_ROOT/hooks/src/pretool/bash/agent-browser-safety.ts" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/hooks/src/pretool/bash/agent-browser-safety.ts" ]]; then
         local ab_result=$(run_hook "pretool/bash/agent-browser-safety" "$agent_browser_input")
         local json_line=$(echo "$ab_result" | grep -E '^\{.*\}$' | tail -1)
         # Check for continue:true with jq

@@ -18,7 +18,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
 # Scripts directory
-SCRIPTS_DIR="$PROJECT_ROOT/skills/mem0-memory/scripts"
+SCRIPTS_DIR="$PROJECT_ROOT/src/skills/mem0-memory/scripts"
 
 # Test counters
 TESTS_RUN=0

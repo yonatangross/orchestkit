@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-AGENTS_DIR="$REPO_ROOT/agents"
+AGENTS_DIR="$REPO_ROOT/src/agents"
 
 # Agents that require deeper reasoning - should NOT use haiku
 PROHIBITED_HAIKU_AGENTS=(

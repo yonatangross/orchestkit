@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 
 # ============================================================================
 # COMMIT MESSAGE VALIDATOR TESTS
@@ -384,7 +384,7 @@ test_changelog_generator_provides_context_on_release() {
 }
 
 test_changelog_generator_release_engineer_integration() {
-    local agent="$PROJECT_ROOT/agents/release-engineer.md"
+    local agent="$PROJECT_ROOT/src/agents/release-engineer.md"
     assert_file_exists "$agent"
 
     # Verify changelog-generator is in release-engineer hooks
@@ -398,7 +398,7 @@ test_changelog_generator_release_engineer_integration() {
 describe "Git Skills Structure"
 
 test_git_workflow_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/git-workflow"
+    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
     assert_file_exists "$skill_dir/SKILL.md"
 
     # Check for references (consolidated from atomic-commits, branch-strategy)
@@ -409,7 +409,7 @@ test_git_workflow_skill_exists() {
 }
 
 test_github_operations_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/github-operations"
+    local skill_dir="$PROJECT_ROOT/src/skills/github-operations"
     assert_file_exists "$skill_dir/SKILL.md"
 
     # Check for references (consolidated from github-cli, milestone-management)
@@ -417,17 +417,17 @@ test_github_operations_skill_exists() {
 }
 
 test_stacked_prs_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/stacked-prs"
+    local skill_dir="$PROJECT_ROOT/src/skills/stacked-prs"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
 test_release_management_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/release-management"
+    local skill_dir="$PROJECT_ROOT/src/skills/release-management"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
 test_git_recovery_command_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/skills/git-recovery-command"
+    local skill_dir="$PROJECT_ROOT/src/skills/git-recovery-command"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
@@ -438,7 +438,7 @@ test_git_recovery_command_skill_exists() {
 describe "GitHub Operations Skill Enrichment"
 
 test_github_operations_references_exist() {
-    local ref_dir="$PROJECT_ROOT/skills/github-operations/references"
+    local ref_dir="$PROJECT_ROOT/src/skills/github-operations/references"
 
     # Verify references directory exists
     [[ -d "$ref_dir" ]] || fail "Missing references directory"
@@ -450,14 +450,14 @@ test_github_operations_references_exist() {
 }
 
 test_github_operations_examples_exist() {
-    local examples_dir="$PROJECT_ROOT/skills/github-operations/examples"
+    local examples_dir="$PROJECT_ROOT/src/skills/github-operations/examples"
 
     # Check for examples (consolidated from github-cli)
     [[ -d "$examples_dir" ]] && assert_file_exists "$examples_dir/automation-scripts.md"
 }
 
 test_github_operations_has_graphql_reference() {
-    local file="$PROJECT_ROOT/skills/github-operations/references/graphql-api.md"
+    local file="$PROJECT_ROOT/src/skills/github-operations/references/graphql-api.md"
     assert_file_exists "$file"
 }
 

@@ -1,0 +1,17 @@
+{
+  "sessionId": "old-session-7",
+  "activeAgents": [
+    {
+      "agent": "test-agent",
+      "confidence": 80,
+      "dispatchedAt": "2026-01-23T16:43:03.069Z",
+      "status": "pending",
+      "retryCount": 0,
+      "maxRetries": 3
+    }
+  ],
+  "injectedSkills": [],
+  "promptHistory": [],
+  "maxHistorySize": 10,
+  "updatedAt": "2026-01-23T16:43:03.069Z"
+}

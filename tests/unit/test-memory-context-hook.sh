@@ -14,9 +14,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_MEMORY_CONTEXT="$PROJECT_ROOT/hooks/src/prompt/memory-context.ts"
+TS_MEMORY_CONTEXT="$PROJECT_ROOT/src/hooks/src/prompt/memory-context.ts"
 DECISION_SYNC="$PROJECT_ROOT/.claude/scripts/decision-sync.sh"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # MEMORY CONTEXT HOOK TESTS (TypeScript)
@@ -77,7 +77,7 @@ test_memory_context_has_hook_result() {
         return 0
     fi
     # Check types file
-    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "memory-context.ts should use HookResult type"
@@ -88,7 +88,7 @@ test_memory_context_has_suppress_output() {
         return 0
     fi
     # May be in types
-    if grep -q "suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -q "suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "memory-context.ts should have suppressOutput for CC 2.1.7 compliance"
@@ -189,7 +189,7 @@ test_prompt_bundle_has_content() {
 }
 
 test_memory_hook_in_plugin_json() {
-    local hooks_json="$PROJECT_ROOT/hooks/hooks.json"
+    local hooks_json="$PROJECT_ROOT/src/hooks/hooks.json"
     # TypeScript hooks are registered in hooks/hooks.json (CC 2.1.7+)
     if [[ -f "$hooks_json" ]] && grep -qE "memory-context|UserPromptSubmit" "$hooks_json" 2>/dev/null; then
         return 0

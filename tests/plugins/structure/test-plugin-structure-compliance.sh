@@ -50,10 +50,10 @@ echo ""
 # Test 1: hooks/hooks.json exists
 # -----------------------------------------------------------------------------
 echo "Test 1: hooks/hooks.json exists"
-if [[ -f "$PROJECT_ROOT/hooks/hooks.json" ]]; then
-    pass "hooks/hooks.json exists"
+if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
+    pass "src/hooks/hooks.json exists"
 else
-    fail "hooks/hooks.json is MISSING - Claude Code requires hooks in hooks/hooks.json"
+    fail "src/hooks/hooks.json is MISSING - Claude Code requires hooks in hooks/hooks.json"
 fi
 
 # -----------------------------------------------------------------------------
@@ -61,11 +61,11 @@ fi
 # -----------------------------------------------------------------------------
 echo ""
 echo "Test 2: hooks/hooks.json is valid JSON"
-if [[ -f "$PROJECT_ROOT/hooks/hooks.json" ]]; then
-    if jq empty "$PROJECT_ROOT/hooks/hooks.json" 2>/dev/null; then
-        pass "hooks/hooks.json is valid JSON"
+if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
+    if jq empty "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null; then
+        pass "src/hooks/hooks.json is valid JSON"
     else
-        fail "hooks/hooks.json is NOT valid JSON"
+        fail "src/hooks/hooks.json is NOT valid JSON"
     fi
 else
     fail "Cannot validate - file missing"
@@ -76,20 +76,20 @@ fi
 # -----------------------------------------------------------------------------
 echo ""
 echo "Test 3: hooks/hooks.json has required structure"
-if [[ -f "$PROJECT_ROOT/hooks/hooks.json" ]]; then
+if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
     # Check for "hooks" wrapper object
-    if jq -e '.hooks' "$PROJECT_ROOT/hooks/hooks.json" >/dev/null 2>&1; then
-        pass "hooks/hooks.json has 'hooks' wrapper object"
+    if jq -e '.hooks' "$PROJECT_ROOT/src/hooks/hooks.json" >/dev/null 2>&1; then
+        pass "src/hooks/hooks.json has 'hooks' wrapper object"
     else
-        fail "hooks/hooks.json missing 'hooks' wrapper - Claude Code requires {\"hooks\": {...}}"
+        fail "src/hooks/hooks.json missing 'hooks' wrapper - Claude Code requires {\"hooks\": {...}}"
     fi
 
     # Check for required hook types
     for hook_type in PreToolUse PostToolUse SessionStart Stop UserPromptSubmit; do
-        if jq -e ".hooks.$hook_type" "$PROJECT_ROOT/hooks/hooks.json" >/dev/null 2>&1; then
-            pass "hooks/hooks.json has $hook_type hooks"
+        if jq -e ".hooks.$hook_type" "$PROJECT_ROOT/src/hooks/hooks.json" >/dev/null 2>&1; then
+            pass "src/hooks/hooks.json has $hook_type hooks"
         else
-            fail "hooks/hooks.json missing $hook_type hooks"
+            fail "src/hooks/hooks.json missing $hook_type hooks"
         fi
     done
 else
@@ -167,9 +167,9 @@ fi
 # -----------------------------------------------------------------------------
 echo ""
 echo "Test 7: Hook count validation"
-if [[ -f "$PROJECT_ROOT/hooks/hooks.json" ]]; then
+if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
     # Count total hook commands
-    HOOK_COUNT=$(jq '[.hooks[][] | .hooks[]? | .command] | length' "$PROJECT_ROOT/hooks/hooks.json" 2>/dev/null || echo "0")
+    HOOK_COUNT=$(jq '[.hooks[][] | .hooks[]? | .command] | length' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
 
     # Expected: ~144 hooks (adjust as needed)
     EXPECTED_MIN=100

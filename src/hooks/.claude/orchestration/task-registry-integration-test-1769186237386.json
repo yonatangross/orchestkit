@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186237386",
+  "tasks": [
+    {
+      "taskId": "task-1769186237435",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:37:17.435Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186237435",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:37:17.435Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186237436-by7mtv-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:17.436Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186237436-by7mtv",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186237436-by7mtv-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:17.437Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186237436-by7mtv",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186237436-by7mtv-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:17.437Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186237436-by7mtv",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186237436-by7mtv-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:17.437Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186237436-by7mtv",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186237436-by7mtv",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:37:17.436Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186237436-by7mtv-0",
+        "1": "task-pipeline-1769186237436-by7mtv-1",
+        "2": "task-pipeline-1769186237436-by7mtv-2",
+        "3": "task-pipeline-1769186237436-by7mtv-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186237479-o89hex",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:37:17.479Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186237479-o89hex-0",
+        "1": "task-pipeline-1769186237479-o89hex-1",
+        "2": "task-pipeline-1769186237479-o89hex-2",
+        "3": "task-pipeline-1769186237479-o89hex-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:37:17.479Z"
+}

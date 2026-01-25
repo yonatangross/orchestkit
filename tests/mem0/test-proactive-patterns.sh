@@ -210,7 +210,7 @@ echo "=========================================="
 echo "Testing antipattern-warning.sh hook"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh"
+HOOK="$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh"
 
 # Test hook exists and is executable
 TESTS_RUN=$((TESTS_RUN + 1))

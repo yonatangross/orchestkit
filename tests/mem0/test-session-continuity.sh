@@ -318,7 +318,7 @@ echo "=========================================="
 echo "Testing mem0-pre-compaction-sync.sh hook"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/hooks/stop/mem0-pre-compaction-sync.sh"
+HOOK="$PROJECT_ROOT/src/hooks/stop/mem0-pre-compaction-sync.sh"
 
 # Test hook exists and is executable
 TESTS_RUN=$((TESTS_RUN + 1))
@@ -379,7 +379,7 @@ echo "=========================================="
 echo "Testing mem0-context-retrieval.sh hook"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh"
+HOOK="$PROJECT_ROOT/src/hooks/lifecycle/mem0-context-retrieval.sh"
 
 # Test hook exists and is executable
 TESTS_RUN=$((TESTS_RUN + 1))

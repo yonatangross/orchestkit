@@ -1,0 +1,15 @@
+{
+  "name": "ork-product",
+  "version": "5.2.4",
+  "description": "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence",
+  "skills": [],
+  "agents": [
+    "product-strategist",
+    "business-case-builder",
+    "prioritization-analyst",
+    "market-intelligence",
+    "requirements-translator",
+    "metrics-architect"
+  ],
+  "hooks": "none"
+}

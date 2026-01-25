@@ -62,7 +62,7 @@ test_skip() {
 test_memory_fabric_skill_exists() {
     test_start "memory-fabric skill SKILL.md exists"
 
-    if [[ -f "$PROJECT_ROOT/skills/memory-fabric/SKILL.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/skills/memory-fabric/SKILL.md" ]]; then
         test_pass
     else
         test_fail "skills/memory-fabric/SKILL.md not found"
@@ -72,7 +72,7 @@ test_memory_fabric_skill_exists() {
 test_memory_fabric_skill_frontmatter() {
     test_start "memory-fabric skill has valid frontmatter"
 
-    local skill_file="$PROJECT_ROOT/skills/memory-fabric/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/memory-fabric/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_skip "Skill file not found"
@@ -98,7 +98,7 @@ test_memory_fabric_skill_frontmatter() {
 test_memory_fabric_library_exists() {
     test_start "memory-fabric.sh library exists"
 
-    if [[ -f "$PROJECT_ROOT/hooks/_lib/memory-fabric.sh" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/hooks/_lib/memory-fabric.sh" ]]; then
         test_pass
     else
         test_fail "hooks/_lib/memory-fabric.sh not found"
@@ -108,7 +108,7 @@ test_memory_fabric_library_exists() {
 test_memory_fabric_library_functions() {
     test_start "memory-fabric.sh exports required functions"
 
-    local lib_file="$PROJECT_ROOT/hooks/_lib/memory-fabric.sh"
+    local lib_file="$PROJECT_ROOT/src/hooks/_lib/memory-fabric.sh"
 
     if [[ ! -f "$lib_file" ]]; then
         test_skip "Library file not found"
@@ -136,7 +136,7 @@ test_load_context_command_exists() {
     test_start "load-context command exists"
 
     # Check skill (new structure) or command (legacy)
-    if [[ -f "$PROJECT_ROOT/skills/load-context/SKILL.md" ]] || [[ -f "$PROJECT_ROOT/commands/load-context.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/skills/load-context/SKILL.md" ]] || [[ -f "$PROJECT_ROOT/commands/load-context.md" ]]; then
         test_pass
     else
         test_fail "load-context skill/command not found"
@@ -147,7 +147,7 @@ test_load_context_auto_invoke() {
     test_start "load-context has auto-invoke: session-start"
 
     # Check skill first (new structure), then fallback to command (legacy)
-    local skill_file="$PROJECT_ROOT/skills/load-context/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/load-context/SKILL.md"
     local cmd_file="$PROJECT_ROOT/commands/load-context.md"
 
     if [[ -f "$skill_file" ]]; then
@@ -171,7 +171,7 @@ test_load_context_user_invocable() {
     test_start "load-context is user-invocable"
 
     # Check skill first (new structure), then fallback to command (legacy)
-    local skill_file="$PROJECT_ROOT/skills/load-context/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/load-context/SKILL.md"
     local cmd_file="$PROJECT_ROOT/commands/load-context.md"
 
     if [[ -f "$skill_file" ]]; then
@@ -198,7 +198,7 @@ test_load_context_user_invocable() {
 test_memory_bridge_hook_exists() {
     test_start "memory-bridge hook exists"
 
-    if [[ -f "$PROJECT_ROOT/hooks/posttool/memory-bridge.sh" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/hooks/posttool/memory-bridge.sh" ]]; then
         test_pass
     else
         test_fail "hooks/posttool/memory-bridge.sh not found"
@@ -208,7 +208,7 @@ test_memory_bridge_hook_exists() {
 test_memory_bridge_outputs_valid_json() {
     test_start "memory-bridge outputs valid CC 2.1.7 JSON"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/memory-bridge.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/memory-bridge.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_skip "Hook file not found"
@@ -234,7 +234,7 @@ test_memory_bridge_outputs_valid_json() {
 test_realtime_sync_hook_exists() {
     test_start "realtime-sync hook exists"
 
-    if [[ -f "$PROJECT_ROOT/hooks/posttool/realtime-sync.sh" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/hooks/posttool/realtime-sync.sh" ]]; then
         test_pass
     else
         test_fail "hooks/posttool/realtime-sync.sh not found"
@@ -244,7 +244,7 @@ test_realtime_sync_hook_exists() {
 test_realtime_sync_priority_classification() {
     test_start "realtime-sync classifies priority correctly"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/realtime-sync.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/realtime-sync.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_skip "Hook file not found"
@@ -270,7 +270,7 @@ test_realtime_sync_priority_classification() {
 test_recall_skill_graph_first() {
     test_start "recall skill uses graph-first architecture"
 
-    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/recall/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "Skill file not found"
@@ -292,7 +292,7 @@ test_recall_skill_graph_first() {
 test_remember_skill_graph_first() {
     test_start "remember skill uses graph-first storage"
 
-    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/remember/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "Skill file not found"
@@ -345,7 +345,7 @@ test_memory_fabric_schema_valid_json() {
 test_agent_memory_inject_updated() {
     test_start "agent-memory-inject uses memory-fabric approach"
 
-    local hook_file="$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "Hook file not found"
@@ -367,7 +367,7 @@ test_agent_memory_inject_updated() {
 test_context_retrieval_graph_first() {
     test_start "mem0-context-retrieval uses graph-first architecture"
 
-    local hook_file="$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/lifecycle/mem0-context-retrieval.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "Hook file not found"

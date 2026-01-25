@@ -10,7 +10,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 TESTS_DIR="$PROJECT_ROOT/tests"
 
 # Colors

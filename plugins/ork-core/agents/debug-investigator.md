@@ -1,1 +1,0 @@
-../../../agents/debug-investigator.md

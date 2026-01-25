@@ -14,9 +14,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_SKILL_TRACKER="$PROJECT_ROOT/hooks/src/pretool/skill/skill-tracker.ts"
+TS_SKILL_TRACKER="$PROJECT_ROOT/src/hooks/src/pretool/skill/skill-tracker.ts"
 SKILL_ANALYZER="$PROJECT_ROOT/.claude/scripts/skill-analyzer.sh"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # SKILL TRACKER TESTS (TypeScript)
@@ -77,7 +77,7 @@ test_tracker_has_hook_result() {
         return 0
     fi
     # Check types file
-    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "skill-tracker.ts should use HookResult type"

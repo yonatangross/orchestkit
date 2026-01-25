@@ -74,7 +74,7 @@ echo "▸ TypeScript Hook Infrastructure"
 test_typescript_hooks_exist() {
     test_start "TypeScript hooks bundle exists"
 
-    local bundle_file="$PROJECT_ROOT/hooks/dist/hooks.mjs"
+    local bundle_file="$PROJECT_ROOT/src/hooks/dist/hooks.mjs"
 
     if [[ -f "$bundle_file" ]]; then
         test_pass
@@ -86,19 +86,19 @@ test_typescript_hooks_exist() {
 test_typescript_runner_exists() {
     test_start "TypeScript hook runner exists"
 
-    local runner_file="$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+    local runner_file="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 
     if [[ -f "$runner_file" ]]; then
         test_pass
     else
-        test_fail "hooks/bin/run-hook.mjs not found"
+        test_fail "src/hooks/bin/run-hook.mjs not found"
     fi
 }
 
 test_typescript_hooks_source_exists() {
     test_start "TypeScript hooks source exists"
 
-    local src_dir="$PROJECT_ROOT/hooks/src"
+    local src_dir="$PROJECT_ROOT/src/hooks/src"
 
     if [[ -d "$src_dir" ]]; then
         test_pass
@@ -122,7 +122,7 @@ echo "▸ Skills - Graph-First Architecture"
 test_remember_skill_graph_first() {
     test_start "remember skill states graph is PRIMARY"
 
-    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/remember/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/remember/SKILL.md not found"
@@ -139,7 +139,7 @@ test_remember_skill_graph_first() {
 test_remember_skill_mem0_optional() {
     test_start "remember skill states mem0 is optional"
 
-    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/remember/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/remember/SKILL.md not found"
@@ -156,7 +156,7 @@ test_remember_skill_mem0_optional() {
 test_remember_skill_mem0_flag() {
     test_start "remember skill documents --mem0 flag"
 
-    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/remember/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/remember/SKILL.md not found"
@@ -173,7 +173,7 @@ test_remember_skill_mem0_flag() {
 test_recall_skill_graph_first() {
     test_start "recall skill states graph is PRIMARY"
 
-    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/recall/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/recall/SKILL.md not found"
@@ -190,7 +190,7 @@ test_recall_skill_graph_first() {
 test_recall_skill_mem0_optional() {
     test_start "recall skill states mem0 is optional"
 
-    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/recall/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/recall/SKILL.md not found"
@@ -207,7 +207,7 @@ test_recall_skill_mem0_optional() {
 test_recall_skill_mem0_flag() {
     test_start "recall skill documents --mem0 flag"
 
-    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/recall/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/recall/SKILL.md not found"
@@ -224,7 +224,7 @@ test_recall_skill_mem0_flag() {
 test_memory_fabric_skill_exists() {
     test_start "memory-fabric skill exists"
 
-    local skill_file="$PROJECT_ROOT/skills/memory-fabric/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/memory-fabric/SKILL.md"
 
     if [[ -f "$skill_file" ]]; then
         test_pass
@@ -236,7 +236,7 @@ test_memory_fabric_skill_exists() {
 test_memory_fabric_skill_graph_first() {
     test_start "memory-fabric skill states graph is PRIMARY"
 
-    local skill_file="$PROJECT_ROOT/skills/memory-fabric/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/memory-fabric/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_skip "skills/memory-fabric/SKILL.md not found"
@@ -270,7 +270,7 @@ echo "▸ Hooks - Graph-First Architecture"
 test_realtime_sync_graph_first() {
     test_start "realtime-sync.sh targets graph for IMMEDIATE syncs"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/realtime-sync.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/realtime-sync.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/posttool/realtime-sync.sh not found"
@@ -291,7 +291,7 @@ test_realtime_sync_graph_first() {
 test_realtime_sync_version() {
     test_start "realtime-sync.sh exists (version in TypeScript)"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/realtime-sync.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/realtime-sync.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/posttool/realtime-sync.sh not found"
@@ -312,7 +312,7 @@ test_realtime_sync_version() {
 test_memory_bridge_graph_authoritative() {
     test_start "memory-bridge.sh states graph is authoritative"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/memory-bridge.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/memory-bridge.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/posttool/memory-bridge.sh not found"
@@ -333,7 +333,7 @@ test_memory_bridge_graph_authoritative() {
 test_memory_bridge_one_way_sync() {
     test_start "memory-bridge.sh syncs mem0→graph only"
 
-    local hook_file="$PROJECT_ROOT/hooks/posttool/memory-bridge.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/posttool/memory-bridge.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/posttool/memory-bridge.sh not found"
@@ -354,7 +354,7 @@ test_memory_bridge_one_way_sync() {
 test_auto_remember_no_early_exit() {
     test_start "auto-remember-continuity.sh doesn't exit early without mem0"
 
-    local hook_file="$PROJECT_ROOT/hooks/stop/auto-remember-continuity.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/stop/auto-remember-continuity.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/stop/auto-remember-continuity.sh not found"
@@ -372,7 +372,7 @@ test_auto_remember_no_early_exit() {
 test_auto_remember_graph_first() {
     test_start "auto-remember-continuity.sh suggests graph storage"
 
-    local hook_file="$PROJECT_ROOT/hooks/stop/auto-remember-continuity.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/stop/auto-remember-continuity.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/stop/auto-remember-continuity.sh not found"
@@ -396,7 +396,7 @@ test_auto_remember_graph_first() {
 test_memory_context_graph_first() {
     test_start "memory-context.sh searches graph first"
 
-    local hook_file="$PROJECT_ROOT/hooks/prompt/memory-context.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/prompt/memory-context.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/prompt/memory-context.sh not found"
@@ -420,7 +420,7 @@ test_memory_context_graph_first() {
 test_memory_context_no_early_exit() {
     test_start "memory-context.sh doesn't exit early without mem0"
 
-    local hook_file="$PROJECT_ROOT/hooks/prompt/memory-context.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/prompt/memory-context.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/prompt/memory-context.sh not found"
@@ -438,7 +438,7 @@ test_memory_context_no_early_exit() {
 test_memory_fabric_init_no_warning() {
     test_start "memory-fabric-init.sh doesn't warn about missing MEM0_API_KEY"
 
-    local hook_file="$PROJECT_ROOT/hooks/pretool/mcp/memory-fabric-init.sh"
+    local hook_file="$PROJECT_ROOT/src/hooks/pretool/mcp/memory-fabric-init.sh"
 
     if [[ ! -f "$hook_file" ]]; then
         test_fail "hooks/pretool/mcp/memory-fabric-init.sh not found"
@@ -556,7 +556,7 @@ echo "▸ Graceful Degradation Without Mem0"
 test_graceful_degradation_remember_works() {
     test_start "remember skill works without MEM0_API_KEY"
 
-    local skill_file="$PROJECT_ROOT/skills/remember/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/remember/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/remember/SKILL.md not found"
@@ -579,7 +579,7 @@ test_graceful_degradation_remember_works() {
 test_graceful_degradation_recall_works() {
     test_start "recall skill works without MEM0_API_KEY"
 
-    local skill_file="$PROJECT_ROOT/skills/recall/SKILL.md"
+    local skill_file="$PROJECT_ROOT/src/skills/recall/SKILL.md"
 
     if [[ ! -f "$skill_file" ]]; then
         test_fail "skills/recall/SKILL.md not found"

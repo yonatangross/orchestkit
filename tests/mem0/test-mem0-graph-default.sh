@@ -261,7 +261,7 @@ echo "Testing version information"
 echo "=========================================="
 
 # Test 11: Library version should be 2.1.0+ (graph-first architecture)
-if head -15 "$PROJECT_ROOT/hooks/_lib/mem0.sh" | grep -qE "Version: 2\.[1-9]\."; then
+if head -15 "$PROJECT_ROOT/src/hooks/_lib/mem0.sh" | grep -qE "Version: 2\.[1-9]\."; then
     TESTS_RUN=$((TESTS_RUN + 1))
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo -e "${GREEN}PASS${NC}: mem0.sh version is 2.1.0+"
@@ -272,7 +272,7 @@ else
 fi
 
 # Test 12: Library should mention graph-first in header
-if head -20 "$PROJECT_ROOT/hooks/_lib/mem0.sh" | grep -qi "graph-first"; then
+if head -20 "$PROJECT_ROOT/src/hooks/_lib/mem0.sh" | grep -qi "graph-first"; then
     TESTS_RUN=$((TESTS_RUN + 1))
     TESTS_PASSED=$((TESTS_PASSED + 1))
     echo -e "${GREEN}PASS${NC}: mem0.sh header mentions graph-first design"

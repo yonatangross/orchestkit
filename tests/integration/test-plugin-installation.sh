@@ -1,11 +1,17 @@
 #!/bin/bash
 # Plugin Installation Validation Tests
 # Ensures OrchestKit plugin structure is correct for Claude Code plugin system
-# Updated for CC 2.1.7 flat skills structure
+# Updated for CC 2.1.7 flat skills structure + build system (#228)
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGIN_ROOT="${SCRIPT_DIR}/../.."
+PROJECT_ROOT="${SCRIPT_DIR}/../.."
+
+# With build system (#228), source is in src/, built plugins in plugins/
+# For installation validation, we check the source directories
+SRC_ROOT="${PROJECT_ROOT}/src"
+PLUGIN_ROOT="${PROJECT_ROOT}/plugins/ork"
+
 TESTS_PASSED=0
 TESTS_FAILED=0
 
@@ -35,27 +41,27 @@ echo "=============================================="
 echo ""
 
 # =============================================================================
-# Test 1: Core directories exist (directories or symlinks)
+# Test 1: Source directories exist (src/ is single source of truth)
 # =============================================================================
-echo "--- Test 1: Core directories exist ---"
+echo "--- Test 1: Source directories exist ---"
 
-# CC 2.1.7: skills are in skills/ (flat structure)
-if [[ -d "$PLUGIN_ROOT/skills" ]]; then
-  pass "skills directory exists"
+# Build system (#228): source in src/, built plugins in plugins/
+if [[ -d "$SRC_ROOT/skills" ]]; then
+  pass "src/skills directory exists"
 else
-  fail "skills directory missing"
+  fail "src/skills directory missing"
 fi
 
-if [[ -d "$PLUGIN_ROOT/hooks" ]]; then
-  pass "hooks directory exists"
+if [[ -d "$SRC_ROOT/hooks" ]]; then
+  pass "src/hooks directory exists"
 else
-  fail "hooks directory missing"
+  fail "src/hooks directory missing"
 fi
 
-if [[ -d "$PLUGIN_ROOT/agents" ]]; then
-  pass "agents directory exists"
+if [[ -d "$SRC_ROOT/agents" ]]; then
+  pass "src/agents directory exists"
 else
-  fail "agents directory missing"
+  fail "src/agents directory missing"
 fi
 
 echo ""
@@ -67,7 +73,7 @@ echo "--- Test 2: Plugin manifest ---"
 
 # New marketplace architecture: plugin.json is at plugins/ork/.claude-plugin/plugin.json
 # Root .claude-plugin/ only contains marketplace.json
-PLUGIN_JSON="$PLUGIN_ROOT/plugins/ork/.claude-plugin/plugin.json"
+PLUGIN_JSON="$PLUGIN_ROOT/.claude-plugin/plugin.json"
 
 if [[ -f "$PLUGIN_JSON" ]]; then
   pass "plugins/ork/.claude-plugin/plugin.json exists"
@@ -88,8 +94,8 @@ else
   fail "plugins/ork/.claude-plugin/plugin.json missing (required for plugin system)"
 fi
 
-# Verify marketplace.json exists at root
-if [[ -f "$PLUGIN_ROOT/.claude-plugin/marketplace.json" ]]; then
+# Verify marketplace.json exists at project root
+if [[ -f "$PROJECT_ROOT/.claude-plugin/marketplace.json" ]]; then
   pass ".claude-plugin/marketplace.json exists"
 else
   fail ".claude-plugin/marketplace.json missing"
@@ -104,7 +110,8 @@ echo "--- Test 3: Hook paths validation ---"
 
 # Claude Code expects hooks in hooks/hooks.json (not inline in plugin.json)
 # This is the correct architecture for Claude Code plugins
-HOOKS_CONFIG="$PLUGIN_ROOT/hooks/hooks.json"
+# With build system, hooks.json is in src/hooks/ (source) or plugins/ork/hooks/ (built)
+HOOKS_CONFIG="$SRC_ROOT/hooks/hooks.json"
 if [[ -f "$HOOKS_CONFIG" ]]; then
   # Check that hooks configuration exists
   if jq -e '.hooks' "$HOOKS_CONFIG" > /dev/null 2>&1; then
@@ -142,8 +149,8 @@ echo ""
 # =============================================================================
 echo "--- Test 4: Skill discovery (CC 2.1.7 flat structure) ---"
 
-# CC 2.1.7 flat structure: skills/<skill-name>/SKILL.md
-SKILL_COUNT=$(find -L "$PLUGIN_ROOT/skills" -maxdepth 2 -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+# CC 2.1.7 flat structure: src/skills/<skill-name>/SKILL.md
+SKILL_COUNT=$(find -L "$SRC_ROOT/skills" -maxdepth 2 -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$SKILL_COUNT" -gt 0 ]]; then
   pass "Found $SKILL_COUNT skills with SKILL.md (CC 2.1.7 flat structure)"
 else
@@ -153,7 +160,7 @@ fi
 # Check a few key skills exist in flat structure
 skill_exists() {
   local skill_name="$1"
-  [[ -f "$PLUGIN_ROOT/skills/${skill_name}/SKILL.md" ]]
+  [[ -f "$SRC_ROOT/skills/${skill_name}/SKILL.md" ]]
 }
 
 for skill in commit configure explore implement verify; do
@@ -180,7 +187,7 @@ while IFS= read -r hook; do
     ((NON_EXEC_COUNT++)) || true
     warn "Hook not executable: $(basename "$hook")"
   fi
-done < <(find -L "$PLUGIN_ROOT/hooks" -name "*.sh" -type f 2>/dev/null)
+done < <(find -L "$SRC_ROOT/hooks" -name "*.sh" -type f 2>/dev/null)
 
 if [[ "$NON_EXEC_COUNT" -eq 0 ]]; then
   pass "All $HOOK_COUNT hooks are executable"
@@ -196,8 +203,8 @@ echo ""
 echo "--- Test 6: common.sh plugin compatibility ---"
 
 # Since v5.1.0, common.sh was migrated to TypeScript
-COMMON_TS="$PLUGIN_ROOT/hooks/src/lib/common.ts"
-COMMON_SH="$PLUGIN_ROOT/hooks/_lib/common.sh"
+COMMON_TS="$SRC_ROOT/hooks/src/lib/common.ts"
+COMMON_SH="$SRC_ROOT/hooks/_lib/common.sh"
 
 if [[ -f "$COMMON_TS" ]]; then
   # TypeScript version - check for project dir functions
@@ -229,7 +236,7 @@ echo ""
 # =============================================================================
 echo "--- Test 7: Version validation ---"
 
-PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/plugins/ork/.claude-plugin/plugin.json" 2>/dev/null || echo "")
+PLUGIN_VERSION=$(jq -r '.version' "$PLUGIN_ROOT/.claude-plugin/plugin.json" 2>/dev/null || echo "")
 
 if [[ -n "$PLUGIN_VERSION" && "$PLUGIN_VERSION" != "null" ]]; then
   # Validate semver format (basic check)

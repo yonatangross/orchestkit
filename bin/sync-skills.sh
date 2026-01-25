@@ -70,7 +70,7 @@ for plugin_dir in "$PROJECT_ROOT"/plugins/*/skills; do
         else
             # It's a directory (CI might convert symlinks to directories)
             # Just verify the corresponding root skill exists
-            if [[ ! -d "$PROJECT_ROOT/skills/$skill_name" ]]; then
+            if [[ ! -d "$PROJECT_ROOT/src/skills/$skill_name" ]]; then
                 echo "ERROR: Plugin skill $plugin_name/$skill_name has no corresponding root skill"
                 errors=$((errors + 1))
             fi
@@ -83,7 +83,7 @@ log "Checked $checked skill entries"
 # Check orphans: Skills in root that aren't in any plugin
 if [[ "$CHECK_ORPHANS" == "true" ]]; then
     log "Checking for orphan skills..."
-    for skill_dir in "$PROJECT_ROOT"/skills/*/; do
+    for skill_dir in "$PROJECT_ROOT"/src/skills/*/; do
         [[ -d "$skill_dir" ]] || continue
         skill_name=$(basename "$skill_dir")
 

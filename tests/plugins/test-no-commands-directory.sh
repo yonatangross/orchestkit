@@ -34,7 +34,7 @@ echo "PASS: commands/ directory correctly absent"
 echo ""
 
 # Verify user-invocable skills exist as replacement
-user_invocable_count=$(grep -l "user-invocable: true" "$PROJECT_ROOT/skills"/*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
+user_invocable_count=$(grep -l "user-invocable: true" "$PROJECT_ROOT/src/skills"/*/SKILL.md 2>/dev/null | wc -l | tr -d ' ')
 echo "Found $user_invocable_count user-invocable skills (replacements for commands)"
 
 if [[ $user_invocable_count -eq 0 ]]; then

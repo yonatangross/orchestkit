@@ -77,7 +77,7 @@ else
 fi
 
 # ===== 5. Quick Lint Tests =====
-if echo "$STAGED_FILES" | grep -qE "^(hooks/|skills/|agents/|.claude-plugin/)"; then
+if echo "$STAGED_FILES" | grep -qE "^(src/hooks/|src/skills/|src/agents/|.claude-plugin/)"; then
   if [[ -x "tests/run-all-tests.sh" ]]; then
     echo -n "  Running quick lint tests... "
     if ! ./tests/run-all-tests.sh --lint >/dev/null 2>&1; then

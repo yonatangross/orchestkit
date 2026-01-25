@@ -172,7 +172,7 @@ validate_agent_id() {
     local clean_id="${agent_id#ork:}"
 
     # Check if agent file exists
-    if [[ -f "$PROJECT_ROOT/agents/${clean_id}.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/agents/${clean_id}.md" ]]; then
         return 0
     fi
 
@@ -250,7 +250,7 @@ test_mem0_context_retrieval_output_format() {
     export HOOK_INPUT='{}'
 
     local output
-    output=$(bash "$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Validate JSON
     if echo "$output" | jq -e '.' >/dev/null 2>&1; then
@@ -275,7 +275,7 @@ test_mem0_context_retrieval_provides_hint() {
     export HOOK_INPUT='{}'
 
     local output
-    output=$(bash "$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{}')
+    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{}')
 
     # Check for additionalContext with mem0 hint
     local context
@@ -303,7 +303,7 @@ test_mem0_context_graceful_no_config() {
     export HOME="/tmp/no-home-$$"
 
     local output
-    output=$(bash "$PROJECT_ROOT/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/mem0-context-retrieval.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -333,7 +333,7 @@ test_agent_memory_inject_detects_agent_type() {
 
     local input='{"subagent_type":"database-engineer","prompt":"Design a schema"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Should output system message with agent info
     local msg
@@ -353,7 +353,7 @@ test_agent_memory_inject_unknown_agent() {
 
     local input='{"subagent_type":"unknown-agent-type","prompt":"Do something"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue' 2>/dev/null || echo "false")
@@ -372,7 +372,7 @@ test_agent_memory_inject_no_agent_type() {
 
     local input='{"prompt":"Just a prompt without agent"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue' 2>/dev/null || echo "false")
@@ -400,7 +400,7 @@ test_agent_memory_store_extracts_patterns() {
     }'
 
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue' 2>/dev/null || echo "false")
@@ -423,7 +423,7 @@ test_agent_memory_store_no_patterns_short_output() {
     }'
 
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Should not have pattern extraction message for short output
     local msg
@@ -447,7 +447,7 @@ test_decision_sync_pull_output_format() {
     export HOOK_INPUT='{}'
 
     local output
-    output=$(bash "$PROJECT_ROOT/hooks/lifecycle/decision-sync-pull.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/decision-sync-pull.sh" 2>/dev/null || echo '{"continue":true}')
 
     if echo "$output" | jq -e '.' >/dev/null 2>&1; then
         test_pass
@@ -465,7 +465,7 @@ test_decision_sync_push_finds_decisions() {
     # Check if there's a decisions file to sync
     if [[ -f "$PROJECT_ROOT/.claude/context/knowledge/decisions/active.json" ]]; then
         local output
-        output=$(bash "$PROJECT_ROOT/hooks/lifecycle/decision-sync-push.sh" 2>/dev/null || echo '{"continue":true}')
+        output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/decision-sync-push.sh" 2>/dev/null || echo '{"continue":true}')
 
         local has_continue
         has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -492,7 +492,7 @@ test_pre_compaction_sync_output() {
 
     local input='{"reason":"context_limit"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/stop/mem0-pre-compaction-sync.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/stop/mem0-pre-compaction-sync.sh" 2>/dev/null || echo '{"continue":true}')
 
     if echo "$output" | jq -e '.' >/dev/null 2>&1; then
         test_pass
@@ -512,7 +512,7 @@ test_prompt_memory_context_output() {
 
     local input='{"prompt":"Help me with the database schema"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/prompt/memory-context.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/prompt/memory-context.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -536,7 +536,7 @@ test_full_session_lifecycle() {
 
     # Step 1: Session start (use session-context-loader as primary SessionStart hook)
     local start_output
-    start_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/session-context-loader.sh" 2>/dev/null || echo '{"continue":true}')
+    start_output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/session-context-loader.sh" 2>/dev/null || echo '{"continue":true}')
 
     local start_ok
     start_ok=$(echo "$start_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -549,7 +549,7 @@ test_full_session_lifecycle() {
     # Step 2: Simulate agent work (PreTool)
     local agent_input='{"subagent_type":"backend-system-architect"}'
     local pretool_output
-    pretool_output=$(echo "$agent_input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    pretool_output=$(echo "$agent_input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     local pretool_ok
     pretool_ok=$(echo "$pretool_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -561,7 +561,7 @@ test_full_session_lifecycle() {
 
     # Step 3: Session end (use session-cleanup as primary SessionEnd hook)
     local end_output
-    end_output=$(bash "$PROJECT_ROOT/hooks/lifecycle/session-cleanup.sh" 2>/dev/null || echo '{"continue":true}')
+    end_output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/session-cleanup.sh" 2>/dev/null || echo '{"continue":true}')
 
     local end_ok
     end_ok=$(echo "$end_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -591,10 +591,10 @@ test_agent_memory_chain_propagation() {
     local pretool_input='{"subagent_type":"database-engineer","prompt":"Design schema"}'
 
     # Call validator first (creates tracking file)
-    echo "$pretool_input" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" >/dev/null 2>&1 || true
+    echo "$pretool_input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" >/dev/null 2>&1 || true
 
     # Then call memory inject (uses tracking file)
-    echo "$pretool_input" | bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" >/dev/null 2>&1 || true
+    echo "$pretool_input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" >/dev/null 2>&1 || true
 
     # Check tracking file was created by validator
     if [[ ! -f "$tracking_file" ]]; then
@@ -620,7 +620,7 @@ test_agent_memory_chain_propagation() {
     }'
 
     local output
-    output=$(echo "$posttool_input" | bash "$PROJECT_ROOT/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$posttool_input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Cleanup
     rm -f "$tracking_file" 2>/dev/null || true

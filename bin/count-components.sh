@@ -3,10 +3,10 @@
 # Usage: count-components.sh [--json]
 #
 # Counts:
-# - Skills: directories with SKILL.md in skills/
-# - Agents: .md files in agents/
-# - Commands: .md files in commands/
-# - Hooks: .sh files in hooks/ (excluding _lib/)
+# - Skills: directories with SKILL.md in src/skills/
+# - Agents: .md files in src/agents/
+# - Commands: .md files in src/commands/
+# - Hooks: TypeScript files in src/hooks/src/ (excluding _lib/)
 # - Bundles: entries in marketplace.json plugins array
 
 set -euo pipefail
@@ -14,38 +14,38 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# Count skills (directories with SKILL.md in skills/)
+# Count skills (directories with SKILL.md in src/skills/)
 count_skills() {
-    if [[ -d "$PROJECT_ROOT/skills" ]]; then
-        find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/src/skills" ]]; then
+        find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
 }
 
-# Count agents (markdown files in agents dir)
+# Count agents (markdown files in src/agents dir)
 count_agents() {
-    if [[ -d "$PROJECT_ROOT/agents" ]]; then
-        find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/src/agents" ]]; then
+        find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
 }
 
-# Count commands (markdown files in commands dir)
+# Count commands (markdown files in src/commands dir)
 count_commands() {
-    if [[ -d "$PROJECT_ROOT/commands" ]]; then
-        find "$PROJECT_ROOT/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/src/commands" ]]; then
+        find "$PROJECT_ROOT/src/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi
 }
 
-# Count hooks (TypeScript files in hooks/src, excluding __tests__ and lib)
+# Count hooks (TypeScript files in src/hooks/src, excluding __tests__ and lib)
 # Migrated from shell scripts to TypeScript in v5.1.0
 count_hooks() {
-    if [[ -d "$PROJECT_ROOT/hooks/src" ]]; then
-        find "$PROJECT_ROOT/hooks/src" -name "*.ts" -type f ! -path "*/__tests__/*" ! -path "*/lib/*" ! -name "index.ts" ! -name "types.ts" 2>/dev/null | wc -l | tr -d ' '
+    if [[ -d "$PROJECT_ROOT/src/hooks/src" ]]; then
+        find "$PROJECT_ROOT/src/hooks/src" -name "*.ts" -type f ! -path "*/__tests__/*" ! -path "*/lib/*" ! -name "index.ts" ! -name "types.ts" 2>/dev/null | wc -l | tr -d ' '
     else
         echo "0"
     fi

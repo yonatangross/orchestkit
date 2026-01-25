@@ -11,7 +11,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOK="$PROJECT_ROOT/hooks/prompt/skill-auto-suggest.sh"
+HOOK="$PROJECT_ROOT/src/hooks/prompt/skill-auto-suggest.sh"
 
 # ============================================================================
 # BASIC FUNCTIONALITY TESTS

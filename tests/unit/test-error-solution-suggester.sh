@@ -14,7 +14,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 HOOK="$HOOKS_DIR/posttool/error-solution-suggester.sh"
 SOLUTIONS_FILE="$PROJECT_ROOT/.claude/rules/error_solutions.json"
 

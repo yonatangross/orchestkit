@@ -1,0 +1,17 @@
+{
+  "name": "ork-llm-advanced",
+  "version": "5.2.4",
+  "description": "Advanced LLM patterns — fine-tuning-customization, vision-language-models, audio-language-models, high-performance-inference, ollama-local",
+  "skills": [
+    "fine-tuning-customization",
+    "vision-language-models",
+    "audio-language-models",
+    "high-performance-inference",
+    "ollama-local"
+  ],
+  "agents": [
+    "llm-integrator",
+    "multimodal-specialist"
+  ],
+  "hooks": "none"
+}

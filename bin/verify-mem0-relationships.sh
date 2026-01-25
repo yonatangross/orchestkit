@@ -9,9 +9,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 USER_ID="orchestkit:all-agents"
-SEARCH_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/crud/search-memories.py"
-GET_RELATED_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/graph/get-related-memories.py"
-TRAVERSE_SCRIPT="$PROJECT_ROOT/skills/mem0-memory/scripts/graph/traverse-graph.py"
+SEARCH_SCRIPT="$PROJECT_ROOT/src/skills/mem0-memory/scripts/crud/search-memories.py"
+GET_RELATED_SCRIPT="$PROJECT_ROOT/src/skills/mem0-memory/scripts/graph/get-related-memories.py"
+TRAVERSE_SCRIPT="$PROJECT_ROOT/src/skills/mem0-memory/scripts/graph/traverse-graph.py"
 
 echo "=== Verifying Mem0 Relationships ==="
 echo "User ID: $USER_ID"

@@ -1,0 +1,17 @@
+{
+  "name": "ork-langgraph-core",
+  "version": "5.2.4",
+  "description": "LangGraph Core patterns — state, routing, parallel, checkpoints, functional, supervisor",
+  "skills": [
+    "langgraph-state",
+    "langgraph-routing",
+    "langgraph-parallel",
+    "langgraph-checkpoints",
+    "langgraph-functional",
+    "langgraph-supervisor"
+  ],
+  "agents": [
+    "workflow-architect"
+  ],
+  "hooks": "none"
+}

@@ -88,7 +88,7 @@ if command -v shellcheck &>/dev/null; then
             # Warnings are acceptable but noted
             ((shell_warnings++)) || true
         fi
-    done < <(find "$PROJECT_ROOT/hooks" -name "*.sh" -print0 2>/dev/null)
+    done < <(find "$PROJECT_ROOT/src/hooks" -name "*.sh" -print0 2>/dev/null)
 
     if [ "$shell_errors" -eq 0 ]; then
         pass "All shell scripts pass shellcheck"
@@ -114,7 +114,7 @@ incomplete_skills=0
 complete_skills=0
 
 # CC 2.1.7 flat structure: skills/<skill-name>/SKILL.md
-for skill_dir in "$PROJECT_ROOT/skills"/*; do
+for skill_dir in "$PROJECT_ROOT/src/skills"/*; do
     if [ -d "$skill_dir" ]; then
         skill_name=$(basename "$skill_dir")
 
@@ -129,9 +129,9 @@ for skill_dir in "$PROJECT_ROOT/skills"/*; do
 done
 
 if [ "$incomplete_skills" -eq 0 ]; then
-    pass "All $complete_skills skills have SKILL.md (CC 2.1.7 compliant)"
+    pass "All $complete_skills src/skills have SKILL.md (CC 2.1.7 compliant)"
 else
-    fail "$incomplete_skills skills missing SKILL.md"
+    fail "$incomplete_skills src/skills missing SKILL.md"
 fi
 
 echo ""
@@ -145,7 +145,7 @@ echo "────────────────────────�
 agent_errors=0
 agent_count=0
 
-for agent_file in "$PROJECT_ROOT/agents"/*.md; do
+for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
     if [ -f "$agent_file" ]; then
         agent_name=$(basename "$agent_file" .md)
         ((agent_count++)) || true

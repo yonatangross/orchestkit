@@ -1,0 +1,12 @@
+{
+  "name": "ork-context",
+  "version": "5.2.4",
+  "description": "Context window management and engineering — compression, context optimization, system design interrogation",
+  "skills": [
+    "context-compression",
+    "context-engineering",
+    "system-design-interrogation"
+  ],
+  "agents": [],
+  "hooks": "none"
+}

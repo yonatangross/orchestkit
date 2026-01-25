@@ -520,7 +520,7 @@ test_analytics_consent_check_hook() {
     export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
     local output
-    output=$(bash "$PROJECT_ROOT/hooks/lifecycle/analytics-consent-check.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/analytics-consent-check.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -539,7 +539,7 @@ test_learning_tracker_hook() {
 
     local input='{"tool_name":"Bash","tool_input":{"command":"npm test"}}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/permission/learning-tracker.sh" 2>/dev/null || echo '{"decision":"approve"}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/permission/learning-tracker.sh" 2>/dev/null || echo '{"decision":"approve"}')
 
     # Should return valid JSON
     if echo "$output" | jq -e '.' >/dev/null 2>&1; then

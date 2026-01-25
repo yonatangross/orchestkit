@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186262002",
+  "tasks": [
+    {
+      "taskId": "task-1769186262054",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:37:42.054Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186262055",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:37:42.055Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186262056-cjo3cm-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:42.056Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186262056-cjo3cm",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186262056-cjo3cm-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:42.056Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186262056-cjo3cm",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186262056-cjo3cm-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:42.057Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186262056-cjo3cm",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186262056-cjo3cm-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:37:42.057Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186262056-cjo3cm",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186262056-cjo3cm",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:37:42.056Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186262056-cjo3cm-0",
+        "1": "task-pipeline-1769186262056-cjo3cm-1",
+        "2": "task-pipeline-1769186262056-cjo3cm-2",
+        "3": "task-pipeline-1769186262056-cjo3cm-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186262101-gv78fs",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:37:42.101Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186262101-gv78fs-0",
+        "1": "task-pipeline-1769186262101-gv78fs-1",
+        "2": "task-pipeline-1769186262101-gv78fs-2",
+        "3": "task-pipeline-1769186262101-gv78fs-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:37:42.101Z"
+}

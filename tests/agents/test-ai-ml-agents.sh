@@ -41,7 +41,7 @@ echo ""
 # Test 1: Agent files exist
 echo "Test 1: Agent files exist"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    if [[ -f "$PROJECT_ROOT/agents/$agent.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/agents/$agent.md" ]]; then
         pass "$agent.md exists"
     else
         fail "$agent.md missing"
@@ -52,7 +52,7 @@ done
 echo ""
 echo "Test 2: Frontmatter validation"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         has_name=$(grep -c "^name:" "$agent_file" || true)
         has_desc=$(grep -c "^description:" "$agent_file" || true)
@@ -63,7 +63,7 @@ for agent in "${AI_ML_AGENTS[@]}"; do
         if [[ $has_name -ge 1 && $has_desc -ge 1 && $has_model -ge 1 && $has_tools -ge 1 && $has_skills -ge 1 ]]; then
             pass "$agent has all required frontmatter"
         else
-            fail "$agent missing frontmatter (name:$has_name desc:$has_desc model:$has_model tools:$has_tools skills:$has_skills)"
+            fail "$agent missing frontmatter (name:$has_name desc:$has_desc model:$has_model tools:$has_tools src/skills:$has_skills)"
         fi
     fi
 done
@@ -72,7 +72,7 @@ done
 echo ""
 echo "Test 3: Model selection validation"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         model=$(grep "^model:" "$agent_file" | awk '{print $2}')
 
@@ -94,7 +94,7 @@ done
 echo ""
 echo "Test 4: Skills array validation"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         # Count skills in the skills array (between skills: and ---)
         skill_count=$(awk '/^skills:/,/^---/' "$agent_file" | grep -c "^  - " || true)
@@ -111,7 +111,7 @@ done
 echo ""
 echo "Test 5: Activation keywords in description"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         desc=$(grep "^description:" "$agent_file" | cut -d':' -f2-)
 
@@ -135,7 +135,7 @@ done
 echo ""
 echo "Test 6: Directive section validation"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         if grep -q "## Directive" "$agent_file"; then
             pass "$agent has Directive section"
@@ -149,7 +149,7 @@ done
 echo ""
 echo "Test 7: Concrete Objectives section"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         if grep -q "## Concrete Objectives" "$agent_file"; then
             pass "$agent has Concrete Objectives section"
@@ -163,7 +163,7 @@ done
 echo ""
 echo "Test 8: Task Boundaries section"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         if grep -q "## Task Boundaries" "$agent_file"; then
             pass "$agent has Task Boundaries section"
@@ -177,7 +177,7 @@ done
 echo ""
 echo "Test 9: Output Format section"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         if grep -q "## Output Format" "$agent_file"; then
             pass "$agent has Output Format section"
@@ -191,7 +191,7 @@ done
 echo ""
 echo "Test 10: MCP Tools section"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         if grep -q "## MCP Tools" "$agent_file" || grep -q "mcp__" "$agent_file"; then
             pass "$agent has MCP integration"
@@ -207,14 +207,14 @@ done
 echo ""
 echo "Test 11: Referenced skills exist"
 for agent in "${AI_ML_AGENTS[@]}"; do
-    agent_file="$PROJECT_ROOT/agents/$agent.md"
+    agent_file="$PROJECT_ROOT/src/agents/$agent.md"
     if [[ -f "$agent_file" ]]; then
         # Extract skills from frontmatter (between skills: and ---)
         skills=$(awk '/^skills:/,/^---/' "$agent_file" | grep "^  - " | awk '{print $2}')
 
         all_exist=1
         for skill in $skills; do
-            if [[ ! -d "$PROJECT_ROOT/skills/$skill" ]]; then
+            if [[ ! -d "$PROJECT_ROOT/src/skills/$skill" ]]; then
                 echo -e "${RED}✗${NC} $agent references non-existent skill: $skill"
                 all_exist=0
             fi

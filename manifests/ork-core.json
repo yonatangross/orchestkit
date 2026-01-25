@@ -1,0 +1,17 @@
+{
+  "name": "ork-core",
+  "version": "5.2.4",
+  "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Required for all other OrchestKit plugins.",
+  "skills": [
+    "remember",
+    "recall",
+    "architecture-decision-record",
+    "project-structure-enforcer"
+  ],
+  "agents": [
+    "debug-investigator",
+    "system-design-reviewer",
+    "documentation-specialist"
+  ],
+  "hooks": "all"
+}

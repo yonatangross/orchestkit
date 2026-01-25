@@ -14,8 +14,8 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 # Note: Since v5.1.0, sqlite_escape is provided by test-helpers.sh
 # The original hooks/_lib/common.sh was migrated to TypeScript
 
-MULTI_LOCK_HOOK="$PROJECT_ROOT/hooks/pretool/write-edit/multi-instance-lock.sh"
-TS_COMMON="$PROJECT_ROOT/hooks/src/lib/common.ts"
+MULTI_LOCK_HOOK="$PROJECT_ROOT/src/hooks/pretool/write-edit/multi-instance-lock.sh"
+TS_COMMON="$PROJECT_ROOT/src/hooks/src/lib/common.ts"
 
 # ============================================================================
 # SQLITE_ESCAPE FUNCTION TESTS

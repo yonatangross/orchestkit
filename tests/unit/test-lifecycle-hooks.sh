@@ -20,8 +20,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_HOOKS_DIR="$PROJECT_ROOT/hooks/src/lifecycle"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+TS_HOOKS_DIR="$PROJECT_ROOT/src/hooks/src/lifecycle"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # TYPESCRIPT SOURCE FILE TESTS
@@ -240,7 +240,7 @@ test_lifecycle_bundle_exports_handlers() {
 }
 
 test_run_hook_runner_exists() {
-    assert_file_exists "$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 }
 
 # ============================================================================

@@ -49,7 +49,7 @@ echo ""
 # Test 1: All skills have SKILL.md
 echo "Test 1: All skills have SKILL.md"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    if [[ -f "$PROJECT_ROOT/skills/$skill/SKILL.md" ]]; then
+    if [[ -f "$PROJECT_ROOT/src/skills/$skill/SKILL.md" ]]; then
         pass "$skill has SKILL.md"
     else
         fail "$skill missing SKILL.md"
@@ -60,7 +60,7 @@ done
 echo ""
 echo "Test 2: SKILL.md frontmatter validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
+    skill_file="$PROJECT_ROOT/src/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
         # Check for required fields
         has_name=$(grep -c "^name:" "$skill_file" || true)
@@ -80,7 +80,7 @@ done
 echo ""
 echo "Test 3: References directory validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    refs_dir="$PROJECT_ROOT/skills/$skill/references"
+    refs_dir="$PROJECT_ROOT/src/skills/$skill/references"
     if [[ -d "$refs_dir" ]]; then
         ref_count=$(find "$refs_dir" -type f -name "*.md" | wc -l | tr -d ' ')
         if [[ $ref_count -ge 2 ]]; then
@@ -100,15 +100,15 @@ for skill in "${AI_ML_SKILLS[@]}"; do
     has_templates=0
     has_checklists=0
 
-    if [[ -d "$PROJECT_ROOT/skills/$skill/templates" ]]; then
-        template_count=$(find "$PROJECT_ROOT/skills/$skill/templates" -type f | wc -l | tr -d ' ')
+    if [[ -d "$PROJECT_ROOT/src/skills/$skill/templates" ]]; then
+        template_count=$(find "$PROJECT_ROOT/src/skills/$skill/templates" -type f | wc -l | tr -d ' ')
         if [[ $template_count -ge 1 ]]; then
             has_templates=1
         fi
     fi
 
-    if [[ -d "$PROJECT_ROOT/skills/$skill/checklists" ]]; then
-        checklist_count=$(find "$PROJECT_ROOT/skills/$skill/checklists" -type f | wc -l | tr -d ' ')
+    if [[ -d "$PROJECT_ROOT/src/skills/$skill/checklists" ]]; then
+        checklist_count=$(find "$PROJECT_ROOT/src/skills/$skill/checklists" -type f | wc -l | tr -d ' ')
         if [[ $checklist_count -ge 1 ]]; then
             has_checklists=1
         fi
@@ -125,7 +125,7 @@ done
 echo ""
 echo "Test 5: 'Overview' section validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
+    skill_file="$PROJECT_ROOT/src/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
         if grep -q "## Overview" "$skill_file"; then
             pass "$skill has 'Overview' section"
@@ -139,7 +139,7 @@ done
 echo ""
 echo "Test 6: 'Capability Details' section validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
+    skill_file="$PROJECT_ROOT/src/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
         if grep -q "## Capability Details" "$skill_file"; then
             pass "$skill has 'Capability Details' section"
@@ -153,7 +153,7 @@ done
 echo ""
 echo "Test 7: 'Related Skills' section validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
+    skill_file="$PROJECT_ROOT/src/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
         if grep -q "## Related Skills" "$skill_file"; then
             pass "$skill has 'Related Skills' section"
@@ -167,7 +167,7 @@ done
 echo ""
 echo "Test 8: Token budget validation (SKILL.md)"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    skill_file="$PROJECT_ROOT/skills/$skill/SKILL.md"
+    skill_file="$PROJECT_ROOT/src/skills/$skill/SKILL.md"
     if [[ -f "$skill_file" ]]; then
         # Rough estimate: 1 token ≈ 4 chars
         char_count=$(wc -c < "$skill_file" | tr -d ' ')
@@ -188,7 +188,7 @@ echo ""
 echo "Test 9: Python template syntax validation"
 if command -v python3 &> /dev/null; then
     for skill in "${AI_ML_SKILLS[@]}"; do
-        templates_dir="$PROJECT_ROOT/skills/$skill/templates"
+        templates_dir="$PROJECT_ROOT/src/skills/$skill/templates"
         if [[ -d "$templates_dir" ]]; then
             py_files=$(find "$templates_dir" -name "*.py" 2>/dev/null || true)
             for py_file in $py_files; do
@@ -208,7 +208,7 @@ fi
 echo ""
 echo "Test 10: YAML template validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
-    templates_dir="$PROJECT_ROOT/skills/$skill/templates"
+    templates_dir="$PROJECT_ROOT/src/skills/$skill/templates"
     if [[ -d "$templates_dir" ]]; then
         yaml_files=$(find "$templates_dir" -name "*.yaml" -o -name "*.yml" 2>/dev/null || true)
         for yaml_file in $yaml_files; do

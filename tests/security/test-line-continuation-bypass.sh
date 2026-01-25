@@ -96,9 +96,9 @@ test_dispatcher_integration() {
   log_info "Testing dispatcher normalization integration..."
 
   # TypeScript implementation (new hooks architecture)
-  local ts_impl="$PROJECT_ROOT/hooks/src/pretool/bash/dangerous-command-blocker.ts"
+  local ts_impl="$PROJECT_ROOT/src/hooks/src/pretool/bash/dangerous-command-blocker.ts"
   # Bash implementation (legacy)
-  local bash_dispatcher="$PROJECT_ROOT/hooks/pretool/bash/dangerous-command-blocker.sh"
+  local bash_dispatcher="$PROJECT_ROOT/src/hooks/pretool/bash/dangerous-command-blocker.sh"
 
   # Prefer TypeScript implementation if it exists
   if [[ -f "$ts_impl" ]]; then

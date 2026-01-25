@@ -1,0 +1,19 @@
+{
+  "$schema": "context://session/v1",
+  "_meta": {
+    "position": "END",
+    "token_budget": 500,
+    "auto_load": "always",
+    "compress": "on_threshold",
+    "description": "Session state and progress - ALWAYS loaded at END of context"
+  },
+  "session_id": null,
+  "started": "2026-01-23T16:49:41.520Z",
+  "last_activity": "2026-01-23T16:49:41.520Z",
+  "current_task": {
+    "description": "No active task",
+    "status": "pending"
+  },
+  "next_steps": [],
+  "blockers": []
+}

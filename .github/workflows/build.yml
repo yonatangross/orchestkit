@@ -1,0 +1,134 @@
+name: Build Plugins
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+
+jobs:
+  # ============================================================================
+  # Build all plugins from manifests
+  # ============================================================================
+  build:
+    name: Build Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Needed for git operations
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
+      - name: Validate no symlinks
+        run: |
+          echo "Checking for symlinks in plugins/..."
+
+          if find plugins/ -type l | grep -q .; then
+            echo "ERROR: Found symlinks in plugins/"
+            find plugins/ -type l
+            exit 1
+          fi
+
+          echo "✓ No symlinks found"
+
+      - name: Upload build artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
+          retention-days: 7
+
+  # ============================================================================
+  # Validate built plugins structure
+  # ============================================================================
+  validate:
+    name: Validate Build
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Build plugins (for validation)
+        run: bash scripts/build-plugins.sh
+
+      - name: Validate plugin.json files
+        run: |
+          echo "Validating plugin.json files..."
+
+          errors=0
+          for plugin_json in plugins/*/.claude-plugin/plugin.json; do
+            [[ -f "$plugin_json" ]] || continue
+
+            plugin_name=$(dirname "$(dirname "$plugin_json")" | xargs basename)
+
+            # Validate JSON syntax
+            if ! jq empty "$plugin_json" 2>/dev/null; then
+              echo "ERROR: Invalid JSON in $plugin_name"
+              errors=$((errors + 1))
+              continue
+            fi
+
+            # Check required fields
+            for field in name version description; do
+              value=$(jq -r ".$field // empty" "$plugin_json")
+              if [[ -z "$value" ]]; then
+                echo "ERROR: $plugin_name missing field: $field"
+                errors=$((errors + 1))
+              fi
+            done
+
+            echo "✓ $plugin_name validated"
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "Build validation failed with $errors errors"
+            exit 1
+          fi
+
+          echo "All plugins validated successfully!"
+
+      - name: Check for symlinks
+        run: |
+          echo "Checking for symlinks in built plugins..."
+
+          if find plugins/ -type l 2>/dev/null | grep -q .; then
+            echo "ERROR: Found symlinks in plugins/"
+            find plugins/ -type l
+            exit 1
+          fi
+
+          echo "✓ No symlinks found"
+
+      - name: Verify manifest coverage
+        run: |
+          echo "Verifying all manifests were built..."
+
+          manifest_count=$(find manifests/ -name "*.json" -type f | wc -l | tr -d ' ')
+          plugin_count=$(find plugins/ -mindepth 1 -maxdepth 1 -type d | wc -l | tr -d ' ')
+
+          echo "Manifests: $manifest_count"
+          echo "Built plugins: $plugin_count"
+
+          if [[ "$manifest_count" -ne "$plugin_count" ]]; then
+            echo "ERROR: Manifest count ($manifest_count) != Plugin count ($plugin_count)"
+            exit 1
+          fi
+
+          echo "✓ All manifests built"

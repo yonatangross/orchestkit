@@ -16,8 +16,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_HOOK_PATH="$PROJECT_ROOT/hooks/src/permission/learning-tracker.ts"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+TS_HOOK_PATH="$PROJECT_ROOT/src/hooks/src/permission/learning-tracker.ts"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # BASIC TESTS
@@ -64,7 +64,7 @@ test_has_security_checks() {
         return 0
     fi
     # Also check lib files for security utilities
-    if grep -qiE "security|blocked" "$PROJECT_ROOT/hooks/src/lib/"*.ts 2>/dev/null; then
+    if grep -qiE "security|blocked" "$PROJECT_ROOT/src/hooks/src/lib/"*.ts 2>/dev/null; then
         return 0
     fi
     fail "learning-tracker.ts should have security checks"
@@ -116,7 +116,7 @@ test_imports_or_uses_lib() {
 }
 
 test_lib_directory_has_utilities() {
-    local lib_dir="$PROJECT_ROOT/hooks/src/lib"
+    local lib_dir="$PROJECT_ROOT/src/hooks/src/lib"
     [[ -d "$lib_dir" ]] || fail "Directory missing: $lib_dir"
 
     # Should have at least some utility files
@@ -139,7 +139,7 @@ test_has_suppress_output() {
         return 0
     fi
     # May be handled by shared types
-    if grep -qE "suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "Hook should use suppressOutput for CC 2.1.7 compliance"
@@ -151,7 +151,7 @@ test_has_continue_field() {
         return 0
     fi
     # May be handled by HookResult type
-    if grep -qE "continue" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "continue" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "Hook should return continue field"
@@ -171,7 +171,7 @@ test_permission_bundle_exports_handlers() {
 }
 
 test_run_hook_runner_exists() {
-    assert_file_exists "$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 }
 
 # ============================================================================

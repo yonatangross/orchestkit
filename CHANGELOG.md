@@ -5,6 +5,49 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.4] - 2026-01-25
+
+### Fixed
+
+- **Plugin installation failure** (#228): Fixed symlink issue causing "agents: Invalid input" error
+  - Root cause: Symlinked directories (`agents/`, `skills/`, `scripts/`) not supported by Claude Code plugin system
+  - Solution: Implemented build script to assemble plugins with real directories (no symlinks)
+  - Build script copies files from `src/` to `plugins/<plugin-name>/` based on manifest definitions
+- **Hook runner paths for installed plugins**: Updated hooks.json paths from `${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs` to `${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs`
+  - Fixed MODULE_NOT_FOUND errors when plugin is installed via `/plugin install`
+  - Built plugins have hooks at `hooks/` not `src/hooks/` - paths now match
+- **CI test paths**: Fixed all test paths for src/ directory migration
+  - Updated test-skill-references.sh, test-agent-skill-validation.sh, test-count-components.sh
+  - Fixed workflow files to use Node.js 22 and run build before validation
+  - Removed git commit step from build.yml (plugins/ now gitignored)
+
+### Changed
+
+- **Plugin development workflow**: Introduced build system for assembling plugins
+  - Source files moved to `src/` directory (skills, agents, hooks are single source of truth)
+  - Plugin definitions in `manifests/` directory (34 JSON manifest files)
+  - Build script `scripts/build-plugins.sh` assembles `plugins/` directory from source
+  - `plugins/` directory is now **generated** and **not tracked in git**
+  - CI automatically runs build on merge to main
+  - **Developers must edit `src/` and `manifests/`, never `plugins/`**
+
+### Added
+
+- **Build infrastructure**:
+  - `scripts/build-plugins.sh`: Plugin assembly script that copies from src/ to plugins/
+  - `manifests/` directory: 34 plugin definition files (JSON format)
+  - `src/` directory: Single source of truth for all skills, agents, and hook references
+  - `.gitignore`: Added `plugins/` and `.claude-plugin/marketplace.json` (generated files)
+  - Removed 61 previously-tracked files from `plugins/` (now fully generated)
+
+### Documentation
+
+- **README.md**: Added "Development Workflow" section with build system explanation
+- **CLAUDE.md**: Updated "Key Directories" section to document src/ structure and build process
+- **CONTRIBUTING.md**: Added build system section with critical workflow rules
+  - Added manifest editing steps to skill/agent creation workflows
+  - Emphasized src/ as the only place to edit files
+
 ## [5.2.3] - 2026-01-25
 
 ### Fixed
@@ -387,10 +430,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 ## [4.28.1] - 2026-01-19
-
-### Fixed
-
-- TODO: Describe your changes here
 
 ---
 

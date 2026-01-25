@@ -109,7 +109,7 @@ echo "=========================================="
 echo "Testing mem0-sync Skill Structure"
 echo "=========================================="
 
-SKILL_DIR="$PROJECT_ROOT/skills/mem0-sync"
+SKILL_DIR="$PROJECT_ROOT/src/skills/mem0-sync"
 
 assert_dir_exists "$SKILL_DIR" "mem0-sync skill directory exists"
 assert_file_exists "$SKILL_DIR/SKILL.md" "SKILL.md exists"
@@ -223,7 +223,7 @@ echo "=========================================="
 echo "Testing Hook Integration"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/hooks/stop/mem0-pre-compaction-sync.sh"
+HOOK="$PROJECT_ROOT/src/hooks/stop/mem0-pre-compaction-sync.sh"
 
 # Test hook version (1.7.0+ for Stop hook compliance + Webhook + Batch + Export)
 TESTS_RUN=$((TESTS_RUN + 1))

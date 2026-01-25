@@ -17,8 +17,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_SKILL_EDIT_TRACKER="$PROJECT_ROOT/hooks/src/posttool/skill-edit-tracker.ts"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+TS_SKILL_EDIT_TRACKER="$PROJECT_ROOT/src/hooks/src/posttool/skill-edit-tracker.ts"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # TYPESCRIPT SOURCE TESTS
@@ -132,7 +132,7 @@ test_has_hook_result() {
         return 0
     fi
     # Check types file
-    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "skill-edit-tracker.ts should use HookResult type"
@@ -143,7 +143,7 @@ test_has_suppress_output() {
         return 0
     fi
     # May be in types
-    if grep -qE "suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "skill-edit-tracker.ts should have suppressOutput"
@@ -168,7 +168,7 @@ test_posttool_bundle_has_content() {
 }
 
 test_run_hook_runner_exists() {
-    assert_file_exists "$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 }
 
 # ============================================================================

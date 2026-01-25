@@ -21,7 +21,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-SKILL_DIR="$PROJECT_ROOT/skills/github-operations"
+SKILL_DIR="$PROJECT_ROOT/src/skills/github-operations"
 
 PASS=0
 FAIL=0

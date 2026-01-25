@@ -14,9 +14,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_PROMPT_DIR="$PROJECT_ROOT/hooks/src/prompt"
-TS_STOP_DIR="$PROJECT_ROOT/hooks/src/stop"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+TS_PROMPT_DIR="$PROJECT_ROOT/src/hooks/src/prompt"
+TS_STOP_DIR="$PROJECT_ROOT/src/hooks/src/stop"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # ANTIPATTERN DETECTOR TESTS
@@ -74,7 +74,7 @@ test_auto_remember_has_mem0_logic() {
 describe "Agent Remember/Recall Skills"
 
 test_all_agents_have_remember_skill() {
-    local agents_dir="$PROJECT_ROOT/agents"
+    local agents_dir="$PROJECT_ROOT/src/agents"
     local missing_count=0
 
     for agent in "$agents_dir"/*.md; do
@@ -90,7 +90,7 @@ test_all_agents_have_remember_skill() {
 }
 
 test_all_agents_have_recall_skill() {
-    local agents_dir="$PROJECT_ROOT/agents"
+    local agents_dir="$PROJECT_ROOT/src/agents"
     local missing_count=0
 
     for agent in "$agents_dir"/*.md; do
@@ -113,14 +113,14 @@ describe "Mem0 Library Functions (TypeScript)"
 
 test_mem0_lib_exists() {
     # TypeScript mem0 library should exist in lib directory
-    local ts_lib="$PROJECT_ROOT/hooks/src/lib/mem0.ts"
+    local ts_lib="$PROJECT_ROOT/src/hooks/src/lib/mem0.ts"
 
     if [[ -f "$ts_lib" ]]; then
         return 0
     fi
 
     # May be integrated into other lib files
-    if grep -qiE "mem0|memory" "$PROJECT_ROOT/hooks/src/lib/"*.ts 2>/dev/null; then
+    if grep -qiE "mem0|memory" "$PROJECT_ROOT/src/hooks/src/lib/"*.ts 2>/dev/null; then
         return 0
     fi
 
@@ -128,7 +128,7 @@ test_mem0_lib_exists() {
 }
 
 test_mem0_lib_has_required_functions() {
-    local ts_lib="$PROJECT_ROOT/hooks/src/lib/mem0.ts"
+    local ts_lib="$PROJECT_ROOT/src/hooks/src/lib/mem0.ts"
 
     if [[ ! -f "$ts_lib" ]]; then
         skip "mem0.ts not found"

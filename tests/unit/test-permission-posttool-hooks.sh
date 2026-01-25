@@ -15,7 +15,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 
 # ============================================================================
 # PERMISSION HOOKS - auto-approve-project-writes.sh
@@ -593,7 +593,7 @@ test_error_collector_has_error_detection_logic() {
     # Since v5.1.0, hooks may delegate to TypeScript
     if grep -q "run-hook.mjs" "$hook" 2>/dev/null; then
         # TypeScript delegation - check TS source for error detection patterns
-        local ts_source="$PROJECT_ROOT/hooks/src/posttool/error-collector.ts"
+        local ts_source="$PROJECT_ROOT/src/hooks/src/posttool/error-collector.ts"
         if [[ -f "$ts_source" ]]; then
             # Check that TS source has error detection logic
             if grep -qi "error\|exit.*code\|is.*error" "$ts_source"; then

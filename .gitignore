@@ -98,3 +98,7 @@ __pycache__/
 !.claude/feedback/.gitkeep
 .claude/.satisfaction-counter
 .setup-complete
+
+# Generated plugin builds (not in git)
+plugins/
+!plugins/.gitkeep

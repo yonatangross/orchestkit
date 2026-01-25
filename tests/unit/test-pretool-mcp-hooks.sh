@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/mcp"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/mcp"
 
 # ============================================================================
 # CONTEXT7 TRACKER
@@ -134,7 +134,7 @@ test_memory_validator_warns_on_delete() {
 # AGENT-BROWSER SAFETY
 # ============================================================================
 
-BASH_HOOKS_DIR="$PROJECT_ROOT/hooks/pretool/bash"
+BASH_HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/bash"
 
 describe "agent-browser Safety Hook"
 

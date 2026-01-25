@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOK_PATH="$PROJECT_ROOT/hooks/prompt/context-pruning-advisor.sh"
+HOOK_PATH="$PROJECT_ROOT/src/hooks/prompt/context-pruning-advisor.sh"
 
 # ============================================================================
 # HELPER FUNCTIONS

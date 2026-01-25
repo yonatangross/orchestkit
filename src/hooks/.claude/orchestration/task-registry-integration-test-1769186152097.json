@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186152097",
+  "tasks": [
+    {
+      "taskId": "task-1769186152156",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:35:52.156Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186152157",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:35:52.157Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186152158-htrtix-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:35:52.159Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186152158-htrtix",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186152158-htrtix-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:35:52.159Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186152158-htrtix",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186152158-htrtix-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:35:52.159Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186152158-htrtix",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186152158-htrtix-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:35:52.159Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186152158-htrtix",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186152158-htrtix",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:35:52.158Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186152158-htrtix-0",
+        "1": "task-pipeline-1769186152158-htrtix-1",
+        "2": "task-pipeline-1769186152158-htrtix-2",
+        "3": "task-pipeline-1769186152158-htrtix-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186152198-kf9048",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:35:52.198Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186152198-kf9048-0",
+        "1": "task-pipeline-1769186152198-kf9048-1",
+        "2": "task-pipeline-1769186152198-kf9048-2",
+        "3": "task-pipeline-1769186152198-kf9048-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:35:52.198Z"
+}

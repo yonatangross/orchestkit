@@ -13,7 +13,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 
 # ============================================================================
 # SUBAGENT-START HOOKS

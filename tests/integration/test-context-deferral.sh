@@ -64,7 +64,7 @@ test_deferral_threshold
 
 log_section "Test 3: Context budget monitor has CC 2.1.7 features"
 test_context_monitor_has_cc217_features() {
-  local context_monitor="$PROJECT_ROOT/hooks/posttool/context-budget-monitor.sh"
+  local context_monitor="$PROJECT_ROOT/src/hooks/posttool/context-budget-monitor.sh"
 
   if [[ ! -f "$context_monitor" ]]; then
     log_skip "Context budget monitor not found"
@@ -74,7 +74,7 @@ test_context_monitor_has_cc217_features() {
   # Since v5.1.0, hooks may delegate to TypeScript
   if grep -q "run-hook.mjs" "$context_monitor" 2>/dev/null; then
     # TypeScript version - check TS source for features
-    local ts_source="$PROJECT_ROOT/hooks/src/posttool/context-budget-monitor.ts"
+    local ts_source="$PROJECT_ROOT/src/hooks/src/posttool/context-budget-monitor.ts"
     if [[ -f "$ts_source" ]]; then
       if grep -qiE "mcp|defer|context|window" "$ts_source"; then
         log_pass "Context monitor (TypeScript) has CC 2.1.7 features"
@@ -107,8 +107,8 @@ test_context_monitor_has_cc217_features
 
 log_section "Test 4: Common library has permission feedback functions"
 test_common_has_permission_feedback() {
-  local common_lib="$PROJECT_ROOT/hooks/_lib/common.sh"
-  local ts_lib="$PROJECT_ROOT/hooks/src/lib/common.ts"
+  local common_lib="$PROJECT_ROOT/src/hooks/_lib/common.sh"
+  local ts_lib="$PROJECT_ROOT/src/hooks/src/lib/common.ts"
 
   # Since v5.1.0, common.sh has been migrated to TypeScript
   if [[ -f "$ts_lib" ]]; then
@@ -179,8 +179,8 @@ test_plugin_version_requirement
 log_section "Test 6: Compound command validator exists"
 test_compound_validator_exists() {
   # Check for TypeScript source (Phase 4 migration)
-  local ts_validator="$PROJECT_ROOT/hooks/src/pretool/bash/compound-command-validator.ts"
-  local runner="$PROJECT_ROOT/hooks/bin/run-hook.mjs"
+  local ts_validator="$PROJECT_ROOT/src/hooks/src/pretool/bash/compound-command-validator.ts"
+  local runner="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
 
   if [[ -f "$ts_validator" ]] && [[ -f "$runner" ]]; then
     log_pass "Compound command validator exists (TypeScript)"

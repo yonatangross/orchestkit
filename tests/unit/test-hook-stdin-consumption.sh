@@ -129,15 +129,15 @@ main() {
 
     # Hook directories to check
     local HOOK_DIRS=(
-        "hooks/posttool"
-        "hooks/pretool"
-        "hooks/lifecycle"
-        "hooks/stop"
-        "hooks/subagent-stop"
-        "hooks/permission"
-        "hooks/notification"
-        "hooks/skill"
-        "hooks/prompt"
+        "src/hooks/src/posttool"
+        "src/hooks/src/pretool"
+        "src/hooks/src/lifecycle"
+        "src/hooks/src/stop"
+        "src/hooks/src/subagent-stop"
+        "src/hooks/src/permission"
+        "src/hooks/src/notification"
+        "src/hooks/src/skill"
+        "src/hooks/src/prompt"
     )
 
     for dir in "${HOOK_DIRS[@]}"; do

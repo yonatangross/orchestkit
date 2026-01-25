@@ -1,0 +1,30 @@
+{
+  "name": "orchestkit",
+  "version": "5.2.4",
+  "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
+  "scripts": {
+    "build": "bash scripts/build-plugins.sh",
+    "prebuild": "echo '🔨 Building plugins from source...'",
+    "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "test": "bash tests/run-all-tests.sh",
+    "test:security": "bash tests/security/run-security-tests.sh",
+    "test:skills": "bash tests/skills/structure/test-skill-md.sh",
+    "test:agents": "bash tests/agents/test-agent-frontmatter.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yonatangross/orchestkit.git"
+  },
+  "keywords": [
+    "claude-code",
+    "plugin",
+    "ai",
+    "development",
+    "toolkit"
+  ],
+  "author": "Yonatan Gross",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

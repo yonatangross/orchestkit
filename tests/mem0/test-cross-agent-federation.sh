@@ -265,7 +265,7 @@ echo "=========================================="
 echo "Testing agent-memory-inject.sh hook"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh"
+HOOK="$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh"
 
 # Test hook exists and is executable
 TESTS_RUN=$((TESTS_RUN + 1))

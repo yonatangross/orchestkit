@@ -15,13 +15,42 @@ env:
 
 jobs:
   # ============================================================================
+  # STAGE 0: Build Plugins (< 1m)
+  # ============================================================================
+  build-plugins:
+    name: Build Plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
+      - name: Validate no symlinks
+        run: |
+          if find plugins/ -type l | grep -q .; then
+            echo "ERROR: Found symlinks in plugins/"
+            exit 1
+          fi
+
+  # ============================================================================
   # STAGE 1: Fast Checks (< 30s)
   # ============================================================================
   lint:
     name: Static Analysis
+    needs: build-plugins
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
 
       - name: Setup CI environment
         run: ./bin/ci-setup.sh --with-shellcheck
@@ -42,6 +71,22 @@ jobs:
         os: [ubuntu-latest, macos-latest]
     steps:
       - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update && sudo apt-get install -y jq rsync
+          else
+            brew install jq rsync
+          fi
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
 
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
@@ -112,6 +157,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update && sudo apt-get install -y jq rsync
+          else
+            brew install jq rsync
+          fi
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
 
@@ -143,6 +204,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update && sudo apt-get install -y jq rsync
+          else
+            brew install jq rsync
+          fi
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
 
@@ -170,6 +242,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
 
@@ -189,6 +267,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
 
@@ -206,6 +295,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
 
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
@@ -226,6 +321,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
 
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
@@ -269,6 +370,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
+
       - name: Setup CI environment
         run: ./bin/ci-setup.sh
 
@@ -296,6 +403,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+      - name: Build plugins
+        run: bash scripts/build-plugins.sh
 
       - name: Setup CI environment
         run: ./bin/ci-setup.sh

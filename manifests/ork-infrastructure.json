@@ -1,0 +1,17 @@
+{
+  "name": "ork-infrastructure",
+  "version": "5.2.4",
+  "description": "Infrastructure patterns — zero-downtime-migration, database-versioning, alembic-migrations, observability-monitoring, edge-computing-patterns",
+  "skills": [
+    "zero-downtime-migration",
+    "database-versioning",
+    "alembic-migrations",
+    "observability-monitoring",
+    "edge-computing-patterns"
+  ],
+  "agents": [
+    "infrastructure-architect",
+    "monitoring-engineer"
+  ],
+  "hooks": "none"
+}

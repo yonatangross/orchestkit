@@ -14,9 +14,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-TS_PRE_AGENT="$PROJECT_ROOT/hooks/src/subagent-start/agent-memory-inject.ts"
-TS_POST_AGENT="$PROJECT_ROOT/hooks/src/subagent-stop/agent-memory-store.ts"
-DIST_DIR="$PROJECT_ROOT/hooks/dist"
+TS_PRE_AGENT="$PROJECT_ROOT/src/hooks/src/subagent-start/agent-memory-inject.ts"
+TS_POST_AGENT="$PROJECT_ROOT/src/hooks/src/subagent-stop/agent-memory-store.ts"
+DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # ============================================================================
 # PRE-AGENT HOOK TESTS (TypeScript)
@@ -64,7 +64,7 @@ test_pre_agent_checks_mem0_available() {
         return 0
     fi
     # May be in lib files
-    if grep -qiE "mem0|available" "$PROJECT_ROOT/hooks/src/lib/"*.ts 2>/dev/null; then
+    if grep -qiE "mem0|available" "$PROJECT_ROOT/src/hooks/src/lib/"*.ts 2>/dev/null; then
         return 0
     fi
     fail "agent-memory-inject.ts should check mem0 availability"
@@ -81,7 +81,7 @@ test_pre_agent_has_hook_result() {
         return 0
     fi
     # Check types file
-    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "agent-memory-inject.ts should use HookResult type"
@@ -148,7 +148,7 @@ test_post_agent_has_hook_result() {
         return 0
     fi
     # Check types file
-    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/hooks/src/types.ts" 2>/dev/null; then
+    if grep -qE "HookResult|continue|suppressOutput" "$PROJECT_ROOT/src/hooks/src/types.ts" 2>/dev/null; then
         return 0
     fi
     fail "agent-memory-store.ts should use HookResult type"

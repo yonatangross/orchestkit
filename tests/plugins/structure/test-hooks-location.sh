@@ -14,14 +14,14 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 echo "Testing Claude Code hooks location..."
 
 # Test 1: hooks/hooks.json must exist
-if [[ ! -f "$PROJECT_ROOT/hooks/hooks.json" ]]; then
+if [[ ! -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
     echo "FAIL: hooks/hooks.json not found"
     echo "  Claude Code requires hooks to be defined in hooks/hooks.json"
     exit 1
 fi
 
 # Test 2: hooks/hooks.json must be valid JSON with hooks wrapper
-if ! jq -e '.hooks' "$PROJECT_ROOT/hooks/hooks.json" >/dev/null 2>&1; then
+if ! jq -e '.hooks' "$PROJECT_ROOT/src/hooks/hooks.json" >/dev/null 2>&1; then
     echo "FAIL: hooks/hooks.json missing 'hooks' wrapper object"
     echo "  Format must be: {\"hooks\": {\"PreToolUse\": [...], ...}}"
     exit 1

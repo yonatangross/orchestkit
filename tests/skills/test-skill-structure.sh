@@ -5,7 +5,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SKILLS_ROOT="$REPO_ROOT/skills"
+SKILLS_ROOT="$REPO_ROOT/src/skills"
 
 FAILED=0
 SKILL_COUNT=0
@@ -13,7 +13,7 @@ SKILL_COUNT=0
 echo "=== Skill Structure Test (CC 2.1.7) ==="
 echo ""
 
-# CC 2.1.7 flat structure: skills/<skill-name>/SKILL.md
+# CC 2.1.7 flat structure: src/skills/<skill-name>/SKILL.md
 for skill_dir in "$SKILLS_ROOT"/*/; do
   if [[ ! -d "$skill_dir" ]]; then
     continue

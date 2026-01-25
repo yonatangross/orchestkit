@@ -1,0 +1,17 @@
+{
+  "name": "ork-git",
+  "version": "5.2.4",
+  "description": "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs",
+  "skills": [
+    "git-workflow",
+    "git-recovery-command",
+    "create-pr",
+    "fix-issue",
+    "issue-progress-tracking",
+    "stacked-prs"
+  ],
+  "agents": [
+    "git-operations-engineer"
+  ],
+  "hooks": "none"
+}

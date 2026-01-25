@@ -18,7 +18,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
 # Scripts directory
-SCRIPTS_DIR="$PROJECT_ROOT/skills/mem0-memory/scripts"
+SCRIPTS_DIR="$PROJECT_ROOT/src/skills/mem0-memory/scripts"
 LIB_DIR="$SCRIPTS_DIR/lib"
 
 # Test counters
@@ -508,7 +508,7 @@ echo "────────────────────────�
 
 test_scripts_work_from_project_root() {
     test_start "scripts work from project root (Cursor perspective)"
-    local script_path="$PROJECT_ROOT/skills/mem0-memory/scripts/crud/add-memory.py"
+    local script_path="$PROJECT_ROOT/src/skills/mem0-memory/scripts/crud/add-memory.py"
     if python3 "$script_path" --help >/dev/null 2>&1; then
         test_pass
     else
@@ -518,7 +518,7 @@ test_scripts_work_from_project_root() {
 
 test_scripts_can_be_called_via_bash() {
     test_start "scripts can be called via bash tool"
-    local script_path="$PROJECT_ROOT/skills/mem0-memory/scripts/crud/search-memories.py"
+    local script_path="$PROJECT_ROOT/src/skills/mem0-memory/scripts/crud/search-memories.py"
     if bash -c "python3 '$script_path' --help" >/dev/null 2>&1; then
         test_pass
     else

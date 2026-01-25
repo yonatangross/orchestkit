@@ -16,7 +16,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-SKILLS_DIR="$PROJECT_ROOT/skills"
+SKILLS_DIR="$PROJECT_ROOT/src/skills"
 
 # Colors
 RED='\033[0;31m'
@@ -86,7 +86,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
 done
 
 if [ "$missing_skill_md" -eq 0 ]; then
-    pass "All $total_skills skills have SKILL.md"
+    pass "All $total_skills src/skills have SKILL.md"
 else
     fail "$missing_skill_md skills missing SKILL.md"
 fi
@@ -172,7 +172,7 @@ avg_tokens=$((total_tokens / total_skills))
 if [ "$oversized_skills" -eq 0 ]; then
     pass "All SKILL.md files within token budget"
 else
-    warn "$oversized_skills skills have oversized SKILL.md files"
+    warn "$oversized_skills src/skills have oversized SKILL.md files"
 fi
 
 info "Average tokens per SKILL.md: $avg_tokens"

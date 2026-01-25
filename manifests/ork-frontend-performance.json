@@ -1,0 +1,18 @@
+{
+  "name": "ork-frontend-performance",
+  "version": "5.2.4",
+  "description": "Frontend Performance — performance-optimization, render-optimization, lazy-loading-patterns, image-optimization, core-web-vitals, vite-advanced",
+  "skills": [
+    "performance-optimization",
+    "render-optimization",
+    "lazy-loading-patterns",
+    "image-optimization",
+    "core-web-vitals",
+    "vite-advanced"
+  ],
+  "agents": [
+    "performance-engineer",
+    "frontend-ui-developer"
+  ],
+  "hooks": "none"
+}

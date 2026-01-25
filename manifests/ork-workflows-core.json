@@ -1,0 +1,17 @@
+{
+  "name": "ork-workflows-core",
+  "version": "5.2.4",
+  "description": "Workflows Core — implement, explore, verify, review-pr, code-review-playbook, skill-evolution",
+  "skills": [
+    "implement",
+    "explore",
+    "verify",
+    "review-pr",
+    "code-review-playbook",
+    "skill-evolution"
+  ],
+  "agents": [
+    "code-quality-reviewer"
+  ],
+  "hooks": "none"
+}

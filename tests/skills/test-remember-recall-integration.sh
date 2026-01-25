@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SKILLS_ROOT="$REPO_ROOT/skills"
+SKILLS_ROOT="$REPO_ROOT/src/skills"
 
 REMEMBER_DIR="$SKILLS_ROOT/remember"
 RECALL_DIR="$SKILLS_ROOT/recall"

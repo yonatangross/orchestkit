@@ -48,7 +48,7 @@ test_typescript_bundles_exist() {
     )
 
     for bundle in "${bundles[@]}"; do
-        if [[ -f "${PROJECT_ROOT}/hooks/dist/${bundle}" ]]; then
+        if [[ -f "${PROJECT_ROOT}/src/hooks/dist/${bundle}" ]]; then
             log_pass "Bundle exists: ${bundle}"
         else
             log_fail "Bundle missing: ${bundle}"
@@ -61,12 +61,12 @@ test_typescript_source_structure() {
     log_section "Test: TypeScript Source Structure"
 
     local required_dirs=(
-        "hooks/src/prompt"
-        "hooks/src/pretool"
-        "hooks/src/posttool"
-        "hooks/src/lifecycle"
-        "hooks/src/permission"
-        "hooks/src/lib"
+        "src/hooks/src/prompt"
+        "src/hooks/src/pretool"
+        "src/hooks/src/posttool"
+        "src/hooks/src/lifecycle"
+        "src/hooks/src/permission"
+        "src/hooks/src/lib"
     )
 
     for dir in "${required_dirs[@]}"; do
@@ -82,19 +82,19 @@ test_typescript_source_structure() {
 test_typescript_entry_points() {
     log_section "Test: TypeScript Entry Points"
 
-    if [[ -f "${PROJECT_ROOT}/hooks/src/index.ts" ]]; then
+    if [[ -f "${PROJECT_ROOT}/src/hooks/src/index.ts" ]]; then
         log_pass "Main index.ts exists"
     else
         log_fail "Main index.ts missing"
     fi
 
-    if [[ -f "${PROJECT_ROOT}/hooks/src/types.ts" ]]; then
+    if [[ -f "${PROJECT_ROOT}/src/hooks/src/types.ts" ]]; then
         log_pass "Types definition exists"
     else
         log_fail "Types definition missing"
     fi
 
-    if [[ -d "${PROJECT_ROOT}/hooks/src/entries" ]]; then
+    if [[ -d "${PROJECT_ROOT}/src/hooks/src/entries" ]]; then
         log_pass "Entries directory exists"
     else
         log_fail "Entries directory missing"
@@ -105,7 +105,7 @@ test_typescript_entry_points() {
 test_hook_runner() {
     log_section "Test: Hook Runner"
 
-    local runner="${PROJECT_ROOT}/hooks/bin/run-hook.mjs"
+    local runner="${PROJECT_ROOT}/src/hooks/bin/run-hook.mjs"
 
     if [[ -f "$runner" ]]; then
         log_pass "run-hook.mjs exists"
@@ -150,15 +150,15 @@ test_typescript_exports() {
     log_section "Test: TypeScript Hook Exports"
 
     # Check that index.ts exports hook types
-    if grep -q "export.*HookInput\|export.*HookResult" "${PROJECT_ROOT}/hooks/src/index.ts" 2>/dev/null || \
-       grep -q "export.*from.*types" "${PROJECT_ROOT}/hooks/src/index.ts" 2>/dev/null; then
+    if grep -q "export.*HookInput\|export.*HookResult" "${PROJECT_ROOT}/src/hooks/src/index.ts" 2>/dev/null || \
+       grep -q "export.*from.*types" "${PROJECT_ROOT}/src/hooks/src/index.ts" 2>/dev/null; then
         log_pass "index.ts exports hook types"
     else
         log_fail "index.ts missing hook type exports"
     fi
 
     # Check that bundles are not empty
-    local hooks_bundle="${PROJECT_ROOT}/hooks/dist/hooks.mjs"
+    local hooks_bundle="${PROJECT_ROOT}/src/hooks/dist/hooks.mjs"
     if [[ -f "$hooks_bundle" ]]; then
         local size
         size=$(wc -c < "$hooks_bundle" | tr -d ' ')
@@ -180,7 +180,7 @@ test_lib_utilities() {
     )
 
     for lib in "${expected_libs[@]}"; do
-        if [[ -f "${PROJECT_ROOT}/hooks/src/lib/${lib}" ]]; then
+        if [[ -f "${PROJECT_ROOT}/src/hooks/src/lib/${lib}" ]]; then
             log_pass "Library exists: ${lib}"
         else
             log_fail "Library missing: ${lib}"

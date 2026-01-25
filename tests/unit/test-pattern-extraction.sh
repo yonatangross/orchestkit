@@ -99,48 +99,48 @@ echo "=========================================="
 
 test_pattern_extractor_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "pattern-extractor.sh has valid bash syntax"
 }
 
 test_pattern_extractor_commit_extraction() {
     local input='{"tool_input": {"command": "git commit -m \"feat: Add JWT authentication\""}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor returns valid JSON for commit"
 }
 
 test_pattern_extractor_test_extraction() {
     local input='{"tool_input": {"command": "pytest tests/"}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor handles test commands"
 }
 
 test_pattern_extractor_failed_test() {
     local input='{"tool_input": {"command": "pytest tests/"}, "tool_result": {"exit_code": "1"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor handles failed tests"
 }
 
 test_pattern_extractor_build_extraction() {
     local input='{"tool_input": {"command": "npm run build"}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor handles build commands"
 }
 
 test_pattern_extractor_pr_merge() {
     local input='{"tool_input": {"command": "gh pr merge 123"}, "tool_result": {"exit_code": "0"}}'
     local output
-    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "$input" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor handles PR merge"
 }
 
 test_pattern_extractor_empty_input() {
     local output
-    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
+    output=$(echo "" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Pattern extractor handles empty input gracefully"
 }
 
@@ -155,44 +155,44 @@ echo "=========================================="
 
 test_antipattern_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "antipattern-warning.sh has valid bash syntax"
 }
 
 test_antipattern_offset_pagination() {
     local output
-    output=$(echo "implement offset pagination for users" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "implement offset pagination for users" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" "additionalContext" "Detects offset pagination anti-pattern"
     assert_contains "$output" "cursor-based" "Suggests cursor-based alternative"
 }
 
 test_antipattern_n1_query() {
     local output
-    output=$(echo "build a loop with n+1 query" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "build a loop with n+1 query" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" "additionalContext" "Detects N+1 query anti-pattern"
 }
 
 test_antipattern_polling() {
     local output
-    output=$(echo "implement polling for real-time updates" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "implement polling for real-time updates" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" "additionalContext" "Detects polling anti-pattern"
 }
 
 test_antipattern_global_state() {
     local output
-    output=$(echo "add global state for user session" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "add global state for user session" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" "additionalContext" "Detects global state anti-pattern"
 }
 
 test_antipattern_safe_prompt() {
     local output
-    output=$(echo "what time is it" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "what time is it" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" '"suppressOutput": true' "Safe prompts pass through silently"
 }
 
 test_antipattern_non_implementation() {
     local output
-    output=$(echo "explain how pagination works" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
+    output=$(echo "explain how pagination works" | CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" 2>/dev/null)
     assert_contains "$output" '"suppressOutput": true' "Non-implementation prompts pass silently"
 }
 
@@ -207,13 +207,13 @@ echo "=========================================="
 
 test_session_patterns_syntax() {
     local result
-    result=$(bash -n "$PROJECT_ROOT/hooks/stop/session-patterns.sh" 2>&1 && echo "OK")
+    result=$(bash -n "$PROJECT_ROOT/src/hooks/stop/session-patterns.sh" 2>&1 && echo "OK")
     assert_contains "$result" "OK" "session-patterns.sh has valid bash syntax"
 }
 
 test_session_patterns_empty_queue() {
     local output
-    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/hooks/stop/session-patterns.sh" 2>/dev/null)
+    output=$(CLAUDE_PROJECT_DIR="$PROJECT_ROOT" "$PROJECT_ROOT/src/hooks/stop/session-patterns.sh" 2>/dev/null)
     assert_contains "$output" '"continue": true' "Session patterns handles empty queue"
 }
 
@@ -230,7 +230,7 @@ test_no_declare_A() {
     local count
     # Disable errexit for this check (grep returns 1 if no matches)
     set +e
-    count=$(grep -l "declare -A" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(grep -l "declare -A" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/src/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"
     assert_equals "0" "$count" "No declare -A (associative arrays) in hooks"
@@ -239,7 +239,7 @@ test_no_declare_A() {
 test_no_declare_g() {
     local count
     set +e
-    count=$(grep -l "declare -g" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(grep -l "declare -g" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/src/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"
     assert_equals "0" "$count" "No declare -g (global) in hooks"
@@ -248,7 +248,7 @@ test_no_declare_g() {
 test_no_readarray() {
     local count
     set +e
-    count=$(grep -lE "readarray|mapfile" "$PROJECT_ROOT/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
+    count=$(grep -lE "readarray|mapfile" "$PROJECT_ROOT/src/hooks/posttool/bash/pattern-extractor.sh" "$PROJECT_ROOT/src/hooks/prompt/antipattern-warning.sh" "$PROJECT_ROOT/src/hooks/stop/session-patterns.sh" 2>/dev/null | wc -l | tr -d ' ')
     set -e
     [[ -z "$count" ]] && count="0"
     assert_equals "0" "$count" "No readarray/mapfile in hooks"

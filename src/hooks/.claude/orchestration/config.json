@@ -1,0 +1,9 @@
+{
+  "enableAutoDispatch": false,
+  "enableSkillInjection": false,
+  "maxSkillInjectionTokens": 200,
+  "enableCalibration": true,
+  "enablePipelines": false,
+  "maxRetries": 5,
+  "retryDelayBaseMs": 1000
+}

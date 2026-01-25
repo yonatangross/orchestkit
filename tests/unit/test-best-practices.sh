@@ -28,10 +28,10 @@ MEM0_SCOPE_BEST_PRACTICES="best-practices"
 MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices")
 
 # Skill paths (CC 2.1.6 nested structure)
-REMEMBER_SKILL="$PROJECT_ROOT/skills/remember"
-RECALL_SKILL="$PROJECT_ROOT/skills/recall"
-BEST_PRACTICES_SKILL="$PROJECT_ROOT/skills/best-practices"
-FEEDBACK_SKILL="$PROJECT_ROOT/skills/feedback"
+REMEMBER_SKILL="$PROJECT_ROOT/src/skills/remember"
+RECALL_SKILL="$PROJECT_ROOT/src/skills/recall"
+BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/best-practices"
+FEEDBACK_SKILL="$PROJECT_ROOT/src/skills/feedback"
 
 # Helper to set up clean test environment
 # Note: mem0 functions are now in test-helpers.sh, no need to source a library
@@ -441,17 +441,17 @@ describe "Best Practice Library: Hooks"
 
 test_antipattern_hook_exists() {
     # Hooks migrated to TypeScript in v5.1.0
-    assert_file_exists "$PROJECT_ROOT/hooks/src/prompt/antipattern-warning.ts"
+    assert_file_exists "$PROJECT_ROOT/src/hooks/src/prompt/antipattern-warning.ts"
 }
 
 test_antipattern_hook_compiled() {
     # TypeScript hooks compile to prompt.mjs bundle
-    assert_file_exists "$PROJECT_ROOT/hooks/dist/prompt.mjs"
+    assert_file_exists "$PROJECT_ROOT/src/hooks/dist/prompt.mjs"
 }
 
 test_antipattern_hook_has_export() {
     # TypeScript hook should export the handler function (antipatternWarning)
-    grep -qi "export.*function.*antipattern" "$PROJECT_ROOT/hooks/src/prompt/antipattern-warning.ts" 2>/dev/null || fail "Hook should export antipattern handler"
+    grep -qi "export.*function.*antipattern" "$PROJECT_ROOT/src/hooks/src/prompt/antipattern-warning.ts" 2>/dev/null || fail "Hook should export antipattern handler"
 }
 
 # ============================================================================

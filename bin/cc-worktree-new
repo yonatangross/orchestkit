@@ -120,9 +120,9 @@ if [[ ! -e "$WORKTREE_PATH/.claude/coordination" ]]; then
 fi
 
 # Also symlink the hooks lib
-if [[ -d "$REPO_ROOT/hooks/_lib" ]]; then
-    mkdir -p "$WORKTREE_PATH/hooks"
-    ln -sf "$REPO_ROOT/hooks/_lib" "$WORKTREE_PATH/hooks/_lib"
+if [[ -d "$REPO_ROOT/src/hooks/_lib" ]]; then
+    mkdir -p "$WORKTREE_PATH/src/hooks"
+    ln -sf "$REPO_ROOT/src/hooks/_lib" "$WORKTREE_PATH/src/hooks/_lib"
 fi
 
 # Register instance in registry

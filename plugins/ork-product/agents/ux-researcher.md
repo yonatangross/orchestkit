@@ -1,1 +1,0 @@
-../../../agents/ux-researcher.md

@@ -26,26 +26,26 @@ fi
 # =============================================================================
 # COUNT ACTUAL COMPONENTS (filesystem = source of truth)
 # =============================================================================
-if [[ -d "$PROJECT_ROOT/skills" ]]; then
-    SKILLS=$(find "$PROJECT_ROOT/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+if [[ -d "$PROJECT_ROOT/src/skills" ]]; then
+    SKILLS=$(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 else
     SKILLS=0
 fi
 
-if [[ -d "$PROJECT_ROOT/agents" ]]; then
-    AGENTS=$(find "$PROJECT_ROOT/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+if [[ -d "$PROJECT_ROOT/src/agents" ]]; then
+    AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 else
     AGENTS=0
 fi
 
-if [[ -d "$PROJECT_ROOT/commands" ]]; then
-    COMMANDS=$(find "$PROJECT_ROOT/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+if [[ -d "$PROJECT_ROOT/src/commands" ]]; then
+    COMMANDS=$(find "$PROJECT_ROOT/src/commands" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 else
     COMMANDS=0
 fi
 
-if [[ -d "$PROJECT_ROOT/hooks" ]]; then
-    HOOKS=$(find "$PROJECT_ROOT/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
+if [[ -d "$PROJECT_ROOT/src/hooks" ]]; then
+    HOOKS=$(find "$PROJECT_ROOT/src/hooks" -name "*.sh" -type f ! -path "*/_lib/*" 2>/dev/null | wc -l | tr -d ' ')
 else
     HOOKS=0
 fi

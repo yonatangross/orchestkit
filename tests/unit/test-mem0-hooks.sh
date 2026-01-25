@@ -18,7 +18,7 @@ export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT"
 
 # Hooks directory
-HOOKS_DIR="$PROJECT_ROOT/hooks"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 
 # Test counters
 TESTS_RUN=0

@@ -1,0 +1,16 @@
+{
+  "name": "ork-ai-observability",
+  "version": "5.2.4",
+  "description": "AI Observability — langfuse-observability, cache-cost-tracking, semantic-caching, llm-evaluation, evidence-verification",
+  "skills": [
+    "langfuse-observability",
+    "cache-cost-tracking",
+    "semantic-caching",
+    "llm-evaluation",
+    "evidence-verification"
+  ],
+  "agents": [
+    "monitoring-engineer"
+  ],
+  "hooks": "none"
+}

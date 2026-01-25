@@ -6,7 +6,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-AGENTS_DIR="$PROJECT_ROOT/agents"
+AGENTS_DIR="$PROJECT_ROOT/src/agents"
 AGENT_FILE="$AGENTS_DIR/performance-engineer.md"
 
 # Colors

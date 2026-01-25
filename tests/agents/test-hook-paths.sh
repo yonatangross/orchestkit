@@ -16,7 +16,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 PLUGIN_JSON="$REPO_ROOT/.claude-plugin/plugin.json"
-AGENTS_DIR="$REPO_ROOT/agents"
+AGENTS_DIR="$REPO_ROOT/src/agents"
 
 FAILED=0
 TOTAL_HOOKS=0
@@ -69,7 +69,7 @@ validate_run_hook_command() {
     # Check if this is a run-hook.mjs command
     if [[ "$cmd" == *"run-hook.mjs"* ]]; then
         # Check if run-hook.mjs exists
-        local runner_path="$REPO_ROOT/hooks/bin/run-hook.mjs"
+        local runner_path="$REPO_ROOT/src/hooks/bin/run-hook.mjs"
         if [[ ! -f "$runner_path" ]]; then
             return 1
         fi
@@ -80,7 +80,7 @@ validate_run_hook_command() {
 
         if [[ -n "$handler" ]]; then
             # Check if TypeScript source exists
-            local ts_path="$REPO_ROOT/hooks/src/${handler}.ts"
+            local ts_path="$REPO_ROOT/src/hooks/src/${handler}.ts"
             if [[ -f "$ts_path" ]]; then
                 return 0  # Valid
             fi

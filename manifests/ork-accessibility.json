@@ -1,0 +1,15 @@
+{
+  "name": "ork-accessibility",
+  "version": "5.2.4",
+  "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management, react-aria-patterns",
+  "skills": [
+    "wcag-compliance",
+    "a11y-testing",
+    "focus-management",
+    "react-aria-patterns"
+  ],
+  "agents": [
+    "accessibility-specialist"
+  ],
+  "hooks": "none"
+}

@@ -1,0 +1,17 @@
+{
+  "name": "ork-rag",
+  "version": "5.2.4",
+  "description": "RAG & Retrieval patterns — rag-retrieval, embeddings, contextual-retrieval, hyde-retrieval, reranking-patterns, query-decomposition",
+  "skills": [
+    "rag-retrieval",
+    "embeddings",
+    "contextual-retrieval",
+    "hyde-retrieval",
+    "reranking-patterns",
+    "query-decomposition"
+  ],
+  "agents": [
+    "data-pipeline-engineer"
+  ],
+  "hooks": "none"
+}

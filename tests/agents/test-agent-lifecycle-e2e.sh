@@ -53,7 +53,7 @@ test_pretool_context_gate() {
     test_start "context-gate checks context budget"
 
     export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    local hook_path="$PROJECT_ROOT/hooks/subagent-start/context-gate.sh"
+    local hook_path="$PROJECT_ROOT/src/hooks/subagent-start/context-gate.sh"
 
     # Since v5.1.0, context-gate delegates to TypeScript
     # Always pass if hook structure is correct (TS handling is internal)
@@ -91,7 +91,7 @@ test_pretool_subagent_validator() {
     # Test with valid agent (tool_input wrapper for TS hooks)
     local input='{"tool_input":{"subagent_type":"backend-system-architect","prompt":"Design API"}}'
     local output
-    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -111,7 +111,7 @@ test_pretool_subagent_validator_invalid() {
     # Test with invalid agent
     local input='{"subagent_type":"nonexistent-agent-xyz","prompt":"Do something"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Should still continue (warn but not block)
     if echo "$output" | jq -e '.' >/dev/null 2>&1; then
@@ -125,7 +125,7 @@ test_pretool_chain_order() {
     test_start "PreToolUse hooks run in correct order"
 
     export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-    local gate_hook="$PROJECT_ROOT/hooks/subagent-start/context-gate.sh"
+    local gate_hook="$PROJECT_ROOT/src/hooks/subagent-start/context-gate.sh"
 
     # Since v5.1.0, hooks may delegate to TypeScript
     # Always pass if hook structure is correct (TS handling is internal)
@@ -155,7 +155,7 @@ test_pretool_chain_order() {
         return
     fi
 
-    validator_output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    validator_output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local validator_ok
     validator_ok=$(echo "$validator_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -165,7 +165,7 @@ test_pretool_chain_order() {
         return
     fi
 
-    memory_output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    memory_output=$(echo "$input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     local memory_ok
     memory_ok=$(echo "$memory_output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -188,7 +188,7 @@ test_subagent_context_stager() {
 
     local input='{"agent_type":"workflow-architect","parent_context":{"task":"Design workflow"}}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-context-stager.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-context-stager.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -212,7 +212,7 @@ test_subagent_completion_tracker() {
 
     local input='{"agent_type":"test-generator","duration_ms":5000,"success":true}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-stop/subagent-completion-tracker.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/subagent-completion-tracker.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -231,7 +231,7 @@ test_subagent_quality_gate() {
 
     local input='{"agent_type":"code-quality-reviewer","output":"Code looks good","success":true}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-stop/subagent-quality-gate.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/subagent-quality-gate.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -250,7 +250,7 @@ test_agent_dispatcher() {
 
     local input='{"agent_type":"backend-system-architect","output":"API designed"}'
     local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local has_continue
     has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -271,7 +271,7 @@ test_full_agent_lifecycle() {
 
     export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
     mkdir -p "$PROJECT_ROOT/.claude/logs" 2>/dev/null || true
-    local gate_hook="$PROJECT_ROOT/hooks/subagent-start/context-gate.sh"
+    local gate_hook="$PROJECT_ROOT/src/hooks/subagent-start/context-gate.sh"
 
     # Since v5.1.0, some hooks delegate to TypeScript
     # Always pass if hook structure is correct (TS handling is internal)
@@ -293,16 +293,16 @@ test_full_agent_lifecycle() {
     gate_result=$(echo "$pretool_input" | perl -e 'alarm 10; exec @ARGV' bash "$gate_hook" 2>/dev/null || echo '{"continue":true}')
 
     local validator_result
-    validator_result=$(echo "$pretool_input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    validator_result=$(echo "$pretool_input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local memory_inject_result
-    memory_inject_result=$(echo "$pretool_input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
+    memory_inject_result=$(echo "$pretool_input" | perl -e 'alarm 10; exec @ARGV' bash "$PROJECT_ROOT/src/hooks/subagent-start/agent-memory-inject.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Phase 2: SubagentStart
     echo "    [2/4] SubagentStart..."
     local start_input='{"agent_type":"'$agent_type'"}'
     local start_result
-    start_result=$(echo "$start_input" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-context-stager.sh" 2>/dev/null || echo '{"continue":true}')
+    start_result=$(echo "$start_input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-context-stager.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Phase 3: Agent execution (simulated)
     echo "    [3/4] Agent execution (simulated)..."
@@ -313,18 +313,18 @@ test_full_agent_lifecycle() {
     local stop_input='{"agent_type":"'$agent_type'","output":"'$agent_output'","success":true,"duration_ms":10000}'
 
     local dispatcher_result
-    dispatcher_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    dispatcher_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local tracker_result
-    tracker_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/hooks/subagent-stop/subagent-completion-tracker.sh" 2>/dev/null || echo '{"continue":true}')
+    tracker_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/subagent-completion-tracker.sh" 2>/dev/null || echo '{"continue":true}')
 
     local quality_result
-    quality_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/hooks/subagent-stop/subagent-quality-gate.sh" 2>/dev/null || echo '{"continue":true}')
+    quality_result=$(echo "$stop_input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/subagent-quality-gate.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Phase 5: PostToolUse
     local posttool_input='{"tool_name":"Task","tool_input":{"subagent_type":"'$agent_type'"},"tool_result":"'$agent_output'"}'
     local memory_store_result
-    memory_store_result=$(echo "$posttool_input" | bash "$PROJECT_ROOT/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
+    memory_store_result=$(echo "$posttool_input" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/agent-memory-store.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Check all phases passed
     local all_passed=true
@@ -382,7 +382,7 @@ test_all_agents_spawn() {
     for agent in "${agents[@]}"; do
         local input='{"subagent_type":"'$agent'","prompt":"Test task"}'
         local output
-        output=$(echo "$input" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+        output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
         local ok
         ok=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
@@ -414,7 +414,7 @@ test_context_mode_validation() {
     local invalid_count=0
     local checked_count=0
 
-    for agent_file in "$PROJECT_ROOT/agents/"*.md; do
+    for agent_file in "$PROJECT_ROOT/src/agents/"*.md; do
         if [[ -f "$agent_file" ]]; then
             local context_mode
             context_mode=$(grep -E "^context:" "$agent_file" 2>/dev/null | head -1 | awk '{print $2}' || echo "")
@@ -442,7 +442,7 @@ test_context_mode_inherit() {
 
     # Check if any agents use inherit mode
     local inherit_count
-    inherit_count=$(grep -l "context: inherit" "$PROJECT_ROOT/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+    inherit_count=$(grep -l "context: inherit" "$PROJECT_ROOT/src/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
 
     # This is informational - inherit mode exists
     test_pass
@@ -462,12 +462,12 @@ test_agent_handoff_workflow() {
     # Step 1: workflow-architect completes
     local workflow_stop='{"agent_type":"workflow-architect","output":"Workflow designed with 5 nodes","success":true}'
     local workflow_result
-    workflow_result=$(echo "$workflow_stop" | bash "$PROJECT_ROOT/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    workflow_result=$(echo "$workflow_stop" | bash "$PROJECT_ROOT/src/hooks/subagent-stop/output-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     # Step 2: llm-integrator spawns
     local llm_spawn='{"subagent_type":"llm-integrator","prompt":"Implement LLM calls for nodes"}'
     local llm_result
-    llm_result=$(echo "$llm_spawn" | bash "$PROJECT_ROOT/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
+    llm_result=$(echo "$llm_spawn" | bash "$PROJECT_ROOT/src/hooks/subagent-start/subagent-validator.sh" 2>/dev/null || echo '{"continue":true}')
 
     local workflow_ok llm_ok
     workflow_ok=$(echo "$workflow_result" | jq -r '.continue // "false"' 2>/dev/null || echo "false")

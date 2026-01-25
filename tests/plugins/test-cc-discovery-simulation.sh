@@ -68,7 +68,7 @@ echo "────────────────────────�
 skills_config=$(jq -r '.skills // "null"' "$PLUGIN_JSON")
 
 if [[ "$skills_config" == "null" ]]; then
-    skills_dir="$PROJECT_ROOT/skills"
+    skills_dir="$PROJECT_ROOT/src/skills"
 elif echo "$skills_config" | jq -e '.directory' >/dev/null 2>&1; then
     # Object format (legacy): {"directory": "skills"}
     skills_subdir=$(echo "$skills_config" | jq -r '.directory')
@@ -102,7 +102,7 @@ else
         fi
     done < <(find "$skills_dir" -maxdepth 2 -name "SKILL.md" -type f 2>/dev/null)
 
-    echo -e "  ${GREEN}Found${NC}: $total_skills skills"
+    echo -e "  ${GREEN}Found${NC}: $total_skills src/skills"
     echo "    - User-invocable: ${#user_invocable_skills[@]}"
     echo "    - Internal: ${#internal_skills[@]}"
 
@@ -128,7 +128,7 @@ echo "────────────────────────�
 agents_config=$(jq -r '.agents // "null"' "$PLUGIN_JSON")
 
 if [[ "$agents_config" == "null" ]]; then
-    agents_dir="$PROJECT_ROOT/agents"
+    agents_dir="$PROJECT_ROOT/src/agents"
 elif echo "$agents_config" | jq -e '.directory' >/dev/null 2>&1; then
     agents_subdir=$(echo "$agents_config" | jq -r '.directory')
     agents_dir="$PROJECT_ROOT/$agents_subdir"

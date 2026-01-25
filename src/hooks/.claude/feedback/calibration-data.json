@@ -1,0 +1,1960 @@
+{
+  "schemaVersion": "1.0.0",
+  "createdAt": "2026-01-23T16:35:52.142Z",
+  "updatedAt": "2026-01-23T16:43:03.057Z",
+  "records": [
+    {
+      "timestamp": "2026-01-23T16:35:52.142Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.142Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.142Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.144Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.144Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.144Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.150Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.150Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.151Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.151Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.151Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.151Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.152Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.152Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.152Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:35:52.154Z",
+      "sessionId": "integration-test-1769186152097",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.422Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.422Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.423Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.424Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.425Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.425Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.431Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.431Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.432Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.432Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.432Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.432Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.432Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.433Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.433Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:17.433Z",
+      "sessionId": "integration-test-1769186237386",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.037Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.038Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.039Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.041Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.042Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.042Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.048Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.048Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.049Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.049Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.049Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.049Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.050Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.050Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.050Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:42.050Z",
+      "sessionId": "integration-test-1769186262002",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.008Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.009Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.009Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.010Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.010Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.010Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.017Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.018Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.018Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.018Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.018Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.019Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.019Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.019Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.019Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:37:53.019Z",
+      "sessionId": "integration-test-1769186272974",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.960Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.960Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.961Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.962Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.962Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.963Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.970Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.970Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.970Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.971Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.971Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.971Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.971Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.972Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.972Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:08.972Z",
+      "sessionId": "integration-test-1769186288925",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.515Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.516Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.516Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.517Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.517Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.518Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.524Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.525Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.525Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.525Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.525Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.526Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.526Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.526Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.526Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:21.526Z",
+      "sessionId": "integration-test-1769186301481",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.929Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.930Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.930Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.932Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.932Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.932Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.940Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.940Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.940Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.941Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.941Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.941Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.942Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.942Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.942Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:29.943Z",
+      "sessionId": "integration-test-1769186309894",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.584Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.585Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.585Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.587Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.587Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.587Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.594Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.595Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.595Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.595Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.596Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.596Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.596Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.597Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.597Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:38:53.597Z",
+      "sessionId": "integration-test-1769186333551",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.316Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.316Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.317Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.318Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.319Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.319Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.327Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.328Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.328Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.329Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.329Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.329Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.330Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.330Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.330Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:42:57.330Z",
+      "sessionId": "integration-test-1769186577280",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.043Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "f9fb5379190765aa",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 88,
+      "outcome": "success",
+      "durationMs": 5000
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.044Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "0be66aeaee11c74f",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 85,
+      "outcome": "success",
+      "durationMs": 4500
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.044Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "e08243a76a2f24a8",
+      "matchedKeywords": [
+        "api",
+        "backend",
+        "database"
+      ],
+      "dispatchConfidence": 90,
+      "outcome": "success",
+      "durationMs": 4800
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.045Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "38d1c1881b1cb59a",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 75,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.045Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "9ebfcb816504a29f",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 78,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.046Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "41c86ef119517075",
+      "matchedKeywords": [
+        "test",
+        "coverage"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.054Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "eb56b79e42e13cdb",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.054Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2db151b3ebf97569",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.055Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "a9868f1a3c7575c4",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.055Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "4f18c21fbf07e893",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.056Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "frontend-ui-developer",
+      "promptHash": "2fa24fc3f67c1469",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.056Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "5483e38b558a4fac",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.056Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "8c6a6a67ca4e3b4d",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.057Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "frontend-ui-developer",
+      "promptHash": "63a285dbbe852a30",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.057Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "test-generator",
+      "promptHash": "44e4293846c30cec",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "success"
+    },
+    {
+      "timestamp": "2026-01-23T16:43:03.057Z",
+      "sessionId": "integration-test-1769186583008",
+      "agent": "backend-system-architect",
+      "promptHash": "0903b1c7a91750d8",
+      "matchedKeywords": [
+        "test"
+      ],
+      "dispatchConfidence": 80,
+      "outcome": "failure"
+    }
+  ],
+  "adjustments": [
+    {
+      "keyword": "api",
+      "agent": "backend-system-architect",
+      "adjustment": 15,
+      "sampleCount": 30,
+      "lastUpdated": "2026-01-23T16:43:03.044Z"
+    },
+    {
+      "keyword": "backend",
+      "agent": "backend-system-architect",
+      "adjustment": 15,
+      "sampleCount": 30,
+      "lastUpdated": "2026-01-23T16:43:03.044Z"
+    },
+    {
+      "keyword": "database",
+      "agent": "backend-system-architect",
+      "adjustment": 15,
+      "sampleCount": 30,
+      "lastUpdated": "2026-01-23T16:43:03.044Z"
+    },
+    {
+      "keyword": "test",
+      "agent": "test-generator",
+      "adjustment": -12,
+      "sampleCount": 60,
+      "lastUpdated": "2026-01-23T16:43:03.057Z"
+    },
+    {
+      "keyword": "coverage",
+      "agent": "test-generator",
+      "adjustment": -15,
+      "sampleCount": 30,
+      "lastUpdated": "2026-01-23T16:43:03.046Z"
+    },
+    {
+      "keyword": "test",
+      "agent": "backend-system-architect",
+      "adjustment": 0,
+      "sampleCount": 40,
+      "lastUpdated": "2026-01-23T16:43:03.057Z"
+    },
+    {
+      "keyword": "test",
+      "agent": "frontend-ui-developer",
+      "adjustment": -15,
+      "sampleCount": 30,
+      "lastUpdated": "2026-01-23T16:43:03.057Z"
+    }
+  ],
+  "stats": {
+    "totalDispatches": 160,
+    "successRate": 0.5,
+    "avgConfidence": 81,
+    "topAgents": [
+      {
+        "agent": "backend-system-architect",
+        "count": 70,
+        "successRate": 0.7142857142857143
+      },
+      {
+        "agent": "test-generator",
+        "count": 60,
+        "successRate": 0.3333333333333333
+      },
+      {
+        "agent": "frontend-ui-developer",
+        "count": 30,
+        "successRate": 0.3333333333333333
+      }
+    ]
+  }
+}
