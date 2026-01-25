@@ -161,7 +161,7 @@ const videoConfig = {
         type: "text",
         input_text: "This is spoken at a faster pace.",
         voice_id: "1bd001e7e50f421d891986aad5158bc8",
-        speed: 1.2, // 1.0 is normal, range: 0.5 - 2.0
+        speed: 1.2, // 1.0 is normal, range: 0.5 - 1.5
       },
     },
   ],
@@ -183,7 +183,7 @@ const videoConfig = {
         type: "text",
         input_text: "This has a higher pitch.",
         voice_id: "1bd001e7e50f421d891986aad5158bc8",
-        pitch: 10, // Range: -20 to 20
+        pitch: 10, // Range: -50 to 50
       },
     },
   ],

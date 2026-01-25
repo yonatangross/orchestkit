@@ -83,8 +83,8 @@ curl -X POST "https://api.heygen.com/v2/video/generate" \
 | `input_text` | string | ✓* | Script text (*required when type is "text") |
 | `audio_url` | string | ✓* | Audio URL (*required when type is "audio") |
 | `duration` | number | ✓* | Duration in seconds (*required when type is "silence") |
-| `speed` | number | | Speech speed 0.5-2.0 (default 1.0) |
-| `pitch` | number | | Voice pitch -20 to 20 (default 0) |
+| `speed` | number | | Speech speed 0.5-1.5 (default 1.0) |
+| `pitch` | number | | Voice pitch -50 to 50 (default 0) |
 
 ### video_inputs[].background Fields
 
