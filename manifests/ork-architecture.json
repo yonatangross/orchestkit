@@ -1,6 +1,6 @@
 {
   "name": "ork-architecture",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Architecture Patterns — clean-architecture, domain-driven-design, backend-architecture-enforcer, cqrs-patterns, event-sourcing, saga-patterns",
   "skills": [
     "clean-architecture",

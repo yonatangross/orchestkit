@@ -1,6 +1,6 @@
 {
   "name": "ork-workflows-advanced",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Workflows Advanced — feedback, add-golden, worktree-coordination, browser-content-capture",
   "skills": [
     "feedback",

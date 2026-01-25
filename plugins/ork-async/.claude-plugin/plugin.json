@@ -1,0 +1,15 @@
+{
+  "name": "ork-async",
+  "version": "5.2.5",
+  "description": "Async & Tasks — asyncio-advanced, connection-pooling, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}

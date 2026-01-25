@@ -1,6 +1,6 @@
 {
   "name": "ork-frontend-performance",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Frontend Performance — performance-optimization, render-optimization, lazy-loading-patterns, image-optimization, core-web-vitals, vite-advanced",
   "skills": [
     "performance-optimization",

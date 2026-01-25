@@ -1,0 +1,308 @@
+# NeMo Guardrails Production Configuration
+# Version: 1.0.0
+# Updated: 2026-01
+
+# =============================================================================
+# MODEL CONFIGURATION
+# =============================================================================
+models:
+  # Primary LLM for conversation
+  - type: main
+    engine: openai
+    model: gpt-4o
+    parameters:
+      temperature: 0.7
+      max_tokens: 1024
+      top_p: 0.95
+
+  # Embedding model for semantic search
+  - type: embeddings
+    engine: openai
+    model: text-embedding-3-small
+
+  # Optional: Faster model for guardrail checks
+  - type: guardrails
+    engine: openai
+    model: gpt-4o-mini
+    parameters:
+      temperature: 0
+      max_tokens: 256
+
+# =============================================================================
+# GUARDRAILS AI INTEGRATION
+# =============================================================================
+rails:
+  config:
+    guardrails_ai:
+      validators:
+        # Toxicity detection
+        - name: toxic_language
+          parameters:
+            threshold: 0.5
+            validation_method: "sentence"
+            categories:
+              hate: 0.3        # Stricter for hate speech
+              violence: 0.3
+              sexual: 0.5
+              harassment: 0.4
+
+        # PII detection and redaction
+        - name: guardrails_pii
+          parameters:
+            entities:
+              - "phone_number"
+              - "email"
+              - "ssn"
+              - "credit_card"
+              - "ip_address"
+              - "person"        # Names
+              - "location"      # Addresses
+            redact_with: "[REDACTED]"
+            on_fail: "fix"     # Redact rather than block
+
+        # Topic restriction
+        - name: restricttotopic
+          parameters:
+            valid_topics:
+              - "technology"
+              - "customer support"
+              - "product information"
+              - "billing"
+              - "technical assistance"
+            invalid_topics:
+              - "politics"
+              - "religion"
+              - "competitors"
+              - "personal opinions"
+              - "investment advice"
+            on_fail: "refrain"
+
+        # Length validation
+        - name: valid_length
+          parameters:
+            min: 10
+            max: 2000
+            on_fail: "reask"
+
+        # Competitor mention check
+        - name: competitor_check
+          parameters:
+            competitors:
+              - "CompetitorA"
+              - "CompetitorB"
+              - "RivalCorp"
+            on_fail: "refrain"
+
+        # Response quality evaluation
+        - name: response_evaluator
+          parameters:
+            criteria:
+              relevance: "Response directly addresses the user question"
+              accuracy: "Information is factually correct"
+              helpfulness: "Response provides actionable information"
+            threshold: 0.7
+            on_fail: "reask"
+
+  # ===========================================================================
+  # INPUT RAILS
+  # ===========================================================================
+  input:
+    flows:
+      # 1. Check for jailbreak attempts first (fastest rejection)
+      - check jailbreak
+
+      # 2. Check for prompt injection patterns
+      - check prompt injection
+
+      # 3. PII in input (for logging/compliance)
+      - guardrailsai check input $validator="guardrails_pii"
+
+      # 4. Topic validation (block off-topic requests early)
+      - check input topic
+
+      # 5. Competitor mentions in questions
+      - guardrailsai check input $validator="competitor_check"
+
+  # ===========================================================================
+  # OUTPUT RAILS
+  # ===========================================================================
+  output:
+    flows:
+      # 1. Fact-checking for RAG responses
+      - check facts
+
+      # 2. Hallucination detection
+      - check hallucination
+
+      # 3. Toxicity filtering
+      - guardrailsai check output $validator="toxic_language"
+
+      # 4. PII redaction in responses
+      - guardrailsai check output $validator="guardrails_pii"
+
+      # 5. Topic compliance
+      - guardrailsai check output $validator="restricttotopic"
+
+      # 6. Length constraints
+      - guardrailsai check output $validator="valid_length"
+
+      # 7. Quality evaluation (expensive, run last)
+      - guardrailsai check output $validator="response_evaluator"
+
+  # ===========================================================================
+  # DIALOG CONTROL
+  # ===========================================================================
+  dialog:
+    single_call:
+      enabled: true
+      fallback_to_multiple: true
+
+    # User intent patterns
+    user_messages:
+      - "Can you help me with {topic}?"
+      - "I need information about {topic}"
+      - "Tell me about {product}"
+
+    # Bot response patterns
+    bot_messages:
+      - "I'd be happy to help with that."
+      - "Let me find that information for you."
+      - "I apologize, but I can only help with {valid_topics}."
+
+# =============================================================================
+# FACT-CHECKING CONFIGURATION
+# =============================================================================
+fact_checking:
+  enabled: true
+  provider: alignscore  # or 'llm', 'nli', 'hybrid'
+  threshold: 0.7
+  fallback_response: "I don't have enough verified information to answer that accurately."
+  log_failures: true
+
+  # Domain-specific thresholds
+  domain_thresholds:
+    healthcare: 0.9
+    finance: 0.85
+    legal: 0.9
+    general: 0.7
+
+# =============================================================================
+# KNOWLEDGE BASE (RAG)
+# =============================================================================
+knowledge_base:
+  - type: kb
+    source: docs/
+    embeddings_model: text-embedding-3-small
+    chunk_size: 512
+    chunk_overlap: 50
+
+  # Optional: Vector database integration
+  # - type: qdrant
+  #   url: http://localhost:6333
+  #   collection: product_docs
+
+# =============================================================================
+# COLANG FLOWS
+# =============================================================================
+# Reference flows defined in rails/*.co files
+
+# rails/input.co - Input validation flows
+# rails/output.co - Output validation flows
+# rails/dialog.co - Dialog management flows
+# rails/factcheck.co - Fact-checking flows
+
+# =============================================================================
+# ACTIONS
+# =============================================================================
+# Custom Python actions in actions/actions.py
+
+actions:
+  # Built-in actions
+  - check_jailbreak_attempt
+  - sanitize_user_input
+  - check_grounding
+  - check_toxicity
+
+  # Custom actions
+  - retrieve_context
+  - generate_with_citations
+  - log_violation
+  - escalate_to_human
+
+# =============================================================================
+# LOGGING & MONITORING
+# =============================================================================
+logging:
+  level: INFO
+  format: json
+  output:
+    - console
+    - file:logs/guardrails.log
+
+  # Log specific events
+  events:
+    - rail_triggered
+    - validation_failed
+    - jailbreak_detected
+    - pii_detected
+    - topic_violation
+    - fact_check_failed
+
+# Prometheus metrics
+metrics:
+  enabled: true
+  port: 9090
+  path: /metrics
+
+# =============================================================================
+# RATE LIMITING
+# =============================================================================
+rate_limiting:
+  enabled: true
+  requests_per_minute: 60
+  tokens_per_minute: 100000
+  burst_limit: 10
+
+  # Per-user limits (if authenticated)
+  per_user:
+    requests_per_minute: 20
+    tokens_per_minute: 30000
+
+# =============================================================================
+# STREAMING CONFIGURATION
+# =============================================================================
+streaming:
+  enabled: true
+  # Check output every N characters during streaming
+  check_interval: 100
+  # Maximum buffer before forcing check
+  max_buffer: 500
+
+# =============================================================================
+# HUMAN-IN-THE-LOOP
+# =============================================================================
+human_in_loop:
+  enabled: true
+  # Actions requiring confirmation
+  sensitive_actions:
+    - delete_account
+    - cancel_subscription
+    - export_data
+    - change_payment
+
+  # Escalation triggers
+  escalate_on:
+    - repeated_jailbreak_attempts
+    - high_severity_violation
+    - user_frustration_detected
+
+# =============================================================================
+# FALLBACK RESPONSES
+# =============================================================================
+fallback_responses:
+  jailbreak_detected: "I cannot process that request. How else can I help you?"
+  topic_violation: "I can only help with technology, customer support, and billing questions."
+  pii_detected: "I've detected sensitive information. Please avoid sharing personal details."
+  fact_check_failed: "I don't have verified information about that. Let me connect you with a specialist."
+  rate_limited: "You're sending requests too quickly. Please wait a moment."
+  general_error: "I encountered an issue. Please try again or contact support."

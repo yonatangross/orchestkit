@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186583008",
+  "tasks": [
+    {
+      "taskId": "task-1769186583058",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:43:03.058Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186583058",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:43:03.058Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186583060-k8wzzo-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:43:03.060Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186583060-k8wzzo",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186583060-k8wzzo-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:43:03.060Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186583060-k8wzzo",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186583060-k8wzzo-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:43:03.061Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186583060-k8wzzo",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186583060-k8wzzo-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:43:03.061Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186583060-k8wzzo",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186583060-k8wzzo",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:43:03.060Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186583060-k8wzzo-0",
+        "1": "task-pipeline-1769186583060-k8wzzo-1",
+        "2": "task-pipeline-1769186583060-k8wzzo-2",
+        "3": "task-pipeline-1769186583060-k8wzzo-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186583105-e16amu",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:43:03.105Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186583105-e16amu-0",
+        "1": "task-pipeline-1769186583105-e16amu-1",
+        "2": "task-pipeline-1769186583105-e16amu-2",
+        "3": "task-pipeline-1769186583105-e16amu-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:43:03.105Z"
+}

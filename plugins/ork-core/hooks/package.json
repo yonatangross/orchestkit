@@ -1,0 +1,36 @@
+{
+  "name": "@orchestkit/hooks",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "TypeScript/ESM hooks for OrchestKit Claude Plugin",
+  "main": "./dist/hooks.mjs",
+  "types": "./dist/types.d.ts",
+  "bin": {
+    "run-hook": "./bin/run-hook.mjs"
+  },
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "build:watch": "node esbuild.config.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "clean": "rm -rf dist"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.27.2",
+    "typescript": "^5.6.0",
+    "vitest": "^4.0.18"
+  },
+  "keywords": [
+    "claude-code",
+    "hooks",
+    "typescript",
+    "esm",
+    "orchestkit"
+  ],
+  "license": "MIT"
+}

@@ -1,6 +1,6 @@
 {
   "name": "ork-react-core",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation",
   "skills": [
     "react-server-components-framework",

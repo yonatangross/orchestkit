@@ -1,0 +1,6 @@
+# Mem0 Python SDK
+# Install with: pip install mem0ai
+mem0ai>=1.0.0
+
+# Environment variable loading from .env files
+python-dotenv>=1.0.0

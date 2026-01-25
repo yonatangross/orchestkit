@@ -1,6 +1,6 @@
 {
   "name": "ork-fastapi",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "FastAPI & APIs — fastapi-advanced, api-design-framework, api-versioning, streaming-api-patterns, rate-limiting, error-handling-rfc9457",
   "skills": [
     "fastapi-advanced",

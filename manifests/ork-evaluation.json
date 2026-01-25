@@ -1,6 +1,6 @@
 {
   "name": "ork-evaluation",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden",
   "skills": [
     "llm-evaluation",

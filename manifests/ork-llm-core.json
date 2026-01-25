@@ -1,6 +1,6 @@
 {
   "name": "ork-llm-core",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Core LLM patterns — function-calling, prompt-engineering-suite, llm-streaming, llm-testing, llm-safety-patterns, prompt-caching",
   "skills": [
     "function-calling",

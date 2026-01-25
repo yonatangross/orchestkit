@@ -1,0 +1,15 @@
+{
+  "name": "ork-fastapi",
+  "version": "5.2.5",
+  "description": "FastAPI & APIs — fastapi-advanced, api-design-framework, api-versioning, streaming-api-patterns, rate-limiting, error-handling-rfc9457",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}

@@ -1,0 +1,88 @@
+{
+  "$schema": "../../.claude/schemas/memory.schema.json",
+  "type": "sync_payload",
+  "description": "Generic sync payload template for Mem0 memory operations",
+  "template": {
+    "items": [
+      {
+        "type": "session_summary",
+        "text": "{{task_summary}}",
+        "user_id": "{{project}}-continuity",
+        "metadata": {
+          "type": "session_summary",
+          "status": "{{status}}",
+          "has_blockers": "{{has_blockers}}",
+          "has_next_steps": "{{has_next_steps}}"
+        },
+        "enable_graph": true
+      },
+      {
+        "type": "decision",
+        "items": "{{decisions}}",
+        "user_id": "{{project}}-decisions",
+        "enable_graph": true
+      },
+      {
+        "type": "agent_pattern",
+        "items": "{{patterns}}",
+        "user_id": "{{project}}-agents",
+        "enable_graph": true
+      },
+      {
+        "type": "global_best_practice",
+        "items": "{{best_practices}}",
+        "user_id": "orchestkit-global-best-practices",
+        "enable_graph": true
+      }
+    ]
+  },
+  "variables": {
+    "project": {
+      "description": "Project identifier",
+      "required": true
+    },
+    "task_summary": {
+      "description": "Session task summary",
+      "required": true
+    },
+    "status": {
+      "description": "Session status",
+      "enum": ["completed", "in_progress", "blocked", "paused"],
+      "default": "completed"
+    },
+    "has_blockers": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_next_steps": {
+      "type": "boolean",
+      "default": true
+    },
+    "decisions": {
+      "description": "Array of decision objects to sync",
+      "type": "array",
+      "default": []
+    },
+    "patterns": {
+      "description": "Array of pattern objects to sync",
+      "type": "array",
+      "default": []
+    },
+    "best_practices": {
+      "description": "Array of global best practice objects to sync",
+      "type": "array",
+      "default": []
+    }
+  },
+  "sync_protocol": {
+    "steps": [
+      "Load .claude/coordination/.decision-sync-state.json",
+      "Filter items not yet synced",
+      "Execute add-memory.py for each item",
+      "Update sync state with synced IDs",
+      "Output sync summary"
+    ],
+    "idempotency": "Track synced IDs to prevent duplicates",
+    "error_handling": "Continue on individual failures, report at end"
+  }
+}

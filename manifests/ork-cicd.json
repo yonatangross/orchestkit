@@ -1,6 +1,6 @@
 {
   "name": "ork-cicd",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "CI/CD patterns — devops-deployment, observability-monitoring, performance-testing, github-operations, release-management, stacked-prs",
   "skills": [
     "devops-deployment",

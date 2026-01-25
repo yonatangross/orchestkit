@@ -1,0 +1,52 @@
+{
+  "$schema": "../../.claude/schemas/memory.schema.json",
+  "type": "agent_pattern",
+  "description": "Template for syncing agent-learned patterns to Mem0",
+  "template": {
+    "text": "{{pattern_description}}",
+    "user_id": "{{project}}-agents",
+    "agent_id": "ork:{{agent_type}}",
+    "metadata": {
+      "type": "agent_pattern",
+      "category": "{{category}}",
+      "outcome": "{{outcome}}",
+      "agent_type": "{{agent_type}}",
+      "pattern_id": "{{pattern_id}}",
+      "timestamp": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+  "variables": {
+    "pattern_description": {
+      "description": "Description of the pattern learned by the agent",
+      "required": true
+    },
+    "project": {
+      "description": "Project identifier",
+      "required": true
+    },
+    "agent_type": {
+      "description": "Type of agent that learned this pattern",
+      "examples": ["backend-system-architect", "frontend-ui-developer", "database-engineer"],
+      "required": true
+    },
+    "category": {
+      "description": "Pattern category",
+      "enum": ["implementation", "debugging", "optimization", "architecture", "testing"],
+      "required": true
+    },
+    "outcome": {
+      "description": "Pattern outcome when applied",
+      "enum": ["success", "failed", "partial"],
+      "default": "success"
+    },
+    "pattern_id": {
+      "description": "Unique pattern identifier",
+      "required": true
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp",
+      "source": "auto"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "name": "ork-langgraph-advanced",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "LangGraph Advanced patterns — human-in-loop, multi-agent-orchestration, agent-loops, alternative-agent-frameworks, temporal-io",
   "skills": [
     "langgraph-human-in-loop",

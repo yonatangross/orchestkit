@@ -1,0 +1,58 @@
+{
+  "schemaVersion": "1.0.0",
+  "tasks": [
+    {
+      "taskId": "task-pipeline-1769185850272-0v53oc-0",
+      "agent": "backend-system-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:30:50.272Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769185850272-0v53oc",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769185850272-0v53oc-1",
+      "agent": "frontend-ui-developer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:30:50.272Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769185850272-0v53oc",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769185850272-0v53oc-2",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:30:50.273Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769185850272-0v53oc",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769185850272-0v53oc-3",
+      "agent": "security-auditor",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:30:50.273Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769185850272-0v53oc",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769185850272-0v53oc",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:30:50.272Z",
+      "taskIds": {
+        "0": "task-pipeline-1769185850272-0v53oc-0",
+        "1": "task-pipeline-1769185850272-0v53oc-1",
+        "2": "task-pipeline-1769185850272-0v53oc-2",
+        "3": "task-pipeline-1769185850272-0v53oc-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:30:50.273Z"
+}

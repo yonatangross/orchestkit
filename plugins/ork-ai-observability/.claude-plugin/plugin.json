@@ -1,0 +1,15 @@
+{
+  "name": "ork-ai-observability",
+  "version": "5.2.5",
+  "description": "AI Observability — langfuse-observability, cache-cost-tracking, semantic-caching, llm-evaluation, evidence-verification",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}

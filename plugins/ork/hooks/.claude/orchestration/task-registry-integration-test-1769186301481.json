@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186301481",
+  "tasks": [
+    {
+      "taskId": "task-1769186301527",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:38:21.527Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186301527",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:38:21.527Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186301529-xmrsw8-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:21.529Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186301529-xmrsw8",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186301529-xmrsw8-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:21.529Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186301529-xmrsw8",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186301529-xmrsw8-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:21.529Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186301529-xmrsw8",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186301529-xmrsw8-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:21.529Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186301529-xmrsw8",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186301529-xmrsw8",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:38:21.529Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186301529-xmrsw8-0",
+        "1": "task-pipeline-1769186301529-xmrsw8-1",
+        "2": "task-pipeline-1769186301529-xmrsw8-2",
+        "3": "task-pipeline-1769186301529-xmrsw8-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186301567-wbx14w",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:38:21.567Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186301567-wbx14w-0",
+        "1": "task-pipeline-1769186301567-wbx14w-1",
+        "2": "task-pipeline-1769186301567-wbx14w-2",
+        "3": "task-pipeline-1769186301567-wbx14w-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:38:21.567Z"
+}

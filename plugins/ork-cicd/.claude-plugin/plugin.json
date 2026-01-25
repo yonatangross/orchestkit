@@ -1,0 +1,15 @@
+{
+  "name": "ork-cicd",
+  "version": "5.2.5",
+  "description": "CI/CD patterns — devops-deployment, observability-monitoring, performance-testing, github-operations, release-management, stacked-prs",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Version Entry",
+  "description": "Schema for golden dataset version tracking entries",
+  "type": "object",
+  "required": ["version", "timestamp", "change_type", "document_id", "quality_score"],
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version (MAJOR.MINOR.PATCH)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp"
+    },
+    "change_type": {
+      "type": "string",
+      "enum": ["ADD", "UPDATE", "REMOVE", "PROMOTE", "DEMOTE", "ROLLBACK"],
+      "description": "Type of change made"
+    },
+    "document_id": {
+      "type": "string",
+      "description": "Unique document identifier"
+    },
+    "quality_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Quality score at time of change"
+    },
+    "previous_version": {
+      "type": "string",
+      "description": "Previous version for rollback reference"
+    },
+    "rollback_available": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether rollback is possible"
+    }
+  },
+  "example": {
+    "version": "1.2.3",
+    "timestamp": "2026-01-24T12:00:00Z",
+    "change_type": "ADD",
+    "document_id": "doc-abc123",
+    "quality_score": 0.82,
+    "previous_version": "1.2.2",
+    "rollback_available": true
+  }
+}

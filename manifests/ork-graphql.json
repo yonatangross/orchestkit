@@ -1,6 +1,6 @@
 {
   "name": "ork-graphql",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "GraphQL patterns — strawberry-graphql, api-design-framework (GraphQL patterns), streaming-api-patterns",
   "skills": [
     "strawberry-graphql",

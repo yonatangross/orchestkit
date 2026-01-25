@@ -1,6 +1,6 @@
 {
   "name": "ork-database",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling",
   "skills": [
     "sqlalchemy-2-async",

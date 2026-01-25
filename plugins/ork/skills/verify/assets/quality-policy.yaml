@@ -1,0 +1,51 @@
+version: "1.0"
+name: default-verification-policy
+description: Standard verification policy for production code
+
+thresholds:
+  composite_minimum: 6.0
+  security_minimum: 7.0
+  coverage_minimum: 70
+
+blockers:
+  - check: critical_vulnerabilities
+    condition: above
+    value: 0
+    message: "Critical vulnerabilities must be zero"
+
+  - check: type_errors
+    condition: above
+    value: 0
+    message: "TypeScript errors must be zero"
+
+  - dimension: security
+    condition: below
+    value: 5.0
+    message: "Security score below minimum threshold"
+
+warnings:
+  - dimension: test_coverage
+    condition: below
+    value: 80
+    message: "Coverage below recommended 80%"
+
+  - dimension: code_quality
+    condition: below
+    value: 7.0
+    message: "Code quality could be improved"
+
+  - check: high_vulnerabilities
+    condition: above
+    value: 3
+    message: "Multiple high severity vulnerabilities"
+
+info:
+  - check: todo_count
+    condition: above
+    value: 5
+    message: "Multiple TODOs found"
+
+  - check: documentation_coverage
+    condition: below
+    value: 50
+    message: "Consider adding more documentation"

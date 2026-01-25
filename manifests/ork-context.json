@@ -1,6 +1,6 @@
 {
   "name": "ork-context",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Context window management and engineering — compression, context optimization, system design interrogation",
   "skills": [
     "context-compression",

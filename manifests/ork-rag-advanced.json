@@ -1,6 +1,6 @@
 {
   "name": "ork-rag-advanced",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Advanced RAG patterns — agentic-rag-patterns, multimodal-rag, pgvector-search, semantic-caching",
   "skills": [
     "agentic-rag-patterns",

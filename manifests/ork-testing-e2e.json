@@ -1,6 +1,6 @@
 {
   "name": "ork-testing-e2e",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "E2E Testing patterns — e2e-testing, webapp-testing, msw-mocking, vcr-http-recording, contract-testing",
   "skills": [
     "e2e-testing",

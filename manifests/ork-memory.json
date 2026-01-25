@@ -1,6 +1,6 @@
 {
   "name": "ork-memory",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Cross-session memory and knowledge graph — Mem0 integration, memory fabric, sync patterns",
   "skills": [
     "mem0-memory",

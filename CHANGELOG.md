@@ -5,6 +5,21 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.5] - 2026-01-25
+
+### Fixed
+
+- **Marketplace installation on external repos**: Fixed "Source path does not exist" error when installing plugin via marketplace in other repositories
+  - Root cause: `plugins/` directory was gitignored, so marketplace clones didn't have built plugins
+  - Solution: Commit built `plugins/` directory to git for distribution
+  - After pulling, marketplace installations work immediately without needing `npm run build`
+
+### Changed
+
+- **plugins/ now tracked in git**: Built plugins are committed for marketplace distribution
+  - Developers must run `npm run build` before committing changes to skills/agents/hooks
+  - Updated .gitignore to track plugins/ directory
+
 ## [5.2.4] - 2026-01-25
 
 ### Fixed

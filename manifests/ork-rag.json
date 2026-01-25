@@ -1,6 +1,6 @@
 {
   "name": "ork-rag",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "RAG & Retrieval patterns — rag-retrieval, embeddings, contextual-retrieval, hyde-retrieval, reranking-patterns, query-decomposition",
   "skills": [
     "rag-retrieval",

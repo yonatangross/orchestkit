@@ -1,6 +1,6 @@
 {
   "name": "ork-data-engineering",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Data Engineering — pgvector-search, test-data-management, embeddings, database-schema-designer, database-versioning, zero-downtime-migration",
   "skills": [
     "pgvector-search",

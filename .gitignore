@@ -99,6 +99,5 @@ __pycache__/
 .claude/.satisfaction-counter
 .setup-complete
 
-# Generated plugin builds (not in git)
-plugins/
-!plugins/.gitkeep
+# Generated plugin builds (now committed for marketplace distribution)
+# Run `npm run build` before committing to ensure plugins/ is up-to-date

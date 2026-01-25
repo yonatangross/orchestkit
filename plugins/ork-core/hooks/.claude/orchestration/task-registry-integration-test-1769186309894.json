@@ -1,0 +1,87 @@
+{
+  "schemaVersion": "1.0.0",
+  "sessionId": "integration-test-1769186309894",
+  "tasks": [
+    {
+      "taskId": "task-1769186309943",
+      "agent": "backend-system-architect",
+      "confidence": 88,
+      "createdAt": "2026-01-23T16:38:29.943Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-test-1769186309944",
+      "agent": "test-generator",
+      "confidence": 85,
+      "createdAt": "2026-01-23T16:38:29.944Z",
+      "status": "pending"
+    },
+    {
+      "taskId": "task-pipeline-1769186309945-eg4ggz-0",
+      "agent": "workflow-architect",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:29.945Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186309945-eg4ggz",
+      "pipelineStep": 0
+    },
+    {
+      "taskId": "task-pipeline-1769186309945-eg4ggz-1",
+      "agent": "llm-integrator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:29.946Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186309945-eg4ggz",
+      "pipelineStep": 1
+    },
+    {
+      "taskId": "task-pipeline-1769186309945-eg4ggz-2",
+      "agent": "data-pipeline-engineer",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:29.946Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186309945-eg4ggz",
+      "pipelineStep": 2
+    },
+    {
+      "taskId": "task-pipeline-1769186309945-eg4ggz-3",
+      "agent": "test-generator",
+      "confidence": 100,
+      "createdAt": "2026-01-23T16:38:29.946Z",
+      "status": "pending",
+      "pipelineId": "pipeline-1769186309945-eg4ggz",
+      "pipelineStep": 3
+    }
+  ],
+  "pipelines": [
+    {
+      "pipelineId": "pipeline-1769186309945-eg4ggz",
+      "type": "ai-integration",
+      "startedAt": "2026-01-23T16:38:29.945Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186309945-eg4ggz-0",
+        "1": "task-pipeline-1769186309945-eg4ggz-1",
+        "2": "task-pipeline-1769186309945-eg4ggz-2",
+        "3": "task-pipeline-1769186309945-eg4ggz-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    },
+    {
+      "pipelineId": "pipeline-1769186309983-xr1wjh",
+      "type": "full-stack-feature",
+      "startedAt": "2026-01-23T16:38:29.983Z",
+      "taskIds": {
+        "0": "task-pipeline-1769186309983-xr1wjh-0",
+        "1": "task-pipeline-1769186309983-xr1wjh-1",
+        "2": "task-pipeline-1769186309983-xr1wjh-2",
+        "3": "task-pipeline-1769186309983-xr1wjh-3"
+      },
+      "currentStep": 0,
+      "completedSteps": [],
+      "status": "running"
+    }
+  ],
+  "updatedAt": "2026-01-23T16:38:29.983Z"
+}

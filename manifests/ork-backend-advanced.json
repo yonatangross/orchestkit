@@ -1,6 +1,6 @@
 {
   "name": "ork-backend-advanced",
-  "version": "5.2.4",
+  "version": "5.2.5",
   "description": "Backend Advanced patterns — aggregate-patterns, outbox-pattern, idempotency-patterns, caching-strategies, grpc-python",
   "skills": [
     "aggregate-patterns",

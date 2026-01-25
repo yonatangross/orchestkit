@@ -1,0 +1,15 @@
+{
+  "name": "ork-architecture",
+  "version": "5.2.5",
+  "description": "Architecture Patterns — clean-architecture, domain-driven-design, backend-architecture-enforcer, cqrs-patterns, event-sourcing, saga-patterns",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}
