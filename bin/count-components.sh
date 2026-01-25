@@ -3,10 +3,10 @@
 # Usage: count-components.sh [--json]
 #
 # Counts:
-# - Skills: directories with SKILL.md in skills/
-# - Agents: .md files in agents/
-# - Commands: .md files in commands/
-# - Hooks: .sh files in hooks/ (excluding _lib/)
+# - Skills: directories with SKILL.md in src/skills/
+# - Agents: .md files in src/agents/
+# - Commands: .md files in src/commands/
+# - Hooks: TypeScript files in src/hooks/src/ (excluding _lib/)
 # - Bundles: entries in marketplace.json plugins array
 
 set -euo pipefail
