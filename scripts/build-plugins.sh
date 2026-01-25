@@ -30,11 +30,51 @@ NC='\033[0m'
 PLUGINS_BUILT=0
 TOTAL_SKILLS_COPIED=0
 TOTAL_AGENTS_COPIED=0
+TOTAL_COMMANDS_GENERATED=0
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}        OrchestKit Plugin Build System v2.0.0${NC}"
+echo -e "${CYAN}        OrchestKit Plugin Build System v2.1.0${NC}"
 echo -e "${CYAN}============================================================${NC}"
 echo ""
+
+# ============================================================================
+# Function: Generate command file from user-invocable skill
+# ============================================================================
+# Workaround for CC bug: https://github.com/anthropics/claude-code/issues/20802
+# CC doesn't discover skills with user-invocable: true, only commands/*.md
+generate_command_from_skill() {
+    local skill_md="$1"
+    local command_file="$2"
+    local skill_name="$3"
+
+    # Extract frontmatter (lines between first --- and second ---)
+    local frontmatter=$(sed -n '2,/^---$/p' "$skill_md" | sed '$d')
+
+    # Extract description from frontmatter
+    local description=$(echo "$frontmatter" | grep -E "^description:" | sed 's/^description: *//')
+
+    # Extract allowed tools from frontmatter
+    local allowed_tools=$(echo "$frontmatter" | grep -E "^allowedTools:" | sed 's/^allowedTools: *//')
+
+    # Default allowed tools if not specified
+    if [[ -z "$allowed_tools" ]]; then
+        allowed_tools="[Bash, Read, Write, Edit, Glob, Grep]"
+    fi
+
+    # Generate command file with frontmatter + skill content
+    {
+        echo "---"
+        echo "description: $description"
+        echo "allowed-tools: $allowed_tools"
+        echo "---"
+        echo ""
+        echo "# Auto-generated from skills/$skill_name/SKILL.md"
+        echo "# Source: https://github.com/yonatangross/orchestkit"
+        echo ""
+        # Skip the frontmatter from skill and include the rest (after second ---)
+        awk 'BEGIN{c=0} /^---$/{c++; next} c>=2{print}' "$skill_md"
+    } > "$command_file"
+}
 
 # ============================================================================
 # Phase 1: Validate Environment
@@ -117,6 +157,7 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 
     skill_count=0
     agent_count=0
+    command_count=0
 
     # Copy skills
     if [[ "$SKILLS_MODE" == "all" ]]; then
@@ -130,6 +171,20 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
                 skill_count=$((skill_count + 1))
             fi
         done < <(jq -r '.skills[]?' "$manifest")
+    fi
+
+    # Generate commands from user-invocable skills
+    # Workaround for CC bug #20802 - CC doesn't discover skills, only commands/
+    if [[ -d "$PLUGIN_DIR/skills" ]]; then
+        for skill_md in "$PLUGIN_DIR/skills"/*/SKILL.md; do
+            [[ ! -f "$skill_md" ]] && continue
+            if grep -q "^user-invocable: *true" "$skill_md"; then
+                skill_name=$(dirname "$skill_md" | xargs basename)
+                mkdir -p "$PLUGIN_DIR/commands"
+                generate_command_from_skill "$skill_md" "$PLUGIN_DIR/commands/$skill_name.md" "$skill_name"
+                command_count=$((command_count + 1))
+            fi
+        done
     fi
 
     # Copy agents
@@ -180,9 +235,10 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 
     TOTAL_SKILLS_COPIED=$((TOTAL_SKILLS_COPIED + skill_count))
     TOTAL_AGENTS_COPIED=$((TOTAL_AGENTS_COPIED + agent_count))
+    TOTAL_COMMANDS_GENERATED=$((TOTAL_COMMANDS_GENERATED + command_count))
     PLUGINS_BUILT=$((PLUGINS_BUILT + 1))
 
-    echo -e "${GREEN}  Built $PLUGIN_NAME ($CURRENT/$MANIFEST_COUNT) - $skill_count skills, $agent_count agents${NC}"
+    echo -e "${GREEN}  Built $PLUGIN_NAME ($CURRENT/$MANIFEST_COUNT) - $skill_count skills, $agent_count agents, $command_count commands${NC}"
 done
 
 echo ""
@@ -237,9 +293,10 @@ echo ""
 echo -e "${CYAN}============================================================${NC}"
 echo -e "${CYAN}                    BUILD COMPLETE${NC}"
 echo -e "${CYAN}============================================================${NC}"
-echo -e "  Plugins built:       ${GREEN}$PLUGINS_BUILT${NC}"
-echo -e "  Total skills copied: ${GREEN}$TOTAL_SKILLS_COPIED${NC}"
-echo -e "  Total agents copied: ${GREEN}$TOTAL_AGENTS_COPIED${NC}"
-echo -e "  Output directory:    ${GREEN}$PLUGINS_DIR${NC}"
+echo -e "  Plugins built:          ${GREEN}$PLUGINS_BUILT${NC}"
+echo -e "  Total skills copied:    ${GREEN}$TOTAL_SKILLS_COPIED${NC}"
+echo -e "  Total agents copied:    ${GREEN}$TOTAL_AGENTS_COPIED${NC}"
+echo -e "  Total commands generated: ${GREEN}$TOTAL_COMMANDS_GENERATED${NC}"
+echo -e "  Output directory:       ${GREEN}$PLUGINS_DIR${NC}"
 echo -e "${CYAN}============================================================${NC}"
 echo ""
