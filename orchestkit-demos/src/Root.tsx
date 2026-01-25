@@ -16,6 +16,10 @@ import {
   showcaseDemoSchema,
   calculateShowcaseMetadata,
 } from "./components/ShowcaseDemo";
+import {
+  MarketplaceIntro,
+  marketplaceIntroSchema,
+} from "./components/MarketplaceIntro";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -33,6 +37,24 @@ const AUDIO_DEFAULTS = {
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      {/* ==================== MARKETPLACE INTRO ==================== */}
+
+      {/* 30-second Marketplace Intro - Cinematic showcase */}
+      <Composition
+        id="MarketplaceIntro"
+        component={MarketplaceIntro}
+        durationInFrames={FPS * 30}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={marketplaceIntroSchema}
+        defaultProps={{
+          primaryColor: "#8b5cf6",
+          secondaryColor: "#22c55e",
+          accentColor: "#06b6d4",
+        }}
+      />
+
       {/* ==================== HORIZONTAL 16:9 DEMOS ==================== */}
 
       {/* /plugin install - Video-driven duration (2026 pattern) */}
