@@ -25,6 +25,7 @@ import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { sessionPatterns } from '../stop/session-patterns.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
 import { calibrationPersist } from '../stop/calibration-persist.js';
+import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -44,6 +45,7 @@ export const hooks: Record<string, HookFn> = {
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
   'stop/calibration-persist': calibrationPersist,
+  'stop/unified-dispatcher': unifiedStopDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -12,6 +12,7 @@ export * from '../lib/common.js';
 // Notification hooks (2)
 import { desktopNotification } from '../notification/desktop.js';
 import { soundNotification } from '../notification/sound.js';
+import { unifiedNotificationDispatcher } from '../notification/unified-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -21,6 +22,7 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   'notification/desktop': desktopNotification,
   'notification/sound': soundNotification,
+  'notification/unified-dispatcher': unifiedNotificationDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

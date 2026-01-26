@@ -22,6 +22,7 @@ import { realtimeSync } from '../posttool/realtime-sync.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { calibrationTracker } from '../posttool/calibration-tracker.js';
+import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 
 // PostTool/Write hooks (5)
 import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
@@ -59,6 +60,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/calibration-tracker': calibrationTracker,
+  'posttool/unified-dispatcher': unifiedDispatcher,
 
   // PostTool/Write hooks (5)
   'posttool/write/code-style-learner': codeStyleLearner,

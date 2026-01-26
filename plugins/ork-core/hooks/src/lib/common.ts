@@ -3,7 +3,8 @@
  * Ported from hooks/_lib/common.sh
  */
 
-import { appendFileSync, existsSync, statSync, renameSync, mkdirSync } from 'node:fs';
+import { appendFileSync, existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
 
 // -----------------------------------------------------------------------------
@@ -56,7 +57,6 @@ export function getCachedBranch(projectDir?: string): string {
     return process.env.ORCHESTKIT_BRANCH;
   }
 
-  const { execSync } = require('node:child_process');
   try {
     const branch = execSync('git branch --show-current', {
       cwd: projectDir || getProjectDir(),
@@ -307,8 +307,6 @@ export function readHookInput(): HookInput {
     let bytesRead: number;
     const fd = 0; // stdin
 
-    // Use fs.readSync for synchronous stdin reading
-    const { readSync } = require('node:fs');
     while (true) {
       try {
         bytesRead = readSync(fd, buf, 0, BUFSIZE, null);

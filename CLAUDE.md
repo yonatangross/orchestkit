@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **179 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
-- **144 hooks**: TypeScript lifecycle automation
+- **149 hooks**: TypeScript lifecycle automation
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -228,6 +228,6 @@ CLAUDE_SESSION_ID     # Current session UUID
 
 - **Current**: 5.2.8
 - **Claude Code**: >= 2.1.19
-- **Hooks**: 144 TypeScript (11 split bundles, 31 async)
+- **Hooks**: 149 TypeScript (11 split bundles, 5 async)
 
 See `CHANGELOG.md` for detailed version history and features.

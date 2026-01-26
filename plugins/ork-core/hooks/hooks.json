@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 144 TypeScript hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 149 TypeScript hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -218,15 +218,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/session-metrics",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
             "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/audit-logger",
-            "async": true,
-            "timeout": 30
+            "timeout": 60
           },
           {
             "type": "command",
@@ -235,12 +229,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-error-handler"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/calibration-tracker",
-            "async": true,
-            "timeout": 30
           }
         ]
       },
@@ -253,29 +241,11 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/code-style-learner",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/naming-convention-learner",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/auto-lint"
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/readme-sync"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/skill-edit-tracker",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -309,74 +279,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/pattern-extractor",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/issue-progress-commenter",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/issue-subtask-updater",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/mem0-webhook-handler",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/coordination-heartbeat",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/skill/skill-usage-optimizer",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__mem0__add_memory|mcp__memory__create_entities",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/memory-bridge",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|Write|Edit|Skill|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/realtime-sync",
-            "async": true,
-            "timeout": 30
           }
         ]
       }
@@ -468,35 +370,13 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/unified-dispatcher",
+            "async": true,
+            "timeout": 60
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-context-loader"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-env-setup"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/mem0-context-retrieval",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/mem0-webhook-setup",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/mem0-analytics-tracker",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pattern-sync-pull",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -508,25 +388,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/coordination-init",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/instance-heartbeat"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/decision-sync-pull",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/dependency-version-check",
-            "async": true,
-            "timeout": 30
           }
         ]
       }
@@ -558,6 +420,12 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/unified-dispatcher",
+            "async": true,
+            "timeout": 60
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/multi-instance-cleanup"
           },
           {
@@ -567,12 +435,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/task-completion-check"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/auto-save-context",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -641,24 +503,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-runner"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/session-patterns",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/issue-work-summary",
-            "async": true,
-            "timeout": 60
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/calibration-persist",
-            "async": true,
-            "timeout": 30
           }
         ]
       }
@@ -694,25 +538,13 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/unified-dispatcher",
+            "async": true,
+            "timeout": 60
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/output-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/context-publisher",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/handoff-preparer",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/feedback-loop",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -721,12 +553,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/multi-claude-verifier"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/agent-memory-store",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -748,15 +574,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/desktop",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/unified-dispatcher",
             "async": true,
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/sound",
-            "async": true,
-            "timeout": 10
+            "timeout": 30
           }
         ]
       }

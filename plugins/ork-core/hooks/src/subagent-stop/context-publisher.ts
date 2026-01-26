@@ -9,7 +9,7 @@
 
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -120,6 +120,11 @@ export function contextPublisher(input: HookInput): HookResult {
 
   const decisions = readJsonFile(decisionsFile, defaultDecisions);
 
+  // Ensure decisions object exists (defensive against old schema versions)
+  if (!decisions.decisions || typeof decisions.decisions !== 'object') {
+    decisions.decisions = {};
+  }
+
   const decisionEntry: DecisionEntry = {
     timestamp,
     agent: agentName,
@@ -146,6 +151,14 @@ export function contextPublisher(input: HookInput): HookResult {
   };
 
   const sessionState = readJsonFile(sessionStateFile, defaultState);
+
+  // Ensure arrays exist (defensive against old schema versions)
+  if (!Array.isArray(sessionState.tasks_completed)) {
+    sessionState.tasks_completed = [];
+  }
+  if (!Array.isArray(sessionState.tasks_pending)) {
+    sessionState.tasks_pending = [];
+  }
 
   const taskEntry: TaskEntry = {
     agent: agentName,
