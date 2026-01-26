@@ -11,6 +11,11 @@
  * - coordination-init (can init at plugin load)
  *
  * CC 2.1.10+ Compliant: Uses Setup event for plugin-level initialization
+ *
+ * NOTE: Async hooks are fire-and-forget by design. They can only return
+ * { async: true, asyncTimeout } - fields like systemMessage, continue,
+ * decision are NOT processed by Claude Code for async hooks.
+ * Failures are logged to file but not surfaced to users.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -74,30 +79,24 @@ export async function unifiedSetupDispatcher(input: HookInput): Promise<HookResu
     })
   );
 
-  // Collect failures for reporting
-  const failures: Array<{ hook: string; message: string }> = [];
+  // Count failures for logging (async hooks can't report to users)
+  const failures: string[] = [];
 
   for (const result of results) {
     if (result.status === 'rejected') {
-      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      failures.push({ hook: 'unknown', message: reason });
+      failures.push('unknown');
     } else if (result.value.status === 'error') {
-      failures.push({ hook: result.value.hook, message: result.value.message || 'Unknown error' });
+      failures.push(result.value.hook);
     }
   }
 
-  // On failure: return informative message visible to user
+  // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    const failedNames = failures.map(f => f.hook).join(', ');
-    logHook('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failedNames}`);
-
-    return {
-      continue: true,
-      systemMessage: `⚠️ Setup: ${failures.length}/${HOOKS.length} hooks failed (${failedNames})`
-    };
+    logHook('setup-dispatcher', `${failures.length}/${HOOKS.length} hooks failed: ${failures.join(', ')}`);
+  } else {
+    logHook('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
   }
 
-  // On success: silent (no extra output)
-  logHook('setup-dispatcher', `All ${HOOKS.length} Setup hooks completed successfully`);
+  // Async hooks always return silent success - CC ignores other fields
   return outputSilentSuccess();
 }
