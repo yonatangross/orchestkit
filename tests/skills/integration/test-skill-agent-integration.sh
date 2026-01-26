@@ -28,8 +28,8 @@ find_skill_dir() {
 
 
 # Token budget: Based on skill files (SKILL.md ~100 tokens each)
-# Updated to 350000 for AI/ML Roadmap 2026 expansion (159 skills)
-MAX_SKILL_TOKEN_BUDGET=350000
+# Updated to 400000 for video production skills expansion (179 skills)
+MAX_SKILL_TOKEN_BUDGET=400000
 
 # Verbose mode
 VERBOSE="${1:-}"
