@@ -5,6 +5,20 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.9] - 2026-01-26
+
+### Added
+
+- **Setup Unified Dispatcher** (#239): Move initialization hooks to Setup event (CC 2.1.10)
+  - Migrated 3 one-time init hooks from SessionStart to Setup: `dependency-version-check`, `mem0-webhook-setup`, `coordination-init`
+  - Reduces SessionStart hooks from 9 to 6 (33% reduction)
+  - Initialization runs once at plugin load instead of every session
+  - New `src/hooks/src/setup/unified-dispatcher.ts` with Promise.allSettled for parallel execution
+  - Hook count: 149 → 150 (new dispatcher file)
+
+---
+
+
 ## [5.2.8] - 2026-01-26
 
 ### Changed
