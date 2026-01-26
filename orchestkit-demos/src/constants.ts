@@ -6,10 +6,14 @@
  * Update these values when OrchestKit versions change
  */
 export const ORCHESTKIT_STATS = {
-  skills: 170,
+  skills: 179,
   agents: 35,
-  hooks: 148,
+  hooks: 144,
   ccVersion: "CC 2.1.16",
+  // Uppercase aliases for backward compatibility
+  SKILLS: 179,
+  AGENTS: 35,
+  HOOKS: 144,
 } as const;
 
 /**

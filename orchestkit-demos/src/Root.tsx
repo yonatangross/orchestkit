@@ -20,6 +20,14 @@ import {
   MarketplaceIntro,
   marketplaceIntroSchema,
 } from "./components/MarketplaceIntro";
+import {
+  SpeedrunDemo,
+  speedrunDemoSchema,
+} from "./components/SpeedrunDemo";
+import {
+  SkillShowcase,
+  skillShowcaseSchema,
+} from "./components/SkillShowcase";
 // HeyGen integration (experimental - isolated for future use)
 // import { HeyGenDemo } from "./components/HeyGenDemo";
 // import { InstallWithAvatarDemo, installWithAvatarDemoSchema } from "./components/InstallWithAvatarDemo";
@@ -55,6 +63,41 @@ export const RemotionRoot: React.FC = () => {
           primaryColor: "#8b5cf6",
           secondaryColor: "#22c55e",
           accentColor: "#06b6d4",
+        }}
+      />
+
+      {/* ==================== X/TWITTER SPEEDRUN (1:1 Square) ==================== */}
+
+      {/* 15-second Speedrun - Timer gimmick, hook in 1 second */}
+      <Composition
+        id="SpeedrunDemo"
+        component={SpeedrunDemo}
+        durationInFrames={FPS * 15}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={speedrunDemoSchema}
+        defaultProps={{
+          primaryColor: "#8b5cf6",
+          secondaryColor: "#22c55e",
+          accentColor: "#06b6d4",
+        }}
+      />
+
+      {/* 15-second Brainstorming Showcase - Generic factory pattern */}
+      <Composition
+        id="BrainstormingShowcase"
+        component={SkillShowcase}
+        durationInFrames={FPS * 15}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={skillShowcaseSchema}
+        defaultProps={{
+          configName: "brainstorming",
+          primaryColor: "#f59e0b",
+          secondaryColor: "#8b5cf6",
+          accentColor: "#22c55e",
         }}
       />
 

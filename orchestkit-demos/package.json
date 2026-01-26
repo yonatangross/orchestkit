@@ -22,6 +22,7 @@
     "@react-three/drei": "^10.3.0",
     "@react-three/fiber": "^9.1.0",
     "@remotion/animated-emoji": "^4.0.0",
+    "@remotion/animation-utils": "^4.0.409",
     "@remotion/captions": "^4.0.0",
     "@remotion/cli": "^4.0.0",
     "@remotion/gif": "^4.0.0",
