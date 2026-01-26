@@ -1,9 +1,14 @@
 /**
  * Unified SessionStart Dispatcher
  * Issue #235: Hook Architecture Refactor
+ * Issue #239: Move initialization hooks to Setup event
  *
- * Consolidates 7 async SessionStart hooks into a single dispatcher.
- * Reduces "Async hook SessionStart completed" messages from 7 to 1.
+ * Consolidates session-specific async hooks into a single dispatcher.
+ * Reduces "Async hook SessionStart completed" messages.
+ *
+ * Note: One-time initialization hooks (dependency-version-check,
+ * mem0-webhook-setup, coordination-init) moved to Setup dispatcher
+ * in Issue #239 - they only need to run once at plugin load.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  */
@@ -11,13 +16,12 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
-// Import individual hook implementations (only hooks that exist as files)
+// Import session-specific hook implementations
+// Note: dependency-version-check, mem0-webhook-setup, coordination-init
+// moved to setup/unified-dispatcher.ts (Issue #239)
 import { mem0ContextRetrieval } from './mem0-context-retrieval.js';
-import { mem0WebhookSetup } from './mem0-webhook-setup.js';
 import { mem0AnalyticsTracker } from './mem0-analytics-tracker.js';
 import { patternSyncPull } from './pattern-sync-pull.js';
-import { coordinationInit } from './coordination-init.js';
-import { dependencyVersionCheck } from './dependency-version-check.js';
 import { multiInstanceInit } from './multi-instance-init.js';
 import { instanceHeartbeat } from './instance-heartbeat.js';
 import { sessionEnvSetup } from './session-env-setup.js';
@@ -38,15 +42,13 @@ interface HookConfig {
 // -----------------------------------------------------------------------------
 
 /**
- * Registry of all async SessionStart hooks consolidated into dispatcher
+ * Registry of session-specific async SessionStart hooks
+ * One-time initialization hooks moved to Setup dispatcher (Issue #239)
  */
 const HOOKS: HookConfig[] = [
   { name: 'mem0-context-retrieval', fn: mem0ContextRetrieval },
-  { name: 'mem0-webhook-setup', fn: mem0WebhookSetup },
   { name: 'mem0-analytics-tracker', fn: mem0AnalyticsTracker },
   { name: 'pattern-sync-pull', fn: patternSyncPull },
-  { name: 'coordination-init', fn: coordinationInit },
-  { name: 'dependency-version-check', fn: dependencyVersionCheck },
   { name: 'multi-instance-init', fn: multiInstanceInit },
   { name: 'instance-heartbeat', fn: instanceHeartbeat },
   { name: 'session-env-setup', fn: sessionEnvSetup },

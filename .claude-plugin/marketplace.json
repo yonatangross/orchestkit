@@ -3,7 +3,7 @@
   "name": "orchestkit",
   "version": "5.2.8",
   "engine": ">=2.1.19",
-  "description": "Modular AI Development Toolkit — Install only what you need",
+  "description": "The Complete AI Development Toolkit - 179 skills, 35 agents, 150 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "description": "Full OrchestKit toolkit — 179 skills, 35 agents, 149 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns.",
+      "description": "Complete AI development toolkit with 179 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 35 specialized agents and 150 lifecycle hooks.",
       "version": "5.2.8",
       "author": {
         "name": "Yonatan Gross",
