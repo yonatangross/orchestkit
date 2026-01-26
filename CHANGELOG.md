@@ -19,12 +19,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Unified PostToolUse Dispatcher** (#235): Consolidated 14 async PostToolUse hooks into single dispatcher
+  - Reduces "Async hook PostToolUse completed" messages from ~8 to 1 per tool call
+  - Internal routing based on tool_name for efficient dispatch
+  - Centralized error handling with Promise.allSettled
+  - Async hooks reduced from 31 to 18 total (42% reduction)
+
 - **HooksAsyncDemo Video Component** (#209): New 15-second X/Twitter video showcasing async hooks
   - "31 Workers, Zero Wait" theme demonstrating async: true hooks
   - 4 scenes: hook intro, session start, split view, stats CTA
   - 1080x1080 square format for social media
 
 ### Fixed
+
+- **context-publisher hook error** (#235): Fixed "Cannot read properties of undefined (reading 'push')"
+  - Added defensive checks for array fields in session state
+  - Handles old schema versions gracefully
 
 - **PR #234 Review Issues** (#209): Address all findings from PR review
   - Add missing React import to Root.tsx for React.FC usage

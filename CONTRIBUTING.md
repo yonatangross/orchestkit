@@ -44,7 +44,7 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # 34 specialized AI personas
-└── hooks/                # 144 TypeScript hooks in 11 split bundles
+└── hooks/                # 145 TypeScript hooks in 11 split bundles
 
 manifests/                # Plugin definitions (34 JSON files)
 ├── ork.json              # Core plugin manifest
