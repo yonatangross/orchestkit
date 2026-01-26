@@ -123,9 +123,16 @@ test_empty_repo_hooks_run() {
 test_empty_repo_skills_discoverable() {
     test_start "skills discoverable from plugin root"
 
-    # Check skills exist in plugin (CC 2.1.7 flat structure)
-    local skill_count
-    skill_count=$(find "$PLUGIN_ROOT/skills" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+    # Check skills exist in plugin (check multiple locations: src/, plugins/ork/, or flat)
+    local skill_count=0
+    for path in "$PLUGIN_ROOT/src/skills" "$PLUGIN_ROOT/plugins/ork/skills" "$PLUGIN_ROOT/skills"; do
+        if [[ -d "$path" ]]; then
+            skill_count=$(find "$path" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
+            if [[ "$skill_count" -gt 90 ]]; then
+                break
+            fi
+        fi
+    done
 
     if [[ "$skill_count" -gt 90 ]]; then
         test_pass
@@ -137,8 +144,16 @@ test_empty_repo_skills_discoverable() {
 test_empty_repo_agents_available() {
     test_start "agents available from plugin root"
 
-    local agent_count
-    agent_count=$(find "$PLUGIN_ROOT/agents" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+    # Check agents exist (check multiple locations: src/, plugins/ork/, or flat)
+    local agent_count=0
+    for path in "$PLUGIN_ROOT/src/agents" "$PLUGIN_ROOT/plugins/ork/agents" "$PLUGIN_ROOT/agents"; do
+        if [[ -d "$path" ]]; then
+            agent_count=$(find "$path" -name "*.md" 2>/dev/null | wc -l | tr -d ' ')
+            if [[ "$agent_count" -ge 20 ]]; then
+                break
+            fi
+        fi
+    done
 
     if [[ "$agent_count" -ge 20 ]]; then
         test_pass

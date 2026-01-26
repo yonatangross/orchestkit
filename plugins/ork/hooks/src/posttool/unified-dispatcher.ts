@@ -134,14 +134,29 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
     })
   );
 
-  // Log summary for debugging (only errors)
-  const errors = results.filter(
-    r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'error')
-  );
+  // Collect failures for reporting
+  const failures: Array<{ hook: string; message: string }> = [];
 
-  if (errors.length > 0) {
-    logHook('unified-dispatcher', `${errors.length}/${matchingHooks.length} hooks had errors`);
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
+      failures.push({ hook: 'unknown', message: reason });
+    } else if (result.value.status === 'error') {
+      failures.push({ hook: result.value.hook, message: result.value.message || 'Unknown error' });
+    }
   }
 
+  // On failure: return informative message visible to user
+  if (failures.length > 0) {
+    const failedNames = failures.map(f => f.hook).join(', ');
+    logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failedNames}`);
+
+    return {
+      continue: true,
+      systemMessage: `⚠️ PostToolUse: ${failures.length}/${matchingHooks.length} hooks failed (${failedNames})`
+    };
+  }
+
+  // On success: silent (no extra output)
   return outputSilentSuccess();
 }

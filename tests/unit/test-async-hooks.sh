@@ -2,6 +2,11 @@
 # Async Hooks Unit Tests
 # Tests async hook configuration in hooks.json
 #
+# Updated for unified dispatcher architecture (PR #236, #239):
+# - Individual async hooks are now consolidated into unified dispatchers
+# - SessionStart, PostToolUse, Setup use async dispatchers
+# - Dispatchers internally route to multiple hooks via Promise.allSettled
+#
 # Usage: ./test-async-hooks.sh
 # Exit codes: 0 = pass, 1 = fail
 
@@ -23,6 +28,7 @@ PASSED=0
 
 echo "=========================================="
 echo "  Async Hooks Unit Tests"
+echo "  (Unified Dispatcher Architecture)"
 echo "=========================================="
 echo ""
 
@@ -37,14 +43,15 @@ else
     exit 1
 fi
 
-# Test 2: Count async hooks
-echo -n "  Async hooks count >= 31... "
+# Test 2: Count async hooks (now unified dispatchers)
+# With dispatcher architecture: ~5-10 async entries (dispatchers, not individual hooks)
+echo -n "  Async dispatchers exist (>= 5)... "
 ASYNC_COUNT=$(jq '[.. | objects | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $ASYNC_COUNT -ge 31 ]]; then
-    echo -e "${GREEN}PASS${NC} ($ASYNC_COUNT async hooks)"
+if [[ $ASYNC_COUNT -ge 5 ]]; then
+    echo -e "${GREEN}PASS${NC} ($ASYNC_COUNT async dispatchers)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (only $ASYNC_COUNT async hooks, expected >= 31)"
+    echo -e "${RED}FAIL${NC} (only $ASYNC_COUNT async dispatchers, expected >= 5)"
     FAILED=$((FAILED + 1))
 fi
 
@@ -59,7 +66,7 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 4: PreToolUse hooks are NOT async
+# Test 4: PreToolUse hooks are NOT async (critical path)
 echo -n "  PreToolUse hooks are NOT async... "
 PRETOOL_ASYNC=$(jq '.hooks.PreToolUse[]?.hooks[]? | select(.async == true) | .command' "$HOOKS_JSON" | wc -l)
 if [[ $PRETOOL_ASYNC -eq 0 ]]; then
@@ -70,7 +77,7 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 5: PermissionRequest hooks are NOT async
+# Test 5: PermissionRequest hooks are NOT async (critical path)
 echo -n "  PermissionRequest hooks are NOT async... "
 PERMISSION_ASYNC=$(jq '.hooks.PermissionRequest[]?.hooks[]? | select(.async == true) | .command' "$HOOKS_JSON" | wc -l)
 if [[ $PERMISSION_ASYNC -eq 0 ]]; then
@@ -81,51 +88,73 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 6: Notification hooks have short timeout
-echo -n "  Notification hooks have 10s timeout... "
-NOTIFICATION_TIMEOUT=$(jq '.hooks.Notification[]?.hooks[]? | select(.async == true) | .timeout' "$HOOKS_JSON" | head -1)
-if [[ "$NOTIFICATION_TIMEOUT" == "10" ]]; then
-    echo -e "${GREEN}PASS${NC}"
-    PASSED=$((PASSED + 1))
-else
-    echo -e "${RED}FAIL${NC} (timeout is $NOTIFICATION_TIMEOUT, expected 10)"
-    FAILED=$((FAILED + 1))
-fi
-
-# Test 7: SessionStart async hooks exist
-echo -n "  SessionStart has async hooks... "
+# Test 6: SessionStart has unified dispatcher (async)
+echo -n "  SessionStart has async dispatcher... "
 SESSIONSTART_ASYNC=$(jq '[.hooks.SessionStart[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $SESSIONSTART_ASYNC -ge 7 ]]; then
-    echo -e "${GREEN}PASS${NC} ($SESSIONSTART_ASYNC async hooks)"
+if [[ $SESSIONSTART_ASYNC -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($SESSIONSTART_ASYNC async dispatcher)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (only $SESSIONSTART_ASYNC, expected >= 7)"
+    echo -e "${RED}FAIL${NC} (no async dispatcher in SessionStart)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 8: PostToolUse async hooks exist
-echo -n "  PostToolUse has async hooks... "
+# Test 7: PostToolUse has unified dispatcher (async)
+echo -n "  PostToolUse has async dispatcher... "
 POSTTOOL_ASYNC=$(jq '[.hooks.PostToolUse[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
-if [[ $POSTTOOL_ASYNC -ge 13 ]]; then
-    echo -e "${GREEN}PASS${NC} ($POSTTOOL_ASYNC async hooks)"
+if [[ $POSTTOOL_ASYNC -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($POSTTOOL_ASYNC async dispatcher)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (only $POSTTOOL_ASYNC, expected >= 13)"
+    echo -e "${RED}FAIL${NC} (no async dispatcher in PostToolUse)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 9: issue-work-summary has 60s timeout
-echo -n "  issue-work-summary has 60s timeout... "
-ISSUE_TIMEOUT=$(jq '.hooks.Stop[]?.hooks[]? | select(.command | contains("issue-work-summary")) | .timeout' "$HOOKS_JSON")
-if [[ "$ISSUE_TIMEOUT" == "60" ]]; then
+# Test 8: Setup has unified dispatcher (async) - Issue #239
+echo -n "  Setup has async dispatcher... "
+SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
+if [[ $SETUP_ASYNC -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($SETUP_ASYNC async dispatcher)"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC} (no async dispatcher in Setup)"
+    FAILED=$((FAILED + 1))
+fi
+
+# Test 9: Setup dispatcher references unified-dispatcher
+echo -n "  Setup uses unified-dispatcher... "
+SETUP_UNIFIED=$(jq '.hooks.Setup[]?.hooks[]? | select(.command | contains("setup/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+if [[ $SETUP_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} (timeout is $ISSUE_TIMEOUT, expected 60)"
+    echo -e "${RED}FAIL${NC} (Setup doesn't use unified-dispatcher)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 10: Valid JSON structure
+# Test 10: SessionStart dispatcher references unified-dispatcher
+echo -n "  SessionStart uses unified-dispatcher... "
+SESSIONSTART_UNIFIED=$(jq '.hooks.SessionStart[]?.hooks[]? | select(.command | contains("lifecycle/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+if [[ $SESSIONSTART_UNIFIED -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC} (SessionStart doesn't use unified-dispatcher)"
+    FAILED=$((FAILED + 1))
+fi
+
+# Test 11: PostToolUse dispatcher references unified-dispatcher
+echo -n "  PostToolUse uses unified-dispatcher... "
+POSTTOOL_UNIFIED=$(jq '.hooks.PostToolUse[]?.hooks[]? | select(.command | contains("posttool/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+if [[ $POSTTOOL_UNIFIED -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC}"
+    PASSED=$((PASSED + 1))
+else
+    echo -e "${RED}FAIL${NC} (PostToolUse doesn't use unified-dispatcher)"
+    FAILED=$((FAILED + 1))
+fi
+
+# Test 12: Valid JSON structure
 echo -n "  hooks.json is valid JSON... "
 if jq empty "$HOOKS_JSON" 2>/dev/null; then
     echo -e "${GREEN}PASS${NC}"

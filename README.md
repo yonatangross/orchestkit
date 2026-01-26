@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**179 skills · 35 agents · 149 hooks · 33 modular plugins**
+**179 skills · 35 agents · 150 hooks · 33 modular plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.19-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![Skills](https://img.shields.io/badge/Skills-164-blue?style=for-the-badge)](./skills)
@@ -88,7 +88,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │   149 hooks   │    │  179 skills   │    │   35 agents   │
+        │  150 hooks  │    │  179 skills   │    │   35 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -319,16 +319,16 @@ Codebase Analysis:
 
 **179 skills** with progressive loading (~70% token savings):
 
-### 🤖 AI & ML — 27 skills
+### 🤖 AI & ML — 179 skills
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
 | **RAG & Retrieval** | 6 | `rag-retrieval`, `contextual-retrieval`, `reranking-patterns`, `hyde-retrieval`, `query-decomposition`, `agentic-rag-patterns` |
 | **LLM Patterns** | 8 | `function-calling`, `llm-streaming`, `llm-evaluation`, `prompt-engineering-suite`, `fine-tuning-customization`, `vision-language-models`, `high-performance-inference`, `semantic-caching` |
-| **Agents & Orchestration** | 7 | `agent-loops`, `multi-agent-orchestration`, `langgraph-*` (7 skills), `alternative-agent-frameworks` |
+| **Agents & Orchestration** | 7 | `agent-loops`, `multi-agent-orchestration`, `langgraph-*` (179 skills), `alternative-agent-frameworks` |
 | **Safety & Security** | 6 | `llm-safety-patterns`, `advanced-guardrails`, `mcp-security-hardening`, `llm-testing` |
 
-### ⚡ Backend — 19 skills
+### ⚡ Backend — 179 skills
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
@@ -338,7 +338,7 @@ Codebase Analysis:
 | **Architecture** | 5 | `saga-patterns`, `cqrs-patterns`, `event-sourcing`, `outbox-pattern`, `aggregate-patterns` |
 | **Resilience** | 4 | `rate-limiting`, `idempotency-patterns`, `distributed-locks`, `resilience-patterns` |
 
-### 🎨 Frontend — 23 skills
+### 🎨 Frontend — 179 skills
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
@@ -348,19 +348,19 @@ Codebase Analysis:
 | **Data Viz & PWA** | 4 | `recharts-patterns`, `dashboard-patterns`, `pwa-patterns`, `responsive-patterns` |
 | **Build & Quality** | 2 | `vite-advanced`, `biome-linting` |
 
-### 🧪 Testing — 10 skills
+### 🧪 Testing — 179 skills
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
 | **Unit & Integration** | 4 | `pytest-advanced`, `unit-testing`, `integration-testing`, `msw-mocking` |
 | **Advanced Testing** | 4 | `property-based-testing`, `contract-testing`, `e2e-testing`, `vcr-http-recording` |
-| **Test Data** | 2 | `test-data-management`, `golden-dataset-*` (3 skills) |
+| **Test Data** | 2 | `test-data-management`, `golden-dataset-*` (179 skills) |
 
-### 🔒 Security — 5 skills
+### 🔒 Security — 179 skills
 
 `owasp-top-10` · `auth-patterns` · `input-validation` · `defense-in-depth` · `security-scanning`
 
-### 🚀 DevOps & Git — 10 skills
+### 🚀 DevOps & Git — 179 skills
 
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
@@ -381,7 +381,7 @@ Full list in [`skills/`](./skills) directory.
 
 **34 specialized agents** organized by domain:
 
-### ⚡ Backend & Data — 6 agents
+### ⚡ Backend & Data — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -392,7 +392,7 @@ Full list in [`skills/`](./skills) directory.
 | `python-performance-engineer` | Async optimization, profiling, caching |
 | `infrastructure-architect` | Cloud architecture, scaling patterns |
 
-### 🎨 Frontend & UX — 5 agents
+### 🎨 Frontend & UX — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -402,7 +402,7 @@ Full list in [`skills/`](./skills) directory.
 | `accessibility-specialist` | WCAG 2.2, ARIA, keyboard navigation |
 | `ux-researcher` | User flows, usability analysis |
 
-### 🤖 AI & ML — 5 agents
+### 🤖 AI & ML — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -412,14 +412,14 @@ Full list in [`skills/`](./skills) directory.
 | `prompt-engineer` | Chain-of-thought, few-shot learning |
 | `multimodal-specialist` | Vision, audio, multi-modal pipelines |
 
-### 🔒 Security — 2 agents
+### 🔒 Security — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
 | `security-auditor` | OWASP Top 10, vulnerability assessment |
 | `security-layer-auditor` | Defense-in-depth, authentication flows |
 
-### ✅ Quality & Testing — 4 agents
+### ✅ Quality & Testing — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -428,7 +428,7 @@ Full list in [`skills/`](./skills) directory.
 | `system-design-reviewer` | Architecture review, trade-offs |
 | `debug-investigator` | Root cause analysis, debugging |
 
-### 🚀 DevOps & Ops — 6 agents
+### 🚀 DevOps & Ops — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -439,7 +439,7 @@ Full list in [`skills/`](./skills) directory.
 | `monitoring-engineer` | Prometheus, Grafana, alerting |
 | `metrics-architect` | Observability, KPIs, dashboards |
 
-### 📊 Product & Strategy — 5 agents
+### 📊 Product & Strategy — 35 agents
 
 | Agent | Specialty |
 |-------|-----------|
@@ -512,9 +512,9 @@ flowchart TB
     classDef container fill:#fafafa,stroke:#9e9e9e,stroke-width:1px
 
     class P input
-    class H1,H2,H3,H4 hooks
-    class S1,S2,S3,S4 skills
-    class A1,A2,A3,A4 agents
+    class H1,H2,H3,H0 hooks
+    class S1,S2,S3,S179 skills
+    class A1,A2,A3,A35 agents
     class C output
     class OrchestKit container
 ```
@@ -742,7 +742,7 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 src/
 ├── skills/      # 179 skills (single source of truth - edit these)
 ├── agents/      # 35 agents (single source of truth - edit these)
-└── hooks/       # 149 hooks (single source of truth - edit these)
+└── hooks/       # 150 hooks (single source of truth - edit these)
 
 manifests/       # Plugin definitions (34 manifests - edit these)
 ├── ork.json

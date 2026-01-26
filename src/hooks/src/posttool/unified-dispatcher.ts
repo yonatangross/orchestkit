@@ -6,6 +6,11 @@
  * This reduces the number of "Async hook completed" messages from ~14 to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
+ *
+ * NOTE: Async hooks are fire-and-forget by design. They can only return
+ * { async: true, asyncTimeout } - fields like systemMessage, continue,
+ * decision are NOT processed by Claude Code for async hooks.
+ * Failures are logged to file but not surfaced to users.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -134,14 +139,22 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
     })
   );
 
-  // Log summary for debugging (only errors)
-  const errors = results.filter(
-    r => r.status === 'rejected' || (r.status === 'fulfilled' && r.value.status === 'error')
-  );
+  // Count failures for logging (async hooks can't report to users)
+  const failures: string[] = [];
 
-  if (errors.length > 0) {
-    logHook('unified-dispatcher', `${errors.length}/${matchingHooks.length} hooks had errors`);
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      failures.push('unknown');
+    } else if (result.value.status === 'error') {
+      failures.push(result.value.hook);
+    }
   }
 
+  // Log failures (async hooks are fire-and-forget - can't surface to users)
+  if (failures.length > 0) {
+    logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
+  }
+
+  // Async hooks always return silent success - CC ignores other fields
   return outputSilentSuccess();
 }
