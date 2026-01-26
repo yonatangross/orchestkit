@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 144 TypeScript hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 145 TypeScript hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -218,15 +218,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/session-metrics",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
             "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/audit-logger",
-            "async": true,
-            "timeout": 30
+            "timeout": 60
           },
           {
             "type": "command",
@@ -235,12 +229,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-error-handler"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/calibration-tracker",
-            "async": true,
-            "timeout": 30
           }
         ]
       },
@@ -253,29 +241,11 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/code-style-learner",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/naming-convention-learner",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/auto-lint"
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/readme-sync"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/skill-edit-tracker",
-            "async": true,
-            "timeout": 30
           },
           {
             "type": "command",
@@ -309,74 +279,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/pattern-extractor",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/issue-progress-commenter",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/bash/issue-subtask-updater",
-            "async": true,
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/mem0-webhook-handler",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/coordination-heartbeat",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/skill/skill-usage-optimizer",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__mem0__add_memory|mcp__memory__create_entities",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/memory-bridge",
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      },
-      {
-        "matcher": "Bash|Write|Edit|Skill|Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/realtime-sync",
-            "async": true,
-            "timeout": 30
           }
         ]
       }
