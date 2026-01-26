@@ -5,12 +5,8 @@
  * @see https://docs.anthropic.com/en/docs/claude-code/hooks
  */
 import { describe, it, expect, beforeAll } from 'vitest';
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import fs from 'fs';
+import path from 'path';
 
 interface Hook {
   type: string;
@@ -34,7 +30,8 @@ describe('Async Hooks Registry', () => {
   let hooksConfig: HooksConfig;
 
   beforeAll(() => {
-    const hooksPath = path.join(__dirname, '../../../hooks.json');
+    // Use process.cwd() since tests run from src/hooks directory
+    const hooksPath = path.resolve(process.cwd(), 'hooks.json');
     const content = fs.readFileSync(hooksPath, 'utf-8');
     hooksConfig = JSON.parse(content);
   });

@@ -197,6 +197,109 @@ orchestkit-demos/out/
 4. **Include context** - Brief setup before the demo
 5. **End with CTA** - Always include install command
 
+## Terminal Simulation Patterns
+
+### Pinned Header + Scrolling Content
+
+```typescript
+const Terminal: React.FC<Props> = ({ frame, fps }) => {
+  const LINE_HEIGHT = 22;
+  const MAX_VISIBLE = 10;
+
+  // Header stays pinned (command + task created message)
+  const visibleHeader = HEADER_LINES.filter(line => frame >= line.frame);
+
+  // Content scrolls to keep latest visible
+  const visibleContent = CONTENT_LINES.filter(line => frame >= line.frame);
+  const contentHeight = visibleContent.length * LINE_HEIGHT;
+  const scrollOffset = Math.max(0, contentHeight - MAX_VISIBLE * LINE_HEIGHT);
+
+  return (
+    <div style={{ height: 420 }}>
+      {/* Pinned header */}
+      <div style={{ borderBottom: "1px solid #21262d" }}>
+        {visibleHeader.map((line, i) => <TerminalLine key={i} {...line} />)}
+      </div>
+
+      {/* Scrolling content */}
+      <div style={{ overflow: "hidden", height: 280 }}>
+        <div style={{ transform: `translateY(-${scrollOffset}px)` }}>
+          {visibleContent.map((line, i) => <TerminalLine key={i} {...line} />)}
+        </div>
+      </div>
+    </div>
+  );
+};
+```
+
+### Agent Colors (Official Palette)
+
+```typescript
+const AGENT_COLORS = {
+  workflow:     "#8b5cf6",  // Purple - workflow-architect
+  backend:      "#06b6d4",  // Cyan - backend-system-architect
+  security:     "#ef4444",  // Red - security-auditor
+  performance:  "#22c55e",  // Green - performance-engineer
+  frontend:     "#f59e0b",  // Amber - frontend-ui-developer
+  data:         "#ec4899",  // Pink - data-pipeline-engineer
+  llm:          "#6366f1",  // Indigo - llm-integrator
+  docs:         "#14b8a6",  // Teal - documentation-specialist
+};
+```
+
+### Task Spinner Animation
+
+```typescript
+const SPINNER = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+
+const TaskSpinner: React.FC<{ frame: number; text: string; color: string }> = ({ frame, text, color }) => {
+  const spinnerIdx = Math.floor(frame / 3) % SPINNER.length;
+  return (
+    <div style={{ color }}>
+      <span style={{ marginRight: 8 }}>{SPINNER[spinnerIdx]}</span>
+      {text}
+    </div>
+  );
+};
+```
+
+## Slop Avoidance Patterns
+
+### Common Slop to Eliminate
+
+| Slop Pattern | Example | Fix |
+|-------------|---------|-----|
+| Verbose phase names | "Divergent Exploration" | "Ideas" or "Generating 12 ideas" |
+| Redundant sub-descriptions | Phase title + description | Combine into single line |
+| Repetitive completions | "✓ Task #2 completed: patterns analyzed" | "✓ #2 patterns" |
+| Generic transitions | "Now let's see..." | Cut directly |
+| Empty lines for spacing | Multiple blank lines | CSS padding instead |
+
+### Text Density Rules
+
+```
+TERMINAL TEXT DENSITY
+=====================
+✓ "Analyzing topic → 3 patterns found"     (action → result)
+✗ "Phase 1: Topic Analysis"                (title only)
+✗ "   └─ Keywords: real-time, notifications" (sub-detail)
+
+✓ "✓ #2 patterns"                          (compact completion)
+✗ "✓ Task #2 completed: patterns analyzed" (verbose completion)
+```
+
+### Timing Compression
+
+```
+15-SECOND VIDEO BREAKDOWN
+=========================
+0-7s:   Terminal demo (action-packed)
+7-11s:  Result visualization (payoff)
+11-15s: CTA (install command + stats)
+
+Rule: If content doesn't earn its screen time, cut it.
+```
+
 ## Related Skills
 
 - `terminal-demo-generator`: VHS tape recording

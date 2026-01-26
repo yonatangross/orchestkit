@@ -5,6 +5,7 @@ context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [manim, animation, visualization, diagram, video]
+user-invocable: false
 ---
 
 # Manim Visualizer

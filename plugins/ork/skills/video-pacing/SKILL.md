@@ -258,15 +258,138 @@ YT Long      | 8-15     | 4-8s     | 5s      | 80-120
 LinkedIn     | 5-10     | 6-12s    | 3s      | 60-90
 ```
 
+## Remotion-Specific Pacing
+
+### Frame Calculation Formulas
+
+```typescript
+// Core formula: frames = fps * seconds
+const fps = 30;
+const SCENE_END = fps * 5;     // 5 seconds = 150 frames
+const FADE_START = fps * 4.5;  // 4.5 seconds = 135 frames
+
+// Sequence timing
+<Sequence from={0} durationInFrames={fps * 5}>        {/* 0-5s */}
+<Sequence from={fps * 5} durationInFrames={fps * 3}>  {/* 5-8s */}
+<Sequence from={fps * 8}>                              {/* 8s onwards */}
+```
+
+### Animation Utilities (Underutilized)
+
+```typescript
+import {
+  interpolate,
+  interpolateColors,      // Color transitions
+  spring,
+  measureSpring,          // Know spring duration
+  Easing,                 // Custom curves
+} from "remotion";
+
+import {
+  makeTransform,          // Clean transform composition
+  interpolateStyles,      // Smooth style transitions
+} from "@remotion/animation-utils";
+
+// Example: makeTransform for cleaner code
+const transform = makeTransform([
+  ["translateY", `${(1 - progress) * 20}px`],
+  ["scale", scale],
+  ["rotate", `${rotation}deg`],
+]);
+
+// Example: interpolateColors for gradients
+const color = interpolateColors(
+  frame,
+  [0, 30, 60],
+  ["#ef4444", "#f59e0b", "#22c55e"]
+);
+
+// Example: measureSpring for precise timing
+const duration = measureSpring({ fps, config: { damping: 15, stiffness: 150 } });
+console.log(`Spring takes ${duration} frames`);
+```
+
+### Spring Presets
+
+```typescript
+// Snappy (UI elements, buttons)
+const SPRING_SNAPPY = { damping: 15, stiffness: 180 };
+
+// Smooth (containers, panels)
+const SPRING_SMOOTH = { damping: 12, stiffness: 120 };
+
+// Bouncy (attention, celebration)
+const SPRING_BOUNCY = { damping: 8, stiffness: 200 };
+
+// Slow (dramatic reveals)
+const SPRING_SLOW = { damping: 20, stiffness: 80 };
+
+// Usage
+const scale = spring({ frame, fps, config: SPRING_SNAPPY });
+```
+
+### Bundler Caching Gotchas
+
+```bash
+# PROBLEM: Asset changes not reflected in render
+# Remotion bundles aggressively - old assets may persist
+
+# SOLUTION 1: Kill and re-render
+pkill -f "remotion"
+npx remotion render CompositionName output.mp4
+
+# SOLUTION 2: Clear bundler cache
+rm -rf node_modules/.cache
+npx remotion render ...
+
+# SOLUTION 3: Use unique filenames for assets during dev
+public/logo-v2.png  # Instead of overwriting logo.png
+```
+
+### staticFile vs Inline Assets
+
+```typescript
+// ✅ GOOD - External assets via staticFile
+import { staticFile, Img } from "remotion";
+<Img src={staticFile("claude-logo.png")} />
+
+// ❌ BAD - Inline SVG when you need actual logo
+<svg>...</svg>  // Only for generated graphics
+
+// ✅ GOOD - Audio via staticFile
+<Audio src={staticFile("audio/snap-attack.mp3")} volume={0.35} />
+```
+
+### Easing Functions
+
+```typescript
+import { Easing } from "remotion";
+
+// Built-in easings
+const opacity = interpolate(frame, [0, 30], [0, 1], {
+  easing: Easing.bezier(0.25, 0.1, 0.25, 1),  // ease
+  // easing: Easing.inOut(Easing.ease),       // ease-in-out
+  // easing: Easing.out(Easing.cubic),        // ease-out-cubic
+});
+
+// Common presets
+const EASE_OUT_EXPO = Easing.bezier(0.16, 1, 0.3, 1);
+const EASE_IN_OUT_QUART = Easing.bezier(0.76, 0, 0.24, 1);
+```
+
 ## Related Skills
 
 - `remotion-composer`: Programmatic video generation with Remotion
 - `video-storyboarding`: Pre-production planning and scene structure
 - `motion-animation-patterns`: Animation timing curves
 - `core-web-vitals`: Performance timing principles
+- `thumbnail-first-frame`: First frame visibility gotchas
 
 ## References
 
 - [Platform Pacing Rules](./references/platform-pacing-rules.md) - Detailed platform requirements
 - [Rhythm Patterns](./references/rhythm-patterns.md) - Advanced rhythm techniques
 - [Attention Curves](./references/attention-curves.md) - Viewer retention research
+- [Remotion spring() docs](https://www.remotion.dev/docs/spring) - Spring animation API
+- [Remotion makeTransform()](https://www.remotion.dev/docs/animation-utils/make-transform) - Transform composition
+- [Remotion interpolateStyles()](https://www.remotion.dev/docs/animation-utils/interpolate-styles) - Style interpolation

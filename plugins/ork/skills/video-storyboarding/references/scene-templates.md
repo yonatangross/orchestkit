@@ -176,7 +176,7 @@ notes: |
   Use specific numbers (163, not "100+").
 
   OrchestKit example:
-  "163 Skills • 34 Agents • 144 Hooks"
+  "179 Skills • 35 Agents • 144 Hooks"
 ```
 
 ### Template A3: Pain Point Opening

@@ -453,8 +453,8 @@ VISUAL CONSISTENCY:
 [ ] Cursor visible but not distracting
 
 CONTENT ACCURACY:
-[ ] Skill count accurate (163)
-[ ] Agent count accurate (34)
+[ ] Skill count accurate (179)
+[ ] Agent count accurate (35)
 [ ] Hook count accurate (144)
 [ ] All commands work as shown
 ```

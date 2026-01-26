@@ -281,7 +281,7 @@ describe('Cross-Bundle Consistency', () => {
 
     const totalHooks = bundles.reduce((sum, bundle) => sum + Object.keys(bundle).length, 0);
 
-    // Should have 144 hooks total
+    // Should have 144 hooks total (3 hooks in hooks.json don't have TypeScript implementations yet)
     expect(totalHooks).toBe(144);
   });
 });

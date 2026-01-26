@@ -18,6 +18,8 @@ skills:
   - terminal-demo-generator
   - manim-visualizer
   - remotion-composer
+  - recall
+  - remember
 ---
 
 ## Directive
