@@ -74,11 +74,11 @@ export const RemotionRoot: React.FC = () => {
 
       {/* ==================== MARKETPLACE DEMO (Option D) ==================== */}
 
-      {/* 55-second Full Power Demo (with intro cards) - /implement + /verify + breadth montage */}
+      {/* 50-second AnimStats-style Demo - High-energy kinetic typography */}
       <Composition
         id="MarketplaceDemo"
         component={MarketplaceDemo}
-        durationInFrames={FPS * 55} // 55 seconds @ 30fps (with intro cards)
+        durationInFrames={FPS * 50} // 50 seconds @ 30fps (v4 complete redesign)
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}
