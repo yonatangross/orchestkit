@@ -34,6 +34,7 @@ import {
   hooksAsyncDemoSchema,
 } from "./components/HooksAsyncDemo";
 import { HeroGif, heroGifSchema } from "./components/HeroGif";
+import { MarketplaceDemo, marketplaceDemoSchema } from "./components/MarketplaceDemo";
 // HeyGen integration (experimental - isolated for future use)
 // import { HeyGenDemo } from "./components/HeyGenDemo";
 // import { InstallWithAvatarDemo, installWithAvatarDemoSchema } from "./components/InstallWithAvatarDemo";
@@ -56,18 +57,34 @@ export const RemotionRoot: React.FC = () => {
     <>
       {/* ==================== README HERO GIF ==================== */}
 
-      {/* 8-second Hero GIF for README - Optimized for GIF output */}
+      {/* 30-second Hero GIF for README - v4 with larger text and vibrant colors */}
       <Composition
         id="HeroGif"
         component={HeroGif}
-        durationInFrames={15 * 8} // 8 seconds @ 15fps
+        durationInFrames={15 * 30} // 30 seconds @ 15fps
         fps={15}
-        width={800}
-        height={450}
+        width={1200}
+        height={700}
         schema={heroGifSchema}
         defaultProps={{
           primaryColor: "#8b5cf6",
           secondaryColor: "#22c55e",
+        }}
+      />
+
+      {/* ==================== MARKETPLACE DEMO (Option D) ==================== */}
+
+      {/* 55-second Full Power Demo (with intro cards) - /implement + /verify + breadth montage */}
+      <Composition
+        id="MarketplaceDemo"
+        component={MarketplaceDemo}
+        durationInFrames={FPS * 55} // 55 seconds @ 30fps (with intro cards)
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={marketplaceDemoSchema}
+        defaultProps={{
+          primaryColor: "#a855f7",
         }}
       />
 
