@@ -601,8 +601,61 @@ MEM0_API_KEY            # Optional: Mem0 cloud integration
 /plugin list
 
 # Reinstall if needed
-/plugin uninstall skf
+/plugin uninstall ork
 /plugin marketplace add yonatangross/orchestkit
+/plugin install ork
+```
+
+</details>
+
+<details>
+<summary><strong>❓ Plugin works locally but not in other projects?</strong></summary>
+
+The plugin may be installed with **local scope** (tied to one project). To fix:
+
+```bash
+# Check current scope
+cat ~/.claude/plugins/installed_plugins.json | grep -A5 "ork@orchestkit"
+```
+
+If you see `"scope": "local"` or `"scope": "project"`, change it to `"scope": "user"` and remove the `"projectPath"` field. Then restart Claude Code.
+
+</details>
+
+<details>
+<summary><strong>❓ Plugin installed but not showing in /plugin list?</strong></summary>
+
+The plugin may be installed but not **enabled**. Check `~/.claude/settings.json`:
+
+```bash
+cat ~/.claude/settings.json | grep ork
+```
+
+If `ork@orchestkit` is missing from `enabledPlugins`, add it:
+
+```json
+"enabledPlugins": {
+  "ork@orchestkit": true,
+  ...
+}
+```
+
+Then restart Claude Code.
+
+</details>
+
+<details>
+<summary><strong>❓ Old version loading despite update?</strong></summary>
+
+The plugin cache may have a stale version. Clear and reinstall:
+
+```bash
+# Check cached version
+ls ~/.claude/plugins/cache/orchestkit/ork/
+
+# Clear cache and reinstall
+/plugin uninstall ork
+rm -rf ~/.claude/plugins/cache/orchestkit/ork/
 /plugin install ork
 ```
 
