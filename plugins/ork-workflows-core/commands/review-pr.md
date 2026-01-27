@@ -258,6 +258,27 @@ gh pr review $ARGUMENTS --approve -b "Review message"
 gh pr review $ARGUMENTS --request-changes -b "Review message"
 ```
 
+## CC 2.1.20 Enhancements
+
+### PR Status Enrichment
+
+The `pr-status-enricher` hook automatically detects open PRs at session start and sets:
+- `ORCHESTKIT_PR_URL` - PR URL for quick reference
+- `ORCHESTKIT_PR_STATE` - PR state (OPEN, MERGED, CLOSED)
+
+### Optional Slack Notification
+
+After submitting a review, optionally notify the team:
+
+```
+mcp__slack__post_message({
+  channel: "#dev-reviews",
+  text: "PR #{number} reviewed: {APPROVE|REQUEST_CHANGES} - {summary}"
+})
+```
+
+See `slack-integration` skill for setup.
+
 ## Conventional Comments
 
 Use these prefixes for comments:
@@ -270,6 +291,7 @@ Use these prefixes for comments:
 ## Related Skills
 - commit: Create commits after review
 - create-pr: Create PRs for review
+- slack-integration: Team notifications for review events
 ## References
 
 - [Review Template](references/review-template.md)
