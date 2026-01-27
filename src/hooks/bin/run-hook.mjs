@@ -11,7 +11,7 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -147,9 +147,40 @@ process.stdin.on('error', () => {
 });
 
 /**
+ * Load hook overrides from .claude/hook-overrides.json
+ * Returns null if file doesn't exist or is invalid
+ */
+function loadOverrides(projectDir) {
+  const overridesPath = join(projectDir, '.claude', 'hook-overrides.json');
+  if (!existsSync(overridesPath)) return null;
+  try {
+    return JSON.parse(readFileSync(overridesPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Check if a hook is disabled via overrides
+ */
+function isHookDisabled(hookName, overrides) {
+  if (!overrides?.disabled) return false;
+  return Array.isArray(overrides.disabled) && overrides.disabled.includes(hookName);
+}
+
+/**
  * Execute the hook and output result
  */
 async function runHook(parsedInput) {
+  // Check hook overrides before execution
+  const projectDir = parsedInput.project_dir || process.env.CLAUDE_PROJECT_DIR || '.';
+  const overrides = loadOverrides(projectDir);
+
+  if (isHookDisabled(hookName, overrides)) {
+    console.log('{"continue":true,"suppressOutput":true}');
+    return;
+  }
+
   try {
     const result = await hookFn(parsedInput);
     console.log(JSON.stringify(result));

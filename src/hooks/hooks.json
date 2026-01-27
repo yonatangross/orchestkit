@@ -11,7 +11,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-protection"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-validator"
           },
           {
             "type": "command",
@@ -40,18 +40,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/conflict-predictor"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-commit-message-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-naming-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-atomic-commit-checker"
           },
           {
             "type": "command",
@@ -214,7 +202,7 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "*",
+        "matcher": "Bash|Write|Edit|Task|Skill|NotebookEdit",
         "hooks": [
           {
             "type": "command",

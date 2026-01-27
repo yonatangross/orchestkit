@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "validate": "node scripts/validate-registry.mjs"
   },
   "engines": {
     "node": ">=22.0.0"

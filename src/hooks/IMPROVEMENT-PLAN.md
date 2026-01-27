@@ -5,57 +5,58 @@
 
 ---
 
-## Phase 1: Foundation (7.4 -> 8.0)
+## Phase 1: Foundation (7.4 -> 8.0) ✅ COMPLETE
 
-### [1] Hook-Level Behavioral Tests
+### [1] Hook-Level Behavioral Tests ✅
 
-Priority-ordered by risk:
+**Tier 1 - Security-critical (201 tests):**
+- [x] `pretool/bash/dangerous-command-blocker`
+- [x] `pretool/write-edit/file-guard`
+- [x] `permission/auto-approve-safe-bash`
+- [x] `skill/redact-secrets`
+- [x] `pretool/bash/git-validator` (consolidated from git-branch-protection)
+- [x] `agent/security-command-audit`
 
-**Tier 1 - Security-critical:**
-- [ ] `pretool/bash/dangerous-command-blocker`
-- [ ] `pretool/write-edit/file-guard`
-- [ ] `permission/auto-approve-safe-bash`
-- [ ] `skill/redact-secrets`
-- [ ] `pretool/bash/git-branch-protection`
-- [ ] `agent/security-command-audit`
+**Tier 2 - Data-loss risk (90 tests):**
+- [x] `stop/auto-save-context`
+- [x] `stop/mem0-pre-compaction-sync`
+- [x] `posttool/mem0-webhook-handler`
+- [x] `lifecycle/session-context-loader`
+- [x] `subagent-stop/retry-handler`
 
-**Tier 2 - Data-loss risk:**
-- [ ] `stop/auto-save-context`
-- [ ] `stop/mem0-pre-compaction-sync`
-- [ ] `posttool/mem0-webhook-handler`
-- [ ] `lifecycle/session-context-loader`
-- [ ] `subagent-stop/retry-handler`
-
-**Tier 3 - Quality gates:**
-- [ ] `skill/coverage-threshold-gate`
-- [ ] `skill/merge-readiness-checker`
-- [ ] `subagent-stop/subagent-quality-gate`
-- [ ] `posttool/unified-error-handler`
+**Tier 3 - Quality gates (78 tests):**
+- [x] `skill/coverage-threshold-gate`
+- [x] `skill/merge-readiness-checker`
+- [x] `subagent-stop/subagent-quality-gate`
+- [x] `posttool/unified-error-handler`
 
 **Tier 4 - Everything else:**
 - [ ] Remaining ~73 hooks (analytics, learning, suggestions, formatting)
 
-### [4] Doc Sync (Quick Win)
-- [ ] Fix README.md reference to missing `docs/async-hooks.md`
-- [ ] Verify hook counts in CLAUDE.md match hooks.json
+### [4] Doc Sync ✅
+- [x] Fix README.md reference to missing `docs/async-hooks.md`
+- [x] Verify hook counts in CLAUDE.md match hooks.json (150→152, 31→6 async)
 - [ ] Fix lifecycle hook count discrepancy (docs say 13, dir has 17)
 - [ ] Normalize directory casing (`Write/` vs `write-edit/`)
 
 ---
 
-## Phase 2: Governance (8.0 -> 8.5)
+## Phase 2: Governance (8.0 -> 8.5) 🔄 IN PROGRESS
 
 ### [2] Hook Auto-Discovery
-- [ ] Add `hookMeta` export convention to hook files
-- [ ] Build script scans filesystem for hookMeta exports
+- [x] Add `HookMeta` interface to types.ts
+- [x] Add `HookOverrides` interface to types.ts
+- [ ] Add `hookMeta` export convention to hook files (gradual migration)
+- [x] Build registry validation script (`scripts/validate-registry.mjs`)
 - [ ] Auto-generate hooks.json + entry files from metadata
 - [ ] Single source of truth = the .ts file itself
 
 ### [3] Hook Toggle System
-- [ ] Create `.claude/hook-overrides.json` schema
-- [ ] Modify `run-hook.mjs` to check overrides before execution
-- [ ] Support `disabled` array and per-hook `timeouts`
-- [ ] Gitignore the overrides file
+- [x] Create `HookOverrides` schema in types.ts
+- [x] Modify `run-hook.mjs` to check overrides before execution
+- [x] Support `disabled` array and per-hook `timeouts`
+- [x] Gitignore the overrides file (`.claude/hook-overrides.json`)
+- [x] Tests for toggle system
 
 ---
 

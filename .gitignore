@@ -68,6 +68,9 @@ HOOK_SECURITY_*.txt
 # Local settings (user-specific)
 .claude/settings.local.json
 
+# Hook overrides (per-project, user-specific)
+.claude/hook-overrides.json
+
 # Mem0 sync state
 .mem0-sync-pending
 
