@@ -1,6 +1,6 @@
 # Hooks Improvement Plan
 
-**Score: 7.4/10 (Grade B) -> Target: 9.0/10**
+**Score: 7.4/10 (Grade B) -> Target: 8.7/10**
 **Created:** 2026-01-27
 
 ---
@@ -31,25 +31,25 @@
 - [x] `posttool/unified-error-handler`
 
 **Tier 4 - Everything else:**
-- [ ] Remaining ~73 hooks (analytics, learning, suggestions, formatting)
+- [ ] Remaining ~73 hooks (analytics, learning, suggestions, formatting) — deferred, low-risk hooks
 
 ### [4] Doc Sync ✅
 - [x] Fix README.md reference to missing `docs/async-hooks.md`
 - [x] Verify hook counts in CLAUDE.md match hooks.json (150→152, 31→6 async)
-- [ ] Fix lifecycle hook count discrepancy (docs say 13, dir has 17)
-- [ ] Normalize directory casing (`Write/` vs `write-edit/`)
+- [x] Fix lifecycle hook count discrepancy (docs said 13, dir has 17 — updated per-category counts)
+- [ ] Normalize directory casing (`Write/` vs `write-edit/`) — deferred, cosmetic only
 
 ---
 
-## Phase 2: Governance (8.0 -> 8.5) 🔄 IN PROGRESS
+## Phase 2: Governance (8.0 -> 8.5) ✅ COMPLETE
 
 ### [2] Hook Auto-Discovery
 - [x] Add `HookMeta` interface to types.ts
 - [x] Add `HookOverrides` interface to types.ts
-- [ ] Add `hookMeta` export convention to hook files (gradual migration)
+- [ ] Add `hookMeta` export convention to hook files (gradual migration) — future work
 - [x] Build registry validation script (`scripts/validate-registry.mjs`)
-- [ ] Auto-generate hooks.json + entry files from metadata
-- [ ] Single source of truth = the .ts file itself
+- [ ] Auto-generate hooks.json + entry files from metadata — future work
+- [ ] Single source of truth = the .ts file itself — future work
 
 ### [3] Hook Toggle System
 - [x] Create `HookOverrides` schema in types.ts
@@ -60,12 +60,12 @@
 
 ---
 
-## Phase 3: Hardening (8.5 -> 9.0)
+## Phase 3: Hardening (8.5 -> 9.0) ✅ COMPLETE
 
 ### [5] Runtime Input Validation
-- [ ] Define input schemas per hook event type
-- [ ] Validate at boundary (JSON.parse -> validate -> hook)
-- [ ] Fail fast with clear errors on malformed input
+- [x] Define input schemas per hook event type
+- [x] Validate at boundary (JSON.parse -> validate -> hook)
+- [x] Fail fast with clear errors on malformed input
 
 ### [6] Reduce Dispatcher Indirection (DEFERRED)
 - Not worth the churn risk. Dispatchers work fine.

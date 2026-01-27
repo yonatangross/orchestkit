@@ -44,28 +44,29 @@ hooks/
 │   │   ├── common.ts       # Logging, output builders, environment
 │   │   ├── git.ts          # Git operations and validation
 │   │   └── guards.ts       # Conditional execution predicates
-│   ├── permission/         # Permission hooks (4)
-│   ├── pretool/            # Pre-execution hooks (33)
-│   │   ├── bash/           # Bash command hooks (20)
-│   │   ├── write-edit/     # File operation hooks (3)
-│   │   ├── Write/          # Write-specific hooks (4)
-│   │   ├── mcp/            # MCP integration hooks (4)
-│   │   ├── input-mod/      # Input modification hooks (1)
-│   │   └── skill/          # Skill tracking hooks (1)
-│   ├── posttool/           # Post-execution hooks (21)
-│   │   ├── (root)/         # General post-tool hooks (12)
-│   │   ├── write/          # Write tracking hooks (5)
-│   │   ├── bash/           # Bash tracking hooks (3)
-│   │   ├── skill/          # Skill optimization hooks (1)
-│   │   └── write-edit/     # File lock hooks (1)
-│   ├── prompt/             # Prompt enhancement hooks (8)
-│   ├── subagent-start/     # Subagent spawn hooks (4)
-│   ├── subagent-stop/      # Subagent completion hooks (9)
-│   ├── notification/       # Notification hooks (2)
-│   ├── stop/               # Session stop hooks (11)
-│   ├── setup/              # Setup and maintenance hooks (8)
-│   ├── agent/              # Agent-specific hooks (6)
-│   └── skill/              # Skill validation hooks (24)
+│   ├── permission/         # Permission hooks (3)
+│   ├── pretool/            # Pre-execution hooks (30)
+│   │   ├── bash/           # Bash command hooks
+│   │   ├── write-edit/     # File operation hooks
+│   │   ├── Write/          # Write-specific hooks
+│   │   ├── mcp/            # MCP integration hooks
+│   │   ├── input-mod/      # Input modification hooks
+│   │   └── skill/          # Skill tracking hooks
+│   ├── posttool/           # Post-execution hooks (22)
+│   │   ├── (root)/         # General post-tool hooks
+│   │   ├── write/          # Write tracking hooks
+│   │   ├── bash/           # Bash tracking hooks
+│   │   ├── skill/          # Skill optimization hooks
+│   │   └── write-edit/     # File lock hooks
+│   ├── prompt/             # Prompt enhancement hooks (12)
+│   ├── subagent-start/     # Subagent spawn hooks (5)
+│   ├── subagent-stop/      # Subagent completion hooks (11)
+│   ├── notification/       # Notification hooks (3)
+│   ├── stop/               # Session stop hooks (13)
+│   ├── lifecycle/          # Lifecycle hooks (17)
+│   ├── setup/              # Setup and maintenance hooks (9)
+│   ├── agent/              # Agent-specific hooks (5)
+│   └── skill/              # Skill validation hooks (22)
 ├── dist/                   # Compiled output (11 split bundles + 1 unified)
 │   ├── permission.mjs      # Permission bundle (8KB)
 │   ├── pretool.mjs         # PreToolUse bundle (48KB)
@@ -105,7 +106,7 @@ Auto-approve or deny permission requests based on safety rules.
 Execute BEFORE a tool runs, can inject context or block execution.
 
 **Examples:**
-- `pretool/bash/git-branch-protection` - Block commits to main/dev branches
+- `pretool/bash/git-validator` - Validate git operations (branch protection, commit messages)
 - `pretool/bash/dangerous-command-blocker` - Block `rm -rf`, `sudo`, force push
 - `pretool/Write/architecture-change-detector` - Detect major architecture changes
 
@@ -447,7 +448,7 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - Context injection (must add context before tool runs)
 - Quality gates (must validate before allowing writes)
 
-### Current Async Hooks (20 total)
+### Current Async Hooks (6 hooks.json entries dispatching 20 individual hooks)
 
 **SessionStart (7 hooks)** - Startup optimization:
 - `mem0-context-retrieval` - Load context from cloud memory
@@ -927,7 +928,7 @@ const bundleMap = {
 **Last Updated:** 2026-01-26
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 152 TypeScript hooks (5 async)
+**Hooks:** 152 TypeScript hooks (6 async)
 **Average Bundle:** ~35KB per event
 **Claude Code Requirement:** >= 2.1.20
 
