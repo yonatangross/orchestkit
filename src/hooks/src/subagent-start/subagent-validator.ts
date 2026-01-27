@@ -11,7 +11,7 @@
 
 import { existsSync, readFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 
 // -----------------------------------------------------------------------------
 // Configuration
@@ -171,6 +171,88 @@ function validateAgentSkills(agentType: string): string[] {
   return missingSkills;
 }
 
+/**
+ * Extract tools list from agent frontmatter YAML (CC 2.1.20)
+ */
+function extractAgentTools(agentType: string): string[] {
+  const tools: string[] = [];
+  const agentFiles = [
+    `${getAgentsDir()}/${agentType}.md`,
+    `${getClaudeAgentsDir()}/${agentType}.md`,
+  ];
+
+  let agentFile: string | null = null;
+  for (const file of agentFiles) {
+    if (existsSync(file)) {
+      agentFile = file;
+      break;
+    }
+  }
+
+  if (!agentFile) return tools;
+
+  try {
+    const content = readFileSync(agentFile, 'utf8');
+    const lines = content.split('\n');
+    let inFrontmatter = false;
+    let inTools = false;
+
+    for (const line of lines) {
+      if (line === '---') {
+        if (!inFrontmatter) {
+          inFrontmatter = true;
+          continue;
+        } else {
+          break;
+        }
+      }
+      if (!inFrontmatter) continue;
+
+      if (/^tools:/.test(line)) {
+        inTools = true;
+        continue;
+      }
+      if (inTools && /^[a-zA-Z]/.test(line) && !/^\s/.test(line)) {
+        inTools = false;
+        continue;
+      }
+      if (inTools) {
+        const match = line.match(/^\s*-\s*(.+)$/);
+        if (match) {
+          tools.push(match[1].trim());
+        }
+      }
+    }
+  } catch {
+    // Ignore
+  }
+
+  return tools;
+}
+
+/**
+ * Generate permission profile markdown for agent (CC 2.1.20)
+ */
+function getPermissionProfile(agentType: string, tools: string[]): string {
+  if (tools.length === 0) return '';
+
+  const readOnly = tools.every(t => ['Read', 'Glob', 'Grep'].includes(t));
+  const hasBash = tools.includes('Bash');
+  const hasWrite = tools.includes('Write') || tools.includes('Edit');
+
+  let riskLevel = 'low';
+  if (hasBash && hasWrite) riskLevel = 'elevated';
+  else if (hasBash || hasWrite) riskLevel = 'moderate';
+
+  return `## Agent Permission Profile (CC 2.1.20)
+
+**Agent**: \`${agentType}\`
+**Tools**: ${tools.join(', ')}
+**Risk Level**: ${riskLevel}${readOnly ? ' (read-only)' : ''}
+
+${hasBash ? '> This agent requests Bash access. Review commands carefully.\n' : ''}`;
+}
+
 function logSpawn(subagentType: string, description: string, sessionId: string): void {
   const trackingLog = getTrackingLog();
   const dir = trackingLog.substring(0, trackingLog.lastIndexOf('/'));
@@ -231,6 +313,14 @@ export function subagentValidator(input: HookInput): HookResult {
     logHook('subagent-validator', `WARNING: Agent '${agentTypeOnly}' references missing skills: ${missingList}`);
     // Output warning to stderr (visible to user but non-blocking)
     console.error(`Warning: Agent '${agentTypeOnly}' references ${missingSkills.length} missing skill(s): ${missingList}`);
+  }
+
+  // CC 2.1.20: Extract agent tools and generate permission profile
+  const agentTools = extractAgentTools(agentTypeOnly);
+  if (agentTools.length > 0) {
+    const permissionProfile = getPermissionProfile(agentTypeOnly, agentTools);
+    logHook('subagent-validator', `Agent '${agentTypeOnly}' tools: ${agentTools.join(', ')}`);
+    return outputWithContext(permissionProfile);
   }
 
   return outputSilentSuccess();
