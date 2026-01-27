@@ -59,6 +59,9 @@ const HOOKS: HookConfig[] = [
   { name: 'session-env-setup', fn: sessionEnvSetup },
 ];
 
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------

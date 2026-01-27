@@ -81,6 +81,12 @@ const HOOKS: HookConfig[] = [
   { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },
 ];
 
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
+/** Exposed for registry wiring tests */
+export const registeredHookMatchers = () => HOOKS.map(h => ({ name: h.name, matcher: h.matcher }));
+
 // -----------------------------------------------------------------------------
 // Matcher Logic
 // -----------------------------------------------------------------------------

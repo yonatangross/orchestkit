@@ -42,6 +42,9 @@ const HOOKS: HookConfig[] = [
   { name: 'agent-memory-store', fn: agentMemoryStore },
 ];
 
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
