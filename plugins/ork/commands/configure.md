@@ -27,6 +27,7 @@ Use AskUserQuestion:
 | **Standard** | 78 | 0 | 92 | Skills, no agents |
 | **Lite** | 10 | 0 | 92 | Essential only |
 | **Hooks-only** | 0 | 0 | 92 | Just safety |
+| **Monorepo** | 78 | 20 | 92 | Complete + monorepo detection |
 
 ## Step 2: Customize Skill Categories
 
@@ -135,7 +136,43 @@ When enabled:
 - Compression triggers use effective window
 - MCP deferral more accurate
 
-## Step 7: Preview & Save
+## Step 7: CC 2.1.20 Settings
+
+Configure CC 2.1.20-specific features:
+
+### Task Deletion Support
+
+```
+Enable task deletion (status: "deleted")? [Y/n]: y
+```
+
+Enables orphan detection and automatic cleanup of blocked tasks.
+
+### PR Status Enrichment
+
+```
+Enable PR status enrichment at session start? [Y/n]: y
+```
+
+Detects open PRs on current branch and sets `ORCHESTKIT_PR_URL` / `ORCHESTKIT_PR_STATE` env vars.
+
+### Background Agent Permission Pre-Mapping
+
+```
+Enable permission profile suggestions for agents? [Y/n]: y
+```
+
+Shows recommended permission profiles when spawning agents.
+
+### Monorepo Multi-Directory Detection
+
+```
+Enable monorepo detection? [Y/n]: y
+```
+
+Detects monorepo indicators and suggests `--add-dir` usage.
+
+## Step 8: Preview & Save
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
