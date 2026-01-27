@@ -1,7 +1,7 @@
 [project]
 name = "orchestkit"
-version = "5.2.9"
-description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 179 skills, 35 agents, and 144 hooks"
+version = "5.3.0"
+description = "OrchestKit Complete - AI-assisted development toolkit for Claude Code with 181 skills, 35 agents, and 152 hooks"
 requires-python = ">=3.13"
 readme = "README.md"
 license = {text = "MIT"}

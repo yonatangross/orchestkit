@@ -6,6 +6,11 @@
  * This reduces the number of "Async hook completed" messages from ~14 to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
+ *
+ * NOTE: Async hooks are fire-and-forget by design. They can only return
+ * { async: true, asyncTimeout } - fields like systemMessage, continue,
+ * decision are NOT processed by Claude Code for async hooks.
+ * Failures are logged to file but not surfaced to users.
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -134,29 +139,22 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
     })
   );
 
-  // Collect failures for reporting
-  const failures: Array<{ hook: string; message: string }> = [];
+  // Count failures for logging (async hooks can't report to users)
+  const failures: string[] = [];
 
   for (const result of results) {
     if (result.status === 'rejected') {
-      const reason = result.reason instanceof Error ? result.reason.message : String(result.reason);
-      failures.push({ hook: 'unknown', message: reason });
+      failures.push('unknown');
     } else if (result.value.status === 'error') {
-      failures.push({ hook: result.value.hook, message: result.value.message || 'Unknown error' });
+      failures.push(result.value.hook);
     }
   }
 
-  // On failure: return informative message visible to user
+  // Log failures (async hooks are fire-and-forget - can't surface to users)
   if (failures.length > 0) {
-    const failedNames = failures.map(f => f.hook).join(', ');
-    logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failedNames}`);
-
-    return {
-      continue: true,
-      systemMessage: `⚠️ PostToolUse: ${failures.length}/${matchingHooks.length} hooks failed (${failedNames})`
-    };
+    logHook('posttool-dispatcher', `${failures.length}/${matchingHooks.length} hooks failed: ${failures.join(', ')}`);
   }
 
-  // On success: silent (no extra output)
+  // Async hooks always return silent success - CC ignores other fields
   return outputSilentSuccess();
 }

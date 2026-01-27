@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 149 TypeScript hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 152 TypeScript hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -381,6 +381,10 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/analytics-consent-check"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pr-status-enricher"
           }
         ]
       }
@@ -611,6 +615,11 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/setup-repair"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/monorepo-detector",
+            "once": true
           }
         ]
       }

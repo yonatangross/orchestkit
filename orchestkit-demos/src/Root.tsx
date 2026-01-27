@@ -33,6 +33,8 @@ import {
   HooksAsyncDemo,
   hooksAsyncDemoSchema,
 } from "./components/HooksAsyncDemo";
+import { HeroGif, heroGifSchema } from "./components/HeroGif";
+import { MarketplaceDemo, marketplaceDemoSchema } from "./components/MarketplaceDemo";
 // HeyGen integration (experimental - isolated for future use)
 // import { HeyGenDemo } from "./components/HeyGenDemo";
 // import { InstallWithAvatarDemo, installWithAvatarDemoSchema } from "./components/InstallWithAvatarDemo";
@@ -53,6 +55,39 @@ const AUDIO_DEFAULTS = {
 export const RemotionRoot: React.FC = () => {
   return (
     <>
+      {/* ==================== README HERO GIF ==================== */}
+
+      {/* 30-second Hero GIF for README - v4 with larger text and vibrant colors */}
+      <Composition
+        id="HeroGif"
+        component={HeroGif}
+        durationInFrames={15 * 30} // 30 seconds @ 15fps
+        fps={15}
+        width={1200}
+        height={700}
+        schema={heroGifSchema}
+        defaultProps={{
+          primaryColor: "#8b5cf6",
+          secondaryColor: "#22c55e",
+        }}
+      />
+
+      {/* ==================== MARKETPLACE DEMO (Option D) ==================== */}
+
+      {/* 45-second v9 "TOY BOX" - 8 SDLC toys, tactile UI, SLAM physics */}
+      <Composition
+        id="MarketplaceDemo"
+        component={MarketplaceDemo}
+        durationInFrames={FPS * 45} // 45 seconds @ 30fps (v9 toy box)
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={marketplaceDemoSchema}
+        defaultProps={{
+          primaryColor: "#a855f7",
+        }}
+      />
+
       {/* ==================== MARKETPLACE INTRO ==================== */}
 
       {/* 30-second Marketplace Intro - Cinematic showcase */}

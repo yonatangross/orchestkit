@@ -78,6 +78,20 @@ export function sessionContextLoader(input: HookInput): HookResult {
     }
   }
 
+  // CC 2.1.20: Load compaction manifest from previous session
+  const compactionManifest = `${projectDir}/.claude/context/session/compaction-manifest.json`;
+  if (isValidJsonFile(compactionManifest)) {
+    try {
+      const manifest = JSON.parse(readFileSync(compactionManifest, 'utf-8'));
+      logHook('session-context-loader', `Compaction manifest loaded: session=${manifest.sessionId}, decisions=${(manifest.keyDecisions || []).length}, files=${(manifest.filesTouched || []).length}`);
+      process.env.ORCHESTKIT_LAST_SESSION = manifest.sessionId || '';
+      process.env.ORCHESTKIT_LAST_DECISIONS = JSON.stringify(manifest.keyDecisions || []);
+      contextLoaded++;
+    } catch (error) {
+      logHook('session-context-loader', `Error loading compaction manifest: ${error}`);
+    }
+  }
+
   // Log summary
   if (contextLoaded > 0) {
     if (agentType) {

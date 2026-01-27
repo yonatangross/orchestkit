@@ -61,11 +61,34 @@ Use `addBlockedBy` to create execution order:
 pending → in_progress → completed
    ↓           ↓
 (unblocked)  (active)
+
+pending/in_progress → deleted (CC 2.1.20)
 ```
 
 - **pending**: Task created but not started
 - **in_progress**: Actively being worked on
 - **completed**: Work finished and verified
+- **deleted**: Task removed (CC 2.1.20) - permanently removes the task
+
+### Task Deletion (CC 2.1.20)
+
+CC 2.1.20 adds `status: "deleted"` to permanently remove tasks:
+
+```json
+// Delete a task
+{"taskId": "3", "status": "deleted"}
+```
+
+**When to delete:**
+- Orphaned tasks whose blockers have all failed
+- Tasks superseded by a different approach
+- Duplicate tasks created in error
+- Tasks from a cancelled pipeline
+
+**When NOT to delete:**
+- Tasks that might be retried later (keep as pending)
+- Tasks with useful history (mark completed instead)
+- Tasks blocked by in_progress work (wait for resolution)
 
 ### 4. activeForm Pattern
 

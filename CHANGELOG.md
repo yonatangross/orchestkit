@@ -5,6 +5,58 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.0] - 2026-01-27
+
+### Added
+
+- **Task Deletion Support** (CC 2.1.20): Added `status: "deleted"` to `TaskUpdateInstruction` type
+  - New `generateTaskDeleteInstruction()` and `formatTaskDeleteForClaude()` in task-integration
+  - New `getOrphanedTasks()` and `getTasksBlockedBy()` for orphan detection
+  - Automatic orphan cleanup in task-completer on agent failure
+  - Modernized task-completion-check with registry-based detection
+  - Updated task-dependency-patterns skill and status-workflow reference
+
+- **Monorepo Context Skill** (CC 2.1.20): New `monorepo-context` skill documenting `--add-dir` patterns
+  - Per-service CLAUDE.md in monorepo structure
+  - `CLAUDE_CODE_ADDITIONAL_DIRECTORIES_CLAUDE_MD=1` env var
+  - Monorepo detection indicators
+
+- **Monorepo Detector Hook**: New Setup hook detecting monorepo structures
+  - Checks for pnpm-workspace.yaml, lerna.json, nx.json, turbo.json, rush.json
+  - Counts nested package.json files (>= 3 = monorepo)
+  - Suggests `--add-dir` usage when detected
+
+- **Compaction Manifest**: context-compressor now writes `compaction-manifest.json`
+  - Contains keyDecisions, filesTouched, blockers, nextSteps
+  - session-context-loader reads manifest and sets `ORCHESTKIT_LAST_SESSION` / `ORCHESTKIT_LAST_DECISIONS` env vars
+
+- **PR Status Enricher Hook**: New SessionStart hook detecting open PRs
+  - Sets `ORCHESTKIT_PR_URL` and `ORCHESTKIT_PR_STATE` env vars
+  - Logs PR title, state, review decision, and unresolved comment count
+  - Skips main/master/dev/develop branches
+
+- **Slack Integration Skill**: New `slack-integration` skill for team notifications
+  - Slack MCP server configuration patterns
+  - PR lifecycle notification table
+  - Integration with review-pr and create-pr skills
+
+- **Agent Permission Profiles** (CC 2.1.20): subagent-validator now shows permission context
+  - Extracts tools list from agent frontmatter
+  - Generates risk-level assessment (low/moderate/elevated)
+  - Non-blocking context injection for agent spawning
+
+### Changed
+
+- **configure skill**: Added Monorepo preset and CC 2.1.20 settings section
+- **review-pr skill**: Added CC 2.1.20 enhancements section with PR enrichment and Slack notification
+- **create-pr skill**: Added CC 2.1.20 enhancements section with Slack notification
+- **mem0-backup-setup**: Added max_backups, rotation_strategy, backup_naming config fields
+- Hook count: 150 -> 152 (monorepo-detector, pr-status-enricher)
+- Skill count: 179 -> 181 (monorepo-context, slack-integration)
+- CC requirement: >= 2.1.19 -> >= 2.1.20
+
+---
+
 ## [5.2.9] - 2026-01-26
 
 ### Added

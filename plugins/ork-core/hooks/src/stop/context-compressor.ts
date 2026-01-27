@@ -109,6 +109,38 @@ function compressOldDecisions(contextDir: string): void {
 }
 
 /**
+ * Write compaction manifest for session resume (CC 2.1.20)
+ * Provides structured context for session-context-loader to pick up
+ */
+function writeCompactionManifest(contextDir: string): void {
+  const sessionFile = `${contextDir}/session/state.json`;
+  if (!existsSync(sessionFile)) {
+    return;
+  }
+
+  try {
+    const content = readFileSync(sessionFile, 'utf-8');
+    const session = JSON.parse(content);
+
+    const manifest = {
+      sessionId: session.session_id || 'unknown',
+      compactedAt: new Date().toISOString(),
+      keyDecisions: (session.decisions_this_session || []).slice(-5),
+      filesTouched: (session.files_touched || []).slice(-20),
+      blockers: session.blockers || [],
+      nextSteps: session.next_steps || [],
+    };
+
+    const manifestDir = `${contextDir}/session`;
+    mkdirSync(manifestDir, { recursive: true });
+    writeFileSync(`${manifestDir}/compaction-manifest.json`, JSON.stringify(manifest, null, 2));
+    logHook('context-compressor', `Wrote compaction manifest for session ${manifest.sessionId}`);
+  } catch (error) {
+    logHook('context-compressor', `Error writing compaction manifest: ${error}`);
+  }
+}
+
+/**
  * Main context compression function
  */
 export function contextCompressor(input: HookInput): HookResult {
@@ -117,6 +149,7 @@ export function contextCompressor(input: HookInput): HookResult {
   const projectDir = input.project_dir || getProjectDir();
   const contextDir = `${projectDir}/context`;
 
+  writeCompactionManifest(contextDir);
   archiveSession(contextDir);
   compressOldDecisions(contextDir);
 

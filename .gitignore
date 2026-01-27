@@ -104,3 +104,14 @@ __pycache__/
 # Run `npm run build` before committing to ensure plugins/ is up-to-date
 hooks/node_modules
 .claude-plugins
+viral-posts/01-skills-auto-activate.md
+viral-posts/02-specialized-agents.md
+viral-posts/03-hook-consolidation.md
+viral-posts/04-typescript-performance.md
+viral-posts/05-memory-fabric.md
+viral-posts/06-plugin-marketplace.md
+viral-posts/07-decision-history.md
+viral-posts/08-video-demo-generation.md
+viral-posts/09-security-validation.md
+viral-posts/10-zero-config.md
+viral-posts/README.md

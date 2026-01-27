@@ -18,6 +18,8 @@ import {
   getPipelineTasks,
   completePipelineStep,
   formatTaskUpdateForClaude,
+  getTasksBlockedBy,
+  formatTaskDeleteForClaude,
 } from '../lib/task-integration.js';
 import { updateAgentStatus, removeAgent } from '../lib/orchestration-state.js';
 
@@ -172,6 +174,16 @@ Consider:
 1. Retrying with more specific instructions
 2. Using an alternative agent
 3. Breaking down the task further`;
+
+    // CC 2.1.20: Clean up orphaned tasks blocked by this failed task
+    const orphanedTasks = getTasksBlockedBy(task.taskId);
+    if (orphanedTasks.length > 0) {
+      contextMessage += `\n\n### Orphaned Tasks (CC 2.1.20)\n\nThe following tasks were blocked by the failed task and should be deleted:\n`;
+      for (const orphan of orphanedTasks) {
+        contextMessage += `\n${formatTaskDeleteForClaude(orphan.taskId, `Blocked by failed task ${task.taskId} (agent: ${agentType})`)}`;
+        updateTaskStatus(orphan.taskId, 'failed');
+      }
+    }
   }
 
   // Clean up agent tracking if complete

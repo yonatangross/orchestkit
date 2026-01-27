@@ -47,6 +47,9 @@ export function mem0BackupSetup(input: HookInput): HookResult {
       schedule: backupSchedule,
       retention_days: backupRetention,
       enabled: true,
+      max_backups: parseInt(process.env.MEM0_MAX_BACKUPS || '5', 10),
+      rotation_strategy: 'count',
+      backup_naming: 'timestamp',
     };
 
     writeFileSync(backupConfig, JSON.stringify(config, null, 2));

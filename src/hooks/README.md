@@ -63,7 +63,7 @@ hooks/
 │   ├── subagent-stop/      # Subagent completion hooks (9)
 │   ├── notification/       # Notification hooks (2)
 │   ├── stop/               # Session stop hooks (11)
-│   ├── setup/              # Setup and maintenance hooks (7)
+│   ├── setup/              # Setup and maintenance hooks (8)
 │   ├── agent/              # Agent-specific hooks (6)
 │   └── skill/              # Skill validation hooks (24)
 ├── dist/                   # Compiled output (11 split bundles + 1 unified)
@@ -86,7 +86,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 150 hooks (all TypeScript)
+**Total:** 152 hooks (all TypeScript)
 ```
 
 ---
@@ -927,8 +927,8 @@ const bundleMap = {
 **Last Updated:** 2026-01-26
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 150 TypeScript hooks (5 async)
+**Hooks:** 152 TypeScript hooks (5 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.19
+**Claude Code Requirement:** >= 2.1.20
 
 See [docs/async-hooks.md](docs/async-hooks.md) for detailed async hook patterns.

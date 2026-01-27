@@ -160,7 +160,7 @@ export interface TaskCreateInstruction {
 /** Instruction to update a CC 2.1.16 task */
 export interface TaskUpdateInstruction {
   taskId: string;
-  status?: 'pending' | 'in_progress' | 'completed';
+  status?: 'pending' | 'in_progress' | 'completed' | 'deleted';
   addBlockedBy?: string[];
   addBlocks?: string[];
 }

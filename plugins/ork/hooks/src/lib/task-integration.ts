@@ -163,7 +163,7 @@ export function generateTaskCreateInstruction(
  */
 export function generateTaskUpdateInstruction(
   taskId: string,
-  status: 'pending' | 'in_progress' | 'completed',
+  status: 'pending' | 'in_progress' | 'completed' | 'deleted',
   blockedBy?: string[],
   blocks?: string[]
 ): TaskUpdateInstruction {
@@ -199,6 +199,34 @@ TaskCreate:
     dispatchedAgent: "${instruction.metadata.dispatchedAgent || ''}"
     dispatchConfidence: ${instruction.metadata.dispatchConfidence || 0}
 \`\`\``;
+}
+
+/**
+ * Generate TaskUpdate instruction for task deletion (CC 2.1.20)
+ */
+export function generateTaskDeleteInstruction(
+  taskId: string,
+  _reason: string
+): TaskUpdateInstruction {
+  return {
+    taskId,
+    status: 'deleted',
+  };
+}
+
+/**
+ * Format TaskDelete instruction as markdown for Claude (CC 2.1.20)
+ */
+export function formatTaskDeleteForClaude(taskId: string, reason: string): string {
+  return `### Delete Orphaned Task
+
+\`\`\`
+TaskUpdate:
+  taskId: "${taskId}"
+  status: "deleted"
+\`\`\`
+
+**Reason**: ${reason}`;
 }
 
 /**
@@ -301,6 +329,39 @@ export function getTaskByAgent(agent: string): TaskEntry | undefined {
 export function getTaskById(taskId: string): TaskEntry | undefined {
   const registry = loadRegistry();
   return registry.tasks.find(t => t.taskId === taskId);
+}
+
+/**
+ * Get pending tasks blocked by a specific failed task (CC 2.1.20)
+ */
+export function getTasksBlockedBy(failedTaskId: string): TaskEntry[] {
+  const registry = loadRegistry();
+  return registry.tasks.filter(
+    t =>
+      t.status === 'pending' &&
+      t.blockedBy &&
+      t.blockedBy.includes(failedTaskId)
+  );
+}
+
+/**
+ * Get orphaned tasks - pending tasks where all blockers have failed (CC 2.1.20)
+ */
+export function getOrphanedTasks(): TaskEntry[] {
+  const registry = loadRegistry();
+  const failedIds = new Set(
+    registry.tasks.filter(t => t.status === 'failed').map(t => t.taskId)
+  );
+
+  if (failedIds.size === 0) return [];
+
+  return registry.tasks.filter(t => {
+    if (t.status !== 'pending' || !t.blockedBy || t.blockedBy.length === 0) {
+      return false;
+    }
+    // Orphaned if ALL blockers are failed
+    return t.blockedBy.every(id => failedIds.has(id));
+  });
 }
 
 /**

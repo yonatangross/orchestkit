@@ -24,15 +24,22 @@ Tasks progress through a defined state machine: `pending` → `in_progress` → 
 - Unblocks dependent tasks
 - Cannot be modified further
 
+### deleted (CC 2.1.20)
+
+- Task permanently removed
+- Use for orphaned, superseded, or duplicate tasks
+- Cannot be recovered after deletion
+
 ## State Transitions
 
 ```
 ┌─────────┐     start     ┌─────────────┐    finish    ┌───────────┐
 │ pending │ ────────────→ │ in_progress │ ───────────→ │ completed │
 └─────────┘               └─────────────┘              └───────────┘
-     ↑                           │
-     └───── revert ──────────────┘
-           (if blocked)
+     ↑  │                       │  │
+     │  └───────────────────────│──│──→ ┌─────────┐
+     └───── revert ─────────────┘  └──→ │ deleted │ (CC 2.1.20)
+           (if blocked)                  └─────────┘
 ```
 
 ## Valid Transitions
@@ -42,6 +49,8 @@ Tasks progress through a defined state machine: `pending` → `in_progress` → 
 | pending | in_progress | Starting work, no blockers |
 | in_progress | completed | Work verified complete |
 | in_progress | pending | Discovered blocker, need to wait |
+| pending | deleted | Orphaned, superseded, or duplicate (CC 2.1.20) |
+| in_progress | deleted | Cancelled or superseded (CC 2.1.20) |
 
 ## Status Update Examples
 
@@ -54,6 +63,9 @@ Tasks progress through a defined state machine: `pending` → `in_progress` → 
 
 // Revert if blocked
 {"taskId": "1", "status": "pending"}
+
+// Delete orphaned task (CC 2.1.20)
+{"taskId": "1", "status": "deleted"}
 ```
 
 ## Completion Criteria

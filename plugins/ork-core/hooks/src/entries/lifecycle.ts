@@ -10,7 +10,7 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// Lifecycle hooks (17) - SessionStart/SessionEnd
+// Lifecycle hooks (18) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from '../lifecycle/analytics-consent-check.js';
 import { coordinationCleanup } from '../lifecycle/coordination-cleanup.js';
 import { coordinationInit } from '../lifecycle/coordination-init.js';
@@ -21,6 +21,7 @@ import { mem0WebhookSetup } from '../lifecycle/mem0-webhook-setup.js';
 import { multiInstanceInit } from '../lifecycle/multi-instance-init.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
+import { prStatusEnricher } from '../lifecycle/pr-status-enricher.js';
 import { sessionCleanup } from '../lifecycle/session-cleanup.js';
 import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
@@ -44,6 +45,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/multi-instance-init': multiInstanceInit,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
+  'lifecycle/pr-status-enricher': prStatusEnricher,
   'lifecycle/session-cleanup': sessionCleanup,
   'lifecycle/session-context-loader': sessionContextLoader,
   'lifecycle/session-env-setup': sessionEnvSetup,

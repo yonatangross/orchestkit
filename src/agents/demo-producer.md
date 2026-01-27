@@ -115,7 +115,7 @@ Add composition to `orchestkit-demos/src/Root.tsx`:
     skillName: "{name}",
     hook: "{marketing_hook}",
     terminalVideo: "{name}-demo.mp4",
-    ccVersion: "CC 2.1.19",
+    ccVersion: "CC 2.1.20",
     primaryColor: "#8b5cf6",
     ...AUDIO_DEFAULTS,
   }}
