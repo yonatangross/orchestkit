@@ -29,6 +29,7 @@ import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
+import { graphQueueSync } from '../stop/graph-queue-sync.js';
 
 import type { HookFn } from '../types.js';
 
@@ -51,6 +52,7 @@ export const hooks: Record<string, HookFn> = {
   'stop/unified-dispatcher': unifiedStopDispatcher,
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
+  'stop/graph-queue-sync': graphQueueSync,
 };
 
 export function getHook(name: string): HookFn | undefined {

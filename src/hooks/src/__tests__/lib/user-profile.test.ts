@@ -88,6 +88,7 @@ describe('User Profile Management', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.HOME = "/test/home";
     mockExistsSync.mockReturnValue(false);
   });
 
@@ -135,7 +136,7 @@ describe('User Profile Management', () => {
     it('should save profile to disk', () => {
       // First call: check if profile exists (false = new profile)
       // Second call: check if directory exists before mkdir (true = exists)
-      mockExistsSync.mockReturnValueOnce(false).mockReturnValue(true);
+      mockExistsSync.mockReturnValueOnce(false).mockReturnValueOnce(false).mockReturnValueOnce(false).mockReturnValue(true);
 
       const profile = loadUserProfile('save@user.com');
       profile.sessions_count = 5;
@@ -144,7 +145,7 @@ describe('User Profile Management', () => {
 
       expect(result).toBe(true);
       expect(mockWriteFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('users/save@user.com/profile.json'),
+        expect.stringContaining('orchestkit/users/save@user.com/profile.json'),
         expect.stringContaining('"sessions_count": 5')
       );
     });
@@ -156,7 +157,7 @@ describe('User Profile Management', () => {
       saveUserProfile(profile);
 
       expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('users/new@user.com'),
+        expect.stringContaining('orchestkit/users/new@user.com'),
         { recursive: true }
       );
     });

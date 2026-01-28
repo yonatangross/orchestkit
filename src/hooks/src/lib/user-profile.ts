@@ -9,10 +9,13 @@
  * - Workflow patterns
  * - Tool preferences
  *
- * Storage: .claude/memory/users/{user_id}/profile.json
+ * Storage: ~/.claude/orchestkit/users/{user_id}/profile.json (cross-project)
+ *
+ * Migration: Profiles are migrated from old project-local path on first access
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 import { resolveUserIdentity } from './user-identity.js';
 import { generateSessionSummary, type SessionSummary } from './session-tracker.js';
@@ -138,18 +141,79 @@ const MAX_PREFERENCES = 50;
 // =============================================================================
 
 /**
- * Get user profile directory
+ * Get the home directory for cross-project storage
+ */
+function getHomeDir(): string {
+  return process.env.HOME || process.env.USERPROFILE || '/tmp';
+}
+
+/**
+ * Get the cross-project OrchestKit directory
+ */
+function getOrchestKitDir(): string {
+  return join(getHomeDir(), '.claude', 'orchestkit');
+}
+
+/**
+ * Get user profile directory (cross-project, in home directory)
  */
 function getUserProfileDir(userId: string): string {
   const sanitizedUserId = userId.replace(/[^a-zA-Z0-9@._-]/g, '_');
-  return `${getProjectDir()}/.claude/memory/users/${sanitizedUserId}`;
+  return join(getOrchestKitDir(), 'users', sanitizedUserId);
 }
 
 /**
  * Get user profile file path
  */
 function getUserProfilePath(userId: string): string {
-  return `${getUserProfileDir(userId)}/profile.json`;
+  return join(getUserProfileDir(userId), 'profile.json');
+}
+
+/**
+ * Get the OLD project-local profile path (for migration)
+ */
+function getLegacyProfilePath(userId: string): string {
+  const sanitizedUserId = userId.replace(/[^a-zA-Z0-9@._-]/g, '_');
+  return join(getProjectDir(), '.claude', 'memory', 'users', sanitizedUserId, 'profile.json');
+}
+
+/**
+ * Migrate profile from old project-local path to new cross-project path
+ * Returns true if migration occurred
+ */
+function migrateProfileIfNeeded(userId: string): boolean {
+  const legacyPath = getLegacyProfilePath(userId);
+  const newPath = getUserProfilePath(userId);
+
+  // If new path exists, no migration needed
+  if (existsSync(newPath)) {
+    return false;
+  }
+
+  // If legacy path exists, migrate it
+  if (existsSync(legacyPath)) {
+    try {
+      const newDir = dirname(newPath);
+      if (!existsSync(newDir)) {
+        mkdirSync(newDir, { recursive: true });
+      }
+
+      // Read legacy profile
+      const content = readFileSync(legacyPath, 'utf8');
+      const profile = JSON.parse(content);
+
+      // Write to new location
+      writeFileSync(newPath, JSON.stringify(profile, null, 2));
+
+      logHook('user-profile', `Migrated profile for ${userId} to cross-project storage`, 'info');
+      return true;
+    } catch (error) {
+      logHook('user-profile', `Failed to migrate profile: ${error}`, 'warn');
+      return false;
+    }
+  }
+
+  return false;
 }
 
 // =============================================================================
@@ -186,8 +250,12 @@ function createEmptyProfile(userId: string): UserProfile {
  * Load user profile from disk
  */
 export function loadUserProfile(userId?: string): UserProfile {
+  // Attempt migration from legacy project-local path
   const uid = userId || resolveUserIdentity().user_id;
+  migrateProfileIfNeeded(uid);
+
   const profilePath = getUserProfilePath(uid);
+
 
   if (!existsSync(profilePath)) {
     return createEmptyProfile(uid);

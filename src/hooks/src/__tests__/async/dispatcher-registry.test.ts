@@ -89,6 +89,7 @@ describe('Dispatcher Registry Wiring', () => {
         'session-patterns',
         'issue-work-summary',
         'calibration-persist',
+        'session-profile-aggregator',
       ]);
     });
   });
@@ -158,7 +159,7 @@ describe('Dispatcher Registry Wiring', () => {
   });
 
   describe('Cross-dispatcher consistency', () => {
-    it('total consolidated hook count is 33', () => {
+    it('total consolidated hook count is 34', () => {
       const total =
         posttoolHooks().length +
         lifecycleHooks().length +
@@ -167,7 +168,7 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      expect(total).toBe(33);
+      expect(total).toBe(34);
     });
   });
 });
