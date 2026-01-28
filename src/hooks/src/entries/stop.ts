@@ -27,6 +27,9 @@ import { taskCompletionCheck } from '../stop/task-completion-check.js';
 import { calibrationPersist } from '../stop/calibration-persist.js';
 import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 
+// Intelligent Decision Capture System
+import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -46,6 +49,8 @@ export const hooks: Record<string, HookFn> = {
   'stop/task-completion-check': taskCompletionCheck,
   'stop/calibration-persist': calibrationPersist,
   'stop/unified-dispatcher': unifiedStopDispatcher,
+  // Intelligent Decision Capture System
+  'stop/workflow-preference-learner': workflowPreferenceLearner,
 };
 
 export function getHook(name: string): HookFn | undefined {

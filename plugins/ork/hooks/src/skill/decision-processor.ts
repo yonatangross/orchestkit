@@ -85,6 +85,33 @@ interface ExtractedEntities {
   patterns: string[];
 }
 
+/**
+ * Enriched decision with rationale extraction
+ * Part of Intelligent Decision Capture System
+ */
+export interface EnrichedDecision {
+  /** What was decided/chosen */
+  what: string;
+  /** Full decision text */
+  text: string;
+  /** Alternatives that were considered (from "over X" or "instead of Y") */
+  alternatives?: string[];
+  /** Rationale (from "because", "since", "due to" clauses) */
+  rationale?: string;
+  /** Constraints mentioned (from "must", "need to", "required") */
+  constraints?: string[];
+  /** Tradeoffs mentioned (from "tradeoff", "downside", "but") */
+  tradeoffs?: string[];
+  /** Technologies/patterns mentioned */
+  entities: string[];
+  /** Confidence score 0-1 */
+  confidence: number;
+  /** Decision category */
+  category: string;
+  /** Importance level */
+  importance: 'high' | 'medium' | 'low';
+}
+
 // =============================================================================
 // VERSION DETECTION
 // =============================================================================
@@ -139,6 +166,44 @@ function detectRelationType(text: string): string {
 }
 
 // =============================================================================
+// RATIONALE EXTRACTION PATTERNS
+// =============================================================================
+
+const RATIONALE_PATTERNS: RegExp[] = [
+  /\bbecause\s+([^.,!?\n]+)/gi,
+  /\bsince\s+([^.,!?\n]+)/gi,
+  /\bdue to\s+([^.,!?\n]+)/gi,
+  /\bto avoid\s+([^.,!?\n]+)/gi,
+  /\bso that\s+([^.,!?\n]+)/gi,
+  /\bin order to\s+([^.,!?\n]+)/gi,
+  /\bas it\s+([^.,!?\n]+)/gi,
+  /\bfor\s+(better|improved|faster|simpler|easier)\s+([^.,!?\n]+)/gi,
+];
+
+const ALTERNATIVE_PATTERNS: RegExp[] = [
+  /\bover\s+([^.,!?\n]+)/gi,
+  /\binstead of\s+([^.,!?\n]+)/gi,
+  /\brather than\s+([^.,!?\n]+)/gi,
+  /\bnot\s+([^.,!?\n]+)/gi,
+  /\bversus\s+([^.,!?\n]+)/gi,
+  /\bvs\.?\s+([^.,!?\n]+)/gi,
+];
+
+const CONSTRAINT_PATTERNS: RegExp[] = [
+  /\b(must|need to|required|constraint|requirement)\s+([^.,!?\n]+)/gi,
+  /\b(have to|has to|should)\s+([^.,!?\n]+)/gi,
+  /\b(mandatory|essential)\s+([^.,!?\n]+)/gi,
+];
+
+const TRADEOFF_PATTERNS: RegExp[] = [
+  /\b(tradeoff|trade-off|downside|drawback)\s*:?\s+([^.,!?\n]+)/gi,
+  /\bbut\s+([^.,!?\n]+)/gi,
+  /\bhowever\s+([^.,!?\n]+)/gi,
+  /\balthough\s+([^.,!?\n]+)/gi,
+  /\b(cost|limitation)\s+is\s+([^.,!?\n]+)/gi,
+];
+
+// =============================================================================
 // DECISION EXTRACTION
 // =============================================================================
 
@@ -160,6 +225,155 @@ function extractDecisions(output: string): string[] {
     }
   }
   return [...new Set(decisions)].slice(0, 5);
+}
+
+/**
+ * Extract rationale from decision text
+ */
+function extractRationale(text: string): string | undefined {
+  for (const pattern of RATIONALE_PATTERNS) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1]?.trim().slice(0, 200);
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extract alternatives mentioned (what was NOT chosen)
+ */
+function extractAlternatives(text: string): string[] {
+  const alternatives: string[] = [];
+  for (const pattern of ALTERNATIVE_PATTERNS) {
+    const matches = text.matchAll(pattern);
+    for (const match of matches) {
+      const alt = match[1]?.trim();
+      if (alt && alt.length > 2 && alt.length < 100) {
+        alternatives.push(alt);
+      }
+    }
+  }
+  return [...new Set(alternatives)].slice(0, 3);
+}
+
+/**
+ * Extract constraints mentioned
+ */
+function extractConstraints(text: string): string[] {
+  const constraints: string[] = [];
+  for (const pattern of CONSTRAINT_PATTERNS) {
+    const matches = text.matchAll(pattern);
+    for (const match of matches) {
+      const constraint = match[2]?.trim() || match[1]?.trim();
+      if (constraint && constraint.length > 3 && constraint.length < 150) {
+        constraints.push(constraint);
+      }
+    }
+  }
+  return [...new Set(constraints)].slice(0, 3);
+}
+
+/**
+ * Extract tradeoffs mentioned
+ */
+function extractTradeoffs(text: string): string[] {
+  const tradeoffs: string[] = [];
+  for (const pattern of TRADEOFF_PATTERNS) {
+    const matches = text.matchAll(pattern);
+    for (const match of matches) {
+      const tradeoff = match[2]?.trim() || match[1]?.trim();
+      if (tradeoff && tradeoff.length > 3 && tradeoff.length < 150) {
+        tradeoffs.push(tradeoff);
+      }
+    }
+  }
+  return [...new Set(tradeoffs)].slice(0, 3);
+}
+
+/**
+ * Extract what was chosen from decision text
+ */
+function extractWhatWasChosen(text: string): string {
+  // Look for common decision patterns
+  const patterns = [
+    /\b(?:chose|decided on|selected|using|will use|going with)\s+([^.,!?\n]+)/i,
+    /\b(?:the decision is|decision:)\s+([^.,!?\n]+)/i,
+    /\brecommend(?:ation)?:?\s+([^.,!?\n]+)/i,
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return match[1].trim().slice(0, 100);
+    }
+  }
+
+  // Fall back to first significant phrase
+  return text.slice(0, 100).trim();
+}
+
+/**
+ * Calculate confidence score for an enriched decision
+ */
+function calculateEnrichedConfidence(decision: EnrichedDecision): number {
+  let confidence = 0.5; // Base
+
+  // Having rationale significantly boosts confidence
+  if (decision.rationale) confidence += 0.2;
+
+  // Alternatives show explicit comparison
+  if (decision.alternatives && decision.alternatives.length > 0) confidence += 0.1;
+
+  // Constraints show thoughtful decision
+  if (decision.constraints && decision.constraints.length > 0) confidence += 0.05;
+
+  // Tradeoffs show balanced thinking
+  if (decision.tradeoffs && decision.tradeoffs.length > 0) confidence += 0.05;
+
+  // More entities = more specific
+  if (decision.entities.length >= 1) confidence += 0.05;
+  if (decision.entities.length >= 2) confidence += 0.05;
+
+  // High importance boosts confidence
+  if (decision.importance === 'high') confidence += 0.1;
+
+  return Math.min(0.99, confidence);
+}
+
+/**
+ * Extract enriched decisions with full context
+ */
+export function extractEnrichedDecisions(output: string): EnrichedDecision[] {
+  const rawDecisions = extractDecisions(output);
+  const enriched: EnrichedDecision[] = [];
+
+  for (const text of rawDecisions) {
+    const entities = extractEntities(text);
+    const entityList = [
+      ...entities.agents,
+      ...entities.technologies,
+      ...entities.patterns,
+    ];
+
+    const decision: EnrichedDecision = {
+      what: extractWhatWasChosen(text),
+      text,
+      rationale: extractRationale(text),
+      alternatives: extractAlternatives(text),
+      constraints: extractConstraints(text),
+      tradeoffs: extractTradeoffs(text),
+      entities: entityList,
+      confidence: 0, // Will be calculated
+      category: detectCategory(text),
+      importance: detectImportance(text),
+    };
+
+    decision.confidence = calculateEnrichedConfidence(decision);
+    enriched.push(decision);
+  }
+
+  return enriched;
 }
 
 function detectCategory(text: string): string {
@@ -211,27 +425,28 @@ export function decisionProcessor(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Extract decisions and entities
-  const decisions = extractDecisions(skillOutput);
+  // Extract enriched decisions with rationale
+  const enrichedDecisions = extractEnrichedDecisions(skillOutput);
   const entities = extractEntities(skillOutput);
   const totalEntities = entities.agents.length + entities.technologies.length + entities.patterns.length;
 
-  if (decisions.length === 0 && totalEntities === 0) {
+  if (enrichedDecisions.length === 0 && totalEntities === 0) {
     return outputSilentSuccess();
   }
 
   // Build output message
   const parts: string[] = [];
-  const firstDecision = decisions[0] || skillOutput.slice(0, 200);
-  const category = detectCategory(firstDecision);
+  const firstDecision = enrichedDecisions[0];
+  const category = firstDecision?.category || detectCategory(skillOutput.slice(0, 200));
 
-  // Decision extraction section
-  if (decisions.length > 0) {
-    const importance = detectImportance(firstDecision);
-    const bestPractice = extractBestPractice(firstDecision);
+  // Decision extraction section with enriched data
+  if (enrichedDecisions.length > 0) {
+    const importance = firstDecision?.importance || 'low';
+    const bestPractice = extractBestPractice(firstDecision?.text || '');
     const ccVersion = getCCVersion();
     const pluginVersion = getPluginVersion();
 
+    // Build metadata with enriched information
     const metadata: Record<string, unknown> = {
       category,
       source: 'orchestkit-plugin',
@@ -240,18 +455,55 @@ export function decisionProcessor(input: HookInput): HookResult {
       plugin_version: pluginVersion,
       importance,
       timestamp: new Date().toISOString(),
+      confidence: firstDecision?.confidence || 0.5,
     };
+
     if (bestPractice) metadata.best_practice = bestPractice;
+    if (firstDecision?.rationale) metadata.rationale = firstDecision.rationale;
+    if (firstDecision?.alternatives?.length) metadata.alternatives = firstDecision.alternatives;
+    if (firstDecision?.constraints?.length) metadata.constraints = firstDecision.constraints;
+    if (firstDecision?.tradeoffs?.length) metadata.tradeoffs = firstDecision.tradeoffs;
 
     const pluginRoot = getPluginRoot();
     const scriptPath = `${pluginRoot}/skills/mem0-memory/scripts/crud/add-memory.py`;
 
-    parts.push(`[Decisions] Found ${decisions.length} decisions (category: ${category}, importance: ${importance})
+    // Build detailed decision summary
+    let decisionSummary = `[Decisions] Found ${enrichedDecisions.length} decision(s) (category: ${category}, importance: ${importance})`;
 
-To persist to mem0:
-bash ${scriptPath} --text "<decision>" --user-id "orchestkit:all-agents" --metadata '${JSON.stringify(metadata)}' --enable-graph
+    if (firstDecision) {
+      decisionSummary += `\n\nPrimary Decision: "${firstDecision.what.slice(0, 100)}"`;
+      if (firstDecision.rationale) {
+        decisionSummary += `\nRationale: "${firstDecision.rationale.slice(0, 150)}"`;
+      }
+      if (firstDecision.alternatives?.length) {
+        decisionSummary += `\nAlternatives considered: ${firstDecision.alternatives.join(', ')}`;
+      }
+      if (firstDecision.constraints?.length) {
+        decisionSummary += `\nConstraints: ${firstDecision.constraints.join('; ')}`;
+      }
+      if (firstDecision.tradeoffs?.length) {
+        decisionSummary += `\nTradeoffs: ${firstDecision.tradeoffs.join('; ')}`;
+      }
+      decisionSummary += `\nConfidence: ${(firstDecision.confidence * 100).toFixed(0)}%`;
+    }
 
-Example: "${firstDecision.slice(0, 100)}..."`);
+    decisionSummary += `\n\nTo persist to mem0:
+bash ${scriptPath} --text "<decision>" --user-id "orchestkit:all-agents" --metadata '${JSON.stringify(metadata)}' --enable-graph`;
+
+    parts.push(decisionSummary);
+
+    // Build graph relations for CHOSE_OVER pattern
+    if (firstDecision?.alternatives?.length) {
+      const relations = firstDecision.alternatives.map(alt => ({
+        from: firstDecision.what,
+        to: alt,
+        relationType: 'CHOSE_OVER',
+      }));
+
+      parts.push(`[Relations] Create CHOSE_OVER relations:
+mcp__memory__create_relations with:
+relations: ${JSON.stringify(relations)}`);
+    }
   }
 
   // Entity extraction section

@@ -283,8 +283,8 @@ describe('Cross-Bundle Consistency', () => {
 
     // Total TypeScript hook implementations across all bundles
     // Update this count when adding/removing hook implementations
-    // 153 -> 152: merged skill-auto-suggest + skill-injector into skill-resolver
-    expect(totalHooks).toBe(152);
+    // 152 -> 156: added new hook implementations
+    expect(totalHooks).toBe(156);
   });
 });
 

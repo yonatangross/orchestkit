@@ -174,6 +174,11 @@ export function agentMemoryStore(input: HookInput): HookResult {
     success = false;
   }
 
+  // Check for is_error in tool_result object
+  if (typeof rawResult === 'object' && rawResult?.is_error) {
+    success = false;
+  }
+
   // If no agent type, silent success
   if (!agentType) {
     logHook('agent-memory-store', 'No agent type in input, skipping');

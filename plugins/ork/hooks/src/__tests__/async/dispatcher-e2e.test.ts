@@ -19,13 +19,15 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { execSync, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
 // Paths
 // ---------------------------------------------------------------------------
 
-const HOOKS_DIR = join(import.meta.dirname, '..', '..', '..');
+const __dirname = import.meta.dirname ?? dirname(fileURLToPath(import.meta.url));
+const HOOKS_DIR = join(__dirname, '..', '..', '..');
 const RUN_HOOK = join(HOOKS_DIR, 'bin', 'run-hook.mjs');
 const DIST_DIR = join(HOOKS_DIR, 'dist');
 

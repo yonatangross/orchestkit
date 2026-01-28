@@ -88,7 +88,7 @@ function hoursSince(timestamp: string | null): number {
 function taskLogRotation(pluginRoot: string): void {
   logHook('setup-maintenance', 'Task: Log rotation');
 
-  const logDirs = [`${pluginRoot}/.claude/logs`, `${process.env.HOME || '/tmp'}/.claude/logs/ork`];
+  const logDirs = [`${pluginRoot}/.claude/logs`, `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/logs/ork`];
 
   let rotated = 0;
 
@@ -306,7 +306,7 @@ function taskMemoryFabricCleanup(projectDir: string): void {
   }
 
   // Clean up global pending sync if stale
-  const globalSync = `${process.env.HOME || '/tmp'}/.claude/.mem0-pending-sync.json`;
+  const globalSync = `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/.mem0-pending-sync.json`;
   if (existsSync(globalSync)) {
     try {
       const stats = statSync(globalSync);

@@ -145,7 +145,7 @@ function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
   }
 
   // Check global patterns
-  const globalPatternsFile = join(process.env.HOME || '', '.claude', 'global-patterns.json');
+  const globalPatternsFile = join(process.env.HOME || process.env.USERPROFILE || '', '.claude', 'global-patterns.json');
   if (existsSync(globalPatternsFile)) {
     try {
       const data: GlobalPatternsFile = JSON.parse(readFileSync(globalPatternsFile, 'utf8'));

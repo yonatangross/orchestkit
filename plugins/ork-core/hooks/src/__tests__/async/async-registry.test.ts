@@ -123,10 +123,10 @@ describe('Async Hooks Registry', () => {
         }
       }
 
-      // Post-consolidation (Issue #235): 6 unified dispatchers
-      // (lifecycle, posttool, stop, subagent-stop, notification, setup)
+      // Post-consolidation (Issue #235): unified dispatchers
+      // (lifecycle, posttool, stop, subagent-stop, notification, setup, + others)
       // Any change to this count should be deliberate.
-      expect(asyncCount).toBe(6);
+      expect(asyncCount).toBe(10);
     });
   });
 

@@ -42,6 +42,10 @@ import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js'
 // PostTool/Write-Edit hooks (1)
 import { fileLockRelease } from '../posttool/write-edit/file-lock-release.js';
 
+// Intelligent Decision Capture System
+import { solutionDetector } from '../posttool/solution-detector.js';
+import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -79,6 +83,10 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool/Write-Edit hooks (1)
   'posttool/write-edit/file-lock-release': fileLockRelease,
+
+  // Intelligent Decision Capture System
+  'posttool/solution-detector': solutionDetector,
+  'posttool/tool-preference-learner': toolPreferenceLearner,
 };
 
 export function getHook(name: string): HookFn | undefined {

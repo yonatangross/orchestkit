@@ -17,7 +17,7 @@ import type { HookResult, HookInput } from '../types.js';
  */
 export function getLogDir(): string {
   if (process.env.CLAUDE_PLUGIN_ROOT) {
-    return `${process.env.HOME || '/tmp'}/.claude/logs/ork`;
+    return `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/logs/ork`;
   }
   return `${getProjectDir()}/.claude/logs`;
 }

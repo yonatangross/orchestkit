@@ -35,6 +35,9 @@ import { pipelineDetector } from '../prompt/pipeline-detector.js';
 // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
 import { skillResolver } from '../prompt/skill-resolver.js';
 
+// Intelligent Decision Capture System (Issue #xxx)
+import { captureUserIntent } from '../prompt/capture-user-intent.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -54,6 +57,8 @@ export const hooks: Record<string, HookFn> = {
   'prompt/pipeline-detector': pipelineDetector,
   // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
   'prompt/skill-resolver': skillResolver,
+  // Intelligent Decision Capture System
+  'prompt/capture-user-intent': captureUserIntent,
 };
 
 export function getHook(name: string): HookFn | undefined {
