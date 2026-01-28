@@ -85,11 +85,26 @@ export interface SessionSummary {
 // PATHS
 // =============================================================================
 
+/** Session ID validation regex - alphanumeric, dashes, underscores only (SEC-002) */
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+
+/**
+ * Validate session ID to prevent path traversal attacks.
+ * Defense-in-depth: trusted sources, but we validate at boundary anyway.
+ */
+function isValidSessionId(sessionId: string): boolean {
+  return SESSION_ID_PATTERN.test(sessionId);
+}
+
 /**
  * Get session storage directory
  */
 function getSessionDir(sessionId?: string): string {
   const sid = sessionId || getSessionId();
+  // Validate session ID to prevent path traversal (SEC-002)
+  if (!isValidSessionId(sid)) {
+    throw new Error(`Invalid session ID format`);
+  }
   return `${getProjectDir()}/.claude/memory/sessions/${sid}`;
 }
 

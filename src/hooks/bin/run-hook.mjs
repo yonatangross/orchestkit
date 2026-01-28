@@ -172,14 +172,36 @@ function isHookDisabled(hookName, overrides) {
 // HOOK TRACKING (Issue #245: Multi-User Intelligent Decision Capture)
 // =============================================================================
 
+/** Session ID validation regex - alphanumeric, dashes, underscores only (SEC-001) */
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+
 /**
- * Track hook execution for user profiling
- * Writes to .claude/memory/sessions/{session_id}/events.jsonl
+ * Validate session ID to prevent path traversal attacks.
+ * Defense-in-depth: Claude Code controls CLAUDE_SESSION_ID, but we validate anyway.
+ * @param {string} sessionId - The session ID to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidSessionId(sessionId) {
+  return typeof sessionId === 'string' && SESSION_ID_PATTERN.test(sessionId);
+}
+
+/**
+ * Track hook execution for user profiling.
+ * Writes events to .claude/memory/sessions/{session_id}/events.jsonl
+ *
+ * @param {string} trackedHookName - The hook name being tracked
+ * @param {boolean} success - Whether the hook executed successfully
+ * @param {number} durationMs - Execution duration in milliseconds
+ * @param {string} projectDir - Project directory path
+ * @returns {void}
  */
 function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
   try {
     const sessionId = process.env.CLAUDE_SESSION_ID;
     if (!sessionId) return; // No session, skip tracking
+
+    // Validate session ID to prevent path traversal (SEC-001)
+    if (!isValidSessionId(sessionId)) return;
 
     const sessionDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId);
     const eventsPath = join(sessionDir, 'events.jsonl');
