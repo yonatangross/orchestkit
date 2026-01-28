@@ -18,6 +18,7 @@ import {
   trackSkillInvoked,
   trackAgentSpawned,
 } from '../lib/session-tracker.js';
+import { getToolCategory } from '../lib/tool-categories.js';
 
 /**
  * Extract skill name from Skill tool input
@@ -82,9 +83,10 @@ export function userTracking(input: HookInput): HookResult {
   try {
     const toolName = input.tool_name || 'unknown';
     const success = wasSuccessful(input);
+    const category = getToolCategory(toolName);
 
-    // Track all tool usage
-    trackToolUsed(toolName, success);
+    // Track all tool usage with category for preference learning
+    trackToolUsed(toolName, success, undefined, category);
 
     // Track skill invocations specifically
     if (toolName === 'Skill') {

@@ -290,15 +290,22 @@ export function trackSolutionFound(
 
 /**
  * Track tool usage
+ *
+ * @param toolName - Name of the tool (e.g., 'Grep', 'Read')
+ * @param success - Whether the tool call succeeded
+ * @param durationMs - Duration of the tool call in milliseconds
+ * @param category - Tool category (e.g., 'search', 'file_read') for preference tracking
  */
 export function trackToolUsed(
   toolName: string,
   success: boolean = true,
-  durationMs?: number
+  durationMs?: number,
+  category?: string
 ): void {
   trackEvent('tool_used', toolName, {
     success,
     duration_ms: durationMs,
+    input: category ? { category } : undefined,
   });
 }
 

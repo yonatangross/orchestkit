@@ -116,6 +116,18 @@ export interface UserProfile {
   /** Tool usage statistics */
   tool_usage: Record<string, UsageStats>;
 
+  /** Tool preferences by category (Phase 4: Tool Usage Tracking)
+   * Maps category → preferred tool name based on usage frequency
+   * e.g., { search: 'Grep', file_read: 'Read' }
+   */
+  tool_preferences?: Record<string, string>;
+
+  /** Tool usage by category (Phase 4: Tool Usage Tracking)
+   * Maps category → { tool → count }
+   * e.g., { search: { Grep: 10, Glob: 3 } }
+   */
+  tool_usage_by_category?: Record<string, Record<string, number>>;
+
   /** Recorded decisions */
   decisions: RecordedDecision[];
   /** Recorded preferences */
