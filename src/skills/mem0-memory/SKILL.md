@@ -423,7 +423,7 @@ All scripts are located in `skills/mem0-memory/scripts/`:
 - `get-users.py` - List all users (analytics)
 - `create-webhook.py` - Setup webhooks for automation
 
-**Note:** MCP integration is deprecated. Use scripts instead for better control, versioning, and access to all 30+ API methods.
+**Note:** MCP integration (mcp__mem0__*) is optional. Scripts provide better control, versioning, and access to all 30+ API methods. The primary memory layer is the knowledge graph (mcp__memory__*); mem0 scripts serve as an optional cloud enhancement.
 
 ## Related Skills
 

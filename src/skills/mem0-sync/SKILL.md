@@ -7,6 +7,7 @@ allowedTools: [Read, Grep, Glob]
 auto-invoke: session-end
 context: inherit
 skills: [recall, remember]
+version: 2.1.0
 ---
 
 # Mem0 Auto-Sync

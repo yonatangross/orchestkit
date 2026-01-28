@@ -7,7 +7,7 @@ allowedTools: [Read, Grep, Glob, mcp__mem0__search_memories, mcp__mem0__get_memo
 auto-invoke: session-start
 context: inherit
 skills: [recall, remember]
-version: 1.0.0
+version: 2.1.0
 author: OrchestKit
 ---
 

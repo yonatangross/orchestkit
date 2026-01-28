@@ -15,7 +15,7 @@ setup(
     packages=["lib"],
     package_dir={"": "."},
     install_requires=[
-        "mem0ai>=1.0.0",
+        "mem0ai>=1.0.0,<2.0.0",
         "python-dotenv>=1.0.0",
     ],
     python_requires=">=3.11",
