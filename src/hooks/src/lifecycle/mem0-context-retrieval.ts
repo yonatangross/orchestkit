@@ -109,7 +109,7 @@ export function mem0ContextRetrieval(input: HookInput): HookResult {
 
   // Pending sync file locations
   const pendingSyncFile = `${projectDir}/.mem0-pending-sync.json`;
-  const pendingSyncGlobal = `${process.env.HOME}/.claude/.mem0-pending-sync.json`;
+  const pendingSyncGlobal = `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/.mem0-pending-sync.json`;
 
   // Determine which pending sync file to check
   let pendingFile: string | null = null;

@@ -167,6 +167,21 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true
     run_test "Hook Unit Tests" "$SCRIPT_DIR/unit/test-hooks-unit.sh" || true
+
+    # TypeScript hook tests (vitest) - if node_modules exist
+    if [[ -d "$PROJECT_ROOT/src/hooks/node_modules" ]]; then
+        echo ""
+        echo -e "${BOLD}${CYAN}TYPESCRIPT HOOK TESTS (vitest)${NC}"
+        echo ""
+        (cd "$PROJECT_ROOT/src/hooks" && npx vitest run --reporter=verbose) && {
+            PASSED=$((PASSED + 1))
+            echo -e "TypeScript Hook Tests (vitest)          ${GREEN}PASS${NC}"
+        } || {
+            FAILED=$((FAILED + 1))
+            echo -e "TypeScript Hook Tests (vitest)          ${RED}FAIL${NC}"
+        }
+        TOTAL=$((TOTAL + 1))
+    fi
 fi
 
 # ============================================================

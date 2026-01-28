@@ -143,6 +143,29 @@ jobs:
           bash tests/unit/test-version-manager.sh
 
   # ============================================================================
+  # STAGE 2b: TypeScript Hook Tests (vitest)
+  # ============================================================================
+  hook-typescript-tests:
+    name: TypeScript Hook Tests (vitest)
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install hook dependencies
+        working-directory: src/hooks
+        run: npm ci
+
+      - name: Run vitest
+        working-directory: src/hooks
+        run: npx vitest run --reporter=verbose
+
+  # ============================================================================
   # STAGE 3: Security Tests (< 3m)
   # ZERO TOLERANCE: Any failure blocks merge
   # ============================================================================

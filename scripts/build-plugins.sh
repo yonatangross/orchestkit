@@ -79,7 +79,7 @@ generate_command_from_skill() {
 # ============================================================================
 # Phase 1: Validate Environment
 # ============================================================================
-echo -e "${BLUE}[1/5] Validating environment...${NC}"
+echo -e "${BLUE}[1/6] Validating environment...${NC}"
 
 if [[ ! -d "$SRC_DIR" ]]; then
     echo -e "${RED}Error: src/ directory not found${NC}"
@@ -104,7 +104,7 @@ echo ""
 # ============================================================================
 # Phase 2: Clean Previous Build
 # ============================================================================
-echo -e "${BLUE}[2/5] Cleaning previous build...${NC}"
+echo -e "${BLUE}[2/6] Cleaning previous build...${NC}"
 
 rm -rf "$PLUGINS_DIR"
 mkdir -p "$PLUGINS_DIR"
@@ -114,7 +114,7 @@ echo ""
 # ============================================================================
 # Phase 3: Build Plugins from Manifests
 # ============================================================================
-echo -e "${BLUE}[3/5] Building plugins from manifests...${NC}"
+echo -e "${BLUE}[3/6] Building plugins from manifests...${NC}"
 echo ""
 
 CURRENT=0
@@ -246,7 +246,7 @@ echo ""
 # ============================================================================
 # Phase 4: Validate Built Plugins
 # ============================================================================
-echo -e "${BLUE}[4/5] Validating built plugins...${NC}"
+echo -e "${BLUE}[4/6] Validating built plugins...${NC}"
 
 VALIDATION_ERRORS=0
 
@@ -286,9 +286,44 @@ echo -e "${GREEN}  All $PLUGINS_BUILT plugins validated${NC}"
 echo ""
 
 # ============================================================================
-# Phase 5: Summary
+# Phase 5: Sync marketplace.json versions from manifests
 # ============================================================================
-echo -e "${BLUE}[5/5] Build Summary${NC}"
+echo -e "${BLUE}[5/6] Syncing marketplace.json versions...${NC}"
+
+MARKETPLACE_FILE="$PROJECT_ROOT/.claude-plugin/marketplace.json"
+if [[ -f "$MARKETPLACE_FILE" ]]; then
+  SYNC_COUNT=0
+  for manifest in "$MANIFESTS_DIR"/*.json; do
+    PLUGIN_NAME=$(jq -r '.name' "$manifest")
+    MANIFEST_VERSION=$(jq -r '.version' "$manifest")
+
+    # Update the version for this plugin in marketplace.json
+    CURRENT_VERSION=$(jq -r --arg name "$PLUGIN_NAME" '.plugins[] | select(.name == $name) | .version' "$MARKETPLACE_FILE" 2>/dev/null || echo "")
+
+    if [[ -n "$CURRENT_VERSION" && "$CURRENT_VERSION" != "$MANIFEST_VERSION" ]]; then
+      # Use jq to update the version in-place
+      jq --arg name "$PLUGIN_NAME" --arg ver "$MANIFEST_VERSION" \
+        '(.plugins[] | select(.name == $name)).version = $ver' \
+        "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
+      SYNC_COUNT=$((SYNC_COUNT + 1))
+    fi
+  done
+
+  if [[ $SYNC_COUNT -gt 0 ]]; then
+    echo -e "${GREEN}  Synced $SYNC_COUNT plugin versions in marketplace.json${NC}"
+  else
+    echo -e "${GREEN}  All marketplace.json versions up to date${NC}"
+  fi
+else
+  echo -e "${YELLOW}  No marketplace.json found, skipping${NC}"
+fi
+
+echo ""
+
+# ============================================================================
+# Phase 6: Summary
+# ============================================================================
+echo -e "${BLUE}[6/6] Build Summary${NC}"
 echo ""
 echo -e "${CYAN}============================================================${NC}"
 echo -e "${CYAN}                    BUILD COMPLETE${NC}"

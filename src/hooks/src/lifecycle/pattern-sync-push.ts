@@ -40,7 +40,8 @@ function isSyncEnabled(projectDir: string): boolean {
  */
 function pushProjectPatterns(projectDir: string): void {
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
-  const globalPatternsFile = `${process.env.HOME}/.claude/global-patterns.json`;
+  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const globalPatternsFile = `${home}/.claude/global-patterns.json`;
 
   if (!existsSync(projectPatternsFile)) {
     logHook('pattern-sync-push', 'No project patterns file found');
@@ -83,7 +84,7 @@ function pushProjectPatterns(projectDir: string): void {
     globalPatterns.updated = new Date().toISOString();
 
     // Ensure directory exists
-    mkdirSync(`${process.env.HOME}/.claude`, { recursive: true });
+    mkdirSync(`${home}/.claude`, { recursive: true });
 
     // Write updated patterns
     writeFileSync(globalPatternsFile, JSON.stringify(globalPatterns, null, 2));
