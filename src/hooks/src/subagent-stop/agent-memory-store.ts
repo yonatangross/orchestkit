@@ -163,7 +163,10 @@ export function agentMemoryStore(input: HookInput): HookResult {
 
   const toolInput = input.tool_input || {};
   let agentType = input.subagent_type || (toolInput.subagent_type as string) || (toolInput.type as string) || '';
-  const agentOutput = input.tool_result || input.agent_output || input.output || '';
+  const rawResult = input.tool_result;
+  const agentOutput = typeof rawResult === 'string'
+    ? rawResult
+    : (rawResult?.content || input.agent_output || input.output || '');
   let success = true;
 
   // Check for error in output

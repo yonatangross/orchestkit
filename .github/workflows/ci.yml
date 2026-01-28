@@ -455,7 +455,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, unit-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -464,6 +464,7 @@ jobs:
           echo "=== CI Summary ==="
           echo "Lint: ${{ needs.lint.result }}"
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "Hook TS Tests: ${{ needs.hook-typescript-tests.result }}"
           echo "Security Tests: ${{ needs.security-tests.result }}"
           echo "Integration Tests: ${{ needs.integration-tests.result }}"
           echo "Performance Tests: ${{ needs.performance-tests.result }}"
@@ -475,6 +476,7 @@ jobs:
 
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
              [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.hook-typescript-tests.result }}" != "success" ]] || \
              [[ "${{ needs.security-tests.result }}" != "success" ]] || \
              [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
              [[ "${{ needs.performance-tests.result }}" != "success" ]] || \

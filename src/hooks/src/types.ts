@@ -57,8 +57,8 @@ export interface HookInput {
   error?: string;
   /** Duration in milliseconds */
   duration_ms?: number;
-  /** Tool result (SubagentStop) */
-  tool_result?: string;
+  /** Tool result — string from most hooks, object from Skill PostToolUse */
+  tool_result?: string | { is_error?: boolean; content?: string };
 
   // Notification specific fields
   /** Notification message */
