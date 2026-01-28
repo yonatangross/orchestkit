@@ -808,6 +808,38 @@
       "source": "pr-merge",
       "timestamp": "2026-01-28T07:39:26.829Z",
       "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "chore: add .claude/.instance_env to hooks gitignore\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T15:21:51.510Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#245): cross-project profiles and graph queue processor\n\nP0.1: Move profile storage to ~/.claude/orchestkit/users/ (cross-project)\n- Profiles now persist across projects for the same user\n- Add migration from legacy project-local path on first access\n- Update path helpers to use home directory\n\nP0.2: Create graph-queue-sync.ts stop hook\n- Process queued graph operations at session end\n- Output systemMessage with MCP calls for Claude to execute\n- Aggregate duplicate entities and merge observations\n- Support CHOSE, CHOSE_OVER, MENTIONS, CONSTRAINT, TRADEOFF relations\n\nTest updates:\n- Update user-profile tests for new cross-project paths\n- Update dispatcher-registry tests for session-profile-aggregator hook\n- Update hook count expectations (157 total hooks, 34 consolidated)\n- Update TOKEN_BUDGETS total from 2200 to 2600\n- Update plugin.json hook count from 159 to 160\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T16:54:16.216Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#245): wire user tracking into dispatchers (P1)\n\nP1: Wire tracking into all dispatchers\n\nPostToolUse tracking (user-tracking.ts):\n- Track all tool usage via trackToolUsed()\n- Track skill invocations when tool_name === ",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T17:14:09.293Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: sync plugins/ork-core with src/hooks changes\n\nSync generated plugin files with source changes from:\n- P0: cross-project profiles and graph queue processor\n- P1: user tracking wired into dispatchers\n\nAlso updates marketplace.json version 5.3.0 → 5.3.1\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T17:20:43.048Z",
+      "project": "orchestkit"
     }
   ]
 }

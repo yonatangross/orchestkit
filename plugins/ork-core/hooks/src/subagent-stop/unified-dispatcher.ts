@@ -10,6 +10,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { trackEvent } from '../lib/session-tracker.js';
 
 // Import individual hook implementations
 import { contextPublisher } from './context-publisher.js';
@@ -46,6 +47,39 @@ const HOOKS: HookConfig[] = [
 export const registeredHookNames = () => HOOKS.map(h => h.name);
 
 // -----------------------------------------------------------------------------
+// Agent Result Tracking (Issue #245)
+// -----------------------------------------------------------------------------
+
+/**
+ * Track agent result for user profiling
+ * Issue #245: Multi-User Intelligent Decision Capture
+ */
+function trackAgentResult(input: HookInput): void {
+  try {
+    const agentType = input.subagent_type || input.agent_type || 'unknown';
+    const success = !input.error;
+    const durationMs = input.duration_ms;
+
+    // Extract result quality indicators
+    const output = input.agent_output || input.output || '';
+    const outputLength = typeof output === 'string' ? output.length : 0;
+
+    trackEvent('agent_spawned', agentType, {
+      success,
+      duration_ms: durationMs,
+      output: {
+        has_output: outputLength > 0,
+        output_length: outputLength,
+        has_error: !!input.error,
+      },
+      context: input.agent_id,
+    });
+  } catch {
+    // Silent failure - tracking should never break hooks
+  }
+}
+
+// -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------
 
@@ -53,6 +87,9 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  * Unified dispatcher that runs all SubagentStop hooks in parallel
  */
 export async function unifiedSubagentStopDispatcher(input: HookInput): Promise<HookResult> {
+  // Track agent result (Issue #245: Multi-User Intelligent Decision Capture)
+  trackAgentResult(input);
+
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {

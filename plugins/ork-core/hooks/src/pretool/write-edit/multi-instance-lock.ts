@@ -46,11 +46,31 @@ function generateLockId(): string {
 
 /**
  * Get current instance ID
- * CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability,
- * but we add a defensive fallback to prevent crashes.
+ * Priority: CLAUDE_SESSION_ID > .instance/id.json > fallback-{pid}
+ * Using .instance/id.json ensures consistent ID across hook processes.
  */
 function getInstanceId(): string {
-  return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}`;
+  // 1. Try CLAUDE_SESSION_ID first
+  if (process.env.CLAUDE_SESSION_ID) {
+    return process.env.CLAUDE_SESSION_ID;
+  }
+
+  // 2. Try reading from .instance/id.json for consistent ID across processes
+  try {
+    const projectDir = getProjectDir();
+    const instanceIdPath = join(projectDir, '.instance', 'id.json');
+    if (existsSync(instanceIdPath)) {
+      const data = JSON.parse(readFileSync(instanceIdPath, 'utf8'));
+      if (data.instance_id) {
+        return data.instance_id;
+      }
+    }
+  } catch {
+    // Ignore read errors
+  }
+
+  // 3. Fallback to PID (may cause issues with lock release)
+  return `fallback-${process.pid}`;
 }
 
 /**

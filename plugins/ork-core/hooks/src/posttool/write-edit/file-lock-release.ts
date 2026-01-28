@@ -2,83 +2,125 @@
  * File Lock Release - Release locks after successful Write/Edit
  * CC 2.1.7 Compliant: Self-contained hook with stdin reading and self-guard
  * Hook: PostToolUse (Write|Edit)
+ *
+ * FIX: Now releases from locks.json (matching multi-instance-lock.ts acquisition)
  */
 
-import { existsSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, getField, getProjectDir, getSessionId, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
+import { join } from 'node:path';
 
-/**
- * Check if multi-instance coordination is enabled
- */
-function isMultiInstanceEnabled(): boolean {
-  try {
-    execSync('which sqlite3', { stdio: 'ignore', timeout: 2000 });
-    const projectDir = getProjectDir();
-    const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
-    return existsSync(dbPath);
-  } catch {
-    return false;
-  }
+interface FileLock {
+  lock_id: string;
+  file_path: string;
+  lock_type: string;
+  instance_id: string;
+  acquired_at: string;
+  expires_at: string;
+  reason?: string;
+}
+
+interface LockDatabase {
+  locks: FileLock[];
 }
 
 /**
- * Release file lock in coordination database
+ * Get locks file path
  */
-function releaseFileLock(filePath: string, instanceId: string): boolean {
-  const projectDir = getProjectDir();
-  const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
+function getLocksFilePath(projectDir: string): string {
+  return join(projectDir, '.claude', 'coordination', 'locks.json');
+}
 
-  if (!existsSync(dbPath)) {
-    return false;
+/**
+ * Check if coordination is enabled
+ */
+function isCoordinationEnabled(projectDir: string): boolean {
+  return existsSync(join(projectDir, '.claude', 'coordination'));
+}
+
+/**
+ * Get current instance ID
+ * Priority: CLAUDE_SESSION_ID > .instance/id.json > fallback-{pid}
+ * Using .instance/id.json ensures consistent ID across hook processes.
+ */
+function getInstanceId(): string {
+  // 1. Try CLAUDE_SESSION_ID first
+  if (process.env.CLAUDE_SESSION_ID) {
+    return process.env.CLAUDE_SESSION_ID;
   }
 
+  // 2. Try reading from .instance/id.json for consistent ID across processes
   try {
-    // Escape single quotes for SQLite
-    const escapedPath = filePath.replace(/'/g, "''");
-    const escapedInstance = instanceId.replace(/'/g, "''");
+    const projectDir = getProjectDir();
+    const instanceIdPath = join(projectDir, '.instance', 'id.json');
+    if (existsSync(instanceIdPath)) {
+      const data = JSON.parse(readFileSync(instanceIdPath, 'utf8'));
+      if (data.instance_id) {
+        return data.instance_id;
+      }
+    }
+  } catch {
+    // Ignore read errors
+  }
 
-    execSync(
-      `sqlite3 "${dbPath}" "DELETE FROM file_locks WHERE file_path = '${escapedPath}' AND instance_id = '${escapedInstance}';"`,
-      { stdio: 'ignore', timeout: 5000 }
+  // 3. Fallback to PID (may cause issues with lock release)
+  return `fallback-${process.pid}`;
+}
+
+/**
+ * Load locks database
+ */
+function loadLocks(locksPath: string): LockDatabase {
+  try {
+    if (existsSync(locksPath)) {
+      return JSON.parse(readFileSync(locksPath, 'utf8'));
+    }
+  } catch {
+    // Ignore parse errors
+  }
+  return { locks: [] };
+}
+
+/**
+ * Save locks database
+ */
+function saveLocks(locksPath: string, data: LockDatabase): void {
+  writeFileSync(locksPath, JSON.stringify(data, null, 2));
+}
+
+/**
+ * Clean expired locks
+ */
+function cleanExpiredLocks(locks: FileLock[]): FileLock[] {
+  const now = new Date().toISOString();
+  return locks.filter(l => l.expires_at > now);
+}
+
+/**
+ * Release file lock from locks.json
+ */
+function releaseFileLock(locksPath: string, filePath: string, instanceId: string): boolean {
+  try {
+    const data = loadLocks(locksPath);
+    const originalCount = data.locks.length;
+
+    // Clean expired locks AND remove matching lock
+    data.locks = cleanExpiredLocks(data.locks).filter(
+      l => !(l.file_path === filePath && l.instance_id === instanceId)
     );
 
-    logHook('file-lock-release', `Released lock for ${filePath}`);
-    return true;
+    if (data.locks.length < originalCount) {
+      saveLocks(locksPath, data);
+      logHook('file-lock-release', `Released lock for ${filePath}`);
+      return true;
+    }
+
+    return false;
   } catch (error) {
     logHook('file-lock-release', `Failed to release lock for ${filePath}: ${error}`);
     return false;
   }
-}
-
-/**
- * Get instance ID from environment or session
- */
-function getInstanceId(): string {
-  // Check environment first
-  if (process.env.INSTANCE_ID) {
-    return process.env.INSTANCE_ID;
-  }
-
-  // Check instance env file
-  const projectDir = getProjectDir();
-  const instanceEnv = `${projectDir}/.claude/.instance_env`;
-
-  if (existsSync(instanceEnv)) {
-    try {
-      const content = readFileSync(instanceEnv, 'utf8');
-      const match = content.match(/CLAUDE_INSTANCE_ID=["']?([^"'\n]+)/);
-      if (match) {
-        return match[1];
-      }
-    } catch {
-      // Ignore read errors
-    }
-  }
-
-  // Fall back to session ID
-  return getSessionId();
 }
 
 /**
@@ -92,8 +134,10 @@ export function fileLockRelease(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Self-guard: Only run if multi-instance coordination is enabled
-  if (!isMultiInstanceEnabled()) {
+  const projectDir = getProjectDir();
+
+  // Self-guard: Only run if coordination is enabled
+  if (!isCoordinationEnabled(projectDir)) {
     return outputSilentSuccess();
   }
 
@@ -105,20 +149,19 @@ export function fileLockRelease(input: HookInput): HookResult {
   }
 
   // Skip coordination directory files
-  if (filePath.includes('/.claude/coordination/')) {
+  if (filePath.includes('/.claude/coordination/') || filePath.includes('.claude/coordination')) {
     return outputSilentSuccess();
   }
 
-  // Check for errors in tool result
-  const toolResult = String(getField<unknown>(input, 'tool_result') || '');
-  if (toolResult.includes('error') || toolResult.includes('Error')) {
-    // Keep lock on error, will auto-expire
-    return outputSilentSuccess();
-  }
+  // Normalize path (match multi-instance-lock.ts behavior)
+  const normalizedPath = filePath.startsWith(projectDir)
+    ? filePath.slice(projectDir.length + 1)
+    : filePath;
 
-  // Release lock
+  // Release lock regardless of result (lock should be released even on error)
+  const locksPath = getLocksFilePath(projectDir);
   const instanceId = getInstanceId();
-  releaseFileLock(filePath, instanceId);
+  releaseFileLock(locksPath, normalizedPath, instanceId);
 
   return outputSilentSuccess();
 }

@@ -11,7 +11,7 @@
 
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -168,6 +168,71 @@ function isHookDisabled(hookName, overrides) {
   return Array.isArray(overrides.disabled) && overrides.disabled.includes(hookName);
 }
 
+// =============================================================================
+// HOOK TRACKING (Issue #245: Multi-User Intelligent Decision Capture)
+// =============================================================================
+
+/** Session ID validation regex - alphanumeric, dashes, underscores only (SEC-001) */
+const SESSION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/;
+
+/**
+ * Validate session ID to prevent path traversal attacks.
+ * Defense-in-depth: Claude Code controls CLAUDE_SESSION_ID, but we validate anyway.
+ * @param {string} sessionId - The session ID to validate
+ * @returns {boolean} True if valid, false otherwise
+ */
+function isValidSessionId(sessionId) {
+  return typeof sessionId === 'string' && SESSION_ID_PATTERN.test(sessionId);
+}
+
+/**
+ * Track hook execution for user profiling.
+ * Writes events to .claude/memory/sessions/{session_id}/events.jsonl
+ *
+ * @param {string} trackedHookName - The hook name being tracked
+ * @param {boolean} success - Whether the hook executed successfully
+ * @param {number} durationMs - Execution duration in milliseconds
+ * @param {string} projectDir - Project directory path
+ * @returns {void}
+ */
+function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
+  try {
+    const sessionId = process.env.CLAUDE_SESSION_ID;
+    if (!sessionId) return; // No session, skip tracking
+
+    // Validate session ID to prevent path traversal (SEC-001)
+    if (!isValidSessionId(sessionId)) return;
+
+    const sessionDir = join(projectDir, '.claude', 'memory', 'sessions', sessionId);
+    const eventsPath = join(sessionDir, 'events.jsonl');
+
+    // Ensure directory exists
+    if (!existsSync(sessionDir)) {
+      mkdirSync(sessionDir, { recursive: true });
+    }
+
+    // Generate event
+    const event = {
+      event_id: `evt-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      event_type: 'hook_triggered',
+      identity: {
+        session_id: sessionId,
+        user_id: process.env.USER || process.env.USERNAME || 'unknown',
+        timestamp: new Date().toISOString(),
+      },
+      payload: {
+        name: trackedHookName,
+        success: success,
+        duration_ms: durationMs,
+      },
+    };
+
+    appendFileSync(eventsPath, JSON.stringify(event) + '\n');
+  } catch {
+    // Silent failure - tracking should never break hooks
+  }
+}
+
 /**
  * Validate hook input shape at the boundary (Level 1 only).
  * Full validation (Levels 2-3) is handled by src/lib/input-validator.ts
@@ -203,14 +268,22 @@ async function runHook(parsedInput) {
     return;
   }
 
+  const startTime = Date.now();
+  let success = true;
+
   try {
     const result = await hookFn(parsedInput);
     console.log(JSON.stringify(result));
   } catch (err) {
+    success = false;
     // On any error, output silent success to not block Claude Code
     console.log(JSON.stringify({
       continue: true,
       systemMessage: `Hook error (${hookName}): ${err.message}`,
     }));
+  } finally {
+    // Track hook execution (Issue #245)
+    const durationMs = Date.now() - startTime;
+    trackHookTriggered(hookName, success, durationMs, projectDir);
   }
 }
