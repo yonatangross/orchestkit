@@ -89,7 +89,38 @@ Call `mcp__memory__search_nodes`:
 }
 ```
 
-### 5. Format Output
+### 5. Query Global Best Practices (Optional)
+
+If the user has opted into global sharing (privacy.share_globally = true), query community best practices that may be relevant to the current project context.
+
+Call `mcp__mem0__search_memories`:
+
+```json
+{
+  "query": "{detected_technologies} best practices patterns",
+  "filters": {
+    "AND": [
+      { "user_id": "orchestkit-global-best-practices" },
+      { "metadata.confidence": { "gte": 0.8 } }
+    ]
+  },
+  "limit": 3,
+  "enable_graph": true
+}
+```
+
+Where `{detected_technologies}` is inferred from:
+- Project dependencies (package.json, requirements.txt)
+- Recent file types being worked on
+- Entities mentioned in current conversation
+
+**Privacy Note:** Global best practices are:
+- Contributed anonymously (anonymous_id only)
+- Opt-in (requires privacy.share_globally = true)
+- High-confidence only (confidence >= 0.8)
+- Project-agnostic (no project paths or secrets)
+
+### 6. Format Output
 
 ```
 [Memory Fabric Loaded]
@@ -102,6 +133,9 @@ Unresolved Blockers ({count}):
 
 Active Entities ({count}):
   - {entity} -> {relation} -> {entity}
+
+Global Best Practices ({count}):  # If opted-in
+  - {practice_text} ({confidence}% confidence)
 
 Next Steps from Last Session:
   - {step_1}

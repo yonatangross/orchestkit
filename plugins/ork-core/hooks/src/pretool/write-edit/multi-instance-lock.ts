@@ -4,17 +4,17 @@
  * CC 2.1.7 Compliant: Self-contained hook with proper block format
  */
 
-import type { HookInput, HookResult } from '../../types.js';
+import type { HookInput, HookResult } from "../../types.js";
 import {
   outputSilentSuccess,
   outputDeny,
   logHook,
   logPermissionFeedback,
   getProjectDir,
-} from '../../lib/common.js';
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { guardWriteEdit } from '../../lib/guards.js';
+} from "../../lib/common.js";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { guardWriteEdit } from "../../lib/guards.js";
 
 interface FileLock {
   lock_id: string;
@@ -34,7 +34,7 @@ interface LockDatabase {
  * Get locks file path
  */
 function getLocksFilePath(projectDir: string): string {
-  return join(projectDir, '.claude', 'coordination', 'locks.json');
+  return join(projectDir, ".claude", "coordination", "locks.json");
 }
 
 /**
@@ -67,7 +67,7 @@ function calculateExpiry(): string {
 function loadLocks(locksPath: string): LockDatabase {
   try {
     if (existsSync(locksPath)) {
-      return JSON.parse(readFileSync(locksPath, 'utf8'));
+      return JSON.parse(readFileSync(locksPath, "utf8"));
     }
   } catch {
     // Ignore
@@ -87,6 +87,14 @@ function saveLocks(locksPath: string, data: LockDatabase): void {
 }
 
 /**
+ * Clean expired locks and return active ones
+ */
+function cleanExpiredLocks(data: LockDatabase): FileLock[] {
+  const now = new Date().toISOString();
+  return data.locks.filter((l) => l.expires_at > now);
+}
+
+/**
  * Check for existing lock by another instance
  */
 function checkExistingLock(
@@ -94,14 +102,11 @@ function checkExistingLock(
   filePath: string,
   instanceId: string
 ): FileLock | null {
-  const now = new Date().toISOString();
-
   return (
     locks.find(
       (l) =>
         l.file_path === filePath &&
-        l.instance_id !== instanceId &&
-        l.expires_at > now
+        l.instance_id !== instanceId
     ) || null
   );
 }
@@ -114,15 +119,12 @@ function checkDirectoryLock(
   filePath: string,
   instanceId: string
 ): FileLock | null {
-  const now = new Date().toISOString();
-
   return (
     locks.find(
       (l) =>
-        l.lock_type === 'directory' &&
+        l.lock_type === "directory" &&
         filePath.startsWith(l.file_path) &&
-        l.instance_id !== instanceId &&
-        l.expires_at > now
+        l.instance_id !== instanceId
     ) || null
   );
 }
@@ -136,20 +138,18 @@ function acquireLock(
   instanceId: string,
   reason: string
 ): void {
+  const now = new Date().toISOString();
+
   // Remove any existing lock for this file by this instance
   data.locks = data.locks.filter(
     (l) => !(l.file_path === filePath && l.instance_id === instanceId)
   );
 
-  // Clean expired locks
-  const now = new Date().toISOString();
-  data.locks = data.locks.filter((l) => l.expires_at > now);
-
   // Add new lock
   data.locks.push({
     lock_id: generateLockId(),
     file_path: filePath,
-    lock_type: 'exclusive_write',
+    lock_type: "exclusive_write",
     instance_id: instanceId,
     acquired_at: now,
     expires_at: calculateExpiry(),
@@ -165,7 +165,7 @@ export function multiInstanceLock(input: HookInput): HookResult {
   const guardResult = guardWriteEdit(input);
   if (guardResult) return guardResult;
 
-  const filePath = input.tool_input.file_path || '';
+  const filePath = input.tool_input.file_path || "";
   const projectDir = getProjectDir();
   const toolName = input.tool_name;
 
@@ -177,9 +177,9 @@ export function multiInstanceLock(input: HookInput): HookResult {
   const locksPath = getLocksFilePath(projectDir);
 
   // Check if instance identity exists
-  const instanceDir = join(projectDir, '.instance');
-  if (!existsSync(join(instanceDir, 'id.json'))) {
-    logHook('multi-instance-lock', 'No instance identity, passing through');
+  const instanceDir = join(projectDir, ".instance");
+  if (!existsSync(join(instanceDir, "id.json"))) {
+    logHook("multi-instance-lock", "No instance identity, passing through");
     return outputSilentSuccess();
   }
 
@@ -190,18 +190,28 @@ export function multiInstanceLock(input: HookInput): HookResult {
 
   const instanceId = getInstanceId();
 
-  // Load locks
+  // Load locks and clean expired ones FIRST
   const data = loadLocks(locksPath);
+  const originalCount = data.locks.length;
+  data.locks = cleanExpiredLocks(data);
+  
+  // Log if we cleaned any
+  if (data.locks.length < originalCount) {
+    logHook("multi-instance-lock", `Cleaned ${originalCount - data.locks.length} expired locks`);
+  }
 
   // Check for directory lock
   const dirLock = checkDirectoryLock(data.locks, normalizedPath, instanceId);
   if (dirLock) {
+    // Save cleaned locks even if we deny
+    saveLocks(locksPath, data);
+    
     logPermissionFeedback(
-      'deny',
+      "deny",
       `Directory ${dirLock.file_path} locked by ${dirLock.instance_id}`,
       input
     );
-    logHook('multi-instance-lock', `BLOCKED: Directory lock by ${dirLock.instance_id}`);
+    logHook("multi-instance-lock", `BLOCKED: Directory lock by ${dirLock.instance_id}`);
 
     return outputDeny(
       `Directory ${dirLock.file_path} is locked by another Claude instance (${dirLock.instance_id}).
@@ -212,12 +222,15 @@ Wait for lock release.`
   // Check for file lock
   const fileLock = checkExistingLock(data.locks, normalizedPath, instanceId);
   if (fileLock) {
+    // Save cleaned locks even if we deny
+    saveLocks(locksPath, data);
+    
     logPermissionFeedback(
-      'deny',
+      "deny",
       `File ${normalizedPath} locked by ${fileLock.instance_id}`,
       input
     );
-    logHook('multi-instance-lock', `BLOCKED: ${normalizedPath} locked by ${fileLock.instance_id}`);
+    logHook("multi-instance-lock", `BLOCKED: ${normalizedPath} locked by ${fileLock.instance_id}`);
 
     return outputDeny(
       `File ${normalizedPath} is locked by another Claude instance (${fileLock.instance_id}).
@@ -229,8 +242,8 @@ Wait for lock release.`
   acquireLock(data, normalizedPath, instanceId, `Modifying via ${toolName}`);
   saveLocks(locksPath, data);
 
-  logHook('multi-instance-lock', `Lock acquired: ${normalizedPath}`);
-  logPermissionFeedback('allow', `Lock acquired for ${normalizedPath}`, input);
+  logHook("multi-instance-lock", `Lock acquired: ${normalizedPath}`);
+  logPermissionFeedback("allow", `Lock acquired for ${normalizedPath}`, input);
 
   return outputSilentSuccess();
 }

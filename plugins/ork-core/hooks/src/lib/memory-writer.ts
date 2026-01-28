@@ -8,11 +8,18 @@
  * - Store backup to local JSON files
  * - Optionally sync to mem0 cloud (when MEM0_API_KEY is set)
  * - Build rich graph relationships (CHOSE, CHOSE_OVER, CONSTRAINT)
+ * - Support cross-project best practices sharing via user identity
  *
  * Storage Tiers:
  * 1. Local JSON (always) - .claude/memory/*.jsonl
  * 2. Local Graph (if available) - mcp__memory__* operations queued
  * 3. Mem0 Cloud (optional) - when MEM0_API_KEY env var is set
+ *
+ * Sharing Scopes:
+ * - local: Current session only
+ * - user: User's personal profile
+ * - team: Shared within project/team
+ * - global: Cross-project best practices (anonymized)
  *
  * CC 2.1.16 Compliant
  */
@@ -20,10 +27,26 @@
 import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
+import {
+  getIdentityContext,
+  canShare,
+  getUserIdForScope,
+  getProjectUserId,
+  getGlobalScopeId,
+} from './user-identity.js';
+import {
+  trackDecisionMade,
+  trackPreferenceStated,
+} from './session-tracker.js';
 
 // =============================================================================
 // TYPES
 // =============================================================================
+
+/**
+ * Sharing scope for decisions
+ */
+export type SharingScope = 'local' | 'user' | 'team' | 'global';
 
 /**
  * Decision record for storage
@@ -54,6 +77,17 @@ export interface DecisionRecord {
     to: string;
     type: RelationType;
   }>;
+  /** User identity context */
+  identity: {
+    /** User ID (email or anonymous) */
+    user_id: string;
+    /** Anonymous ID for global sharing */
+    anonymous_id: string;
+    /** Team/org ID if known */
+    team_id?: string;
+    /** Machine ID */
+    machine_id: string;
+  };
   /** Metadata */
   metadata: {
     session_id: string;
@@ -63,6 +97,10 @@ export interface DecisionRecord {
     project: string;
     category: string;
     importance?: 'high' | 'medium' | 'low';
+    /** Is this pattern generalizable across projects? */
+    is_generalizable?: boolean;
+    /** Maximum scope this can be shared to */
+    sharing_scope?: SharingScope;
   };
 }
 
@@ -375,11 +413,28 @@ export function isMem0Configured(): boolean {
 
 /**
  * Build mem0 memory payload from decision
+ * Uses appropriate user_id scope based on sharing settings
  */
 function buildMem0Payload(decision: DecisionRecord): Record<string, unknown> {
+  const scope = decision.metadata.sharing_scope || 'team';
+  const isGeneralizable = decision.metadata.is_generalizable || false;
+
+  // Determine the appropriate user_id based on scope and privacy
+  let userId: string;
+  if (scope === 'global' && isGeneralizable && canShare('decisions', 'global')) {
+    // Use global best practices scope (anonymized)
+    userId = getGlobalScopeId('best-practices');
+  } else if (canShare('decisions', 'team')) {
+    // Use project-scoped ID
+    userId = getProjectUserId('decisions');
+  } else {
+    // Fallback to user-scoped
+    userId = `${getUserIdForScope('local')}-decisions`;
+  }
+
   return {
     text: `${decision.type}: ${decision.content.what}${decision.content.why ? ` because ${decision.content.why}` : ''}`,
-    user_id: `orchestkit:${decision.metadata.project}`,
+    user_id: userId,
     metadata: {
       type: decision.type,
       category: decision.metadata.category,
@@ -391,6 +446,9 @@ function buildMem0Payload(decision: DecisionRecord): Record<string, unknown> {
       has_rationale: !!decision.content.why,
       has_alternatives: !!decision.content.alternatives?.length,
       importance: decision.metadata.importance,
+      is_generalizable: isGeneralizable,
+      // Include identity for attribution (anonymized if global)
+      contributor_id: scope === 'global' ? decision.identity.anonymous_id : decision.identity.user_id,
     },
   };
 }
@@ -468,6 +526,30 @@ export async function storeDecision(decision: DecisionRecord): Promise<{
 }
 
 /**
+ * Determine if a decision is generalizable (can be shared globally)
+ */
+function isGeneralizable(
+  content: DecisionRecord['content'],
+  confidence: number,
+  entities: string[]
+): boolean {
+  // High confidence decisions with rationale are more generalizable
+  if (confidence < 0.8) return false;
+  if (!content.why) return false;
+
+  // Must mention at least one well-known technology/pattern
+  const generalPatterns = [
+    'pagination', 'caching', 'authentication', 'authorization', 'testing',
+    'deployment', 'security', 'performance', 'database', 'api', 'architecture',
+  ];
+  const hasGeneralPattern = entities.some(e =>
+    generalPatterns.some(p => e.toLowerCase().includes(p))
+  );
+
+  return hasGeneralPattern;
+}
+
+/**
  * Create a decision record from basic inputs
  */
 export function createDecisionRecord(
@@ -482,6 +564,18 @@ export function createDecisionRecord(
   const timestamp = new Date().toISOString();
   const id = generateId(type);
   const project = getProjectDir().split('/').pop() || 'unknown';
+  const identityCtx = getIdentityContext();
+  const confidence = metadata.confidence ?? 0.5;
+
+  // Determine if this can be shared globally
+  const generalizable = isGeneralizable(content, confidence, entities);
+
+  // Track in session (for profile aggregation)
+  if (type === 'decision') {
+    trackDecisionMade(content.what, content.why, confidence);
+  } else if (type === 'preference') {
+    trackPreferenceStated(content.what, confidence);
+  }
 
   return {
     id,
@@ -489,14 +583,22 @@ export function createDecisionRecord(
     content,
     entities,
     relations: [], // Will be built automatically from content
+    identity: {
+      user_id: identityCtx.user_id,
+      anonymous_id: identityCtx.anonymous_id,
+      team_id: identityCtx.team_id,
+      machine_id: identityCtx.machine_id,
+    },
     metadata: {
       session_id: metadata.session_id,
       timestamp,
-      confidence: metadata.confidence ?? 0.5,
+      confidence,
       source: metadata.source,
       project,
       category: metadata.category ?? 'general',
       importance: metadata.importance,
+      is_generalizable: generalizable,
+      sharing_scope: generalizable ? 'global' : 'team',
     },
   };
 }

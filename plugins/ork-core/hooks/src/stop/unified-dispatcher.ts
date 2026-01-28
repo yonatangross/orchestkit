@@ -16,6 +16,7 @@ import { autoSaveContext } from './auto-save-context.js';
 import { sessionPatterns } from './session-patterns.js';
 import { issueWorkSummary } from './issue-work-summary.js';
 import { calibrationPersist } from './calibration-persist.js';
+import { sessionProfileAggregator } from './session-profile-aggregator.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -40,6 +41,7 @@ const HOOKS: HookConfig[] = [
   { name: 'session-patterns', fn: sessionPatterns },
   { name: 'issue-work-summary', fn: issueWorkSummary },
   { name: 'calibration-persist', fn: calibrationPersist },
+  { name: 'session-profile-aggregator', fn: sessionProfileAggregator },
 ];
 
 /** Exposed for registry wiring tests */

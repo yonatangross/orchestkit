@@ -50,9 +50,10 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
 export const TOKEN_BUDGETS: Record<string, number> = {
   'skill-injection': 1200,
   'memory-inject': 800,
+  'decision-capture': 500,  // Decision/preference detection and injection
   'suggestions': 400,
   'monitoring': 200,
-  'total': 2200,
+  'total': 2600,  // Updated to include decision-capture
 };
 
 /** Throttle thresholds by priority (% of total budget) */
