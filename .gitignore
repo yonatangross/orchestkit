@@ -73,12 +73,14 @@ HOOK_SECURITY_*.txt
 
 # Mem0 sync state
 .mem0-sync-pending
+**/.claude/mem0-webhooks.json
 
 # Orchestration runtime state (session-specific)
 .claude/orchestration/
 
 # Hooks runtime artifacts (created during hook execution)
-hooks/.claude/
+# Covers root, src/hooks, and plugins/*/hooks
+**/hooks/.claude/
 hooks/dist/*.map
 
 # Python caches

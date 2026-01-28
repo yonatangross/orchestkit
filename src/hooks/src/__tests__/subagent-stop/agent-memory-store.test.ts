@@ -4,6 +4,12 @@
  * Tests the agent-memory-store hook which extracts and stores
  * successful patterns after agent completion. Writes patterns
  * to a JSONL log file with category detection and mem0 metadata.
+ *
+ * P2/P3 gaps for future sessions:
+ * TODO(P2): Test 10240-char truncation boundary in detectPatternCategory
+ * TODO(P3): Test tool_result { is_error: true, content: "..." } handling
+ * TODO(P3): Test unlinkSync tracking file cleanup (existsSync=true path + throw path)
+ * TODO(P3): Test getProjectId() sanitization (spaces, special chars, leading/trailing dashes)
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
@@ -227,80 +233,174 @@ describe('agentMemoryStore', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Pattern categorization
+  // Pattern categorization — all 14 categories + default
   // -----------------------------------------------------------------------
 
-  describe('pattern categorization via appendFileSync', () => {
-    test('security: "vulnerability" -> category=security', () => {
+  describe('pattern categorization — all 14 categories', () => {
+    // Helper: extract category from first appendFileSync call
+    function extractCategory(toolResult: string): string {
+      vi.clearAllMocks();
       const input = makeInput({
-        subagent_type: 'security-auditor',
-        tool_result: 'After thorough analysis, the team decided to fix the SQL injection vulnerability in the authentication module with proper parameterized queries.',
+        subagent_type: 'test-agent',
+        tool_result: toolResult,
       });
+      agentMemoryStore(input);
+      const calls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
+      if (calls.length === 0) return '__no_pattern__';
+      return JSON.parse(calls[0][1].toString().trim()).category;
+    }
 
-      const result = agentMemoryStore(input);
-
-      expect(result.continue).toBe(true);
-      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
-      expect(appendCalls.length).toBeGreaterThanOrEqual(1);
-      const entry = JSON.parse(appendCalls[0][1].toString().trim());
-      expect(entry.category).toBe('security');
+    test.each([
+      ['pagination', 'The team decided to use cursor pagination for the user listing endpoint to handle large result sets.'],
+      ['security', 'The team decided to fix the XSS vulnerability by adding proper output encoding to all user-facing fields.'],
+      ['database', 'The team decided to use postgres with connection pooling for better throughput on read-heavy workloads.'],
+      ['api', 'The team decided to expose a new endpoint for health checks alongside the existing GraphQL gateway.'],
+      ['authentication', 'The team decided to use JWT auth with short-lived tokens and refresh rotation for the login flow.'],
+      ['testing', 'The team decided to use vitest for running the full coverage suite on every pull request automatically.'],
+      ['deployment', 'The team decided to deploy with docker containers orchestrated by kubernetes in the production cluster.'],
+      ['observability', 'The team decided to add prometheus metrics and grafana dashboards for real-time monitoring of latency.'],
+      ['frontend', 'The team decided to build the dashboard component using react with server-side rendering for speed.'],
+      ['performance', 'The team decided to add a cache layer with optimization for the hot-path read queries on the homepage.'],
+      ['ai-ml', 'The team decided to use embedding vectors with openai for semantic search across the knowledge base.'],
+      ['data-pipeline', 'The team decided to build an etl job with spark for batch processing of daily transaction data.'],
+      ['architecture', 'The team decided to restructure into a hexagonal architecture design for better separation of concerns.'],
+      ['decision', 'After the full review the team chose a straightforward method for handling the workload going forward.'],
+    ])('%s category detected correctly', (expectedCategory, toolResult) => {
+      const category = extractCategory(toolResult);
+      expect(category).toBe(expectedCategory);
     });
 
-    test('database: "postgres" -> category=database', () => {
-      const input = makeInput({
-        subagent_type: 'database-engineer',
-        tool_result: 'The implementation chose postgres with pgvector extension for vector similarity search across the document embeddings store.',
-      });
-
-      const result = agentMemoryStore(input);
-
-      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
-      expect(appendCalls.length).toBeGreaterThanOrEqual(1);
-      const entry = JSON.parse(appendCalls[0][1].toString().trim());
-      expect(entry.category).toBe('database');
+    test('default "pattern" category when no keywords match', () => {
+      // Carefully avoid ALL category keywords (including substring traps)
+      const category = extractCategory(
+        'The group opted for a brand new method of organizing the weekly reports for the management board.',
+      );
+      expect(category).toBe('pattern');
     });
 
-    test('api: "endpoint" -> category=api', () => {
+    test('\\b word boundaries prevent false positives from substrings', () => {
+      // "decided" contains "cd", "simple" contains "ml", "straightforward" contains "ai"
+      // With \b fix, these should NOT match deployment/ai-ml
+      const category = extractCategory(
+        'After the full review, the team decided to use a straightforward simple method for all processing workloads.',
+      );
+      expect(category).toBe('decision');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // DECISION_PATTERNS — all 13 patterns
+  // -----------------------------------------------------------------------
+
+  describe('DECISION_PATTERNS — all 13 extraction triggers', () => {
+    function patternsExtracted(toolResult: string): number {
+      vi.clearAllMocks();
+      const input = makeInput({
+        subagent_type: 'test-agent',
+        tool_result: toolResult,
+      });
+      agentMemoryStore(input);
+      return (appendFileSync as ReturnType<typeof vi.fn>).mock.calls.length;
+    }
+
+    test.each([
+      ['decided to', 'The engineering group decided to adopt a new branching strategy for the monorepo going forward.'],
+      ['chose', 'After evaluation the engineering group chose the newer framework for building the web application.'],
+      ['implemented using', 'The feature was implemented using the observer pattern to decouple the event handlers from the core.'],
+      ['selected', 'The engineering group selected a hybrid approach for storing both structured and unstructured data.'],
+      ['opted for', 'The engineering group opted for lazy loading to reduce the initial bundle payload on slow networks.'],
+      ['will use', 'Going forward the engineering group will use conventional commits to generate changelogs every release.'],
+      ['pattern:', 'The review surfaced a key finding. pattern: use retry with exponential backoff on transient network faults.'],
+      ['approach:', 'The review surfaced a key finding. approach: split the monolith into bounded contexts over the next quarter.'],
+      ['architecture:', 'The review surfaced a key finding. architecture: hexagonal with ports and adapters for the new payment flow.'],
+      ['recommends', 'The senior engineer recommends adding integration tests for every external service boundary in the system.'],
+      ['best practice', 'Following best practice the team added structured logging with correlation headers to every outbound request.'],
+      ['anti-pattern', 'The review flagged an anti-pattern where the controller directly queries the database bypassing the service.'],
+      ['learned that', 'The team learned that connection pool exhaustion happens under load when transactions hold locks too long.'],
+    ])('extracts pattern for "%s"', (_patternName, toolResult) => {
+      const count = patternsExtracted(toolResult);
+      expect(count).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // extractPatterns limits and edge cases
+  // -----------------------------------------------------------------------
+
+  describe('extractPatterns limits', () => {
+    test('limits to max 5 unique patterns', () => {
+      // Build output with >5 unique decision patterns
+      const lines = [
+        'Line 1: The team decided to use TypeScript for the entire codebase going forward.',
+        'Line 2: The team chose PostgreSQL as the primary relational database engine for the project.',
+        'Line 3: The feature was implemented using the repository pattern for all data access operations.',
+        'Line 4: The team selected Redis as the caching layer for session management across all services.',
+        'Line 5: The team opted for server-side rendering to improve initial page load for end users.',
+        'Line 6: Going forward the team will use feature flags to control rollout of every new feature.',
+        'Line 7: The review surfaced pattern: always validate input at the boundary of the system first.',
+      ].join('\n');
+
       const input = makeInput({
         subagent_type: 'backend-system-architect',
-        tool_result: 'The system decided to use REST endpoint versioning with path-based routing to maintain backward compatibility.',
-      });
-
-      const result = agentMemoryStore(input);
-
-      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
-      expect(appendCalls.length).toBeGreaterThanOrEqual(1);
-      const entry = JSON.parse(appendCalls[0][1].toString().trim());
-      expect(entry.category).toBe('api');
-    });
-
-    test('testing: "vitest" -> category=testing', () => {
-      const input = makeInput({
-        subagent_type: 'test-generator',
-        tool_result: 'The project decided to adopt vitest as the primary test runner with built-in coverage and snapshot testing support.',
-      });
-
-      const result = agentMemoryStore(input);
-
-      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
-      expect(appendCalls.length).toBeGreaterThanOrEqual(1);
-      const entry = JSON.parse(appendCalls[0][1].toString().trim());
-      expect(entry.category).toBe('testing');
-    });
-
-    test('decision: "decided" -> category=decision (not deployment) with \\b fix', () => {
-      // With word-boundary fix, "decided" no longer matches /\bcd\b/
-      const input = makeInput({
-        subagent_type: 'workflow-architect',
-        tool_result: 'After the full review, the team decided to use a straightforward simple method for all processing workloads.',
+        tool_result: lines,
       });
 
       agentMemoryStore(input);
 
       const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
-      expect(appendCalls.length).toBeGreaterThanOrEqual(1);
-      const entry = JSON.parse(appendCalls[0][1].toString().trim());
-      expect(entry.category).toBe('decision');
+      expect(appendCalls.length).toBeLessThanOrEqual(5);
+    });
+
+    test('filters out patterns shorter than 20 chars after trim', () => {
+      // A line matching "chose" but very short after trim
+      const lines = [
+        'chose X.', // Only 8 chars — should be filtered
+        'Some padding to make the total output exceed the 50-character minimum length requirement for extraction.',
+      ].join('\n');
+
+      const input = makeInput({
+        subagent_type: 'test-agent',
+        tool_result: lines,
+      });
+
+      agentMemoryStore(input);
+
+      // "chose X." is 8 chars < 20, so no patterns extracted
+      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
+      expect(appendCalls.length).toBe(0);
+    });
+
+    test('truncates individual patterns to 200 chars', () => {
+      const longLine = 'The team decided to ' + 'x'.repeat(300) + ' for the project.';
+      const input = makeInput({
+        subagent_type: 'test-agent',
+        tool_result: longLine,
+      });
+
+      agentMemoryStore(input);
+
+      const appendCalls = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls;
+      if (appendCalls.length > 0) {
+        const entry = JSON.parse(appendCalls[0][1].toString().trim());
+        expect(entry.pattern.length).toBeLessThanOrEqual(200);
+      }
+    });
+
+    test('appendFileSync failure does not prevent systemMessage', () => {
+      (appendFileSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        throw new Error('ENOSPC');
+      });
+
+      const input = makeInput({
+        subagent_type: 'test-agent',
+        tool_result: makeOutputWithPattern('decided to add error handling'),
+      });
+
+      const result = agentMemoryStore(input);
+
+      // Despite write failure, hook still returns the systemMessage
+      expect(result.continue).toBe(true);
+      expect(result.systemMessage).toContain('Pattern Extraction');
     });
   });
 
