@@ -109,9 +109,6 @@ function main() {
   const hooksJsonNames = parseHooksJson();
   const entryFileNames = parseEntryFiles();
 
-  // Separate dispatcher hooks from regular entry-file hooks for counting
-  const entryFileNonDispatcherInternal = new Set(entryFileNames);
-
   // Find ghosts: in hooks.json but NOT in any entry file
   const ghosts = [];
   for (const name of hooksJsonNames) {

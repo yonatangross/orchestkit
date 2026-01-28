@@ -213,4 +213,59 @@ describe('E2E: run-hook.mjs Pipeline', () => {
       expect(result.parsed!.continue).toBe(true);
     });
   });
+
+  // =========================================================================
+  // STANDALONE HOOK: stop/mem0-pre-compaction-sync
+  // =========================================================================
+
+  describe('E2E: stop/mem0-pre-compaction-sync', () => {
+    it('returns silent success with no API key', async () => {
+      // Must explicitly clear MEM0_API_KEY since runHook inherits process.env
+      const env = { ...process.env, MEM0_API_KEY: '', CLAUDE_PROJECT_DIR: '/tmp/ork-e2e-test', CLAUDE_PLUGIN_ROOT: '', ORCHESTKIT_LOG_LEVEL: 'error' };
+      const result = await new Promise<RunResult>((resolve) => {
+        const child = spawn('node', [RUN_HOOK, 'stop/mem0-pre-compaction-sync'], {
+          env,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 10000,
+        });
+        let stdout = '';
+        let stderr = '';
+        child.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
+        child.stderr.on('data', (d: Buffer) => { stderr += d.toString(); });
+        child.on('close', (code) => {
+          let parsed: Record<string, unknown> | null = null;
+          try { parsed = JSON.parse(stdout.trim()); } catch {}
+          resolve({ stdout: stdout.trim(), stderr: stderr.trim(), exitCode: code, parsed });
+        });
+        child.stdin.write(JSON.stringify({ tool_name: '', session_id: 'e2e-mem0-test', tool_input: {} }));
+        child.stdin.end();
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+      expect(result.parsed!.suppressOutput).toBe(true);
+    });
+
+    it('handles malformed input gracefully', async () => {
+      const result = await runHook('stop/mem0-pre-compaction-sync', {
+        // Missing standard fields
+        tool_name: '',
+        session_id: '',
+        tool_input: {},
+      });
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+
+    it('returns valid JSON for empty stdin', async () => {
+      const result = await runHook('stop/mem0-pre-compaction-sync');
+
+      expect(result.exitCode).toBe(0);
+      expect(result.parsed).not.toBeNull();
+      expect(result.parsed!.continue).toBe(true);
+    });
+  });
 });

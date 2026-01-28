@@ -416,8 +416,10 @@ describe('mem0PreCompactionSync', () => {
     });
   });
 
-  describe('pending items without API key', () => {
-    test('returns systemMessage with sync suggestion when decisions pending', () => {
+  describe('no API key gate', () => {
+    test('returns silent success when MEM0_API_KEY not set', () => {
+      delete process.env.MEM0_API_KEY;
+
       setupFiles({
         'decision-log.json': JSON.stringify({
           decisions: [{ decision_id: 'd1' }],
@@ -429,7 +431,28 @@ describe('mem0PreCompactionSync', () => {
         'agent-patterns.jsonl': false,
       });
 
-      delete process.env.MEM0_API_KEY;
+      const result = mem0PreCompactionSync(createHookInput());
+
+      expectSilentSuccess(result);
+    });
+  });
+
+  describe('pending items without sync script', () => {
+    test('returns systemMessage with sync suggestion when decisions pending', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
+      setupFiles({
+        'decision-log.json': JSON.stringify({
+          decisions: [{ decision_id: 'd1' }],
+        }),
+        '.decision-sync-state.json': JSON.stringify({
+          synced_decisions: [],
+        }),
+        'add-memory.py': false,
+        'state.json': false,
+        'agent-patterns.jsonl': false,
+      });
 
       const result = mem0PreCompactionSync(createHookInput());
 
@@ -439,9 +462,13 @@ describe('mem0PreCompactionSync', () => {
     });
 
     test('returns systemMessage when patterns are pending sync', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       setupFiles({
         'decision-log.json': false,
         'agent-patterns.jsonl': '{"pending_sync": true, "agent_id": "test-agent"}\n{"pending_sync": false, "agent_id": "other"}',
+        'add-memory.py': false,
         'state.json': false,
       });
 
@@ -453,6 +480,9 @@ describe('mem0PreCompactionSync', () => {
     });
 
     test('includes multiple agent names in message', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       const patterns = [
         '{"pending_sync": true, "agent_id": "agent-a"}',
         '{"pending_sync": true, "agent_id": "agent-b"}',
@@ -462,6 +492,7 @@ describe('mem0PreCompactionSync', () => {
       setupFiles({
         'decision-log.json': false,
         'agent-patterns.jsonl': patterns,
+        'add-memory.py': false,
         'state.json': false,
       });
 
@@ -534,10 +565,14 @@ describe('mem0PreCompactionSync', () => {
 
   describe('session info extraction', () => {
     test('includes current task from session state in sync text', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       setupFiles({
         'decision-log.json': JSON.stringify({ decisions: [{ decision_id: 'x' }] }),
         '.decision-sync-state.json': JSON.stringify({ synced_decisions: [] }),
         'state.json': JSON.stringify({ current_task: 'Implementing auth flow' }),
+        'add-memory.py': false,
         'agent-patterns.jsonl': false,
       });
 
@@ -548,10 +583,14 @@ describe('mem0PreCompactionSync', () => {
     });
 
     test('handles missing session state gracefully', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       setupFiles({
         'decision-log.json': JSON.stringify({ decisions: [{ decision_id: 'x' }] }),
         '.decision-sync-state.json': false,
         'state.json': false,
+        'add-memory.py': false,
         'agent-patterns.jsonl': false,
       });
 
@@ -563,9 +602,13 @@ describe('mem0PreCompactionSync', () => {
 
   describe('JSONL parsing', () => {
     test('handles single-line JSONL with pending_sync', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       setupFiles({
         'decision-log.json': false,
         'agent-patterns.jsonl': '{"pending_sync": true, "agent_id": "solo"}',
+        'add-memory.py': false,
         'state.json': false,
       });
 
@@ -576,9 +619,13 @@ describe('mem0PreCompactionSync', () => {
     });
 
     test('handles corrupt JSONL gracefully', () => {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
       setupFiles({
         'decision-log.json': false,
         'agent-patterns.jsonl': 'not valid jsonl at all',
+        'add-memory.py': false,
         'state.json': false,
       });
 
@@ -589,20 +636,90 @@ describe('mem0PreCompactionSync', () => {
   });
 
   test('always returns continue: true', () => {
-    // Silent success path
+    // Silent success path (no API key)
     mockExistsSync.mockReturnValue(false);
     expect(mem0PreCompactionSync(createHookInput()).continue).toBe(true);
 
     vi.clearAllMocks();
 
-    // Pending items path
+    // Pending items path (with API key, no script)
+    process.env.MEM0_API_KEY = 'test-key';
+    process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
     setupFiles({
       'decision-log.json': JSON.stringify({ decisions: [{ decision_id: 'd' }] }),
       '.decision-sync-state.json': JSON.stringify({ synced_decisions: [] }),
+      'add-memory.py': false,
       'state.json': false,
       'agent-patterns.jsonl': false,
     });
     expect(mem0PreCompactionSync(createHookInput()).continue).toBe(true);
+  });
+
+  describe('close handler logging', () => {
+    // Helper: set up env + files so spawn path is reached, call hook, extract close callback
+    function getCloseHandler(): (code: number | null) => void {
+      process.env.MEM0_API_KEY = 'test-key';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+
+      setupFiles({
+        'decision-log.json': JSON.stringify({
+          decisions: [{ decision_id: 'close-test' }],
+        }),
+        '.decision-sync-state.json': JSON.stringify({ synced_decisions: [] }),
+        'add-memory.py': true,
+        'state.json': false,
+        'agent-patterns.jsonl': false,
+      });
+
+      mem0PreCompactionSync(createHookInput());
+
+      const childMock = mockSpawn.mock.results[0].value;
+      const closeCall = childMock.on.mock.calls.find(
+        (call: any[]) => call[0] === 'close'
+      );
+      expect(closeCall).toBeDefined();
+      return closeCall![1];
+    }
+
+    test('logs success when child exits with code 0', () => {
+      const closeHandler = getCloseHandler();
+      closeHandler(0);
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining('Sync completed successfully')
+      );
+    });
+
+    test('logs failure when child exits with non-zero code', () => {
+      const closeHandler = getCloseHandler();
+      closeHandler(1);
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining('Sync exited with code 1')
+      );
+    });
+
+    test('logs null exit code when process killed', () => {
+      const closeHandler = getCloseHandler();
+      closeHandler(null);
+
+      expect(mockAppendFileSync).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.stringContaining('Sync exited with code null')
+      );
+    });
+
+    test('suppresses errors when appendFileSync throws', () => {
+      const closeHandler = getCloseHandler();
+      mockAppendFileSync.mockImplementation(() => {
+        throw new Error('ENOSPC');
+      });
+
+      // Should not throw
+      expect(() => closeHandler(0)).not.toThrow();
+    });
   });
 });
 

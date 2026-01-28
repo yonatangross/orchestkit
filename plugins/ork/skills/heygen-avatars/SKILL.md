@@ -2,6 +2,7 @@
 name: heygen-avatars
 description: Best practices for HeyGen - AI avatar video creation API. Use when creating AI avatar videos, generating talking head videos, or integrating HeyGen with Remotion.
 tags: [heygen, video, avatar, ai, api, text-to-video, remotion]
+user-invocable: false
 ---
 
 # HeyGen Avatars

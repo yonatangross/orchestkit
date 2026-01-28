@@ -15,6 +15,7 @@ import {
 
 /**
  * Dangerous patterns - commands that can cause catastrophic system damage
+ * These are matched as literal substrings via normalizedCommand.includes()
  */
 const DANGEROUS_PATTERNS: string[] = [
   'rm -rf /',
@@ -28,9 +29,13 @@ const DANGEROUS_PATTERNS: string[] = [
   'dd if=/dev/random of=/dev/',
   ':(){:|:&};:', // Fork bomb
   'mv /* /dev/null',
-  'wget.*|.*sh',
-  'curl.*|.*sh',
 ];
+
+/**
+ * Shell interpreters that should never receive piped input from download commands.
+ * Catches: wget URL | sh, curl URL | bash, etc.
+ */
+const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash)\b/;
 
 /**
  * Block dangerous commands
@@ -45,7 +50,7 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
   // Normalize: remove line continuations and collapse whitespace
   const normalizedCommand = normalizeCommand(command);
 
-  // Check command against each dangerous pattern
+  // Check command against each dangerous pattern (literal substring)
   for (const pattern of DANGEROUS_PATTERNS) {
     if (normalizedCommand.includes(pattern)) {
       logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
@@ -56,6 +61,18 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
           'This command could cause severe system damage and has been blocked.'
       );
     }
+  }
+
+  // Check for piping to shell interpreters (e.g., wget URL | sh, curl URL | bash)
+  if (PIPE_TO_SHELL_RE.test(normalizedCommand)) {
+    const reason = 'Piping to shell interpreter detected';
+    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    logPermissionFeedback('deny', reason, input);
+
+    return outputDeny(
+      `${reason}\n\n` +
+        'Piping untrusted content to a shell interpreter is dangerous and has been blocked.'
+    );
   }
 
   // Command is safe, allow it silently

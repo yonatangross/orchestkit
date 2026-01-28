@@ -389,3 +389,73 @@ describe('Dispatcher Integration (real hooks, temp filesystem)', () => {
     });
   });
 });
+
+// =============================================================================
+// STANDALONE HOOK: stop/mem0-pre-compaction-sync
+// =============================================================================
+
+describe('stop/mem0-pre-compaction-sync (standalone hook)', () => {
+  // Import the hook directly (it's not inside the stop unified-dispatcher)
+  let mem0PreCompactionSync: (input: HookInput) => { continue: boolean; suppressOutput?: boolean; systemMessage?: string };
+
+  beforeEach(async () => {
+    const mod = await import('../../stop/mem0-pre-compaction-sync.js');
+    mem0PreCompactionSync = mod.mem0PreCompactionSync;
+  });
+
+  it('creates log directory when sync triggered', () => {
+    process.env.MEM0_API_KEY = 'integration-test-key';
+    process.env.CLAUDE_PLUGIN_ROOT = testDir;
+
+    // Create decision log with pending decisions
+    const coordDir = join(testDir, '.claude', 'coordination');
+    mkdirSync(coordDir, { recursive: true });
+    writeFileSync(
+      join(coordDir, 'decision-log.json'),
+      JSON.stringify({ decisions: [{ decision_id: 'int-d1' }] })
+    );
+    writeFileSync(
+      join(coordDir, '.decision-sync-state.json'),
+      JSON.stringify({ synced_decisions: [] })
+    );
+
+    const result = mem0PreCompactionSync(makeInput());
+
+    expect(result.continue).toBe(true);
+    // Log directory should have been created
+    const logDir = join(testDir, '.claude', 'logs');
+    expect(existsSync(logDir)).toBe(true);
+  });
+
+  it('returns silent success when MEM0_API_KEY missing', () => {
+    delete process.env.MEM0_API_KEY;
+
+    const result = mem0PreCompactionSync(makeInput());
+
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  it('returns systemMessage with pending count when script missing', () => {
+    process.env.MEM0_API_KEY = 'test-key';
+    process.env.CLAUDE_PLUGIN_ROOT = testDir;
+
+    // Create decision log with pending decisions
+    const coordDir = join(testDir, '.claude', 'coordination');
+    mkdirSync(coordDir, { recursive: true });
+    writeFileSync(
+      join(coordDir, 'decision-log.json'),
+      JSON.stringify({ decisions: [{ decision_id: 'pend-1' }, { decision_id: 'pend-2' }] })
+    );
+    writeFileSync(
+      join(coordDir, '.decision-sync-state.json'),
+      JSON.stringify({ synced_decisions: [] })
+    );
+
+    const result = mem0PreCompactionSync(makeInput());
+
+    expect(result.continue).toBe(true);
+    expect(result.systemMessage).toContain('2 decisions to sync');
+    expect(result.systemMessage).toContain('/mem0-sync');
+  });
+});

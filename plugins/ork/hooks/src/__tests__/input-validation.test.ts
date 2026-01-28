@@ -390,137 +390,61 @@ describe('isValidInput', () => {
 
 /**
  * Mirror of the inline validateInput function from run-hook.mjs.
- * This is the simplified JS version that runs in the ESM entrypoint.
- * We test it here to ensure parity with the TypeScript module.
+ * This is the Level-1-only shape gate that runs in the ESM entrypoint.
+ * Full validation (Levels 2-3) is handled by the TS input-validator module.
  */
 function validateInput(
   input: unknown,
-  hookName: string,
-): { valid: boolean; errors: string[]; warnings: string[] } {
-  const errors: string[] = [];
-  const warnings: string[] = [];
-
+  _hookName: string,
+): { valid: boolean; errors: string[] } {
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
     return {
       valid: false,
       errors: [`Input must be an object, got ${input === null ? 'null' : typeof input}`],
-      warnings: [],
     };
   }
-
-  const obj = input as Record<string, unknown>;
-  if (
-    obj.tool_input !== undefined &&
-    (typeof obj.tool_input !== 'object' || obj.tool_input === null || Array.isArray(obj.tool_input))
-  ) {
-    errors.push(
-      `tool_input must be an object, got ${Array.isArray(obj.tool_input) ? 'array' : typeof obj.tool_input}`,
-    );
-  }
-
-  const prefix = hookName.split('/')[0];
-  const toolEvents = ['pretool', 'posttool', 'permission', 'skill', 'agent'];
-  if (toolEvents.includes(prefix) && !obj.tool_name && obj.tool_name !== '') {
-    warnings.push('Missing tool_name for tool-based hook');
-  }
-
-  return { valid: errors.length === 0, errors, warnings };
+  return { valid: true, errors: [] };
 }
 
-describe('run-hook.mjs validateInput (mirrored)', () => {
-  // -- Level 1 parity: input shape --
-  describe('Level 1 parity: input shape', () => {
+describe('run-hook.mjs validateInput (mirrored — Level 1 shape gate only)', () => {
+  describe('rejects non-object inputs', () => {
     test.each([
       ['null', null, 'null'],
       ['undefined', undefined, 'undefined'],
       ['string', 'hello', 'string'],
       ['number', 42, 'number'],
-      ['array', [1, 2], 'object'], // typeof array is 'object', but caught by Array.isArray
+      ['array', [1, 2], 'object'],
     ])('rejects %s input', (_label, input, _typeHint) => {
       const result = validateInput(input, 'pretool/test');
       expect(result.valid).toBe(false);
       expect(result.errors).toHaveLength(1);
     });
+  });
 
+  describe('accepts object inputs', () => {
     test('accepts empty object', () => {
       const result = validateInput({}, 'lifecycle/test');
       expect(result.valid).toBe(true);
       expect(result.errors).toHaveLength(0);
     });
-  });
 
-  // -- Level 2 parity: tool_input --
-  describe('Level 2 parity: tool_input', () => {
-    test('rejects string tool_input', () => {
+    test('accepts object with tool_input (no Level 2 check)', () => {
+      // JS shape gate deliberately does NOT check tool_input type —
+      // that's the TS module's job
       const result = validateInput({ tool_input: 'bad' }, 'pretool/test');
-      expect(result.valid).toBe(false);
-      expect(result.errors[0]).toContain('tool_input');
-    });
-
-    test('rejects array tool_input', () => {
-      const result = validateInput({ tool_input: [1] }, 'pretool/test');
-      expect(result.valid).toBe(false);
-      expect(result.errors[0]).toContain('array');
-    });
-
-    test('rejects null tool_input', () => {
-      const result = validateInput({ tool_input: null }, 'pretool/test');
-      expect(result.valid).toBe(false);
-    });
-
-    test('accepts object tool_input', () => {
-      const result = validateInput({ tool_input: { cmd: 'ls' } }, 'pretool/test');
       expect(result.valid).toBe(true);
     });
 
-    test('accepts undefined tool_input', () => {
+    test('accepts object without tool_name (no Level 3 check)', () => {
+      // JS shape gate deliberately does NOT warn about missing fields —
+      // that's the TS module's job
       const result = validateInput({}, 'pretool/test');
       expect(result.valid).toBe(true);
     });
   });
 
-  // -- Level 3 parity: tool_name warnings for tool-based prefixes --
-  describe('Level 3 parity: tool_name warnings', () => {
-    test.each([
-      ['pretool'],
-      ['posttool'],
-      ['permission'],
-      ['skill'],
-      ['agent'],
-    ])('%s prefix warns when tool_name is missing', (prefix) => {
-      const result = validateInput({}, `${prefix}/some-hook`);
-      expect(result.valid).toBe(true);
-      expect(result.warnings).toHaveLength(1);
-      expect(result.warnings[0]).toContain('tool_name');
-    });
-
-    test.each([
-      ['pretool'],
-      ['posttool'],
-      ['permission'],
-      ['skill'],
-      ['agent'],
-    ])('%s prefix: no warning when tool_name is present', (prefix) => {
-      const result = validateInput({ tool_name: 'Bash' }, `${prefix}/some-hook`);
-      expect(result.warnings).toHaveLength(0);
-    });
-
-    test.each([
-      ['stop'],
-      ['setup'],
-      ['lifecycle'],
-      ['notification'],
-      ['subagent-start'],
-      ['subagent-stop'],
-    ])('%s prefix does not warn about tool_name', (prefix) => {
-      const result = validateInput({}, `${prefix}/some-hook`);
-      expect(result.valid).toBe(true);
-      expect(result.warnings).toHaveLength(0);
-    });
-  });
-
-  // -- Cross-module parity checks --
-  describe('parity with TypeScript module', () => {
+  // -- Cross-module parity: Level 1 agreement --
+  describe('Level 1 parity with TypeScript module', () => {
     test('both modules agree on null input rejection', () => {
       const tsResult = validateHookInput(null, 'pretool/test');
       const jsResult = validateInput(null, 'pretool/test');
@@ -534,29 +458,26 @@ describe('run-hook.mjs validateInput (mirrored)', () => {
       const jsResult = validateInput(input, 'pretool/test');
       expect(jsResult.valid).toBe(tsResult.valid);
       expect(jsResult.errors).toEqual(tsResult.errors);
-      expect(jsResult.warnings).toEqual(tsResult.warnings);
     });
 
-    test('both modules agree on tool_input string rejection', () => {
+    test('JS passes string tool_input but TS rejects it (intentional split)', () => {
       const input = { tool_name: 'Bash', tool_input: 'bad' };
       const tsResult = validateHookInput(input, 'pretool/test');
       const jsResult = validateInput(input, 'pretool/test');
-      expect(jsResult.valid).toBe(tsResult.valid);
-      expect(jsResult.errors[0]).toBe(tsResult.errors[0]);
+      // JS shape gate passes (it's an object at the top level)
+      expect(jsResult.valid).toBe(true);
+      // TS full validator rejects (tool_input must be an object)
+      expect(tsResult.valid).toBe(false);
     });
 
-    test('both modules agree on missing tool_name warning for pretool', () => {
+    test('JS has no warnings but TS warns on missing tool_name (intentional split)', () => {
       const tsResult = validateHookInput({}, 'pretool/test');
       const jsResult = validateInput({}, 'pretool/test');
-      expect(jsResult.valid).toBe(tsResult.valid);
-      expect(jsResult.warnings).toEqual(tsResult.warnings);
-    });
-
-    test('both modules agree on empty string tool_name (no warning)', () => {
-      const input = { tool_name: '' };
-      const tsResult = validateHookInput(input, 'pretool/test');
-      const jsResult = validateInput(input, 'pretool/test');
-      expect(jsResult.warnings).toEqual(tsResult.warnings);
+      // Both pass (warnings don't block)
+      expect(jsResult.valid).toBe(true);
+      expect(tsResult.valid).toBe(true);
+      // TS produces warnings, JS does not
+      expect(tsResult.warnings).toHaveLength(1);
     });
   });
 });

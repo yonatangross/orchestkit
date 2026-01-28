@@ -169,31 +169,15 @@ function isHookDisabled(hookName, overrides) {
 }
 
 /**
- * Validate hook input at the boundary
- * Returns { valid, errors, warnings } or null if input is fine
+ * Validate hook input shape at the boundary (Level 1 only).
+ * Full validation (Levels 2-3) is handled by src/lib/input-validator.ts
+ * inside the compiled bundles. This gate only rejects non-objects.
  */
 function validateInput(input, hookName) {
-  const errors = [];
-  const warnings = [];
-
-  // Input must be a plain object
   if (typeof input !== 'object' || input === null || Array.isArray(input)) {
-    return { valid: false, errors: [`Input must be an object, got ${input === null ? 'null' : typeof input}`], warnings: [] };
+    return { valid: false, errors: [`Input must be an object, got ${input === null ? 'null' : typeof input}`] };
   }
-
-  // tool_input must be an object if present
-  if (input.tool_input !== undefined && (typeof input.tool_input !== 'object' || input.tool_input === null || Array.isArray(input.tool_input))) {
-    errors.push(`tool_input must be an object, got ${Array.isArray(input.tool_input) ? 'array' : typeof input.tool_input}`);
-  }
-
-  // Event-specific checks
-  const prefix = hookName.split('/')[0];
-  const toolEvents = ['pretool', 'posttool', 'permission', 'skill', 'agent'];
-  if (toolEvents.includes(prefix) && !input.tool_name && input.tool_name !== '') {
-    warnings.push('Missing tool_name for tool-based hook');
-  }
-
-  return { valid: errors.length === 0, errors, warnings };
+  return { valid: true, errors: [] };
 }
 
 /**
