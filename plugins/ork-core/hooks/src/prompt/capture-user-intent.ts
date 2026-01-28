@@ -30,6 +30,11 @@ import {
   type UserIntent,
   type IntentDetectionResult,
 } from '../lib/user-intent-detector.js';
+import {
+  trackDecisionMade,
+  trackPreferenceStated,
+  trackProblemReported,
+} from '../lib/session-tracker.js';
 import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
@@ -232,6 +237,42 @@ function storeProblems(problems: UserIntent[], sessionId: string): number {
 }
 
 // =============================================================================
+// SESSION TRACKING INTEGRATION
+// =============================================================================
+
+/**
+ * Track detected intents in the session tracker for user profile aggregation.
+ * This bridges the intent detection to the centralized session event tracking.
+ */
+function trackIntentsInSession(result: IntentDetectionResult): void {
+  try {
+    // Track decisions with rationale
+    for (const decision of result.decisions) {
+      trackDecisionMade(
+        decision.text,
+        decision.rationale,
+        decision.confidence
+      );
+    }
+
+    // Track preferences
+    for (const preference of result.preferences) {
+      trackPreferenceStated(
+        preference.text,
+        preference.confidence
+      );
+    }
+
+    // Track problems for later solution pairing
+    for (const problem of result.problems) {
+      trackProblemReported(problem.text);
+    }
+  } catch (err) {
+    logHook(HOOK_NAME, `Session tracking failed: ${err}`, 'warn');
+  }
+}
+
+// =============================================================================
 // MAIN HOOK
 // =============================================================================
 
@@ -274,6 +315,9 @@ export function captureUserIntent(input: HookInput): HookResult {
   const decisionsStored = storeDecisions(result.decisions, sessionId);
   const preferencesStored = storePreferences(result.preferences, sessionId);
   const problemsStored = storeProblems(result.problems, sessionId);
+
+  // Track intents in session tracker for user profile aggregation
+  trackIntentsInSession(result);
 
   const totalStored = decisionsStored + preferencesStored + problemsStored;
 

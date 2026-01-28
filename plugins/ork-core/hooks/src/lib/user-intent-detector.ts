@@ -49,6 +49,8 @@ export interface IntentDetectionResult {
   decisions: UserIntent[];
   /** All preferences */
   preferences: UserIntent[];
+  /** Questions asked */
+  questions: UserIntent[];
   /** Problems/issues mentioned */
   problems: UserIntent[];
   /** Summary for logging */
@@ -102,6 +104,25 @@ const PROBLEM_PATTERNS: RegExp[] = [
   /\b(fails|failed|failing)\s+(to|when|with)\s+([^.,!?\n]+)/gi,
   /\b(not working|doesn't work|won't work)\s*([^.,!?\n]*)/gi,
   /\b(timeout|exception|crash|hang|freeze)\s+(in|with|when|on)\s+([^.,!?\n]+)/gi,
+];
+
+
+/**
+ * Question patterns - user asking questions
+ */
+const QUESTION_PATTERNS: RegExp[] = [
+  /\bhow do I\s+([^?.\n]+)/gi,
+  /\bhow can I\s+([^?.\n]+)/gi,
+  /\bhow to\s+([^?.\n]+)/gi,
+  /\bwhat is\s+([^?.\n]+)/gi,
+  /\bwhat are\s+([^?.\n]+)/gi,
+  /\bwhat does\s+([^?.\n]+)/gi,
+  /\bwhy does\s+([^?.\n]+)/gi,
+  /\bwhy is\s+([^?.\n]+)/gi,
+  /\bwhy do\s+([^?.\n]+)/gi,
+  /\bcan you\s+(explain|show|help)\s+([^?.\n]+)/gi,
+  /\bwhere (is|are|do|does|can)\s+([^?.\n]+)/gi,
+  /\bwhen (should|do|does|can)\s+([^?.\n]+)/gi,
 ];
 
 /**
@@ -271,6 +292,7 @@ export function detectUserIntent(prompt: string): IntentDetectionResult {
       intents: [],
       decisions: [],
       preferences: [],
+      questions: [],
       problems: [],
       summary: 'No intents detected (prompt too short)',
     };
@@ -364,6 +386,27 @@ export function detectUserIntent(prompt: string): IntentDetectionResult {
   }
 
   // ==========================================================================
+  // Detect Questions
+  // ==========================================================================
+  for (const pattern of QUESTION_PATTERNS) {
+    const matches = prompt.matchAll(pattern);
+    for (const match of matches) {
+      const matchText = match[0];
+      const position = match.index || 0;
+
+      const entities = extractEntities(matchText);
+
+      intents.push({
+        type: 'question',
+        confidence: 0.8,
+        text: matchText.slice(0, 300),
+        entities,
+        position,
+      });
+    }
+  }
+
+  // ==========================================================================
   // Deduplicate overlapping intents
   // ==========================================================================
   const uniqueIntents = deduplicateIntents(intents);
@@ -372,13 +415,15 @@ export function detectUserIntent(prompt: string): IntentDetectionResult {
   const decisions = uniqueIntents.filter(i => i.type === 'decision' && i.confidence >= 0.7);
   const preferences = uniqueIntents.filter(i => i.type === 'preference');
   const problems = uniqueIntents.filter(i => i.type === 'problem');
+  const questions = uniqueIntents.filter(i => i.type === 'question');
 
-  const summary = buildSummary(decisions, preferences, problems);
+  const summary = buildSummary(decisions, preferences, problems, questions);
 
   return {
     intents: uniqueIntents,
     decisions,
     preferences,
+    questions,
     problems,
     summary,
   };
@@ -434,7 +479,8 @@ function deduplicateIntents(intents: UserIntent[]): UserIntent[] {
 function buildSummary(
   decisions: UserIntent[],
   preferences: UserIntent[],
-  problems: UserIntent[]
+  problems: UserIntent[],
+  questions: UserIntent[]
 ): string {
   const parts: string[] = [];
 
@@ -446,6 +492,9 @@ function buildSummary(
   }
   if (problems.length > 0) {
     parts.push(`${problems.length} problem${problems.length > 1 ? 's' : ''}`);
+  }
+  if (questions.length > 0) {
+    parts.push(`${questions.length} question${questions.length > 1 ? 's' : ''}`);
   }
 
   if (parts.length === 0) {
@@ -481,4 +530,19 @@ export function hasProblemLanguage(prompt: string): boolean {
   ];
   const lower = prompt.toLowerCase();
   return problemKeywords.some(k => lower.includes(k));
+}
+
+/**
+ * Check if prompt contains question-like language
+ */
+export function hasQuestionLanguage(prompt: string): boolean {
+  const questionKeywords = [
+    'how do i', 'how can i', 'how to',
+    'what is', 'what are', 'what does',
+    'why does', 'why is', 'why do',
+    'where is', 'where are',
+    'when should', 'can you explain', 'can you help',
+  ];
+  const lower = prompt.toLowerCase();
+  return questionKeywords.some(k => lower.includes(k));
 }

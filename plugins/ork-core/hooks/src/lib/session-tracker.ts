@@ -29,7 +29,8 @@ export type SessionEventType =
   | 'solution_found'
   | 'tool_used'
   | 'session_start'
-  | 'session_end';
+  | 'session_end'
+  | 'communication_style_detected';
 
 /**
  * A single session event
@@ -300,6 +301,23 @@ export function trackSessionEnd(): void {
   trackEvent('session_end', 'session', { success: true });
 }
 
+/**
+ * Track user communication style
+ */
+export function trackCommunicationStyle(
+  style: {
+    verbosity: 'terse' | 'moderate' | 'detailed';
+    interaction_type: 'question' | 'command' | 'discussion';
+    technical_level: 'beginner' | 'intermediate' | 'expert';
+  }
+): void {
+  trackEvent('communication_style_detected', 'communication', {
+    input: style as unknown as Record<string, unknown>,
+    success: true,
+  });
+}
+
+
 // =============================================================================
 // SESSION SUMMARY
 // =============================================================================
@@ -342,6 +360,7 @@ export function generateSessionSummary(sessionId?: string): SessionSummary {
     tool_used: 0,
     session_start: 0,
     session_end: 0,
+    communication_style_detected: 0,
   };
 
   const skillsUsed = new Set<string>();
