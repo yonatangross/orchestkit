@@ -1,29 +1,21 @@
 /**
- * Agent Memory Inject - SubagentStart Hook
+ * Mem0 Memory Inject - SubagentStart Hook
  * CC 2.1.7 Compliant: outputs JSON with continue field
  *
- * Injects actionable memory load instructions before agent spawn with cross-agent federation.
+ * Injects mem0 cloud memory context before agent spawn.
+ * Only runs when MEM0_API_KEY is configured.
+ * Includes cross-agent federation for knowledge sharing.
  *
- * Strategy:
- * - Query mem0 for agent-specific memories using agent_id scope
- * - Query for project decisions relevant to agent's domain
- * - Query related agents for cross-agent knowledge sharing
- * - Query graph memory for entity relationships
- * - Output actionable MCP call instructions for memory loading
+ * Part of ork-memory-mem0 plugin.
  *
- * Version: 1.3.0 (TypeScript port)
- * Part of Mem0 Pro Integration - Memory Fabric
+ * Version: 1.0.0 (split from agent-memory-inject.ts)
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 
-// -----------------------------------------------------------------------------
 // Configuration
-// -----------------------------------------------------------------------------
-
 const MAX_MEMORIES = 5;
-
 const MEM0_SCOPE_AGENTS = 'agents';
 const MEM0_SCOPE_DECISIONS = 'decisions';
 
@@ -58,10 +50,6 @@ const RELATED_AGENTS: Record<string, string[]> = {
   'data-pipeline-engineer': ['database-engineer', 'llm-integrator', 'workflow-architect'],
 };
 
-// -----------------------------------------------------------------------------
-// Helper Functions
-// -----------------------------------------------------------------------------
-
 function getAgentDomain(agentType: string): string {
   return AGENT_DOMAINS[agentType] || agentType;
 }
@@ -89,37 +77,17 @@ function mem0GlobalUserId(scope: string): string {
   return `orchestkit-global-${scope}`;
 }
 
-function isMem0Available(): boolean {
-  const { existsSync } = require('node:fs');
-  const homeDir = process.env.HOME || '';
+/**
+ * Mem0 memory inject - only runs when MEM0_API_KEY is configured
+ */
+export function mem0MemoryInject(input: HookInput): HookResult {
+  logHook('mem0-memory-inject', 'Mem0 memory inject hook starting');
 
-  const configPaths = [
-    `${homeDir}/.config/claude/claude_desktop_config.json`,
-    `${homeDir}/Library/Application Support/Claude/claude_desktop_config.json`,
-  ];
-
-  for (const configPath of configPaths) {
-    try {
-      if (existsSync(configPath)) {
-        const { readFileSync } = require('node:fs');
-        const content = readFileSync(configPath, 'utf8');
-        if (content.includes('mem0')) {
-          return true;
-        }
-      }
-    } catch {
-      // Ignore
-    }
+  // Gate: Skip if mem0 is not configured
+  if (!process.env.MEM0_API_KEY) {
+    logHook('mem0-memory-inject', 'Mem0 not configured (no MEM0_API_KEY), skipping');
+    return outputSilentSuccess();
   }
-  return false;
-}
-
-// -----------------------------------------------------------------------------
-// Hook Implementation
-// -----------------------------------------------------------------------------
-
-export function agentMemoryInject(input: HookInput): HookResult {
-  logHook('agent-memory-inject', 'Agent memory inject hook starting (v1.3.0 - Memory Fabric)');
 
   // Extract agent type from hook input
   const toolInput = input.tool_input || {};
@@ -139,20 +107,11 @@ export function agentMemoryInject(input: HookInput): HookResult {
   }
 
   if (!agentType) {
-    logHook('agent-memory-inject', 'No agent type detected, passing through');
+    logHook('mem0-memory-inject', 'No agent type detected, passing through');
     return outputSilentSuccess();
   }
 
   const agentId = `ork:${agentType}`;
-  logHook('agent-memory-inject', `Detected agent type: ${agentType} (agent_id: ${agentId})`);
-
-  // Check if mem0 is available
-  if (!isMem0Available()) {
-    logHook('agent-memory-inject', 'Mem0 not available, skipping memory injection');
-    return outputSilentSuccess();
-  }
-
-  // Build memory query parameters
   const projectId = getProjectId();
   const agentUserId = mem0UserId(MEM0_SCOPE_AGENTS);
   const decisionsUserId = mem0UserId(MEM0_SCOPE_DECISIONS);
@@ -160,7 +119,7 @@ export function agentMemoryInject(input: HookInput): HookResult {
   const domainKeywords = getAgentDomain(agentType);
   const searchQuery = `${agentType} patterns decisions ${domainKeywords}`;
 
-  logHook('agent-memory-inject', `Memory search: agent_id=${agentId}, project=${projectId}`);
+  logHook('mem0-memory-inject', `Detected agent type: ${agentType} (agent_id: ${agentId})`);
 
   // Get related agents
   const relatedAgents = getRelatedAgents(agentType);
@@ -194,9 +153,9 @@ export function agentMemoryInject(input: HookInput): HookResult {
   });
 
   // Build memory load instructions
-  let memoryLoadMsg = `[Memory Fabric - Agent Context Load]
+  let memoryLoadMsg = `[Mem0 Cloud - Agent Context Load]
 
-Execute these MCP calls to load context for ${agentType} agent:
+Execute these MCP calls to load mem0 context for ${agentType} agent:
 
 ## 1. Agent-Specific Patterns (mem0)
 \`\`\`
@@ -210,13 +169,7 @@ mcp__mem0__search_memories
 ${mem0DecisionsQuery}
 \`\`\`
 
-## 3. Graph Memory Entities
-\`\`\`
-mcp__memory__search_nodes
-{"query": "${agentType} ${domainKeywords}"}
-\`\`\`
-
-## 4. Cross-Project Best Practices (mem0)
+## 3. Cross-Project Best Practices (mem0)
 \`\`\`
 mcp__mem0__search_memories
 ${mem0GlobalQuery}
@@ -240,29 +193,27 @@ ${mem0GlobalQuery}
 
     memoryLoadMsg += `
 
-## 5. Cross-Agent Knowledge (from: ${relatedAgentsStr})
+## 4. Cross-Agent Knowledge (from: ${relatedAgentsStr})
 \`\`\`
 mcp__mem0__search_memories
 ${crossAgentQuery}
 \`\`\``;
   }
 
-  // Add integration instructions
   const relatedStr = relatedAgents.length > 0 ? relatedAgents.join(', ') : 'none';
   memoryLoadMsg += `
 
 ## Integration Instructions
-1. Execute the above MCP calls to retrieve relevant context
+1. Execute the above MCP calls to retrieve mem0 context
 2. Review memories for patterns, decisions, and constraints
-3. Check graph entities for relationships between concepts
-4. Apply learned patterns to current task
-5. Avoid known anti-patterns (outcome: failed)
+3. Apply learned patterns to current task
+4. Avoid known anti-patterns (outcome: failed)
 
 Agent ID: ${agentId} | Domain: ${domainKeywords} | Related: ${relatedStr}`;
 
-  const systemMsg = `[Memory Fabric] Agent: ${agentType} | ID: ${agentId} | Load context via MCP calls above | Related: ${relatedStr}`;
+  const systemMsg = `[Mem0 Cloud] Agent: ${agentType} | ID: ${agentId} | Load mem0 context via MCP calls above | Related: ${relatedStr}`;
 
-  logHook('agent-memory-inject', `Outputting memory load instructions for ${agentType} (Memory Fabric v1.3.0)`);
+  logHook('mem0-memory-inject', `Outputting mem0 memory instructions for ${agentType}`);
 
   return {
     continue: true,

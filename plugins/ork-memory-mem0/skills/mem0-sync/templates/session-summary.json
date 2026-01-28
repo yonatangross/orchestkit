@@ -1,0 +1,49 @@
+{
+  "$schema": "../../.claude/schemas/memory.schema.json",
+  "type": "session_summary",
+  "description": "Template for session summary memories synced to Mem0",
+  "template": {
+    "text": "Session Summary: {{task_summary}}",
+    "user_id": "{{project}}-continuity",
+    "metadata": {
+      "type": "session_summary",
+      "status": "{{status}}",
+      "has_blockers": "{{has_blockers}}",
+      "has_next_steps": "{{has_next_steps}}",
+      "session_id": "{{session_id}}",
+      "timestamp": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+  "variables": {
+    "task_summary": {
+      "description": "Brief summary of tasks completed in the session",
+      "required": true
+    },
+    "project": {
+      "description": "Project identifier",
+      "required": true
+    },
+    "status": {
+      "description": "Session status: completed, interrupted, blocked",
+      "enum": ["completed", "interrupted", "blocked"],
+      "default": "completed"
+    },
+    "has_blockers": {
+      "type": "boolean",
+      "default": false
+    },
+    "has_next_steps": {
+      "type": "boolean",
+      "default": true
+    },
+    "session_id": {
+      "description": "Claude session ID",
+      "source": "env:CLAUDE_SESSION_ID"
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp",
+      "source": "auto"
+    }
+  }
+}

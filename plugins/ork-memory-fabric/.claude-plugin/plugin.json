@@ -1,7 +1,7 @@
 {
-  "name": "ork-memory",
-  "version": "5.2.6",
-  "description": "Cross-session memory and knowledge graph — Mem0 integration, memory fabric, sync patterns",
+  "name": "ork-memory-fabric",
+  "version": "1.0.0",
+  "description": "Memory orchestration — parallel query dispatch, cross-reference boosting, deduplication across graph and mem0. Depends on ork-memory-graph.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

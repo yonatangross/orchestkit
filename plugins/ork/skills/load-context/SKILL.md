@@ -1,7 +1,8 @@
 ---
 name: load-context
-description: Auto-load relevant memories at session start from both mem0 and graph. Use when you need session context restored or preloaded.
-tags: [memory, mem0, graph, session, context, continuity, auto-load]
+description: Auto-load relevant memories at session start from knowledge graph (always) and mem0 (if configured). Use when you need session context restored or preloaded.
+tags: [memory, graph, session, context, continuity, auto-load]
+plugin: ork-memory-graph
 user-invocable: true
 allowedTools: [Read, Grep, Glob, mcp__mem0__search_memories, mcp__mem0__get_memories, mcp__memory__search_nodes, mcp__memory__read_graph]
 auto-invoke: session-start
@@ -13,7 +14,7 @@ author: OrchestKit
 
 # Load Context - Memory Fabric Initialization
 
-Auto-load relevant memories at session start from both Mem0 semantic memory and the knowledge graph for seamless session continuity.
+Auto-load relevant memories at session start from the knowledge graph, with optional Mem0 semantic memory enhancement if `ork-memory-mem0` plugin is installed and `MEM0_API_KEY` is configured.
 
 **CC 2.1.6 Context-Aware:** Loading adapts based on `context_window.used_percentage`.
 

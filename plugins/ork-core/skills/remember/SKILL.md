@@ -4,10 +4,11 @@ description: Store decisions and patterns in knowledge graph with optional cloud
 context: none
 version: 2.1.0
 author: OrchestKit
-tags: [memory, decisions, patterns, best-practices, graph-memory, mem0, unified-memory]
+tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
-skills: [recall, memory-fabric]
+skills: [recall]
+plugin: ork-memory-graph
 ---
 
 # Remember - Store Decisions and Patterns

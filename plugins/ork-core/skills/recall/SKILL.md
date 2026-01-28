@@ -4,10 +4,11 @@ description: Search and retrieve decisions and patterns from knowledge graph. Us
 context: none
 version: 2.1.0
 author: OrchestKit
-tags: [memory, search, decisions, patterns, graph-memory, mem0, unified-memory]
+tags: [memory, search, decisions, patterns, graph-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, mcp__memory__search_nodes, mcp__mem0__search_memories]
-skills: [remember, memory-fabric]
+skills: [remember]
+plugin: ork-memory-graph
 ---
 
 # Recall - Search Knowledge Graph

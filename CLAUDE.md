@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **182 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
-- **152 hooks**: TypeScript lifecycle automation
+- **153 hooks**: TypeScript lifecycle automation
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -155,7 +155,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 35 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-152 TypeScript hooks in 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+153 TypeScript hooks in 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 hooks use `async: true` for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -215,19 +215,35 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
 | Built plugins | `plugins/<name>/` | Generated, don't edit |
 
+### Memory Plugins (3-tier architecture)
+
+Memory is split into 3 independent plugins (not a monolith):
+
+| Plugin | Tier | Skills | Requires |
+|--------|------|--------|----------|
+| `ork-memory-graph` | 1 (always works) | remember, recall, load-context | Nothing |
+| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory, mem0-sync | `MEM0_API_KEY` env var |
+| `ork-memory-fabric` | 3 (orchestrator) | memory-fabric | ork-memory-graph |
+
+- Graph is PRIMARY and always available (zero-config)
+- Mem0 is OPTIONAL cloud enhancement (gated at runtime)
+- Fabric merges results from both with dedup + cross-reference boosting
+- All mem0 hooks early-return silently without `MEM0_API_KEY`
+
 ### Environment Variables
 ```bash
 CLAUDE_PROJECT_DIR    # User's project directory
 CLAUDE_PLUGIN_ROOT    # Plugin installation directory
 CLAUDE_SESSION_ID     # Current session UUID
+MEM0_API_KEY          # Optional: enables mem0 cloud memory
 ```
 
 ---
 
 ## Version
 
-- **Current**: 5.3.0
-- **Claude Code**: >= 2.1.20
-- **Hooks**: 152 TypeScript (11 split bundles, 6 async)
+- **Current**: 5.4.0
+- **Claude Code**: >= 2.1.22
+- **Hooks**: 153 TypeScript (11 split bundles, 6 async)
 
 See `CHANGELOG.md` for detailed version history and features.

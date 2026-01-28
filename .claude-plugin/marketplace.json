@@ -3,7 +3,7 @@
   "name": "orchestkit",
   "version": "5.3.0",
   "engine": ">=2.1.20",
-  "description": "The Complete AI Development Toolkit - 182 skills, 35 agents, 152 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 182 skills, 35 agents, 153 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
@@ -14,7 +14,7 @@
   "plugins": [
     {
       "name": "ork",
-      "description": "Complete AI development toolkit with 182 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 35 specialized agents and 152 lifecycle hooks.",
+      "description": "Complete AI development toolkit with 182 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 35 specialized agents and 153 lifecycle hooks.",
       "version": "5.3.0",
       "author": {
         "name": "Yonatan Gross",
@@ -46,15 +46,37 @@
       "source": "./plugins/ork-context"
     },
     {
-      "name": "ork-memory",
-      "description": "Cross-session memory and knowledge graph — Mem0 integration, memory fabric, sync patterns",
-      "version": "5.0.0",
+      "name": "ork-memory-graph",
+      "description": "Knowledge graph memory — zero-config, always works. Graph-first architecture with remember, recall, and session context loading.",
+      "version": "1.0.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
       },
       "category": "development",
-      "source": "./plugins/ork-memory"
+      "source": "./plugins/ork-memory-graph"
+    },
+    {
+      "name": "ork-memory-mem0",
+      "description": "Mem0 cloud memory — semantic search, cross-session sync, analytics. Requires MEM0_API_KEY. Depends on ork-memory-graph.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonatan2gross@gmail.com"
+      },
+      "category": "development",
+      "source": "./plugins/ork-memory-mem0"
+    },
+    {
+      "name": "ork-memory-fabric",
+      "description": "Memory orchestration — parallel query dispatch, cross-reference boosting, deduplication across graph and mem0. Depends on ork-memory-graph.",
+      "version": "1.0.0",
+      "author": {
+        "name": "Yonatan Gross",
+        "email": "yonatan2gross@gmail.com"
+      },
+      "category": "development",
+      "source": "./plugins/ork-memory-fabric"
     },
     {
       "name": "ork-rag",

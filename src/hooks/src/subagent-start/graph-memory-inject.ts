@@ -1,0 +1,102 @@
+/**
+ * Graph Memory Inject - SubagentStart Hook
+ * CC 2.1.7 Compliant: outputs JSON with continue field
+ *
+ * Injects graph-based memory context before agent spawn.
+ * Always runs - knowledge graph requires no configuration.
+ *
+ * Part of ork-memory-graph plugin.
+ *
+ * Version: 1.0.0 (split from agent-memory-inject.ts)
+ */
+
+import type { HookInput, HookResult } from '../types.js';
+import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+
+// Agent type to domain mapping
+const AGENT_DOMAINS: Record<string, string> = {
+  'database-engineer': 'database schema SQL PostgreSQL migration pgvector',
+  'backend-system-architect': 'API REST architecture backend FastAPI microservice',
+  'frontend-ui-developer': 'React frontend UI component TypeScript Tailwind',
+  'security-auditor': 'security OWASP vulnerability audit authentication',
+  'test-generator': 'testing unit integration coverage pytest MSW',
+  'workflow-architect': 'LangGraph workflow agent orchestration state',
+  'llm-integrator': 'LLM API OpenAI Anthropic embeddings RAG function-calling',
+  'data-pipeline-engineer': 'data pipeline embeddings vector ETL chunking',
+  'metrics-architect': 'metrics OKR KPI analytics instrumentation',
+  'ux-researcher': 'UX user research persona journey accessibility',
+  'code-quality-reviewer': 'code quality review linting type-check patterns',
+  'infrastructure-architect': 'infrastructure cloud Docker Kubernetes deployment',
+  'ci-cd-engineer': 'CI CD pipeline GitHub Actions deployment automation',
+  'accessibility-specialist': 'accessibility WCAG ARIA screen-reader a11y',
+  'product-strategist': 'product strategy roadmap features prioritization',
+};
+
+function getAgentDomain(agentType: string): string {
+  return AGENT_DOMAINS[agentType] || agentType;
+}
+
+/**
+ * Graph memory inject - always runs, no configuration needed
+ */
+export function graphMemoryInject(input: HookInput): HookResult {
+  logHook('graph-memory-inject', 'Graph memory inject hook starting');
+
+  // Extract agent type from hook input
+  const toolInput = input.tool_input || {};
+  let agentType =
+    (toolInput.subagent_type as string) || (toolInput.type as string) || '';
+
+  // Fallback: try to extract from prompt
+  if (!agentType && toolInput.prompt) {
+    const prompt = (toolInput.prompt as string).toLowerCase();
+    const knownAgents = Object.keys(AGENT_DOMAINS);
+    for (const agent of knownAgents) {
+      if (prompt.includes(agent)) {
+        agentType = agent;
+        break;
+      }
+    }
+  }
+
+  if (!agentType) {
+    logHook('graph-memory-inject', 'No agent type detected, passing through');
+    return outputSilentSuccess();
+  }
+
+  const agentId = `ork:${agentType}`;
+  const domainKeywords = getAgentDomain(agentType);
+
+  logHook('graph-memory-inject', `Detected agent type: ${agentType} (agent_id: ${agentId})`);
+
+  // Build graph memory load instructions
+  const memoryLoadMsg = `[Graph Memory - Agent Context Load]
+
+Execute this MCP call to load graph context for ${agentType} agent:
+
+## Graph Memory Entities
+\`\`\`
+mcp__memory__search_nodes
+{"query": "${agentType} ${domainKeywords}"}
+\`\`\`
+
+## Integration Instructions
+1. Execute the graph search to retrieve relevant entities and relationships
+2. Review entities for patterns, decisions, and constraints
+3. Check relationships between concepts
+4. Apply learned patterns to current task
+
+Agent ID: ${agentId} | Domain: ${domainKeywords}`;
+
+  const systemMsg = `[Graph Memory] Agent: ${agentType} | ID: ${agentId} | Load graph context via MCP call above`;
+
+  logHook('graph-memory-inject', `Outputting graph memory instructions for ${agentType}`);
+
+  return {
+    continue: true,
+    systemMessage: systemMsg,
+    hookSpecificOutput: {
+      additionalContext: memoryLoadMsg,
+    },
+  };
+}

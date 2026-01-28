@@ -117,6 +117,12 @@ function extractSessionInfo(projectDir: string): {
  * Mem0 pre-compaction sync hook
  */
 export function mem0PreCompactionSync(input: HookInput): HookResult {
+  // Gate: Skip entirely if mem0 is not configured
+  if (!process.env.MEM0_API_KEY) {
+    logHook('mem0-pre-compaction-sync', 'Mem0 not configured (no MEM0_API_KEY), skipping');
+    return outputSilentSuccess();
+  }
+
   const projectDir = input.project_dir || getProjectDir();
   const pluginRoot = getPluginRoot();
 
@@ -227,6 +233,19 @@ export function mem0PreCompactionSync(input: HookInput): HookResult {
       const errTimestamp = new Date().toISOString();
       try {
         appendFileSync(logFile, `[${errTimestamp}] Sync child process error: ${err.message}\n`);
+      } catch {
+        // Best-effort logging
+      }
+    });
+
+    child.on('close', (code) => {
+      const closeTimestamp = new Date().toISOString();
+      try {
+        if (code === 0) {
+          appendFileSync(logFile, `[${closeTimestamp}] Sync completed successfully\n`);
+        } else {
+          appendFileSync(logFile, `[${closeTimestamp}] Sync exited with code ${code}\n`);
+        }
       } catch {
         // Best-effort logging
       }
