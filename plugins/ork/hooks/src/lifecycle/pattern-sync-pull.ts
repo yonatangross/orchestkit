@@ -68,7 +68,8 @@ function checkFileSize(filePath: string): boolean {
  * Pull global patterns into project
  */
 function pullGlobalPatterns(projectDir: string): void {
-  const globalPatternsFile = `${process.env.HOME}/.claude/global-patterns.json`;
+  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const globalPatternsFile = `${home}/.claude/global-patterns.json`;
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 
   if (!existsSync(globalPatternsFile)) {
@@ -140,7 +141,8 @@ export function patternSyncPull(input: HookInput): HookResult {
   }
 
   // Check file sizes
-  const globalPatternsFile = `${process.env.HOME}/.claude/global-patterns.json`;
+  const home2 = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const globalPatternsFile = `${home2}/.claude/global-patterns.json`;
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 
   if (!checkFileSize(globalPatternsFile) || !checkFileSize(projectPatternsFile)) {

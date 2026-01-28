@@ -18,24 +18,41 @@ import {
  * These are matched as literal substrings via normalizedCommand.includes()
  */
 const DANGEROUS_PATTERNS: string[] = [
+  // Filesystem destruction
   'rm -rf /',
   'rm -rf ~',
   'rm -fr /',
   'rm -fr ~',
+  'mv /* /dev/null',
+  // Device wiping
   '> /dev/sda',
   'mkfs.',
-  'chmod -R 777 /',
   'dd if=/dev/zero of=/dev/',
   'dd if=/dev/random of=/dev/',
-  ':(){:|:&};:', // Fork bomb
-  'mv /* /dev/null',
+  // Permission abuse
+  'chmod -R 777 /',
+  // Fork bomb
+  ':(){:|:&};:',
+  // Destructive git operations (data loss)
+  'git reset --hard',
+  'git clean -fd',
+  // Database destruction
+  'drop database',
+  'drop schema',
+  'truncate table',
 ];
 
 /**
  * Shell interpreters that should never receive piped input from download commands.
  * Catches: wget URL | sh, curl URL | bash, etc.
  */
-const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash)\b/;
+const PIPE_TO_SHELL_RE = /\|\s*(sh|bash|zsh|dash)\b/i;
+
+/**
+ * Git force-push patterns that rewrite remote history.
+ * Catches: git push --force, git push -f, git push origin main --force
+ */
+const GIT_FORCE_PUSH_RE = /git\s+push\s+.*(-f|--force)\b/i;
 
 /**
  * Block dangerous commands
@@ -47,12 +64,12 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Normalize: remove line continuations and collapse whitespace
-  const normalizedCommand = normalizeCommand(command);
+  // Normalize: remove line continuations and collapse whitespace, lowercase for pattern matching
+  const normalizedCommand = normalizeCommand(command).toLowerCase();
 
-  // Check command against each dangerous pattern (literal substring)
+  // Check command against each dangerous pattern (literal substring, case-insensitive)
   for (const pattern of DANGEROUS_PATTERNS) {
-    if (normalizedCommand.includes(pattern)) {
+    if (normalizedCommand.includes(pattern.toLowerCase())) {
       logHook('dangerous-command-blocker', `BLOCKED: Dangerous pattern: ${pattern}`);
       logPermissionFeedback('deny', `Dangerous pattern: ${pattern}`, input);
 
@@ -72,6 +89,18 @@ export function dangerousCommandBlocker(input: HookInput): HookResult {
     return outputDeny(
       `${reason}\n\n` +
         'Piping untrusted content to a shell interpreter is dangerous and has been blocked.'
+    );
+  }
+
+  // Check for git force-push (rewrites remote history)
+  if (GIT_FORCE_PUSH_RE.test(normalizedCommand)) {
+    const reason = 'Git force-push detected (rewrites remote history)';
+    logHook('dangerous-command-blocker', `BLOCKED: ${reason}`);
+    logPermissionFeedback('deny', reason, input);
+
+    return outputDeny(
+      `${reason}\n\n` +
+        'Force-pushing can destroy remote commit history and has been blocked.'
     );
   }
 

@@ -1,72 +1,72 @@
 {
-  "generatedAt": "2026-01-28T07:16:17.052Z",
-  "buildTimeMs": 69,
+  "generatedAt": "2026-01-28T08:20:17.221Z",
+  "buildTimeMs": 61,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 8928,
-      "sizeKB": "8.72",
+      "size": 8936,
+      "sizeKB": "8.73",
       "exports": 44
     },
     "pretool": {
-      "size": 47829,
-      "sizeKB": "46.71",
+      "size": 48206,
+      "sizeKB": "47.08",
       "exports": 53
     },
     "posttool": {
-      "size": 59805,
-      "sizeKB": "58.40",
+      "size": 59813,
+      "sizeKB": "58.41",
       "exports": 38
     },
     "prompt": {
-      "size": 60173,
-      "sizeKB": "58.76",
+      "size": 60181,
+      "sizeKB": "58.77",
       "exports": 96
     },
     "lifecycle": {
-      "size": 33888,
-      "sizeKB": "33.09",
+      "size": 34017,
+      "sizeKB": "33.22",
       "exports": 38
     },
     "stop": {
-      "size": 37531,
-      "sizeKB": "36.65",
+      "size": 37539,
+      "sizeKB": "36.66",
       "exports": 38
     },
     "subagent": {
-      "size": 61888,
-      "sizeKB": "60.44",
+      "size": 61896,
+      "sizeKB": "60.45",
       "exports": 69
     },
     "notification": {
-      "size": 6623,
-      "sizeKB": "6.47",
+      "size": 6631,
+      "sizeKB": "6.48",
       "exports": 29
     },
     "setup": {
-      "size": 35130,
-      "sizeKB": "34.31",
+      "size": 35154,
+      "sizeKB": "34.33",
       "exports": 29
     },
     "skill": {
-      "size": 50059,
+      "size": 50067,
       "sizeKB": "48.89",
       "exports": 38
     },
     "agent": {
-      "size": 8783,
+      "size": 8791,
       "sizeKB": "8.58",
       "exports": 44
     },
     "hooks": {
-      "size": 332245,
-      "sizeKB": "324.46",
+      "size": 332759,
+      "sizeKB": "324.96",
       "exports": 144,
       "unified": true
     }
   },
-  "totalSize": 410637,
-  "totalSizeKB": "401.01",
+  "totalSize": 411231,
+  "totalSizeKB": "401.59",
   "inputs": 35,
-  "avgBundleSizeKB": "36.46"
+  "avgBundleSizeKB": "36.51"
 }

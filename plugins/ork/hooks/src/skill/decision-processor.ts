@@ -198,7 +198,10 @@ function extractBestPractice(text: string): string | null {
 
 export function decisionProcessor(input: HookInput): HookResult {
   const skillName = (input as any).skill_name || input.tool_input?.skill || '';
-  const toolResult = input.tool_result; const skillOutput = typeof toolResult === 'string' ? toolResult : (toolResult?.content || (input as any).output || '');
+  const toolResult = input.tool_result as any;
+  const skillOutput = typeof toolResult === 'string'
+    ? toolResult
+    : (toolResult?.content || (input as any).output || '');
 
   if (!skillOutput || skillOutput.length < MIN_OUTPUT_LENGTH) {
     return outputSilentSuccess();

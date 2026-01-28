@@ -283,7 +283,7 @@ describe('Cross-Bundle Consistency', () => {
 
     // Total TypeScript hook implementations across all bundles
     // Update this count when adding/removing hook implementations
-    expect(totalHooks).toBe(152);
+    expect(totalHooks).toBe(153);
   });
 });
 
