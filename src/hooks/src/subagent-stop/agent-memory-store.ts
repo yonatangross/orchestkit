@@ -91,28 +91,28 @@ function detectPatternCategory(text: string): string {
   if (/database|sql|postgres|schema/.test(textLower)) {
     return 'database';
   }
-  if (/api|endpoint|rest|graphql/.test(textLower)) {
+  if (/\bapi\b|endpoint|\brest\b|graphql/.test(textLower)) {
     return 'api';
   }
   if (/auth|login|jwt|oauth/.test(textLower)) {
     return 'authentication';
   }
-  if (/test|testing|pytest|jest|vitest|coverage|mock|fixture|spec/.test(textLower)) {
+  if (/\btest\b|testing|pytest|jest|vitest|coverage|\bmock\b|fixture|\bspec\b/.test(textLower)) {
     return 'testing';
   }
-  if (/deploy|ci|cd|pipeline|docker|kubernetes|helm|terraform/.test(textLower)) {
+  if (/deploy|\bci\b|\bcd\b|pipeline|docker|kubernetes|helm|terraform/.test(textLower)) {
     return 'deployment';
   }
   if (/observability|monitoring|logging|tracing|metrics|prometheus|grafana|langfuse/.test(textLower)) {
     return 'observability';
   }
-  if (/react|component|frontend|ui/.test(textLower)) {
+  if (/react|component|frontend|\bui\b/.test(textLower)) {
     return 'frontend';
   }
   if (/performance|optimization|cache|index/.test(textLower)) {
     return 'performance';
   }
-  if (/llm|rag|embedding|vector|semantic|ai|ml|langchain|langgraph|mem0|openai|anthropic/.test(textLower)) {
+  if (/llm|\brag\b|embedding|vector|semantic|\bai\b|\bml\b|langchain|langgraph|mem0|openai|anthropic/.test(textLower)) {
     return 'ai-ml';
   }
   if (/etl|data.*pipeline|streaming|batch.*processing|dataflow|spark/.test(textLower)) {

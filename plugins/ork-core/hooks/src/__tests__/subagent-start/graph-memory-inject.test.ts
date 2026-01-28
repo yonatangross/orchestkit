@@ -2,8 +2,8 @@
  * Graph Memory Inject - SubagentStart Hook Test Suite
  *
  * Tests the graph-memory-inject hook which injects knowledge graph
- * context instructions before agent spawn. This hook always runs
- * (no configuration gating).
+ * context instructions before agent spawn. Skips injection when
+ * graph is empty or too small (<100 bytes).
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
@@ -13,12 +13,12 @@ import type { HookInput } from '../../types.js';
 // Mock node:fs at module level before any hook imports
 // ---------------------------------------------------------------------------
 vi.mock('node:fs', () => ({
-  existsSync: vi.fn().mockReturnValue(false),
+  existsSync: vi.fn().mockReturnValue(true),
   readFileSync: vi.fn().mockReturnValue('{}'),
   writeFileSync: vi.fn(),
   mkdirSync: vi.fn(),
   appendFileSync: vi.fn(),
-  statSync: vi.fn().mockReturnValue({ size: 0 }),
+  statSync: vi.fn().mockReturnValue({ size: 500 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),
 }));
@@ -38,6 +38,7 @@ vi.mock('node:child_process', () => ({
 // Import under test (after mocks)
 // ---------------------------------------------------------------------------
 import { graphMemoryInject } from '../../subagent-start/graph-memory-inject.js';
+import { existsSync, statSync } from 'node:fs';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -60,6 +61,9 @@ function makeInput(overrides: Partial<HookInput> = {}): HookInput {
 describe('graphMemoryInject', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: graph file exists and is large enough
+    (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+    (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 500 });
   });
 
   // -----------------------------------------------------------------------
@@ -326,6 +330,71 @@ describe('graphMemoryInject', () => {
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
       expect(ctx).toContain('[Graph Memory - Agent Context Load]');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // Graph size guard
+  // -----------------------------------------------------------------------
+
+  describe('graph size guard', () => {
+    test('returns silent success when graph file does not exist', () => {
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(false);
+
+      const input = makeInput({
+        tool_input: { subagent_type: 'database-engineer' },
+      });
+
+      const result = graphMemoryInject(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+      expect(result.hookSpecificOutput).toBeUndefined();
+    });
+
+    test('returns silent success when graph file is too small (<100 bytes)', () => {
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 50 });
+
+      const input = makeInput({
+        tool_input: { subagent_type: 'database-engineer' },
+      });
+
+      const result = graphMemoryInject(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('injects context when graph file is large enough (>=100 bytes)', () => {
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (statSync as ReturnType<typeof vi.fn>).mockReturnValue({ size: 500 });
+
+      const input = makeInput({
+        tool_input: { subagent_type: 'database-engineer' },
+      });
+
+      const result = graphMemoryInject(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.hookSpecificOutput).toBeDefined();
+      expect(result.hookSpecificOutput!.additionalContext).toContain('database-engineer');
+    });
+
+    test('returns silent success when statSync throws', () => {
+      (existsSync as ReturnType<typeof vi.fn>).mockReturnValue(true);
+      (statSync as ReturnType<typeof vi.fn>).mockImplementation(() => {
+        throw new Error('EACCES');
+      });
+
+      const input = makeInput({
+        tool_input: { subagent_type: 'database-engineer' },
+      });
+
+      const result = graphMemoryInject(input);
+
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
     });
   });
 

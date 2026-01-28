@@ -3,7 +3,7 @@
   "name": "orchestkit",
   "version": "5.3.0",
   "engine": ">=2.1.20",
-  "description": "The Complete AI Development Toolkit - 182 skills, 35 agents, 153 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 182 skills, 35 agents, 154 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"

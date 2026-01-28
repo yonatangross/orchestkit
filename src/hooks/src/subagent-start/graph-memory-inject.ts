@@ -12,6 +12,8 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { existsSync, statSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 // Agent type to domain mapping
 const AGENT_DOMAINS: Record<string, string> = {
@@ -36,11 +38,31 @@ function getAgentDomain(agentType: string): string {
   return AGENT_DOMAINS[agentType] || agentType;
 }
 
+/** Minimum graph file size in bytes to consider it useful (~3 entities) */
+const MIN_GRAPH_SIZE = 100;
+
 /**
- * Graph memory inject - always runs, no configuration needed
+ * Graph memory inject - skips when graph is empty/tiny
  */
 export function graphMemoryInject(input: HookInput): HookResult {
   logHook('graph-memory-inject', 'Graph memory inject hook starting');
+
+  // Early return: skip if knowledge graph is empty or too small
+  const graphDataFile = resolve(getProjectDir(), '.claude/memory/knowledge-graph.jsonl');
+  if (!existsSync(graphDataFile)) {
+    logHook('graph-memory-inject', 'No graph data file, skipping');
+    return outputSilentSuccess();
+  }
+  try {
+    const graphSize = statSync(graphDataFile).size;
+    if (graphSize < MIN_GRAPH_SIZE) {
+      logHook('graph-memory-inject', `Graph too small (${graphSize}B < ${MIN_GRAPH_SIZE}B), skipping`);
+      return outputSilentSuccess();
+    }
+  } catch {
+    logHook('graph-memory-inject', 'Could not stat graph file, skipping');
+    return outputSilentSuccess();
+  }
 
   // Extract agent type from hook input
   const toolInput = input.tool_input || {};

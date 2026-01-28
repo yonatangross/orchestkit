@@ -9,9 +9,9 @@
  * Part of Context Engineering 2.0
  */
 
-import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getProjectDir, getSessionId, logHook } from '../lib/common.js';
+import { outputSilentSuccess, getProjectDir, getSessionId, logHook, estimateTokenCount } from '../lib/common.js';
 
 // Configuration
 const BUDGET_TOTAL = 2200; // Total token budget for context layer
@@ -20,14 +20,14 @@ const COMPRESS_TARGET = 0.50; // Target 50% after compression
 const MCP_DEFER_TRIGGER = 0.10; // Defer MCP tools when context >10% of effective window
 
 /**
- * Estimate tokens from file content (~4 chars per token)
+ * Estimate tokens from file content using content-aware estimation
  */
 function estimateTokens(filePath: string): number {
   if (!existsSync(filePath)) return 0;
 
   try {
-    const stats = statSync(filePath);
-    return Math.floor(stats.size / 4);
+    const content = readFileSync(filePath, 'utf8');
+    return estimateTokenCount(content);
   } catch {
     return 0;
   }

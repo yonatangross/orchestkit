@@ -290,6 +290,55 @@ export function logPermissionFeedback(
 }
 
 // -----------------------------------------------------------------------------
+// Token Estimation
+// -----------------------------------------------------------------------------
+
+/**
+ * Content-aware token estimation (~80% accuracy without external tokenizer).
+ * Code-heavy content averages ~2.8 chars/token; prose ~3.5 chars/token.
+ */
+export function estimateTokenCount(content: string): number {
+  if (!content) return 0;
+  const codeIndicators = (content.match(/[{};()=><]/g) || []).length;
+  const codeRatio = codeIndicators / content.length;
+  const charsPerToken = codeRatio > 0.03 ? 2.8 : 3.5;
+  return Math.ceil(content.length / charsPerToken);
+}
+
+// -----------------------------------------------------------------------------
+// Budgeted Output Helpers
+// -----------------------------------------------------------------------------
+
+/**
+ * Output prompt context with token budget awareness.
+ * Checks if the category is over budget before injecting.
+ * Falls back to silent success when budget exhausted.
+ *
+ * Accepts budget checker and tracker as parameters to avoid circular deps.
+ * If not provided, falls back to unchecked injection.
+ */
+export function outputPromptContextBudgeted(
+  ctx: string,
+  hookName: string,
+  category: string,
+  budgetChecker?: { isOverBudget: (cat: string) => boolean },
+  tokenTracker?: { trackTokenUsage: (hook: string, cat: string, tokens: number) => void },
+): HookResult {
+  const tokens = estimateTokenCount(ctx);
+
+  if (budgetChecker && budgetChecker.isOverBudget(category)) {
+    logHook(hookName, `Budget exhausted for ${category}, suppressing ${tokens}t`);
+    return outputSilentSuccess();
+  }
+
+  if (tokenTracker) {
+    tokenTracker.trackTokenUsage(hookName, category, tokens);
+  }
+
+  return outputPromptContext(ctx);
+}
+
+// -----------------------------------------------------------------------------
 // Input Helpers
 // -----------------------------------------------------------------------------
 
