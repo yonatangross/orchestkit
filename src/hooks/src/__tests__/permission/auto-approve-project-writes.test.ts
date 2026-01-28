@@ -154,17 +154,15 @@ describe('auto-approve-project-writes', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles symbolic project path prefix attack', () => {
+    test('blocks symbolic project path prefix attack', () => {
       // Path that starts with project dir prefix but is a different directory
-      // Note: The current implementation uses startsWith which may approve this
-      // This documents the actual behavior - a security improvement would use path.relative
+      // Fix: Uses path.relative() instead of startsWith() to properly detect escape
       const input = createWriteInput('/test/project-malicious/file.txt');
       const result = autoApproveProjectWrites(input);
 
-      // Current implementation uses startsWith, so this path IS approved
-      // because '/test/project-malicious'.startsWith('/test/project') === true
-      // This is a known limitation of the simple startsWith check
-      expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+      // Should NOT auto-approve - /test/project-malicious is not inside /test/project
+      // path.relative('/test/project', '/test/project-malicious/file.txt') => '../project-malicious/file.txt'
+      expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
     });
 
     test('handles deep nesting in excluded directory', () => {
