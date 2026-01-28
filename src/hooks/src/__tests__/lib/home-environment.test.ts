@@ -8,7 +8,6 @@
  * - setup-maintenance: `HOME || '/tmp'` (no USERPROFILE fallback)
  *
  * P2/P3 gaps for future sessions:
- * TODO(P2): Test HOME="" (empty string) — truthy in || chain, produces '/.claude/logs/ork'
  * TODO(P3): Test pattern-sync-pull with large file (>1MB) triggers skip
  * TODO(P3): Test sync-config.json parse failure falls back to enabled
  */
@@ -436,6 +435,98 @@ describe('HOME environment fallback', () => {
       const mem0Path = checkedPaths.find(p => p.includes('.mem0-pending-sync.json'));
       expect(mem0Path).toBeDefined();
       expect(mem0Path).toContain('/home/fabricuser/');
+    });
+  });
+
+  // -----------------------------------------------------------------------
+  // HOME="" empty string edge case (P2.1)
+  // In JS, "" is falsy, so `"" || '/tmp'` correctly produces '/tmp'.
+  // These tests verify all 4 modules handle HOME="" the same as undefined.
+  // -----------------------------------------------------------------------
+
+  describe('HOME="" empty string fallback (P2.1)', () => {
+    test('getLogDir: HOME="" falls back to /tmp (empty string is falsy)', () => {
+      process.env.HOME = '';
+      process.env.CLAUDE_PLUGIN_ROOT = '/some/plugin/root';
+
+      const logDir = getLogDir();
+
+      // "" || '/tmp' → '/tmp'
+      expect(logDir).toBe('/tmp/.claude/logs/ork');
+    });
+
+    test('pattern-sync-pull: HOME="" falls through to USERPROFILE', () => {
+      process.env.HOME = '';
+      process.env.USERPROFILE = 'C:\\Users\\emptytest';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+
+      const checkedPaths: string[] = [];
+      mockExistsSync.mockImplementation((p: string) => {
+        checkedPaths.push(p);
+        return false;
+      });
+
+      patternSyncPull(makeInput({ project_dir: '/tmp/test-project' }));
+
+      const globalPath = checkedPaths.find(p => p.includes('global-patterns.json'));
+      expect(globalPath).toBeDefined();
+      // HOME="" is falsy → falls to USERPROFILE
+      expect(globalPath).toContain('C:\\Users\\emptytest');
+    });
+
+    test('pattern-sync-pull: HOME="" and USERPROFILE="" falls to /tmp', () => {
+      process.env.HOME = '';
+      process.env.USERPROFILE = '';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+
+      const checkedPaths: string[] = [];
+      mockExistsSync.mockImplementation((p: string) => {
+        checkedPaths.push(p);
+        return false;
+      });
+
+      patternSyncPull(makeInput({ project_dir: '/tmp/test-project' }));
+
+      const globalPath = checkedPaths.find(p => p.includes('global-patterns.json'));
+      expect(globalPath).toBeDefined();
+      expect(globalPath).toContain('/tmp/');
+    });
+
+    test('setup-maintenance: HOME="" falls back to /tmp for log rotation', () => {
+      process.env.HOME = '';
+      process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
+      process.env.CLAUDE_PROJECT_DIR = '/test/project';
+
+      mockExistsSync.mockImplementation((p: string) => {
+        if (typeof p === 'string' && p.includes('.setup-complete')) return true;
+        if (typeof p === 'string' && p.includes('.claude/logs')) return true;
+        return false;
+      });
+      mockReadFileSync.mockImplementation((p: string) => {
+        if (typeof p === 'string' && p.includes('.setup-complete')) {
+          const staleTime = new Date(Date.now() - 25 * 60 * 60 * 1000).toISOString();
+          return JSON.stringify({ last_maintenance: staleTime, version: '4.25.0' });
+        }
+        return '{}';
+      });
+
+      const readDirs: string[] = [];
+      mockReaddirSync.mockImplementation((p: unknown) => {
+        const path = typeof p === 'string' ? p : String(p);
+        readDirs.push(path);
+        return [];
+      });
+
+      const origArgv = process.argv;
+      process.argv = [...origArgv, '--force'];
+
+      setupMaintenance(makeInput({ project_dir: '/test/project' }));
+
+      process.argv = origArgv;
+
+      // HOME="" is falsy → `"" || '/tmp'` → '/tmp'
+      const tmpLogDir = readDirs.find(d => d.includes('/tmp/.claude/logs/ork'));
+      expect(tmpLogDir).toBeDefined();
     });
   });
 
