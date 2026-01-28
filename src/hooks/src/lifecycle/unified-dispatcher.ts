@@ -30,6 +30,7 @@ import { patternSyncPull } from './pattern-sync-pull.js';
 import { multiInstanceInit } from './multi-instance-init.js';
 import { instanceHeartbeat } from './instance-heartbeat.js';
 import { sessionEnvSetup } from './session-env-setup.js';
+import { sessionTracking } from './session-tracking.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -57,6 +58,7 @@ const HOOKS: HookConfig[] = [
   { name: 'multi-instance-init', fn: multiInstanceInit },
   { name: 'instance-heartbeat', fn: instanceHeartbeat },
   { name: 'session-env-setup', fn: sessionEnvSetup },
+  { name: 'session-tracking', fn: sessionTracking },
 ];
 
 /** Exposed for registry wiring tests */

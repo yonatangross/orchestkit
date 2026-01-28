@@ -284,7 +284,7 @@ describe('Cross-Bundle Consistency', () => {
     // Total TypeScript hook implementations across all bundles
     // Update this count when adding/removing hook implementations
     // 152 -> 157: added graph-queue-sync hook
-    expect(totalHooks).toBe(157);
+    expect(totalHooks).toBe(160);
   });
 });
 

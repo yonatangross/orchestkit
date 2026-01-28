@@ -17,6 +17,7 @@ import { sessionPatterns } from './session-patterns.js';
 import { issueWorkSummary } from './issue-work-summary.js';
 import { calibrationPersist } from './calibration-persist.js';
 import { sessionProfileAggregator } from './session-profile-aggregator.js';
+import { sessionEndTracking } from './session-end-tracking.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -42,6 +43,7 @@ const HOOKS: HookConfig[] = [
   { name: 'issue-work-summary', fn: issueWorkSummary },
   { name: 'calibration-persist', fn: calibrationPersist },
   { name: 'session-profile-aggregator', fn: sessionProfileAggregator },
+  { name: 'session-end-tracking', fn: sessionEndTracking },
 ];
 
 /** Exposed for registry wiring tests */

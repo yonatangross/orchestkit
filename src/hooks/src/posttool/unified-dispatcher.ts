@@ -31,6 +31,7 @@ import { realtimeSync } from './realtime-sync.js';
 import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
 import { mem0WebhookHandler } from './mem0-webhook-handler.js';
+import { userTracking } from './user-tracking.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -79,6 +80,9 @@ const HOOKS: HookConfig[] = [
 
   // Multi-tool matcher
   { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },
+
+  // User tracking (Issue #245) - tracks all tool usage, skills, and agents
+  { name: 'user-tracking', fn: userTracking, matcher: '*' },
 ];
 
 /** Exposed for registry wiring tests */

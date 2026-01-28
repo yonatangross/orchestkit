@@ -25,6 +25,7 @@ import { prStatusEnricher } from '../lifecycle/pr-status-enricher.js';
 import { sessionCleanup } from '../lifecycle/session-cleanup.js';
 import { sessionContextLoader } from '../lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from '../lifecycle/session-env-setup.js';
+import { sessionTracking } from '../lifecycle/session-tracking.js';
 import { sessionMetricsSummary } from '../lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
 import { unifiedSessionStartDispatcher } from '../lifecycle/unified-dispatcher.js';
@@ -49,6 +50,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-cleanup': sessionCleanup,
   'lifecycle/session-context-loader': sessionContextLoader,
   'lifecycle/session-env-setup': sessionEnvSetup,
+  'lifecycle/session-tracking': sessionTracking,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/unified-dispatcher': unifiedSessionStartDispatcher,

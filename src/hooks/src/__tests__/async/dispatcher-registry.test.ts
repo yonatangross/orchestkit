@@ -32,6 +32,7 @@ describe('Dispatcher Registry Wiring', () => {
         'skill-usage-optimizer',
         'memory-bridge',
         'realtime-sync',
+        'user-tracking',
       ]);
     });
 
@@ -66,6 +67,9 @@ describe('Dispatcher Registry Wiring', () => {
 
       // Multi-tool hook
       expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task']);
+
+      // User tracking (Issue #245)
+      expect(byName['user-tracking']).toBe('*');
     });
   });
 
@@ -78,6 +82,7 @@ describe('Dispatcher Registry Wiring', () => {
         'multi-instance-init',
         'instance-heartbeat',
         'session-env-setup',
+        'session-tracking',
       ]);
     });
   });
@@ -90,6 +95,7 @@ describe('Dispatcher Registry Wiring', () => {
         'issue-work-summary',
         'calibration-persist',
         'session-profile-aggregator',
+        'session-end-tracking',
       ]);
     });
   });
@@ -168,7 +174,7 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      expect(total).toBe(34);
+      expect(total).toBe(37);
     });
   });
 });
