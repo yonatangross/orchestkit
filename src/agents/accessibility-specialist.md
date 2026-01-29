@@ -20,6 +20,7 @@ skills:
   - motion-animation-patterns
   - i18n-date-patterns
   - e2e-testing
+  - task-dependency-patterns
   - remember
   - recall
 hooks:
@@ -28,6 +29,14 @@ hooks:
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+5. Check `TaskList` before starting to see pending work
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for React, ARIA patterns

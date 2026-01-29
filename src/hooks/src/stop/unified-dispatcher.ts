@@ -21,6 +21,8 @@ import { sessionEndTracking } from './session-end-tracking.js';
 // Issue #245: GAP-001 & GAP-002 - Wire missing tracking hooks
 import { graphQueueSync } from './graph-queue-sync.js';
 import { workflowPreferenceLearner } from './workflow-preference-learner.js';
+// Issue #245: GAP-006 - mem0 cloud memory sync
+import { mem0QueueSync } from './mem0-queue-sync.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -52,6 +54,8 @@ const HOOKS: HookConfig[] = [
   { name: 'graph-queue-sync', fn: graphQueueSync },
   // Issue #245 GAP-002: Workflow preference learning - tracks user's development patterns
   { name: 'workflow-preference-learner', fn: workflowPreferenceLearner },
+  // Issue #245 GAP-006: mem0 cloud sync - processes queued memories to mem0 (gated by MEM0_API_KEY)
+  { name: 'mem0-queue-sync', fn: mem0QueueSync },
 ];
 
 /** Exposed for registry wiring tests */

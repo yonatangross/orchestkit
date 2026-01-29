@@ -7,7 +7,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ~40% of the tracking infrastructure was initially connected. Progress tracking below.
 
-**Fixed:** 4/13 gaps (GAP-001, GAP-002, GAP-011, GAP-012)
+**Fixed:** 5/13 gaps (GAP-001, GAP-002, GAP-006, GAP-011, GAP-012)
 
 ---
 
@@ -63,10 +63,10 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ### GAP-006: mem0-queue.jsonl never processed
 - **Written by**: `src/hooks/src/lib/memory-writer.ts:89` (queueForMem0)
-- **Read by**: NOTHING
-- **Status**: [ ] Not Fixed
+- **Read by**: `src/hooks/src/stop/mem0-queue-sync.ts`
+- **Status**: [x] Fixed
 - **Impact**: Cloud memory sync completely broken - nothing ever uploads
-- **Fix**: Create `stop/mem0-queue-sync.ts` similar to graph-queue-sync
+- **Fix**: Created `stop/mem0-queue-sync.ts` with dispatcher wiring (gated by MEM0_API_KEY)
 
 ---
 
@@ -165,7 +165,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 | GAP-003 | pending-decisions reader | [ ] | |
 | GAP-004 | user-preferences reader | [ ] | |
 | GAP-005 | open-problems reader | [ ] | |
-| GAP-006 | mem0-queue processor | [ ] | |
+| GAP-006 | mem0-queue processor | [x] | pending |
 | GAP-007 | trackSolutionFound caller | [ ] | |
 | GAP-008 | listSessionIds usage | [ ] | |
 | GAP-009 | getRecentUserSessions usage | [ ] | |
