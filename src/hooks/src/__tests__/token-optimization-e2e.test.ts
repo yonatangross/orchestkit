@@ -215,25 +215,27 @@ describe('E2E: Priority Throttling', () => {
     const configFile = join(TEST_PROJECT_DIR, '.claude/orchestration/config.json');
     writeFileSync(configFile, JSON.stringify({ enablePriorityThrottling: true }));
 
+    // Budget is 2600 total. Thresholds: P3=50% (1300), P2=70% (1820), P1=90% (2340)
+
     // Phase 1: under 50% - nothing throttled
-    trackTokenUsage('fill', 'skill-injection', 1000); // ~45%
+    trackTokenUsage('fill', 'skill-injection', 1200); // 46% < 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(false); // P3
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2
     expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1
 
     // Phase 2: above 50% - P3 throttled
-    trackTokenUsage('fill', 'skill-injection', 200); // ~54%
+    trackTokenUsage('fill', 'skill-injection', 200); // total 1400 = 54% > 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(true); // P3 throttled
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2 OK
     expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1 OK
 
     // Phase 3: above 70% - P2 throttled too
-    trackTokenUsage('fill', 'skill-injection', 400); // ~72%
+    trackTokenUsage('fill', 'skill-injection', 500); // total 1900 = 73% > 70%
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(true); // P2 throttled
     expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1 OK
 
     // Phase 4: above 90% - P1 throttled
-    trackTokenUsage('fill', 'skill-injection', 500); // ~95%
+    trackTokenUsage('fill', 'skill-injection', 500); // total 2400 = 92% > 90%
     expect(shouldThrottle('prompt/skill-resolver')).toBe(true); // P1 throttled
 
     // P0 NEVER throttled

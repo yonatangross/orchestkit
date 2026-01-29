@@ -197,8 +197,8 @@ describe('Hook Priority Integration', () => {
     const configFile = join(TEST_PROJECT_DIR, '.claude/orchestration/config.json');
     writeFileSync(configFile, JSON.stringify({ enablePriorityThrottling: true }));
 
-    // Fill to 60% of total budget (2200 * 0.6 = 1320)
-    trackTokenUsage('filler', 'skill-injection', 1320);
+    // Fill to 60% of total budget (2600 * 0.6 = 1560)
+    trackTokenUsage('filler', 'skill-injection', 1560);
 
     // P3 throttles at 50%, so should be throttled at 60%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(true);
@@ -210,8 +210,8 @@ describe('Hook Priority Integration', () => {
     const configFile = join(TEST_PROJECT_DIR, '.claude/orchestration/config.json');
     writeFileSync(configFile, JSON.stringify({ enablePriorityThrottling: true }));
 
-    // Fill to 75% of total budget (2200 * 0.75 = 1650)
-    trackTokenUsage('filler', 'skill-injection', 1650);
+    // Fill to 75% of total budget (2600 * 0.75 = 1950)
+    trackTokenUsage('filler', 'skill-injection', 1950);
 
     // P2 throttles at 70%
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(true);
