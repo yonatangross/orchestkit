@@ -235,4 +235,103 @@ describe('Issue #245: User Tracking Wiring', () => {
       expect(runHookContent).toContain('trackHookTriggered');
     });
   });
+
+  describe('Issue #245 Phase 4: Tool Sequence Tracking', () => {
+    test('user-tracking hook imports trackToolAction from decision-flow-tracker', () => {
+      const userTrackingPath = path.resolve(
+        process.cwd(),
+        'src/posttool/user-tracking.ts'
+      );
+      const content = fs.readFileSync(userTrackingPath, 'utf-8');
+
+      expect(content).toContain("import { trackToolAction } from '../lib/decision-flow-tracker.js'");
+    });
+
+    test('user-tracking hook calls trackToolAction for tool sequence tracking', () => {
+      const userTrackingPath = path.resolve(
+        process.cwd(),
+        'src/posttool/user-tracking.ts'
+      );
+      const content = fs.readFileSync(userTrackingPath, 'utf-8');
+
+      // Should call trackToolAction with session, tool, command, file, exitCode
+      expect(content).toContain('trackToolAction(sessionId, toolName, command, filePath, exitCode)');
+      expect(content).toContain('Issue #245 Phase 4');
+    });
+
+    test('user-tracking hook extracts command and file path', () => {
+      const userTrackingPath = path.resolve(
+        process.cwd(),
+        'src/posttool/user-tracking.ts'
+      );
+      const content = fs.readFileSync(userTrackingPath, 'utf-8');
+
+      expect(content).toContain('extractCommand(input)');
+      expect(content).toContain('extractFilePath(input)');
+    });
+
+    test('trackToolAction is exported from decision-flow-tracker', async () => {
+      const { trackToolAction } = await import('../../lib/decision-flow-tracker.js');
+      expect(typeof trackToolAction).toBe('function');
+    });
+
+    test('analyzeDecisionFlow is exported from decision-flow-tracker', async () => {
+      const { analyzeDecisionFlow } = await import('../../lib/decision-flow-tracker.js');
+      expect(typeof analyzeDecisionFlow).toBe('function');
+    });
+
+    test('inferWorkflowPattern is exported from decision-flow-tracker', async () => {
+      const { inferWorkflowPattern } = await import('../../lib/decision-flow-tracker.js');
+      expect(typeof inferWorkflowPattern).toBe('function');
+    });
+  });
+
+  describe('Issue #245 Phase 4: Workflow Pattern Aggregation', () => {
+    test('user-profile imports analyzeDecisionFlow', () => {
+      const userProfilePath = path.resolve(
+        process.cwd(),
+        'src/lib/user-profile.ts'
+      );
+      const content = fs.readFileSync(userProfilePath, 'utf-8');
+
+      expect(content).toContain("import { analyzeDecisionFlow");
+      expect(content).toContain("from './decision-flow-tracker.js'");
+    });
+
+    test('aggregateSession includes workflow pattern aggregation', () => {
+      const userProfilePath = path.resolve(
+        process.cwd(),
+        'src/lib/user-profile.ts'
+      );
+      const content = fs.readFileSync(userProfilePath, 'utf-8');
+
+      expect(content).toContain('Aggregate workflow pattern from decision flow');
+      expect(content).toContain('Issue #245 Phase 4');
+      expect(content).toContain('analyzeDecisionFlow(summary.session_id)');
+    });
+
+    test('convertFlowPattern helper exists for type conversion', () => {
+      const userProfilePath = path.resolve(
+        process.cwd(),
+        'src/lib/user-profile.ts'
+      );
+      const content = fs.readFileSync(userProfilePath, 'utf-8');
+
+      expect(content).toContain('function convertFlowPattern');
+      expect(content).toContain('WORKFLOW_PATTERN_DESCRIPTIONS');
+    });
+
+    test('workflow pattern frequencies are tracked', () => {
+      const userProfilePath = path.resolve(
+        process.cwd(),
+        'src/lib/user-profile.ts'
+      );
+      const content = fs.readFileSync(userProfilePath, 'utf-8');
+
+      // Should increase frequency for existing patterns
+      expect(content).toContain('existing.frequency = Math.min(1, existing.frequency + 0.1)');
+      // Should cap at 10 patterns
+      expect(content).toContain('workflow_patterns.length > 10');
+    });
+  });
 });

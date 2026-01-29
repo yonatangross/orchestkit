@@ -19,6 +19,7 @@ import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 import { resolveUserIdentity } from './user-identity.js';
 import { generateSessionSummary, type SessionSummary } from './session-tracker.js';
+import { analyzeDecisionFlow, type WorkflowPattern as FlowWorkflowPattern } from './decision-flow-tracker.js';
 
 // =============================================================================
 // TYPES
@@ -86,6 +87,33 @@ export interface WorkflowPattern {
   frequency: number;
   /** Tool sequences that indicate this pattern */
   tool_sequences: string[][];
+}
+
+/**
+ * Descriptions for workflow pattern names
+ */
+const WORKFLOW_PATTERN_DESCRIPTIONS: Record<FlowWorkflowPattern, string> = {
+  'test-first': 'Writes tests before implementation (TDD)',
+  'explore-first': 'Reads existing code before making changes',
+  'iterate-fast': 'Makes quick write → test iterations',
+  'big-bang': 'Writes multiple files then tests',
+  'agent-delegate': 'Delegates tasks to specialized agents',
+  'mixed': 'Varies approach by task',
+};
+
+/**
+ * Convert decision-flow-tracker pattern to user-profile WorkflowPattern
+ */
+function convertFlowPattern(flowPattern: FlowWorkflowPattern, existingPatterns: WorkflowPattern[]): WorkflowPattern {
+  const existing = existingPatterns.find(p => p.name === flowPattern);
+  const frequency = existing ? Math.min(1, existing.frequency + 0.1) : 0.1;
+
+  return {
+    name: flowPattern,
+    description: WORKFLOW_PATTERN_DESCRIPTIONS[flowPattern],
+    frequency,
+    tool_sequences: [], // Populated by detailed analysis if needed
+  };
 }
 
 /**
@@ -391,6 +419,37 @@ export function aggregateSession(
       profile.agent_usage[agent],
       true
     );
+  }
+
+  // Aggregate workflow pattern from decision flow (Issue #245 Phase 4)
+  try {
+    const flow = analyzeDecisionFlow(summary.session_id);
+    if (flow?.inferred_pattern && flow.inferred_pattern !== 'mixed') {
+      // Convert to WorkflowPattern interface and add to profile
+      const patternName = flow.inferred_pattern;
+      const existingIndex = profile.workflow_patterns.findIndex(p => p.name === patternName);
+
+      if (existingIndex !== -1) {
+        // Update existing pattern: increase frequency and move to front
+        const existing = profile.workflow_patterns[existingIndex];
+        existing.frequency = Math.min(1, existing.frequency + 0.1);
+        profile.workflow_patterns.splice(existingIndex, 1);
+        profile.workflow_patterns.unshift(existing);
+      } else {
+        // Add new pattern
+        const newPattern = convertFlowPattern(patternName, profile.workflow_patterns);
+        profile.workflow_patterns.unshift(newPattern);
+      }
+
+      // Keep only last 10 workflow patterns
+      if (profile.workflow_patterns.length > 10) {
+        profile.workflow_patterns = profile.workflow_patterns.slice(0, 10);
+      }
+      logHook('user-profile', `Aggregated workflow pattern: ${patternName}`, 'debug');
+    }
+  } catch (error) {
+    // Non-blocking: workflow pattern aggregation failure shouldn't stop profile aggregation
+    logHook('user-profile', `Failed to aggregate workflow pattern: ${error}`, 'debug');
   }
 
   // Keep only last N sessions to prevent unbounded growth
