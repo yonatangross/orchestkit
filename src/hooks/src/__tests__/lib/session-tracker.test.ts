@@ -32,7 +32,6 @@ vi.mock('node:fs', async () => {
     readFileSync: vi.fn(),
     appendFileSync: vi.fn(),
     mkdirSync: vi.fn(),
-    readdirSync: vi.fn(),
   };
 });
 
@@ -50,16 +49,15 @@ import {
   trackSessionEnd,
   loadSessionEvents,
   generateSessionSummary,
-  listSessionIds,
+  // GAP-008/009: Removed listSessionIds and getRecentUserSessions (dead code)
 } from '../../lib/session-tracker.js';
-import { existsSync, readFileSync, appendFileSync, mkdirSync, readdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
 
 describe('Session Event Tracker', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockAppendFileSync = vi.mocked(appendFileSync);
   const mockMkdirSync = vi.mocked(mkdirSync);
-  const mockReaddirSync = vi.mocked(readdirSync);
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -278,28 +276,8 @@ describe('Session Event Tracker', () => {
     });
   });
 
-  describe('listSessionIds', () => {
-    it('should return empty array when sessions directory missing', () => {
-      mockExistsSync.mockReturnValue(false);
-
-      const sessionIds = listSessionIds();
-
-      expect(sessionIds).toEqual([]);
-    });
-
-    it('should list session directories', () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReaddirSync.mockReturnValue([
-        { name: 'session-1', isDirectory: () => true },
-        { name: 'session-2', isDirectory: () => true },
-        { name: 'some-file.txt', isDirectory: () => false },
-      ] as any);
-
-      const sessionIds = listSessionIds();
-
-      expect(sessionIds).toEqual(['session-1', 'session-2']);
-    });
-  });
+  // GAP-008/009: Removed listSessionIds and getRecentUserSessions tests
+  // These functions were dead code (never called by production)
 
   describe('event sanitization', () => {
     it('should redact sensitive data in input', () => {

@@ -8,7 +8,7 @@
  * Storage: .claude/memory/sessions/{session_id}/events.jsonl
  */
 
-import { existsSync, appendFileSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import { getIdentityContext, type IdentityContext } from './user-identity.js';
 
@@ -483,53 +483,10 @@ export function generateSessionSummary(sessionId?: string): SessionSummary {
 // =============================================================================
 // CROSS-SESSION QUERIES
 // =============================================================================
-
-/**
- * List all session IDs for this project
- */
-export function listSessionIds(): string[] {
-  const sessionsDir = `${getProjectDir()}/.claude/memory/sessions`;
-
-  if (!existsSync(sessionsDir)) {
-    return [];
-  }
-
-  try {
-    return readdirSync(sessionsDir, { withFileTypes: true })
-      .filter(dirent => dirent.isDirectory())
-      .map(dirent => dirent.name);
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Get recent sessions for a user
- */
-export function getRecentUserSessions(
-  userId: string,
-  limit: number = 10
-): SessionSummary[] {
-  const sessionIds = listSessionIds();
-  const summaries: SessionSummary[] = [];
-
-  for (const sessionId of sessionIds) {
-    const summary = generateSessionSummary(sessionId);
-    if (summary.user_id === userId) {
-      summaries.push(summary);
-    }
-    if (summaries.length >= limit * 2) break; // Stop early if we have enough candidates
-  }
-
-  // Sort by start_time descending and take limit
-  return summaries
-    .sort((a, b) => {
-      const timeA = a.start_time ? new Date(a.start_time).getTime() : 0;
-      const timeB = b.start_time ? new Date(b.start_time).getTime() : 0;
-      return timeB - timeA;
-    })
-    .slice(0, limit);
-}
+// GAP-008/009 FIX: Removed listSessionIds() and getRecentUserSessions()
+// These functions were exported but never called by production code.
+// Cross-session queries should be handled by profile-injector if needed.
+// =============================================================================
 
 // =============================================================================
 // UTILITIES
