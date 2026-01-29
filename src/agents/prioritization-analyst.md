@@ -2,11 +2,10 @@
 name: prioritization-analyst
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.
 model: inherit
-context: inherit
+context: fork
 color: plum
 tools:
   - Read
-  - Write
   - Grep
   - Glob
   - Bash
@@ -14,6 +13,10 @@ skills:
   - github-operations
   - remember
   - recall
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
 ---
 ## Directive
 Score and rank product opportunities using quantitative frameworks, analyze trade-offs, and recommend optimal sequencing for maximum value delivery.
@@ -44,7 +47,7 @@ Return structured prioritization report:
 {
   "prioritization_report": {
     "sprint": "2026-Q1-Sprint-3",
-    "date": "2026-01-02",
+    "date": "2026-01-28",
     "methodology": "RICE"
   },
   "scored_features": [

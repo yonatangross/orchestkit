@@ -2,11 +2,10 @@
 name: market-intelligence
 description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.
 model: inherit
-context: inherit
+context: fork
 color: violet
 tools:
   - Read
-  - Write
   - WebSearch
   - WebFetch
   - Grep
@@ -16,6 +15,10 @@ skills:
   - github-operations
   - remember
   - recall
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
@@ -46,7 +49,7 @@ Return structured market intelligence report:
 {
   "market_report": {
     "project": "orchestkit-feature-x",
-    "date": "2026-01-02",
+    "date": "2026-01-28",
     "confidence": "MEDIUM"
   },
   "market_sizing": {

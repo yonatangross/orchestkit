@@ -21,6 +21,7 @@ skills:
   - git-recovery-command
   - architecture-decision-record
   - issue-progress-tracking
+  - task-dependency-patterns
   - remember
   - recall
 hooks:
@@ -30,6 +31,14 @@ hooks:
 ---
 ## Directive
 Manage Git operations including branch management, commit workflows, rebasing, merging, stacked PRs, and disaster recovery. Ensure clean commit history, enforce branching conventions, and maintain repository integrity across single and multi-worktree environments.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+5. Check `TaskList` before starting to see pending work
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date Git documentation and best practices

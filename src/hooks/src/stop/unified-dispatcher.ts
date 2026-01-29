@@ -18,6 +18,9 @@ import { issueWorkSummary } from './issue-work-summary.js';
 import { calibrationPersist } from './calibration-persist.js';
 import { sessionProfileAggregator } from './session-profile-aggregator.js';
 import { sessionEndTracking } from './session-end-tracking.js';
+// Issue #245: GAP-001 & GAP-002 - Wire missing tracking hooks
+import { graphQueueSync } from './graph-queue-sync.js';
+import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -36,6 +39,7 @@ interface HookConfig {
 
 /**
  * Registry of all async Stop hooks consolidated into dispatcher
+ * Issue #245: Added graph-queue-sync (GAP-001) and workflow-preference-learner (GAP-002)
  */
 const HOOKS: HookConfig[] = [
   { name: 'auto-save-context', fn: autoSaveContext },
@@ -44,6 +48,10 @@ const HOOKS: HookConfig[] = [
   { name: 'calibration-persist', fn: calibrationPersist },
   { name: 'session-profile-aggregator', fn: sessionProfileAggregator },
   { name: 'session-end-tracking', fn: sessionEndTracking },
+  // Issue #245 GAP-001: Graph memory sync - processes queued entity/relation operations
+  { name: 'graph-queue-sync', fn: graphQueueSync },
+  // Issue #245 GAP-002: Workflow preference learning - tracks user's development patterns
+  { name: 'workflow-preference-learner', fn: workflowPreferenceLearner },
 ];
 
 /** Exposed for registry wiring tests */
