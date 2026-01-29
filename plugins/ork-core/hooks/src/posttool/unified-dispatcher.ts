@@ -32,6 +32,8 @@ import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
 import { mem0WebhookHandler } from './mem0-webhook-handler.js';
 import { userTracking } from './user-tracking.js';
+// GAP-011: Wire solution-detector to enable problem-tracker functionality
+import { solutionDetector } from './solution-detector.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -83,6 +85,9 @@ const HOOKS: HookConfig[] = [
 
   // User tracking (Issue #245) - tracks all tool usage, skills, and agents
   { name: 'user-tracking', fn: userTracking, matcher: '*' },
+
+  // GAP-011: Solution detector - pairs tool outputs with open problems
+  { name: 'solution-detector', fn: solutionDetector, matcher: ['Bash', 'Write', 'Edit', 'Task'] },
 ];
 
 /** Exposed for registry wiring tests */

@@ -382,4 +382,45 @@ describe('Issue #245: User Tracking Wiring', () => {
       expect(typeof workflowPreferenceLearner).toBe('function');
     });
   });
+
+  describe('Issue #245 GAP-011: Wire solution-detector to PostToolUse', () => {
+    test('posttool dispatcher includes solution-detector hook', async () => {
+      const { registeredHookNames } = await import(
+        '../../posttool/unified-dispatcher.js'
+      );
+      const names = registeredHookNames();
+      expect(names).toContain('solution-detector');
+    });
+
+    test('posttool dispatcher imports solutionDetector from solution-detector.js', () => {
+      const dispatcherPath = path.resolve(
+        process.cwd(),
+        'src/posttool/unified-dispatcher.ts'
+      );
+      const content = fs.readFileSync(dispatcherPath, 'utf-8');
+      expect(content).toContain("import { solutionDetector } from './solution-detector.js'");
+      expect(content).toContain('GAP-011');
+    });
+
+    test('solutionDetector is exported from solution-detector', async () => {
+      const { solutionDetector } = await import('../../posttool/solution-detector.js');
+      expect(typeof solutionDetector).toBe('function');
+    });
+
+    test('solution-detector uses pairSolutionWithProblems from problem-tracker', () => {
+      const solutionDetectorPath = path.resolve(
+        process.cwd(),
+        'src/posttool/solution-detector.ts'
+      );
+      const content = fs.readFileSync(solutionDetectorPath, 'utf-8');
+      expect(content).toContain("import {");
+      expect(content).toContain("pairSolutionWithProblems");
+      expect(content).toContain("} from '../lib/problem-tracker.js'");
+    });
+
+    test('pairSolutionWithProblems is exported from problem-tracker', async () => {
+      const { pairSolutionWithProblems } = await import('../../lib/problem-tracker.js');
+      expect(typeof pairSolutionWithProblems).toBe('function');
+    });
+  });
 });

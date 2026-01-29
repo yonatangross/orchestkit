@@ -7,7 +7,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ~40% of the tracking infrastructure was initially connected. Progress tracking below.
 
-**Fixed:** 3/13 gaps (GAP-001, GAP-002, GAP-012)
+**Fixed:** 4/13 gaps (GAP-001, GAP-002, GAP-011, GAP-012)
 
 ---
 
@@ -102,11 +102,11 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ### GAP-011: problem-tracker.ts entirely unused
 - **File**: `src/hooks/src/lib/problem-tracker.ts`
-- **Called by**: NOTHING
-- **Status**: [ ] Not Fixed
+- **Called by**: solution-detector.ts (via pairSolutionWithProblems)
+- **Status**: [x] Fixed - Wired solution-detector to PostToolUse dispatcher
 - **Impact**: Entire module is dead code
 - **Functions**: addProblem, detectSolution, resolveProblem, getOpenProblems
-- **Fix**: Either wire up or delete entire file
+- **Fix**: Wired solution-detector.ts to posttool/unified-dispatcher.ts
 
 ---
 
@@ -160,8 +160,8 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 | Gap | Description | Fixed | Commit |
 |-----|-------------|-------|--------|
-| GAP-001 | graph-queue-sync dispatcher | [x] | pending |
-| GAP-002 | workflow-preference-learner dispatcher | [x] | pending |
+| GAP-001 | graph-queue-sync dispatcher | [x] | c55d7973 |
+| GAP-002 | workflow-preference-learner dispatcher | [x] | c55d7973 |
 | GAP-003 | pending-decisions reader | [ ] | |
 | GAP-004 | user-preferences reader | [ ] | |
 | GAP-005 | open-problems reader | [ ] | |
@@ -170,6 +170,6 @@ Branch: `test/dispatcher-registry-wiring-tests`
 | GAP-008 | listSessionIds usage | [ ] | |
 | GAP-009 | getRecentUserSessions usage | [ ] | |
 | GAP-010 | getRecentFlows usage | [ ] | |
-| GAP-011 | problem-tracker module | [ ] | |
-| GAP-012 | duplicate trackSessionEnd | [x] | pending |
+| GAP-011 | problem-tracker module | [x] | pending |
+| GAP-012 | duplicate trackSessionEnd | [x] | c69dc03d |
 | GAP-013 | trackHookTriggered consolidation | [ ] | |
