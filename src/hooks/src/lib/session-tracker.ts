@@ -310,17 +310,60 @@ export function trackToolUsed(
 }
 
 /**
- * Track session start
+ * Session context captured at session start
+ * Issue #245 Phase 5: Session Lifecycle Tracking
  */
-export function trackSessionStart(): void {
-  trackEvent('session_start', 'session', { success: true });
+export interface SessionContext {
+  /** Project directory path */
+  project_dir?: string;
+  /** Current git branch */
+  git_branch?: string;
+  /** Time of day category */
+  time_of_day?: 'morning' | 'afternoon' | 'evening' | 'night';
+  /** Timestamp */
+  started_at: string;
 }
 
 /**
- * Track session end
+ * Get time of day category from hour
+ */
+function getTimeOfDay(hour: number): 'morning' | 'afternoon' | 'evening' | 'night' {
+  if (hour >= 5 && hour < 12) return 'morning';
+  if (hour >= 12 && hour < 17) return 'afternoon';
+  if (hour >= 17 && hour < 21) return 'evening';
+  return 'night';
+}
+
+/**
+ * Track session start with context
+ * Issue #245 Phase 5: Session Lifecycle Tracking
+ *
+ * @param context - Optional session context (project, branch, time)
+ */
+export function trackSessionStart(context?: Partial<SessionContext>): void {
+  const now = new Date();
+  const sessionContext: SessionContext = {
+    project_dir: context?.project_dir,
+    git_branch: context?.git_branch,
+    time_of_day: context?.time_of_day || getTimeOfDay(now.getHours()),
+    started_at: now.toISOString(),
+  };
+
+  trackEvent('session_start', 'session', {
+    success: true,
+    input: sessionContext as unknown as Record<string, unknown>,
+  });
+}
+
+/**
+ * Track session end with timestamp
+ * Issue #245 Phase 5: Session Lifecycle Tracking
  */
 export function trackSessionEnd(): void {
-  trackEvent('session_end', 'session', { success: true });
+  trackEvent('session_end', 'session', {
+    success: true,
+    input: { ended_at: new Date().toISOString() },
+  });
 }
 
 /**
