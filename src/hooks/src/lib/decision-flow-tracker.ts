@@ -530,33 +530,8 @@ export function completeDecisionFlow(sessionId: string): boolean {
   return archived;
 }
 
-/**
- * Get recent flows (for learning patterns across sessions)
- */
-export function getRecentFlows(limit: number = 10): DecisionFlow[] {
-  const archivePath = getCompletedFlowsPath();
-
-  if (!existsSync(archivePath)) {
-    return [];
-  }
-
-  try {
-    const content = readFileSync(archivePath, 'utf-8');
-    const lines = content.trim().split('\n').filter(Boolean);
-    const flows: DecisionFlow[] = [];
-
-    // Read from end (most recent first)
-    for (let i = lines.length - 1; i >= 0 && flows.length < limit; i--) {
-      try {
-        flows.push(JSON.parse(lines[i]) as DecisionFlow);
-      } catch {
-        // Skip malformed lines
-      }
-    }
-
-    return flows;
-  } catch (err) {
-    logHook('decision-flow-tracker', `Failed to load recent flows: ${err}`, 'warn');
-    return [];
-  }
-}
+// =============================================================================
+// GAP-010 FIX: Removed getRecentFlows()
+// Function was exported but never called by production code.
+// Cross-session flow analysis should be added to workflow-preference-learner if needed.
+// =============================================================================

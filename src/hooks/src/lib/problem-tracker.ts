@@ -15,6 +15,8 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
+// GAP-007: Wire trackSolutionFound to session events
+import { trackSolutionFound } from './session-tracker.js';
 
 // =============================================================================
 // TYPES
@@ -444,6 +446,8 @@ export function pairSolutionWithProblems(
 
         if (storeProblemSolutionPair(pair)) {
           paired++;
+          // GAP-007: Track solution in session events for profile aggregation
+          trackSolutionFound(solution.text, problem.id, confidence);
         }
       }
     }

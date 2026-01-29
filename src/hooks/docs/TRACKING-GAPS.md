@@ -7,7 +7,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ~40% of the tracking infrastructure was initially connected. Progress tracking below.
 
-**Fixed:** 10/13 gaps (GAP-001, GAP-002, GAP-003, GAP-004, GAP-005, GAP-006, GAP-008, GAP-009, GAP-011, GAP-012)
+**Fixed:** 12/13 gaps (GAP-001 through GAP-012)
 
 ---
 
@@ -65,10 +65,10 @@ Branch: `test/dispatcher-registry-wiring-tests`
 
 ### GAP-007: trackSolutionFound() never called
 - **Defined**: `src/hooks/src/lib/session-tracker.ts:278-289`
-- **Called by**: Tests only
-- **Status**: [ ] Not Fixed
+- **Called by**: `src/hooks/src/lib/problem-tracker.ts:pairSolutionWithProblems`
+- **Status**: [x] Fixed - Wired to problem-tracker when solution paired
 - **Impact**: Problems reported but solutions never paired - no learning loop
-- **Fix**: Call from satisfaction-detector when positive signal follows problem
+- **Fix**: Added call to trackSolutionFound in pairSolutionWithProblems
 
 ### GAP-008: listSessionIds() never called
 - **Defined**: ~~`src/hooks/src/lib/session-tracker.ts:490-504`~~ REMOVED
@@ -85,11 +85,11 @@ Branch: `test/dispatcher-registry-wiring-tests`
 - **Fix**: Removed function; functionality can be added to profile-injector if needed
 
 ### GAP-010: getRecentFlows() never called
-- **Defined**: `src/hooks/src/lib/decision-flow-tracker.ts:536-562`
-- **Called by**: NOTHING
-- **Status**: [ ] Not Fixed
+- **Defined**: ~~`src/hooks/src/lib/decision-flow-tracker.ts:536-562`~~ REMOVED
+- **Called by**: Nothing (dead code)
+- **Status**: [x] Fixed - Removed dead code
 - **Impact**: Historical workflow analysis impossible
-- **Fix**: Either use in workflow-preference-learner or remove
+- **Fix**: Removed function; cross-session flow analysis can be added to workflow-preference-learner if needed
 
 ### GAP-011: problem-tracker.ts entirely unused
 - **File**: `src/hooks/src/lib/problem-tracker.ts`
@@ -157,10 +157,10 @@ Branch: `test/dispatcher-registry-wiring-tests`
 | GAP-004 | user-preferences reader | [x] | pending |
 | GAP-005 | open-problems reader | [x] | bb14493c (via GAP-011) |
 | GAP-006 | mem0-queue processor | [x] | 0d0101a4 |
-| GAP-007 | trackSolutionFound caller | [ ] | |
+| GAP-007 | trackSolutionFound caller | [x] | pending |
 | GAP-008 | listSessionIds usage | [x] | pending |
 | GAP-009 | getRecentUserSessions usage | [x] | pending |
-| GAP-010 | getRecentFlows usage | [ ] | |
+| GAP-010 | getRecentFlows usage | [x] | pending |
 | GAP-011 | problem-tracker module | [x] | bb14493c |
 | GAP-012 | duplicate trackSessionEnd | [x] | c69dc03d |
 | GAP-013 | trackHookTriggered consolidation | [ ] | |
