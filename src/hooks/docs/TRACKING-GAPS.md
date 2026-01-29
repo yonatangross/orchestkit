@@ -170,6 +170,6 @@ Branch: `test/dispatcher-registry-wiring-tests`
 | GAP-008 | listSessionIds usage | [ ] | |
 | GAP-009 | getRecentUserSessions usage | [ ] | |
 | GAP-010 | getRecentFlows usage | [ ] | |
-| GAP-011 | problem-tracker module | [x] | pending |
+| GAP-011 | problem-tracker module | [x] | bb14493c |
 | GAP-012 | duplicate trackSessionEnd | [x] | c69dc03d |
 | GAP-013 | trackHookTriggered consolidation | [ ] | |
