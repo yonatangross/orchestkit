@@ -1,0 +1,24 @@
+{
+  "name": "ork-llm",
+  "version": "5.3.0",
+  "description": "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama",
+  "skills": [
+    "function-calling",
+    "prompt-engineering-suite",
+    "llm-streaming",
+    "llm-testing",
+    "llm-safety-patterns",
+    "prompt-caching",
+    "fine-tuning-customization",
+    "vision-language-models",
+    "audio-language-models",
+    "high-performance-inference",
+    "ollama-local"
+  ],
+  "agents": [
+    "llm-integrator",
+    "prompt-engineer",
+    "multimodal-specialist"
+  ],
+  "hooks": "none"
+}

@@ -1,0 +1,28 @@
+{
+  "name": "ork-video",
+  "version": "5.3.0",
+  "description": "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing",
+  "skills": [
+    "demo-producer",
+    "terminal-demo-generator",
+    "remotion-composer",
+    "manim-visualizer",
+    "video-storyboarding",
+    "video-pacing",
+    "narration-scripting",
+    "elevenlabs-narration",
+    "content-type-recipes",
+    "scene-intro-cards",
+    "hook-formulas",
+    "callout-positioning",
+    "heygen-avatars",
+    "thumbnail-first-frame",
+    "ascii-visualizer",
+    "audio-mixing-patterns",
+    "music-sfx-selection"
+  ],
+  "agents": [
+    "demo-producer"
+  ],
+  "hooks": "none"
+}

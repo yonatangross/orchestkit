@@ -1,10 +1,9 @@
 {
   "name": "ork-async",
   "version": "5.2.6",
-  "description": "Async & Tasks — asyncio-advanced, connection-pooling, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
+  "description": "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
   "skills": [
     "asyncio-advanced",
-    "connection-pooling",
     "background-jobs",
     "celery-advanced",
     "distributed-locks",

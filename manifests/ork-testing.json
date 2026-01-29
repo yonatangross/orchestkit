@@ -1,0 +1,20 @@
+{
+  "name": "ork-testing",
+  "version": "5.3.0",
+  "description": "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest",
+  "skills": [
+    "unit-testing",
+    "integration-testing",
+    "property-based-testing",
+    "test-data-management",
+    "test-standards-enforcer",
+    "pytest-advanced",
+    "e2e-testing",
+    "webapp-testing",
+    "msw-mocking",
+    "vcr-http-recording",
+    "contract-testing"
+  ],
+  "agents": [],
+  "hooks": "none"
+}
