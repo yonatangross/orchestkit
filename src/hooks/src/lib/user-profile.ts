@@ -17,6 +17,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
+import { getHomeDir as getHomeDirFromPaths } from './paths.js';
 import { resolveUserIdentity } from './user-identity.js';
 import { generateSessionSummary, type SessionSummary } from './session-tracker.js';
 import { analyzeDecisionFlow, type WorkflowPattern as FlowWorkflowPattern } from './decision-flow-tracker.js';
@@ -181,10 +182,11 @@ const MAX_PREFERENCES = 50;
 // =============================================================================
 
 /**
- * Get the home directory for cross-project storage
+ * Get the home directory for cross-project storage (cross-platform)
+ * Delegates to paths.ts which uses os.homedir() for proper cross-platform support
  */
 function getHomeDir(): string {
-  return process.env.HOME || process.env.USERPROFILE || '/tmp';
+  return getHomeDirFromPaths();
 }
 
 /**

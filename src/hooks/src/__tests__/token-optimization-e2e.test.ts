@@ -13,6 +13,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { graphMemoryInject } from '../subagent-start/graph-memory-inject.js';
 import { estimateTokenCount, outputPromptContextBudgeted } from '../lib/common.js';
 import { trackTokenUsage, getCategoryUsage, getTotalUsage, getTokenState } from '../lib/token-tracker.js';
@@ -23,7 +24,7 @@ import type { HookInput } from '../types.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/token-opt-e2e-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'token-opt-e2e-test');
 const TEST_SESSION_ID = 'e2e-test-' + Date.now();
 
 function makeSubagentInput(agentType: string): HookInput {

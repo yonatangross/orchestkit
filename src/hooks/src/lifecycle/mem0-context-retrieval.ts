@@ -15,6 +15,7 @@
 import { existsSync, readFileSync, mkdirSync, renameSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
 
 interface PendingSyncFile {
   memories?: unknown[];
@@ -109,7 +110,7 @@ export function mem0ContextRetrieval(input: HookInput): HookResult {
 
   // Pending sync file locations
   const pendingSyncFile = `${projectDir}/.mem0-pending-sync.json`;
-  const pendingSyncGlobal = `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/.mem0-pending-sync.json`;
+  const pendingSyncGlobal = `${getHomeDir()}/.claude/.mem0-pending-sync.json`;
 
   // Determine which pending sync file to check
   let pendingFile: string | null = null;

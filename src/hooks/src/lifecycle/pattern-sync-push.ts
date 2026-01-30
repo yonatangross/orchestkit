@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
 
 interface PatternFile {
   version?: string;
@@ -40,7 +41,7 @@ function isSyncEnabled(projectDir: string): boolean {
  */
 function pushProjectPatterns(projectDir: string): void {
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const home = getHomeDir();
   const globalPatternsFile = `${home}/.claude/global-patterns.json`;
 
   if (!existsSync(projectPatternsFile)) {

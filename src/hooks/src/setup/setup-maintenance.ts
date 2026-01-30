@@ -27,6 +27,7 @@ import {
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { getHomeDir, getTempDir } from '../lib/paths.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -88,7 +89,7 @@ function hoursSince(timestamp: string | null): number {
 function taskLogRotation(pluginRoot: string): void {
   logHook('setup-maintenance', 'Task: Log rotation');
 
-  const logDirs = [`${pluginRoot}/.claude/logs`, `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/logs/ork`];
+  const logDirs = [`${pluginRoot}/.claude/logs`, `${getHomeDir()}/.claude/logs/ork`];
 
   let rotated = 0;
 
@@ -247,12 +248,13 @@ function taskSessionCleanup(pluginRoot: string): void {
   }
 
   // Clean up old temp files
+  const systemTmpDir = getTempDir();
   try {
-    const entries = readdirSync('/tmp');
+    const entries = readdirSync(systemTmpDir);
     for (const entry of entries) {
       if (!entry.startsWith('claude-session-')) continue;
 
-      const fullPath = `/tmp/${entry}`;
+      const fullPath = `${systemTmpDir}/${entry}`;
       try {
         const stats = statSync(fullPath);
         const ageDays = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60 * 24);
@@ -306,7 +308,7 @@ function taskMemoryFabricCleanup(projectDir: string): void {
   }
 
   // Clean up global pending sync if stale
-  const globalSync = `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/.mem0-pending-sync.json`;
+  const globalSync = `${getHomeDir()}/.claude/.mem0-pending-sync.json`;
   if (existsSync(globalSync)) {
     try {
       const stats = statSync(globalSync);

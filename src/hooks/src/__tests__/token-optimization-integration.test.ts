@@ -14,6 +14,7 @@
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { estimateTokenCount } from '../lib/common.js';
 import { trackTokenUsage, getCategoryUsage, getTotalUsage, getTokenState } from '../lib/token-tracker.js';
 import {
@@ -29,7 +30,7 @@ import {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/token-optimization-integration-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'token-optimization-integration-test');
 const TEST_SESSION_ID = 'token-opt-test-' + Date.now();
 
 beforeEach(() => {

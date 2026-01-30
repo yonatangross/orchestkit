@@ -10,6 +10,7 @@
 import { existsSync, readFileSync, writeFileSync, statSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
 
 interface PatternFile {
   version?: string;
@@ -68,7 +69,7 @@ function checkFileSize(filePath: string): boolean {
  * Pull global patterns into project
  */
 function pullGlobalPatterns(projectDir: string): void {
-  const home = process.env.HOME || process.env.USERPROFILE || '/tmp';
+  const home = getHomeDir();
   const globalPatternsFile = `${home}/.claude/global-patterns.json`;
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 

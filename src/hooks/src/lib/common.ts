@@ -6,36 +6,40 @@
 import { appendFileSync, existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
+import {
+  getLogDir as getLogDirFromPaths,
+  getProjectDir as getProjectDirFromPaths,
+  getPluginRoot as getPluginRootFromPaths,
+} from './paths.js';
 
 // -----------------------------------------------------------------------------
 // Environment and Paths
 // All functions read env vars dynamically to support testing
+// Re-export from paths.ts for cross-platform compatibility
 // -----------------------------------------------------------------------------
 
 /**
- * Get the log directory path
+ * Get the log directory path (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getLogDir(): string {
-  if (process.env.CLAUDE_PLUGIN_ROOT) {
-    return `${process.env.HOME || process.env.USERPROFILE || '/tmp'}/.claude/logs/ork`;
-  }
-  return `${getProjectDir()}/.claude/logs`;
+  return getLogDirFromPaths();
 }
 
 /**
- * Get the project directory
- * Read dynamically to support testing
+ * Get the project directory (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getProjectDir(): string {
-  return process.env.CLAUDE_PROJECT_DIR || '.';
+  return getProjectDirFromPaths();
 }
 
 /**
- * Get the plugin root directory
- * Read dynamically to support testing
+ * Get the plugin root directory (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getPluginRoot(): string {
-  return process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
+  return getPluginRootFromPaths();
 }
 
 /**

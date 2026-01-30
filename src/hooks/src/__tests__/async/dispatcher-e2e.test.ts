@@ -21,6 +21,7 @@ import { execSync, spawn } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { tmpdir } from 'node:os';
 
 // ---------------------------------------------------------------------------
 // Paths
@@ -48,7 +49,7 @@ function runHook(hookName: string, input?: Record<string, unknown>): Promise<Run
       env: {
         ...process.env,
         // Prevent real side effects
-        CLAUDE_PROJECT_DIR: '/tmp/ork-e2e-test',
+        CLAUDE_PROJECT_DIR: join(tmpdir(), 'ork-e2e-test'),
         CLAUDE_SESSION_ID: 'e2e-test-session',
         CLAUDE_PLUGIN_ROOT: '',
         ORCHESTKIT_LOG_LEVEL: 'error', // minimize noise
@@ -159,7 +160,7 @@ describe('E2E: run-hook.mjs Pipeline', () => {
 
     it('handles malformed JSON stdin gracefully (exit 0)', async () => {
       const child = spawn('node', [RUN_HOOK, 'posttool/unified-dispatcher'], {
-        env: { ...process.env, CLAUDE_PROJECT_DIR: '/tmp/ork-e2e-test' },
+        env: { ...process.env, CLAUDE_PROJECT_DIR: join(tmpdir(), 'ork-e2e-test') },
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 10000,
       });
@@ -223,7 +224,7 @@ describe('E2E: run-hook.mjs Pipeline', () => {
   describe('E2E: stop/mem0-pre-compaction-sync', () => {
     it('returns silent success with no API key', async () => {
       // Must explicitly clear MEM0_API_KEY since runHook inherits process.env
-      const env = { ...process.env, MEM0_API_KEY: '', CLAUDE_PROJECT_DIR: '/tmp/ork-e2e-test', CLAUDE_PLUGIN_ROOT: '', ORCHESTKIT_LOG_LEVEL: 'error' };
+      const env = { ...process.env, MEM0_API_KEY: '', CLAUDE_PROJECT_DIR: join(tmpdir(), 'ork-e2e-test'), CLAUDE_PLUGIN_ROOT: '', ORCHESTKIT_LOG_LEVEL: 'error' };
       const result = await new Promise<RunResult>((resolve) => {
         const child = spawn('node', [RUN_HOOK, 'stop/mem0-pre-compaction-sync'], {
           env,

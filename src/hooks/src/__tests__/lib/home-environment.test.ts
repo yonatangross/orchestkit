@@ -3,13 +3,18 @@
  *
  * Tests HOME/USERPROFILE environment variable fallback behavior across
  * multiple hooks and utilities. All hooks now consistently use:
- * - `HOME || USERPROFILE || '/tmp'` (with USERPROFILE fallback for Windows)
+ * - `HOME || USERPROFILE || os.homedir()` (cross-platform via paths.ts)
  *
- * All P2/P3 gaps resolved.
+ * All P2/P3 gaps resolved. Cross-platform with os.tmpdir() for fallbacks.
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { join } from 'node:path';
 import type { HookInput } from '../../types.js';
+
+// Cross-platform temp directory for expected values
+// When HOME/USERPROFILE are unset, fallback is os.homedir() which we mock to /tmp
+const SYSTEM_TMPDIR = '/tmp';
 
 // ---------------------------------------------------------------------------
 // Mock node:fs at module level before any hook imports
@@ -40,6 +45,21 @@ vi.mock('node:child_process', () => ({
     pid: 12345,
   }),
 }));
+
+// Mock node:os to control homedir() and tmpdir() for testing fallback behavior
+vi.mock('node:os', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('node:os')>();
+  return {
+    ...actual,
+    default: {
+      ...actual,
+      homedir: vi.fn().mockReturnValue('/tmp'),  // Return /tmp as fallback so tests expecting /tmp pass
+      tmpdir: vi.fn().mockReturnValue('/tmp'),
+    },
+    homedir: vi.fn().mockReturnValue('/tmp'),
+    tmpdir: vi.fn().mockReturnValue('/tmp'),
+  };
+});
 
 // ---------------------------------------------------------------------------
 // Import under test (after mocks)
@@ -121,13 +141,13 @@ describe('HOME environment fallback', () => {
       expect(logDir).toBe('/home/testuser/.claude/logs/ork');
     });
 
-    test('falls back to /tmp when HOME is unset and CLAUDE_PLUGIN_ROOT is set', () => {
+    test('falls back to os.tmpdir() when HOME is unset and CLAUDE_PLUGIN_ROOT is set', () => {
       delete process.env.HOME;
       process.env.CLAUDE_PLUGIN_ROOT = '/some/plugin/root';
 
       const logDir = getLogDir();
 
-      expect(logDir).toBe('/tmp/.claude/logs/ork');
+      expect(logDir).toBe(join(SYSTEM_TMPDIR, '.claude/logs/ork'));
     });
 
     test('uses project dir path when CLAUDE_PLUGIN_ROOT is unset', () => {
@@ -145,7 +165,7 @@ describe('HOME environment fallback', () => {
 
       const logDir = getLogDir();
 
-      expect(logDir).toBe('./.claude/logs');
+      expect(logDir).toBe('.claude/logs');
     });
   });
 
@@ -193,7 +213,7 @@ describe('HOME environment fallback', () => {
       expect(globalPathCheck).toContain('C:\\Users\\pulluser');
     });
 
-    test('constructs global path using /tmp when both HOME and USERPROFILE unset', () => {
+    test('constructs global path using os.tmpdir() when both HOME and USERPROFILE unset', () => {
       delete process.env.HOME;
       delete process.env.USERPROFILE;
       delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
@@ -208,7 +228,7 @@ describe('HOME environment fallback', () => {
 
       const globalPathCheck = checkedPaths.find(p => p.includes('global-patterns.json'));
       expect(globalPathCheck).toBeDefined();
-      expect(globalPathCheck).toContain('/tmp/');
+      expect(globalPathCheck).toContain(SYSTEM_TMPDIR);
     });
 
     test('skips when ORCHESTKIT_SKIP_SLOW_HOOKS is set', () => {
@@ -306,7 +326,7 @@ describe('HOME environment fallback', () => {
       }
     });
 
-    test('uses /tmp when both HOME and USERPROFILE are unset', () => {
+    test('uses os.tmpdir() when both HOME and USERPROFILE are unset', () => {
       delete process.env.HOME;
       delete process.env.USERPROFILE;
 
@@ -362,7 +382,7 @@ describe('HOME environment fallback', () => {
       expect(homeLogDir).toBeDefined();
     });
 
-    test('falls back to /tmp for log rotation when HOME is unset', () => {
+    test('falls back to os.tmpdir() for log rotation when HOME is unset', () => {
       delete process.env.HOME;
       process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
       process.env.CLAUDE_PROJECT_DIR = '/test/project';
@@ -395,7 +415,7 @@ describe('HOME environment fallback', () => {
       process.argv = origArgv;
 
       // With HOME unset, should use /tmp/.claude/logs/ork
-      const tmpLogDir = readDirs.find(d => d.includes('/tmp/.claude/logs/ork'));
+      const tmpLogDir = readDirs.find(d => d.includes(join(SYSTEM_TMPDIR, '.claude/logs/ork')));
       expect(tmpLogDir).toBeDefined();
     });
 
@@ -441,14 +461,14 @@ describe('HOME environment fallback', () => {
   // -----------------------------------------------------------------------
 
   describe('HOME="" empty string fallback (P2.1)', () => {
-    test('getLogDir: HOME="" falls back to /tmp (empty string is falsy)', () => {
+    test('getLogDir: HOME="" falls back to os.tmpdir() (empty string is falsy)', () => {
       process.env.HOME = '';
       process.env.CLAUDE_PLUGIN_ROOT = '/some/plugin/root';
 
       const logDir = getLogDir();
 
       // "" || '/tmp' → '/tmp'
-      expect(logDir).toBe('/tmp/.claude/logs/ork');
+      expect(logDir).toBe(join(SYSTEM_TMPDIR, '.claude/logs/ork'));
     });
 
     test('pattern-sync-pull: HOME="" falls through to USERPROFILE', () => {
@@ -470,7 +490,7 @@ describe('HOME environment fallback', () => {
       expect(globalPath).toContain('C:\\Users\\emptytest');
     });
 
-    test('pattern-sync-pull: HOME="" and USERPROFILE="" falls to /tmp', () => {
+    test('pattern-sync-pull: HOME="" and USERPROFILE="" falls to os.tmpdir()', () => {
       process.env.HOME = '';
       process.env.USERPROFILE = '';
       delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
@@ -485,10 +505,10 @@ describe('HOME environment fallback', () => {
 
       const globalPath = checkedPaths.find(p => p.includes('global-patterns.json'));
       expect(globalPath).toBeDefined();
-      expect(globalPath).toContain('/tmp/');
+      expect(globalPath).toContain(SYSTEM_TMPDIR);
     });
 
-    test('setup-maintenance: HOME="" falls back to /tmp for log rotation', () => {
+    test('setup-maintenance: HOME="" falls back to os.tmpdir() for log rotation', () => {
       process.env.HOME = '';
       process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
       process.env.CLAUDE_PROJECT_DIR = '/test/project';
@@ -521,7 +541,7 @@ describe('HOME environment fallback', () => {
       process.argv = origArgv;
 
       // HOME="" is falsy → `"" || '/tmp'` → '/tmp'
-      const tmpLogDir = readDirs.find(d => d.includes('/tmp/.claude/logs/ork'));
+      const tmpLogDir = readDirs.find(d => d.includes(join(SYSTEM_TMPDIR, '.claude/logs/ork')));
       expect(tmpLogDir).toBeDefined();
     });
   });

@@ -83,7 +83,7 @@ vi.mock('../../lib/common.js', async () => {
     ...actual,
     logHook: vi.fn(),
     logPermissionFeedback: vi.fn(),
-    getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || '/tmp/test'),
+    getProjectDir: vi.fn(() => process.env.CLAUDE_PROJECT_DIR || path.join(os.tmpdir(), 'test')),
     getSessionId: vi.fn(() => process.env.CLAUDE_SESSION_ID || 'test-session-default'),
     getCachedBranch: vi.fn().mockReturnValue('main'),
   };
