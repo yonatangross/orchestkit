@@ -2,9 +2,9 @@
 name: doctor
 description: OrchestKit health diagnostics command that validates plugin configuration and reports issues. Use when running doctor checks or troubleshooting plugin health.
 context: inherit
-version: 2.0.0
+version: 3.0.0
 author: OrchestKit
-tags: [health-check, diagnostics, validation, permissions, hooks]
+tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
 allowedTools: [Bash, Read, Grep, Glob]
 skills: [configure]
@@ -14,223 +14,353 @@ skills: [configure]
 
 ## Overview
 
-The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It validates:
+The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:
 
-1. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)
-2. **Hook Health** - Verifies executability and references
-3. **Schema Compliance** - Validates JSON files against schemas
-4. **Coordination System** - Checks lock health and registry integrity
-5. **Context Budget** - Monitors token usage against budget
-6. **Claude Code Version** - Validates CC >= 2.1.16 for full feature support
+1. **Installed Plugins** - Detects which ork-* plugins are active
+2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
+3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
+4. **Hook Health** - Registration, bundles, async patterns (from ork-core)
+5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)
+6. **Schema Compliance** - Validates JSON files against schemas
+7. **Coordination System** - Checks lock health and registry integrity
+8. **Context Budget** - Monitors token usage against budget
+9. **Memory System** - Graph, Mem0, Fabric health (3-tier)
+10. **Claude Code Version** - Validates CC >= 2.1.16
 
-## Overview
+## When to Use
 
 - After installing or updating OrchestKit
 - When hooks aren't firing as expected
-- When permission rules seem to have no effect
 - Before deploying to a team environment
 - When debugging coordination issues
+- After running `npm run build`
 
 ## Quick Start
 
 ```bash
-/ork:doctor
+/ork:doctor           # Standard health check
+/ork:doctor -v        # Verbose output
+/ork:doctor --json    # Machine-readable for CI
 ```
+
+## CLI Options
+
+| Flag | Description |
+|------|-------------|
+| `-v`, `--verbose` | Detailed output per check |
+| `--json` | JSON output for CI integration |
+| `--category=X` | Run only specific category |
 
 ## Health Check Categories
 
-### 1. Permission Rules Analysis
+### 0. Installed Plugins Detection
 
-Leverages CC 2.1.3's unreachable permission rules detection:
+Auto-detects which OrchestKit plugins are installed:
+
+```bash
+# Detection logic:
+# - Scans for .claude-plugin/plugin.json in plugin paths
+# - Identifies ork, ork-core, ork-frontend, etc.
+# - Counts skills/agents per installed plugin
+```
+
+**Output:**
+```
+Installed Plugins: 3
+- ork-core: 15 skills, 0 agents, 22 hook entries
+- ork-frontend: 18 skills, 2 agents
+- ork-memory-graph: 5 skills, 0 agents
+Combined: 38 skills, 2 agents
+```
+
+**Full ork plugin output:**
+```
+Installed Plugins: 1
+- ork: 186 skills, 35 agents (includes all domains)
+- ork-core: hooks dependency (22 entries, 11 bundles)
+```
+
+### 1. Skills Validation
+
+Validates skills in installed plugins (count varies by installation):
 
 ```bash
 # Checks performed:
-# - Rules that can never match (unreachable patterns)
-# - Overlapping rules where one shadows another
-# - Invalid matcher syntax
-# - Missing required fields
+# - SKILL.md frontmatter (name, description, user-invocable)
+# - context: fork field (required for CC 2.1.0+)
+# - Token budget compliance (300-5000 tokens)
+# - Internal link validation (references/ paths)
+# - Related Skills references exist
 ```
+
+**Output (full ork):**
+```
+Skills: 186/186 valid
+- User-invocable: 23 commands
+- Reference skills: 163
+```
+
+**Output (ork-frontend only):**
+```
+Skills: 18/18 valid
+- User-invocable: 0 commands
+- Reference skills: 18
+```
+
+### 2. Agents Validation
+
+Validates agents in installed plugins:
+
+```bash
+# Checks performed:
+# - Frontmatter fields (name, description, model, tools, skills)
+# - Model validation (opus, sonnet, haiku only)
+# - Skills references exist in src/skills/
+# - Tools are valid CC tools
+```
+
+**Output:**
+```
+Agents: 35/35 valid
+- Models: 12 sonnet, 15 haiku, 8 opus
+- All skill references valid
+```
+
+### 3. Hook Health
+
+Verifies hooks are properly configured:
+
+```bash
+# Checks performed:
+# - hooks.json schema valid
+# - Bundle files exist (11 .mjs bundles)
+# - Async hooks use fire-and-forget pattern (6 async)
+# - Background hook metrics health (Issue #243)
+```
+
+**Output:**
+```
+Hooks: 22/22 entries valid (11 bundles)
+- PreToolUse: 8, PostToolUse: 3, PermissionRequest: 3
+- Async hooks: 6 (fire-and-forget)
+- Error Rate: 0.3%
+```
+
+See [Hook Validation](references/hook-validation.md) for details.
+
+### 4. Memory System (NEW)
+
+Validates 3-tier memory architecture:
+
+```bash
+# Checks performed:
+# - Tier 1 (Graph): .claude/memory/ exists, graph queryable
+# - Tier 2 (Mem0): MEM0_API_KEY detection, fallback behavior
+# - Tier 3 (Fabric): Orchestration health
+```
+
+**Output:**
+```
+Memory System: healthy
+- Graph Memory: connected (42 nodes)
+- Mem0 Cloud: available (API key detected)
+- Memory Fabric: active
+```
+
+See [Memory Health](references/memory-health.md) for details.
+
+### 5. Build System (NEW)
+
+Verifies plugins/ sync with src/:
+
+```bash
+# Checks performed:
+# - plugins/ generated from src/
+# - Manifest counts match actual files
+# - No orphaned skills/agents
+```
+
+**Output:**
+```
+Build System: in sync
+- Skills: 186 src/ = 186 plugins/
+- Agents: 35 src/ = 35 plugins/
+- Last build: 2 minutes ago
+```
+
+### 6. Permission Rules
+
+Leverages CC 2.1.3's unreachable permission rules detection:
 
 **Output:**
 ```
 Permission Rules: 12/12 reachable
-- auto-approve-safe-bash (TypeScript): OK
-- auto-approve-safe-bash.sh: OK (3 patterns)
-- auto-approve-project-writes.sh: OK
 ```
 
-### 2. Hook Validation
+### 7. Schema Compliance
 
-Verifies all 93 hooks are properly configured:
-
-```bash
-# Checks performed:
-# - chmod +x (executable permission)
-# - Shebang line present (#!/usr/bin/env bash)
-# - Dispatcher references valid
-# - Matcher patterns syntax correct
-# - No missing hook files referenced in settings.json
-```
-
-**Output:**
-```
-Hooks: 147/147 valid
-- pretool/bash/git-branch-protection.sh: executable, 73 lines
-- posttool/audit-logger.sh: executable, 89 lines
-- stop/context-compressor.sh: executable, 207 lines
-```
-
-### 3. Schema Compliance
-
-Validates JSON files against schemas in `.claude/schemas/`:
-
-```bash
-# Files validated:
-# - plugin.json against plugin.schema.json
-# - All SKILL.md files
-# - context/*.json files
-# - coordination/*.json files
-```
+Validates JSON files against schemas:
 
 **Output:**
 ```
 Schemas: 15/15 compliant
-- plugin.json: valid
-- skills/*/SKILL.md: 79/79 valid
-- context/session/state.json: valid
 ```
 
-### 4. Coordination System
+### 8. Coordination System
 
 Checks multi-worktree coordination health:
-
-```bash
-# Checks performed:
-# - work-registry.json integrity
-# - decision-log.json structure
-# - Stale locks (expired > 60s)
-# - Heartbeat status
-```
 
 **Output:**
 ```
 Coordination: healthy
 - Active instances: 1
 - Stale locks: 0
-- Decision log entries: 42
 ```
 
-### 5. Context Budget
+### 9. Context Budget
 
-Monitors token usage against the 2200 token budget:
-
-```bash
-# Calculations:
-# - identity.json tokens
-# - session/state.json tokens
-# - knowledge/*.json tokens
-# - Active skill context tokens
-```
+Monitors token usage:
 
 **Output:**
 ```
 Context Budget: 1850/2200 tokens (84%)
-- identity.json: 200 tokens
-- session/state.json: 450 tokens
-- knowledge/: 1200 tokens
 ```
 
-### 6. Claude Code Version
+### 10. Claude Code Version
 
-Validates runtime Claude Code version meets minimum requirements:
-
-```bash
-# Checks performed:
-# - Runtime version >= 2.1.16 (minimum for OrchestKit 5.x)
-# - Feature availability detection (Task tools, VSCode plugins)
-# - Upgrade guidance for older versions
-```
+Validates runtime version:
 
 **Output:**
 ```
-Claude Code Version: 2.1.16 (OK)
-- Task Management: available (TaskCreate, TaskUpdate, TaskGet, TaskList)
-- VSCode Plugins: available
-- Engine requirement: >=2.1.16 (satisfied)
-```
-
-**Upgrade guidance (if older version):**
-```
-Claude Code Version: 2.1.14 (OUTDATED)
-- Missing features: Task Management, VSCode native plugins
-- Upgrade: Run 'claude update' or reinstall from https://claude.ai/download
-- Some OrchestKit features may not work correctly
+Claude Code: 2.1.25 (OK)
+- Minimum required: 2.1.16
 ```
 
 ## Report Format
 
+**Full ork plugin:**
 ```
-+==================================================================+
-|                    OrchestKit Health Report                       |
-+==================================================================+
-| Version: 5.0.0  |  CC: 2.1.16  |  Channel: stable                |
-+==================================================================+
-| Permission Rules     | 12/12 reachable                           |
-| Hooks                | 93/93 valid                               |
-| Schemas              | 15/15 compliant                           |
-| Context Budget       | 1850/2200 tokens (84%)                    |
-| Coordination         | 0 stale locks                             |
-| CC Version           | 2.1.16 (OK)                               |
-+==================================================================+
++===================================================================+
+|                    OrchestKit Health Report                        |
++===================================================================+
+| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: ork + ork-core         |
++===================================================================+
+| Skills           | 186/186 valid                                  |
+| Agents           | 35/35 valid                                    |
+| Hooks            | 22/22 entries (11 bundles)                     |
+| Memory           | 3/3 tiers healthy                              |
+| Permissions      | 12/12 reachable                                |
+| Schemas          | 15/15 compliant                                |
+| Context          | 1850/2200 tokens (84%)                         |
+| Coordination     | 0 stale locks                                  |
+| CC Version       | 2.1.25 (OK)                                    |
++===================================================================+
+| Status: HEALTHY (9/9 checks passed)                               |
++===================================================================+
 ```
+
+**Domain-specific plugins (e.g., ork-frontend + ork-memory-graph):**
+```
++===================================================================+
+|                    OrchestKit Health Report                        |
++===================================================================+
+| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: 3 installed            |
++===================================================================+
+| Installed        | ork-core, ork-frontend, ork-memory-graph       |
+| Skills           | 38/38 valid (combined)                         |
+| Agents           | 2/2 valid                                      |
+| Hooks            | 22/22 entries (via ork-core)                   |
+| Memory           | 1/3 tiers (graph only)                         |
++===================================================================+
+```
+
+## JSON Output (CI Integration)
+
+```bash
+/ork:doctor --json
+```
+
+```json
+{
+  "version": "5.4.0",
+  "claudeCode": "2.1.25",
+  "status": "healthy",
+  "plugins": {
+    "installed": ["ork", "ork-core"],
+    "count": 2
+  },
+  "checks": {
+    "skills": {"passed": true, "count": 186, "perPlugin": {"ork": 186}},
+    "agents": {"passed": true, "count": 35, "perPlugin": {"ork": 35}},
+    "hooks": {"passed": true, "entries": 22, "bundles": 11, "source": "ork-core"},
+    "memory": {"passed": true, "tiers": 3, "available": ["graph", "mem0", "fabric"]},
+    "permissions": {"passed": true, "count": 12},
+    "schemas": {"passed": true, "count": 15},
+    "context": {"passed": true, "usage": 0.84},
+    "coordination": {"passed": true, "staleLocks": 0},
+    "ccVersion": {"passed": true, "version": "2.1.25"}
+  },
+  "exitCode": 0
+}
+```
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All checks pass |
+| 1 | One or more checks failed |
 
 ## Interpreting Results
 
 | Status | Meaning | Action |
 |--------|---------|--------|
 | All checks pass | Plugin healthy | None required |
+| Skills warning | Invalid frontmatter | Run `npm run test:skills` |
+| Agents warning | Invalid frontmatter | Run `npm run test:agents` |
+| Hook error | Missing/broken hook | Check hooks.json and bundles |
+| Memory warning | Tier unavailable | Check .claude/memory/ or MEM0_API_KEY |
+| Build warning | Out of sync | Run `npm run build` |
 | Permission warning | Unreachable rules | Review `.claude/settings.json` |
-| Hook error | Missing/broken hook | Check file permissions and paths |
-| Schema error | Invalid JSON | Run schema validation script |
-| Budget warning | >80% context used | Review loaded skills |
-| Coordination error | Stale locks | Run cleanup script |
-| CC version warning | Outdated Claude Code | Run `claude update` to upgrade |
 
 ## Troubleshooting
 
-### "Permission rule unreachable"
+### "Skills validation failed"
 
 ```bash
-# Check if a more specific rule shadows this one
-# Example: "*.md" shadowed by "README.md"
-cat .claude/settings.json | jq '.permissions'
+# Run skill structure tests
+npm run test:skills
+./tests/skills/structure/test-skill-md.sh
 ```
 
-### "Hook not executable"
+### "Build out of sync"
 
 ```bash
-# Fix permissions
-chmod +x .claude/hooks/path/to/hook.sh
+# Rebuild plugins from source
+npm run build
 ```
 
-### "Context budget exceeded"
+### "Memory tier unavailable"
 
 ```bash
-# Check which skills are loaded
-# Use progressive loading - don't load entire skill directories
+# Check graph memory
+ls -la .claude/memory/
+
+# Check Mem0 (optional)
+echo $MEM0_API_KEY
 ```
-
-## Integration
-
-This skill works with:
-- `quality-gates` - For CI/CD integration
-- `security-scanning` - For comprehensive audits
-
 
 ## Related Skills
-- configure: Configure plugin settings
+
+- `configure` - Configure plugin settings
+- `quality-gates` - CI/CD integration
+- `security-scanning` - Comprehensive audits
+
 ## References
 
-- [Permission Rules](references/permission-rules.md)
+- [Skills Validation](references/skills-validation.md)
+- [Agents Validation](references/agents-validation.md)
 - [Hook Validation](references/hook-validation.md)
+- [Memory Health](references/memory-health.md)
+- [Permission Rules](references/permission-rules.md)
 - [Schema Validation](references/schema-validation.md)
