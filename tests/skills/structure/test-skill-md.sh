@@ -508,7 +508,7 @@ echo "────────────────────────�
 
 # Expected counts
 EXPECTED_USER_INVOCABLE=23
-EXPECTED_INTERNAL=162
+EXPECTED_INTERNAL=163
 
 missing_user_invocable=()
 user_invocable_true=()

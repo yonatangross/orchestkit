@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   test: {
@@ -6,10 +7,19 @@ export default defineConfig({
     environment: 'node',
     include: ['src/__tests__/**/*.test.ts'],
     exclude: ['**/node_modules/**', '**/dist/**'],
+    // Allow importing .mjs files from bin/
+    alias: {
+      '@bin': resolve(__dirname, 'bin'),
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'text-summary', 'json', 'html'],
       reportsDirectory: './coverage',
+      include: [
+        'src/**/*.ts',
+        // Note: bin/*.mjs scripts are tested via integration tests (child_process.spawn)
+        // V8 coverage doesn't track code in spawned processes
+      ],
       exclude: [
         '**/__tests__/**',
         '**/dist/**',
@@ -18,6 +28,7 @@ export default defineConfig({
         '**/*.d.ts',
         'vitest.config.ts',
         'esbuild.config.mjs',
+        'bin/**/*.mjs',  // Tested via integration, not unit coverage
       ],
       thresholds: {
         // Current baseline - incrementally increase as coverage improves
