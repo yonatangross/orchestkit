@@ -105,7 +105,64 @@ Audio preferences?
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## Content Type Templates
+## Template System
+
+The demo-producer skill offers three distinct template architectures for different demo styles:
+
+### 1. TriTerminalRace (3-Panel Racing)
+
+Perfect for showcasing complexity levels in parallel:
+
+- **Use case**: Feature comparisons, skill showcases, progressive tutorials
+- **Format**: 3 split terminals (Simple → Medium → Advanced)
+- **Duration**: 15-20 seconds
+- **Components**: LiveFolderTree, LevelBadge, SkillReferences, CodePreview, ProgressPhases
+- **Example**: `/demo-producer skill explore --template tri-terminal-race`
+
+**Key Features:**
+- Color-coded difficulty indicators (Green/Amber/Purple)
+- Real-time project structure animation
+- Parallel progress tracking
+- Comparative metrics display
+- Side-by-side summary cards
+
+### 2. ProgressiveZoom (Tutorial Style)
+
+Ideal for step-by-step explanations:
+
+- **Use case**: Tutorials, code walkthroughs, feature deep-dives
+- **Format**: Zooming transitions, layered reveals
+- **Duration**: 20-30 seconds
+- **Components**: CodePreview, Highlights, Annotations, TimelineBar
+- **Example**: `/demo-producer tutorial "Building REST API" --template progressive-zoom`
+
+**Key Features:**
+- Smooth zoom effects on code sections
+- Progressive annotation reveals
+- Contextual highlighting
+- Timeline markers for phases
+- Caption overlays
+
+### 3. SplitThenMerge (Dramatic Style)
+
+Great for before/after and transformation stories:
+
+- **Use case**: Problem → Solution demos, transformations, workflow changes
+- **Format**: Split screen that merges to unified view
+- **Duration**: 15-25 seconds
+- **Components**: SplitScreen, MergeTransition, ContrastHighlight, ImpactMetrics
+- **Example**: `/demo-producer cli "npm run build" --template split-then-merge`
+
+**Key Features:**
+- Split screen comparisons
+- Dramatic merge transitions
+- Side-by-side metrics
+- Impact indicators (faster, better, safer)
+- Before/after snapshots
+
+See `references/template-system.md` for detailed configuration guide and SkillDemoConfig interface.
+
+## Original Content Type Templates (Supported)
 
 ### Skill Template
 Shows: Skill activation → Task creation → Phase execution → Results
@@ -311,6 +368,7 @@ Rule: If content doesn't earn its screen time, cut it.
 
 ## References
 
+- `references/template-system.md` - Template architecture and SkillDemoConfig interface
 - `references/content-types.md` - Detailed content type specs
-- `references/format-selection.md` - Platform requirements
-- `references/script-generation.md` - Script templates
+- `references/format-selection.md` - Platform requirements and multi-format support
+- `references/script-generation.md` - Script templates and generation patterns

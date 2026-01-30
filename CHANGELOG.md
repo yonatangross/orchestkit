@@ -5,6 +5,22 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.2] - 2026-01-30
+
+### Added
+
+- **Background hook debug & logging system (Issue #243 enhancement)** — Added comprehensive debugging for silent hooks:
+  - Debug configuration via `.claude/hooks/debug.json` with filters and verbosity controls
+  - Execution metrics tracking in `.claude/hooks/metrics.json` (run count, error rate, avg duration)
+  - PID tracking for monitoring active background hooks
+  - Structured JSON logging in `.claude/logs/background-hooks.log`
+  - `/ork:doctor` integration for hook health monitoring
+
+### Changed
+
+- **`run-hook-background.mjs`** — Enhanced with debug logging, metrics tracking, and PID file management
+- **`/ork:doctor`** — Updated hook validation section with background hook health checks
+
 ## [5.4.1] - 2026-01-29
 
 ### Changed
@@ -30,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Skill count**: 182 → 185 (new AI observability skills: drift-detection, pii-masking-patterns, silent-failure-detection)
 
-- **Hook count**: 154 → 167 (new lifecycle hooks for video production and observability)
+- **Hook count**: 154 → 167 (new lifecycle hooks for video production and observability); async hooks eliminated entirely via silent runner pattern
 
 ### Added
 
@@ -43,6 +59,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **npm scripts for manifest tests**: `npm run test:manifests`, `test:manifests:orphans`, etc.
 
 ### Fixed
+
+- **Async hook terminal spam (Issue #243)** — Eliminated ALL "Async hook X completed" messages:
+  - Converted 7 async hooks to fire-and-forget using `run-hook-silent.mjs`
+  - Silent runner spawns detached background processes (no async flag needed)
+  - Total async hooks: 7 → 0 (100% elimination of terminal spam)
+  - Background work still executes via detached processes
 
 - **38 orphan skills** — All skills now assigned to appropriate domain plugins
 - **19 skill warnings** — Added "Related Skills" sections and "Use when" trigger phrases to improve discoverability
