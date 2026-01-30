@@ -3,7 +3,7 @@ import { ORCHESTKIT_STATS, VIDEO_CONFIG, COLORS } from "./constants";
 
 describe("ORCHESTKIT_STATS", () => {
   it("should have correct skill count", () => {
-    expect(ORCHESTKIT_STATS.skills).toBe(179);
+    expect(ORCHESTKIT_STATS.skills).toBe(181);
   });
 
   it("should have correct agent count", () => {
@@ -11,11 +11,11 @@ describe("ORCHESTKIT_STATS", () => {
   });
 
   it("should have correct hook count", () => {
-    expect(ORCHESTKIT_STATS.hooks).toBe(144);
+    expect(ORCHESTKIT_STATS.hooks).toBe(152);
   });
 
   it("should have correct CC version", () => {
-    expect(ORCHESTKIT_STATS.ccVersion).toBe("CC 2.1.16");
+    expect(ORCHESTKIT_STATS.ccVersion).toBe("CC 2.1.20");
   });
 });
 

@@ -35,6 +35,75 @@ import {
 } from "./components/HooksAsyncDemo";
 import { HeroGif, heroGifSchema } from "./components/HeroGif";
 import { MarketplaceDemo, marketplaceDemoSchema } from "./components/MarketplaceDemo";
+import {
+  TriTerminalRace,
+  triTerminalRaceSchema,
+} from "./components/TriTerminalRace";
+import {
+  TriTerminalRaceVertical,
+  triTerminalRaceVerticalSchema,
+} from "./components/TriTerminalRace-Vertical";
+import {
+  TriTerminalRaceSquare,
+  triTerminalRaceSquareSchema,
+} from "./components/TriTerminalRace-Square";
+import {
+  ProgressiveZoom,
+  progressiveZoomSchema,
+} from "./components/ProgressiveZoom";
+import {
+  ProgressiveZoomVertical,
+  progressiveZoomVerticalSchema,
+} from "./components/ProgressiveZoom-Vertical";
+import {
+  ProgressiveZoomSquare,
+  progressiveZoomSquareSchema,
+} from "./components/ProgressiveZoom-Square";
+import {
+  SplitThenMerge,
+  splitThenMergeSchema,
+} from "./components/SplitThenMerge";
+import {
+  SplitThenMergeVertical,
+  splitThenMergeVerticalSchema,
+} from "./components/SplitThenMerge-Vertical";
+import {
+  SplitThenMergeSquare,
+  splitThenMergeSquareSchema,
+} from "./components/SplitThenMerge-Square";
+import { implementDemoConfig } from "./components/configs/implement-demo";
+import { commitDemoConfig } from "./components/configs/commit-demo";
+import { verifyDemoConfig } from "./components/configs/verify-demo";
+import { reviewPRDemoConfig } from "./components/configs/review-pr-demo";
+import { exploreDemoConfig } from "./components/configs/explore-demo";
+import { rememberDemoConfig } from "./components/configs/remember-demo";
+import { brainstormDemoConfig } from "./components/configs/brainstorm-demo";
+import { assessDemoConfig } from "./components/configs/assess-demo";
+import { doctorDemoConfig } from "./components/configs/doctor-demo";
+import { createPRDemoConfig } from "./components/configs/create-pr-demo";
+import { fixIssueDemoConfig } from "./components/configs/fix-issue-demo";
+import { recallDemoConfig } from "./components/configs/recall-demo";
+import { loadContextDemoConfig } from "./components/configs/load-context-demo";
+import { configureDemoConfig } from "./components/configs/configure-demo";
+import { mem0SyncDemoConfig } from "./components/configs/mem0-sync-demo";
+import { addGoldenDemoConfig } from "./components/configs/add-golden-demo";
+import { demoProducerDemoConfig } from "./components/configs/demo-producer-demo";
+import { runTestsDemoConfig } from "./components/configs/run-tests-demo";
+import { assessComplexityDemoConfig } from "./components/configs/assess-complexity-demo";
+import { skillEvolutionDemoConfig } from "./components/configs/skill-evolution-demo";
+import { decisionHistoryDemoConfig } from "./components/configs/decision-history-demo";
+import { feedbackDemoConfig } from "./components/configs/feedback-demo";
+import { worktreeCoordinationDemoConfig } from "./components/configs/worktree-coordination-demo";
+import {
+  PhaseComparison,
+  phaseComparisonSchema,
+} from "./components/PhaseComparison";
+import { implementPhasesConfig } from "./components/configs/implement-phases";
+import {
+  SkillPhaseDemo,
+  skillPhaseDemoSchema,
+} from "./components/SkillPhaseDemo";
+import { implementSkillPhasesConfig } from "./components/configs/implement-skill-phases";
 // HeyGen integration (experimental - isolated for future use)
 // import { HeyGenDemo } from "./components/HeyGenDemo";
 // import { InstallWithAvatarDemo, installWithAvatarDemoSchema } from "./components/InstallWithAvatarDemo";
@@ -154,6 +223,562 @@ export const RemotionRoot: React.FC = () => {
           primaryColor: "#8b5cf6",
           secondaryColor: "#22c55e",
           accentColor: "#06b6d4",
+        }}
+      />
+
+      {/* ==================== TRI-TERMINAL RACE DEMOS ==================== */}
+
+      {/* 20-second TriTerminalRace - /implement at 3 difficulty levels */}
+      <Composition
+        id="ImplementTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={implementDemoConfig}
+      />
+
+      {/* /commit TriTerminalRace */}
+      <Composition
+        id="CommitTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={commitDemoConfig}
+      />
+
+      {/* /verify TriTerminalRace */}
+      <Composition
+        id="VerifyTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={verifyDemoConfig}
+      />
+
+      {/* /review-pr TriTerminalRace */}
+      <Composition
+        id="ReviewPRTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={reviewPRDemoConfig}
+      />
+
+      {/* /explore TriTerminalRace */}
+      <Composition
+        id="ExploreTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={exploreDemoConfig}
+      />
+
+      {/* /remember TriTerminalRace */}
+      <Composition
+        id="RememberTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={rememberDemoConfig}
+      />
+
+      {/* /brainstorming TriTerminalRace */}
+      <Composition
+        id="BrainstormingTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={brainstormDemoConfig}
+      />
+
+      {/* /assess TriTerminalRace */}
+      <Composition
+        id="AssessTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={assessDemoConfig}
+      />
+
+      {/* /doctor TriTerminalRace */}
+      <Composition
+        id="DoctorTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={doctorDemoConfig}
+      />
+
+      {/* /mem0-sync TriTerminalRace */}
+      <Composition
+        id="Mem0SyncTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={mem0SyncDemoConfig}
+      />
+
+      {/* /add-golden TriTerminalRace */}
+      <Composition
+        id="AddGoldenTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={addGoldenDemoConfig}
+      />
+
+      {/* /demo-producer TriTerminalRace */}
+      <Composition
+        id="DemoProducerTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={demoProducerDemoConfig}
+      />
+
+      {/* /run-tests TriTerminalRace */}
+      <Composition
+        id="RunTestsTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={runTestsDemoConfig}
+      />
+
+      {/* /create-pr TriTerminalRace */}
+      <Composition
+        id="CreatePRTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={createPRDemoConfig}
+      />
+
+      {/* /fix-issue TriTerminalRace */}
+      <Composition
+        id="FixIssueTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={fixIssueDemoConfig}
+      />
+
+      {/* /recall TriTerminalRace */}
+      <Composition
+        id="RecallTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={recallDemoConfig}
+      />
+
+      {/* /load-context TriTerminalRace */}
+      <Composition
+        id="LoadContextTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={loadContextDemoConfig}
+      />
+
+      {/* /configure TriTerminalRace */}
+      <Composition
+        id="ConfigureTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={configureDemoConfig}
+      />
+
+      {/* /assess-complexity TriTerminalRace */}
+      <Composition
+        id="AssessComplexityTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={assessComplexityDemoConfig}
+      />
+
+      {/* /skill-evolution TriTerminalRace */}
+      <Composition
+        id="SkillEvolutionTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={skillEvolutionDemoConfig}
+      />
+
+      {/* /decision-history TriTerminalRace */}
+      <Composition
+        id="DecisionHistoryTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={decisionHistoryDemoConfig}
+      />
+
+      {/* /feedback TriTerminalRace */}
+      <Composition
+        id="FeedbackTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={feedbackDemoConfig}
+      />
+
+      {/* /worktree-coordination TriTerminalRace */}
+      <Composition
+        id="WorktreeCoordinationTriRace"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={worktreeCoordinationDemoConfig}
+      />
+
+      {/* ==================== PHASE COMPARISON DEMOS (NEW) ==================== */}
+
+      {/* /implement PhaseComparison - Phase-centric view, all levels side by side */}
+      <Composition
+        id="ImplementPhases"
+        component={PhaseComparison}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={phaseComparisonSchema}
+        defaultProps={implementPhasesConfig}
+      />
+
+      {/* ==================== SKILL PHASE DEMO (NEW GENERIC TEMPLATE) ==================== */}
+
+      {/* /implement SkillPhaseDemo - 3 terminals side by side, same phase at same time */}
+      <Composition
+        id="ImplementSkillPhaseDemo"
+        component={SkillPhaseDemo}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={skillPhaseDemoSchema}
+        defaultProps={implementSkillPhasesConfig}
+      />
+
+      {/* ==================== PROGRESSIVE ZOOM DEMOS ==================== */}
+
+      {/* /implement ProgressiveZoom - Tutorial style */}
+      <Composition
+        id="ImplementZoom"
+        component={ProgressiveZoom}
+        durationInFrames={FPS * 25}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={progressiveZoomSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          summaryTagline: "Same skill. Any complexity. Production ready.",
+        }}
+      />
+
+      {/* /verify ProgressiveZoom */}
+      <Composition
+        id="VerifyZoom"
+        component={ProgressiveZoom}
+        durationInFrames={FPS * 25}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={progressiveZoomSchema}
+        defaultProps={{
+          ...verifyDemoConfig,
+          summaryTagline: "6 agents. Parallel validation. Production confidence.",
+        }}
+      />
+
+      {/* ==================== SPLIT-THEN-MERGE DEMOS ==================== */}
+
+      {/* /implement SplitThenMerge - Dramatic style */}
+      <Composition
+        id="ImplementSplitMerge"
+        component={SplitThenMerge}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={splitThenMergeSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          splitMessage: "Spawning 3 parallel implementation scenarios...",
+          summaryTagline: "One command. Three complexities. All production-ready.",
+        }}
+      />
+
+      {/* /review-pr SplitThenMerge */}
+      <Composition
+        id="ReviewPRSplitMerge"
+        component={SplitThenMerge}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={splitThenMergeSchema}
+        defaultProps={{
+          ...reviewPRDemoConfig,
+          splitMessage: "Spawning 6 review agents across 3 scenarios...",
+          summaryTagline: "Expert review. Any PR size. Zero blind spots.",
+        }}
+      />
+
+      {/* ==================== TRI-TERMINAL RACE VARIANTS (VERTICAL 9:16) ==================== */}
+
+      {/* /implement TriTerminalRace - Vertical (TikTok/Reels pace) */}
+      <Composition
+        id="ImplementTriRace-Vertical"
+        component={TriTerminalRaceVertical}
+        durationInFrames={FPS * 18}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={triTerminalRaceVerticalSchema}
+        defaultProps={implementDemoConfig}
+      />
+
+      {/* /verify TriTerminalRace - Vertical */}
+      <Composition
+        id="VerifyTriRace-Vertical"
+        component={TriTerminalRaceVertical}
+        durationInFrames={FPS * 18}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={triTerminalRaceVerticalSchema}
+        defaultProps={verifyDemoConfig}
+      />
+
+      {/* ==================== TRI-TERMINAL RACE VARIANTS (SQUARE 1:1) ==================== */}
+
+      {/* /implement TriTerminalRace - Square (LinkedIn pace) */}
+      <Composition
+        id="ImplementTriRace-Square"
+        component={TriTerminalRaceSquare}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={triTerminalRaceSquareSchema}
+        defaultProps={implementDemoConfig}
+      />
+
+      {/* /verify TriTerminalRace - Square */}
+      <Composition
+        id="VerifyTriRace-Square"
+        component={TriTerminalRaceSquare}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={triTerminalRaceSquareSchema}
+        defaultProps={verifyDemoConfig}
+      />
+
+      {/* ==================== PROGRESSIVE ZOOM VARIANTS (VERTICAL 9:16) ==================== */}
+
+      {/* /implement ProgressiveZoom - Vertical (TikTok/Reels pace) */}
+      <Composition
+        id="ImplementZoom-Vertical"
+        component={ProgressiveZoomVertical}
+        durationInFrames={FPS * 18}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={progressiveZoomVerticalSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          summaryTagline: "Same skill. Any complexity. Production ready.",
+        }}
+      />
+
+      {/* /verify ProgressiveZoom - Vertical */}
+      <Composition
+        id="VerifyZoom-Vertical"
+        component={ProgressiveZoomVertical}
+        durationInFrames={FPS * 18}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={progressiveZoomVerticalSchema}
+        defaultProps={{
+          ...verifyDemoConfig,
+          summaryTagline: "6 agents. Parallel validation. Production confidence.",
+        }}
+      />
+
+      {/* ==================== PROGRESSIVE ZOOM VARIANTS (SQUARE 1:1) ==================== */}
+
+      {/* /implement ProgressiveZoom - Square (LinkedIn pace) */}
+      <Composition
+        id="ImplementZoom-Square"
+        component={ProgressiveZoomSquare}
+        durationInFrames={FPS * 22}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={progressiveZoomSquareSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          summaryTagline: "Same skill. Any complexity. Production ready.",
+        }}
+      />
+
+      {/* /verify ProgressiveZoom - Square */}
+      <Composition
+        id="VerifyZoom-Square"
+        component={ProgressiveZoomSquare}
+        durationInFrames={FPS * 22}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={progressiveZoomSquareSchema}
+        defaultProps={{
+          ...verifyDemoConfig,
+          summaryTagline: "6 agents. Parallel validation. Production confidence.",
+        }}
+      />
+
+      {/* ==================== SPLIT-THEN-MERGE VARIANTS (VERTICAL 9:16) ==================== */}
+
+      {/* /implement SplitThenMerge - Vertical (TikTok/Reels pace) */}
+      <Composition
+        id="ImplementSplitMerge-Vertical"
+        component={SplitThenMergeVertical}
+        durationInFrames={FPS * 16}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={splitThenMergeVerticalSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          splitMessage: "Spawning 3 parallel implementation scenarios...",
+          summaryTagline: "One command. Three complexities. All production-ready.",
+        }}
+      />
+
+      {/* /review-pr SplitThenMerge - Vertical */}
+      <Composition
+        id="ReviewPRSplitMerge-Vertical"
+        component={SplitThenMergeVertical}
+        durationInFrames={FPS * 16}
+        fps={FPS}
+        width={VERTICAL_WIDTH}
+        height={VERTICAL_HEIGHT}
+        schema={splitThenMergeVerticalSchema}
+        defaultProps={{
+          ...reviewPRDemoConfig,
+          splitMessage: "Spawning 6 review agents across 3 scenarios...",
+          summaryTagline: "Expert review. Any PR size. Zero blind spots.",
+        }}
+      />
+
+      {/* ==================== SPLIT-THEN-MERGE VARIANTS (SQUARE 1:1) ==================== */}
+
+      {/* /implement SplitThenMerge - Square (LinkedIn pace) */}
+      <Composition
+        id="ImplementSplitMerge-Square"
+        component={SplitThenMergeSquare}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={splitThenMergeSquareSchema}
+        defaultProps={{
+          ...implementDemoConfig,
+          splitMessage: "Spawning 3 parallel implementation scenarios...",
+          summaryTagline: "One command. Three complexities. All production-ready.",
+        }}
+      />
+
+      {/* /review-pr SplitThenMerge - Square */}
+      <Composition
+        id="ReviewPRSplitMerge-Square"
+        component={SplitThenMergeSquare}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={1080}
+        height={1080}
+        schema={splitThenMergeSquareSchema}
+        defaultProps={{
+          ...reviewPRDemoConfig,
+          splitMessage: "Spawning 6 review agents across 3 scenarios...",
+          summaryTagline: "Expert review. Any PR size. Zero blind spots.",
         }}
       />
 
