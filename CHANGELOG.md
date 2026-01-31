@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - 8 git/release hooks → git-operations-engineer, release-engineer agents
   - 1 CI hook → ci-cd-engineer agent
   - 6 pattern enforcement hooks → skill frontmatter (backend-architecture-enforcer, clean-architecture, test-standards-enforcer, code-review-playbook, project-structure-enforcer)
-- **Engine requirement** bumped from >=2.1.20 to >=2.1.25 for new CC features
+- **Engine requirement** bumped from >=2.1.20 to >=2.1.27 for CC 2.1.27 features (`--from-pr` auto PR linking, permission precedence fix, tool failure debug logs)
+- `create-pr`, `github-operations`, `issue-progress-tracking` skills: documented CC 2.1.27 `--from-pr` session linking
 
 ### Fixed
 

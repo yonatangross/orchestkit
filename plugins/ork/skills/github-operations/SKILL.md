@@ -45,7 +45,13 @@ gh pr create --title "feat: Add search" --body "..." --base dev --reviewer @team
 # Watch CI status and auto-merge
 gh pr checks 456 --watch
 gh pr merge 456 --auto --squash --delete-branch
+
+# Resume a session linked to a PR (CC 2.1.27)
+claude --from-pr 456           # Resume session with PR context (diff, comments, review status)
+claude --from-pr https://github.com/org/repo/pull/456
 ```
+
+> **Tip (CC 2.1.27):** Sessions created via `gh pr create` are automatically linked to the PR. Use `--from-pr` to resume with full PR context.
 
 ### Milestone Operations (REST API)
 

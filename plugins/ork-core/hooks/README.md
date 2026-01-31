@@ -990,6 +990,6 @@ const bundleMap = {
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** 152 TypeScript hooks (6 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.20
+**Claude Code Requirement:** >= 2.1.27
 
 See the async hooks section above for detailed async hook patterns.

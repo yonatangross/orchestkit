@@ -253,7 +253,7 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 ## Version
 
 - **Current**: 5.5.0
-- **Claude Code**: >= 2.1.25
+- **Claude Code**: >= 2.1.27
 - **Hooks**: 119 entries (91 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.
