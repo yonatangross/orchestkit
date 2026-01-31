@@ -118,43 +118,41 @@ test_count_json_output() {
     fi
 }
 
-# Test counts are reasonable (sanity check)
+# Test counts match declared values in plugin.json (dynamic validation)
 test_count_sanity() {
+    # Use validate-counts.sh as the source of truth - it compares actual vs declared
+    if "${PROJECT_ROOT}/bin/validate-counts.sh" >/dev/null 2>&1; then
+        log_pass "Component counts match plugin.json declarations"
+    else
+        log_fail "Component counts mismatch - run bin/validate-counts.sh for details"
+        return
+    fi
+
+    # Additional sanity: ensure counts are non-zero (something exists)
     local output
     output=$("${PROJECT_ROOT}/bin/count-components.sh" --json 2>/dev/null)
 
     local skills=$(echo "$output" | jq '.skills // 0')
     local agents=$(echo "$output" | jq '.agents // 0')
-    local commands=$(echo "$output" | jq '.commands // 0')
     local hooks=$(echo "$output" | jq '.hooks // 0')
 
-    # Skills should be 100-185 based on known count (updated for video producer skills)
-    if [[ "$skills" -ge 100 && "$skills" -le 185 ]]; then
-        log_pass "Skills count in expected range (100-185): $skills"
+    # Basic sanity: components exist
+    if [[ "$skills" -gt 0 ]]; then
+        log_pass "Skills directory has content: $skills skills"
     else
-        log_fail "Skills count out of range: $skills (expected 100-185)"
+        log_fail "No skills found in src/skills/"
     fi
 
-    # Agents should be 15-40 (updated for AI/ML Roadmap 2026 expansion)
-    if [[ "$agents" -ge 15 && "$agents" -le 40 ]]; then
-        log_pass "Agents count in expected range (15-40): $agents"
+    if [[ "$agents" -gt 0 ]]; then
+        log_pass "Agents directory has content: $agents agents"
     else
-        log_fail "Agents count out of range: $agents (expected 15-40)"
+        log_fail "No agents found in src/agents/"
     fi
 
-    # Commands count: 0 is valid (deprecated in favor of user-invocable skills)
-    # Non-zero should be in range 15-30 if commands directory is used
-    if [[ "$commands" -eq 0 ]] || [[ "$commands" -ge 15 && "$commands" -le 30 ]]; then
-        log_pass "Commands count acceptable (0 or 15-30): $commands"
+    if [[ "$hooks" -gt 0 ]]; then
+        log_pass "Hooks directory has content: $hooks hooks"
     else
-        log_fail "Commands count out of range: $commands (expected 0 or 15-30)"
-    fi
-
-    # Hooks should be 80-170 (updated for Setup unified dispatcher)
-    if [[ "$hooks" -ge 80 && "$hooks" -le 170 ]]; then
-        log_pass "Hooks count in expected range (80-170): $hooks"
-    else
-        log_fail "Hooks count out of range: $hooks (expected 80-170)"
+        log_fail "No hooks found in src/hooks/"
     fi
 }
 

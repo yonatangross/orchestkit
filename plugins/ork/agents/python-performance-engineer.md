@@ -23,11 +23,20 @@ skills:
   - sqlalchemy-2-async
   - fastapi-advanced
   - celery-advanced
+  - task-dependency-patterns
   - remember
   - recall
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+5. Check `TaskList` before starting to see pending work
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for profiling tools, async patterns

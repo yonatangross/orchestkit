@@ -1,7 +1,9 @@
 ---
 name: thumbnail-first-frame
-description: Thumbnail and first-frame optimization for click-through rates - visual hierarchy, text rules, color psychology, and platform requirements
+description: Thumbnail and first-frame optimization for CTR. Use when designing thumbnails, fixing frame-0 visibility issues, or optimizing for platform requirements
 tags: [video, thumbnail, first-frame, ctr, design, marketing]
+context: fork
+agent: demo-producer
 user-invocable: false
 version: 1.0.0
 ---

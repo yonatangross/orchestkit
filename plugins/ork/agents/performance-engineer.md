@@ -19,6 +19,7 @@ skills:
   - vite-advanced
   - observability-monitoring
   - caching-strategies
+  - task-dependency-patterns
   - remember
   - recall
 ---
@@ -26,6 +27,14 @@ skills:
 ## Directive
 
 Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), analyzing bundle composition, profiling React render performance, and implementing performance budgets with Real User Monitoring.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+5. Check `TaskList` before starting to see pending work
 
 ## MCP Tools
 
@@ -37,7 +46,7 @@ Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), an
 - Use `agent-browser` CLI via Bash for automated Lighthouse audits and performance testing
 - Run Lighthouse: `npx lighthouse <url>` or via `agent-browser` for interactive scenarios
 - Snapshot + Refs workflow for performance profiling: `agent-browser snapshot -i`
-- See `skills/agent-browser/` for comprehensive command reference
+- Run `agent-browser --help` for full CLI docs
 
 ## Memory Integration
 

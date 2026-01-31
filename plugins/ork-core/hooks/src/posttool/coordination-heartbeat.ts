@@ -8,6 +8,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, logHook } from '../lib/common.js';
+import { getOrGenerateSessionId } from '../lib/session-id-generator.js';
 
 /**
  * Update coordination heartbeat
@@ -22,12 +23,13 @@ export function coordinationHeartbeat(_input: HookInput): HookResult {
   }
 
   try {
-    // Load instance ID if available
-    // CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability,
-    // but we add a defensive fallback to prevent crashes.
-    const instanceEnv = `${projectDir}/.claude/.instance_env`;
-    let instanceId = process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}`;
+    // Get instance ID using unified session ID resolution.
+    // Priority: CLAUDE_SESSION_ID > cached > smart generated
+    // Example: "orchestkit-main-0130-1745-a3f2"
+    let instanceId = getOrGenerateSessionId();
 
+    // Override with .instance_env if present (legacy support)
+    const instanceEnv = `${projectDir}/.claude/.instance_env`;
     if (existsSync(instanceEnv)) {
       const content = readFileSync(instanceEnv, 'utf8');
       const match = content.match(/CLAUDE_INSTANCE_ID=["']?([^"'\n]+)/);

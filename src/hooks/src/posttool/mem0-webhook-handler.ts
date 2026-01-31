@@ -54,27 +54,14 @@ export function mem0WebhookHandler(input: HookInput): HookResult {
 
     logHook('mem0-webhook-handler', `Processing webhook event: ${eventType} (memory: ${memoryId})`);
 
-    // Route to appropriate handler based on event type
-    switch (eventType) {
-      case 'memory.created':
-        logHook('mem0-webhook-handler', 'Memory created - trigger graph sync');
-        // Trigger sync to knowledge graph
-        // This would call memory-bridge.sh or similar
-        break;
-
-      case 'memory.updated':
-        logHook('mem0-webhook-handler', 'Memory updated - trigger decision sync');
-        // Trigger decision sync
-        break;
-
-      case 'memory.deleted':
-        logHook('mem0-webhook-handler', 'Memory deleted - cleanup graph entities');
-        // Cleanup related graph entities
-        break;
-
-      default:
-        logHook('mem0-webhook-handler', `Unknown event type: ${eventType}`);
-        break;
+    // Log event for observability — actual sync is handled by dedicated hooks
+    // (memory-bridge.ts for graph sync, mem0-pre-compaction-sync.ts for decision sync)
+    // This handler logs webhook events for audit trail purposes.
+    const knownEvents = ['memory.created', 'memory.updated', 'memory.deleted'];
+    if (knownEvents.includes(eventType as string)) {
+      logHook('mem0-webhook-handler', `Received ${eventType} for memory ${memoryId}`);
+    } else {
+      logHook('mem0-webhook-handler', `Received unknown event type: ${eventType}`);
     }
   } catch (error) {
     logHook('mem0-webhook-handler', `Error processing webhook: ${error}`);

@@ -1,6 +1,6 @@
 ---
 name: remotion-composer
-description: Compose final demo videos using Remotion. Combines terminal recordings, Manim animations, and branded overlays into polished marketing videos with AnimStats-quality animations.
+description: Compose final demo videos using Remotion. Use when combining terminal recordings with animations, adding branded overlays, or rendering multi-format video exports
 context: fork
 version: 2.0.0
 author: OrchestKit
@@ -350,6 +350,7 @@ Skills have associated colors:
 - `references/audio-layer.md` - Audio setup and volume curves
 - `references/composition-patterns.md` - Composition templates
 - `references/cinematic-scenes.md` - 6-scene narrative structure
+- `references/folder-organization.md` - Root.tsx folder structure and naming conventions
 
 ### Animation
 - `references/animation-presets.md` - Easing and spring configs
@@ -361,3 +362,11 @@ Skills have associated colors:
 - `references/lottie-animations.md` - After Effects Lottie integration
 - `references/captions-subtitles.md` - Subtitle generation and styling
 - `references/showcase-templates.md` - Production patterns from Remotion showcase
+
+## Related Skills
+
+- `terminal-demo-generator`: VHS/asciinema recordings that feed into compositions
+- `manim-visualizer`: Animated diagrams as overlay assets
+- `demo-producer`: Full pipeline orchestration
+- `video-pacing`: Timing and rhythm patterns for compositions
+- `music-sfx-selection`: Audio selection for the audio layer

@@ -104,7 +104,8 @@ calc_efficiency() {
     total_edits=$(jq '[.skills // {} | to_entries[] | .value.totalEdits] | add // 0' "$METRICS_FILE" 2>/dev/null || echo "0")
 
     if [[ "$total_uses" -gt 0 ]]; then
-        avg_edits=$(echo "scale=2; $total_edits / $total_uses" | bc 2>/dev/null || echo "N/A")
+        # Use awk for cross-platform compatibility (no bc dependency)
+        avg_edits=$(awk -v e="$total_edits" -v u="$total_uses" 'BEGIN { printf "%.2f", e / u }')
     else
         avg_edits="N/A"
     fi

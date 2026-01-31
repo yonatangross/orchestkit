@@ -9,6 +9,7 @@
 export type HookEvent =
   | 'PreToolUse'
   | 'PostToolUse'
+  | 'PostToolUseFailure'
   | 'PermissionRequest'
   | 'UserPromptSubmit'
   | 'SessionStart'
@@ -17,7 +18,8 @@ export type HookEvent =
   | 'SubagentStart'
   | 'SubagentStop'
   | 'Setup'
-  | 'Notification';
+  | 'Notification'
+  | 'PreCompact';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -37,6 +39,10 @@ export interface HookInput {
   tool_error?: string;
   /** Tool exit code */
   exit_code?: number;
+  /** Whether a stop hook is currently active (prevents re-entry) */
+  stop_hook_active?: boolean;
+  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only) */
+  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk';
   /** User prompt (UserPromptSubmit only) */
   prompt?: string;
   /** Project directory */
@@ -57,8 +63,8 @@ export interface HookInput {
   error?: string;
   /** Duration in milliseconds */
   duration_ms?: number;
-  /** Tool result (SubagentStop) */
-  tool_result?: string;
+  /** Tool result — string from most hooks, object from Skill PostToolUse */
+  tool_result?: string | { is_error?: boolean; content?: string };
 
   // Notification specific fields
   /** Notification message */
@@ -94,13 +100,15 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PermissionRequest' | 'UserPromptSubmit';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit';
   /** Permission decision (PermissionRequest hooks) */
   permissionDecision?: 'allow' | 'deny';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
   /** Additional context injected before tool execution (CC 2.1.9) */
   additionalContext?: string;
+  /** Modified tool input (CC 2.1.25: canonical way to modify tool inputs) */
+  updatedInput?: Record<string, unknown>;
 }
 
 /**
@@ -124,6 +132,40 @@ export interface HookResult {
  * Hook function signature
  */
 export type HookFn = (input: HookInput) => Promise<HookResult> | HookResult;
+
+/**
+ * Hook metadata for auto-discovery and governance
+ * Co-export alongside hook functions for single-source-of-truth registration
+ */
+export interface HookMeta {
+  /** Full hook name path (e.g., 'pretool/bash/dangerous-command-blocker') */
+  name: string;
+  /** Human-readable description */
+  description: string;
+  /** Hook event type */
+  event: HookEvent;
+  /** Tool matcher patterns for hooks.json (e.g., 'Bash', 'Write|Edit') */
+  matchers?: string[];
+  /** Run asynchronously (non-blocking) */
+  async?: boolean;
+  /** Only run once per session */
+  once?: boolean;
+  /** Timeout in seconds (async hooks only) */
+  timeout?: number;
+  /** Risk category for prioritization */
+  tier?: 'security-critical' | 'data-loss' | 'quality-gate' | 'standard';
+}
+
+/**
+ * Hook overrides configuration for per-project toggle/customization
+ * Stored at .claude/hook-overrides.json (gitignored)
+ */
+export interface HookOverrides {
+  /** Hook names to disable entirely */
+  disabled?: string[];
+  /** Per-hook timeout overrides (seconds) */
+  timeouts?: Record<string, number>;
+}
 
 /**
  * Hook registration entry

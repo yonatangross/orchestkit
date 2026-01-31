@@ -1,15 +1,22 @@
 {
   "name": "orchestkit",
-  "version": "5.2.4",
+  "version": "5.5.0",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
     "prebuild": "echo '🔨 Building plugins from source...'",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
+    "generate:playground-data": "node scripts/generate-playground-data.js",
+    "verify:playground-thumbnails": "node scripts/verify-playground-thumbnails.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
     "test:skills": "bash tests/skills/structure/test-skill-md.sh",
-    "test:agents": "bash tests/agents/test-agent-frontmatter.sh"
+    "test:agents": "bash tests/agents/test-agent-frontmatter.sh",
+    "test:manifests": "bash tests/manifests/test-skill-uniqueness.sh && bash tests/manifests/test-manifest-dependencies.sh && bash tests/manifests/test-marketplace-ordering.sh && bash tests/manifests/test-plugin-orphan-skills.sh",
+    "test:manifests:uniqueness": "bash tests/manifests/test-skill-uniqueness.sh",
+    "test:manifests:deps": "bash tests/manifests/test-manifest-dependencies.sh",
+    "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
+    "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh"
   },
   "repository": {
     "type": "git",
@@ -25,6 +32,6 @@
   "author": "Yonatan Gross",
   "license": "MIT",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=20.0.0"
   }
 }

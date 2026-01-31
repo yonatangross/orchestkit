@@ -11,9 +11,10 @@ import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
+  outputWarning,
   logHook,
 } from '../../lib/common.js';
-import { guardCodeFiles, guardSkipInternal, runGuards } from '../../lib/guards.js';
+import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { extname } from 'node:path';
 
 /**
@@ -164,6 +165,11 @@ export function docstringEnforcer(input: HookInput): HookResult {
     }
 
     logHook('docstring-enforcer', `DOCSTRING_WARN: ${missingDocstrings.length} functions missing docs in ${filePath}`);
+
+    // In dontAsk mode, show visible warning instead of silent context
+    if (isDontAskMode(input)) {
+      return outputWarning(`[Quality Gate] ${contextMsg}`);
+    }
     return outputWithContext(contextMsg);
   }
 

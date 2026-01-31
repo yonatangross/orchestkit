@@ -1,6 +1,6 @@
 ---
 name: manim-visualizer
-description: Create Manim animations visualizing agent workflows, skill pipelines, and architecture diagrams. Produces MP4 animations for integration with Remotion.
+description: Create Manim animations for demo videos. Use when visualizing agent workflows, skill pipelines, or architecture diagrams as animated MP4 overlays
 context: fork
 version: 1.0.0
 author: OrchestKit
@@ -85,3 +85,10 @@ Matches OrchestKit branding:
 - Warning: #f59e0b (amber)
 - Info: #06b6d4 (cyan)
 - Background: #0a0a0f (dark)
+
+## Related Skills
+
+- `remotion-composer`: Combines Manim MP4 outputs with terminal recordings
+- `demo-producer`: Full demo pipeline orchestration
+- `terminal-demo-generator`: Terminal recordings that pair with Manim animations
+- `video-storyboarding`: Scene planning before animation creation

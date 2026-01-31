@@ -43,7 +43,7 @@ This system provides colorized graph visualization of the OrchestKit plugin stru
 ### Custom Categories
 
 18 custom project-level categories defined in Mem0:
-- `agents` - All 34 specialized AI agent personas
+- `agents` - All 35 specialized AI agent personas
 - `backend-skills` - Backend development patterns
 - `frontend-skills` - Frontend development patterns
 - `ai-llm-skills` - AI and LLM patterns
@@ -80,8 +80,8 @@ All memories include:
 ### Color Scheme
 
 Following 2026 best practices:
-- **Agents** (Blue #3B82F6): All 34 specialized AI agent personas
-- **Skills** (Green #10B981): All 161 skills
+- **Agents** (Blue #3B82F6): All 35 specialized AI agent personas
+- **Skills** (Green #10B981): All 182 skills
 - **Technologies** (Orange #F59E0B): Core technologies
 - **Categories** (Purple #8B5CF6): Skill categories
 - **Architecture** (Red #EF4444): Architecture decisions
@@ -242,7 +242,7 @@ All scripts are located in `skills/mem0-memory/scripts/`:
 - `create-category-memories.py` - Create memories for all 18 categories
 - `create-technology-memories.py` - Create memories for 24+ technologies
 - `create-all-agent-memories.py` - Create memories for all 35 agents
-- `create-all-skill-memories.py` - Create memories for all 179 skills
+- `create-all-skill-memories.py` - Create memories for all 182 skills
 - `create-deep-relationships.py` - Create comprehensive relationships
 
 ### Maintenance Scripts

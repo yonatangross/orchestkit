@@ -1,7 +1,7 @@
 {
   "name": "ork-accessibility",
   "version": "5.2.6",
-  "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management, react-aria-patterns",
+  "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

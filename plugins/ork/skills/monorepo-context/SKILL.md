@@ -1,6 +1,6 @@
 ---
 name: monorepo-context
-description: Multi-directory context patterns for monorepos using CC 2.1.20 --add-dir. Covers per-service CLAUDE.md, workspace detection, and root vs service context separation.
+description: Multi-directory context patterns for monorepos. Use when working with --add-dir, per-service CLAUDE.md, or separating root vs service context
 context: fork
 version: 1.0.0
 author: OrchestKit

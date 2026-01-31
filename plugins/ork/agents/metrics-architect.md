@@ -11,6 +11,7 @@ tools:
   - Glob
   - Bash
 skills:
+  - okr-kpi-patterns
   - langfuse-observability
   - observability-monitoring
   - cache-cost-tracking

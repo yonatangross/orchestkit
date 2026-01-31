@@ -1,6 +1,6 @@
 ---
 name: callout-positioning
-description: Debug grids and coordinate systems for accurate arrow/annotation placement in video compositions
+description: Debug grids and coordinate systems for video annotations. Use when positioning callouts, arrows, or debugging coordinate misalignment in Remotion
 tags: [video, remotion, callout, annotation, debug, coordinates, arrows]
 user-invocable: false
 version: 1.0.0

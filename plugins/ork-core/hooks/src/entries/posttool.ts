@@ -19,6 +19,7 @@ import { coordinationHeartbeat } from '../posttool/coordination-heartbeat.js';
 import { mem0WebhookHandler } from '../posttool/mem0-webhook-handler.js';
 import { memoryBridge } from '../posttool/memory-bridge.js';
 import { realtimeSync } from '../posttool/realtime-sync.js';
+import { userTracking } from '../posttool/user-tracking.js';
 import { sessionMetrics } from '../posttool/session-metrics.js';
 import { skillEditTracker } from '../posttool/skill-edit-tracker.js';
 import { calibrationTracker } from '../posttool/calibration-tracker.js';
@@ -42,6 +43,13 @@ import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js'
 // PostTool/Write-Edit hooks (1)
 import { fileLockRelease } from '../posttool/write-edit/file-lock-release.js';
 
+// PostTool/Failure hooks (1)
+import { failureHandler } from '../posttool/failure-handler.js';
+
+// Intelligent Decision Capture System
+import { solutionDetector } from '../posttool/solution-detector.js';
+import { toolPreferenceLearner } from '../posttool/tool-preference-learner.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -57,6 +65,7 @@ export const hooks: Record<string, HookFn> = {
   'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
+  'posttool/user-tracking': userTracking,
   'posttool/session-metrics': sessionMetrics,
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/calibration-tracker': calibrationTracker,
@@ -79,6 +88,13 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool/Write-Edit hooks (1)
   'posttool/write-edit/file-lock-release': fileLockRelease,
+
+  // PostTool/Failure hooks (1)
+  'posttool/failure-handler': failureHandler,
+
+  // Intelligent Decision Capture System
+  'posttool/solution-detector': solutionDetector,
+  'posttool/tool-preference-learner': toolPreferenceLearner,
 };
 
 export function getHook(name: string): HookFn | undefined {

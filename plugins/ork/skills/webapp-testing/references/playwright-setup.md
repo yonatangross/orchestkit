@@ -133,7 +133,7 @@ agent-browser screenshot /tmp/screenshot.png
 agent-browser close
 ```
 
-See `skills/agent-browser/` for comprehensive command reference.
+Run `agent-browser --help` for full CLI docs.
 
 ## Next Steps
 

@@ -41,10 +41,21 @@ def main():
 
         result = client.get_all(filters=filters if filters else None)
 
+        # Handle both list and dict response formats from mem0 API
+        if isinstance(result, dict):
+            memories = result.get("results", result.get("memories", []))
+            count = result.get("count", len(memories))
+        elif isinstance(result, list):
+            memories = result
+            count = len(memories)
+        else:
+            memories = []
+            count = 0
+
         print(json.dumps({
             "success": True,
-            "count": len(result) if isinstance(result, list) else 0,
-            "memories": result
+            "count": count,
+            "memories": memories
         }, indent=2))
 
     except ValueError as e:

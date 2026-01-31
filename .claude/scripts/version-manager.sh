@@ -34,6 +34,18 @@ else
     RED='' GREEN='' YELLOW='' BLUE='' CYAN='' BOLD='' NC=''
 fi
 
+# Cross-platform math helpers (awk-based, no bc dependency)
+calc_divide() {
+    local num="$1" denom="$2" scale="${3:-2}"
+    awk -v n="$num" -v d="$denom" -v s="$scale" 'BEGIN { printf "%.*f", s, (d != 0 ? n/d : 0) }'
+}
+calc_percent() {
+    local val="$1" scale="${2:-0}"
+    awk -v v="$val" -v s="$scale" 'BEGIN { printf "%.*f", s, v * 100 }'
+}
+calc_gt() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a > b) }'; }
+calc_lt() { awk -v a="$1" -v b="$2" 'BEGIN { exit !(a < b) }'; }
+
 # Find skill directory by ID (searches all categories)
 find_skill_dir() {
     local skill_id="$1"
@@ -170,7 +182,7 @@ cmd_create() {
     fi
 
     if [[ "$uses" -gt 0 ]]; then
-        success_rate=$(echo "scale=2; $successes / $uses" | bc)
+        success_rate=$(calc_divide "$successes" "$uses" 2)
     else
         success_rate="0"
     fi
@@ -355,7 +367,7 @@ cmd_list() {
     jq -r '.versions | reverse | .[] | "\(.version)\t\(.date // "N/A")\t\(.successRate // 0)\t\(.uses // 0)\t\(.avgEdits // 0)\t\(.changelog // "No changelog")[0:26]"' "$manifest_file" 2>/dev/null | \
     while IFS=$'\t' read -r version date success uses avg_edits changelog; do
         local success_pct
-        success_pct=$(echo "scale=0; $success * 100 / 1" | bc 2>/dev/null || echo "0")
+        success_pct=$(calc_percent "$success" 0)
         printf "│ %-7s │ %-10s │ %6s%% │ %5s │ %9s │ %-26s │\n" \
             "${version:0:7}" "${date:0:10}" "$success_pct" "$uses" "$avg_edits" "${changelog:0:26}"
     done
@@ -432,7 +444,7 @@ cmd_diff() {
                 uses=$(echo "$metrics" | jq -r '.uses // 0')
                 avg_edits=$(echo "$metrics" | jq -r '.avgEdits // 0')
                 local success_pct
-                success_pct=$(echo "scale=0; $success * 100 / 1" | bc 2>/dev/null || echo "0")
+                success_pct=$(calc_percent "$success" 0)
                 printf "│ %-7s │ %6s%% │ %5s │ %9s │\n" "$v" "$success_pct" "$uses" "$avg_edits"
             fi
         done
@@ -477,7 +489,7 @@ cmd_metrics() {
 
         local success_rate=0
         if [[ "$uses" -gt 0 ]]; then
-            success_rate=$(echo "scale=0; $successes * 100 / $uses" | bc)
+            success_rate=$(awk -v s="$successes" -v u="$uses" 'BEGIN { printf "%.0f", s * 100 / u }')
         fi
 
         echo -e "${CYAN}Current Performance:${NC}"
@@ -513,9 +525,11 @@ cmd_metrics() {
             last_success=$(jq -r '.versions[-1].successRate // 0' "$manifest_file" 2>/dev/null)
 
             local trend
-            if (( $(echo "$last_success > $first_success + 0.05" | bc -l) )); then
+            # Use awk for floating-point comparison (cross-platform, no bc)
+            local threshold=0.05
+            if awk -v l="$last_success" -v f="$first_success" -v t="$threshold" 'BEGIN { exit !(l > f + t) }'; then
                 trend="${GREEN}Improving${NC}"
-            elif (( $(echo "$last_success < $first_success - 0.05" | bc -l) )); then
+            elif awk -v l="$last_success" -v f="$first_success" -v t="$threshold" 'BEGIN { exit !(l < f - t) }'; then
                 trend="${RED}Declining${NC}"
             else
                 trend="${YELLOW}Stable${NC}"

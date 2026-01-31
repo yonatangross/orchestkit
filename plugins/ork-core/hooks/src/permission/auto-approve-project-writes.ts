@@ -12,7 +12,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../lib/common.js';
-import { resolve, isAbsolute } from 'node:path';
+import { resolve, isAbsolute, relative, normalize } from 'node:path';
 
 /**
  * Directories that should not be auto-approved for writes
@@ -41,8 +41,18 @@ export function autoApproveProjectWrites(input: HookInput): HookResult {
     filePath = resolve(projectDir, filePath);
   }
 
-  // Check if file is within project directory
-  if (filePath.startsWith(projectDir)) {
+  // Check if file is within project directory using proper path containment
+  // Fix for prefix attack: /project-malicious shouldn't match /project
+  const normalizedFile = normalize(filePath);
+  const normalizedProject = normalize(projectDir);
+  const relativePath = relative(normalizedProject, normalizedFile);
+
+  // Path is inside project if:
+  // 1. relativePath doesn't start with '..' (not escaping upward)
+  // 2. relativePath is not an absolute path (not escaping via absolute)
+  const isInsideProject = !relativePath.startsWith('..') && !isAbsolute(relativePath);
+
+  if (isInsideProject) {
     // Check against excluded directories
     for (const dir of EXCLUDED_DIRS) {
       if (filePath.includes(`/${dir}/`)) {

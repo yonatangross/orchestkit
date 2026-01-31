@@ -1,0 +1,90 @@
+name: 'Setup OrchestKit CI Environment'
+description: 'Install dependencies, setup Node.js, build plugins, and configure CI environment for cross-platform testing'
+
+inputs:
+  node-version:
+    description: 'Node.js version to install'
+    required: false
+    default: '22'
+  build-plugins:
+    description: 'Whether to build plugins'
+    required: false
+    default: 'true'
+  run-ci-setup:
+    description: 'Whether to run bin/ci-setup.sh'
+    required: false
+    default: 'true'
+  ci-setup-flags:
+    description: 'Extra flags for ci-setup.sh (e.g., --with-shellcheck)'
+    required: false
+    default: ''
+  install-hooks-deps:
+    description: 'Whether to install src/hooks npm dependencies'
+    required: false
+    default: 'false'
+  use-cache:
+    description: 'Whether to use npm cache'
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install system dependencies (Linux)
+      if: runner.os == 'Linux'
+      shell: bash
+      run: sudo apt-get update && sudo apt-get install -y jq rsync
+
+    - name: Install system dependencies (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: brew install jq rsync
+
+    - name: Install system dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: bash
+      run: |
+        choco install jq rsync -y
+        # Verify tools are available
+        rsync --version || echo "WARNING: rsync not found, some operations may fail"
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Cache npm dependencies
+      if: inputs.use-cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.npm
+          src/hooks/node_modules
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-${{ hashFiles('**/package-lock.json', 'src/hooks/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-${{ inputs.node-version }}-
+          ${{ runner.os }}-node-
+
+    - name: Build plugins
+      if: inputs.build-plugins == 'true'
+      shell: bash
+      run: bash scripts/build-plugins.sh
+
+    - name: Setup CI environment
+      if: inputs.run-ci-setup == 'true'
+      shell: bash
+      run: ./bin/ci-setup.sh ${{ inputs.ci-setup-flags }}
+
+    - name: Make test scripts executable
+      if: runner.os != 'Windows'
+      shell: bash
+      run: |
+        chmod +x tests/**/*.sh 2>/dev/null || true
+        find src/hooks -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+        chmod +x bin/*.sh 2>/dev/null || true
+
+    - name: Install hook dependencies
+      if: inputs.install-hooks-deps == 'true'
+      shell: bash
+      working-directory: src/hooks
+      run: npm ci

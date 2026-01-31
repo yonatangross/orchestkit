@@ -1,0 +1,106 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 80,
+    "lineEnding": "lf",
+    "formatWithErrors": false
+  },
+
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "all": true,
+
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error",
+        "noUnusedPrivateClassMembers": "error",
+        "useHookAtTopLevel": "error",
+        "useExhaustiveDependencies": "error"
+      },
+
+      "suspicious": {
+        "noExplicitAny": "error",
+        "noConsole": "error",
+        "noDebugger": "error",
+        "noDoubleEquals": "error",
+        "noEmptyBlockStatements": "error",
+        "noConfusingVoidType": "error",
+        "noAssignInExpressions": "error"
+      },
+
+      "style": {
+        "noVar": "error",
+        "useConst": "error",
+        "useTemplate": "error",
+        "useImportType": "error",
+        "useShorthandFunctionType": "error",
+        "useSingleVarDeclarator": "error",
+        "useExportType": "error"
+      },
+
+      "complexity": {
+        "noExcessiveCognitiveComplexity": {
+          "level": "error",
+          "options": {
+            "maxAllowedComplexity": 10
+          }
+        },
+        "noForEach": "warn",
+        "useFlatMap": "error"
+      },
+
+      "performance": {
+        "noAccumulatingSpread": "error",
+        "noDelete": "warn"
+      },
+
+      "security": {
+        "noDangerouslySetInnerHtml": "error",
+        "noGlobalEval": "error"
+      },
+
+      "a11y": {
+        "useAltText": "error",
+        "useValidAnchor": "error",
+        "useKeyWithClickEvents": "error",
+        "useButtonType": "error",
+        "noAutofocus": "warn"
+      },
+
+      "nursery": {
+        "noFloatingPromises": "error"
+      }
+    }
+  },
+
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "always"
+    }
+  },
+
+  "files": {
+    "ignore": [
+      "node_modules",
+      "dist",
+      "build",
+      ".next",
+      "coverage"
+    ]
+  },
+
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  }
+}

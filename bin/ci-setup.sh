@@ -72,7 +72,7 @@ build_typescript_hooks() {
     fi
 
     local hooks_dir
-    hooks_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/hooks"
+    hooks_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/src/hooks"
 
     if [[ ! -d "$hooks_dir" ]]; then
         log_warn "Hooks directory not found at $hooks_dir, skipping build"

@@ -238,9 +238,10 @@ interface SkillMatch {
 }
 
 /**
- * Find matching skills based on prompt keywords
+ * Find matching skills based on prompt keywords.
+ * Exported for use by skill-resolver.ts.
  */
-function findMatchingSkills(prompt: string): SkillMatch[] {
+export function findMatchingSkills(prompt: string): SkillMatch[] {
   const promptLower = prompt.toLowerCase();
   const skillScores = new Map<string, number>();
 

@@ -217,7 +217,8 @@ export function generateDecisionId(version: string, index: number, category: str
  */
 export function parseChangelog(content: string): ParsedChangelog {
   const versions: ChangelogVersion[] = [];
-  const lines = content.split('\n');
+  // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+  const lines = content.replace(/\r\n/g, '\n').split('\n');
 
   // Version header regex: ## [X.Y.Z] - YYYY-MM-DD
   const versionRegex = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})/;

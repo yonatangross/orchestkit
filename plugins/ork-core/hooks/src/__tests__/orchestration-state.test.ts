@@ -5,6 +5,8 @@
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, unlinkSync, mkdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import {
   loadState,
   saveState,
@@ -32,7 +34,7 @@ import type { ClassificationResult } from '../lib/orchestration-types.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/orchestration-state-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'orchestration-state-test');
 const TEST_SESSION_ID = 'test-session-state-' + Date.now();
 
 beforeEach(() => {

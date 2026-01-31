@@ -186,6 +186,19 @@ mcp__slack__post_message({
 
 CC 2.1.20's `/commit-push-pr` flow can be extended with Slack auto-posting. See `slack-integration` skill for setup.
 
+## CC 2.1.27 Enhancements
+
+### Auto PR Linking
+
+Sessions created via `gh pr create` are now automatically linked to the PR. Use `--from-pr <number|url>` to resume sessions linked to a specific PR:
+
+```bash
+claude --from-pr 123          # Resume session linked to PR #123
+claude --from-pr https://github.com/org/repo/pull/123
+```
+
+This means PR context (diff, comments, review status) is available when resuming.
+
 ## Rules
 
 1. **NO junk files** - Don't create files in repo root

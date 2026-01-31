@@ -17,6 +17,7 @@ skills:
   - input-validation
   - llm-safety-patterns
   - mcp-security-hardening
+  - task-dependency-patterns
   - remember
   - recall
 hooks:
@@ -26,6 +27,14 @@ hooks:
 ---
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+5. Check `TaskList` before starting to see pending work
 
 ## Memory Integration
 At task start, query relevant context:

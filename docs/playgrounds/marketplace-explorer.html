@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Marketplace Explorer</title>
+<link rel="stylesheet" href="nav.css">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #8b5cf6;
+    --accent2: #22c55e;
+    --accent3: #06b6d4;
+    --accent4: #f59e0b;
+    --accent5: #f97316;
+    --accent6: #ec4899;
+    --accent7: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a1040 0%, #0d1117 50%, #0a1628 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    position: sticky;
+    top: 48px;
+    z-index: 100;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: white;
+  }
+  .logo h1 {
+    font-size: 22px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .logo .version {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .stat-value {
+    font-size: 28px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Search + Filters */
+  .controls {
+    padding: 16px 32px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .search-box {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 14px 10px 38px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: '\1F50D';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    opacity: 0.5;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--text); }
+  .filter-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .view-toggle {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .view-btn {
+    padding: 8px 14px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .view-btn.active { background: var(--accent); color: white; }
+  .view-btn:hover:not(.active) { color: var(--text); }
+
+  /* Main content */
+  .main { padding: 24px 32px; }
+
+  /* GRID VIEW */
+  .grid-view {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px;
+  }
+  .plugin-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .plugin-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+  }
+  .plugin-card.expanded {
+    grid-column: 1 / -1;
+  }
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card-name {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-category {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 14px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .card-metrics {
+    display: flex;
+    gap: 16px;
+  }
+  .card-metric {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+  }
+  .card-metric .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .card-metric .count {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .card-metric .label {
+    color: var(--text-muted);
+  }
+
+  /* Card expanded content */
+  .card-details {
+    display: none;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .plugin-card.expanded .card-details { display: block; }
+  .plugin-card.expanded .card-desc {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+  .detail-section {
+    margin-bottom: 14px;
+  }
+  .detail-section h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .tag {
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    transition: all 0.15s;
+    cursor: default;
+  }
+  .tag:hover {
+    border-color: var(--accent);
+    background: rgba(139, 92, 246, 0.1);
+  }
+  .tag.agent-tag {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.08);
+  }
+  .tag.agent-tag:hover {
+    border-color: var(--accent2);
+    background: rgba(34, 197, 94, 0.15);
+  }
+  .tag.command-tag {
+    border-color: rgba(6, 182, 212, 0.3);
+    background: rgba(6, 182, 212, 0.08);
+  }
+
+  /* TREEMAP VIEW */
+  .treemap-view { display: none; }
+  .treemap-container {
+    width: 100%;
+    aspect-ratio: 16/9;
+    max-height: 70vh;
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .treemap-cell {
+    position: absolute;
+    border: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    overflow: hidden;
+    padding: 4px;
+  }
+  .treemap-cell:hover {
+    z-index: 10;
+    filter: brightness(1.3);
+    border-color: white;
+  }
+  .treemap-cell .cell-name {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    line-height: 1.2;
+  }
+  .treemap-cell .cell-count {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  }
+
+  /* GRAPH VIEW */
+  .graph-view { display: none; }
+  .graph-container {
+    width: 100%;
+    height: 75vh;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    position: relative;
+  }
+  .graph-canvas {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* AGENTS VIEW */
+  .agents-view { display: none; }
+  .agents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 12px;
+  }
+  .agent-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    transition: all 0.2s;
+  }
+  .agent-card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-1px);
+  }
+  .agent-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent2);
+    margin-bottom: 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .agent-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .agent-plugins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .agent-plugin-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  /* Category colors */
+  .cat-development { background: rgba(139, 92, 246, 0.15); color: var(--accent); border: 1px solid rgba(139, 92, 246, 0.3); }
+  .cat-ai { background: rgba(6, 182, 212, 0.15); color: var(--accent3); border: 1px solid rgba(6, 182, 212, 0.3); }
+  .cat-backend { background: rgba(245, 158, 11, 0.15); color: var(--accent4); border: 1px solid rgba(245, 158, 11, 0.3); }
+  .cat-frontend { background: rgba(236, 72, 153, 0.15); color: var(--accent6); border: 1px solid rgba(236, 72, 153, 0.3); }
+  .cat-testing { background: rgba(34, 197, 94, 0.15); color: var(--accent2); border: 1px solid rgba(34, 197, 94, 0.3); }
+  .cat-security { background: rgba(239, 68, 68, 0.15); color: var(--accent7); border: 1px solid rgba(239, 68, 68, 0.3); }
+  .cat-devops { background: rgba(249, 115, 22, 0.15); color: var(--accent5); border: 1px solid rgba(249, 115, 22, 0.3); }
+  .cat-product { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+  .cat-accessibility { background: rgba(20, 184, 166, 0.15); color: #14b8a6; border: 1px solid rgba(20, 184, 166, 0.3); }
+  .cat-data { background: rgba(99, 102, 241, 0.15); color: #6366f1; border: 1px solid rgba(99, 102, 241, 0.3); }
+
+  /* Tooltip */
+  .tooltip {
+    position: fixed;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 13px;
+    max-width: 300px;
+    pointer-events: none;
+    z-index: 1000;
+    display: none;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+  .tooltip-name {
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .tooltip-desc {
+    color: var(--text-muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 16px;
+    padding: 12px 0;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  /* Prompt output */
+  .prompt-section {
+    margin-top: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .prompt-header h3 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .copy-btn {
+    padding: 6px 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { filter: brightness(1.15); }
+  .copy-btn.copied {
+    background: var(--accent2);
+  }
+  .prompt-output {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  @media (max-width: 768px) {
+    .header, .controls, .main { padding-left: 16px; padding-right: 16px; }
+    .stats-bar { gap: 16px; }
+    .stat-value { font-size: 22px; }
+    .grid-view { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">OK</div>
+      <h1>OrchestKit Marketplace<span class="version">v5.5.0</span></h1>
+    </div>
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</div>
+
+<div class="controls">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search plugins, skills, agents...">
+  </div>
+  <div id="categoryFilters"></div>
+  <div class="view-toggle">
+    <button class="view-btn active" data-view="grid">Grid</button>
+    <button class="view-btn" data-view="treemap">Treemap</button>
+    <button class="view-btn" data-view="agents">Agents</button>
+    <button class="view-btn" data-view="graph">Graph</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="legend" id="legend"></div>
+  <div class="grid-view" id="gridView"></div>
+  <div class="treemap-view" id="treemapView">
+    <div class="treemap-container" id="treemapContainer"></div>
+  </div>
+  <div class="agents-view" id="agentsView">
+    <div class="agents-grid" id="agentsGrid"></div>
+  </div>
+  <div class="graph-view" id="graphView">
+    <div class="graph-container">
+      <canvas class="graph-canvas" id="graphCanvas"></canvas>
+    </div>
+  </div>
+  <div class="prompt-section">
+    <div class="prompt-header">
+      <h3>Install Command</h3>
+      <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+    </div>
+    <div class="prompt-output" id="promptOutput"></div>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-name" id="tooltipName"></div>
+  <div class="tooltip-desc" id="tooltipDesc"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// Compatibility shim: map shared data to local variable names
+var PLUGINS = ORCHESTKIT_DATA.plugins.map(function(p) {
+  return { name: p.name, desc: p.description, category: p.category, version: p.version,
+    skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands };
+});
+var AGENTS = ORCHESTKIT_DATA.agents.map(function(a) {
+  return { name: a.name, desc: a.description, plugins: a.plugins };
+});
+var CAT_COLORS = {};
+Object.keys(ORCHESTKIT_DATA.categories).forEach(function(k) {
+  CAT_COLORS[k] = { bg: ORCHESTKIT_DATA.categories[k].color, label: ORCHESTKIT_DATA.categories[k].label };
+});
+
+// State
+const state = {
+  search: '',
+  category: 'all',
+  view: 'grid',
+  expandedCard: null,
+  selectedPlugins: new Set(),
+};
+
+// Computed
+function getFilteredPlugins() {
+  return PLUGINS.filter(p => {
+    if (state.category !== 'all' && p.category !== state.category) return false;
+    if (state.search) {
+      const q = state.search.toLowerCase();
+      return p.name.toLowerCase().includes(q) ||
+             p.desc.toLowerCase().includes(q) ||
+             p.skills.some(s => s.toLowerCase().includes(q)) ||
+             p.agents.some(a => a.toLowerCase().includes(q));
+    }
+    return true;
+  });
+}
+
+function getTotals() {
+  const allSkills = new Set();
+  const allAgents = new Set();
+  let totalHooks = 0;
+  let totalCommands = 0;
+  PLUGINS.forEach(p => {
+    p.skills.forEach(s => allSkills.add(s));
+    p.agents.forEach(a => allAgents.add(a));
+    totalHooks += p.hooks;
+    totalCommands += p.commands.length;
+  });
+  return { skills: allSkills.size, agents: allAgents.size, plugins: PLUGINS.length, hooks: totalHooks, commands: totalCommands };
+}
+
+// Render stats
+function renderStats() {
+  const t = getTotals();
+  document.getElementById('statsBar').innerHTML = `
+    <div class="stat"><span class="stat-value" style="color:var(--accent)">${t.plugins}</span><span class="stat-label">Plugins</span></div>
+    <div class="stat"><span class="stat-value" style="color:var(--accent3)">${t.skills}</span><span class="stat-label">Skills</span></div>
+    <div class="stat"><span class="stat-value" style="color:var(--accent2)">${t.agents}</span><span class="stat-label">Agents</span></div>
+    <div class="stat"><span class="stat-value" style="color:var(--accent4)">${t.hooks}</span><span class="stat-label">Hooks</span></div>
+    <div class="stat"><span class="stat-value" style="color:var(--accent5)">${t.commands}</span><span class="stat-label">Commands</span></div>
+  `;
+}
+
+// Render filters
+function renderFilters() {
+  const cats = [...new Set(PLUGINS.map(p => p.category))];
+  const el = document.getElementById('categoryFilters');
+  el.innerHTML = `<button class="filter-btn ${state.category === 'all' ? 'active' : ''}" onclick="setCategory('all')">All</button>` +
+    cats.map(c => `<button class="filter-btn ${state.category === c ? 'active' : ''}" onclick="setCategory('${c}')">${CAT_COLORS[c]?.label || c}</button>`).join('');
+}
+
+// Render legend
+function renderLegend() {
+  const el = document.getElementById('legend');
+  el.innerHTML = Object.entries(CAT_COLORS).map(([k, v]) =>
+    `<div class="legend-item"><div class="legend-dot" style="background:${v.bg}"></div>${v.label}</div>`
+  ).join('');
+}
+
+// Grid view
+function renderGrid() {
+  const plugins = getFilteredPlugins();
+  const el = document.getElementById('gridView');
+  el.innerHTML = plugins.map(p => {
+    const catColor = CAT_COLORS[p.category] || { bg: '#666', label: p.category };
+    const expanded = state.expandedCard === p.name;
+    return `
+      <div class="plugin-card ${expanded ? 'expanded' : ''}" onclick="toggleCard('${p.name}')">
+        <div class="card-header">
+          <div class="card-name">${p.name}</div>
+          <span class="card-category cat-${p.category}">${catColor.label}</span>
+        </div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-metrics">
+          <div class="card-metric"><div class="dot" style="background:var(--accent3)"></div><span class="count">${p.skills.length}</span><span class="label">skills</span></div>
+          <div class="card-metric"><div class="dot" style="background:var(--accent2)"></div><span class="count">${p.agents.length}</span><span class="label">agents</span></div>
+          ${p.hooks ? `<div class="card-metric"><div class="dot" style="background:var(--accent4)"></div><span class="count">${p.hooks}</span><span class="label">hooks</span></div>` : ''}
+          ${p.commands.length ? `<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">${p.commands.length}</span><span class="label">cmds</span></div>` : ''}
+        </div>
+        <div class="card-details">
+          ${p.skills.length ? `<div class="detail-section"><h4>Skills (${p.skills.length})</h4><div class="tag-list">${p.skills.map(s => `<span class="tag">${s}</span>`).join('')}</div></div>` : ''}
+          ${p.agents.length ? `<div class="detail-section"><h4>Agents (${p.agents.length})</h4><div class="tag-list">${p.agents.map(a => `<span class="tag agent-tag">${a}</span>`).join('')}</div></div>` : ''}
+          ${p.commands.length ? `<div class="detail-section"><h4>Commands (${p.commands.length})</h4><div class="tag-list">${p.commands.map(c => `<span class="tag command-tag">/ork:${c}</span>`).join('')}</div></div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Treemap view
+function renderTreemap() {
+  const plugins = getFilteredPlugins();
+  const container = document.getElementById('treemapContainer');
+  const W = container.clientWidth;
+  const H = container.clientHeight;
+  if (!W || !H) return;
+
+  // Sort by total component count
+  const sorted = [...plugins].map(p => ({
+    ...p,
+    total: p.skills.length + p.agents.length + (p.hooks ? 10 : 0)
+  })).sort((a, b) => b.total - a.total);
+
+  const totalArea = sorted.reduce((s, p) => s + p.total, 0);
+
+  // Simple squarified treemap
+  const cells = [];
+  let x = 0, y = 0, w = W, h = H;
+  let remaining = [...sorted];
+
+  function layoutRow(row, rowTotal, isVertical, rx, ry, rw, rh) {
+    let offset = 0;
+    const dimMain = isVertical ? rh : rw;
+    const dimCross = isVertical ? rw : rh;
+    const crossSize = (rowTotal / totalArea) * (isVertical ? W : H);
+
+    row.forEach(item => {
+      const frac = item.total / rowTotal;
+      const mainSize = frac * dimMain;
+      cells.push({
+        x: isVertical ? rx : rx + offset,
+        y: isVertical ? ry + offset : ry,
+        w: isVertical ? crossSize : mainSize,
+        h: isVertical ? mainSize : crossSize,
+        plugin: item,
+      });
+      offset += mainSize;
+    });
+
+    return crossSize;
+  }
+
+  // Simple strip layout
+  let cx = 0, cy = 0, cw = W, ch = H;
+  let isVertical = cw >= ch;
+
+  while (remaining.length > 0) {
+    const row = [remaining.shift()];
+    let rowTotal = row[0].total;
+
+    while (remaining.length > 0) {
+      const candidate = remaining[0];
+      const newTotal = rowTotal + candidate.total;
+      // Check aspect ratio improvement
+      const dimMain = isVertical ? ch : cw;
+      const dimCross = isVertical ? cw : ch;
+      const crossCurrent = (rowTotal / totalArea) * (isVertical ? W : H);
+      const crossNew = (newTotal / totalArea) * (isVertical ? W : H);
+
+      const worstCurrent = Math.max(...row.map(r => {
+        const mainSize = (r.total / rowTotal) * dimMain;
+        return Math.max(mainSize / crossCurrent, crossCurrent / mainSize);
+      }));
+      const worstNew = Math.max(...[...row, candidate].map(r => {
+        const mainSize = (r.total / newTotal) * dimMain;
+        return Math.max(mainSize / crossNew, crossNew / mainSize);
+      }));
+
+      if (worstNew <= worstCurrent) {
+        row.push(remaining.shift());
+        rowTotal = newTotal;
+      } else break;
+    }
+
+    const crossSize = layoutRow(row, rowTotal, isVertical, cx, cy, cw, ch);
+    if (isVertical) { cx += crossSize; cw -= crossSize; }
+    else { cy += crossSize; ch -= crossSize; }
+    isVertical = cw >= ch;
+  }
+
+  container.innerHTML = cells.map(c => {
+    const cat = CAT_COLORS[c.plugin.category] || { bg: '#666' };
+    const showLabel = c.w > 60 && c.h > 40;
+    const showCount = c.w > 40 && c.h > 30;
+    return `<div class="treemap-cell" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:${cat.bg}88;"
+      onmouseenter="showTooltip(event,'${c.plugin.name}','${c.plugin.skills.length} skills, ${c.plugin.agents.length} agents')"
+      onmouseleave="hideTooltip()"
+      onclick="setSearch('${c.plugin.name}');setView('grid')">
+      ${showCount ? `<span class="cell-count">${c.plugin.skills.length + c.plugin.agents.length}</span>` : ''}
+      ${showLabel ? `<span class="cell-name">${c.plugin.name.replace('ork-', '')}</span>` : ''}
+    </div>`;
+  }).join('');
+}
+
+// Agents view
+function renderAgents() {
+  const q = state.search.toLowerCase();
+  const filtered = AGENTS.filter(a => {
+    if (state.category !== 'all') {
+      return a.plugins.some(p => {
+        const plugin = PLUGINS.find(pl => pl.name === p);
+        return plugin && plugin.category === state.category;
+      });
+    }
+    if (q) {
+      return a.name.includes(q) || a.desc.toLowerCase().includes(q) || a.plugins.some(p => p.includes(q));
+    }
+    return true;
+  });
+
+  document.getElementById('agentsGrid').innerHTML = filtered.map(a => `
+    <div class="agent-card">
+      <div class="agent-name">${a.name}</div>
+      <div class="agent-desc">${a.desc}</div>
+      <div class="agent-plugins">
+        ${a.plugins.map(p => `<span class="agent-plugin-tag">${p}</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// Graph view - force-directed
+function renderGraph() {
+  const canvas = document.getElementById('graphCanvas');
+  const ctx = canvas.getContext('2d');
+  const rect = canvas.parentElement.getBoundingClientRect();
+  canvas.width = rect.width * 2;
+  canvas.height = rect.height * 2;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+  ctx.scale(2, 2);
+
+  const W = rect.width;
+  const H = rect.height;
+  const centerX = W / 2;
+  const centerY = H / 2;
+
+  // Build nodes
+  const nodes = [];
+  const edges = [];
+
+  // Plugin nodes
+  const filteredPlugins = getFilteredPlugins();
+  filteredPlugins.forEach((p, i) => {
+    const angle = (i / filteredPlugins.length) * Math.PI * 2 - Math.PI / 2;
+    const radius = Math.min(W, H) * 0.35;
+    nodes.push({
+      id: p.name,
+      type: 'plugin',
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+      vx: 0, vy: 0,
+      size: 6 + Math.sqrt(p.skills.length + p.agents.length) * 2.5,
+      color: CAT_COLORS[p.category]?.bg || '#666',
+      label: p.name.replace('ork-', ''),
+      data: p,
+    });
+  });
+
+  // Shared agent edges
+  const agentPluginMap = {};
+  filteredPlugins.forEach(p => {
+    p.agents.forEach(a => {
+      if (!agentPluginMap[a]) agentPluginMap[a] = [];
+      agentPluginMap[a].push(p.name);
+    });
+  });
+
+  Object.entries(agentPluginMap).forEach(([agent, pluginNames]) => {
+    if (pluginNames.length > 1) {
+      for (let i = 0; i < pluginNames.length; i++) {
+        for (let j = i + 1; j < pluginNames.length; j++) {
+          edges.push({ from: pluginNames[i], to: pluginNames[j], agent });
+        }
+      }
+    }
+  });
+
+  // Simple force simulation
+  function simulate() {
+    for (let iter = 0; iter < 100; iter++) {
+      // Repulsion
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[j].x - nodes[i].x;
+          const dy = nodes[j].y - nodes[i].y;
+          const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+          const force = 2000 / (dist * dist);
+          const fx = (dx / dist) * force;
+          const fy = (dy / dist) * force;
+          nodes[i].vx -= fx;
+          nodes[i].vy -= fy;
+          nodes[j].vx += fx;
+          nodes[j].vy += fy;
+        }
+      }
+
+      // Attraction (edges)
+      edges.forEach(e => {
+        const a = nodes.find(n => n.id === e.from);
+        const b = nodes.find(n => n.id === e.to);
+        if (!a || !b) return;
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const force = (dist - 120) * 0.01;
+        const fx = (dx / dist) * force;
+        const fy = (dy / dist) * force;
+        a.vx += fx;
+        a.vy += fy;
+        b.vx -= fx;
+        b.vy -= fy;
+      });
+
+      // Center gravity
+      nodes.forEach(n => {
+        n.vx += (centerX - n.x) * 0.003;
+        n.vy += (centerY - n.y) * 0.003;
+        n.x += n.vx * 0.3;
+        n.y += n.vy * 0.3;
+        n.vx *= 0.8;
+        n.vy *= 0.8;
+        // Bounds
+        n.x = Math.max(50, Math.min(W - 50, n.x));
+        n.y = Math.max(50, Math.min(H - 50, n.y));
+      });
+    }
+  }
+
+  simulate();
+
+  // Draw
+  ctx.clearRect(0, 0, W, H);
+
+  // Edges
+  edges.forEach(e => {
+    const a = nodes.find(n => n.id === e.from);
+    const b = nodes.find(n => n.id === e.to);
+    if (!a || !b) return;
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = 'rgba(139, 92, 246, 0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    // Agent label on edge
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2;
+    ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+    ctx.font = '9px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.agent, mx, my - 4);
+  });
+
+  // Nodes
+  nodes.forEach(n => {
+    // Glow
+    const gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.size * 2);
+    gradient.addColorStop(0, n.color + '40');
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.size * 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Circle
+    ctx.beginPath();
+    ctx.arc(n.x, n.y, n.size, 0, Math.PI * 2);
+    ctx.fillStyle = n.color;
+    ctx.fill();
+    ctx.strokeStyle = n.color + '80';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#e6edf3';
+    ctx.font = 'bold 11px system-ui';
+    ctx.textAlign = 'center';
+    ctx.fillText(n.label, n.x, n.y + n.size + 14);
+
+    // Count
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 9px system-ui';
+    ctx.fillText(n.data.skills.length, n.x, n.y + 3);
+  });
+}
+
+// Tooltip
+function showTooltip(e, name, desc) {
+  const tt = document.getElementById('tooltip');
+  document.getElementById('tooltipName').textContent = name;
+  document.getElementById('tooltipDesc').textContent = desc;
+  tt.style.display = 'block';
+  tt.style.left = (e.clientX + 12) + 'px';
+  tt.style.top = (e.clientY + 12) + 'px';
+}
+function hideTooltip() {
+  document.getElementById('tooltip').style.display = 'none';
+}
+
+// Prompt output
+function updatePrompt() {
+  const el = document.getElementById('promptOutput');
+  if (state.category !== 'all') {
+    const plugins = PLUGINS.filter(p => p.category === state.category);
+    const names = plugins.map(p => p.name);
+    el.textContent = `# Install ${CAT_COLORS[state.category]?.label || state.category} plugins:\n${names.map(n => `claude plugin install ${n}`).join('\n')}`;
+  } else if (state.search) {
+    const filtered = getFilteredPlugins();
+    if (filtered.length === 1) {
+      const p = filtered[0];
+      el.textContent = `claude plugin install ${p.name}\n\n# ${p.name} includes:\n# ${p.skills.length} skills: ${p.skills.join(', ')}\n# ${p.agents.length} agents: ${p.agents.join(', ')}`;
+    } else {
+      el.textContent = `# ${filtered.length} plugins match "${state.search}":\n${filtered.map(p => `claude plugin install ${p.name}  # ${p.skills.length} skills, ${p.agents.length} agents`).join('\n')}`;
+    }
+  } else {
+    el.textContent = `# Install the complete OrchestKit toolkit:\nclaude plugin install ork\n\n# Or install domain-specific plugins:\n${PLUGINS.filter(p => p.name !== 'ork').map(p => `# claude plugin install ${p.name}  (${p.skills.length} skills, ${p.agents.length} agents)`).join('\n')}`;
+  }
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = 'Copy';
+      btn.classList.remove('copied');
+    }, 1500);
+  });
+}
+
+// Actions
+function setCategory(cat) {
+  state.category = cat;
+  renderAll();
+}
+function setSearch(q) {
+  state.search = q;
+  document.getElementById('searchInput').value = q;
+  renderAll();
+}
+function setView(v) {
+  state.view = v;
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  document.getElementById('gridView').style.display = v === 'grid' ? 'grid' : 'none';
+  document.getElementById('treemapView').style.display = v === 'treemap' ? 'block' : 'none';
+  document.getElementById('agentsView').style.display = v === 'agents' ? 'block' : 'none';
+  document.getElementById('graphView').style.display = v === 'graph' ? 'block' : 'none';
+  if (v === 'treemap') setTimeout(renderTreemap, 50);
+  if (v === 'graph') setTimeout(renderGraph, 50);
+  if (v === 'agents') renderAgents();
+}
+function toggleCard(name) {
+  state.expandedCard = state.expandedCard === name ? null : name;
+  renderGrid();
+}
+
+function renderAll() {
+  renderStats();
+  renderFilters();
+  renderLegend();
+  renderGrid();
+  updatePrompt();
+  if (state.view === 'treemap') setTimeout(renderTreemap, 50);
+  if (state.view === 'graph') setTimeout(renderGraph, 50);
+  if (state.view === 'agents') renderAgents();
+}
+
+// Events
+document.getElementById('searchInput').addEventListener('input', e => {
+  state.search = e.target.value;
+  renderAll();
+});
+document.querySelectorAll('.view-btn').forEach(b => {
+  b.addEventListener('click', () => setView(b.dataset.view));
+});
+window.addEventListener('resize', () => {
+  if (state.view === 'treemap') renderTreemap();
+  if (state.view === 'graph') renderGraph();
+});
+
+// Init
+renderAll();
+setView('grid');
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

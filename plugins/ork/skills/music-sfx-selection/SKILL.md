@@ -1,7 +1,9 @@
 ---
 name: music-sfx-selection
-description: Audio selection and mixing for tech demo videos - music matching, SFX timing, volume levels, and emotional audio design
+description: Audio selection for tech demo videos. Use when choosing background music, timing SFX, setting volume levels, or matching mood to content
 tags: [video, audio, music, sfx, sound-design, mixing]
+context: fork
+agent: demo-producer
 user-invocable: false
 version: 1.0.0
 ---
@@ -252,3 +254,10 @@ const sCurve = (progress: number) => {
 - [ ] No clipping (peaks under -3dB)
 
 See `references/` for detailed guides on music matching, SFX libraries, and audio mixing techniques.
+
+## Related Skills
+
+- `audio-mixing-patterns`: ffmpeg commands for mixing narration with music
+- `remotion-composer`: Audio layer integration in Remotion compositions
+- `video-pacing`: Timing patterns that audio must sync with
+- `demo-producer`: Full pipeline that uses these audio patterns

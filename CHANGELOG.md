@@ -5,6 +5,147 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] - 2026-01-30
+
+### Added
+
+- **PostToolUseFailure hook event** — Error-path hooks with contextual solution suggestions for common failures (file not found, permission denied, network errors, syntax errors, timeouts, memory exhaustion, merge conflicts, locks, type errors)
+- **PreCompact hook event** — Saves session state before context compaction for post-compaction recovery
+- **permissionMode support** — Quality gates read `permissionMode` field; in `dontAsk` mode, quality gates warn instead of block
+- **stop_hook_active re-entry guard** — Prevents infinite recursion in stop hook dispatchers
+- **Notification matchers** — Split notification hooks with matcher-based routing (permission_prompt, idle_prompt, auth_success)
+- **updatedInput canonical typing** — `outputWithUpdatedInput()` helper and `HookSpecificOutput.updatedInput` field for type-safe PreToolUse input modification
+- **CLAUDE_ENV_FILE support** — `getEnvFile()` helper uses CC's CLAUDE_ENV_FILE with fallback to .instance_env
+- **Plugin dependency validation in build system** — Build script Phase 5 validates manifest dependencies exist
+- **All 23 domain plugin manifests** now declare `dependencies: ["ork-core"]`
+
+### Changed
+
+- **Hook distribution** — 14 hooks moved from global hooks.json to agent/skill-scoped frontmatter (91 global + 28 agent/skill-scoped = 119 total):
+  - 8 git/release hooks → git-operations-engineer, release-engineer agents
+  - 1 CI hook → ci-cd-engineer agent
+  - 6 pattern enforcement hooks → skill frontmatter (backend-architecture-enforcer, clean-architecture, test-standards-enforcer, code-review-playbook, project-structure-enforcer)
+- **Engine requirement** bumped from >=2.1.20 to >=2.1.27 for CC 2.1.27 features (`--from-pr` auto PR linking, permission precedence fix, tool failure debug logs)
+- `create-pr`, `github-operations`, `issue-progress-tracking` skills: documented CC 2.1.27 `--from-pr` session linking
+
+### Fixed
+
+- **Stop hook re-entry prevention** — stop_hook_active guard prevents dispatchers from re-triggering on stop events
+- **Quality gates respect dontAsk permission mode** — `isDontAskMode()` helper converts blocking quality gates to advisory warnings
+
+## [5.4.2] - 2026-01-30
+
+### Added
+
+- **Background hook debug & logging system (Issue #243 enhancement)** — Added comprehensive debugging for silent hooks:
+  - Debug configuration via `.claude/hooks/debug.json` with filters and verbosity controls
+  - Execution metrics tracking in `.claude/hooks/metrics.json` (run count, error rate, avg duration)
+  - PID tracking for monitoring active background hooks
+  - Structured JSON logging in `.claude/logs/background-hooks.log`
+  - `/ork:doctor` integration for hook health monitoring
+
+### Changed
+
+- **`run-hook-background.mjs`** — Enhanced with debug logging, metrics tracking, and PID file management
+- **`/ork:doctor`** — Updated hook validation section with background hook health checks
+
+## [5.4.1] - 2026-01-29
+
+### Changed
+
+- **Plugin Consolidation** — Merged 18 fragmented plugins into 10 domain-focused plugins:
+  - `ork-rag-advanced` → merged into `ork-rag`
+  - `ork-langgraph-core` + `ork-langgraph-advanced` → `ork-langgraph`
+  - `ork-llm-core` + `ork-llm-advanced` → `ork-llm`
+  - `ork-testing-core` + `ork-testing-e2e` → `ork-testing`
+  - `ork-frontend-advanced` + `ork-frontend-performance` → `ork-frontend`
+  - `ork-backend-advanced` → merged into `ork-backend-patterns`
+  - `ork-cicd` + `ork-infrastructure` → `ork-devops`
+  - `ork-context` → merged into `ork-core`
+  - `ork-fastapi` + `ork-graphql` → `ork-api`
+  - `ork-architecture` + `ork-data-engineering` → merged appropriately
+  - `ork-workflows-core` + `ork-workflows-advanced` → `ork-workflows`
+
+- **New `ork-video` plugin** — 15 demo/video production skills extracted into dedicated plugin:
+  - demo-producer, terminal-demo-generator, remotion-composer, manim-visualizer
+  - video-storyboarding, video-pacing, narration-scripting, hook-formulas
+  - heygen-avatars, elevenlabs-narration, audio-mixing-patterns, music-sfx-selection
+  - content-type-recipes, scene-intro-cards, thumbnail-first-frame
+
+- **Skill count**: 182 → 185 (new AI observability skills: drift-detection, pii-masking-patterns, silent-failure-detection)
+
+- **Hook count**: 154 → 167 (new lifecycle hooks for video production and observability); async hooks eliminated entirely via silent runner pattern
+
+### Added
+
+- **Manifest validation tests** — New test suite for plugin manifests:
+  - `test-skill-uniqueness.sh`: Detect duplicate skills across manifests
+  - `test-manifest-dependencies.sh`: Validate plugin dependency chains
+  - `test-marketplace-ordering.sh`: Ensure ork meta-plugin is last
+  - `test-plugin-orphan-skills.sh`: Find skills not claimed by any manifest
+
+- **npm scripts for manifest tests**: `npm run test:manifests`, `test:manifests:orphans`, etc.
+
+### Fixed
+
+- **Async hook terminal spam (Issue #243)** — Eliminated ALL "Async hook X completed" messages:
+  - Converted 7 async hooks to fire-and-forget using `run-hook-silent.mjs`
+  - Silent runner spawns detached background processes (no async flag needed)
+  - Total async hooks: 7 → 0 (100% elimination of terminal spam)
+  - Background work still executes via detached processes
+
+- **38 orphan skills** — All skills now assigned to appropriate domain plugins
+- **19 skill warnings** — Added "Related Skills" sections and "Use when" trigger phrases to improve discoverability
+
+## [5.4.0] - 2026-01-28
+
+### Added
+
+- **Comprehensive E2E test suites** — 174 new E2E tests across 5 test files:
+  - `dispatcher-registry-wiring.test.ts` (24 tests): hooks.json configuration validation
+  - `multi-instance-coordination.test.ts` (22 tests): File locking and concurrent session coordination
+  - `security-boundaries.test.ts` (70 tests): Dangerous command blocking, path traversal prevention
+  - `stop-lifecycle.test.ts` (20 tests): Session termination and cleanup hooks
+  - `subagent-lifecycle.test.ts` (27 tests): Agent spawn/complete lifecycle validation
+
+- **Coverage tooling** — Added `@vitest/coverage-v8` with `vitest.config.ts` and `npm run test:coverage` script. Coverage thresholds: 70% lines, 60% functions, 50% branches.
+
+### Changed
+
+- **BREAKING: Memory plugin decomposition** — `ork-memory` split into 3 independent plugins:
+  - `ork-memory-graph` (Tier 1): Knowledge graph memory — zero-config, always works. Skills: remember, recall, load-context.
+  - `ork-memory-mem0` (Tier 2): Mem0 cloud memory — opt-in, requires `MEM0_API_KEY`. Skills: mem0-memory, mem0-sync.
+  - `ork-memory-fabric` (Tier 3): Memory orchestration — parallel query dispatch, dedup, cross-reference boosting. Skill: memory-fabric.
+  - Users must re-install the specific plugins they need. `ork-memory` no longer exists.
+
+- **Hook split: agent-memory-inject** — Split into two independent hooks:
+  - `graph-memory-inject.ts` — always runs, injects graph context into subagents (ork-memory-graph)
+  - `mem0-memory-inject.ts` — gated on `MEM0_API_KEY`, injects mem0 context into subagents (ork-memory-mem0)
+
+- **Mem0 hook gating** — `mem0-pre-compaction-sync.ts` now early-returns without `MEM0_API_KEY` instead of building messages about syncing
+
+- **Hook count**: 152 → 153 (split added 1 hook)
+
+- **Skill frontmatter** — All memory skills updated with `plugin:` field pointing to their respective plugin
+
+### Fixed
+
+- **`tool_result` type definition** — Changed from `string` to `string | { is_error?: boolean; content?: string }` in `HookInput` to match actual runtime payloads from Skill PostToolUse hooks. Removed `as any` casts from `decision-processor.ts` and `agent-memory-store.ts`.
+
+- **`dangerous-command-blocker` patterns** — Added blocking for: `git reset --hard`, `git clean -fd`, `git push --force/-f`, `DROP DATABASE`, `DROP SCHEMA`, `TRUNCATE TABLE`. Fixed case-insensitive matching (patterns and command both lowercased).
+
+- **`process.env.HOME` container safety** — Added `|| process.env.USERPROFILE || '/tmp'` fallback in `common.ts`, `pattern-sync-pull.ts`, `pattern-sync-push.ts`, `mem0-context-retrieval.ts`, and `setup-maintenance.ts` to prevent crashes in CI containers where HOME is unset.
+
+- **`split-bundles.test.ts` hook count** — Updated from 152 to 153 after memory hook split.
+
+- **Marketplace version sync** — `build-plugins.sh` now auto-syncs plugin versions from `manifests/*.json` to `.claude-plugin/marketplace.json` during build (Phase 5).
+
+- **Vitest CI integration** — Added `hook-typescript-tests` job to CI pipeline (`ci.yml`) and wired into `tests/run-all-tests.sh`. 1,449 TypeScript tests now run in CI and gate merges via the summary job.
+
+- **Path prefix attack in `auto-approve-project-writes`** — Fixed vulnerability where `startsWith()` check incorrectly approved paths like `/project-malicious/file.txt` when projectDir was `/project`. Now uses `path.relative()` containment check to properly detect path escape attempts.
+
+- **Test count** — Total TypeScript tests: 1,449 → 2,165 (716 new tests including 174 E2E).
+
 ## [5.3.0] - 2026-01-27
 
 ### Added

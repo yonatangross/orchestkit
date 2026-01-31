@@ -1,0 +1,24 @@
+{
+  "name": "ork-devops",
+  "version": "5.3.0",
+  "description": "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing",
+  "dependencies": ["ork-core"],
+  "skills": [
+    "devops-deployment",
+    "observability-monitoring",
+    "performance-testing",
+    "github-operations",
+    "release-management",
+    "edge-computing-patterns",
+    "slack-integration",
+    "best-practices"
+  ],
+  "agents": [
+    "ci-cd-engineer",
+    "deployment-manager",
+    "release-engineer",
+    "infrastructure-architect",
+    "monitoring-engineer"
+  ],
+  "hooks": "none"
+}

@@ -281,8 +281,12 @@ describe('Cross-Bundle Consistency', () => {
 
     const totalHooks = bundles.reduce((sum, bundle) => sum + Object.keys(bundle).length, 0);
 
-    // Should have 144 hooks total (3 hooks in hooks.json don't have TypeScript implementations yet)
-    expect(totalHooks).toBe(144);
+    // Total TypeScript hook implementations across all bundles
+    // Update this count when adding/removing hook implementations
+    // 152 -> 157: added graph-queue-sync hook
+    // 160 -> 162: Issue #245 added trackEvent export in session-tracker
+    // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
+    expect(totalHooks).toBe(165);
   });
 });
 

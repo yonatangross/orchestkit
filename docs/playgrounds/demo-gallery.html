@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Demo Gallery</title>
+<link rel="stylesheet" href="nav.css">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --surface3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #8b5cf6;
+    --accent2: #22c55e;
+    --accent3: #06b6d4;
+    --accent4: #f59e0b;
+    --accent5: #f97316;
+    --accent6: #ec4899;
+    --accent7: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* Header */
+  .gallery-header {
+    background: linear-gradient(135deg, #1a1040 0%, #0d1117 50%, #0a1628 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 32px;
+    position: sticky;
+    top: 48px;
+    z-index: 100;
+  }
+  .gallery-header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .gallery-title {
+    font-size: 22px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gallery-title .icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent6));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+  }
+
+  /* Stats bar */
+  .stats-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    font-size: 13px;
+  }
+  .stat { display: flex; align-items: baseline; gap: 5px; }
+  .stat-val { font-weight: 800; font-variant-numeric: tabular-nums; }
+  .stat-lbl { color: var(--text-muted); }
+
+  /* Filters */
+  .filters {
+    padding: 14px 32px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .search-box {
+    flex: 1;
+    min-width: 200px;
+    position: relative;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 8px 12px 8px 34px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-box input:focus { border-color: var(--accent); }
+  .search-box::before {
+    content: '\1F50D';
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    opacity: 0.5;
+  }
+  .filter-group {
+    display: flex;
+    gap: 4px;
+  }
+  .fbtn {
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .fbtn:hover { border-color: var(--accent); color: var(--text); }
+  .fbtn.active { background: var(--accent); border-color: var(--accent); color: white; }
+  .filter-sep {
+    width: 1px;
+    height: 24px;
+    background: var(--border);
+    flex-shrink: 0;
+  }
+
+  /* Grid */
+  .gallery-main { padding: 20px 32px; }
+  .comp-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 14px;
+  }
+  .comp-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .comp-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(139, 92, 246, 0.12);
+  }
+
+  /* Thumbnail */
+  .comp-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--surface2);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .comp-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .comp-thumb .placeholder {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 8px;
+  }
+  .comp-thumb .format-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    backdrop-filter: blur(4px);
+    text-transform: uppercase;
+  }
+  .comp-thumb .duration-badge {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(0,0,0,0.65);
+    color: white;
+    backdrop-filter: blur(4px);
+  }
+  .comp-thumb .color-stripe {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+
+  /* Card info */
+  .comp-info {
+    padding: 10px 12px;
+  }
+  .comp-info .title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .comp-info .command {
+    font-size: 12px;
+    color: var(--accent3);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-bottom: 4px;
+  }
+  .comp-info .hook-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .comp-tags {
+    display: flex;
+    gap: 4px;
+    padding: 0 12px 10px;
+    flex-wrap: wrap;
+  }
+  .comp-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* Detail modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 9998;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.visible { display: flex; align-items: center; justify-content: center; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 90%;
+    max-width: 720px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { border-color: var(--accent7); color: var(--accent7); }
+  .modal-thumb {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .modal-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+  }
+  .play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    opacity: 0;
+    transition: opacity 0.2s;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .modal-thumb:hover .play-overlay { opacity: 1; }
+  .play-btn {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 3px solid white;
+    background: rgba(139,92,246,0.9);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    transition: transform 0.15s;
+  }
+  .play-btn:hover { transform: scale(1.1); }
+  .modal-video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+    border-radius: 12px 12px 0 0;
+  }
+  .modal-body {
+    padding: 20px 24px;
+    position: relative;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .modal-subtitle {
+    font-size: 13px;
+    color: var(--accent3);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    margin-bottom: 12px;
+  }
+  .modal-hook {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .modal-meta {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .meta-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .meta-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .meta-value {
+    font-size: 14px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .render-cmd {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 14px;
+    position: relative;
+    margin-bottom: 16px;
+  }
+  .render-cmd-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .render-cmd code {
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    color: var(--accent2);
+    display: block;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .render-cmd .copy-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 4px 10px;
+    background: var(--accent);
+    border: none;
+    border-radius: 5px;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .render-cmd .copy-btn:hover { filter: brightness(1.15); }
+  .render-cmd .copy-btn.copied { background: var(--accent2); }
+  .modal-variants-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .modal-variants {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .variant-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .variant-tag:hover { border-color: var(--accent); }
+  .variant-tag.current { border-color: var(--accent); color: var(--accent); background: rgba(139,92,246,0.1); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 64px 16px;
+    color: var(--text-muted);
+  }
+  .empty-state .icon { font-size: 36px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 16px; margin-bottom: 6px; color: var(--text); }
+  .empty-state p { font-size: 13px; }
+
+  @media (max-width: 768px) {
+    .gallery-header, .filters, .gallery-main { padding-left: 16px; padding-right: 16px; }
+    .comp-grid { grid-template-columns: 1fr; }
+    .modal { width: 95%; }
+    .modal-meta { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="gallery-header">
+  <div class="gallery-header-top">
+    <div class="gallery-title">
+      <div class="icon">&#x25B6;</div>
+      <span>Demo Gallery</span>
+    </div>
+  </div>
+  <div class="stats-bar" id="statsBar"></div>
+</div>
+
+<div class="filters">
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Search compositions, skills, styles...">
+  </div>
+  <div class="filter-sep"></div>
+  <div class="filter-group" id="formatFilters"></div>
+  <div class="filter-sep"></div>
+  <div class="filter-group" id="styleFilters"></div>
+  <div class="filter-sep"></div>
+  <div class="filter-group" id="folderFilters"></div>
+</div>
+
+<div class="gallery-main">
+  <div class="comp-grid" id="compGrid"></div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="icon">&#x1F3AC;</div>
+    <h3>No compositions match your filters</h3>
+    <p>Try adjusting your search or filter criteria.</p>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function() {
+  var data = window.ORCHESTKIT_DATA;
+  var allComps = data.compositions.filter(function(c) { return c.folder !== 'Experiments'; });
+
+  var state = {
+    search: '',
+    format: 'all',
+    style: 'all',
+    folder: 'all',
+    selectedComp: null,
+  };
+
+  // Derived data
+  var formats = ['all'];
+  var styles = ['all'];
+  var folders = ['all'];
+  var formatSet = {};
+  var styleSet = {};
+  var folderSet = {};
+
+  allComps.forEach(function(c) {
+    if (!formatSet[c.format]) { formatSet[c.format] = true; formats.push(c.format); }
+    if (!styleSet[c.style]) { styleSet[c.style] = true; styles.push(c.style); }
+    var topFolder = c.folder.split('/')[0];
+    if (!folderSet[topFolder]) { folderSet[topFolder] = true; folders.push(topFolder); }
+  });
+
+  function getFiltered() {
+    return allComps.filter(function(c) {
+      if (state.format !== 'all' && c.format !== state.format) return false;
+      if (state.style !== 'all' && c.style !== state.style) return false;
+      if (state.folder !== 'all' && c.folder.split('/')[0] !== state.folder) return false;
+      if (state.search) {
+        var q = state.search.toLowerCase();
+        return c.id.toLowerCase().indexOf(q) !== -1 ||
+               c.skill.toLowerCase().indexOf(q) !== -1 ||
+               c.command.toLowerCase().indexOf(q) !== -1 ||
+               c.hook.toLowerCase().indexOf(q) !== -1 ||
+               c.style.toLowerCase().indexOf(q) !== -1 ||
+               c.tags.some(function(t) { return t.indexOf(q) !== -1; });
+      }
+      return true;
+    });
+  }
+
+  // Render stats
+  function renderStats() {
+    var filtered = getFiltered();
+    var fmtCounts = {};
+    var styleCounts = {};
+    filtered.forEach(function(c) {
+      fmtCounts[c.format] = (fmtCounts[c.format] || 0) + 1;
+      styleCounts[c.style] = (styleCounts[c.style] || 0) + 1;
+    });
+    var statsHtml = '<div class="stat"><span class="stat-val" style="color:var(--accent)">' + filtered.length + '</span><span class="stat-lbl">compositions</span></div>';
+    ['landscape','vertical','square'].forEach(function(fmt) {
+      if (fmtCounts[fmt]) {
+        statsHtml += '<div class="stat"><span class="stat-val">' + fmtCounts[fmt] + '</span><span class="stat-lbl">' + fmt + '</span></div>';
+      }
+    });
+    var uniqueStyles = Object.keys(styleCounts).length;
+    statsHtml += '<div class="stat"><span class="stat-val">' + uniqueStyles + '</span><span class="stat-lbl">styles</span></div>';
+    document.getElementById('statsBar').innerHTML = statsHtml;
+  }
+
+  // Render filters
+  function renderFilters() {
+    document.getElementById('formatFilters').innerHTML = ['all','landscape','vertical','square'].map(function(f) {
+      return '<button class="fbtn ' + (state.format === f ? 'active' : '') + '" onclick="setFilter(\'format\',\'' + f + '\')">' + (f === 'all' ? 'All Formats' : f.charAt(0).toUpperCase() + f.slice(1)) + '</button>';
+    }).join('');
+
+    var topStyles = ['all','TriTerminalRace','Cinematic','Hybrid-VHS','ProgressiveZoom','SplitThenMerge'];
+    document.getElementById('styleFilters').innerHTML = topStyles.map(function(s) {
+      return '<button class="fbtn ' + (state.style === s ? 'active' : '') + '" onclick="setFilter(\'style\',\'' + s + '\')">' + (s === 'all' ? 'All Styles' : s) + '</button>';
+    }).join('');
+
+    document.getElementById('folderFilters').innerHTML = ['all','Production','Templates'].map(function(f) {
+      return '<button class="fbtn ' + (state.folder === f ? 'active' : '') + '" onclick="setFilter(\'folder\',\'' + f + '\')">' + (f === 'all' ? 'All' : f) + '</button>';
+    }).join('');
+  }
+
+  // Render grid
+  function renderGrid() {
+    var filtered = getFiltered();
+    var grid = document.getElementById('compGrid');
+    var empty = document.getElementById('emptyState');
+
+    if (filtered.length === 0) {
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    grid.style.display = 'grid';
+    empty.style.display = 'none';
+
+    grid.innerHTML = filtered.map(function(c) {
+      var thumbUrl = c.thumbnailCdn || c.thumbnail;
+      return '<div class="comp-card" onclick="openModal(\'' + c.id + '\')">' +
+        '<div class="comp-thumb">' +
+          '<img src="' + thumbUrl + '" alt="' + c.id + '" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'">' +
+          '<div class="placeholder" style="display:none">' + c.id + '<br>' + c.width + 'x' + c.height + '</div>' +
+          '<span class="format-badge">' + c.format + '</span>' +
+          '<span class="duration-badge">' + c.durationSeconds + 's</span>' +
+          '<div class="color-stripe" style="background:' + c.primaryColor + '"></div>' +
+        '</div>' +
+        '<div class="comp-info">' +
+          '<div class="title">' + c.id + '</div>' +
+          (c.command ? '<div class="command">' + c.command + '</div>' : '') +
+          (c.hook ? '<div class="hook-text">' + c.hook + '</div>' : '') +
+        '</div>' +
+        '<div class="comp-tags">' +
+          '<span class="comp-tag">' + c.style + '</span>' +
+          '<span class="comp-tag">' + c.width + 'x' + c.height + '</span>' +
+          (c.relatedPlugin ? '<span class="comp-tag">' + c.relatedPlugin + '</span>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  // Modal
+  window.openModal = function(id) {
+    var comp = data.compositions.find(function(c) { return c.id === id; });
+    if (!comp) return;
+    state.selectedComp = comp;
+
+    // Find variants (same skill, different format/style)
+    var variants = data.compositions.filter(function(c) {
+      return c.skill === comp.skill && c.id !== comp.id && c.folder !== 'Experiments';
+    });
+
+    var thumbnailUrl = comp.thumbnailCdn || comp.thumbnail;
+    var videoUrl = comp.videoCdn || null;
+
+    var modal = document.getElementById('modal');
+    modal.innerHTML =
+      '<div class="modal-thumb">' +
+        '<img id="modalImg" src="' + thumbnailUrl + '" alt="' + comp.id + '" onerror="this.style.display=\'none\'">' +
+        (videoUrl ?
+          '<div class="play-overlay" id="playOverlay" onclick="playVideo()">' +
+            '<button class="play-btn">' +
+              '<svg width="28" height="28" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg>' +
+            '</button>' +
+          '</div>' +
+          '<video class="modal-video" id="modalVideo" controls ' +
+            'style="display:none" poster="' + thumbnailUrl + '">' +
+            '<source src="' + videoUrl + '" type="video/mp4">' +
+          '</video>'
+        : '') +
+      '</div>' +
+      '<div class="modal-body">' +
+        '<button class="modal-close" onclick="closeModal()">&times;</button>' +
+        '<div class="modal-title">' + comp.id + '</div>' +
+        (comp.command ? '<div class="modal-subtitle">' + comp.command + '</div>' : '<div style="margin-bottom:12px"></div>') +
+        (comp.hook ? '<div class="modal-hook">' + comp.hook + '</div>' : '') +
+        '<div class="modal-meta">' +
+          '<div class="meta-item"><div class="meta-label">Format</div><div class="meta-value">' + comp.format + '</div></div>' +
+          '<div class="meta-item"><div class="meta-label">Resolution</div><div class="meta-value">' + comp.width + 'x' + comp.height + '</div></div>' +
+          '<div class="meta-item"><div class="meta-label">Duration</div><div class="meta-value">' + comp.durationSeconds + 's @ ' + comp.fps + 'fps</div></div>' +
+          '<div class="meta-item"><div class="meta-label">Style</div><div class="meta-value">' + comp.style + '</div></div>' +
+          '<div class="meta-item"><div class="meta-label">Folder</div><div class="meta-value" style="font-size:11px">' + comp.folder + '</div></div>' +
+          (comp.relatedPlugin ? '<div class="meta-item"><div class="meta-label">Plugin</div><div class="meta-value" style="font-size:12px;color:var(--accent)">' + comp.relatedPlugin + '</div></div>' : '') +
+        '</div>' +
+        '<div class="render-cmd">' +
+          '<div class="render-cmd-label">Render Command</div>' +
+          '<code>cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4</code>' +
+          '<button class="copy-btn" onclick="copyCmd(this, \'cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4\')">Copy</button>' +
+        '</div>' +
+        (variants.length > 0 ?
+          '<div class="modal-variants-title">Other Variants (' + variants.length + ')</div>' +
+          '<div class="modal-variants">' +
+            variants.map(function(v) {
+              return '<span class="variant-tag" onclick="openModal(\'' + v.id + '\')" title="' + v.format + ' ' + v.width + 'x' + v.height + ' ' + v.style + '">' + v.id + '</span>';
+            }).join('') +
+          '</div>'
+        : '') +
+      '</div>';
+
+    document.getElementById('modalOverlay').classList.add('visible');
+  };
+
+  window.playVideo = function() {
+    var img = document.getElementById('modalImg');
+    var overlay = document.getElementById('playOverlay');
+    var video = document.getElementById('modalVideo');
+    if (img) img.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+    if (video) { video.style.display = 'block'; video.play(); }
+  };
+
+  window.closeModal = function() {
+    var v = document.getElementById('modalVideo');
+    if (v) { v.pause(); v.currentTime = 0; }
+    document.getElementById('modalOverlay').classList.remove('visible');
+    state.selectedComp = null;
+  };
+
+  window.copyCmd = function(btn, text) {
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+    });
+  };
+
+  // Close modal on overlay click
+  document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+  });
+
+  // Filter actions
+  window.setFilter = function(key, value) {
+    state[key] = value;
+    renderAll();
+  };
+
+  // Search
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+    state.search = e.target.value;
+    renderAll();
+  });
+
+  function renderAll() {
+    renderStats();
+    renderFilters();
+    renderGrid();
+  }
+
+  renderAll();
+})();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

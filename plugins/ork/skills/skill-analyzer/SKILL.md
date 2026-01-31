@@ -1,6 +1,6 @@
 ---
 name: skill-analyzer
-description: Reference patterns for parsing and analyzing OrchestKit skill metadata from SKILL.md files. Used by demo-producer for extraction.
+description: Reference patterns for parsing skill metadata. Use when extracting phases, examples, or features from SKILL.md files for demo generation
 context: inherit
 version: 1.0.0
 author: OrchestKit
@@ -87,6 +87,12 @@ tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
 # 3. Identify related skills
 # 4. Generate demo script with extracted content
 ```
+
+## Related Skills
+
+- `demo-producer`: Uses skill-analyzer output for script generation
+- `terminal-demo-generator`: Creates recordings based on extracted phases
+- `content-type-recipes`: Templates that consume analyzed metadata
 
 ## References
 

@@ -1,6 +1,6 @@
 ---
 name: terminal-demo-generator
-description: Terminal recording patterns using VHS (scripted) and asciinema (real). Documents tape format, cast editing, Claude Code CLI simulation, and conversion to video.
+description: Terminal recording for demo videos. Use when recording CLI sessions with VHS or asciinema, simulating Claude Code output, or converting casts to MP4
 context: inherit
 version: 2.0.0
 author: OrchestKit
@@ -136,6 +136,13 @@ terminal-demo-generator     →  demo-producer  →  remotion-composer
                             manim-visualizer
                             (animations)
 ```
+
+## Related Skills
+
+- `demo-producer`: Full pipeline orchestration that uses terminal recordings
+- `remotion-composer`: Combines terminal recordings with animations
+- `manim-visualizer`: Animated diagrams that complement terminal demos
+- `video-pacing`: Timing patterns for terminal output display
 
 ## References
 

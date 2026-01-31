@@ -38,6 +38,9 @@ const HOOKS: HookConfig[] = [
   { name: 'sound', fn: soundNotification },
 ];
 
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------

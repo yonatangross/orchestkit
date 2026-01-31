@@ -2,11 +2,13 @@
 name: mem0-sync
 description: Auto-sync session context, decisions, and patterns to Mem0 for cross-session continuity. Use when persisting session memory or syncing decisions.
 tags: [mem0, sync, session, memory, continuity, persistence]
+plugin: ork-memory-mem0
 user-invocable: true
 allowedTools: [Read, Grep, Glob]
 auto-invoke: session-end
 context: inherit
 skills: [recall, remember]
+version: 2.1.0
 ---
 
 # Mem0 Auto-Sync

@@ -113,8 +113,9 @@ import { agentOrchestrator } from './prompt/agent-orchestrator.js';
 import { skillInjector } from './prompt/skill-injector.js';
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (5)
-import { agentMemoryInject } from './subagent-start/agent-memory-inject.js';
+// SubagentStart hooks (6)
+import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
+import { mem0MemoryInject } from './subagent-start/mem0-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
@@ -285,8 +286,9 @@ export const hooks: Record<string, HookFn> = {
   'prompt/skill-injector': skillInjector,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (5)
-  'subagent-start/agent-memory-inject': agentMemoryInject,
+  // SubagentStart hooks (6)
+  'subagent-start/graph-memory-inject': graphMemoryInject,
+  'subagent-start/mem0-memory-inject': mem0MemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,

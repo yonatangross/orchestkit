@@ -1,6 +1,6 @@
 ---
 name: slack-integration
-description: Slack MCP server integration patterns for team notifications. Covers PR lifecycle notifications, review alerts, and CI status updates via bot token.
+description: Slack MCP server integration patterns. Use when setting up team notifications, PR alerts, or CI status updates via Slack bot token
 context: fork
 version: 1.0.0
 author: OrchestKit

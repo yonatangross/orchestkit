@@ -119,6 +119,39 @@ SATISFACTION_NEGATIVE_SHORT=(
 )
 
 # =============================================================================
+# CROSS-PLATFORM MATH HELPERS (awk-based, no bc dependency)
+# =============================================================================
+
+# Divide two numbers with scale (cross-platform, works on Windows)
+# Usage: calc_divide NUMERATOR DENOMINATOR [SCALE=2]
+calc_divide() {
+    local num="$1"
+    local denom="$2"
+    local scale="${3:-2}"
+    awk -v n="$num" -v d="$denom" -v s="$scale" 'BEGIN { printf "%.*f", s, (d != 0 ? n/d : 0) }'
+}
+
+# Multiply number by 100 with scale (for percentages)
+# Usage: calc_percent VALUE [SCALE=0]
+calc_percent() {
+    local val="$1"
+    local scale="${2:-0}"
+    awk -v v="$val" -v s="$scale" 'BEGIN { printf "%.*f", s, v * 100 }'
+}
+
+# Compare two floating point numbers
+# Usage: calc_gt VALUE1 VALUE2 (returns 0/true if VALUE1 > VALUE2)
+calc_gt() {
+    awk -v a="$1" -v b="$2" 'BEGIN { exit !(a > b) }'
+}
+
+# Compare two floating point numbers
+# Usage: calc_lt VALUE1 VALUE2 (returns 0/true if VALUE1 < VALUE2)
+calc_lt() {
+    awk -v a="$1" -v b="$2" 'BEGIN { exit !(a < b) }'
+}
+
+# =============================================================================
 # INITIALIZATION
 # =============================================================================
 
@@ -368,10 +401,10 @@ analyze_satisfaction() {
     if [[ $total -gt 0 ]]; then
         if [[ $positive_count -gt $negative_count ]]; then
             sentiment="positive"
-            score=$(echo "scale=2; $positive_count / $total" | bc)
+            score=$(calc_divide "$positive_count" "$total" 2)
         elif [[ $negative_count -gt $positive_count ]]; then
             sentiment="negative"
-            score=$(echo "scale=2; $positive_count / $total" | bc)
+            score=$(calc_divide "$positive_count" "$total" 2)
         fi
     fi
 
@@ -482,7 +515,7 @@ get_session_satisfaction() {
         return
     fi
 
-    echo "scale=2; $positive / $total" | bc
+    calc_divide "$positive" "$total" 2
 }
 
 # Get satisfaction summary for reporting
@@ -504,7 +537,7 @@ get_satisfaction_summary() {
     local total_signals=$((total_positive + total_negative + total_neutral))
     local satisfaction_pct
     if [[ $total_signals -gt 0 ]]; then
-        satisfaction_pct=$(echo "scale=0; $avg_score * 100" | bc)
+        satisfaction_pct=$(calc_percent "$avg_score" 0)
     else
         satisfaction_pct="50"
     fi
@@ -924,7 +957,7 @@ get_feedback_status() {
     if [[ -f "$SATISFACTION_FILE" ]]; then
         local raw_score
         raw_score=$(jq -r '.aggregate.averageScore // 0.5' "$SATISFACTION_FILE" 2>/dev/null || echo "0.5")
-        satisfaction_score=$(echo "scale=0; $raw_score * 100" | bc)%
+        satisfaction_score="$(calc_percent "$raw_score" 0)%"
     fi
 
     cat << EOF
@@ -1062,12 +1095,12 @@ check_skill_health() {
     fi
     
     local current_rate
-    current_rate=$(echo "scale=2; $successes / $uses" | bc)
-    
+    current_rate=$(calc_divide "$successes" "$uses" 2)
+
     # Get baseline from evolution registry or manifest
     local evolution_registry="${FEEDBACK_DIR}/evolution-registry.json"
     local baseline_rate="0.80"  # Default baseline
-    
+
     if [[ -f "$evolution_registry" ]]; then
         local stored_baseline
         stored_baseline=$(jq -r --arg skill "$skill_id" '
@@ -1075,12 +1108,12 @@ check_skill_health() {
         ' "$evolution_registry" 2>/dev/null || echo "0.80")
         baseline_rate="$stored_baseline"
     fi
-    
-    # Compare
+
+    # Compare using awk (cross-platform, no bc dependency)
     local diff
-    diff=$(echo "scale=2; $baseline_rate - $current_rate" | bc)
-    
-    if (( $(echo "$diff > $threshold" | bc -l) )); then
+    diff=$(awk -v b="$baseline_rate" -v c="$current_rate" 'BEGIN { printf "%.2f", b - c }')
+
+    if calc_gt "$diff" "$threshold"; then
         echo "declining:$current_rate:$baseline_rate"
     else
         echo "healthy"

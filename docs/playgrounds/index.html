@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Playgrounds</title>
+<link rel="stylesheet" href="nav.css">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #8b5cf6;
+    --accent2: #22c55e;
+    --accent3: #06b6d4;
+    --accent4: #f59e0b;
+    --accent5: #f97316;
+    --accent6: #ec4899;
+    --accent7: #ef4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .hub-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    padding: 48px 0 40px;
+  }
+  .hero-logo {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 16px;
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 0 auto 32px;
+    line-height: 1.6;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-bottom: 48px;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  /* Cards grid */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    text-decoration: none;
+    color: var(--text);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+  }
+  .card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  .card h3 {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .card-arrow {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-top: auto;
+  }
+
+  /* Category breakdown */
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+  .category-bars {
+    margin-bottom: 48px;
+  }
+  .cat-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .cat-label {
+    width: 110px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .cat-bar-track {
+    flex: 1;
+    height: 24px;
+    background: var(--surface);
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .cat-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    padding-left: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: white;
+    transition: width 0.6s ease;
+    min-width: 32px;
+  }
+  .cat-count {
+    width: 40px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Thumbnail preview */
+  .preview-section {
+    margin-bottom: 48px;
+  }
+  .preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .preview-link {
+    font-size: 13px;
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  .preview-link:hover { text-decoration: underline; }
+  .preview-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+  }
+  .preview-scroll::-webkit-scrollbar { height: 6px; }
+  .preview-scroll::-webkit-scrollbar-track { background: var(--surface); border-radius: 3px; }
+  .preview-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .preview-card {
+    flex-shrink: 0;
+    width: 280px;
+    scroll-snap-align: start;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .preview-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .preview-thumb {
+    width: 100%;
+    height: 158px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .preview-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .preview-thumb .format-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    background: rgba(0,0,0,0.6);
+    color: white;
+    backdrop-filter: blur(4px);
+  }
+  .preview-info {
+    padding: 10px 12px;
+  }
+  .preview-info .name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .preview-info .meta {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 768px) {
+    .hub-container { padding: 24px 16px 48px; }
+    .hero h1 { font-size: 28px; }
+    .stats-row { gap: 24px; }
+    .stat-value { font-size: 28px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .cat-label { width: 80px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hub-container">
+  <div class="hero">
+    <div class="hero-logo">OK</div>
+    <h1>OrchestKit Playgrounds</h1>
+    <p>Interactive tools to explore, configure, and preview the OrchestKit plugin ecosystem. Dive into the marketplace, generate a custom setup, or browse demo compositions.</p>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <div class="category-bars">
+    <h2 class="section-title">Skills by Category</h2>
+    <div id="categoryBars"></div>
+  </div>
+
+  <div class="preview-section">
+    <div class="preview-header">
+      <h2 class="section-title" style="margin-bottom:0">Demo Compositions</h2>
+      <a class="preview-link" href="demo-gallery.html">View all &rarr;</a>
+    </div>
+    <div class="preview-scroll" id="previewScroll"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function() {
+  var data = window.ORCHESTKIT_DATA;
+  var totals = data.totals;
+
+  // Stats row
+  var statsColors = {
+    plugins: '#8b5cf6',
+    skills: '#06b6d4',
+    agents: '#22c55e',
+    hooks: '#f59e0b',
+    commands: '#f97316',
+    compositions: '#ec4899'
+  };
+  var statsOrder = ['plugins','skills','agents','hooks','commands','compositions'];
+  document.getElementById('statsRow').innerHTML = statsOrder.map(function(key) {
+    return '<div class="stat-item">' +
+      '<div class="stat-value" style="color:' + statsColors[key] + '">' + totals[key] + '</div>' +
+      '<div class="stat-label">' + key + '</div>' +
+    '</div>';
+  }).join('');
+
+  // Cards grid
+  var cardColors = ['rgba(139,92,246,0.12)', 'rgba(6,182,212,0.12)', 'rgba(34,197,94,0.12)', 'rgba(236,72,153,0.12)'];
+  var cardBorders = ['rgba(139,92,246,0.3)', 'rgba(6,182,212,0.3)', 'rgba(34,197,94,0.3)', 'rgba(236,72,153,0.3)'];
+  document.getElementById('cardsGrid').innerHTML = data.pages.map(function(page, i) {
+    return '<a class="card" href="' + page.href + '">' +
+      '<div class="card-icon" style="background:' + cardColors[i] + ';border:1px solid ' + cardBorders[i] + '">' + page.icon + '</div>' +
+      '<h3>' + page.label + '</h3>' +
+      '<p>' + (page.id === 'gallery' ? 'Browse ' + totals.compositions + ' demo video compositions' : page.description) + '</p>' +
+      '<div class="card-arrow">Open &rarr;</div>' +
+    '</a>';
+  }).join('');
+
+  // Category bars
+  var catSkills = {};
+  data.plugins.forEach(function(p) {
+    if (!catSkills[p.category]) catSkills[p.category] = 0;
+    catSkills[p.category] += p.skills.length;
+  });
+  var maxSkills = Math.max.apply(null, Object.values(catSkills));
+  var sortedCats = Object.entries(catSkills).sort(function(a, b) { return b[1] - a[1]; });
+
+  document.getElementById('categoryBars').innerHTML = sortedCats.map(function(entry) {
+    var cat = entry[0], count = entry[1];
+    var catData = data.categories[cat] || { color: '#666', label: cat };
+    var pct = Math.max((count / maxSkills) * 100, 5);
+    return '<div class="cat-row">' +
+      '<div class="cat-label" style="color:' + catData.color + '">' + catData.label + '</div>' +
+      '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:' + pct + '%;background:' + catData.color + '">' + count + '</div></div>' +
+      '<div class="cat-count">' + count + '</div>' +
+    '</div>';
+  }).join('');
+
+  // Thumbnail preview - show 6 production landscape compositions
+  var previewComps = data.compositions.filter(function(c) {
+    return c.format === 'landscape' && c.folder.indexOf('Production') === 0 && c.style === 'TriTerminalRace';
+  }).slice(0, 6);
+
+  document.getElementById('previewScroll').innerHTML = previewComps.map(function(comp) {
+    return '<div class="preview-card">' +
+      '<div class="preview-thumb">' +
+        '<img src="' + comp.thumbnail + '" alt="' + comp.id + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<span>' + comp.id + '</span>\'">' +
+        '<span class="format-badge">' + comp.format.toUpperCase() + '</span>' +
+      '</div>' +
+      '<div class="preview-info">' +
+        '<div class="name">' + comp.id + '</div>' +
+        '<div class="meta">' + comp.command + ' &middot; ' + comp.durationSeconds + 's &middot; ' + comp.style + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+})();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

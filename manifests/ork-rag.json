@@ -1,17 +1,23 @@
 {
   "name": "ork-rag",
-  "version": "5.2.6",
-  "description": "RAG & Retrieval patterns — rag-retrieval, embeddings, contextual-retrieval, hyde-retrieval, reranking-patterns, query-decomposition",
+  "version": "5.3.0",
+  "description": "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching",
+  "dependencies": ["ork-core"],
   "skills": [
     "rag-retrieval",
     "embeddings",
     "contextual-retrieval",
     "hyde-retrieval",
     "reranking-patterns",
-    "query-decomposition"
+    "query-decomposition",
+    "agentic-rag-patterns",
+    "multimodal-rag",
+    "pgvector-search",
+    "semantic-caching"
   ],
   "agents": [
-    "data-pipeline-engineer"
+    "data-pipeline-engineer",
+    "multimodal-specialist"
   ],
   "hooks": "none"
 }

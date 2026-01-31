@@ -1,7 +1,9 @@
 ---
 name: content-type-recipes
-description: Step-by-step recipes for creating demo videos for different content types - skills, agents, plugins, tutorials with exact timing and shot breakdowns
+description: Step-by-step recipes for demo videos. Use when creating skill demos, agent showcases, plugin installs, or tutorial walkthroughs with precise timing
 tags: [video, recipes, demos, templates, timing, production]
+context: fork
+agent: demo-producer
 user-invocable: false
 version: 1.0.0
 ---

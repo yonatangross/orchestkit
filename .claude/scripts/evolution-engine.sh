@@ -44,6 +44,12 @@ else
     RED='' GREEN='' YELLOW='' BLUE='' CYAN='' BOLD='' NC=''
 fi
 
+# Cross-platform math helpers (awk-based, no bc dependency)
+calc_percent_int() {
+    local num="$1" denom="$2"
+    awk -v n="$num" -v d="$denom" 'BEGIN { printf "%.0f", (d != 0 ? n * 100 / d : 0) }'
+}
+
 # Initialize evolution registry if not exists
 init_registry() {
     local dir
@@ -254,7 +260,7 @@ cmd_analyze() {
 
     local success_rate
     if [[ "$uses" -gt 0 ]]; then
-        success_rate=$(echo "scale=0; $successes * 100 / $uses" | bc)
+        success_rate=$(calc_percent_int "$successes" "$uses")
     else
         success_rate=0
     fi
@@ -682,7 +688,7 @@ cmd_report() {
 
         local success_rate=0
         if [[ "$uses" -gt 0 ]]; then
-            success_rate=$(echo "scale=0; $successes * 100 / $uses" | bc)
+            success_rate=$(calc_percent_int "$successes" "$uses")
         fi
 
         # Count suggestions
@@ -710,7 +716,7 @@ cmd_report() {
 
     local overall_success=0
     if [[ "$total_uses" -gt 0 ]]; then
-        overall_success=$(echo "scale=0; $total_successes * 100 / $total_uses" | bc)
+        overall_success=$(calc_percent_int "$total_successes" "$total_uses")
     fi
 
     # Registry summary

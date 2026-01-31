@@ -5,6 +5,8 @@
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { existsSync, mkdirSync, rmSync, unlinkSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { classifyIntent, clearCache } from '../lib/intent-classifier.js';
 import {
   loadState,
@@ -42,7 +44,7 @@ import type { HookInput } from '../types.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/orchestration-integration-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'orchestration-integration-test');
 const TEST_SESSION_ID = 'integration-test-' + Date.now();
 
 beforeEach(() => {

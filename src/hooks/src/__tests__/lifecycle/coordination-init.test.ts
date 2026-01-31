@@ -6,6 +6,8 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { coordinationInit } from '../../lifecycle/coordination-init.js';
 
@@ -13,7 +15,7 @@ import { coordinationInit } from '../../lifecycle/coordination-init.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/coordination-init-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'coordination-init-test');
 const TEST_SESSION_ID = 'test-session-coord-' + Date.now();
 
 /**

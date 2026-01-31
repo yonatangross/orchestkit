@@ -12,7 +12,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -253,11 +253,6 @@ export function memoryContext(input: HookInput): HookResult {
   // Build scope description
   const scopeDesc = useGlobal ? 'cross-project' : 'project';
 
-  // Build context suggestion message
-  // NOTE: We build the message but return silent success
-  // The original bash hook did the same - built the message but returned silently
-  // Claude already has access to memory tools
-
   const userIdDecisions = getMem0UserId('decisions', projectDir);
 
   let systemMsg = `[Memory Context] For relevant past ${scopeDesc} decisions, use mcp__memory__search_nodes with query="${searchTerms}"`;
@@ -284,6 +279,6 @@ export function memoryContext(input: HookInput): HookResult {
 
   logHook('memory-context', `Memory context available for: ${searchTerms}`);
 
-  // Silent operation - Claude already has access to memory tools
-  return outputSilentSuccess();
+  // Return computed context so Claude receives memory search hints
+  return outputPromptContext(systemMsg);
 }

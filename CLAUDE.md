@@ -5,9 +5,9 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **181 skills**: Reusable knowledge modules
+- **195 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
-- **152 hooks**: TypeScript lifecycle automation
+- **119 hooks**: TypeScript lifecycle automation (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 179 skills
+├── skills/             # 195 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,15 +149,25 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-179 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+195 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+
+**Skill Types:**
+| Type | Count | Frontmatter | Description |
+|------|-------|-------------|-------------|
+| Command | 23 | `user-invocable: true` | User runs via `/ork:name` |
+| Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+
+**Key Fields:**
+- `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
+- `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
 
 ### Agents
-34 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
+35 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-150 TypeScript hooks in 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+119 hook entries (91 global + 28 agent/skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
-**Async Execution**: 31 hooks use `async: true` for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
+**Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
 ---
 
@@ -215,19 +225,35 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
 | Built plugins | `plugins/<name>/` | Generated, don't edit |
 
+### Memory Plugins (3-tier architecture)
+
+Memory is split into 3 independent plugins (not a monolith):
+
+| Plugin | Tier | Skills | Requires |
+|--------|------|--------|----------|
+| `ork-memory-graph` | 1 (always works) | remember, recall, load-context | Nothing |
+| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory, mem0-sync | `MEM0_API_KEY` env var |
+| `ork-memory-fabric` | 3 (orchestrator) | memory-fabric | ork-memory-graph |
+
+- Graph is PRIMARY and always available (zero-config)
+- Mem0 is OPTIONAL cloud enhancement (gated at runtime)
+- Fabric merges results from both with dedup + cross-reference boosting
+- All mem0 hooks early-return silently without `MEM0_API_KEY`
+
 ### Environment Variables
 ```bash
 CLAUDE_PROJECT_DIR    # User's project directory
 CLAUDE_PLUGIN_ROOT    # Plugin installation directory
 CLAUDE_SESSION_ID     # Current session UUID
+MEM0_API_KEY          # Optional: enables mem0 cloud memory
 ```
 
 ---
 
 ## Version
 
-- **Current**: 5.3.0
-- **Claude Code**: >= 2.1.20
-- **Hooks**: 152 TypeScript (11 split bundles, 5 async)
+- **Current**: 5.5.0
+- **Claude Code**: >= 2.1.27
+- **Hooks**: 119 entries (91 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

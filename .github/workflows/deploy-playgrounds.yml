@@ -1,0 +1,183 @@
+name: Deploy Playgrounds
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/playgrounds/**'
+      - 'manifests/**'
+      - 'src/agents/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/playgrounds/**'
+      - 'manifests/**'
+      - 'src/agents/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: false
+        default: 'preview'
+        type: choice
+        options:
+          - preview
+          - production
+
+concurrency:
+  group: deploy-playgrounds-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  validate:
+    name: Validate Playgrounds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate JSON files
+        run: |
+          echo "Validating JSON files..."
+          for f in docs/playgrounds/**/*.json docs/playgrounds/*.json; do
+            if [ -f "$f" ]; then
+              echo "  Checking: $f"
+              python3 -m json.tool "$f" > /dev/null || { echo "FAILED: $f"; exit 1; }
+            fi
+          done
+          echo "All JSON files valid"
+
+      - name: Validate data.js syntax
+        run: |
+          echo "Validating data.js syntax..."
+          node --check docs/playgrounds/data.js
+          echo "data.js syntax valid"
+
+      - name: Verify thumbnails
+        run: |
+          echo "Verifying thumbnails..."
+          node scripts/verify-playground-thumbnails.js
+
+      - name: Validate HTML files
+        run: |
+          echo "Validating HTML files..."
+          for f in docs/playgrounds/*.html; do
+            echo "  Checking: $f"
+            # Basic validation: check for DOCTYPE and closing tags
+            if ! grep -q '<!DOCTYPE html>' "$f"; then
+              echo "WARNING: Missing DOCTYPE in $f"
+            fi
+            if ! grep -q '</html>' "$f"; then
+              echo "FAILED: Missing </html> in $f"
+              exit 1
+            fi
+            if ! grep -q '</head>' "$f"; then
+              echo "FAILED: Missing </head> in $f"
+              exit 1
+            fi
+            if ! grep -q '</body>' "$f"; then
+              echo "FAILED: Missing </body> in $f"
+              exit 1
+            fi
+          done
+          echo "All HTML files valid"
+
+      - name: Check data freshness
+        run: |
+          echo "Checking if data.js needs regeneration..."
+          # Regenerate and compare
+          node scripts/generate-playground-data.js
+          if git diff --quiet docs/playgrounds/data.js; then
+            echo "data.js is up to date"
+          else
+            echo "WARNING: data.js may be stale (differs from generated version)"
+            echo "Run 'npm run generate:playground-data' to update"
+            # Don't fail, just warn - manual edits to compositions are valid
+          fi
+
+  deploy:
+    name: Deploy to Vercel
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "is_prod=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "workflow_dispatch" && "${{ inputs.environment }}" == "production" ]]; then
+            echo "is_prod=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_prod=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=${{ steps.env.outputs.is_prod == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} --cwd docs/playgrounds
+
+      - name: Build project
+        run: vercel build ${{ steps.env.outputs.is_prod == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} --cwd docs/playgrounds
+
+      - name: Deploy to Vercel
+        id: deploy
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ steps.env.outputs.is_prod == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} --cwd docs/playgrounds)
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Deployed to: $URL"
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.deploy.outputs.url }}';
+            const body = [
+              '## Playgrounds Preview',
+              '',
+              `Deployed to: ${url}`,
+              '',
+              '---',
+              `_Updated: ${new Date().toISOString()}_`
+            ].join('\n');
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.data.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Playgrounds Preview')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }

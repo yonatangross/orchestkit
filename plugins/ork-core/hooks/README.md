@@ -44,35 +44,36 @@ hooks/
 │   │   ├── common.ts       # Logging, output builders, environment
 │   │   ├── git.ts          # Git operations and validation
 │   │   └── guards.ts       # Conditional execution predicates
-│   ├── permission/         # Permission hooks (4)
-│   ├── pretool/            # Pre-execution hooks (33)
-│   │   ├── bash/           # Bash command hooks (20)
-│   │   ├── write-edit/     # File operation hooks (3)
-│   │   ├── Write/          # Write-specific hooks (4)
-│   │   ├── mcp/            # MCP integration hooks (4)
-│   │   ├── input-mod/      # Input modification hooks (1)
-│   │   └── skill/          # Skill tracking hooks (1)
-│   ├── posttool/           # Post-execution hooks (21)
-│   │   ├── (root)/         # General post-tool hooks (12)
-│   │   ├── write/          # Write tracking hooks (5)
-│   │   ├── bash/           # Bash tracking hooks (3)
-│   │   ├── skill/          # Skill optimization hooks (1)
-│   │   └── write-edit/     # File lock hooks (1)
-│   ├── prompt/             # Prompt enhancement hooks (8)
-│   ├── subagent-start/     # Subagent spawn hooks (4)
-│   ├── subagent-stop/      # Subagent completion hooks (9)
-│   ├── notification/       # Notification hooks (2)
-│   ├── stop/               # Session stop hooks (11)
-│   ├── setup/              # Setup and maintenance hooks (8)
-│   ├── agent/              # Agent-specific hooks (6)
-│   └── skill/              # Skill validation hooks (24)
+│   ├── permission/         # Permission hooks (3)
+│   ├── pretool/            # Pre-execution hooks (30)
+│   │   ├── bash/           # Bash command hooks
+│   │   ├── write-edit/     # File operation hooks
+│   │   ├── Write/          # Write-specific hooks
+│   │   ├── mcp/            # MCP integration hooks
+│   │   ├── input-mod/      # Input modification hooks
+│   │   └── skill/          # Skill tracking hooks
+│   ├── posttool/           # Post-execution hooks (22)
+│   │   ├── (root)/         # General post-tool hooks
+│   │   ├── write/          # Write tracking hooks
+│   │   ├── bash/           # Bash tracking hooks
+│   │   ├── skill/          # Skill optimization hooks
+│   │   └── write-edit/     # File lock hooks
+│   ├── prompt/             # Prompt enhancement hooks (12)
+│   ├── subagent-start/     # Subagent spawn hooks (5)
+│   ├── subagent-stop/      # Subagent completion hooks (11)
+│   ├── notification/       # Notification hooks (3)
+│   ├── stop/               # Session stop hooks (29 via unified dispatcher)
+│   ├── lifecycle/          # Lifecycle hooks (17)
+│   ├── setup/              # Setup and maintenance hooks (9)
+│   ├── agent/              # Agent-specific hooks (5)
+│   └── skill/              # Skill validation hooks (22)
 ├── dist/                   # Compiled output (11 split bundles + 1 unified)
 │   ├── permission.mjs      # Permission bundle (8KB)
 │   ├── pretool.mjs         # PreToolUse bundle (48KB)
 │   ├── posttool.mjs        # PostToolUse bundle (58KB)
 │   ├── prompt.mjs          # UserPromptSubmit bundle (57KB)
 │   ├── lifecycle.mjs       # Lifecycle bundle (31KB)
-│   ├── stop.mjs            # Stop bundle (33KB)
+│   ├── stop.mjs            # Stop bundle (79KB - 29 hooks consolidated)
 │   ├── subagent.mjs        # Subagent bundle (56KB)
 │   ├── notification.mjs    # Notification bundle (5KB)
 │   ├── setup.mjs           # Setup bundle (24KB)
@@ -81,12 +82,15 @@ hooks/
 │   ├── hooks.mjs           # Unified bundle for CLI tools (324KB)
 │   └── bundle-stats.json   # Build metrics
 ├── bin/
-│   └── run-hook.mjs        # CLI runner (loads event-specific bundles)
+│   ├── run-hook.mjs        # CLI runner (loads event-specific bundles)
+│   ├── run-hook-silent.mjs # Silent runner (no terminal output)
+│   ├── stop-fire-and-forget.mjs    # Fire-and-forget entry for Stop hooks
+│   └── background-worker.mjs       # Detached worker for async cleanup
 ├── package.json            # NPM configuration
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 152 hooks (all TypeScript)
+**Total:** 167 hooks (all TypeScript, 6 async via fire-and-forget)
 ```
 
 ---
@@ -105,7 +109,7 @@ Auto-approve or deny permission requests based on safety rules.
 Execute BEFORE a tool runs, can inject context or block execution.
 
 **Examples:**
-- `pretool/bash/git-branch-protection` - Block commits to main/dev branches
+- `pretool/bash/git-validator` - Validate git operations (branch protection, commit messages)
 - `pretool/bash/dangerous-command-blocker` - Block `rm -rf`, `sudo`, force push
 - `pretool/Write/architecture-change-detector` - Detect major architecture changes
 
@@ -401,6 +405,63 @@ export function myHook(input: HookInput): HookResult {
 
 ---
 
+## Fire-and-Forget Pattern (Issue #243)
+
+### Overview
+
+Fire-and-forget hooks spawn a detached background process and return immediately. This is used for Stop hooks to ensure **instant session exit** while cleanup runs in the background.
+
+### How It Works
+
+```
+User types /exit
+    ↓
+stop-fire-and-forget.mjs called
+    ↓
+Writes work to temp file (.claude/hooks/pending/)
+    ↓
+Spawns detached background-worker.mjs
+    ↓
+Returns immediately: {"continue": true}
+    ↓
+Session exits instantly
+    ↓
+Background worker runs 29 cleanup hooks in parallel
+```
+
+### Stop Hooks (29 hooks via fire-and-forget)
+
+All stop hooks run in a single detached background process:
+
+**Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
+
+**Memory Sync (4):** graph-queue-sync, workflow-preference-learner, mem0-queue-sync, mem0-pre-compaction-sync
+
+**Instance Management (3):** multi-instance-cleanup, cleanup-instance, task-completion-check
+
+**Analysis (3):** context-compressor, auto-remember-continuity, security-scan-aggregator
+
+**Skill Validation (12):** coverage-check, evidence-collector, coverage-threshold-gate, cross-instance-test-validator, di-pattern-enforcer, duplicate-code-detector, eval-metrics-collector, migration-validator, review-summary-generator, security-summary, test-pattern-validator, test-runner
+
+**Heavy Analysis (1):** full-test-suite
+
+### Background Worker Features
+
+- **5-minute timeout** - Self-terminates to prevent hangs
+- **Orphan cleanup** - Removes temp files older than 10 minutes
+- **Debug logging** - Writes to `.claude/logs/hooks/background-worker.log`
+- **Parallel execution** - All hooks run via `Promise.allSettled`
+
+### When to Use Fire-and-Forget
+
+Use for hooks that:
+- Run at session exit (Stop event)
+- Don't need to block user interaction
+- Can fail silently without impact
+- Perform cleanup/sync operations
+
+---
+
 ## Async Hooks (CC 2.1.19+)
 
 ### Overview
@@ -447,7 +508,7 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - Context injection (must add context before tool runs)
 - Quality gates (must validate before allowing writes)
 
-### Current Async Hooks (20 total)
+### Current Async Hooks (6 hooks.json entries dispatching 20 individual hooks)
 
 **SessionStart (7 hooks)** - Startup optimization:
 - `mem0-context-retrieval` - Load context from cloud memory
@@ -927,8 +988,8 @@ const bundleMap = {
 **Last Updated:** 2026-01-26
 **Version:** 2.1.0 (Async hooks support)
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
-**Hooks:** 152 TypeScript hooks (5 async)
+**Hooks:** 152 TypeScript hooks (6 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.20
+**Claude Code Requirement:** >= 2.1.27
 
-See [docs/async-hooks.md](docs/async-hooks.md) for detailed async hook patterns.
+See the async hooks section above for detailed async hook patterns.

@@ -15,7 +15,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/src/hooks"
 FIXTURES_DIR="$PROJECT_ROOT/tests/fixtures"
-TEMP_DIR="${TMPDIR:-/tmp}/orchestkit-tests-$$"
+
+# Cross-platform temp directory handling
+# On Windows (Git Bash/MSYS), use repo-relative temp to avoid path translation issues
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+  TEMP_DIR="$PROJECT_ROOT/.test-temp-$$"
+else
+  TEMP_DIR="${TMPDIR:-/tmp}/orchestkit-tests-$$"
+fi
 
 # Export for hooks to use
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"

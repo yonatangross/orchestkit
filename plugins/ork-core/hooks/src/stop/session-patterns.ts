@@ -13,7 +13,9 @@
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getPluginRoot, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { loadSessionEvents } from '../lib/session-tracker.js';
+import { getToolCategory } from '../lib/tool-categories.js';
 
 interface WorkflowProfile {
   version: string;
@@ -226,6 +228,117 @@ function initPatternsFile(patternsPath: string): LearnedPatterns {
 }
 
 /**
+ * Aggregate tool usage by category from session events
+ * Issue #245 Phase 4: Tool Usage Tracking
+ *
+ * @returns Object with:
+ *   - usageByCategory: { category: { tool: count } }
+ *   - preferences: { category: preferredTool }
+ */
+function aggregateToolPreferences(): {
+  usageByCategory: Record<string, Record<string, number>>;
+  preferences: Record<string, string>;
+} {
+  const usageByCategory: Record<string, Record<string, number>> = {};
+
+  try {
+    const events = loadSessionEvents();
+    const toolEvents = events.filter(e => e.event_type === 'tool_used');
+
+    for (const event of toolEvents) {
+      const toolName = event.payload.name;
+      // Get category from event payload if present, otherwise derive it
+      const category = (event.payload.input as Record<string, unknown>)?.category as string
+        || getToolCategory(toolName);
+
+      if (!usageByCategory[category]) {
+        usageByCategory[category] = {};
+      }
+      usageByCategory[category][toolName] = (usageByCategory[category][toolName] || 0) + 1;
+    }
+  } catch {
+    // Ignore errors, return empty
+  }
+
+  // Calculate preferred tool per category (most used)
+  const preferences: Record<string, string> = {};
+  for (const [category, tools] of Object.entries(usageByCategory)) {
+    const sorted = Object.entries(tools).sort(([, a], [, b]) => b - a);
+    if (sorted.length > 0) {
+      preferences[category] = sorted[0][0];
+    }
+  }
+
+  return { usageByCategory, preferences };
+}
+
+/**
+ * Update workflow profile with tool preferences
+ */
+function updateToolPreferences(projectDir: string): void {
+  const { usageByCategory, preferences } = aggregateToolPreferences();
+
+  if (Object.keys(preferences).length === 0) {
+    logHook('session-patterns', 'No tool usage to aggregate');
+    return;
+  }
+
+  // Store in a separate tool-preferences file for easy access
+  const prefsPath = `${projectDir}/.claude/feedback/tool-preferences.json`;
+
+  let existingPrefs: {
+    version: string;
+    updated: string;
+    usage_by_category: Record<string, Record<string, number>>;
+    preferences: Record<string, string>;
+    sessions_aggregated: number;
+  } = {
+    version: '1.0.0',
+    updated: '',
+    usage_by_category: {},
+    preferences: {},
+    sessions_aggregated: 0,
+  };
+
+  // Load existing if present
+  if (existsSync(prefsPath)) {
+    try {
+      existingPrefs = JSON.parse(readFileSync(prefsPath, 'utf-8'));
+    } catch {
+      // Use default
+    }
+  }
+
+  // Merge category usage (accumulate counts)
+  for (const [category, tools] of Object.entries(usageByCategory)) {
+    if (!existingPrefs.usage_by_category[category]) {
+      existingPrefs.usage_by_category[category] = {};
+    }
+    for (const [tool, count] of Object.entries(tools)) {
+      existingPrefs.usage_by_category[category][tool] =
+        (existingPrefs.usage_by_category[category][tool] || 0) + count;
+    }
+  }
+
+  // Recalculate preferences from accumulated data
+  for (const [category, tools] of Object.entries(existingPrefs.usage_by_category)) {
+    const sorted = Object.entries(tools).sort(([, a], [, b]) => b - a);
+    if (sorted.length > 0) {
+      existingPrefs.preferences[category] = sorted[0][0];
+    }
+  }
+
+  existingPrefs.updated = new Date().toISOString();
+  existingPrefs.sessions_aggregated += 1;
+
+  mkdirSync(`${projectDir}/.claude/feedback`, { recursive: true });
+  writeFileSync(prefsPath, JSON.stringify(existingPrefs, null, 2));
+
+  const prefCount = Object.keys(existingPrefs.preferences).length;
+  logHook('session-patterns', `Updated tool preferences: ${prefCount} categories`);
+}
+
+/**
  * Merge queued patterns into learned patterns file
  */
 function mergePatterns(projectDir: string): void {
@@ -323,7 +436,10 @@ export function sessionPatterns(input: HookInput): HookResult {
     logHook('session-patterns', `Session too short for workflow analysis (tools: ${toolCount})`);
   }
 
-  // 2. Merge queued patterns
+  // 2. Aggregate tool preferences by category (Phase 4)
+  updateToolPreferences(projectDir);
+
+  // 3. Merge queued patterns
   mergePatterns(projectDir);
 
   logHook('session-patterns', 'Pattern processing complete');

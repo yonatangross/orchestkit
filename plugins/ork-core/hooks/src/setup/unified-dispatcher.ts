@@ -51,6 +51,9 @@ const HOOKS: HookConfig[] = [
   { name: 'coordination-init', fn: coordinationInit },
 ];
 
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
 // -----------------------------------------------------------------------------
 // Dispatcher Implementation
 // -----------------------------------------------------------------------------

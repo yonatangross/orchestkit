@@ -1,6 +1,6 @@
 ---
 name: assess-complexity
-description: Assess task complexity with automated codebase metrics. Use before starting work to determine if task needs breakdown.
+description: Assess task complexity with automated codebase metrics. Use when determining if a task needs breakdown or estimating implementation effort
 context: fork
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, Task, mcp__memory__search_nodes]

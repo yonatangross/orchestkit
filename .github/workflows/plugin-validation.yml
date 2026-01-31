@@ -11,37 +11,77 @@ env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
 jobs:
-  # Job 1: Syntax and Structure Validation
-  syntax-validation:
-    name: Syntax & Structure
+  # ============================================================================
+  # STAGE 0: Build once, share artifacts
+  # ============================================================================
+  build:
+    name: Build Plugins
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'true'
+          run-ci-setup: 'false'
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
+      - name: Upload built plugins
+        uses: actions/upload-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
+          retention-days: 1
 
-      - name: Make test scripts executable
-        run: chmod +x tests/**/*.sh
+  # Job 1: Syntax and Structure Validation (cross-platform)
+  syntax-validation:
+    name: Syntax & Structure (${{ matrix.os }})
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Validate Shell Script Syntax
-        run: ./tests/unit/test-shell-syntax.sh --verbose
+        shell: bash
+        run: bash tests/unit/test-shell-syntax.sh --verbose
 
       - name: Validate JSON Syntax
-        run: ./tests/unit/test-json-validity.sh --verbose
+        shell: bash
+        run: bash tests/unit/test-json-validity.sh --verbose
 
       - name: Check Hook Executability
-        run: ./tests/unit/test-hook-executability.sh
+        shell: bash
+        run: bash tests/unit/test-hook-executability.sh
 
   # Job 2: Schema Validation
   schema-validation:
     name: Schema Validation
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -51,96 +91,108 @@ jobs:
       - name: Install jsonschema
         run: pip install jsonschema
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
-
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make test scripts executable
-        run: chmod +x tests/**/*.sh
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Validate Context Schemas
-        run: ./tests/unit/test-context-schemas.sh --verbose
+        shell: bash
+        run: bash tests/unit/test-context-schemas.sh --verbose
 
-  # Job 3: Hook Unit Tests
+  # Job 3: Hook Unit Tests (cross-platform)
   hook-unit-tests:
-    name: Hook Unit Tests
-    runs-on: ubuntu-latest
-    needs: syntax-validation
+    name: Hook Unit Tests (${{ matrix.os }})
+    needs: [build, syntax-validation]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
         with:
-          node-version: '22'
+          name: built-plugins
+          path: plugins/
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
-
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make scripts executable
-        run: |
-          chmod +x tests/**/*.sh
-          find src/hooks -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
 
       - name: Run Hook Unit Tests
-        run: ./tests/unit/test-hooks-unit.sh --verbose
+        shell: bash
+        run: bash tests/unit/test-hooks-unit.sh --verbose
 
-  # Job 4: Integration Tests
+  # Job 4: Integration Tests (cross-platform)
   integration-tests:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    needs: [syntax-validation, hook-unit-tests]
+    name: Integration Tests (${{ matrix.os }})
+    needs: [build, syntax-validation, hook-unit-tests]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync bc
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make scripts executable
-        run: |
-          chmod +x tests/**/*.sh
-          find src/hooks -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
 
       - name: Run Hook Chain Tests
-        run: ./tests/integration/test-hook-chains.sh --verbose
+        shell: bash
+        run: bash tests/integration/test-hook-chains.sh --verbose
 
       - name: Run Context System Tests
-        run: ./tests/integration/test-context-system.sh --verbose
+        shell: bash
+        run: bash tests/integration/test-context-system.sh --verbose
 
   # Job 5: Plugin Manifest Validation
   manifest-validation:
     name: Plugin Manifest
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make test scripts executable
-        run: chmod +x tests/**/*.sh
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Validate marketplace.json schema
-        run: ./tests/schemas/test-marketplace-schema.sh
+        shell: bash
+        run: bash tests/schemas/test-marketplace-schema.sh
 
       - name: Validate plugin.json schema
-        run: ./tests/schemas/test-plugin-schema.sh
+        shell: bash
+        run: bash tests/schemas/test-plugin-schema.sh
 
       - name: Validate plugin.json CC 2.1.19 format (skills/agents)
-        run: ./tests/plugins/test-plugin-json-schema.sh
+        shell: bash
+        run: bash tests/plugins/test-plugin-json-schema.sh
 
       - name: Validate plugin.json structure (new location)
+        shell: bash
         run: |
           echo "Checking plugins/ork/.claude-plugin/plugin.json..."
 
@@ -164,6 +216,7 @@ jobs:
           echo "Plugin manifest is valid!"
 
       - name: Check settings.json hook paths
+        shell: bash
         run: |
           echo "Validating hook paths in settings.json..."
 
@@ -174,13 +227,10 @@ jobs:
           while IFS= read -r hook; do
             [[ -z "$hook" ]] && continue
             # Replace variable patterns with current directory
-            # Handle: ${CLAUDE_PLUGIN_ROOT}, ${CLAUDE_PROJECT_DIR}, $CLAUDE_PROJECT_DIR
             resolved=$(echo "$hook" | sed -e 's|\${CLAUDE_PLUGIN_ROOT}|.|g' -e 's|\${CLAUDE_PROJECT_DIR}|.|g' -e 's|\$CLAUDE_PROJECT_DIR|.|g')
 
-            # Handle command-style hooks (e.g., "node ./hooks/bin/run-hook.mjs lifecycle/...")
-            # Extract the script path if it starts with "node "
+            # Handle command-style hooks
             if [[ "$resolved" == node\ * ]]; then
-              # Extract the script path (second word)
               script_path=$(echo "$resolved" | awk '{print $2}')
               if [[ ! -f "$script_path" ]]; then
                 echo "WARNING: Node script not found: $script_path"
@@ -202,40 +252,52 @@ jobs:
   # Job 6: Component Counts Validation
   counts-validation:
     name: Component Counts
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make scripts executable
-        run: chmod +x bin/*.sh
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Validate component counts
+        shell: bash
         run: ./bin/validate-counts.sh
 
   # Job 7: Skills Validation (flat structure)
   skills-validation:
     name: Skills Validation
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Validate skill structure
+        shell: bash
         run: |
           echo "Validating skills (flat structure)..."
 
-          # Flat structure: skills/<skill-name>/
           if [[ ! -d "skills" ]]; then
             echo "No skills directory found"
             exit 0
@@ -249,7 +311,6 @@ jobs:
             skill_name=$(basename "$skill_dir")
             skill_count=$((skill_count + 1))
 
-            # Check for required SKILL.md
             if [[ ! -f "$skill_dir/SKILL.md" ]]; then
               echo "  ERROR: $skill_name missing SKILL.md"
               errors=$((errors + 1))
@@ -268,33 +329,34 @@ jobs:
   # Job 8: Skill Sync Drift Detection
   skill-sync-validation:
     name: Skill Sync Drift
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install -y jq rsync
+      - name: Download built plugins
+        uses: actions/download-artifact@v4
+        with:
+          name: built-plugins
+          path: plugins/
 
-      - name: Build plugins
-        run: bash scripts/build-plugins.sh
-
-      - name: Make scripts executable
-        run: chmod +x bin/*.sh
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Check for skill drift
+        shell: bash
         run: |
           echo "Checking for drift between root skills and plugin skills..."
-
-          # Run sync validation
           ./bin/sync-skills.sh validate --quiet
-
           echo "No skill drift detected!"
 
       - name: Check for orphan skills
+        shell: bash
         run: |
           echo "Checking for orphan skills in plugins..."
-
-          # Run orphan check
           ./bin/sync-skills.sh validate --check-orphans --quiet
 
   # Summary Job
@@ -320,7 +382,6 @@ jobs:
           echo "Skill Sync Validation: ${{ needs.skill-sync-validation.result }}"
           echo ""
 
-          # Fail if any required job failed
           if [[ "${{ needs.syntax-validation.result }}" != "success" ]] || \
              [[ "${{ needs.schema-validation.result }}" != "success" ]] || \
              [[ "${{ needs.hook-unit-tests.result }}" != "success" ]] || \

@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 152 TypeScript hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 91 global entries + 28 agent/skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -11,19 +11,11 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-protection"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/compound-command-validator"
           },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/error-pattern-warner"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/ci-simulation"
           },
           {
             "type": "command",
@@ -39,31 +31,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/conflict-predictor"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-commit-message-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-branch-naming-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/git-atomic-commit-checker"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/gh-issue-creation-guide"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/pr-merge-gate"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/pre-commit-simulation"
           },
           {
             "type": "command",
@@ -76,18 +44,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/agent-browser-safety"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/changelog-generator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/version-sync"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/merge-readiness-checker"
           }
         ]
       },
@@ -101,18 +57,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/input-mod/write-headers"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/backend-file-naming"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/structure-location-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-location-validator"
           },
           {
             "type": "command",
@@ -214,13 +158,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "*",
+        "matcher": "Bash|Write|Edit|Task|Skill|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/unified-dispatcher",
-            "async": true,
-            "timeout": 60
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs posttool/unified-dispatcher"
           },
           {
             "type": "command",
@@ -249,18 +191,6 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/backend-layer-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/import-direction-enforcer"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
-          },
-          {
-            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/merge-conflict-predictor"
           },
           {
@@ -279,6 +209,17 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "Bash|Write|Edit|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/failure-handler"
           }
         ]
       }
@@ -316,6 +257,16 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/profile-injector",
+            "once": true
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/memory-context-loader",
+            "once": true
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/context-injector"
           },
           {
@@ -332,6 +283,10 @@
           },
           {
             "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/communication-style-tracker"
+          },
+          {
+            "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/antipattern-detector"
           },
           {
@@ -340,7 +295,7 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/skill-auto-suggest"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/skill-resolver"
           },
           {
             "type": "command",
@@ -356,11 +311,11 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/skill-injector"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/pipeline-detector"
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/pipeline-detector"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs prompt/capture-user-intent"
           }
         ]
       }
@@ -370,9 +325,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/unified-dispatcher",
-            "async": true,
-            "timeout": 60
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs lifecycle/unified-dispatcher"
           },
           {
             "type": "command",
@@ -416,89 +369,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/unified-dispatcher",
-            "async": true,
-            "timeout": 60
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/multi-instance-cleanup"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/cleanup-instance"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/task-completion-check"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/coverage-check"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/evidence-collector"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/mem0-pre-compaction-sync"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/context-compressor"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/auto-remember-continuity"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/full-test-suite"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs stop/security-scan-aggregator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/coverage-threshold-gate"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/cross-instance-test-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/di-pattern-enforcer"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/duplicate-code-detector"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/eval-metrics-collector"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/migration-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/review-summary-generator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/security-summary"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-pattern-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/test-runner"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-fire-and-forget.mjs"
           }
         ]
       }
@@ -512,7 +383,11 @@
           },
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/agent-memory-inject"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/graph-memory-inject"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-start/mem0-memory-inject"
           },
           {
             "type": "command",
@@ -534,9 +409,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs subagent-stop/unified-dispatcher",
-            "async": true,
-            "timeout": 60
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs subagent-stop/unified-dispatcher"
           },
           {
             "type": "command",
@@ -570,9 +443,26 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs notification/unified-dispatcher",
-            "async": true,
-            "timeout": 30
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs notification/unified-dispatcher"
+          }
+        ]
+      },
+      {
+        "matcher": "permission_prompt|idle_prompt|auth_success",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs notification/sound"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/pre-compact-saver"
           }
         ]
       }
@@ -582,9 +472,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs setup/unified-dispatcher",
-            "async": true,
-            "timeout": 60
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook-silent.mjs setup/unified-dispatcher"
           },
           {
             "type": "command",

@@ -1,0 +1,933 @@
+{
+  "version": "1.0",
+  "patterns": [
+    {
+      "text": "$(cat <<",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-27T09:23:56.690Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Build succeeded (npm)",
+      "category": "build",
+      "outcome": "success",
+      "source": "build",
+      "timestamp": "2026-01-27T06:49:03.553Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Build succeeded (unknown)",
+      "category": "build",
+      "outcome": "success",
+      "source": "build",
+      "timestamp": "2026-01-17T16:29:04Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "PR #123 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-17T15:39:45Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests failed (pytest)",
+      "category": "testing",
+      "outcome": "failed",
+      "source": "test-run",
+      "timestamp": "2026-01-17T15:39:45Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests passed (jest)",
+      "category": "testing",
+      "outcome": "success",
+      "source": "test-run",
+      "timestamp": "2026-01-24T07:30:12.296Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests passed (npm-test)",
+      "category": "testing",
+      "outcome": "success",
+      "source": "test-run",
+      "timestamp": "2026-01-27T09:31:20.339Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests passed (pytest)",
+      "category": "testing",
+      "outcome": "success",
+      "source": "test-run",
+      "timestamp": "2026-01-18T10:08:01Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "[JWT] feat: Add JWT authentication",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-17T15:39:45Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "[cursor-pagination] feat: Add cursor-based pagination",
+      "category": "pagination",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-17T04:03:38Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "\\\"Architecture",
+      "category": "architecture",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-17T16:51:22Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: resolve n+1 query in users endpoint",
+      "category": "database",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-17T04:25:47Z",
+      "project": "orchestkit"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=kebab-case functions=snake_case variables=camelCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-22T20:52:57Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=kebab-case functions=snake_case variables=camelCase classes=PascalCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-21T09:55:49Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=kebab-case functions=snake_case variables=snake_case",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-21T09:59:31Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always type_hints=enabled docstring=simple",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-22T20:52:57Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=kebab-case functions=camelCase variables=camelCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:50:00Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=snake_case functions=camelCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-22T21:58:56Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=snake_case functions=camelCase variables=camelCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:46:56Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(2) quotes=single semicolons=always trailing_comma=always",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:49:57Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(2) quotes=single semicolons=always trailing_comma=minimal",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:50:00Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=single semicolons=always trailing_comma=always",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:49:10Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=double semicolons=always trailing_comma=always",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:41:00Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=single semicolons=always trailing_comma=minimal",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:47:53Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=kebab-case functions=camelCase variables=camelCase classes=PascalCase",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:47:53Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=unknown(4) quotes=single semicolons=always trailing_comma=minimal",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:50:13Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=snake_case",
+      "outcome": "success",
+      "project": "orchestkit",
+      "timestamp": "2026-01-23T04:50:14Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "text": "perf(hooks): complete TypeScript migration for all 130 hooks (#196)\n\nMigrate remaining hooks from Bash to TypeScript/ESM completing the\nfull migration. All 147 hooks now have TypeScript implementations.\n\nResults:\n- 135 TypeScript source files\n- 130 hooks registered\n- Bundle: 244 KB\n- Build: 42ms\n- Typecheck: passing\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-23T14:42:58.176Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests passed (vitest)",
+      "category": "testing",
+      "outcome": "success",
+      "source": "test-run",
+      "timestamp": "2026-01-25T23:05:30.811Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Tests passed (unknown)",
+      "category": "testing",
+      "outcome": "success",
+      "source": "test-run",
+      "timestamp": "2026-01-23T17:25:53.485Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Build succeeded (make)",
+      "category": "build",
+      "outcome": "success",
+      "source": "build",
+      "timestamp": "2026-01-26T07:44:21.214Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "yolo",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-23T17:24:14.166Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#212): CC 2.1.19 full modernization\n\n- Agent model inheritance: 24 agents → inherit, 10 specialists keep opus\n- Power user keybindings: 10 shortcuts in .claude/keybindings.json\n- Background SessionStart hooks: 7 slow hooks now async\n- TypeScript hook wiring: SessionStart uses run-hook.mjs\n- Skill permission audit: All 22 user-invocable skills have allowedTools\n- Hook input normalization: normalizeInput() handles CC version differences\n- Plugin discovery: Added skills.directory and agents.directory\n\nCloses #212\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T09:13:14.047Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix(ci): Support model:inherit and node hook commands\n\n- Add ",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T09:23:12.531Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "test\"}}'",
+      "category": "testing",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T15:11:23.188Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "\\\"fix(#123):",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T14:52:43.115Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "json.tool",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T16:36:55.319Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix(#212): Correct hook count in marketplace manifest (148 → 144)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T17:53:37.259Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#212): Rewrite brainstorming with intelligent dynamic agent selection (v3.0.0)\n\nMajor rewrite of brainstorming skill with intelligent agent selection:\n\nPhase 0 (NEW): Topic Analysis & Agent Selection\n- Parse brainstorming topic for domain keywords\n- Dynamically select 3-5 most relevant agents based on detected domains\n- Agent Selection Matrix maps keywords → agents + skills\n- No more hardcoded agents - adapts to topic\n\nPhase 1: Memory Check + Codebase Context\n- Search knowledge graph before parallel research\n- Check existing codebase patterns\n\nPhase 2: Parallel Agent Research\n- Launch selected agents in ONE message with run_in_background\n- Each agent focuses on their expertise area\n- Example prompts for each agent type\n\nPhase 3: Synthesis\n- Merge agent perspectives into unified trade-off table\n- Present options with AskUserQuestion\n\nPhase 4: Design Presentation\n- Incremental 200-300 word sections\n- Store decision in memory after approval\n\nAgent Selection Matrix includes:\n- Backend/API, Frontend/UI, Database, Auth/Security\n- AI/LLM, Performance, Testing, DevOps, Real-time\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T18:25:32.615Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#212): Rewrite brainstorming with intelligent dynamic agent selection (v3.0.0)\n\n- Phase 0: Topic Analysis - parse keywords, select agents dynamically\n- Phase 1: Memory check + codebase context\n- Phase 2: Parallel agent research (3-5 agents based on topic)\n- Phase 3: Synthesis into trade-off table\n- Phase 4: Design presentation with memory storage\n\nAgent Selection Matrix maps keywords to relevant agents/skills.\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T18:27:38.899Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#212): Add MANDATORY Task Management to user-invokable skills (CC 2.1.16)\n\nAdded prominent CRITICAL section to brainstorming, explore, create-pr:\n- TaskCreate MUST be first action (no exceptions)\n- Subtasks for each workflow phase\n- TaskUpdate for progress visibility\n- Clear explanation: ",
+      "category": "error_handling",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T18:35:22.489Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#212): Add MANDATORY Task Management to user-invokable skills\n\nAdded CRITICAL section to brainstorming, explore, create-pr:\n- TaskCreate MUST be first action\n- Subtasks for each workflow phase  \n- TaskUpdate for progress visibility\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T18:37:41.825Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "debug(#212): Add debug output to test-hook-paths.sh\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T23:37:47.479Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix(#212): Add run-hook.mjs validation to test-agent-required-hooks.sh\n\nThe test was checking if run-hook.mjs commands were files instead of\nvalidating the TypeScript handler exists at hooks/src/<handler>.ts.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T23:46:23.494Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix(#212): Update tests for TypeScript hook architecture\n\n- test-agent-skill-validation.sh: Use run-hook.mjs instead of shell script\n  - Update all test functions to use TypeScript hook runner\n  - Extract JSON from output that may include warning lines\n  - Increase performance threshold to 200ms for JIT overhead\n\n- test-context-deferral.sh: Check for TypeScript source instead of .sh\n  - Check hooks/src/pretool/bash/compound-command-validator.ts\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-24T23:53:32.879Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix(tests): Update unit tests for new plugin structure\n\nBREAKING CHANGE: Tests now check hooks/hooks.json instead of .claude-plugin/plugin.json\n\n## Problem\nUnit tests failing because they checked old \\`.claude-plugin/plugin.json\\`\nlocation for hook registrations, but hooks moved to \\`hooks/hooks.json\\` in\nthe new plugin structure.\n\n## Solution\nUpdated 2 unit tests:\n- test-prompt-hooks.sh: Check hooks/hooks.json for UserPromptSubmit hooks\n- test-memory-context-hook.sh: Check hooks/hooks.json for memory-context hook\n\nBoth tests now validate hooks exist in hooks/hooks.json (CC 2.1.7 convention).\n\n## Tests\n- ✅ test-prompt-hooks.sh: 27/27 tests pass\n- ✅ test-memory-context-hook.sh: 21/21 tests pass\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T10:06:38.000Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "Merge branch ",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T10:35:22.244Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: Remove broken claude-hud symlink in ork-workflows-advanced\n\nThe claude-hud skill was removed in 5.2.3, but a symlink to it remained\nin ork-workflows-advanced, causing skill sync drift validation to fail.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T10:36:31.120Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: Update CI workflows for new plugin.json location\n\nVersion Check and Plugin Manifest workflows were failing because they\nchecked \\`.claude-plugin/plugin.json\\` which was moved to\n\\`plugins/ork/.claude-plugin/plugin.json\\` in the architecture restructure.\n\nUpdated workflows:\n- version-check.yml: Check plugins/ork/.claude-plugin/plugin.json\n- plugin-validation.yml: Check plugins/ork/.claude-plugin/plugin.json\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T10:37:51.620Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "[SSE] fix: Update config system test for new plugin.json location\n\nThe config system test was checking \\`.claude-plugin/plugin.json\\` which\nno longer exists at that location (moved to \\`plugins/ork/.claude-plugin/plugin.json\\`).\n\nThis was the last failing CI check (System Tests).\n\nTest results:\n- Before: 38/39 tests passed (1 failed)\n- After: 39/39 tests passed (0 failed)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T10:41:10.542Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: Build plugins [skip ci]",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T11:20:01.421Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: Build plugins from source [skip ci]",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T11:30:24.887Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: Update hook runner paths for installed plugins (#228)\n\nChanged paths from src/hooks/bin/run-hook.mjs to hooks/bin/run-hook.mjs\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T14:18:06.900Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: Add hooks field to generated plugin.json (#228)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T14:26:44.809Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: Add hooks field to generated plugin.json (#228)\n\n- Added hooks field initially\n- Then removed it because CC auto-discovers hooks/hooks.json\n- Duplicate hooks file error occurs if you specify it manually\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-25T14:29:06.101Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "PR #232 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-25T15:31:07.327Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: bump to v5.2.8\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T08:05:23.621Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore(#235): rebuild plugins with unified dispatcher",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T08:15:59.362Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "\\\"feat:",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T08:39:08.460Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: add .claude-plugins to gitignore (local dev file)",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T09:09:42.468Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: sync manifest version to 5.2.8",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T09:20:38.435Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "fix: update marketplace description to 149 hooks",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T09:34:10.359Z",
+      "project": "orchestkit"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=mixed",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:26:35Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=mixed functions=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T16:30:28Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=mixed functions=camelCase variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:17:54Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=mixed functions=snake_case variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T16:20:00Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T20:03:56Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=camelCase variables=camelCase classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T13:05:21Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=snake_case classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T17:23:15Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=snake_case variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T17:06:00Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=snake_case variables=camelCase classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T13:10:06Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=snake_case variables=snake_case",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:23:13Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case functions=snake_case variables=snake_case classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:21:04Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case variables=camelCase classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:17:07Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "python: files=snake_case variables=snake_case classes=PascalCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:19:06Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:26:34Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always docstring=simple",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T23:42:31Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always type_hints=enabled",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:20:26Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always type_hints=enabled docstring=google",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T13:05:20Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=always type_hints=enabled docstring=numpy",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:17:52Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=minimal docstring=numpy",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:19:05Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=minimal docstring=simple",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T23:45:04Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=spaces(4) quotes=double trailing_comma=minimal type_hints=enabled docstring=simple",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-18T23:24:33Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "python: indent=unknown(4) quotes=double trailing_comma=minimal",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:16:49Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=PascalCase functions=camelCase variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:18:47Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=camelCase functions=camelCase variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:18:24Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "naming_convention",
+      "text": "typescript: files=snake_case variables=camelCase",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:17:55Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(2) quotes=single semicolons=omit trailing_comma=always",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:18:23Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=double semicolons=omit trailing_comma=always",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:17:11Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=double semicolons=omit trailing_comma=minimal",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:18:46Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "category": "code_style",
+      "text": "typescript: indent=spaces(4) quotes=single semicolons=omit trailing_comma=always",
+      "outcome": "success",
+      "project": "yad2competitorsscraper",
+      "timestamp": "2026-01-19T07:19:06Z",
+      "source": "memory-fabric-v2.1"
+    },
+    {
+      "text": "PR #128 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-25T17:28:09.023Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "PR #130 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-25T20:13:56.497Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "chore: Add Claude session files and coverage.json to gitignore\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T12:10:06.853Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "chore: Remove session/log files from git tracking\n\nThese files are now gitignored and should not be committed.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T12:10:45.673Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "PR #140 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-26T12:12:36.338Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "style: format files per ruff\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T13:46:53.811Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "PR #141 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-26T13:53:25.075Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "PR #147 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-26T16:30:40.042Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "fix: whitespace and EOL fixes from pre-commit hooks\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-26T17:46:26.124Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "PR #158 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-28T07:39:26.829Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "chore: add .claude/.instance_env to hooks gitignore\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T15:21:51.510Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#245): cross-project profiles and graph queue processor\n\nP0.1: Move profile storage to ~/.claude/orchestkit/users/ (cross-project)\n- Profiles now persist across projects for the same user\n- Add migration from legacy project-local path on first access\n- Update path helpers to use home directory\n\nP0.2: Create graph-queue-sync.ts stop hook\n- Process queued graph operations at session end\n- Output systemMessage with MCP calls for Claude to execute\n- Aggregate duplicate entities and merge observations\n- Support CHOSE, CHOSE_OVER, MENTIONS, CONSTRAINT, TRADEOFF relations\n\nTest updates:\n- Update user-profile tests for new cross-project paths\n- Update dispatcher-registry tests for session-profile-aggregator hook\n- Update hook count expectations (157 total hooks, 34 consolidated)\n- Update TOKEN_BUDGETS total from 2200 to 2600\n- Update plugin.json hook count from 159 to 160\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T16:54:16.216Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(#245): wire user tracking into dispatchers (P1)\n\nP1: Wire tracking into all dispatchers\n\nPostToolUse tracking (user-tracking.ts):\n- Track all tool usage via trackToolUsed()\n- Track skill invocations when tool_name === ",
+      "category": "general",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T17:14:09.293Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore: sync plugins/ork-core with src/hooks changes\n\nSync generated plugin files with source changes from:\n- P0: cross-project profiles and graph queue processor\n- P1: user tracking wired into dispatchers\n\nAlso updates marketplace.json version 5.3.0 → 5.3.1\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-28T17:20:43.048Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "PR #162 merged",
+      "category": "decision",
+      "outcome": "success",
+      "source": "pr-merge",
+      "timestamp": "2026-01-29T05:14:27.669Z",
+      "project": "Yad2CompetitorsScraper"
+    },
+    {
+      "text": "chore: sync plugins/ork-core with Phase 4 tool sequence tracking\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T05:38:35.982Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "docs(#245): Add tracking system gaps audit document\n\n13 gaps identified in Issue #245 implementation:\n- P0: 2 hooks not in dispatcher (graph-queue-sync, workflow-preference-learner)\n- P1: 4 write-only files (pending-decisions, user-preferences, open-problems, mem0-queue)\n- P2: 5 dead functions (trackSolutionFound, listSessionIds, etc.)\n- P3: 2 code smells (duplicate calls, duplicate definitions)\n\n~40% of tracking infrastructure actually connected.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T06:31:26.170Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "docs(#245): Add tracking system gaps audit document\n\n13 gaps identified in Issue #245 implementation:\n- P0: 2 hooks not in dispatcher\n- P1: 4 write-only files  \n- P2: 5 dead functions\n- P3: 2 code smells\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T06:34:37.524Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "chore(agents): add block-writes hooks and cleanup\n\n- Add PreToolUse block-writes hooks to ai-safety-auditor, rapid-ui-designer\n- Remove Write tool from business-case-builder, metrics-architect (research-only)\n- Update example timestamps to 2026-01-28\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T06:50:53.178Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "docs: Update GAP-011 commit hash in TRACKING-GAPS.md\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T06:54:48.197Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(agents): add task management to 4 more implementation agents\n\n- accessibility-specialist: multi-step WCAG compliance work\n- multimodal-specialist: multi-step media processing\n- rapid-ui-designer: multi-step prototyping\n- prompt-engineer: multi-step prompt optimization\n\nTask management coverage: 18/35 → 22/35 (63%)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T07:17:17.077Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "test(components): add comprehensive Vitest tests for Remotion shared components\n\nImplement full test coverage for 6 Remotion video components:\n- LiveFolderTree: File tree rendering, status indicators, animation timing\n- LevelBadge: Difficulty levels, badge variants, color styling\n- SkillReferences: Reference loading states, category tags, tree structure\n- ProgressPhases: Phase progression, progress bar animation, layouts\n- ClaudeResponse: Typewriter effect, thinking indicator, response rendering\n- CodePreview: Syntax highlighting, line numbers, code display\n\nTest coverage includes:\n- Prop validation with proper prop types\n- Animation timing and frame calculations\n- Rendering correctness for all prop combinations\n- Edge cases: empty data, long text, special characters\n\nAll 243 tests passing with 80%+ coverage on tested components",
+      "category": "validation",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-29T23:11:56.325Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "test(hooks): add comprehensive bin script tests with integration testing\n\nIssue #243 test quality improvements:\n- Add test-helpers.ts with centralized function implementations\n- Rewrite run-hook-background.test.ts with 45 tests\n- Rewrite run-hook-silent.test.ts with 25 integration tests\n- Add mock bundle execution tests (end-to-end verification)\n- Add atomic write tests for metrics race condition (SEC-003)\n- Update vitest.config.ts with coverage exclusions\n- Update plugin.json counts (186 skills, 167 hooks)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-30T12:21:30.447Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "test(hooks): add comprehensive bin script tests with integration testing\n\nIssue #243 test quality improvements:\n- Add test-helpers.ts with centralized function implementations\n- Rewrite run-hook-background.test.ts with 45 tests\n- Rewrite run-hook-silent.test.ts with 25 integration tests\n- Add mock bundle execution tests (end-to-end verification)\n- Add atomic write tests for metrics race condition (SEC-003)\n- Update vitest.config.ts with coverage exclusions\n- Update plugin.json counts (186 skills, 167 hooks)\n- Update expected internal skills count (163)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-30T12:30:27.147Z",
+      "project": "orchestkit"
+    },
+    {
+      "text": "feat(demos): add smooth phase transitions to SkillPhaseDemo\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>",
+      "category": "authentication",
+      "outcome": "success",
+      "source": "commit",
+      "timestamp": "2026-01-30T15:06:56.911Z",
+      "project": "orchestkit"
+    }
+  ]
+}

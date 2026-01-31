@@ -1,0 +1,153 @@
+/* OrchestKit Playground Navigation - Shared Styles */
+/* All classes prefixed .ork-nav- to avoid collisions */
+
+.ork-nav-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  background: linear-gradient(135deg, #1a1040 0%, #0d1117 50%, #0a1628 100%);
+  border-bottom: 1px solid #30363d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 24px;
+  z-index: 9999;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.ork-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ork-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #e6edf3;
+  flex-shrink: 0;
+}
+
+.ork-nav-logo-icon {
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  color: white;
+  line-height: 1;
+}
+
+.ork-nav-logo-text {
+  font-size: 15px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.ork-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ork-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #8b949e;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.ork-nav-link:hover {
+  color: #e6edf3;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.ork-nav-link.ork-nav-active {
+  color: #e6edf3;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.ork-nav-link-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.ork-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ork-nav-version {
+  font-size: 11px;
+  color: #8b949e;
+  background: #1c2128;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  border: 1px solid #30363d;
+}
+
+.ork-nav-github {
+  display: flex;
+  align-items: center;
+  color: #8b949e;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.ork-nav-github:hover {
+  color: #e6edf3;
+}
+
+.ork-nav-github svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* Body offset to account for fixed nav */
+body.ork-nav-enabled {
+  padding-top: 48px;
+}
+
+/* Responsive: collapse labels on small screens */
+@media (max-width: 768px) {
+  .ork-nav-bar {
+    padding: 0 12px;
+  }
+  .ork-nav-link-label {
+    display: none;
+  }
+  .ork-nav-link {
+    padding: 6px 8px;
+  }
+  .ork-nav-link-icon {
+    font-size: 16px;
+  }
+  .ork-nav-logo-text {
+    display: none;
+  }
+  .ork-nav-version {
+    display: none;
+  }
+}

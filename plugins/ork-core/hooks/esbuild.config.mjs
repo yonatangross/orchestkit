@@ -35,7 +35,7 @@ const commonBuildOptions = {
   bundle: true,
   format: 'esm',
   platform: 'node',
-  target: 'node22',
+  target: 'node20',
   minify: !isWatch,
   sourcemap: true,
   metafile: true,

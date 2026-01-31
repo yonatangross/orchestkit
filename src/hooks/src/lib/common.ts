@@ -6,46 +6,71 @@
 import { appendFileSync, existsSync, statSync, renameSync, mkdirSync, readSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookResult, HookInput } from '../types.js';
+import {
+  getLogDir as getLogDirFromPaths,
+  getProjectDir as getProjectDirFromPaths,
+  getPluginRoot as getPluginRootFromPaths,
+} from './paths.js';
+import { getOrGenerateSessionId } from './session-id-generator.js';
 
 // -----------------------------------------------------------------------------
 // Environment and Paths
 // All functions read env vars dynamically to support testing
+// Re-export from paths.ts for cross-platform compatibility
 // -----------------------------------------------------------------------------
 
 /**
- * Get the log directory path
+ * Get the log directory path (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getLogDir(): string {
-  if (process.env.CLAUDE_PLUGIN_ROOT) {
-    return `${process.env.HOME}/.claude/logs/ork`;
-  }
-  return `${getProjectDir()}/.claude/logs`;
+  return getLogDirFromPaths();
 }
 
 /**
- * Get the project directory
- * Read dynamically to support testing
+ * Get the project directory (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getProjectDir(): string {
-  return process.env.CLAUDE_PROJECT_DIR || '.';
+  return getProjectDirFromPaths();
 }
 
 /**
- * Get the plugin root directory
- * Read dynamically to support testing
+ * Get the plugin root directory (cross-platform)
+ * Delegates to paths.ts for correct path handling on all platforms
  */
 export function getPluginRoot(): string {
-  return process.env.CLAUDE_PLUGIN_ROOT || process.env.CLAUDE_PROJECT_DIR || '.';
+  return getPluginRootFromPaths();
+}
+
+/**
+ * Get the environment file path (CC 2.1.25: CLAUDE_ENV_FILE support)
+ * Falls back to .instance_env for backward compatibility
+ */
+export function getEnvFile(): string {
+  if (process.env.CLAUDE_ENV_FILE) {
+    return process.env.CLAUDE_ENV_FILE;
+  }
+  // Fallback to legacy .instance_env
+  const pluginRoot = getPluginRoot();
+  return `${pluginRoot}/.claude/.instance_env`;
 }
 
 /**
  * Get the session ID
- * CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability, but we add
- * a defensive fallback to prevent hook crashes during edge cases.
- * Read dynamically to support testing.
+ *
+ * Resolution order:
+ * 1. CLAUDE_SESSION_ID env var (from CC runtime - preferred)
+ * 2. Cached session ID (from .instance/session-id.json)
+ * 3. Generate smart session ID: {project}-{branch}-{MMDD}-{HHMM}-{hash4}
+ *
+ * Example smart ID: "orchestkit-main-0130-1745-a3f2"
+ *
+ * The old fallback format "fallback-{pid}-{timestamp}" was confusing and unhelpful.
+ * Smart IDs are human-readable, showing project, branch, and time context.
  */
 export function getSessionId(): string {
-  return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}-${Date.now()}`;
+  return getOrGenerateSessionId();
 }
 
 /**
@@ -76,6 +101,15 @@ export function getCachedBranch(projectDir?: string): string {
  */
 export function getLogLevel(): string {
   return process.env.ORCHESTKIT_LOG_LEVEL || 'warn';
+}
+
+/**
+ * Normalize line endings from CRLF to LF for cross-platform compatibility.
+ * Windows uses \r\n (CRLF) while Unix uses \n (LF).
+ * This is critical for parsing YAML frontmatter where we match '---' exactly.
+ */
+export function normalizeLineEndings(content: string): string {
+  return content.replace(/\r\n/g, '\n');
 }
 
 /**
@@ -203,6 +237,21 @@ export function outputDeny(reason: string): HookResult {
   };
 }
 
+/**
+ * Output with updatedInput - modifies tool input before execution (CC 2.1.25)
+ * Canonical way to modify tool inputs from PreToolUse hooks
+ */
+export function outputWithUpdatedInput(updatedInput: Record<string, unknown>): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      updatedInput,
+    },
+  };
+}
+
 // -----------------------------------------------------------------------------
 // Logging (with log level guard for performance)
 // -----------------------------------------------------------------------------
@@ -287,6 +336,55 @@ export function logPermissionFeedback(
   } catch {
     // Ignore logging errors
   }
+}
+
+// -----------------------------------------------------------------------------
+// Token Estimation
+// -----------------------------------------------------------------------------
+
+/**
+ * Content-aware token estimation (~80% accuracy without external tokenizer).
+ * Code-heavy content averages ~2.8 chars/token; prose ~3.5 chars/token.
+ */
+export function estimateTokenCount(content: string): number {
+  if (!content) return 0;
+  const codeIndicators = (content.match(/[{};()=><]/g) || []).length;
+  const codeRatio = codeIndicators / content.length;
+  const charsPerToken = codeRatio > 0.03 ? 2.8 : 3.5;
+  return Math.ceil(content.length / charsPerToken);
+}
+
+// -----------------------------------------------------------------------------
+// Budgeted Output Helpers
+// -----------------------------------------------------------------------------
+
+/**
+ * Output prompt context with token budget awareness.
+ * Checks if the category is over budget before injecting.
+ * Falls back to silent success when budget exhausted.
+ *
+ * Accepts budget checker and tracker as parameters to avoid circular deps.
+ * If not provided, falls back to unchecked injection.
+ */
+export function outputPromptContextBudgeted(
+  ctx: string,
+  hookName: string,
+  category: string,
+  budgetChecker?: { isOverBudget: (cat: string) => boolean },
+  tokenTracker?: { trackTokenUsage: (hook: string, cat: string, tokens: number) => void },
+): HookResult {
+  const tokens = estimateTokenCount(ctx);
+
+  if (budgetChecker && budgetChecker.isOverBudget(category)) {
+    logHook(hookName, `Budget exhausted for ${category}, suppressing ${tokens}t`);
+    return outputSilentSuccess();
+  }
+
+  if (tokenTracker) {
+    tokenTracker.trackTokenUsage(hookName, category, tokens);
+  }
+
+  return outputPromptContext(ctx);
 }
 
 // -----------------------------------------------------------------------------

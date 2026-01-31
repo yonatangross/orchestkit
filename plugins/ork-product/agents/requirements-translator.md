@@ -2,15 +2,15 @@
 name: requirements-translator
 description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification
 model: inherit
-context: inherit
+context: fork
 color: magenta
 tools:
   - Read
-  - Write
   - Grep
   - Glob
   - Bash
 skills:
+  - requirements-engineering
   - github-operations
   - remember
   - recall
@@ -44,7 +44,7 @@ Return structured requirements document:
 {
   "prd": {
     "title": "Multi-Agent Workflow Builder",
-    "date": "2026-01-02",
+    "date": "2026-01-28",
     "version": "1.0",
     "status": "DRAFT",
     "author": "requirements-translator"

@@ -78,7 +78,7 @@ agent-browser close
 | `console` | Read JS console | Debug extraction issues |
 | `network requests` | Monitor XHR/fetch | Find API endpoints |
 
-**Full reference:** See [references/agent-browser-commands.md](references/agent-browser-commands.md)
+**Quick reference:** See [references/agent-browser-commands.md](references/agent-browser-commands.md) or run `agent-browser --help`
 
 ---
 
@@ -254,7 +254,7 @@ User requests content from URL
 
 ## Related Skills
 
-- `agent-browser` - Full agent-browser command reference
+- `agent-browser` - agent-browser CLI quick start and integration
 - `webapp-testing` - Playwright test automation patterns
 - `streaming-api-patterns` - Handle SSE progress updates
 

@@ -248,3 +248,15 @@ export function runGuards(input: HookInput, ...guards: ((input: HookInput) => Gu
   }
   return null; // All guards passed, continue
 }
+
+// -----------------------------------------------------------------------------
+// Permission Mode Helpers
+// -----------------------------------------------------------------------------
+
+/**
+ * Check if Claude Code is running in dontAsk mode (CC 2.1.25)
+ * In dontAsk mode, quality gates should warn instead of blocking
+ */
+export function isDontAskMode(input: HookInput): boolean {
+  return input.permissionMode === 'dontAsk';
+}

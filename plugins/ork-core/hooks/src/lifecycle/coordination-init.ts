@@ -8,7 +8,7 @@
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import { logHook, getProjectDir, getSessionId, getEnvFile, outputSilentSuccess } from '../lib/common.js';
 
 interface SessionState {
   current_task?: {
@@ -67,9 +67,10 @@ function generateInstanceId(): string {
 
 /**
  * Save instance ID to environment file
+ * Uses CLAUDE_ENV_FILE (CC 2.1.25) with .instance_env fallback
  */
 function saveInstanceId(projectDir: string, instanceId: string): void {
-  const envFile = `${projectDir}/.claude/.instance_env`;
+  const envFile = getEnvFile();
 
   try {
     mkdirSync(`${projectDir}/.claude`, { recursive: true });

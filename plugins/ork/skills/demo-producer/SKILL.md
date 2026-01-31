@@ -1,6 +1,6 @@
 ---
 name: demo-producer
-description: Create polished demo videos for anything - skills, plugins, coding tutorials, CLI tools, or any custom content. Interactive workflow with format selection.
+description: Create polished demo videos for anything. Use when producing skill showcases, plugin demos, tutorials, or CLI tool demonstrations with VHS and Remotion
 user-invocable: true
 context: fork
 version: 1.0.0
@@ -105,7 +105,64 @@ Audio preferences?
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-## Content Type Templates
+## Template System
+
+The demo-producer skill offers three distinct template architectures for different demo styles:
+
+### 1. TriTerminalRace (3-Panel Racing)
+
+Perfect for showcasing complexity levels in parallel:
+
+- **Use case**: Feature comparisons, skill showcases, progressive tutorials
+- **Format**: 3 split terminals (Simple → Medium → Advanced)
+- **Duration**: 15-20 seconds
+- **Components**: LiveFolderTree, LevelBadge, SkillReferences, CodePreview, ProgressPhases
+- **Example**: `/demo-producer skill explore --template tri-terminal-race`
+
+**Key Features:**
+- Color-coded difficulty indicators (Green/Amber/Purple)
+- Real-time project structure animation
+- Parallel progress tracking
+- Comparative metrics display
+- Side-by-side summary cards
+
+### 2. ProgressiveZoom (Tutorial Style)
+
+Ideal for step-by-step explanations:
+
+- **Use case**: Tutorials, code walkthroughs, feature deep-dives
+- **Format**: Zooming transitions, layered reveals
+- **Duration**: 20-30 seconds
+- **Components**: CodePreview, Highlights, Annotations, TimelineBar
+- **Example**: `/demo-producer tutorial "Building REST API" --template progressive-zoom`
+
+**Key Features:**
+- Smooth zoom effects on code sections
+- Progressive annotation reveals
+- Contextual highlighting
+- Timeline markers for phases
+- Caption overlays
+
+### 3. SplitThenMerge (Dramatic Style)
+
+Great for before/after and transformation stories:
+
+- **Use case**: Problem → Solution demos, transformations, workflow changes
+- **Format**: Split screen that merges to unified view
+- **Duration**: 15-25 seconds
+- **Components**: SplitScreen, MergeTransition, ContrastHighlight, ImpactMetrics
+- **Example**: `/demo-producer cli "npm run build" --template split-then-merge`
+
+**Key Features:**
+- Split screen comparisons
+- Dramatic merge transitions
+- Side-by-side metrics
+- Impact indicators (faster, better, safer)
+- Before/after snapshots
+
+See `references/template-system.md` for detailed configuration guide and SkillDemoConfig interface.
+
+## Original Content Type Templates (Supported)
 
 ### Skill Template
 Shows: Skill activation → Task creation → Phase execution → Results
@@ -168,6 +225,54 @@ orchestkit-demos/out/
 └── square/
     └── {Name}Demo-Square.mp4    # 1080x1080 1:1 (optional)
 ```
+
+## Remotion Folder Structure
+
+Compositions are organized in `orchestkit-demos/src/Root.tsx` using this hierarchy:
+
+```
+Production/                    # Ready-to-render videos
+├── Landscape-16x9/           # YouTube, Website (1920x1080)
+│   ├── Core-Skills/          # implement, verify, commit, explore
+│   ├── Memory-Skills/        # remember, recall, load-context, mem0-sync
+│   ├── Review-Skills/        # review-pr, create-pr, fix-issue
+│   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
+│   ├── AI-Skills/            # brainstorming, assess, assess-complexity, decision-history
+│   ├── Advanced-Skills/      # worktree-coordination, skill-evolution, demo-producer, add-golden
+│   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
+├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)
+├── Square-1x1/               # Instagram, LinkedIn (1080x1080)
+└── Marketing/                # Brand & intro videos
+Templates/                    # Reference examples for each component style
+Experiments/                  # Work in progress, testing new ideas
+```
+
+### Skill Category Mapping
+
+| Category | Skills |
+|----------|--------|
+| Core-Skills | implement, verify, commit, explore |
+| Memory-Skills | remember, recall, load-context, mem0-sync |
+| Review-Skills | review-pr, create-pr, fix-issue |
+| DevOps-Skills | doctor, configure, run-tests, feedback |
+| AI-Skills | brainstorming, assess, assess-complexity, decision-history |
+| Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden |
+
+### Adding New Compositions
+
+1. **Determine skill category** from mapping above
+2. **Add to correct folder** in Root.tsx:
+   ```tsx
+   <Folder name="Production">
+     <Folder name="Landscape-16x9">
+       <Folder name="{Category}-Skills">
+         <Composition id="{SkillName}" ... />
+       </Folder>
+     </Folder>
+   </Folder>
+   ```
+3. **Use unique composition IDs** - IDs must be globally unique across all folders
+4. **Add vertical/square variants** in their respective format folders with prefixes (e.g., `V-TTR-`, `SQ-TTR-`)
 
 ## Customization Options
 
@@ -311,6 +416,7 @@ Rule: If content doesn't earn its screen time, cut it.
 
 ## References
 
+- `references/template-system.md` - Template architecture and SkillDemoConfig interface
 - `references/content-types.md` - Detailed content type specs
-- `references/format-selection.md` - Platform requirements
-- `references/script-generation.md` - Script templates
+- `references/format-selection.md` - Platform requirements and multi-format support
+- `references/script-generation.md` - Script templates and generation patterns

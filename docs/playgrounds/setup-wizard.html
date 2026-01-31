@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OrchestKit Setup Wizard</title>
+<link rel="stylesheet" href="nav.css">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2128;
+    --surface3: #21262d;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #484f58;
+    --accent: #8b5cf6;
+    --accent2: #22c55e;
+    --accent3: #06b6d4;
+    --accent4: #f59e0b;
+    --accent5: #f97316;
+    --accent6: #ec4899;
+    --accent7: #ef4444;
+    --glow: rgba(139, 92, 246, 0.15);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 100vh;
+  }
+
+  /* LEFT: Controls */
+  .controls-panel {
+    padding: 32px;
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    max-height: calc(100vh - 48px);
+    position: sticky;
+    top: 48px;
+  }
+
+  .wizard-header {
+    margin-bottom: 28px;
+  }
+  .wizard-header .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .logo-box {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: white;
+  }
+  .wizard-header h1 {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .wizard-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* Step sections */
+  .step {
+    margin-bottom: 28px;
+  }
+  .step-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .step-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: all 0.3s;
+  }
+  .step.active .step-num {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+  .step-title {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* Option groups */
+  .option-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .option-btn {
+    padding: 10px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    user-select: none;
+  }
+  .option-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+    background: var(--surface2);
+  }
+  .option-btn.selected {
+    background: rgba(139, 92, 246, 0.12);
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 12px var(--glow);
+  }
+  .option-btn .icon { font-size: 16px; }
+  .option-btn.selected .icon { filter: none; }
+
+  /* Toggle switches */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    user-select: none;
+  }
+  .toggle-row:hover { border-color: var(--accent); }
+  .toggle-row.on {
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.4);
+  }
+  .toggle-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .toggle-label .name {
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .toggle-label .desc {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .toggle-switch {
+    width: 40px;
+    height: 22px;
+    background: var(--surface3);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+  .toggle-switch::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--text-muted);
+    top: 3px;
+    left: 3px;
+    transition: all 0.2s;
+  }
+  .toggle-row.on .toggle-switch {
+    background: var(--accent);
+  }
+  .toggle-row.on .toggle-switch::after {
+    left: 21px;
+    background: white;
+  }
+
+  /* Presets */
+  .preset-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .preset-btn {
+    padding: 6px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .preset-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .preset-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  /* RIGHT: Preview */
+  .preview-panel {
+    padding: 32px;
+    overflow-y: auto;
+    max-height: calc(100vh - 48px);
+    position: sticky;
+    top: 48px;
+  }
+
+  /* Results header */
+  .results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .results-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .results-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .results-stats {
+    display: flex;
+    gap: 16px;
+  }
+  .rstat {
+    text-align: center;
+  }
+  .rstat-val {
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .rstat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* Plugin list */
+  .plugin-list {
+    margin-bottom: 20px;
+  }
+  .plugin-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    transition: all 0.3s;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  .plugin-item.required {
+    border-color: rgba(139, 92, 246, 0.4);
+    background: rgba(139, 92, 246, 0.06);
+  }
+  .plugin-item.optional {
+    border-style: dashed;
+    opacity: 0.7;
+  }
+  .pi-badge {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 12px;
+    flex-shrink: 0;
+  }
+  .pi-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .pi-name {
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .pi-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pi-counts {
+    display: flex;
+    gap: 10px;
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+  .pi-count {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .pi-count .n { font-weight: 700; }
+  .pi-count .l { color: var(--text-muted); }
+  .pi-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+    margin-left: 10px;
+    flex-shrink: 0;
+  }
+  .pi-tag.req { background: rgba(139, 92, 246, 0.2); color: var(--accent); }
+  .pi-tag.rec { background: rgba(34, 197, 94, 0.2); color: var(--accent2); }
+  .pi-tag.opt { background: rgba(139, 92, 246, 0.1); color: var(--text-muted); }
+
+  /* Plugin expand */
+  .plugin-item { cursor: pointer; flex-wrap: wrap; }
+  .plugin-item:hover { border-color: var(--accent); }
+  .pi-row { display: flex; align-items: center; width: 100%; }
+  .pi-chevron {
+    margin-left: 8px;
+    font-size: 10px;
+    color: var(--text-dim);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .plugin-item.expanded .pi-chevron { transform: rotate(90deg); color: var(--accent); }
+  .pi-detail {
+    width: 100%;
+    display: none;
+    padding-top: 14px;
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    animation: fadeIn 0.2s ease;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .plugin-item.expanded .pi-detail { display: block; }
+  .pi-detail-section {
+    margin-bottom: 12px;
+  }
+  .pi-detail-section:last-child { margin-bottom: 0; }
+  .pi-detail-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .pi-detail-label .badge {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+  .pi-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .pi-skill-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .pi-skill-tag:hover { border-color: var(--accent3); background: rgba(6, 182, 212, 0.08); }
+  .pi-skill-tag.cmd { border-color: rgba(139, 92, 246, 0.3); color: var(--accent); }
+  .pi-skill-tag.cmd::before { content: '/ork:'; color: var(--text-muted); }
+  .pi-agent-tag {
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.06);
+    color: var(--accent2);
+    transition: all 0.15s;
+  }
+  .pi-agent-tag:hover { border-color: var(--accent2); background: rgba(34, 197, 94, 0.12); }
+  .pi-full-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  /* Prompt */
+  .prompt-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .prompt-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .prompt-header h3 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+  }
+  .copy-btn {
+    padding: 5px 14px;
+    background: var(--accent);
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { filter: brightness(1.15); }
+  .copy-btn.copied { background: var(--accent2); }
+  .prompt-body {
+    padding: 16px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 13px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--text);
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  /* Visual summary bar */
+  .summary-bar {
+    display: flex;
+    height: 6px;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: var(--surface2);
+  }
+  .summary-segment {
+    transition: width 0.4s ease;
+  }
+
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .controls-panel, .preview-panel {
+      position: static;
+      max-height: none;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <div class="controls-panel">
+    <div class="wizard-header">
+      <div class="logo">
+        <div class="logo-box">OK</div>
+        <h1>Setup Wizard</h1>
+      </div>
+      <p>Answer a few questions to get your personalized OrchestKit setup.</p>
+    </div>
+
+    <div class="preset-bar">
+      <span style="font-size:12px;color:var(--text-muted);line-height:28px;margin-right:4px">Presets:</span>
+      <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
+      <button class="preset-btn" onclick="applyPreset('backend')">Backend Dev</button>
+      <button class="preset-btn" onclick="applyPreset('frontend')">Frontend Dev</button>
+      <button class="preset-btn" onclick="applyPreset('fullstack')">Full-Stack</button>
+      <button class="preset-btn" onclick="applyPreset('ai')">AI Engineer</button>
+      <button class="preset-btn" onclick="applyPreset('everything')">Everything</button>
+    </div>
+
+    <div class="step active" id="step1">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">What's your primary language?</div>
+      </div>
+      <div class="option-group">
+        <button class="option-btn" data-group="lang" data-value="python" onclick="toggle('lang','python')"><span class="icon">&#x1f40d;</span> Python</button>
+        <button class="option-btn" data-group="lang" data-value="node" onclick="toggle('lang','node')"><span class="icon">&#x26A1;</span> Node / TypeScript</button>
+        <button class="option-btn" data-group="lang" data-value="both" onclick="toggle('lang','both')"><span class="icon">&#x1f504;</span> Both</button>
+      </div>
+    </div>
+
+    <div class="step active" id="step2">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">What are you building?</div>
+      </div>
+      <div class="option-group">
+        <button class="option-btn" data-group="focus" data-value="backend" onclick="toggle('focus','backend')"><span class="icon">&#x2699;</span> Backend / API</button>
+        <button class="option-btn" data-group="focus" data-value="frontend" onclick="toggle('focus','frontend')"><span class="icon">&#x1f3a8;</span> Frontend / UI</button>
+        <button class="option-btn" data-group="focus" data-value="fullstack" onclick="toggle('focus','fullstack')"><span class="icon">&#x1f4e6;</span> Full-Stack</button>
+        <button class="option-btn" data-group="focus" data-value="ai" onclick="toggle('focus','ai')"><span class="icon">&#x1f916;</span> AI / LLM App</button>
+      </div>
+    </div>
+
+    <div class="step active" id="step3">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">What capabilities do you need?</div>
+      </div>
+      <div class="toggle-row on" onclick="toggleFeature('memory')">
+        <div class="toggle-label">
+          <span class="name">Memory & Context</span>
+          <span class="desc">Remember decisions across sessions, knowledge graph</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row on" onclick="toggleFeature('testing')">
+        <div class="toggle-label">
+          <span class="name">Testing</span>
+          <span class="desc">Unit, integration, e2e, property-based, MSW mocking</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('security')">
+        <div class="toggle-label">
+          <span class="name">Security</span>
+          <span class="desc">OWASP Top 10, auth patterns, vulnerability scanning</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('devops')">
+        <div class="toggle-label">
+          <span class="name">DevOps & CI/CD</span>
+          <span class="desc">Deployment, monitoring, GitHub Actions, releases</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('git')">
+        <div class="toggle-label">
+          <span class="name">Git Workflows</span>
+          <span class="desc">PR creation, issue tracking, stacked PRs, recovery</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('video')">
+        <div class="toggle-label">
+          <span class="name">Video & Demos</span>
+          <span class="desc">Remotion videos, terminal recording, marketing assets</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('mcp')">
+        <div class="toggle-label">
+          <span class="name">MCP Integration</span>
+          <span class="desc">Build MCP servers, browser automation, security hardening</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('a11y')">
+        <div class="toggle-label">
+          <span class="name">Accessibility</span>
+          <span class="desc">WCAG compliance, a11y testing, focus management</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+      <div class="toggle-row" onclick="toggleFeature('product')">
+        <div class="toggle-label">
+          <span class="name">Product Management</span>
+          <span class="desc">Strategy, business cases, prioritization, market research</span>
+        </div>
+        <div class="toggle-switch"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-panel">
+    <div class="results-header">
+      <div>
+        <div class="results-title" id="resultsTitle">Your OrchestKit Setup</div>
+        <div class="results-subtitle" id="resultsSubtitle">Select options to see recommendations</div>
+      </div>
+      <div class="results-stats" id="resultsStats"></div>
+    </div>
+
+    <div class="summary-bar" id="summaryBar"></div>
+
+    <div class="plugin-list" id="pluginList"></div>
+
+    <div class="prompt-box">
+      <div class="prompt-header">
+        <h3>Install Commands</h3>
+        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+      </div>
+      <div class="prompt-body" id="promptOutput"></div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+// Compatibility shim: convert shared data array to map format expected by wizard
+var PLUGINS = {};
+ORCHESTKIT_DATA.plugins.forEach(function(p) {
+  PLUGINS[p.name] = {
+    desc: p.description,
+    fullDesc: p.fullDescription,
+    skills: p.skills.length,
+    agents: p.agents.length,
+    hooks: p.hooks,
+    category: p.category,
+    color: p.color,
+    required: p.required || false,
+    skillList: p.skills,
+    agentList: p.agents,
+    commands: p.commands,
+  };
+});
+
+// State
+const state = {
+  lang: null,
+  focus: null,
+  features: {
+    memory: true,
+    testing: true,
+    security: false,
+    devops: false,
+    git: false,
+    video: false,
+    mcp: false,
+    a11y: false,
+    product: false,
+  },
+  preset: null,
+  expandedPlugin: null,
+};
+
+// Recommendation engine
+function getRecommendations() {
+  const rec = new Map(); // name -> { priority: 'required'|'recommended'|'optional', reason }
+
+  // Always include core + workflows
+  rec.set('ork-core', { priority: 'required', reason: 'Foundation - always required' });
+  rec.set('ork-workflows', { priority: 'required', reason: 'Essential workflow commands' });
+
+  // Language / Focus based
+  const { lang, focus } = state;
+
+  if (focus === 'backend' || focus === 'fullstack') {
+    rec.set('ork-backend-patterns', { priority: 'recommended', reason: 'Backend architecture patterns' });
+    rec.set('ork-api', { priority: 'recommended', reason: 'API design patterns' });
+    rec.set('ork-database', { priority: 'recommended', reason: 'Database patterns' });
+    if (lang === 'python' || lang === 'both') {
+      rec.set('ork-async', { priority: 'recommended', reason: 'Python async patterns' });
+    }
+  }
+
+  if (focus === 'frontend' || focus === 'fullstack') {
+    rec.set('ork-react-core', { priority: 'recommended', reason: 'React core patterns' });
+    rec.set('ork-ui-design', { priority: 'recommended', reason: 'UI/UX design patterns' });
+    rec.set('ork-frontend', { priority: 'recommended', reason: 'Frontend optimization' });
+  }
+
+  if (focus === 'ai') {
+    rec.set('ork-llm', { priority: 'recommended', reason: 'LLM integration patterns' });
+    rec.set('ork-rag', { priority: 'recommended', reason: 'RAG retrieval patterns' });
+    rec.set('ork-langgraph', { priority: 'recommended', reason: 'Agent orchestration' });
+    rec.set('ork-ai-observability', { priority: 'optional', reason: 'LLM monitoring' });
+    rec.set('ork-evaluation', { priority: 'optional', reason: 'LLM evaluation' });
+  }
+
+  if (focus === 'fullstack' && (lang === 'python' || lang === 'both')) {
+    rec.set('ork-async', { priority: 'optional', reason: 'Async patterns for backend' });
+  }
+
+  // Feature toggles
+  if (state.features.memory) {
+    rec.set('ork-memory-graph', { priority: 'recommended', reason: 'Knowledge graph memory' });
+    rec.set('ork-memory-mem0', { priority: 'optional', reason: 'Cloud memory (needs MEM0_API_KEY)' });
+    rec.set('ork-memory-fabric', { priority: 'optional', reason: 'Memory orchestration layer' });
+  }
+  if (state.features.testing) {
+    rec.set('ork-testing', { priority: 'recommended', reason: 'Testing patterns' });
+  }
+  if (state.features.security) {
+    rec.set('ork-security', { priority: 'recommended', reason: 'Security patterns' });
+  }
+  if (state.features.devops) {
+    rec.set('ork-devops', { priority: 'recommended', reason: 'DevOps & CI/CD' });
+  }
+  if (state.features.git) {
+    rec.set('ork-git', { priority: 'recommended', reason: 'Git workflow patterns' });
+  }
+  if (state.features.video) {
+    rec.set('ork-video', { priority: 'recommended', reason: 'Video production' });
+  }
+  if (state.features.mcp) {
+    rec.set('ork-mcp', { priority: 'recommended', reason: 'MCP integration' });
+  }
+  if (state.features.a11y) {
+    rec.set('ork-accessibility', { priority: 'recommended', reason: 'Accessibility patterns' });
+  }
+  if (state.features.product) {
+    rec.set('ork-product', { priority: 'recommended', reason: 'Product management agents' });
+  }
+
+  return rec;
+}
+
+// Toggle functions
+function toggle(group, value) {
+  if (state[group] === value) {
+    state[group] = null;
+  } else {
+    state[group] = value;
+  }
+  state.preset = null;
+  updateAll();
+}
+
+function toggleFeature(feat) {
+  state.features[feat] = !state.features[feat];
+  state.preset = null;
+  updateAll();
+}
+
+function togglePlugin(name) {
+  state.expandedPlugin = state.expandedPlugin === name ? null : name;
+  updateAll();
+}
+
+function applyPreset(name) {
+  // Reset
+  state.lang = null;
+  state.focus = null;
+  Object.keys(state.features).forEach(k => state.features[k] = false);
+
+  switch (name) {
+    case 'minimal':
+      break;
+    case 'backend':
+      state.lang = 'python';
+      state.focus = 'backend';
+      state.features.memory = true;
+      state.features.testing = true;
+      state.features.git = true;
+      break;
+    case 'frontend':
+      state.lang = 'node';
+      state.focus = 'frontend';
+      state.features.testing = true;
+      state.features.a11y = true;
+      break;
+    case 'fullstack':
+      state.lang = 'both';
+      state.focus = 'fullstack';
+      state.features.memory = true;
+      state.features.testing = true;
+      state.features.security = true;
+      state.features.git = true;
+      break;
+    case 'ai':
+      state.lang = 'python';
+      state.focus = 'ai';
+      state.features.memory = true;
+      state.features.testing = true;
+      break;
+    case 'everything':
+      state.lang = 'both';
+      state.focus = 'fullstack';
+      Object.keys(state.features).forEach(k => state.features[k] = true);
+      break;
+  }
+  state.preset = name;
+  updateAll();
+}
+
+// Render
+function updateAll() {
+  // Update button states
+  document.querySelectorAll('.option-btn').forEach(btn => {
+    const group = btn.dataset.group;
+    const value = btn.dataset.value;
+    btn.classList.toggle('selected', state[group] === value);
+  });
+
+  // Update toggle states
+  const toggleMap = ['memory','testing','security','devops','git','video','mcp','a11y','product'];
+  document.querySelectorAll('.toggle-row').forEach((row, i) => {
+    row.classList.toggle('on', state.features[toggleMap[i]]);
+  });
+
+  // Update presets
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.classList.toggle('active', state.preset === btn.textContent.toLowerCase().replace('-', '').replace(' ', ''));
+  });
+
+  // Get recommendations
+  const recs = getRecommendations();
+
+  // Calculate totals
+  let totalSkills = 0, totalAgents = 0, totalHooks = 0, totalPlugins = 0;
+  recs.forEach((rec, name) => {
+    const p = PLUGINS[name];
+    if (p) {
+      totalSkills += p.skills;
+      totalAgents += p.agents;
+      totalHooks += p.hooks;
+      totalPlugins++;
+    }
+  });
+
+  // Results header
+  const required = [...recs].filter(([,r]) => r.priority === 'required').length;
+  const recommended = [...recs].filter(([,r]) => r.priority === 'recommended').length;
+  const optional = [...recs].filter(([,r]) => r.priority === 'optional').length;
+
+  document.getElementById('resultsTitle').textContent = `Your OrchestKit Setup`;
+  document.getElementById('resultsSubtitle').textContent = `${required} required + ${recommended} recommended + ${optional} optional plugins`;
+
+  document.getElementById('resultsStats').innerHTML = `
+    <div class="rstat"><div class="rstat-val" style="color:var(--accent)">${totalPlugins}</div><div class="rstat-label">Plugins</div></div>
+    <div class="rstat"><div class="rstat-val" style="color:var(--accent3)">${totalSkills}</div><div class="rstat-label">Skills</div></div>
+    <div class="rstat"><div class="rstat-val" style="color:var(--accent2)">${totalAgents}</div><div class="rstat-label">Agents</div></div>
+  `;
+
+  // Summary bar
+  const catCounts = {};
+  recs.forEach((rec, name) => {
+    const p = PLUGINS[name];
+    if (p) {
+      catCounts[p.category] = (catCounts[p.category] || 0) + p.skills + p.agents;
+    }
+  });
+  const totalComponents = Object.values(catCounts).reduce((s, v) => s + v, 0) || 1;
+  const catColors = { development: '#8b5cf6', ai: '#06b6d4', backend: '#f59e0b', frontend: '#ec4899', testing: '#22c55e', security: '#ef4444', devops: '#f97316', product: '#a855f7', accessibility: '#14b8a6', data: '#6366f1' };
+  document.getElementById('summaryBar').innerHTML = Object.entries(catCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat, count]) => `<div class="summary-segment" style="width:${(count/totalComponents)*100}%;background:${catColors[cat] || '#666'}"></div>`)
+    .join('');
+
+  // Plugin list
+  const sorted = [...recs].sort((a, b) => {
+    const pri = { required: 0, recommended: 1, optional: 2 };
+    return pri[a[1].priority] - pri[b[1].priority];
+  });
+
+  document.getElementById('pluginList').innerHTML = sorted.map(([name, rec], i) => {
+    const p = PLUGINS[name];
+    if (!p) return '';
+    const tagClass = rec.priority === 'required' ? 'req' : rec.priority === 'recommended' ? 'rec' : 'opt';
+    const tagLabel = rec.priority === 'required' ? 'REQUIRED' : rec.priority === 'recommended' ? 'RECOMMENDED' : 'OPTIONAL';
+    const isExpanded = state.expandedPlugin === name;
+    const cmds = p.commands || [];
+    return `
+      <div class="plugin-item ${rec.priority} ${isExpanded ? 'expanded' : ''}" style="animation-delay:${i * 0.05}s" onclick="togglePlugin('${name}')">
+        <div class="pi-row">
+          <div class="pi-badge" style="background:${p.color}"></div>
+          <div class="pi-info">
+            <div class="pi-name">${name}</div>
+            <div class="pi-desc">${rec.reason}</div>
+          </div>
+          <div class="pi-counts">
+            ${p.skills ? `<span class="pi-count"><span class="n">${p.skills}</span> <span class="l">skills</span></span>` : ''}
+            ${p.agents ? `<span class="pi-count"><span class="n">${p.agents}</span> <span class="l">agents</span></span>` : ''}
+            ${p.hooks ? `<span class="pi-count"><span class="n">${p.hooks}</span> <span class="l">hooks</span></span>` : ''}
+          </div>
+          <span class="pi-tag ${tagClass}">${tagLabel}</span>
+          <span class="pi-chevron">\u25B6</span>
+        </div>
+        <div class="pi-detail">
+          <div class="pi-full-desc">${p.fullDesc || p.desc}</div>
+          ${cmds.length ? `
+          <div class="pi-detail-section">
+            <div class="pi-detail-label">Commands <span class="badge" style="background:rgba(139,92,246,0.2);color:var(--accent)">${cmds.length}</span></div>
+            <div class="pi-tags">${cmds.map(c => `<span class="pi-skill-tag cmd">${c}</span>`).join('')}</div>
+          </div>` : ''}
+          ${p.skillList && p.skillList.length ? `
+          <div class="pi-detail-section">
+            <div class="pi-detail-label">Skills <span class="badge" style="background:rgba(6,182,212,0.2);color:var(--accent3)">${p.skillList.length}</span></div>
+            <div class="pi-tags">${p.skillList.map(s => `<span class="pi-skill-tag">${s}</span>`).join('')}</div>
+          </div>` : ''}
+          ${p.agentList && p.agentList.length ? `
+          <div class="pi-detail-section">
+            <div class="pi-detail-label">Agents <span class="badge" style="background:rgba(34,197,94,0.2);color:var(--accent2)">${p.agentList.length}</span></div>
+            <div class="pi-tags">${p.agentList.map(a => `<span class="pi-agent-tag">${a}</span>`).join('')}</div>
+          </div>` : ''}
+          ${p.hooks ? `
+          <div class="pi-detail-section">
+            <div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">${p.hooks}</span></div>
+            <div style="font-size:12px;color:var(--text-muted)">119 lifecycle hooks across 11 split bundles (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
+          </div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+
+  // Prompt output
+  updatePrompt(recs);
+}
+
+function updatePrompt(recs) {
+  const parts = [];
+  const required = [...recs].filter(([,r]) => r.priority === 'required');
+  const recommended = [...recs].filter(([,r]) => r.priority === 'recommended');
+  const optional = [...recs].filter(([,r]) => r.priority === 'optional');
+
+  // Build description
+  const focusLabel = { backend: 'backend', frontend: 'frontend', fullstack: 'full-stack', ai: 'AI/LLM' }[state.focus] || '';
+  const langLabel = { python: 'Python', node: 'TypeScript/Node', both: 'Python + TypeScript' }[state.lang] || '';
+
+  if (focusLabel || langLabel) {
+    parts.push(`# OrchestKit setup for ${[langLabel, focusLabel].filter(Boolean).join(' ')} development`);
+  } else {
+    parts.push(`# OrchestKit setup`);
+  }
+  parts.push('');
+
+  if (required.length) {
+    parts.push('# Required (always install)');
+    required.forEach(([name]) => parts.push(`claude plugin install ${name}`));
+    parts.push('');
+  }
+  if (recommended.length) {
+    parts.push('# Recommended for your stack');
+    recommended.forEach(([name, rec]) => parts.push(`claude plugin install ${name}  # ${rec.reason}`));
+    parts.push('');
+  }
+  if (optional.length) {
+    parts.push('# Optional enhancements');
+    optional.forEach(([name, rec]) => parts.push(`# claude plugin install ${name}  # ${rec.reason}`));
+    parts.push('');
+  }
+
+  // Totals
+  let ts = 0, ta = 0;
+  recs.forEach((_, name) => { const p = PLUGINS[name]; if (p) { ts += p.skills; ta += p.agents; } });
+  parts.push(`# Total: ${recs.size} plugins, ${ts} skills, ${ta} agents`);
+
+  document.getElementById('promptOutput').textContent = parts.join('\n');
+}
+
+function copyPrompt() {
+  const text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+  });
+}
+
+// Init
+updateAll();
+</script>
+<script src="nav.js"></script>
+</body>
+</html>

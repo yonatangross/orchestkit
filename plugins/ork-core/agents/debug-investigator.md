@@ -10,6 +10,7 @@ tools:
   - Grep
   - Glob
 skills:
+  - root-cause-analysis
   - observability-monitoring
   - errors
   - remember

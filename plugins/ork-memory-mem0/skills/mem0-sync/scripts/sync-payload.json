@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mem0 Sync Payload Templates",
+  "description": "Templates for MCP add_memory calls during sync",
+
+  "session_summary": {
+    "text": "Session Summary: {{task_summary}}{{#blockers}} | Blockers: {{blockers}}{{/blockers}}{{#next_steps}} | Next: {{next_steps}}{{/next_steps}}",
+    "user_id": "{{project}}-continuity",
+    "metadata": {
+      "type": "session_summary",
+      "status": "{{status}}",
+      "project": "{{project}}",
+      "session_id": "{{session_id}}",
+      "stored_at": "{{timestamp}}",
+      "has_blockers": "{{has_blockers}}",
+      "has_next_steps": "{{has_next_steps}}",
+      "source": "orchestkit-plugin"
+    },
+    "enable_graph": true
+  },
+
+  "decision": {
+    "text": "{{decision_content}}",
+    "user_id": "{{project}}-decisions",
+    "metadata": {
+      "decision_id": "{{decision_id}}",
+      "category": "{{category}}",
+      "outcome": "success",
+      "agent": "{{agent}}",
+      "project": "{{project}}",
+      "stored_at": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+
+  "agent_pattern_success": {
+    "text": "{{agent_type}}: {{pattern_description}}",
+    "user_id": "{{project}}-agents",
+    "agent_id": "ork:{{agent_type}}",
+    "metadata": {
+      "category": "{{category}}",
+      "outcome": "success",
+      "project": "{{project}}",
+      "stored_at": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+
+  "agent_pattern_failed": {
+    "text": "{{agent_type}}: {{pattern_description}}",
+    "user_id": "{{project}}-agents",
+    "agent_id": "ork:{{agent_type}}",
+    "metadata": {
+      "category": "{{category}}",
+      "outcome": "failed",
+      "lesson": "{{lesson}}",
+      "project": "{{project}}",
+      "stored_at": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+
+  "global_best_practice": {
+    "text": "{{best_practice_description}}",
+    "user_id": "orchestkit-global-best-practices",
+    "metadata": {
+      "category": "{{category}}",
+      "outcome": "success",
+      "original_project": "{{project}}",
+      "original_agent": "{{agent}}",
+      "stored_at": "{{timestamp}}",
+      "source": "orchestkit-plugin"
+    },
+    "enable_graph": true
+  },
+
+  "example_filled": {
+    "_comment": "Example of a filled session summary template",
+    "text": "Session Summary: Implemented cursor pagination for API | Blockers: JWT validation failing | Next: Add unit tests",
+    "user_id": "myproject-continuity",
+    "metadata": {
+      "type": "session_summary",
+      "status": "in_progress",
+      "project": "myproject",
+      "session_id": "sess-12345",
+      "stored_at": "2026-01-17T15:00:00Z",
+      "has_blockers": true,
+      "has_next_steps": true,
+      "source": "orchestkit-plugin"
+    },
+    "enable_graph": true
+  }
+}

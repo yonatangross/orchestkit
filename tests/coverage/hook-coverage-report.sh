@@ -10,8 +10,8 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
-HOOKS_DIR="$PROJECT_ROOT/src/hooks"
-TESTS_DIR="$PROJECT_ROOT/tests"
+HOOKS_DIR="$PROJECT_ROOT/src/hooks/src"  # TypeScript source directory
+TESTS_DIR="$PROJECT_ROOT/src/hooks/src/__tests__"  # TypeScript test directory
 
 # Colors
 RED='\033[0;31m'
@@ -36,13 +36,18 @@ is_hook_tested() {
     local hook_name="$1"
     local hook_path="$2"
 
-    # Check if hook name appears in any test file
-    if grep -rq "$hook_name" "$TESTS_DIR" --include="*.sh" 2>/dev/null; then
+    # Check if hook name appears in any test file (TypeScript tests)
+    if grep -rq "$hook_name" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
         return 0  # Tested
     fi
 
     # Check if hook path appears in any test file
-    if grep -rq "$hook_path" "$TESTS_DIR" --include="*.sh" 2>/dev/null; then
+    if grep -rq "$hook_path" "$TESTS_DIR" --include="*.ts" 2>/dev/null; then
+        return 0  # Tested
+    fi
+
+    # Also check shell-based tests in project tests dir
+    if grep -rq "$hook_name" "$PROJECT_ROOT/tests" --include="*.sh" 2>/dev/null; then
         return 0  # Tested
     fi
 
@@ -83,7 +88,7 @@ report_category() {
                 untested_list+=("$relative_path")
             fi
         fi
-    done < <(find "$category_path" -name "*.sh" -type f 2>/dev/null)
+    done < <(find "$category_path" -name "*.ts" -type f 2>/dev/null)
 
     if [ "$category_total" -gt 0 ]; then
         local percentage=$((category_tested * 100 / category_total))
@@ -122,10 +127,10 @@ echo "────────────────────────�
 for subcategory in bash write-edit input-mod mcp task skill; do
     if [ -d "$HOOKS_DIR/pretool/$subcategory" ]; then
         # Count hooks
-        count=$(find "$HOOKS_DIR/pretool/$subcategory" -name "*.sh" -type f ! -name "*dispatcher*" 2>/dev/null | wc -l | tr -d ' ')
+        count=$(find "$HOOKS_DIR/pretool/$subcategory" -name "*.ts" -type f ! -name "*dispatcher*" 2>/dev/null | wc -l | tr -d ' ')
         tested=0
 
-        for hook_file in "$HOOKS_DIR/pretool/$subcategory"/*.sh; do
+        for hook_file in "$HOOKS_DIR/pretool/$subcategory"/*.ts; do
             if [ -f "$hook_file" ]; then
                 hook_name=$(basename "$hook_file")
                 if [[ "$hook_name" != *"dispatcher"* ]]; then

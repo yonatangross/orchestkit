@@ -123,6 +123,16 @@ Disable individual hooks in `.claude/config.json`:
 }
 ```
 
+## PR-Aware Session Resumption (CC 2.1.27)
+
+When working on issue-linked PRs, use `--from-pr` to resume sessions with full PR context:
+
+```bash
+claude --from-pr 42    # Resumes with PR diff, comments, review status
+```
+
+This enables progress tracking hooks to access PR metadata (review comments, CI status) when posting session summaries, giving richer progress updates on the linked issue.
+
 ## Best Practices
 
 1. **Use Issue Branches**: Start branches with `issue/N-` for automatic detection

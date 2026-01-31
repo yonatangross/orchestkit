@@ -1,13 +1,16 @@
 {
   "name": "ork-ai-observability",
   "version": "5.2.6",
-  "description": "AI Observability — langfuse-observability, cache-cost-tracking, semantic-caching, llm-evaluation, evidence-verification",
+  "description": "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification",
+  "dependencies": ["ork-core"],
   "skills": [
     "langfuse-observability",
     "cache-cost-tracking",
-    "semantic-caching",
-    "llm-evaluation",
-    "evidence-verification"
+    "evidence-verification",
+    "drift-detection",
+    "pii-masking-patterns",
+    "silent-failure-detection",
+    "skill-analyzer"
   ],
   "agents": [
     "monitoring-engineer"

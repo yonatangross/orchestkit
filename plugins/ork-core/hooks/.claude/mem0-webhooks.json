@@ -1,0 +1,9 @@
+{
+  "webhook_name": "orchestkit-auto-sync",
+  "events": [
+    "memory.created",
+    "memory.updated",
+    "memory.deleted"
+  ],
+  "url": "https://example.com/webhook/mem0"
+}

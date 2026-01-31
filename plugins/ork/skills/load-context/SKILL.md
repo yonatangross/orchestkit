@@ -1,19 +1,20 @@
 ---
 name: load-context
-description: Auto-load relevant memories at session start from both mem0 and graph. Use when you need session context restored or preloaded.
-tags: [memory, mem0, graph, session, context, continuity, auto-load]
+description: Auto-load relevant memories at session start from knowledge graph (always) and mem0 (if configured). Use when you need session context restored or preloaded.
+tags: [memory, graph, session, context, continuity, auto-load]
+plugin: ork-memory-graph
 user-invocable: true
 allowedTools: [Read, Grep, Glob, mcp__mem0__search_memories, mcp__mem0__get_memories, mcp__memory__search_nodes, mcp__memory__read_graph]
 auto-invoke: session-start
 context: inherit
 skills: [recall, remember]
-version: 1.0.0
+version: 2.1.0
 author: OrchestKit
 ---
 
 # Load Context - Memory Fabric Initialization
 
-Auto-load relevant memories at session start from both Mem0 semantic memory and the knowledge graph for seamless session continuity.
+Auto-load relevant memories at session start from the knowledge graph, with optional Mem0 semantic memory enhancement if `ork-memory-mem0` plugin is installed and `MEM0_API_KEY` is configured.
 
 **CC 2.1.6 Context-Aware:** Loading adapts based on `context_window.used_percentage`.
 
@@ -88,7 +89,38 @@ Call `mcp__memory__search_nodes`:
 }
 ```
 
-### 5. Format Output
+### 5. Query Global Best Practices (Optional)
+
+If the user has opted into global sharing (privacy.share_globally = true), query community best practices that may be relevant to the current project context.
+
+Call `mcp__mem0__search_memories`:
+
+```json
+{
+  "query": "{detected_technologies} best practices patterns",
+  "filters": {
+    "AND": [
+      { "user_id": "orchestkit-global-best-practices" },
+      { "metadata.confidence": { "gte": 0.8 } }
+    ]
+  },
+  "limit": 3,
+  "enable_graph": true
+}
+```
+
+Where `{detected_technologies}` is inferred from:
+- Project dependencies (package.json, requirements.txt)
+- Recent file types being worked on
+- Entities mentioned in current conversation
+
+**Privacy Note:** Global best practices are:
+- Contributed anonymously (anonymous_id only)
+- Opt-in (requires privacy.share_globally = true)
+- High-confidence only (confidence >= 0.8)
+- Project-agnostic (no project paths or secrets)
+
+### 6. Format Output
 
 ```
 [Memory Fabric Loaded]
@@ -101,6 +133,9 @@ Unresolved Blockers ({count}):
 
 Active Entities ({count}):
   - {entity} -> {relation} -> {entity}
+
+Global Best Practices ({count}):  # If opted-in
+  - {practice_text} ({confidence}% confidence)
 
 Next Steps from Last Session:
   - {step_1}

@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
-import { execSync, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getPluginRoot, outputSilentSuccess } from '../lib/common.js';
 
@@ -117,6 +117,12 @@ function extractSessionInfo(projectDir: string): {
  * Mem0 pre-compaction sync hook
  */
 export function mem0PreCompactionSync(input: HookInput): HookResult {
+  // Gate: Skip entirely if mem0 is not configured
+  if (!process.env.MEM0_API_KEY) {
+    logHook('mem0-pre-compaction-sync', 'Mem0 not configured (no MEM0_API_KEY), skipping');
+    return outputSilentSuccess();
+  }
+
   const projectDir = input.project_dir || getProjectDir();
   const pluginRoot = getPluginRoot();
 
@@ -219,9 +225,49 @@ export function mem0PreCompactionSync(input: HookInput): HookResult {
       ],
       {
         detached: true,
-        stdio: 'ignore',
+        stdio: ['ignore', 'pipe', 'pipe'],
       }
     );
+
+    child.on('error', (err) => {
+      const errTimestamp = new Date().toISOString();
+      try {
+        appendFileSync(logFile, `[${errTimestamp}] Sync child process error: ${err.message}\n`);
+      } catch {
+        // Best-effort logging
+      }
+    });
+
+    child.on('close', (code) => {
+      const closeTimestamp = new Date().toISOString();
+      try {
+        if (code === 0) {
+          appendFileSync(logFile, `[${closeTimestamp}] Sync completed successfully\n`);
+        } else {
+          appendFileSync(logFile, `[${closeTimestamp}] Sync exited with code ${code}\n`);
+        }
+      } catch {
+        // Best-effort logging
+      }
+    });
+
+    if (child.stderr) {
+      let stderrData = '';
+      child.stderr.on('data', (chunk: Buffer) => {
+        stderrData += chunk.toString();
+      });
+      child.stderr.on('end', () => {
+        if (stderrData.trim()) {
+          const errTimestamp = new Date().toISOString();
+          try {
+            appendFileSync(logFile, `[${errTimestamp}] Sync stderr: ${stderrData.trim()}\n`);
+          } catch {
+            // Best-effort logging
+          }
+        }
+      });
+    }
+
     child.unref();
 
     // Mark patterns as synced

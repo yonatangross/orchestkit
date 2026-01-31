@@ -1,7 +1,7 @@
 {
   "name": "ork-ui-design",
   "version": "5.2.6",
-  "description": "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns, focus-management",
+  "description": "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

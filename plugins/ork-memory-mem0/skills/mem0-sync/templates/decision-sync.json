@@ -1,0 +1,50 @@
+{
+  "$schema": "../../.claude/schemas/memory.schema.json",
+  "type": "decision",
+  "description": "Template for syncing architectural decisions to Mem0",
+  "template": {
+    "text": "{{decision_content}}",
+    "user_id": "{{project}}-decisions",
+    "metadata": {
+      "type": "decision",
+      "category": "{{category}}",
+      "outcome": "{{outcome}}",
+      "decision_id": "{{decision_id}}",
+      "context": "{{context}}",
+      "timestamp": "{{timestamp}}"
+    },
+    "enable_graph": true
+  },
+  "variables": {
+    "decision_content": {
+      "description": "Full text of the architectural decision",
+      "required": true
+    },
+    "project": {
+      "description": "Project identifier",
+      "required": true
+    },
+    "category": {
+      "description": "Decision category",
+      "enum": ["architecture", "api", "database", "security", "performance", "testing", "deployment"],
+      "required": true
+    },
+    "outcome": {
+      "description": "Decision outcome",
+      "enum": ["success", "pending", "superseded"],
+      "default": "success"
+    },
+    "decision_id": {
+      "description": "Unique decision identifier",
+      "required": true
+    },
+    "context": {
+      "description": "Brief context for the decision",
+      "required": false
+    },
+    "timestamp": {
+      "description": "ISO 8601 timestamp",
+      "source": "auto"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "ork-video",
+  "version": "5.3.0",
+  "description": "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing",
+  "author": {
+    "name": "Yonatan Gross",
+    "email": "yonatan2gross@gmail.com",
+    "url": "https://github.com/yonatangross/orchestkit"
+  },
+  "homepage": "https://github.com/yonatangross/orchestkit",
+  "repository": "https://github.com/yonatangross/orchestkit",
+  "license": "MIT",
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
+}

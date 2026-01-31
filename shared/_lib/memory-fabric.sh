@@ -375,7 +375,8 @@ fabric_merge_results() {
         relevance_a=$(echo "$result_a" | jq -r '.relevance // 0')
         relevance_b=$(echo "$result_b" | jq -r '.relevance // 0')
 
-        if (( $(echo "$relevance_a >= $relevance_b" | bc -l) )); then
+        # Use awk for cross-platform float comparison (no bc dependency)
+        if awk -v a="$relevance_a" -v b="$relevance_b" 'BEGIN { exit !(a >= b) }'; then
             primary="$result_a"
             secondary="$result_b"
         else
@@ -434,8 +435,8 @@ fabric_text_similarity() {
         return
     fi
 
-    # Calculate Jaccard similarity
-    echo "scale=2; $count_common / $count_union" | bc
+    # Calculate Jaccard similarity (awk for cross-platform compatibility)
+    awk -v c="$count_common" -v u="$count_union" 'BEGIN { printf "%.2f", c / u }'
 }
 
 # -----------------------------------------------------------------------------
@@ -639,9 +640,10 @@ fabric_calculate_score() {
 
         if [[ "$timestamp_epoch" -gt 0 ]]; then
             age_days=$(( (now_epoch - timestamp_epoch) / 86400 ))
-            recency=$(echo "scale=2; 1.0 - ($age_days / 30)" | bc)
+            # Use awk for cross-platform float arithmetic
+            recency=$(awk -v a="$age_days" 'BEGIN { printf "%.2f", 1.0 - (a / 30) }')
             # Ensure minimum of 0.1
-            if (( $(echo "$recency < 0.1" | bc -l) )); then
+            if awk -v r="$recency" 'BEGIN { exit !(r < 0.1) }'; then
                 recency="0.1"
             fi
         fi
@@ -653,9 +655,11 @@ fabric_calculate_score() {
         authority="1.3"
     fi
 
-    # Final score = recency * weight + relevance * weight + authority * weight
+    # Final score = recency * weight + relevance * weight + authority * weight (awk for cross-platform)
     local score
-    score=$(echo "scale=3; ($recency * $FABRIC_WEIGHT_RECENCY) + ($relevance * $FABRIC_WEIGHT_RELEVANCE) + ($authority * $FABRIC_WEIGHT_AUTHORITY)" | bc)
+    score=$(awk -v rec="$recency" -v rel="$relevance" -v auth="$authority" \
+                -v wr="$FABRIC_WEIGHT_RECENCY" -v wrel="$FABRIC_WEIGHT_RELEVANCE" -v wa="$FABRIC_WEIGHT_AUTHORITY" \
+                'BEGIN { printf "%.3f", (rec * wr) + (rel * wrel) + (auth * wa) }')
 
     echo "$score"
 }

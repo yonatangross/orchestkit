@@ -114,7 +114,8 @@ function extractAgentSkills(agentType: string): string[] {
 
   try {
     const content = readFileSync(agentFile, 'utf8');
-    const lines = content.split('\n');
+    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+    const lines = content.replace(/\r\n/g, '\n').split('\n');
 
     let inFrontmatter = false;
     let inSkills = false;
@@ -193,7 +194,8 @@ function extractAgentTools(agentType: string): string[] {
 
   try {
     const content = readFileSync(agentFile, 'utf8');
-    const lines = content.split('\n');
+    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+    const lines = content.replace(/\r\n/g, '\n').split('\n');
     let inFrontmatter = false;
     let inTools = false;
 

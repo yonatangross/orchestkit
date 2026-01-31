@@ -9,7 +9,8 @@
 export * from '../types.js';
 export * from '../lib/common.js';
 
-// Setup hooks (8)
+// Setup hooks (9)
+import { unifiedSetupDispatcher } from '../setup/unified-dispatcher.js';
 import { firstRunSetup } from '../setup/first-run-setup.js';
 import { mem0AnalyticsDashboard } from '../setup/mem0-analytics-dashboard.js';
 import { mem0BackupSetup } from '../setup/mem0-backup-setup.js';
@@ -25,6 +26,7 @@ import type { HookFn } from '../types.js';
  * Setup hooks registry
  */
 export const hooks: Record<string, HookFn> = {
+  'setup/unified-dispatcher': unifiedSetupDispatcher,
   'setup/first-run-setup': firstRunSetup,
   'setup/mem0-analytics-dashboard': mem0AnalyticsDashboard,
   'setup/mem0-backup-setup': mem0BackupSetup,

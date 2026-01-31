@@ -12,6 +12,7 @@ tools:
   - Glob
   - Bash
 skills:
+  - business-case-analysis
   - brainstorming
   - github-operations
   - remember

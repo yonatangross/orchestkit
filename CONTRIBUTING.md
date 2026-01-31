@@ -36,14 +36,14 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/               # 181 skills in flat CC 2.1.7 structure
+├── skills/               # 182 skills in flat CC 2.1.7 structure
 │   └── <skill-name>/
 │       ├── SKILL.md           # Required: Patterns and best practices
 │       ├── references/        # Optional: Specific implementations
 │       ├── scripts/           # Optional: Executable code and generators
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
-├── agents/               # 34 specialized AI personas
+├── agents/               # 35 specialized AI personas
 └── hooks/                # 152 TypeScript hooks in 11 split bundles
 
 manifests/                # Plugin definitions (34 JSON files)

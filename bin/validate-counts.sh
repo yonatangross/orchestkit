@@ -25,8 +25,9 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # =============================================================================
 ACTUAL_SKILLS=$(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
 ACTUAL_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-# Count TypeScript hooks (excluding entries, lib, tests, index.ts, types.ts)
-ACTUAL_HOOKS=$(find "$PROJECT_ROOT/src/hooks/src" -name "*.ts" -type f 2>/dev/null | grep -v __tests__ | grep -v '/lib/' | grep -v 'index.ts' | grep -v 'types.ts' | grep -v '/entries/' | wc -l | tr -d ' ')
+# Hook counting — delegate to single source of truth
+eval "$("$PROJECT_ROOT/bin/count-hooks.sh")"
+ACTUAL_HOOKS=$TOTAL
 
 # =============================================================================
 # DECLARED COUNTS (from .claude-plugin/plugin.json description string)

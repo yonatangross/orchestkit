@@ -3,7 +3,7 @@
  * Issue #235: Hook Architecture Refactor
  *
  * Consolidates multiple async PostToolUse hooks into a single dispatcher.
- * This reduces the number of "Async hook completed" messages from ~14 to 1.
+ * This reduces the number of "Async hook completed" messages from ~17 to 1.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
  *
@@ -31,6 +31,12 @@ import { realtimeSync } from './realtime-sync.js';
 import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
 import { mem0WebhookHandler } from './mem0-webhook-handler.js';
+import { userTracking } from './user-tracking.js';
+// GAP-011: Wire solution-detector to enable problem-tracker functionality
+import { solutionDetector } from './solution-detector.js';
+
+// Issue #243: Consolidate tool-preference-learner to reduce async hook spam
+import { toolPreferenceLearner } from './tool-preference-learner.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -79,7 +85,22 @@ const HOOKS: HookConfig[] = [
 
   // Multi-tool matcher
   { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },
+
+  // User tracking (Issue #245) - tracks all tool usage, skills, and agents
+  { name: 'user-tracking', fn: userTracking, matcher: '*' },
+
+  // GAP-011: Solution detector - pairs tool outputs with open problems
+  { name: 'solution-detector', fn: solutionDetector, matcher: ['Bash', 'Write', 'Edit', 'Task'] },
+
+  // Issue #243: Tool preference learner - previously separate async hook causing spam
+  { name: 'tool-preference-learner', fn: toolPreferenceLearner, matcher: '*' },
 ];
+
+/** Exposed for registry wiring tests */
+export const registeredHookNames = () => HOOKS.map(h => h.name);
+
+/** Exposed for registry wiring tests */
+export const registeredHookMatchers = () => HOOKS.map(h => ({ name: h.name, matcher: h.matcher }));
 
 // -----------------------------------------------------------------------------
 // Matcher Logic
@@ -87,8 +108,9 @@ const HOOKS: HookConfig[] = [
 
 /**
  * Check if a tool matches a matcher pattern
+ * Exported for direct unit testing
  */
-function matchesTool(toolName: string, matcher: string | string[]): boolean {
+export function matchesTool(toolName: string, matcher: string | string[]): boolean {
   if (matcher === '*') return true;
 
   if (Array.isArray(matcher)) {

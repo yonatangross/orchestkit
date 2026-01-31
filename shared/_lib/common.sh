@@ -1207,20 +1207,12 @@ log_hook_timing() {
   local end_time
   end_time=$(date +%s.%N 2>/dev/null || date +%s)
   
-  # Calculate duration (handle both GNU and BSD date)
+  # Calculate duration using awk (cross-platform, no bc dependency)
   local duration
-  if command -v bc >/dev/null 2>&1; then
-    duration=$(echo "$end_time - $start_time" | bc 2>/dev/null || echo "0")
-  else
-    # Fallback: integer seconds
-    local start_int end_int
-    start_int=$(echo "$start_time" | cut -d. -f1)
-    end_int=$(echo "$end_time" | cut -d. -f1)
-    duration=$((end_int - start_int))
-  fi
-  
-  # Log if hook took more than 1 second
-  if (( $(echo "$duration > 1.0" | bc 2>/dev/null || echo 0) )); then
+  duration=$(awk -v e="$end_time" -v s="$start_time" 'BEGIN { printf "%.3f", e - s }' 2>/dev/null || echo "0")
+
+  # Log if hook took more than 1 second (awk comparison, cross-platform)
+  if awk -v d="$duration" 'BEGIN { exit !(d > 1.0) }' 2>/dev/null; then
     log_hook "SLOW: $hook_name took ${duration}s (threshold: 1s)"
   fi
 }

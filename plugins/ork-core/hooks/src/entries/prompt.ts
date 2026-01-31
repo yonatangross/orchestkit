@@ -18,21 +18,34 @@ export * from '../lib/retry-manager.js';
 export * from '../lib/calibration-engine.js';
 export * from '../lib/multi-agent-coordinator.js';
 
-// Prompt hooks (12) - UserPromptSubmit
+// Prompt hooks (11) - UserPromptSubmit
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { contextInjector } from '../prompt/context-injector.js';
 import { contextPruningAdvisor } from '../prompt/context-pruning-advisor.js';
 import { memoryContext } from '../prompt/memory-context.js';
 import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
-import { skillAutoSuggest } from '../prompt/skill-auto-suggest.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
 import { agentAutoSuggest } from '../prompt/agent-auto-suggest.js';
 
 // Orchestration hooks (Issue #197)
 import { agentOrchestrator } from '../prompt/agent-orchestrator.js';
-import { skillInjector } from '../prompt/skill-injector.js';
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
+
+// Unified skill resolver (replaces skill-auto-suggest + skill-injector)
+import { skillResolver } from '../prompt/skill-resolver.js';
+
+// Intelligent Decision Capture System (Issue #245)
+import { captureUserIntent } from '../prompt/capture-user-intent.js';
+
+// Memory Context Loader (Issue #245 - session-start memory loading)
+import { memoryContextLoader } from '../prompt/memory-context-loader.js';
+
+// Profile Injection (Issue #245 Phase 6.1)
+import { profileInjector } from '../prompt/profile-injector.js';
+
+// Communication Style Tracker (Issue #245 Phase 2.2)
+import { communicationStyleTracker } from '../prompt/communication-style-tracker.js';
 
 import type { HookFn } from '../types.js';
 
@@ -46,13 +59,21 @@ export const hooks: Record<string, HookFn> = {
   'prompt/context-pruning-advisor': contextPruningAdvisor,
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
-  'prompt/skill-auto-suggest': skillAutoSuggest,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/agent-auto-suggest': agentAutoSuggest,
   // Orchestration hooks (Issue #197)
   'prompt/agent-orchestrator': agentOrchestrator,
-  'prompt/skill-injector': skillInjector,
   'prompt/pipeline-detector': pipelineDetector,
+  // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
+  'prompt/skill-resolver': skillResolver,
+  // Intelligent Decision Capture System
+  'prompt/capture-user-intent': captureUserIntent,
+  // Memory Context Loader (Issue #245 - session-start memory loading)
+  'prompt/memory-context-loader': memoryContextLoader,
+  // Profile Injection (Issue #245 Phase 6.1)
+  'prompt/profile-injector': profileInjector,
+  // Communication Style Tracker (Issue #245 Phase 2.2)
+  'prompt/communication-style-tracker': communicationStyleTracker,
 };
 
 export function getHook(name: string): HookFn | undefined {

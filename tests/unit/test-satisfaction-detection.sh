@@ -380,7 +380,8 @@ test_get_session_satisfaction_all_negative() {
     local score
     score=$(get_session_satisfaction "test-session")
 
-    assert_equals "0" "$score"
+    # Accept both "0" and "0.00" (awk vs bc output format)
+    [[ "$score" == "0" || "$score" == "0.00" ]] || fail "Expected '0' or '0.00', got '$score'"
 }
 
 test_get_session_satisfaction_mixed() {
@@ -402,7 +403,8 @@ test_get_session_satisfaction_mixed() {
     local score
     score=$(get_session_satisfaction "test-session")
 
-    assert_equals ".50" "$score"
+    # Accept both ".50" and "0.50" (awk vs bc output format)
+    [[ "$score" == ".50" || "$score" == "0.50" ]] || fail "Expected '.50' or '0.50', got '$score'"
 }
 
 # ============================================================================

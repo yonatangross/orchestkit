@@ -17,6 +17,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
+import { trackEvent } from '../lib/session-tracker.js';
 import { existsSync, readFileSync, writeFileSync, appendFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 
@@ -198,6 +199,16 @@ export function satisfactionDetector(input: HookInput): HookResult {
 
     // Log the satisfaction signal
     logSatisfaction(sessionId, sentiment, context, projectDir);
+
+    // Track in session tracker for user profile aggregation
+    try {
+      trackEvent('preference_stated' as any, sentiment, {
+        context,
+        success: true,
+      });
+    } catch {
+      // Ignore tracking errors
+    }
 
     logHook('satisfaction-detector', `Detected ${sentiment} satisfaction signal`);
   }

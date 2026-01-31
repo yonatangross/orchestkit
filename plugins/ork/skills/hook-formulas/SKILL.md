@@ -1,7 +1,9 @@
 ---
 name: hook-formulas
-description: Proven formulas for video hooks that stop the scroll - first 3 seconds that capture attention across platforms
+description: Proven formulas for video hooks that stop the scroll. Use when writing opening lines, creating attention-grabbing intros, or optimizing first 3 seconds
 tags: [video, hooks, marketing, attention, copywriting, social-media]
+context: fork
+agent: demo-producer
 user-invocable: false
 version: 1.0.0
 ---
@@ -332,6 +334,13 @@ Copy and customize these templates:
 
 ## Related Skills
 
-- See `references/hook-patterns.md` for deep dives on each pattern
-- See `references/platform-specific-hooks.md` for platform optimization
-- See `references/testing-hooks.md` for A/B testing methodology
+- `video-pacing`: Timing patterns that hooks must align with
+- `demo-producer`: Uses hooks in the opening seconds of demos
+- `thumbnail-first-frame`: Visual hooks for thumbnails
+- `content-type-recipes`: Platform-specific hook templates
+
+## References
+
+- `references/hook-patterns.md` - Deep dives on each pattern
+- `references/platform-specific-hooks.md` - Platform optimization
+- `references/testing-hooks.md` - A/B testing methodology

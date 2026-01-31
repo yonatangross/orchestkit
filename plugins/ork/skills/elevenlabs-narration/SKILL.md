@@ -1,7 +1,9 @@
 ---
 name: elevenlabs-narration
-description: ElevenLabs TTS integration for video narration - voice selection, segment timing, and script-to-audio pipeline
+description: ElevenLabs TTS integration for video narration. Use when generating voiceover audio, selecting voices, or building script-to-audio pipelines
 tags: [video, audio, narration, tts, elevenlabs, voice, speech]
+context: fork
+agent: demo-producer
 user-invocable: false
 version: 1.0.0
 ---

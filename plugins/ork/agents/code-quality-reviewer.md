@@ -41,7 +41,7 @@ Review code for bugs, security issues, performance problems, and ensure test cov
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for visual regression testing verification
 - Screenshots: `agent-browser screenshot <path>` for visual comparison
-- See `skills/agent-browser/` for comprehensive command reference
+- Run `agent-browser --help` for full CLI docs
 
 ## Memory Integration
 At task start, query relevant context:

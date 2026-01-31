@@ -42,22 +42,35 @@ echo "▶ JSON Validity"
 echo "────────────────────────────────────────"
 
 json_errors=0
+# Discover project-critical JSON files via pattern scan.
+# Excludes .claude/ (runtime coordination data) and node_modules/.
+CRITICAL_JSON_FILES=()
+# Explicit top-level files
+for f in "$PROJECT_ROOT/package.json" "$PROJECT_ROOT/src/hooks/hooks.json"; do
+    [ -f "$f" ] && CRITICAL_JSON_FILES+=("$f")
+done
+# Pattern scan: manifests/ and all .claude-plugin/ directories
+for dir in "$PROJECT_ROOT/manifests" "$PROJECT_ROOT/.claude-plugin"; do
+    if [ -d "$dir" ]; then
+        while IFS= read -r -d '' file; do
+            CRITICAL_JSON_FILES+=("$file")
+        done < <(find "$dir" -name "*.json" -print0 2>/dev/null)
+    fi
+done
+# Scan plugins/ .claude-plugin dirs (but not .claude/ runtime data or node_modules/)
 while IFS= read -r -d '' file; do
-    if ! jq empty "$file" 2>/dev/null; then
-        fail "Invalid JSON: $file"
-        ((json_errors++)) || true
-    fi
-done < <(find "$PROJECT_ROOT/.claude" -name "*.json" -print0 2>/dev/null)
+    CRITICAL_JSON_FILES+=("$file")
+done < <(find "$PROJECT_ROOT/plugins" -path '*/.claude-plugin/*.json' \
+    ! -path '*/.claude/*' ! -path '*/node_modules/*' -print0 2>/dev/null)
 
-# Check .claude-plugin/plugin.json separately
-if [ -f "$PROJECT_ROOT/.claude-plugin/plugin.json" ]; then
-    if jq empty "$PROJECT_ROOT/.claude-plugin/plugin.json" 2>/dev/null; then
-        pass ".claude-plugin/plugin.json is valid JSON"
-    else
-        fail ".claude-plugin/plugin.json is invalid JSON"
-        ((json_errors++)) || true
+for file in "${CRITICAL_JSON_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        if ! jq empty "$file" 2>/dev/null; then
+            fail "Invalid JSON: $file"
+            ((json_errors++)) || true
+        fi
     fi
-fi
+done
 
 if [ "$json_errors" -eq 0 ]; then
     pass "All JSON files are valid"
@@ -171,6 +184,64 @@ if [ "$agent_errors" -eq 0 ]; then
     pass "All $agent_count agents have valid CC 2.1.6 frontmatter"
 else
     fail "$agent_errors agents have frontmatter errors"
+fi
+
+echo ""
+
+# ============================================================================
+# 5. Frontmatter Hook Completeness
+# ============================================================================
+# Every hook entry in agent/skill frontmatter must have both a matcher: and
+# a command: line. A matcher without a command (or vice versa) is a silent
+# misconfiguration — the hook simply won't fire.
+echo "▶ Frontmatter Hook Completeness"
+echo "────────────────────────────────────────"
+
+hook_incomplete=0
+hook_checked=0
+
+# Check agents
+for agent_file in "$PROJECT_ROOT/src/agents"/*.md; do
+    if [ -f "$agent_file" ]; then
+        agent_name=$(basename "$agent_file" .md)
+        # Extract YAML frontmatter (between first pair of --- markers)
+        frontmatter=$(awk '/^---$/{if(++c==2) exit; next} c==1{print}' "$agent_file")
+
+        # Only check files that have a hooks: section
+        if echo "$frontmatter" | grep -q "^hooks:"; then
+            ((hook_checked++)) || true
+            matcher_count=$(echo "$frontmatter" | grep -c "matcher:" || true)
+            command_count=$(echo "$frontmatter" | grep -c "command:" || true)
+
+            if [ "$matcher_count" -ne "$command_count" ]; then
+                fail "Agent $agent_name: matcher count ($matcher_count) != command count ($command_count)"
+                ((hook_incomplete++)) || true
+            fi
+        fi
+    fi
+done
+
+# Check skills
+while IFS= read -r -d '' skill_file; do
+    skill_name=$(basename "$(dirname "$skill_file")")
+    frontmatter=$(awk '/^---$/{if(++c==2) exit; next} c==1{print}' "$skill_file")
+
+    if echo "$frontmatter" | grep -q "^hooks:"; then
+        ((hook_checked++)) || true
+        matcher_count=$(echo "$frontmatter" | grep -c "matcher:" || true)
+        command_count=$(echo "$frontmatter" | grep -c "command:" || true)
+
+        if [ "$matcher_count" -ne "$command_count" ]; then
+            fail "Skill $skill_name: matcher count ($matcher_count) != command count ($command_count)"
+            ((hook_incomplete++)) || true
+        fi
+    fi
+done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f -print0 2>/dev/null)
+
+if [ "$hook_incomplete" -eq 0 ]; then
+    pass "All $hook_checked frontmatter hook sections have matching matcher/command pairs"
+else
+    fail "$hook_incomplete frontmatter hook sections are incomplete"
 fi
 
 echo ""

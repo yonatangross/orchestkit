@@ -18,6 +18,7 @@ import { coordinationCleanup } from '../lifecycle/coordination-cleanup.js';
 
 // Consolidated hooks (Issue #219)
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
+import { unifiedDispatcher } from '../posttool/unified-dispatcher.js';
 import { decisionProcessor } from '../skill/decision-processor.js';
 
 // Import utilities
@@ -1513,6 +1514,46 @@ describe('decision-processor (consolidated from mem0-decision-saver + decision-e
       const input = createSkillInput(text);
       const result = decisionProcessor(input);
       expect(result.continue).toBe(true);
+    }
+  });
+});
+
+// =============================================================================
+// PostToolUse Unified Dispatcher — Read-Only Tool Handling
+// =============================================================================
+
+describe('posttool/unified-dispatcher read-only tool handling', () => {
+  test.each(['Read', 'Glob', 'Grep', 'WebFetch', 'WebSearch'])(
+    'returns silent success (no side-effect hooks) for read-only tool: %s',
+    async (toolName) => {
+      const input: HookInput = {
+        hook_event_name: 'PostToolUse',
+        tool_name: toolName,
+        tool_input: {},
+        tool_result: { is_error: false, content: 'ok' },
+        session_id: 'test-session',
+        transcript: [],
+      };
+      const result = await unifiedDispatcher(input);
+
+      // The dispatcher always returns silent success (async hooks are fire-and-forget).
+      // The key protection is hooks.json matcher excluding read-only tools,
+      // but if somehow invoked, dispatcher still returns gracefully.
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    }
+  );
+
+  test('hooks.json PostToolUse matcher prevents dispatcher invocation for read-only tools', () => {
+    // This is validated by async-registry.test.ts PostToolUse Matcher Safety tests.
+    // Here we verify the dispatcher's internal wildcard matchers would match
+    // read-only tools if hooks.json didn't filter them out first.
+    const readOnlyTools = ['Read', 'Glob', 'Grep', 'WebFetch', 'WebSearch'];
+    const dispatcherMatcher = 'Bash|Write|Edit|Task|Skill|NotebookEdit';
+    const allowedTools = dispatcherMatcher.split('|');
+
+    for (const tool of readOnlyTools) {
+      expect(allowedTools).not.toContain(tool);
     }
   });
 });

@@ -5,12 +5,12 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**181 skills · 35 agents · 152 hooks · 33 modular plugins**
+**182 skills · 35 agents · 152 hooks · 33 modular plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.20-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-164-blue?style=for-the-badge)](./skills)
-[![Agents](https://img.shields.io/badge/Agents-34-green?style=for-the-badge)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-147-orange?style=for-the-badge)](./hooks)
+[![Skills](https://img.shields.io/badge/Skills-181-blue?style=for-the-badge)](./skills)
+[![Agents](https://img.shields.io/badge/Agents-35-green?style=for-the-badge)](./agents)
+[![Hooks](https://img.shields.io/badge/Hooks-152-orange?style=for-the-badge)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -43,7 +43,7 @@
 
 **The Problem:** Every Claude Code session starts from zero. You explain your stack, your patterns, your preferences—again and again.
 
-**The Solution:** OrchestKit gives Claude persistent knowledge of 163 production patterns, 34 specialized agents, and 147 security/quality hooks that work automatically.
+**The Solution:** OrchestKit gives Claude persistent knowledge of 181 production patterns, 35 specialized agents, and 152 security/quality hooks that work automatically.
 
 <table>
 <tr>
@@ -89,7 +89,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │  150 hooks  │    │  179 skills   │    │   35 agents   │
+        │  152 hooks  │    │  182 skills   │    │   35 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -318,18 +318,18 @@ Codebase Analysis:
 
 ## Skills
 
-**179 skills** with progressive loading (~70% token savings):
+**182 skills** with progressive loading (~70% token savings):
 
-### 🤖 AI & ML — 179 skills
+### 🤖 AI & ML
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
 | **RAG & Retrieval** | 6 | `rag-retrieval`, `contextual-retrieval`, `reranking-patterns`, `hyde-retrieval`, `query-decomposition`, `agentic-rag-patterns` |
 | **LLM Patterns** | 8 | `function-calling`, `llm-streaming`, `llm-evaluation`, `prompt-engineering-suite`, `fine-tuning-customization`, `vision-language-models`, `high-performance-inference`, `semantic-caching` |
-| **Agents & Orchestration** | 7 | `agent-loops`, `multi-agent-orchestration`, `langgraph-*` (179 skills), `alternative-agent-frameworks` |
+| **Agents & Orchestration** | 7 | `agent-loops`, `multi-agent-orchestration`, `langgraph-*`, `alternative-agent-frameworks` |
 | **Safety & Security** | 6 | `llm-safety-patterns`, `advanced-guardrails`, `mcp-security-hardening`, `llm-testing` |
 
-### ⚡ Backend — 179 skills
+### ⚡ Backend
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
@@ -339,7 +339,7 @@ Codebase Analysis:
 | **Architecture** | 5 | `saga-patterns`, `cqrs-patterns`, `event-sourcing`, `outbox-pattern`, `aggregate-patterns` |
 | **Resilience** | 4 | `rate-limiting`, `idempotency-patterns`, `distributed-locks`, `resilience-patterns` |
 
-### 🎨 Frontend — 179 skills
+### 🎨 Frontend
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
@@ -349,24 +349,24 @@ Codebase Analysis:
 | **Data Viz & PWA** | 4 | `recharts-patterns`, `dashboard-patterns`, `pwa-patterns`, `responsive-patterns` |
 | **Build & Quality** | 2 | `vite-advanced`, `biome-linting` |
 
-### 🧪 Testing — 179 skills
+### 🧪 Testing
 
 | Category | Count | Key Skills |
 |----------|-------|------------|
 | **Unit & Integration** | 4 | `pytest-advanced`, `unit-testing`, `integration-testing`, `msw-mocking` |
 | **Advanced Testing** | 4 | `property-based-testing`, `contract-testing`, `e2e-testing`, `vcr-http-recording` |
-| **Test Data** | 2 | `test-data-management`, `golden-dataset-*` (179 skills) |
+| **Test Data** | 2 | `test-data-management`, `golden-dataset-*` |
 
-### 🔒 Security — 179 skills
+### 🔒 Security
 
 `owasp-top-10` · `auth-patterns` · `input-validation` · `defense-in-depth` · `security-scanning`
 
-### 🚀 DevOps & Git — 179 skills
+### 🚀 DevOps & Git
 
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
 <details>
-<summary><strong>📁 View all 179 skills</strong></summary>
+<summary><strong>📁 View all 182 skills</strong></summary>
 
 ```bash
 ls skills/
@@ -380,7 +380,7 @@ Full list in [`skills/`](./skills) directory.
 
 ## Agents
 
-**34 specialized agents** organized by domain:
+**35 specialized agents** organized by domain:
 
 ### ⚡ Backend & Data — 35 agents
 
@@ -469,7 +469,7 @@ flowchart TB
     subgraph OrchestKit["🔷 ORCHESTKIT PLUGIN"]
         direction TB
 
-        subgraph Hooks["🛡️ 147 HOOKS"]
+        subgraph Hooks["🛡️ 152 HOOKS"]
             direction LR
             H1["PreToolUse"]
             H2["PostToolUse"]
@@ -514,7 +514,7 @@ flowchart TB
 
     class P input
     class H1,H2,H3,H0 hooks
-    class S1,S2,S3,S179 skills
+    class S1,S2,S3,S182 skills
     class A1,A2,A3,A35 agents
     class C output
     class OrchestKit container
@@ -534,15 +534,15 @@ orchestkit/
 │       ├── agents/          # Specialized agents
 │       ├── skills/          # Knowledge modules
 │       └── scripts/         # Hook executables
-├── skills/                  # 161 knowledge modules (full)
+├── skills/                  # 181 knowledge modules (full)
 │   └── <skill-name>/
 │       ├── SKILL.md         # Overview + patterns (~500 tokens)
 │       ├── references/      # Deep-dive guides (~200 tokens)
 │       ├── scripts/         # Executable code and generators
 │       └── assets/          # Templates and copyable files
-├── agents/                  # 34 specialized agents
+├── agents/                  # 35 specialized agents
 ├── commands/                # 21 slash commands
-├── hooks/                   # 147 lifecycle hooks
+├── hooks/                   # 152 lifecycle hooks
 └── tests/                   # Validation suite
 ```
 
@@ -552,8 +552,8 @@ orchestkit/
 
 | Feature | OrchestKit | [claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase) | DIY Hooks |
 |---------|:----------:|:--------------------:|:---------:|
-| **Skills/Patterns** | ✅ 161 | ⚠️ ~10 | ❌ 0 |
-| **Specialized Agents** | ✅ 34 | ⚠️ ~5 | ❌ 0 |
+| **Skills/Patterns** | ✅ 181 | ⚠️ ~10 | ❌ 0 |
+| **Specialized Agents** | ✅ 35 | ⚠️ ~5 | ❌ 0 |
 | **Security Layers** | ✅ 8-layer | ⚠️ Basic | ❌ Manual |
 | **AI/ML Patterns** | ✅ 27 | ⚠️ Limited | ❌ None |
 | **Testing Patterns** | ✅ 10 | ⚠️ Basic | ❌ None |
@@ -741,9 +741,9 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/      # 179 skills (single source of truth - edit these)
+├── skills/      # 182 skills (single source of truth - edit these)
 ├── agents/      # 35 agents (single source of truth - edit these)
-└── hooks/       # 150 hooks (single source of truth - edit these)
+└── hooks/       # 152 hooks (single source of truth - edit these)
 
 manifests/       # Plugin definitions (34 manifests - edit these)
 ├── ork.json

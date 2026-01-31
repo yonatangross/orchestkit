@@ -35,6 +35,8 @@ outputs/
 # Root level temp artifacts
 HOOK_SECURITY_*.json
 HOOK_SECURITY_*.txt
+.test-skill-validation-*
+.test-temp-*
 
 # Instance-specific environment
 .claude/.instance_env
@@ -68,15 +70,20 @@ HOOK_SECURITY_*.txt
 # Local settings (user-specific)
 .claude/settings.local.json
 
+# Hook overrides (per-project, user-specific)
+.claude/hook-overrides.json
+
 # Mem0 sync state
 .mem0-sync-pending
+**/.claude/mem0-webhooks.json
 
 # Orchestration runtime state (session-specific)
 .claude/orchestration/
 
 # Hooks runtime artifacts (created during hook execution)
-hooks/.claude/
-hooks/dist/*.map
+# Covers root, src/hooks, and plugins/*/hooks
+**/hooks/.claude/
+**/hooks/dist/*.map
 
 # Python caches
 .mypy_cache/
@@ -93,6 +100,20 @@ __pycache__/
 # Local instance files
 .instance/
 .claude/coordination/.claude.db
+
+# Runtime memory state (session-specific)
+.claude/memory/completed-flows.jsonl
+.claude/memory/decisions.jsonl
+.claude/memory/flows/
+.claude/memory/tool-preferences.json
+.claude/.comm-style-counter
+.claude/hooks/
+
+# Demo build artifacts
+orchestkit-demos/build/
+
+# Vercel local project config
+docs/playgrounds/.vercel
 
 # Feedback system (user-specific learning data)
 .claude/feedback/

@@ -7,6 +7,10 @@ tags: [code-review, quality, collaboration, best-practices]
 context: fork
 agent: code-quality-reviewer
 user-invocable: false
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
 ---
 
 # Code Review Playbook

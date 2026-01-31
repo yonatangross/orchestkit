@@ -7,6 +7,8 @@
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { multiInstanceInit } from '../../lifecycle/multi-instance-init.js';
 
@@ -14,7 +16,7 @@ import { multiInstanceInit } from '../../lifecycle/multi-instance-init.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/multi-instance-init-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'multi-instance-init-test');
 
 /**
  * Create realistic HookInput for testing
@@ -523,10 +525,10 @@ describe('multi-instance-init', () => {
     });
 
     test.skipIf(!isSqlite3Available())('creates directories in writable paths', () => {
-      // Arrange - use a path in /tmp which is always writable
+      // Arrange - use a path in tmpdir() which is always writable
       process.env.CLAUDE_MULTI_INSTANCE = '1';
       delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
-      const writablePath = `/tmp/multi-instance-test-writable-${Date.now()}`;
+      const writablePath = join(tmpdir(), `multi-instance-test-writable-${Date.now()}`);
       mkdirSync(writablePath, { recursive: true });
       // Initialize as git repo for the test
       try {

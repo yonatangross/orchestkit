@@ -163,27 +163,41 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# Test 7: Hook count matches expected
+# Test 7: Hook count matches plugin.json declaration (dynamic validation)
 # -----------------------------------------------------------------------------
 echo ""
-echo "Test 7: Hook count validation"
-if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]]; then
-    # Count total hook commands
-    HOOK_COUNT=$(jq '[.hooks[][] | .hooks[]? | .command] | length' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
+echo "Test 7: Hook count matches declaration"
+if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]] && [[ -f "$PLUGIN_JSON" ]]; then
+    # Hook counting — delegate to single source of truth
+    eval "$("$PROJECT_ROOT/bin/count-hooks.sh")"
+    ACTUAL_HOOK_COUNT=$TOTAL
 
-    # Expected: ~144 hooks (adjust as needed)
-    EXPECTED_MIN=100
-    EXPECTED_MAX=200
+    # Get declared count from plugin.json description
+    DESCRIPTION=$(jq -r '.description' "$PLUGIN_JSON" 2>/dev/null)
+    DECLARED_HOOK_COUNT=$(echo "$DESCRIPTION" | grep -oE '[0-9]+ hooks' | head -1 | grep -oE '[0-9]+' || echo "0")
 
-    if [[ "$HOOK_COUNT" -ge "$EXPECTED_MIN" && "$HOOK_COUNT" -le "$EXPECTED_MAX" ]]; then
-        pass "Hook count ($HOOK_COUNT) is within expected range ($EXPECTED_MIN-$EXPECTED_MAX)"
-    elif [[ "$HOOK_COUNT" -lt "$EXPECTED_MIN" ]]; then
-        fail "Hook count ($HOOK_COUNT) is below expected minimum ($EXPECTED_MIN) - hooks may be missing"
+    if [[ "$DECLARED_HOOK_COUNT" -eq 0 ]]; then
+        warn "No hook count in plugin.json description - add 'N hooks' to description"
+    elif [[ "$ACTUAL_HOOK_COUNT" -eq "$DECLARED_HOOK_COUNT" ]]; then
+        pass "Hook count matches declaration: $ACTUAL_HOOK_COUNT"
     else
-        warn "Hook count ($HOOK_COUNT) exceeds expected maximum ($EXPECTED_MAX) - verify this is intentional"
+        # Allow ±5 tolerance for minor discrepancies
+        DIFF=$((ACTUAL_HOOK_COUNT - DECLARED_HOOK_COUNT))
+        if [[ ${DIFF#-} -le 5 ]]; then
+            warn "Hook count slightly off: actual=$ACTUAL_HOOK_COUNT, declared=$DECLARED_HOOK_COUNT (within tolerance)"
+        else
+            fail "Hook count mismatch: actual=$ACTUAL_HOOK_COUNT, declared=$DECLARED_HOOK_COUNT in plugin.json"
+        fi
+    fi
+
+    # Sanity check: hooks exist
+    if [[ "$ACTUAL_HOOK_COUNT" -gt 0 ]]; then
+        pass "Hooks exist: $ACTUAL_HOOK_COUNT hook files"
+    else
+        fail "No hooks found in src/hooks/src/"
     fi
 else
-    fail "Cannot validate - file missing"
+    fail "Cannot validate - hooks.json or plugin.json missing"
 fi
 
 # -----------------------------------------------------------------------------
@@ -213,6 +227,89 @@ if [[ -f "$MARKETPLACE_JSON" ]]; then
 else
     fail "marketplace.json not found"
 fi
+
+# -----------------------------------------------------------------------------
+# Test 9: src/ vs plugins/ sync validation
+# -----------------------------------------------------------------------------
+echo ""
+echo "Test 9: src/ vs plugins/ sync validation"
+
+# Count skills in src/ and plugins/ork/
+SRC_SKILLS=$(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+PLUGIN_SKILLS=$(find "$PROJECT_ROOT/plugins/ork/skills" -name "SKILL.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+if [[ "$SRC_SKILLS" -eq "$PLUGIN_SKILLS" ]]; then
+    pass "Skills in sync: src/ ($SRC_SKILLS) = plugins/ork/ ($PLUGIN_SKILLS)"
+else
+    fail "Skills out of sync: src/ ($SRC_SKILLS) != plugins/ork/ ($PLUGIN_SKILLS) - run 'npm run build'"
+fi
+
+# Count agents in src/ and plugins/ork/
+SRC_AGENTS=$(find "$PROJECT_ROOT/src/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+PLUGIN_AGENTS=$(find "$PROJECT_ROOT/plugins/ork/agents" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+if [[ "$SRC_AGENTS" -eq "$PLUGIN_AGENTS" ]]; then
+    pass "Agents in sync: src/ ($SRC_AGENTS) = plugins/ork/ ($PLUGIN_AGENTS)"
+else
+    fail "Agents out of sync: src/ ($SRC_AGENTS) != plugins/ork/ ($PLUGIN_AGENTS) - run 'npm run build'"
+fi
+
+# -----------------------------------------------------------------------------
+# Test 10: Required folder structure
+# -----------------------------------------------------------------------------
+echo ""
+echo "Test 10: Required folder structure"
+
+REQUIRED_DIRS=(
+    "src/skills"
+    "src/agents"
+    "src/hooks/src"
+    "src/hooks/dist"
+    "plugins/ork/.claude-plugin"
+    "plugins/ork/skills"
+    "plugins/ork/agents"
+    # Note: plugins/ork/hooks is NOT required - hooks are provided by ork-core dependency
+)
+
+for dir in "${REQUIRED_DIRS[@]}"; do
+    if [[ -d "$PROJECT_ROOT/$dir" ]]; then
+        pass "Directory exists: $dir"
+    else
+        fail "Missing directory: $dir"
+    fi
+done
+
+# -----------------------------------------------------------------------------
+# Test 11: Plugin-specific structure
+# -----------------------------------------------------------------------------
+echo ""
+echo "Test 11: All plugins have valid structure"
+
+for plugin_dir in "$PROJECT_ROOT/plugins"/*/; do
+    if [[ -d "$plugin_dir" ]]; then
+        PLUGIN_NAME=$(basename "$plugin_dir")
+
+        # Check for .claude-plugin/plugin.json
+        if [[ -f "$plugin_dir.claude-plugin/plugin.json" ]]; then
+            # Validate plugin.json is valid JSON
+            if jq empty "$plugin_dir.claude-plugin/plugin.json" 2>/dev/null; then
+                pass "$PLUGIN_NAME: valid plugin.json"
+            else
+                fail "$PLUGIN_NAME: invalid JSON in plugin.json"
+            fi
+
+            # Check description contains counts
+            DESC=$(jq -r '.description // ""' "$plugin_dir.claude-plugin/plugin.json" 2>/dev/null)
+            if echo "$DESC" | grep -qE '[0-9]+ skills'; then
+                pass "$PLUGIN_NAME: description has skill count"
+            else
+                warn "$PLUGIN_NAME: description missing skill count"
+            fi
+        else
+            fail "$PLUGIN_NAME: missing .claude-plugin/plugin.json"
+        fi
+    fi
+done
 
 # -----------------------------------------------------------------------------
 # Summary

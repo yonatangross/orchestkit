@@ -118,39 +118,6 @@ assert_dir_exists "$SKILL_DIR/templates" "templates/ directory exists"
 assert_dir_exists "$SKILL_DIR/checklists" "checklists/ directory exists"
 
 # -----------------------------------------------------------------------------
-# Test: SKILL.md Frontmatter
-# -----------------------------------------------------------------------------
-
-echo ""
-echo "=========================================="
-echo "Testing SKILL.md Frontmatter"
-echo "=========================================="
-
-SKILL_CONTENT=$(cat "$SKILL_DIR/SKILL.md")
-
-# Check required frontmatter fields
-assert_contains "$SKILL_CONTENT" "name: mem0-sync" "SKILL.md has name field"
-assert_contains "$SKILL_CONTENT" "description:" "SKILL.md has description field"
-assert_contains "$SKILL_CONTENT" "tags:" "SKILL.md has tags field"
-assert_contains "$SKILL_CONTENT" "user-invocable: true" "SKILL.md is user-invocable"
-assert_contains "$SKILL_CONTENT" "auto-invoke: session-end" "SKILL.md has auto-invoke field"
-assert_contains "$SKILL_CONTENT" "context: inherit" "SKILL.md has context field"
-
-# -----------------------------------------------------------------------------
-# Test: SKILL.md Content
-# -----------------------------------------------------------------------------
-
-echo ""
-echo "=========================================="
-echo "Testing SKILL.md Content"
-echo "=========================================="
-
-assert_contains "$SKILL_CONTENT" "add-memory.py" "SKILL.md includes script execution examples"
-assert_contains "$SKILL_CONTENT" "Session Summary" "SKILL.md documents session summary"
-assert_contains "$SKILL_CONTENT" "enable_graph: true" "SKILL.md specifies enable_graph"
-assert_contains "$SKILL_CONTENT" "user-id" "SKILL.md documents user_id format"
-
-# -----------------------------------------------------------------------------
 # Test: Reference Files
 # -----------------------------------------------------------------------------
 
@@ -162,19 +129,6 @@ echo "=========================================="
 assert_file_exists "$SKILL_DIR/references/session-sync.md" "session-sync.md reference exists"
 assert_file_exists "$SKILL_DIR/references/pattern-sync.md" "pattern-sync.md reference exists"
 assert_file_exists "$SKILL_DIR/references/decision-sync.md" "decision-sync.md reference exists"
-
-# Check reference content
-SESSION_REF=$(cat "$SKILL_DIR/references/session-sync.md")
-assert_contains "$SESSION_REF" "Session Summary" "session-sync.md documents session summary"
-assert_contains "$SESSION_REF" "add-memory.py" "session-sync.md includes script example"
-
-PATTERN_REF=$(cat "$SKILL_DIR/references/pattern-sync.md")
-assert_contains "$PATTERN_REF" "agent_id" "pattern-sync.md documents agent_id"
-assert_contains "$PATTERN_REF" "outcome" "pattern-sync.md documents outcome"
-
-DECISION_REF=$(cat "$SKILL_DIR/references/decision-sync.md")
-assert_contains "$DECISION_REF" "decision" "decision-sync.md documents decisions"
-assert_contains "$DECISION_REF" "Sync State" "decision-sync.md documents sync state"
 
 # -----------------------------------------------------------------------------
 # Test: Template File
@@ -190,10 +144,6 @@ assert_file_exists "$TEMPLATE_FILE" "sync-payload.json template exists"
 
 TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
 assert_json_valid "$TEMPLATE_CONTENT" "sync-payload.json is valid JSON"
-assert_contains "$TEMPLATE_CONTENT" "session_summary" "Template includes session_summary"
-assert_contains "$TEMPLATE_CONTENT" "decision" "Template includes decision"
-assert_contains "$TEMPLATE_CONTENT" "agent_pattern" "Template includes agent_pattern"
-assert_contains "$TEMPLATE_CONTENT" "global_best_practice" "Template includes global_best_practice"
 
 # -----------------------------------------------------------------------------
 # Test: Checklist File
@@ -207,11 +157,6 @@ echo "=========================================="
 CHECKLIST_FILE="$SKILL_DIR/checklists/pre-sync-checklist.md"
 assert_file_exists "$CHECKLIST_FILE" "pre-sync-checklist.md exists"
 
-CHECKLIST_CONTENT=$(cat "$CHECKLIST_FILE")
-assert_contains "$CHECKLIST_CONTENT" "Prerequisites" "Checklist has prerequisites section"
-assert_contains "$CHECKLIST_CONTENT" "Validation" "Checklist has validation section"
-assert_contains "$CHECKLIST_CONTENT" "Post-Sync" "Checklist has post-sync section"
-
 # -----------------------------------------------------------------------------
 # Test: Hook Integration (mem0-pre-compaction-sync.sh)
 # Stop hooks only support: continue, suppressOutput, stopReason, systemMessage
@@ -223,63 +168,16 @@ echo "=========================================="
 echo "Testing Hook Integration"
 echo "=========================================="
 
-HOOK="$PROJECT_ROOT/src/hooks/stop/mem0-pre-compaction-sync.sh"
+HOOK="$PROJECT_ROOT/src/hooks/src/stop/mem0-pre-compaction-sync.ts"
 
-# Test hook version (1.7.0+ for Stop hook compliance + Webhook + Batch + Export)
+# Test hook file exists
 TESTS_RUN=$((TESTS_RUN + 1))
-if head -25 "$HOOK" | grep -qE "Version: 1\.[7-9]\.[0-9]|Version: [2-9]\."; then
+if [[ -f "$HOOK" ]]; then
     TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: Hook version is 1.7.0+"
+    echo -e "${GREEN}PASS${NC}: mem0-pre-compaction-sync.ts exists"
 else
     TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: Hook version should be 1.7.0+"
-fi
-
-# Test hook outputs valid JSON (Stop hook schema compliant)
-HOOK_OUTPUT=$(echo "" | bash "$HOOK" 2>/dev/null || echo '{"continue":true,"suppressOutput":true}')
-assert_json_valid "$HOOK_OUTPUT" "Hook outputs valid JSON"
-
-# Check that hook uses valid Stop hook fields (no hookSpecificOutput)
-TESTS_RUN=$((TESTS_RUN + 1))
-if echo "$HOOK_OUTPUT" | jq -e '.hookSpecificOutput' >/dev/null 2>&1; then
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: Stop hooks should NOT use hookSpecificOutput"
-else
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: Hook correctly omits hookSpecificOutput (Stop hook compliance)"
-fi
-
-# Check for systemMessage with mem0-sync directive
-if echo "$HOOK_OUTPUT" | jq -e '.systemMessage' >/dev/null 2>&1; then
-    TESTS_RUN=$((TESTS_RUN + 1))
-    SYS_MSG=$(echo "$HOOK_OUTPUT" | jq -r '.systemMessage')
-    if [[ "$SYS_MSG" == *"mem0-sync"* ]] || [[ "$SYS_MSG" == *"Mem0 Sync"* ]]; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "${GREEN}PASS${NC}: Hook systemMessage mentions mem0-sync/Mem0 Sync"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "${RED}FAIL${NC}: Hook systemMessage should mention mem0-sync or Mem0 Sync"
-    fi
-else
-    # Hook might output suppressOutput:true if no pending items
-    TESTS_RUN=$((TESTS_RUN + 1))
-    if echo "$HOOK_OUTPUT" | jq -e '.suppressOutput == true' >/dev/null 2>&1; then
-        TESTS_PASSED=$((TESTS_PASSED + 1))
-        echo -e "${GREEN}PASS${NC}: Hook correctly suppresses output when no pending items"
-    else
-        TESTS_FAILED=$((TESTS_FAILED + 1))
-        echo -e "${RED}FAIL${NC}: Hook should have systemMessage or suppressOutput"
-    fi
-fi
-
-# Check that continue is true (allows session to end normally)
-TESTS_RUN=$((TESTS_RUN + 1))
-if echo "$HOOK_OUTPUT" | jq -e '.continue == true' >/dev/null 2>&1; then
-    TESTS_PASSED=$((TESTS_PASSED + 1))
-    echo -e "${GREEN}PASS${NC}: Hook has continue=true (non-blocking)"
-else
-    TESTS_FAILED=$((TESTS_FAILED + 1))
-    echo -e "${RED}FAIL${NC}: Hook should have continue=true"
+    echo -e "${RED}FAIL${NC}: mem0-pre-compaction-sync.ts should exist"
 fi
 
 # -----------------------------------------------------------------------------

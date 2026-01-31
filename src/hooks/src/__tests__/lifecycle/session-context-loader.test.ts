@@ -5,6 +5,8 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { sessionContextLoader } from '../../lifecycle/session-context-loader.js';
 
@@ -12,7 +14,7 @@ import { sessionContextLoader } from '../../lifecycle/session-context-loader.js'
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = '/tmp/session-context-loader-test';
+const TEST_PROJECT_DIR = join(tmpdir(), 'session-context-loader-test');
 
 /**
  * Create realistic HookInput for testing

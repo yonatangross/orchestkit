@@ -15,10 +15,11 @@ import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
+  outputWarning,
   logHook,
   getProjectDir,
 } from '../../lib/common.js';
-import { guardCodeFiles, guardSkipInternal, runGuards } from '../../lib/guards.js';
+import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join, dirname, extname } from 'node:path';
 
@@ -255,6 +256,10 @@ export function codeQualityGate(input: HookInput): HookResult {
       qualityMsg = qualityMsg.slice(0, 347) + '...';
     }
 
+    // In dontAsk mode, show visible warning instead of silent context
+    if (isDontAskMode(input)) {
+      return outputWarning(`[Quality Gate] ${qualityMsg}`);
+    }
     return outputWithContext(qualityMsg);
   }
 
