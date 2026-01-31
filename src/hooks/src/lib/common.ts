@@ -104,6 +104,15 @@ export function getLogLevel(): string {
 }
 
 /**
+ * Normalize line endings from CRLF to LF for cross-platform compatibility.
+ * Windows uses \r\n (CRLF) while Unix uses \n (LF).
+ * This is critical for parsing YAML frontmatter where we match '---' exactly.
+ */
+export function normalizeLineEndings(content: string): string {
+  return content.replace(/\r\n/g, '\n');
+}
+
+/**
  * Check if should log at given level
  */
 export function shouldLog(level: 'debug' | 'info' | 'warn' | 'error'): boolean {

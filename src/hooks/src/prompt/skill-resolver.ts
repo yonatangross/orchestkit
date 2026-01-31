@@ -61,7 +61,8 @@ function loadCompressedSkillContent(skillName: string, maxTokens: number): strin
   }
 
   try {
-    let content = readFileSync(skillFile, 'utf8');
+    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+    let content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
 
     // Remove frontmatter
     const frontmatterMatch = content.match(/^---\n[\s\S]*?\n---\n/);
@@ -115,7 +116,8 @@ function getSkillDescription(skillName: string): string {
   if (!existsSync(skillFile)) return '';
 
   try {
-    const content = readFileSync(skillFile, 'utf8');
+    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const descMatch = frontmatterMatch[1].match(/^description:\s*(.+)$/m);
@@ -137,7 +139,8 @@ function extractKeyBullets(skillName: string): string[] {
   if (!existsSync(skillFile)) return [];
 
   try {
-    const content = readFileSync(skillFile, 'utf8');
+    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
+    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
     const bullets: string[] = [];
     const headings = content.match(/^## .+$/gm) || [];
     for (const h of headings.slice(0, 3)) {
