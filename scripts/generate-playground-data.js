@@ -259,7 +259,7 @@ function main() {
   // Extract preserved sections (compositions, demoStyles, categories, pages, totals)
   const compositionsMatch = currentData.match(/compositions:\s*\[([\s\S]*?)\],\s*\n\s*demoStyles:/);
   const demoStylesMatch = currentData.match(/demoStyles:\s*\[([\s\S]*?)\],\s*\n\s*get totals/);
-  const totalsMatch = currentData.match(/get totals\(\)\s*\{[\s\S]*?\},\s*\n\s*pages:/);
+  const totalsMatch = currentData.match(/get totals\(\)\s*\{[\s\S]*?\},\s*\n/);
   const pagesMatch = currentData.match(/pages:\s*\[([\s\S]*?)\],\s*\n\};/);
   const categoriesMatch = currentData.match(/categories:\s*\{([\s\S]*?)\},\s*\n\s*compositions:/);
 
