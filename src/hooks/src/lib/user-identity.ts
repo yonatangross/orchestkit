@@ -15,6 +15,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { basename } from 'node:path';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import * as os from 'node:os';
 
@@ -416,7 +417,8 @@ export function getIdentityContext(): IdentityContext {
  */
 export function getProjectUserId(scope: string): string {
   const projectDir = getProjectDir();
-  const projectName = projectDir.split('/').pop() || 'unknown';
+  // Use path.basename for cross-platform compatibility (Windows uses \ not /)
+  const projectName = basename(projectDir) || 'unknown';
   const sanitized = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-');
   return `${sanitized}-${scope}`;
 }

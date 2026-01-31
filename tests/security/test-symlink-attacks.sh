@@ -12,6 +12,13 @@
 
 set -euo pipefail
 
+# Skip on Windows where symlinks require admin privileges or Developer Mode
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+  echo "Skipping symlink tests on Windows (requires admin privileges)"
+  echo "  Windows symlink creation requires elevated privileges or Developer Mode"
+  exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 

@@ -44,9 +44,10 @@ runs:
       if: runner.os == 'Windows'
       shell: bash
       run: |
-        choco install jq rsync -y
-        # Verify rsync is available
+        choco install jq rsync bc -y
+        # Verify tools are available
         rsync --version || echo "WARNING: rsync not found, some operations may fail"
+        bc --version || echo "WARNING: bc not found, some arithmetic operations may fail"
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
