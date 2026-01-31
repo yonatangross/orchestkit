@@ -329,7 +329,7 @@ ${agentsStr}
   }
 
   if (totalsMatch) {
-    output += `  ${totalsMatch[0]}\n`;
+    output += `  ${totalsMatch[0]}`;
   }
 
   if (pagesMatch) {
