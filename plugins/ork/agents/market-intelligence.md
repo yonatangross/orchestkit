@@ -12,6 +12,7 @@ tools:
   - Glob
   - Bash
 skills:
+  - market-analysis-patterns
   - github-operations
   - remember
   - recall

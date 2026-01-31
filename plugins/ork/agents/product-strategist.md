@@ -13,6 +13,8 @@ tools:
   - Glob
   - Bash
 skills:
+  - product-strategy-frameworks
+  - market-analysis-patterns
   - brainstorming
   - github-operations
   - remember

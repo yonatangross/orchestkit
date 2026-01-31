@@ -11,6 +11,8 @@ tools:
   - Grep
   - Glob
 skills:
+  - user-research-methods
+  - persona-journey-mapping
   - design-system-starter
   - remember
   - recall

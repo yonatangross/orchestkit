@@ -10,6 +10,7 @@ tools:
   - Glob
   - Bash
 skills:
+  - requirements-engineering
   - github-operations
   - remember
   - recall
