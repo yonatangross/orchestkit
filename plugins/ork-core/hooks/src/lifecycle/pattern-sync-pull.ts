@@ -141,9 +141,8 @@ export function patternSyncPull(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Check file sizes
-  const home2 = process.env.HOME || process.env.USERPROFILE || '/tmp';
-  const globalPatternsFile = `${home2}/.claude/global-patterns.json`;
+  // Check file sizes (use getHomeDir for cross-platform compatibility)
+  const globalPatternsFile = `${getHomeDir()}/.claude/global-patterns.json`;
   const projectPatternsFile = `${projectDir}/.claude/feedback/learned-patterns.json`;
 
   if (!checkFileSize(globalPatternsFile) || !checkFileSize(projectPatternsFile)) {

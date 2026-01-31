@@ -8,6 +8,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
+import { getHomeDir } from '../lib/paths.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -144,8 +145,8 @@ function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
     }
   }
 
-  // Check global patterns
-  const globalPatternsFile = join(process.env.HOME || process.env.USERPROFILE || '', '.claude', 'global-patterns.json');
+  // Check global patterns (use getHomeDir for cross-platform compatibility)
+  const globalPatternsFile = join(getHomeDir(), '.claude', 'global-patterns.json');
   if (existsSync(globalPatternsFile)) {
     try {
       const data: GlobalPatternsFile = JSON.parse(readFileSync(globalPatternsFile, 'utf8'));
