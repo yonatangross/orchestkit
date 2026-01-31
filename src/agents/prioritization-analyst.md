@@ -10,6 +10,7 @@ tools:
   - Glob
   - Bash
 skills:
+  - prioritization-frameworks
   - github-operations
   - remember
   - recall

@@ -3,7 +3,14 @@
   "version": "5.2.6",
   "description": "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence",
   "dependencies": ["ork-core"],
-  "skills": [],
+  "skills": [
+    "product-strategy-frameworks",
+    "prioritization-frameworks",
+    "business-case-analysis",
+    "market-analysis-patterns",
+    "requirements-engineering",
+    "okr-kpi-patterns"
+  ],
   "agents": [
     "product-strategist",
     "business-case-builder",

@@ -15,7 +15,8 @@
     "quality-gates",
     "task-dependency-patterns",
     "monorepo-context",
-    "biome-linting"
+    "biome-linting",
+    "root-cause-analysis"
   ],
   "agents": [
     "debug-investigator",

@@ -76,7 +76,7 @@ Combined: 38 skills, 2 agents
 **Full ork plugin output:**
 ```
 Installed Plugins: 1
-- ork: 186 skills, 35 agents (includes all domains)
+- ork: 195 skills, 35 agents (includes all domains)
 - ork-core: hooks dependency (22 entries, 11 bundles)
 ```
 
