@@ -155,7 +155,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
 | Command | 23 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 163 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
