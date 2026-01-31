@@ -77,7 +77,7 @@ Run `agent-browser --help` for the full 60+ command reference.
 ```bash
 AGENT_BROWSER_SESSION="my-session"   # Default session name
 AGENT_BROWSER_PROFILE="/path"        # Persistent browser profile
-AGENT_BROWSER_PROVIDER="browserbase" # Cloud provider
+AGENT_BROWSER_PROVIDER="browserbase" # Cloud provider (browserbase | kernel | browseruse)
 AGENT_BROWSER_HEADED=1               # Run headed
 ```
 
