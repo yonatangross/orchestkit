@@ -160,9 +160,9 @@ describe('User Profile Management', () => {
       const profile = loadUserProfile('userprofile@user.com');
 
       expect(profile.user_id).toBe('userprofile@user.com');
-      // Verify it used USERPROFILE path
+      // Verify it used USERPROFILE path (cross-platform: accept / or \)
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('/test/userprofile')
+        expect.stringMatching(/[/\\]test[/\\]userprofile/)
       );
     });
 
@@ -174,8 +174,9 @@ describe('User Profile Management', () => {
       const profile = loadUserProfile('tmp@user.com');
 
       expect(profile.user_id).toBe('tmp@user.com');
+      // Cross-platform: accept /tmp or \tmp path separators
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('/tmp')
+        expect.stringMatching(/[/\\]tmp/)
       );
     });
 
@@ -444,8 +445,9 @@ describe('User Profile Management', () => {
       const result = saveUserProfile(profile);
 
       expect(result).toBe(true);
+      // Cross-platform: accept / or \ path separators
       expect(mockWriteFileSync).toHaveBeenCalledWith(
-        expect.stringContaining('orchestkit/users/save@user.com/profile.json'),
+        expect.stringMatching(/orchestkit[/\\]users[/\\]save@user\.com[/\\]profile\.json/),
         expect.stringContaining('"sessions_count": 5')
       );
     });
@@ -456,8 +458,9 @@ describe('User Profile Management', () => {
       const profile = loadUserProfile('new@user.com');
       saveUserProfile(profile);
 
+      // Cross-platform: accept / or \ path separators
       expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('orchestkit/users/new@user.com'),
+        expect.stringMatching(/orchestkit[/\\]users[/\\]new@user\.com/),
         { recursive: true }
       );
     });

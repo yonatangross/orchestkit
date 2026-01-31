@@ -26,8 +26,21 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" 
   # On Windows, create temp dir in repo to avoid path translation issues
   TEST_TMP="$REPO_ROOT/.test-skill-validation-$$"
   IS_WINDOWS=true
+  # Convert POSIX paths to Windows paths for Node.js
+  if command -v cygpath &>/dev/null; then
+    REPO_ROOT_FOR_NODE="$(cygpath -w "$REPO_ROOT")"
+    TEST_TMP_FOR_NODE="$(cygpath -w "$TEST_TMP")"
+  else
+    # Fallback: replace /c/ style with C:\ style
+    REPO_ROOT_FOR_NODE="${REPO_ROOT//\//\\}"
+    REPO_ROOT_FOR_NODE="${REPO_ROOT_FOR_NODE:1:1}:${REPO_ROOT_FOR_NODE:2}"
+    TEST_TMP_FOR_NODE="${TEST_TMP//\//\\}"
+    TEST_TMP_FOR_NODE="${TEST_TMP_FOR_NODE:1:1}:${TEST_TMP_FOR_NODE:2}"
+  fi
 else
   TEST_TMP="${TMPDIR:-/tmp}/orchestkit-skill-validation-test-$$"
+  REPO_ROOT_FOR_NODE="$REPO_ROOT"
+  TEST_TMP_FOR_NODE="$TEST_TMP"
   IS_WINDOWS=false
 fi
 mkdir -p "$TEST_TMP"
@@ -46,8 +59,8 @@ test_valid_agent_no_warnings() {
   local input='{"tool_input":{"subagent_type":"backend-system-architect","description":"Test"},"session_id":"test-123"}'
   local output
 
-  # Run hook and capture all output
-  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
+  # Run hook and capture all output (use Windows-compatible path for Node.js)
+  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT_FOR_NODE" run_hook "$input") || true
 
   # Should not contain "missing skill" warning
   if [[ "$output" == *"missing skill"* ]]; then
@@ -87,10 +100,10 @@ EOF
   local input='{"tool_input":{"subagent_type":"test-missing-skill-agent","description":"Test"},"session_id":"test-123"}'
   local output
 
-  # Run hook with our test directory
+  # Run hook with our test directory (use Windows-compatible paths for Node.js)
   # CLAUDE_PLUGIN_ROOT points to real repo for src/hooks/bin/run-hook.mjs
   # CLAUDE_PROJECT_DIR points to test dir for agents/skills lookup
-  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input") || true
+  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT_FOR_NODE" CLAUDE_PROJECT_DIR="$TEST_TMP_FOR_NODE" run_hook "$input") || true
 
   # Should contain warning about missing skills
   if [[ "$output" == *"missing skill"* ]] && [[ "$output" == *"non-existent-skill-12345"* ]]; then
@@ -110,7 +123,7 @@ test_builtin_type_no_warning() {
   local input='{"tool_input":{"subagent_type":"Explore","description":"Test"},"session_id":"test-123"}'
   local output
 
-  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
+  output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT_FOR_NODE" run_hook "$input") || true
 
   # Should not contain any warnings
   if [[ "$output" == *"missing skill"* ]]; then
@@ -145,8 +158,8 @@ EOF
   local input='{"tool_input":{"subagent_type":"test-continue-agent","description":"Test"},"session_id":"test-123"}'
   local output
 
-  # CLAUDE_PLUGIN_ROOT points to real repo for src/hooks/bin/run-hook.mjs
-  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT" CLAUDE_PROJECT_DIR="$TEST_TMP" run_hook "$input" 2>/dev/null) || true
+  # CLAUDE_PLUGIN_ROOT points to real repo for src/hooks/bin/run-hook.mjs (use Windows-compatible paths)
+  output=$(CLAUDE_PLUGIN_ROOT="$REPO_ROOT_FOR_NODE" CLAUDE_PROJECT_DIR="$TEST_TMP_FOR_NODE" run_hook "$input" 2>/dev/null) || true
 
   # Output may contain warning lines + JSON. Extract the last line which should be JSON.
   local json_line
@@ -177,7 +190,7 @@ test_all_real_agents_valid() {
     local input="{\"tool_input\":{\"subagent_type\":\"$agent_name\",\"description\":\"Test\"},\"session_id\":\"test-123\"}"
     local output
 
-    output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input") || true
+    output=$(CLAUDE_PROJECT_DIR="$REPO_ROOT_FOR_NODE" run_hook "$input") || true
 
     if [[ "$output" == *"missing skill"* ]]; then
       invalid_agents+=("$agent_name: $output")
@@ -208,7 +221,7 @@ test_validation_performance() {
   start_ms=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s%3N)
 
   for i in {1..5}; do
-    CLAUDE_PROJECT_DIR="$REPO_ROOT" run_hook "$input" >/dev/null 2>&1 || true
+    CLAUDE_PROJECT_DIR="$REPO_ROOT_FOR_NODE" run_hook "$input" >/dev/null 2>&1 || true
   done
 
   end_ms=$(python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || date +%s%3N)
