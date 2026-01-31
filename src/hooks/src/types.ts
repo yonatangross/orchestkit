@@ -9,6 +9,7 @@
 export type HookEvent =
   | 'PreToolUse'
   | 'PostToolUse'
+  | 'PostToolUseFailure'
   | 'PermissionRequest'
   | 'UserPromptSubmit'
   | 'SessionStart'
@@ -17,7 +18,8 @@ export type HookEvent =
   | 'SubagentStart'
   | 'SubagentStop'
   | 'Setup'
-  | 'Notification';
+  | 'Notification'
+  | 'PreCompact';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -37,6 +39,10 @@ export interface HookInput {
   tool_error?: string;
   /** Tool exit code */
   exit_code?: number;
+  /** Whether a stop hook is currently active (prevents re-entry) */
+  stop_hook_active?: boolean;
+  /** Permission mode (CC 2.1.25: dontAsk mode makes quality gates warn-only) */
+  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk';
   /** User prompt (UserPromptSubmit only) */
   prompt?: string;
   /** Project directory */
@@ -94,13 +100,15 @@ export interface ToolInput {
  */
 export interface HookSpecificOutput {
   /** Hook event name for context */
-  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PermissionRequest' | 'UserPromptSubmit';
+  hookEventName?: 'PreToolUse' | 'PostToolUse' | 'PostToolUseFailure' | 'PermissionRequest' | 'UserPromptSubmit';
   /** Permission decision (PermissionRequest hooks) */
   permissionDecision?: 'allow' | 'deny';
   /** Reason for permission decision */
   permissionDecisionReason?: string;
   /** Additional context injected before tool execution (CC 2.1.9) */
   additionalContext?: string;
+  /** Modified tool input (CC 2.1.25: canonical way to modify tool inputs) */
+  updatedInput?: Record<string, unknown>;
 }
 
 /**

@@ -42,22 +42,29 @@ echo "▶ JSON Validity"
 echo "────────────────────────────────────────"
 
 json_errors=0
+# Validate project-critical JSON files only (not runtime data in .claude/)
+CRITICAL_JSON_FILES=(
+    "$PROJECT_ROOT/.claude-plugin/plugin.json"
+    "$PROJECT_ROOT/.claude-plugin/marketplace.json"
+    "$PROJECT_ROOT/package.json"
+)
+# Add manifests
 while IFS= read -r -d '' file; do
-    if ! jq empty "$file" 2>/dev/null; then
-        fail "Invalid JSON: $file"
-        ((json_errors++)) || true
-    fi
-done < <(find "$PROJECT_ROOT/.claude" -name "*.json" -print0 2>/dev/null)
-
-# Check .claude-plugin/plugin.json separately
-if [ -f "$PROJECT_ROOT/.claude-plugin/plugin.json" ]; then
-    if jq empty "$PROJECT_ROOT/.claude-plugin/plugin.json" 2>/dev/null; then
-        pass ".claude-plugin/plugin.json is valid JSON"
-    else
-        fail ".claude-plugin/plugin.json is invalid JSON"
-        ((json_errors++)) || true
-    fi
+    CRITICAL_JSON_FILES+=("$file")
+done < <(find "$PROJECT_ROOT/manifests" -name "*.json" -print0 2>/dev/null)
+# Add hooks.json
+if [ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]; then
+    CRITICAL_JSON_FILES+=("$PROJECT_ROOT/src/hooks/hooks.json")
 fi
+
+for file in "${CRITICAL_JSON_FILES[@]}"; do
+    if [ -f "$file" ]; then
+        if ! jq empty "$file" 2>/dev/null; then
+            fail "Invalid JSON: $file"
+            ((json_errors++)) || true
+        fi
+    fi
+done
 
 if [ "$json_errors" -eq 0 ]; then
     pass "All JSON files are valid"

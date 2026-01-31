@@ -11,6 +11,7 @@ import {
   getProjectDir as getProjectDirFromPaths,
   getPluginRoot as getPluginRootFromPaths,
 } from './paths.js';
+import { getOrGenerateSessionId } from './session-id-generator.js';
 
 // -----------------------------------------------------------------------------
 // Environment and Paths
@@ -43,13 +44,33 @@ export function getPluginRoot(): string {
 }
 
 /**
+ * Get the environment file path (CC 2.1.25: CLAUDE_ENV_FILE support)
+ * Falls back to .instance_env for backward compatibility
+ */
+export function getEnvFile(): string {
+  if (process.env.CLAUDE_ENV_FILE) {
+    return process.env.CLAUDE_ENV_FILE;
+  }
+  // Fallback to legacy .instance_env
+  const pluginRoot = getPluginRoot();
+  return `${pluginRoot}/.claude/.instance_env`;
+}
+
+/**
  * Get the session ID
- * CC 2.1.9+ should guarantee CLAUDE_SESSION_ID availability, but we add
- * a defensive fallback to prevent hook crashes during edge cases.
- * Read dynamically to support testing.
+ *
+ * Resolution order:
+ * 1. CLAUDE_SESSION_ID env var (from CC runtime - preferred)
+ * 2. Cached session ID (from .instance/session-id.json)
+ * 3. Generate smart session ID: {project}-{branch}-{MMDD}-{HHMM}-{hash4}
+ *
+ * Example smart ID: "orchestkit-main-0130-1745-a3f2"
+ *
+ * The old fallback format "fallback-{pid}-{timestamp}" was confusing and unhelpful.
+ * Smart IDs are human-readable, showing project, branch, and time context.
  */
 export function getSessionId(): string {
-  return process.env.CLAUDE_SESSION_ID || `fallback-${process.pid}-${Date.now()}`;
+  return getOrGenerateSessionId();
 }
 
 /**
@@ -203,6 +224,21 @@ export function outputDeny(reason: string): HookResult {
       hookEventName: 'PreToolUse',
       permissionDecision: 'deny',
       permissionDecisionReason: reason,
+    },
+  };
+}
+
+/**
+ * Output with updatedInput - modifies tool input before execution (CC 2.1.25)
+ * Canonical way to modify tool inputs from PreToolUse hooks
+ */
+export function outputWithUpdatedInput(updatedInput: Record<string, unknown>): HookResult {
+  return {
+    continue: true,
+    suppressOutput: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      updatedInput,
     },
   };
 }

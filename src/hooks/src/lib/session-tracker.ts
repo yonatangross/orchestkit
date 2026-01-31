@@ -8,7 +8,7 @@
  * Storage: .claude/memory/sessions/{session_id}/events.jsonl
  */
 
-import { existsSync, appendFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { existsSync, appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { getProjectDir, getSessionId, logHook } from './common.js';
 import { getIdentityContext, type IdentityContext } from './user-identity.js';
 
@@ -129,17 +129,122 @@ function ensureSessionDir(sessionId?: string, projectDir?: string): void {
 }
 
 // =============================================================================
-// EVENT GENERATION
+// EVENT GENERATION (Persistent Counter - Issue #245)
 // =============================================================================
 
+/** In-memory event counter */
 let eventCounter = 0;
 
+/** Counter persistence state */
+let counterLoaded = false;
+let counterDirty = false;
+let lastPersistTime = 0;
+
+/** Batch persist interval (ms) - write at most every 5 seconds */
+const PERSIST_INTERVAL = 5000;
+
 /**
- * Generate unique event ID
+ * Get counter file path for current session
+ */
+function getCounterPath(sessionId?: string, projectDir?: string): string {
+  const dir = getSessionDir(sessionId, projectDir);
+  return `${dir}/counter.json`;
+}
+
+/**
+ * Load persisted counter value
+ * Called once at first event generation
+ */
+function loadPersistedCounter(sessionId?: string, projectDir?: string): void {
+  if (counterLoaded) return;
+  counterLoaded = true;
+
+  try {
+    const counterPath = getCounterPath(sessionId, projectDir);
+    if (existsSync(counterPath)) {
+      const data = JSON.parse(readFileSync(counterPath, 'utf8'));
+      if (typeof data.counter === 'number' && data.counter > 0) {
+        eventCounter = data.counter;
+        logHook('session-tracker', `Loaded event counter: ${eventCounter}`, 'debug');
+      }
+    }
+  } catch {
+    // Ignore load errors - start fresh
+  }
+}
+
+/**
+ * Persist counter to disk (batched)
+ * Only writes if counter changed and interval elapsed
+ */
+function persistCounter(sessionId?: string, projectDir?: string): void {
+  if (!counterDirty) return;
+
+  const now = Date.now();
+  if (now - lastPersistTime < PERSIST_INTERVAL) return;
+
+  try {
+    ensureSessionDir(sessionId, projectDir);
+    const counterPath = getCounterPath(sessionId, projectDir);
+    writeFileSync(counterPath, JSON.stringify({
+      counter: eventCounter,
+      updated_at: new Date().toISOString(),
+    }));
+    counterDirty = false;
+    lastPersistTime = now;
+  } catch {
+    // Ignore persist errors - non-critical
+  }
+}
+
+/**
+ * Generate unique event ID with persistent counter
+ *
+ * Format: evt-{timestamp}-{counter}
+ * Counter persists across process restarts to prevent ID collisions.
  */
 function generateEventId(): string {
+  // Load persisted counter on first call
+  loadPersistedCounter();
+
   eventCounter++;
+  counterDirty = true;
+
+  // Attempt batched persist
+  persistCounter();
+
   return `evt-${Date.now()}-${eventCounter}`;
+}
+
+/**
+ * Force persist counter (call at session end)
+ * Exported for use by stop hooks
+ */
+export function flushEventCounter(): void {
+  if (counterDirty) {
+    try {
+      ensureSessionDir();
+      const counterPath = getCounterPath();
+      writeFileSync(counterPath, JSON.stringify({
+        counter: eventCounter,
+        updated_at: new Date().toISOString(),
+      }));
+      counterDirty = false;
+      logHook('session-tracker', `Flushed event counter: ${eventCounter}`, 'debug');
+    } catch {
+      // Ignore
+    }
+  }
+}
+
+/**
+ * Reset counter state (for testing only)
+ */
+export function resetEventCounter(): void {
+  eventCounter = 0;
+  counterLoaded = false;
+  counterDirty = false;
+  lastPersistTime = 0;
 }
 
 // =============================================================================

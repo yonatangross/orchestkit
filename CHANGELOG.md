@@ -5,6 +5,33 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.0] - 2026-01-30
+
+### Added
+
+- **PostToolUseFailure hook event** — Error-path hooks with contextual solution suggestions for common failures (file not found, permission denied, network errors, syntax errors, timeouts, memory exhaustion, merge conflicts, locks, type errors)
+- **PreCompact hook event** — Saves session state before context compaction for post-compaction recovery
+- **permissionMode support** — Quality gates read `permissionMode` field; in `dontAsk` mode, quality gates warn instead of block
+- **stop_hook_active re-entry guard** — Prevents infinite recursion in stop hook dispatchers
+- **Notification matchers** — Split notification hooks with matcher-based routing (permission_prompt, idle_prompt, auth_success)
+- **updatedInput canonical typing** — `outputWithUpdatedInput()` helper and `HookSpecificOutput.updatedInput` field for type-safe PreToolUse input modification
+- **CLAUDE_ENV_FILE support** — `getEnvFile()` helper uses CC's CLAUDE_ENV_FILE with fallback to .instance_env
+- **Plugin dependency validation in build system** — Build script Phase 5 validates manifest dependencies exist
+- **All 23 domain plugin manifests** now declare `dependencies: ["ork-core"]`
+
+### Changed
+
+- **Hook distribution** — 14 hooks moved from global hooks.json to agent/skill-scoped frontmatter (91 global + 28 agent/skill-scoped = 119 total):
+  - 8 git/release hooks → git-operations-engineer, release-engineer agents
+  - 1 CI hook → ci-cd-engineer agent
+  - 6 pattern enforcement hooks → skill frontmatter (backend-architecture-enforcer, clean-architecture, test-standards-enforcer, code-review-playbook, project-structure-enforcer)
+- **Engine requirement** bumped from >=2.1.20 to >=2.1.25 for new CC features
+
+### Fixed
+
+- **Stop hook re-entry prevention** — stop_hook_active guard prevents dispatchers from re-triggering on stop events
+- **Quality gates respect dontAsk permission mode** — `isDontAskMode()` helper converts blocking quality gates to advisory warnings
+
 ## [5.4.2] - 2026-01-30
 
 ### Added

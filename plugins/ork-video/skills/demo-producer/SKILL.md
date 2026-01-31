@@ -226,6 +226,54 @@ orchestkit-demos/out/
     └── {Name}Demo-Square.mp4    # 1080x1080 1:1 (optional)
 ```
 
+## Remotion Folder Structure
+
+Compositions are organized in `orchestkit-demos/src/Root.tsx` using this hierarchy:
+
+```
+Production/                    # Ready-to-render videos
+├── Landscape-16x9/           # YouTube, Website (1920x1080)
+│   ├── Core-Skills/          # implement, verify, commit, explore
+│   ├── Memory-Skills/        # remember, recall, load-context, mem0-sync
+│   ├── Review-Skills/        # review-pr, create-pr, fix-issue
+│   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
+│   ├── AI-Skills/            # brainstorming, assess, assess-complexity, decision-history
+│   ├── Advanced-Skills/      # worktree-coordination, skill-evolution, demo-producer, add-golden
+│   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
+├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)
+├── Square-1x1/               # Instagram, LinkedIn (1080x1080)
+└── Marketing/                # Brand & intro videos
+Templates/                    # Reference examples for each component style
+Experiments/                  # Work in progress, testing new ideas
+```
+
+### Skill Category Mapping
+
+| Category | Skills |
+|----------|--------|
+| Core-Skills | implement, verify, commit, explore |
+| Memory-Skills | remember, recall, load-context, mem0-sync |
+| Review-Skills | review-pr, create-pr, fix-issue |
+| DevOps-Skills | doctor, configure, run-tests, feedback |
+| AI-Skills | brainstorming, assess, assess-complexity, decision-history |
+| Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden |
+
+### Adding New Compositions
+
+1. **Determine skill category** from mapping above
+2. **Add to correct folder** in Root.tsx:
+   ```tsx
+   <Folder name="Production">
+     <Folder name="Landscape-16x9">
+       <Folder name="{Category}-Skills">
+         <Composition id="{SkillName}" ... />
+       </Folder>
+     </Folder>
+   </Folder>
+   ```
+3. **Use unique composition IDs** - IDs must be globally unique across all folders
+4. **Add vertical/square variants** in their respective format folders with prefixes (e.g., `V-TTR-`, `SQ-TTR-`)
+
 ## Customization Options
 
 ### Hook Styles

@@ -7,6 +7,12 @@ version: 1.0.0
 tags: [architecture, solid, hexagonal, ddd, python, fastapi, 2026]
 author: OrchestKit
 user-invocable: false
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/backend-layer-validator"
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/import-direction-enforcer"
 ---
 
 # Clean Architecture Patterns

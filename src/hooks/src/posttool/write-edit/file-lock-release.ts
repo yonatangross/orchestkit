@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
+import { getOrGenerateSessionId } from '../../lib/session-id-generator.js';
 import { join } from 'node:path';
 
 interface FileLock {
@@ -40,32 +41,17 @@ function isCoordinationEnabled(projectDir: string): boolean {
 }
 
 /**
- * Get current instance ID
- * Priority: CLAUDE_SESSION_ID > .instance/id.json > fallback-{pid}
- * Using .instance/id.json ensures consistent ID across hook processes.
+ * Get current instance ID using unified session ID resolution.
+ *
+ * Priority (via getOrGenerateSessionId):
+ * 1. CLAUDE_SESSION_ID env var (from CC runtime)
+ * 2. Cached session ID (from .instance/session-id.json)
+ * 3. Smart session ID: {project}-{branch}-{MMDD}-{HHMM}-{hash4}
+ *
+ * Example: "orchestkit-main-0130-1745-a3f2"
  */
 function getInstanceId(): string {
-  // 1. Try CLAUDE_SESSION_ID first
-  if (process.env.CLAUDE_SESSION_ID) {
-    return process.env.CLAUDE_SESSION_ID;
-  }
-
-  // 2. Try reading from .instance/id.json for consistent ID across processes
-  try {
-    const projectDir = getProjectDir();
-    const instanceIdPath = join(projectDir, '.instance', 'id.json');
-    if (existsSync(instanceIdPath)) {
-      const data = JSON.parse(readFileSync(instanceIdPath, 'utf8'));
-      if (data.instance_id) {
-        return data.instance_id;
-      }
-    }
-  } catch {
-    // Ignore read errors
-  }
-
-  // 3. Fallback to PID (may cause issues with lock release)
-  return `fallback-${process.pid}`;
+  return getOrGenerateSessionId();
 }
 
 /**

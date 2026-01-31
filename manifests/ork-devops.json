@@ -2,6 +2,7 @@
   "name": "ork-devops",
   "version": "5.3.0",
   "description": "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing",
+  "dependencies": ["ork-core"],
   "skills": [
     "devops-deployment",
     "observability-monitoring",

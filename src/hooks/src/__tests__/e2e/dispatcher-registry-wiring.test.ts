@@ -305,10 +305,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const bashGroups = preToolGroups.filter(g => g.matcher === 'Bash' || !g.matcher);
       const bashHooks = bashGroups.flatMap(g => g.hooks);
 
-      // Actual security hooks defined in hooks.json
+      // Actual security hooks defined in hooks.json (global scope)
+      // Note: git-validator moved to agent-scoped hooks in v5.5.0
       const securityHooks = [
         'dangerous-command-blocker',
-        'git-validator',
       ];
 
       for (const hookName of securityHooks) {

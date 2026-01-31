@@ -173,9 +173,66 @@ export interface UserProfile {
 // CONSTANTS
 // =============================================================================
 
-const PROFILE_VERSION = 1;
+/**
+ * Current profile schema version.
+ * Increment this when making breaking changes to UserProfile structure.
+ *
+ * Version History:
+ * - v1 (Initial): Base profile structure
+ * - v2 (Issue #245): Added tool_preferences, tool_usage_by_category
+ */
+const PROFILE_VERSION = 2;
 const MAX_DECISIONS = 100;
 const MAX_PREFERENCES = 50;
+
+// =============================================================================
+// SCHEMA MIGRATIONS (Issue #245 Phase 4)
+// =============================================================================
+
+/**
+ * Migration function type
+ */
+type MigrationFn = (profile: Record<string, unknown>) => Record<string, unknown>;
+
+/**
+ * Registry of migrations: version -> migration function
+ * Each migration upgrades from version N to N+1
+ */
+const MIGRATIONS: Record<number, MigrationFn> = {
+  // v1 -> v2: Add tool_preferences and tool_usage_by_category
+  1: (profile) => {
+    return {
+      ...profile,
+      version: 2,
+      tool_preferences: profile.tool_preferences || {},
+      tool_usage_by_category: profile.tool_usage_by_category || {},
+    };
+  },
+  // Add future migrations here:
+  // 2: (profile) => { ... version: 3 ... }
+};
+
+/**
+ * Apply all necessary migrations to bring profile to current version
+ */
+function migrateProfileSchema(profile: Record<string, unknown>): UserProfile {
+  let currentVersion = (profile.version as number) || 1;
+
+  // Apply migrations sequentially
+  while (currentVersion < PROFILE_VERSION) {
+    const migrationFn = MIGRATIONS[currentVersion];
+    if (!migrationFn) {
+      logHook('user-profile', `Missing migration for version ${currentVersion}`, 'warn');
+      break;
+    }
+
+    profile = migrationFn(profile);
+    currentVersion = profile.version as number;
+    logHook('user-profile', `Migrated profile to version ${currentVersion}`, 'info');
+  }
+
+  return profile as unknown as UserProfile;
+}
 
 // =============================================================================
 // PATHS
@@ -247,7 +304,9 @@ function migrateProfileIfNeeded(userId: string): boolean {
       // Write to new location
       writeFileSync(newPath, JSON.stringify(profile, null, 2));
 
-      logHook('user-profile', `Migrated profile for ${userId} to cross-project storage`, 'info');
+      // Log with sanitized user ID to avoid PII in logs
+      const sanitizedId = userId.replace(/@.*$/, '@***');
+      logHook('user-profile', `Migrated profile for ${sanitizedId} to cross-project storage`, 'info');
       return true;
     } catch (error) {
       logHook('user-profile', `Failed to migrate profile: ${error}`, 'warn');
@@ -290,6 +349,7 @@ function createEmptyProfile(userId: string): UserProfile {
 
 /**
  * Load user profile from disk
+ * Automatically applies schema migrations if profile is outdated (Issue #245 Phase 4)
  */
 export function loadUserProfile(userId?: string): UserProfile {
   // Attempt migration from legacy project-local path
@@ -298,19 +358,21 @@ export function loadUserProfile(userId?: string): UserProfile {
 
   const profilePath = getUserProfilePath(uid);
 
-
   if (!existsSync(profilePath)) {
     return createEmptyProfile(uid);
   }
 
   try {
     const content = readFileSync(profilePath, 'utf8');
-    const profile = JSON.parse(content) as UserProfile;
+    const rawProfile = JSON.parse(content) as Record<string, unknown>;
 
-    // Handle version migrations here if needed
-    if (profile.version < PROFILE_VERSION) {
-      // Migrate profile
-      profile.version = PROFILE_VERSION;
+    // Apply schema migrations if needed (Issue #245 Phase 4)
+    const profile = migrateProfileSchema(rawProfile);
+
+    // Auto-save if migration occurred
+    if ((rawProfile.version as number || 1) < PROFILE_VERSION) {
+      saveUserProfile(profile);
+      logHook('user-profile', `Auto-saved migrated profile (v${PROFILE_VERSION})`, 'info');
     }
 
     return profile;
@@ -335,7 +397,8 @@ export function saveUserProfile(profile: UserProfile): boolean {
     profile.last_seen = new Date().toISOString();
     writeFileSync(profilePath, JSON.stringify(profile, null, 2));
 
-    logHook('user-profile', `Saved profile for ${profile.user_id}`, 'debug');
+    // Log with anonymous_id to avoid PII in logs
+    logHook('user-profile', `Saved profile for ${profile.anonymous_id}`, 'debug');
     return true;
   } catch (error) {
     logHook('user-profile', `Failed to save profile: ${error}`, 'error');

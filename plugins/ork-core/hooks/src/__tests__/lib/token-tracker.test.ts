@@ -4,6 +4,13 @@
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 
+// Mock common.js to prevent session-id-generator from calling writeFileSync
+vi.mock('../../lib/common.js', () => ({
+  getProjectDir: vi.fn(() => '/test/project'),
+  getSessionId: vi.fn(() => 'test-session-123'),
+  logHook: vi.fn(),
+}));
+
 // Mock node:fs before imports
 vi.mock('node:fs', () => ({
   existsSync: vi.fn().mockReturnValue(false),
@@ -14,10 +21,6 @@ vi.mock('node:fs', () => ({
   statSync: vi.fn().mockReturnValue({ size: 0 }),
   renameSync: vi.fn(),
   readSync: vi.fn().mockReturnValue(0),
-}));
-
-vi.mock('node:child_process', () => ({
-  execSync: vi.fn().mockReturnValue('main\n'),
 }));
 
 import { trackTokenUsage, getCategoryUsage, getTotalUsage, getHookUsage, getTokenState } from '../../lib/token-tracker.js';

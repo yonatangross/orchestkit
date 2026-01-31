@@ -40,6 +40,12 @@ vi.mock('../../lib/common.js', async () => {
   };
 });
 
+// Mock session-id-generator to control instance ID in tests
+const mockGetOrGenerateSessionId = vi.fn();
+vi.mock('../../lib/session-id-generator.js', () => ({
+  getOrGenerateSessionId: () => mockGetOrGenerateSessionId(),
+}));
+
 /**
  * Create a mock HookInput for PostToolUse Write/Edit
  */
@@ -75,6 +81,8 @@ describe('file-lock-release', () => {
     vi.clearAllMocks();
     savedLocksJson = null;
     process.env = { ...originalEnv, CLAUDE_SESSION_ID: 'current-session-id' };
+    // Default: return current-session-id (matches CLAUDE_SESSION_ID)
+    mockGetOrGenerateSessionId.mockReturnValue('current-session-id');
   });
 
   afterEach(() => {
@@ -310,11 +318,13 @@ describe('file-lock-release', () => {
   });
 
   describe('Instance ID fallback', () => {
-    test('uses fallback instance ID when CLAUDE_SESSION_ID is missing', () => {
+    test('uses smart session ID when CLAUDE_SESSION_ID is missing', () => {
       delete process.env.CLAUDE_SESSION_ID;
 
       const futureTime = new Date(Date.now() + 60000).toISOString();
-      const fallbackId = `fallback-${process.pid}`;
+      // Mock returns smart session ID format (Issue #245)
+      const smartSessionId = 'project-main-0130-1900-abc1';
+      mockGetOrGenerateSessionId.mockReturnValue(smartSessionId);
 
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(createLocksJson([
@@ -322,7 +332,7 @@ describe('file-lock-release', () => {
           lock_id: 'lock-123',
           file_path: 'src/file.ts',
           lock_type: 'exclusive_write',
-          instance_id: fallbackId, // Matches fallback
+          instance_id: smartSessionId, // Matches smart session ID
           acquired_at: new Date().toISOString(),
           expires_at: futureTime,
           reason: 'Test',

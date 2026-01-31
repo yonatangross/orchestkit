@@ -8,11 +8,12 @@ import type { HookInput, HookResult } from '../../types.js';
 import {
   outputSilentSuccess,
   outputWithContext,
+  outputWarning,
   logHook,
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
-import { guardPathPattern } from '../../lib/guards.js';
+import { guardPathPattern, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -117,5 +118,9 @@ export function architectureChangeDetector(input: HookInput): HookResult {
   logHook('architecture-change-detector', `ARCH_DETECT: ${filePath} (layer=${archLayer})`);
 
   // CC 2.1.9: Inject context
+  // In dontAsk mode, show visible warning instead of silent context
+  if (isDontAskMode(input)) {
+    return outputWarning(`[Quality Gate] ${archContext}`);
+  }
   return outputWithContext(archContext);
 }

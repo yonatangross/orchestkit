@@ -79,7 +79,7 @@ generate_command_from_skill() {
 # ============================================================================
 # Phase 1: Validate Environment
 # ============================================================================
-echo -e "${BLUE}[1/6] Validating environment...${NC}"
+echo -e "${BLUE}[1/7] Validating environment...${NC}"
 
 if [[ ! -d "$SRC_DIR" ]]; then
     echo -e "${RED}Error: src/ directory not found${NC}"
@@ -104,7 +104,7 @@ echo ""
 # ============================================================================
 # Phase 2: Clean Previous Build
 # ============================================================================
-echo -e "${BLUE}[2/6] Cleaning previous build...${NC}"
+echo -e "${BLUE}[2/7] Cleaning previous build...${NC}"
 
 rm -rf "$PLUGINS_DIR"
 mkdir -p "$PLUGINS_DIR"
@@ -114,7 +114,7 @@ echo ""
 # ============================================================================
 # Phase 3: Build Plugins from Manifests
 # ============================================================================
-echo -e "${BLUE}[3/6] Building plugins from manifests...${NC}"
+echo -e "${BLUE}[3/7] Building plugins from manifests...${NC}"
 echo ""
 
 CURRENT=0
@@ -246,7 +246,7 @@ echo ""
 # ============================================================================
 # Phase 4: Validate Built Plugins
 # ============================================================================
-echo -e "${BLUE}[4/6] Validating built plugins...${NC}"
+echo -e "${BLUE}[4/7] Validating built plugins...${NC}"
 
 VALIDATION_ERRORS=0
 
@@ -286,9 +286,48 @@ echo -e "${GREEN}  All $PLUGINS_BUILT plugins validated${NC}"
 echo ""
 
 # ============================================================================
-# Phase 5: Sync marketplace.json versions from manifests
+# Phase 5: Validate Plugin Dependencies
 # ============================================================================
-echo -e "${BLUE}[5/6] Syncing marketplace.json versions...${NC}"
+echo -e "${BLUE}[5/7] Validating plugin dependencies...${NC}"
+
+DEP_WARNINGS=0
+DEP_CHECKED=0
+
+for manifest in "$MANIFESTS_DIR"/*.json; do
+    [[ ! -f "$manifest" ]] && continue
+
+    PLUGIN_NAME=$(jq -r '.name' "$manifest")
+    DEPS=$(jq -r '.dependencies[]? // empty' "$manifest" 2>/dev/null)
+
+    if [[ -z "$DEPS" ]]; then
+        continue
+    fi
+
+    while IFS= read -r dep; do
+        [[ -z "$dep" ]] && continue
+        DEP_CHECKED=$((DEP_CHECKED + 1))
+
+        # Check if dependency manifest exists
+        DEP_MANIFEST="$MANIFESTS_DIR/${dep}.json"
+        if [[ ! -f "$DEP_MANIFEST" ]]; then
+            echo -e "${YELLOW}  WARNING: $PLUGIN_NAME depends on '$dep' but no manifest found${NC}"
+            DEP_WARNINGS=$((DEP_WARNINGS + 1))
+        fi
+    done <<< "$DEPS"
+done
+
+if [[ $DEP_WARNINGS -gt 0 ]]; then
+    echo -e "${YELLOW}  $DEP_WARNINGS dependency warnings (of $DEP_CHECKED checked)${NC}"
+else
+    echo -e "${GREEN}  All $DEP_CHECKED dependencies resolved${NC}"
+fi
+
+echo ""
+
+# ============================================================================
+# Phase 6: Sync marketplace.json versions from manifests
+# ============================================================================
+echo -e "${BLUE}[6/7] Syncing marketplace.json versions...${NC}"
 
 MARKETPLACE_FILE="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_FILE" ]]; then
@@ -321,9 +360,9 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 6: Summary
+# Phase 7: Summary
 # ============================================================================
-echo -e "${BLUE}[6/6] Build Summary${NC}"
+echo -e "${BLUE}[7/7] Build Summary${NC}"
 echo ""
 echo -e "${CYAN}============================================================${NC}"
 echo -e "${CYAN}                    BUILD COMPLETE${NC}"

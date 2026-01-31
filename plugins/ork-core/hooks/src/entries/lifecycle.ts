@@ -29,6 +29,7 @@ import { sessionTracking } from '../lifecycle/session-tracking.js';
 import { sessionMetricsSummary } from '../lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
 import { unifiedSessionStartDispatcher } from '../lifecycle/unified-dispatcher.js';
+import { preCompactSaver } from '../lifecycle/pre-compact-saver.js';
 
 import type { HookFn } from '../types.js';
 
@@ -54,6 +55,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/unified-dispatcher': unifiedSessionStartDispatcher,
+  'lifecycle/pre-compact-saver': preCompactSaver,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -60,11 +60,11 @@ describe('Dispatcher Registry Wiring E2E', () => {
     it('should have unified dispatcher using silent runner for each event (Issue #243)', () => {
       // Issue #243: Async hooks converted to fire-and-forget using run-hook-silent.mjs
       // This eliminates "Async hook X completed" messages while still running async work
-      const silentEvents = ['SessionStart', 'PostToolUse', 'Stop', 'SubagentStop', 'Notification', 'Setup'];
+      // Note: Stop uses fire-and-forget script for non-blocking session exit
+      const silentEvents = ['SessionStart', 'PostToolUse', 'SubagentStop', 'Notification', 'Setup'];
       const expectedDispatcherPaths: Record<string, string> = {
         SessionStart: 'lifecycle/unified-dispatcher',
         PostToolUse: 'posttool/unified-dispatcher',
-        Stop: 'stop/unified-dispatcher',
         SubagentStop: 'subagent-stop/unified-dispatcher',
         Notification: 'notification/unified-dispatcher',
         Setup: 'setup/unified-dispatcher',
@@ -80,6 +80,20 @@ describe('Dispatcher Registry Wiring E2E', () => {
         expect(dispatcher?.command, `${event} dispatcher should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
         expect(dispatcher?.async, `${event} dispatcher should NOT have async flag`).toBeUndefined();
       }
+    });
+
+    it('should have Stop using fire-and-forget for non-blocking session exit (Issue #243)', () => {
+      // Stop hooks run cleanup tasks that should NOT block session exit.
+      // Fire-and-forget spawns a detached background worker immediately returns.
+      const stopGroups = hooksConfig.hooks.Stop || [];
+      const allHooks = stopGroups.flatMap(g => g.hooks);
+
+      // Should have exactly one hook - the fire-and-forget entry point
+      expect(allHooks.length, 'Stop should have single fire-and-forget hook').toBe(1);
+
+      const fireAndForgetHook = allHooks[0];
+      expect(fireAndForgetHook.command, 'Stop should use stop-fire-and-forget.mjs').toContain('stop-fire-and-forget.mjs');
+      expect(fireAndForgetHook.async, 'Stop should NOT have async flag').toBeUndefined();
     });
   });
 
@@ -291,10 +305,10 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const bashGroups = preToolGroups.filter(g => g.matcher === 'Bash' || !g.matcher);
       const bashHooks = bashGroups.flatMap(g => g.hooks);
 
-      // Actual security hooks defined in hooks.json
+      // Actual security hooks defined in hooks.json (global scope)
+      // Note: git-validator moved to agent-scoped hooks in v5.5.0
       const securityHooks = [
         'dangerous-command-blocker',
-        'git-validator',
       ];
 
       for (const hookName of securityHooks) {

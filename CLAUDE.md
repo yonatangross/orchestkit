@@ -5,9 +5,9 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **185 skills**: Reusable knowledge modules
+- **186 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
-- **167 hooks**: TypeScript lifecycle automation
+- **119 hooks**: TypeScript lifecycle automation (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 185 skills
+├── skills/             # 186 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,13 +149,13 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-185 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+186 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
 | Command | 23 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 162 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Reference | 163 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
@@ -165,9 +165,9 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 35 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-167 TypeScript hooks in 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+119 hook entries (91 global + 28 agent/skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
-**Async Execution**: 6 hooks use `async: true` for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
+**Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
 ---
 
@@ -252,8 +252,8 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 
 ## Version
 
-- **Current**: 5.4.0
-- **Claude Code**: >= 2.1.22
-- **Hooks**: 167 TypeScript (11 split bundles, 6 async)
+- **Current**: 5.5.0
+- **Claude Code**: >= 2.1.25
+- **Hooks**: 119 entries (91 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

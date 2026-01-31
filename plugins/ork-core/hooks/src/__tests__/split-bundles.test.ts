@@ -285,7 +285,8 @@ describe('Cross-Bundle Consistency', () => {
     // Update this count when adding/removing hook implementations
     // 152 -> 157: added graph-queue-sync hook
     // 160 -> 162: Issue #245 added trackEvent export in session-tracker
-    expect(totalHooks).toBe(163);
+    // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
+    expect(totalHooks).toBe(165);
   });
 });
 

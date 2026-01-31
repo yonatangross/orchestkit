@@ -7,6 +7,10 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [testing, quality, enforcement, blocking, aaa-pattern, coverage]
 user-invocable: false
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-location-validator"
 ---
 Enforce 2026 testing best practices with **BLOCKING** validation.
 

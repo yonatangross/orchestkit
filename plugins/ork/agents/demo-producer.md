@@ -109,27 +109,65 @@ cp ../output/{name}-demo-vertical.mp4 ../public/
 
 ### Phase 5: Remotion Composition
 
-Add composition to `orchestkit-demos/src/Root.tsx`:
+Add composition to `orchestkit-demos/src/Root.tsx` in the correct folder:
+
+#### Folder Structure
+```
+Production/
+├── Landscape-16x9/
+│   ├── Core-Skills/      → implement, verify, commit, explore
+│   ├── Memory-Skills/    → remember, recall, load-context, mem0-sync
+│   ├── Review-Skills/    → review-pr, create-pr, fix-issue
+│   ├── DevOps-Skills/    → doctor, configure, run-tests, feedback
+│   ├── AI-Skills/        → brainstorming, assess, assess-complexity, decision-history
+│   └── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer, add-golden
+├── Vertical-9x16/
+├── Square-1x1/
+└── Marketing/
+Templates/      → Reference examples
+Experiments/    → WIP content
+```
+
+#### Adding a Skill Demo
+
+1. **Determine category** from mapping above
+2. **Add landscape version** in Production/Landscape-16x9/{Category}-Skills/:
 
 ```tsx
-<Composition
-  id="{Name}Demo"
-  component={HybridDemo}
-  durationInFrames={FPS * 13}
-  fps={30}
-  width={1920}
-  height={1080}
-  schema={hybridDemoSchema}
-  defaultProps={{
-    skillName: "{name}",
-    hook: "{marketing_hook}",
-    terminalVideo: "{name}-demo.mp4",
-    ccVersion: "CC 2.1.20",
-    primaryColor: "#8b5cf6",
-    ...AUDIO_DEFAULTS,
-  }}
-/>
+<Folder name="Production">
+  <Folder name="Landscape-16x9">
+    <Folder name="{Category}-Skills">
+      <Composition
+        id="{SkillName}"
+        component={TriTerminalRace}
+        durationInFrames={FPS * 20}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+        schema={triTerminalRaceSchema}
+        defaultProps={{skillName}DemoConfig}
+      />
+    </Folder>
+  </Folder>
+</Folder>
 ```
+
+3. **Add vertical variant** in Production/Vertical-9x16/ with `V-` prefix:
+```tsx
+<Composition id="V-TTR-{SkillName}" ... />
+```
+
+4. **Add square variant** (optional) in Production/Square-1x1/ with `SQ-` prefix:
+```tsx
+<Composition id="SQ-TTR-{SkillName}" ... />
+```
+
+#### ID Naming Conventions
+- Landscape: `{SkillName}` (e.g., `Implement`, `Verify`)
+- Vertical: `V-TTR-{SkillName}`, `V-PZ-{SkillName}`, `V-SM-{SkillName}`
+- Square: `SQ-TTR-{SkillName}`, `SQ-PZ-{SkillName}`, `SQ-SM-{SkillName}`
+- Templates: `TPL-{ComponentType}` (e.g., `TPL-TriTerminalRace`)
+- Experiments: `EXP-{Name}`
 
 ### Phase 6: Render Final
 

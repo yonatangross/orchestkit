@@ -7,6 +7,10 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [structure, architecture, enforcement, blocking, imports, organization]
 user-invocable: false
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/structure-location-validator"
 ---
 Enforce 2026 folder structure best practices with **BLOCKING** validation.
 

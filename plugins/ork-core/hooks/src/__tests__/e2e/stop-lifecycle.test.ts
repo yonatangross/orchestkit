@@ -61,6 +61,7 @@ import { contextCompressor } from '../../stop/context-compressor.js';
 import { multiInstanceCleanup } from '../../stop/multi-instance-cleanup.js';
 import { sessionPatterns } from '../../stop/session-patterns.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
+import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
 
 /**
  * Create a mock HookInput for Stop event
@@ -363,6 +364,28 @@ describe('Stop Hook Lifecycle E2E', () => {
         // Stop hooks should never block
         expect(result.continue).toBe(true);
       }
+    });
+  });
+
+  describe('Re-entry Prevention (CC 2.1.25: stop_hook_active)', () => {
+    test('prevents re-entry when stop_hook_active is true', async () => {
+      const result = await unifiedStopDispatcher(createStopInput({
+        stop_hook_active: true,
+      }));
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('runs normally when stop_hook_active is false', async () => {
+      const result = await unifiedStopDispatcher(createStopInput({
+        stop_hook_active: false,
+      }));
+      expect(result.continue).toBe(true);
+    });
+
+    test('runs normally when stop_hook_active is undefined', async () => {
+      const result = await unifiedStopDispatcher(createStopInput());
+      expect(result.continue).toBe(true);
     });
   });
 });

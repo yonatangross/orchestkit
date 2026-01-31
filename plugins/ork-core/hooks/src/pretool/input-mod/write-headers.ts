@@ -5,7 +5,7 @@
  */
 
 import type { HookInput, HookResult } from '../../types.js';
-import { outputSilentSuccess, logHook } from '../../lib/common.js';
+import { outputSilentSuccess, outputWithUpdatedInput, logHook } from '../../lib/common.js';
 import { existsSync } from 'node:fs';
 import { extname } from 'node:path';
 
@@ -92,19 +92,10 @@ ${content}`;
 }
 
 /**
- * Create result with updated input
+ * Create result with updated input (CC 2.1.25: canonical updatedInput)
  */
 function createUpdatedInputResult(filePath: string, content: string): HookResult {
-  return {
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'allow',
-      // Note: updatedInput is not in the HookSpecificOutput type
-      // but is used by CC for input modification
-    },
-  } as HookResult;
+  return outputWithUpdatedInput({ file_path: filePath, content });
 }
 
 /**
@@ -140,16 +131,9 @@ export function writeHeaders(input: HookInput): HookResult {
 
   if (headerAdded) {
     logHook('write-headers', `Added header to ${filePath}`);
+    // Use canonical updatedInput to modify tool input (CC 2.1.25)
+    return createUpdatedInputResult(filePath, updatedContent);
   }
 
-  // Return result with updated input
-  // Note: This uses the CC input modification pattern
-  return {
-    continue: true,
-    suppressOutput: true,
-    hookSpecificOutput: {
-      hookEventName: 'PreToolUse',
-      permissionDecision: 'allow',
-    },
-  };
+  return outputSilentSuccess();
 }

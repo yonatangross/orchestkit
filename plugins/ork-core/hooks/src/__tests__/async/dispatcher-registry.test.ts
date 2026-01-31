@@ -96,17 +96,44 @@ describe('Dispatcher Registry Wiring', () => {
 
   describe('stop/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
+      // Issue #243: All 29 stop hooks consolidated into unified dispatcher
+      // Fire-and-forget pattern runs these in background without blocking session exit
       expect(stopHooks()).toEqual([
+        // Core session hooks
         'auto-save-context',
         'session-patterns',
         'issue-work-summary',
         'calibration-persist',
         'session-profile-aggregator',
         'session-end-tracking',
-        // Issue #245: GAP-001, GAP-002, GAP-006 - tracking system hooks
+        // Memory sync hooks
         'graph-queue-sync',
         'workflow-preference-learner',
         'mem0-queue-sync',
+        'mem0-pre-compaction-sync',
+        // Instance management hooks
+        'multi-instance-cleanup',
+        'cleanup-instance',
+        'task-completion-check',
+        // Analysis hooks
+        'context-compressor',
+        'auto-remember-continuity',
+        'security-scan-aggregator',
+        // Skill validation hooks (run at stop time)
+        'coverage-check',
+        'evidence-collector',
+        'coverage-threshold-gate',
+        'cross-instance-test-validator',
+        'di-pattern-enforcer',
+        'duplicate-code-detector',
+        'eval-metrics-collector',
+        'migration-validator',
+        'review-summary-generator',
+        'security-summary',
+        'test-pattern-validator',
+        'test-runner',
+        // Heavy analysis hooks (run last)
+        'full-test-suite',
       ]);
     });
   });
@@ -176,7 +203,7 @@ describe('Dispatcher Registry Wiring', () => {
   });
 
   describe('Cross-dispatcher consistency', () => {
-    it('total consolidated hook count is 41', () => {
+    it('total consolidated hook count is 62', () => {
       const total =
         posttoolHooks().length +
         lifecycleHooks().length +
@@ -185,8 +212,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 17 (Issue #243: +1 tool-preference-learner), lifecycle: 7, stop: 9, subagent-stop: 4, notification: 2, setup: 3
-      expect(total).toBe(42);
+      // posttool: 17, lifecycle: 7, stop: 29 (Issue #243: all stop hooks consolidated), subagent-stop: 4, notification: 2, setup: 3
+      expect(total).toBe(62);
     });
   });
 });

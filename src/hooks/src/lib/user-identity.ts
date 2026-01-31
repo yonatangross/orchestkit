@@ -122,10 +122,11 @@ export function clearIdentityCache(): void {
  * Generate anonymous hash from input
  */
 function generateAnonymousId(input: string): string {
+  // Use 32 hex chars (128 bits) for proper collision resistance
   return createHash('sha256')
     .update(input + SALT)
     .digest('hex')
-    .slice(0, 16);
+    .slice(0, 32);
 }
 
 /**
@@ -227,7 +228,7 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       anonymous_id: generateAnonymousId(config.user_id),
       email: config.user_id.includes('@') ? config.user_id : undefined,
     };
-    logHook('user-identity', `Resolved from config: ${cachedIdentity.user_id}`, 'debug');
+    logHook('user-identity', `Resolved from config: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
@@ -243,7 +244,7 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       anonymous_id: generateAnonymousId(git.email),
       email: git.email,
     };
-    logHook('user-identity', `Resolved from git: ${cachedIdentity.user_id}`, 'debug');
+    logHook('user-identity', `Resolved from git: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
@@ -259,7 +260,7 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
       source: 'env',
       anonymous_id: generateAnonymousId(userId),
     };
-    logHook('user-identity', `Resolved from env: ${cachedIdentity.user_id}`, 'debug');
+    logHook('user-identity', `Resolved from env: ${cachedIdentity.anonymous_id}`, 'debug');
     return cachedIdentity;
   }
 
@@ -273,7 +274,7 @@ export function resolveUserIdentity(projectDir?: string): UserIdentity {
     source: 'anonymous',
     anonymous_id: anonId,
   };
-  logHook('user-identity', `Resolved as anonymous: ${cachedIdentity.user_id}`, 'debug');
+  logHook('user-identity', `Resolved as anonymous: ${cachedIdentity.anonymous_id}`, 'debug');
   return cachedIdentity;
 }
 

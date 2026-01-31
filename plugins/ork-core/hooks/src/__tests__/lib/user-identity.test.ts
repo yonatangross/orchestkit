@@ -10,6 +10,7 @@ import {
   canShare,
   getUserIdForScope,
   getProjectUserId,
+  getUserScopedId,
   getGlobalScopeId,
   saveUserIdentityConfig,
   getIdentityContext,
@@ -135,7 +136,7 @@ describe('User Identity System', () => {
       expect(mockExecSync).toHaveBeenCalledTimes(2); // Only called once for email + name
     });
 
-    it('should generate anonymous_id hash for privacy', () => {
+    it('should generate anonymous_id hash for privacy (128-bit / 32 hex chars)', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(JSON.stringify({
         user_id: 'test@example.com',
@@ -144,7 +145,7 @@ describe('User Identity System', () => {
       const identity = resolveUserIdentity();
 
       expect(identity.anonymous_id).toBeDefined();
-      expect(identity.anonymous_id).toHaveLength(16);
+      expect(identity.anonymous_id).toHaveLength(32); // 128 bits = 32 hex chars
       expect(identity.anonymous_id).toMatch(/^[a-f0-9]+$/);
     });
   });
@@ -236,7 +237,57 @@ describe('User Identity System', () => {
       const userId = getUserIdForScope('global');
 
       expect(userId).not.toBe('user@test.com');
-      expect(userId).toHaveLength(16);
+      expect(userId).toHaveLength(32); // 128 bits = 32 hex chars
+    });
+  });
+
+  describe('getUserScopedId', () => {
+    it('should generate user-scoped ID with scope suffix', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'alice@company.com',
+      }));
+      clearIdentityCache();
+
+      const scopedId = getUserScopedId('preferences');
+
+      expect(scopedId).toBe('alice@company.com-preferences');
+    });
+
+    it('should sanitize special characters in user ID', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'Alice Smith <alice@company.com>',
+      }));
+      clearIdentityCache();
+
+      const scopedId = getUserScopedId('decisions');
+
+      expect(scopedId).toBe('alice-smith--alice@company.com--decisions');
+    });
+
+    it('should preserve @ and . in email addresses', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'test.user@my-company.io',
+      }));
+      clearIdentityCache();
+
+      const scopedId = getUserScopedId('settings');
+
+      expect(scopedId).toBe('test.user@my-company.io-settings');
+    });
+
+    it('should lowercase the user ID', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'Alice@Company.COM',
+      }));
+      clearIdentityCache();
+
+      const scopedId = getUserScopedId('workflow');
+
+      expect(scopedId).toBe('alice@company.com-workflow');
     });
   });
 

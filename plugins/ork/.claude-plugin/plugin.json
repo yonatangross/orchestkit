@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "5.3.1",
-  "description": "Full OrchestKit toolkit — 186 skills, 35 agents. 167 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns. Hooks provided by ork-core dependency.",
+  "version": "5.5.0",
+  "description": "Full OrchestKit toolkit — 186 skills, 35 agents, 119 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns. Hooks provided by ork-core dependency.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

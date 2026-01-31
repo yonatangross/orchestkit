@@ -81,7 +81,7 @@ HOOK_SECURITY_*.txt
 # Hooks runtime artifacts (created during hook execution)
 # Covers root, src/hooks, and plugins/*/hooks
 **/hooks/.claude/
-hooks/dist/*.map
+**/hooks/dist/*.map
 
 # Python caches
 .mypy_cache/
@@ -98,6 +98,17 @@ __pycache__/
 # Local instance files
 .instance/
 .claude/coordination/.claude.db
+
+# Runtime memory state (session-specific)
+.claude/memory/completed-flows.jsonl
+.claude/memory/decisions.jsonl
+.claude/memory/flows/
+.claude/memory/tool-preferences.json
+.claude/.comm-style-counter
+.claude/hooks/
+
+# Demo build artifacts
+orchestkit-demos/build/
 
 # Feedback system (user-specific learning data)
 .claude/feedback/

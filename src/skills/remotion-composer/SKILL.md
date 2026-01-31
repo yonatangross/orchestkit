@@ -350,6 +350,7 @@ Skills have associated colors:
 - `references/audio-layer.md` - Audio setup and volume curves
 - `references/composition-patterns.md` - Composition templates
 - `references/cinematic-scenes.md` - 6-scene narrative structure
+- `references/folder-organization.md` - Root.tsx folder structure and naming conventions
 
 ### Animation
 - `references/animation-presets.md` - Easing and spring configs

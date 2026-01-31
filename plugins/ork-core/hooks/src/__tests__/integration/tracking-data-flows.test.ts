@@ -335,7 +335,7 @@ describe('B. Identity -> Session Tracking Flow', () => {
     expect(ctx.identity_source).toBe('git');
     expect(ctx.timestamp).toBeDefined();
     expect(ctx.anonymous_id).toBeDefined();
-    expect(ctx.anonymous_id).toHaveLength(16);
+    expect(ctx.anonymous_id).toHaveLength(32);
   });
 
   it('B.3: Events are tagged with correct user identity', () => {
@@ -364,7 +364,7 @@ describe('B. Identity -> Session Tracking Flow', () => {
     const anonId1 = events[0].identity.anonymous_id;
     const anonId2 = events[1].identity.anonymous_id;
     expect(anonId1).toBe(anonId2);
-    expect(anonId1).toHaveLength(16);
+    expect(anonId1).toHaveLength(32);
   });
 
   it('B.5: Identity caching works correctly', () => {
@@ -1327,7 +1327,7 @@ describe('G. Privacy Settings Integration', () => {
     // Assert
     expect(localId).toBe('integration-test@orchestkit.dev');
     expect(globalId).not.toBe(localId);
-    expect(globalId).toHaveLength(16);
+    expect(globalId).toHaveLength(32);
   });
 
   it('G.5: Config file overrides default privacy settings', () => {

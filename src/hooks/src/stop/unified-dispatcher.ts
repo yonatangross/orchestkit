@@ -121,6 +121,12 @@ export const registeredHookNames = () => HOOKS.map(h => h.name);
  * Unified dispatcher that runs all Stop hooks in parallel
  */
 export async function unifiedStopDispatcher(input: HookInput): Promise<HookResult> {
+  // Prevent infinite re-entry (CC 2.1.25: stop_hook_active)
+  if (input.stop_hook_active) {
+    logHook('stop-dispatcher', 'Skipping: stop_hook_active=true (re-entry prevention)');
+    return outputSilentSuccess();
+  }
+
   // Run all hooks in parallel
   const results = await Promise.allSettled(
     HOOKS.map(async hook => {

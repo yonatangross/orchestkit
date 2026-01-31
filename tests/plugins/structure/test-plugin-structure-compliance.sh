@@ -168,8 +168,19 @@ fi
 echo ""
 echo "Test 7: Hook count matches declaration"
 if [[ -f "$PROJECT_ROOT/src/hooks/hooks.json" ]] && [[ -f "$PLUGIN_JSON" ]]; then
-    # Count actual hooks by counting .ts files (same as bin/validate-counts.sh)
-    ACTUAL_HOOK_COUNT=$(find "$PROJECT_ROOT/src/hooks/src" -name "*.ts" -type f 2>/dev/null | grep -v __tests__ | grep -v '/lib/' | grep -v 'index.ts' | grep -v 'types.ts' | grep -v '/entries/' | wc -l | tr -d ' ')
+    # Count actual hooks: hooks.json entries (global) + agent/skill-scoped frontmatter hooks
+    GLOBAL_HOOKS=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
+    AGENT_HOOKS=0
+    for f in "$PROJECT_ROOT"/src/agents/*.md; do
+      n=$(awk '/^---$/{if(++c==2) exit} /command:.*run-hook/{n++} END{print n+0}' "$f")
+      AGENT_HOOKS=$((AGENT_HOOKS + n))
+    done
+    SKILL_HOOKS=0
+    while IFS= read -r f; do
+      n=$(awk '/^---$/{if(++c==2) exit} /command:.*run-hook/{n++} END{print n+0}' "$f")
+      SKILL_HOOKS=$((SKILL_HOOKS + n))
+    done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)
+    ACTUAL_HOOK_COUNT=$((GLOBAL_HOOKS + AGENT_HOOKS + SKILL_HOOKS))
 
     # Get declared count from plugin.json description
     DESCRIPTION=$(jq -r '.description' "$PLUGIN_JSON" 2>/dev/null)

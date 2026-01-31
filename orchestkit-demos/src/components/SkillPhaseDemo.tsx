@@ -124,6 +124,33 @@ const NODE_TYPE_STYLES: Record<string, { icon: string; bgColor: string }> = {
   output: { icon: "✓", bgColor: "#22c55e" },
 };
 
+// All 23 user-invocable OrchestKit commands (updated Jan 2026)
+const ORK_COMMANDS = [
+  { cmd: "/explore", desc: "Deep codebase analysis", icon: "🔍", color: "#8b5cf6" },
+  { cmd: "/implement", desc: "Build with parallel agents", icon: "🚀", color: "#22c55e" },
+  { cmd: "/verify", desc: "6-agent validation", icon: "✅", color: "#22c55e" },
+  { cmd: "/review-pr", desc: "Expert code review", icon: "👁️", color: "#f97316" },
+  { cmd: "/commit", desc: "Conventional commits", icon: "📝", color: "#06b6d4" },
+  { cmd: "/create-pr", desc: "Auto-generate PRs", icon: "🔀", color: "#f59e0b" },
+  { cmd: "/fix-issue", desc: "Debug intelligently", icon: "🔧", color: "#ef4444" },
+  { cmd: "/brainstorming", desc: "Think before coding", icon: "💡", color: "#f59e0b" },
+  { cmd: "/remember", desc: "Store decisions", icon: "🧠", color: "#ec4899" },
+  { cmd: "/recall", desc: "Retrieve patterns", icon: "📚", color: "#ec4899" },
+  { cmd: "/load-context", desc: "Auto-load memories", icon: "⚡", color: "#ffc107" },
+  { cmd: "/assess", desc: "Rate quality 0-10", icon: "📊", color: "#4caf50" },
+  { cmd: "/assess-complexity", desc: "Task analysis", icon: "🎯", color: "#a855f7" },
+  { cmd: "/configure", desc: "Setup wizard", icon: "⚙️", color: "#6b7280" },
+  { cmd: "/doctor", desc: "Health diagnostics", icon: "🩺", color: "#22c55e" },
+  { cmd: "/feedback", desc: "Learning system", icon: "📣", color: "#06b6d4" },
+  { cmd: "/demo-producer", desc: "Create demo videos", icon: "🎬", color: "#e91e63" },
+  { cmd: "/skill-evolution", desc: "Evolve skills", icon: "🧬", color: "#9c27b0" },
+  { cmd: "/decision-history", desc: "Visualize decisions", icon: "📈", color: "#00bcd4" },
+  { cmd: "/add-golden", desc: "Dataset curation", icon: "⭐", color: "#ffc107" },
+  { cmd: "/mem0-sync", desc: "Cloud memory sync", icon: "☁️", color: "#06b6d4" },
+  { cmd: "/git-recovery", desc: "Git rescue commands", icon: "🆘", color: "#ef4444" },
+  { cmd: "/worktree", desc: "Multi-instance coord", icon: "🌳", color: "#4caf50" },
+];
+
 // ============================================================================
 // PHASE HEADER - Prominent phase indicator with smooth transitions
 // ============================================================================
@@ -245,43 +272,6 @@ const PhaseHeader: React.FC<PhaseHeaderProps> = ({
         })}
       </div>
 
-      {/* Progress Bar with smooth fill */}
-      <div
-        style={{
-          width: "60%",
-          height: 6,
-          backgroundColor: "#1f1f28",
-          borderRadius: 3,
-          overflow: "hidden",
-          position: "relative",
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            width: `${phaseProgress * 100}%`,
-            backgroundColor: primaryColor,
-            borderRadius: 3,
-            boxShadow: `0 0 10px ${primaryColor}30`,
-            transition: "width 0.1s ease-out",
-          }}
-        />
-        <span
-          style={{
-            position: "absolute",
-            right: -45,
-            top: -7,
-            fontSize: 12,
-            color: "#6b7280",
-            fontFamily: "Menlo, Monaco, monospace",
-          }}
-        >
-          {Math.round(phaseProgress * 100)}%
-        </span>
-      </div>
     </div>
   );
 };
@@ -1489,7 +1479,313 @@ const AdaptiveSummary: React.FC<AdaptiveSummaryProps> = (props) => {
   }
 };
 
+// ============================================================================
+// PLUGIN OUTRO - Animated marquee showcase for OrchestKit commands
+// ============================================================================
 
+// Split commands into 3 rows for marquee
+const COMMANDS_ROW1 = ORK_COMMANDS.slice(0, 8);
+const COMMANDS_ROW2 = ORK_COMMANDS.slice(8, 16);
+const COMMANDS_ROW3 = ORK_COMMANDS.slice(16, 23);
+
+interface CommandBadgeProps {
+  cmd: typeof ORK_COMMANDS[0];
+  isCurrentCommand: boolean;
+  primaryColor: string;
+}
+
+const CommandBadge: React.FC<CommandBadgeProps> = ({ cmd, isCurrentCommand, primaryColor }) => {
+  const cardColor = isCurrentCommand ? primaryColor : cmd.color;
+
+  return (
+    <div
+      style={{
+        flex: "0 0 auto",
+        backgroundColor: isCurrentCommand ? `${primaryColor}25` : "rgba(18, 18, 26, 0.9)",
+        border: isCurrentCommand ? `2px solid ${primaryColor}` : `1px solid ${cmd.color}40`,
+        borderRadius: 14,
+        padding: "14px 20px",
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        minWidth: 220,
+        boxShadow: isCurrentCommand
+          ? `0 4px 24px ${primaryColor}50, 0 0 40px ${primaryColor}30`
+          : `0 4px 16px ${cmd.color}15, inset 0 1px 0 rgba(255,255,255,0.05)`,
+        transform: isCurrentCommand ? "scale(1.05)" : "scale(1)",
+      }}
+    >
+      {/* Icon */}
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: 12,
+          backgroundColor: `${cardColor}25`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: 20,
+          flexShrink: 0,
+          boxShadow: `0 0 16px ${cardColor}30`,
+        }}
+      >
+        {cmd.icon}
+      </div>
+      {/* Text */}
+      <div>
+        <div
+          style={{
+            fontSize: 14,
+            fontWeight: 700,
+            color: isCurrentCommand ? primaryColor : cardColor,
+            fontFamily: "Menlo, Monaco, monospace",
+            marginBottom: 2,
+          }}
+        >
+          {cmd.cmd}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            color: "#8b949e",
+            lineHeight: 1.2,
+          }}
+        >
+          {cmd.desc}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+interface MarqueeRowProps {
+  commands: typeof ORK_COMMANDS;
+  direction: "left" | "right";
+  speed: number;
+  frame: number;
+  currentCommand: string;
+  primaryColor: string;
+}
+
+const MarqueeRow: React.FC<MarqueeRowProps> = ({
+  commands,
+  direction,
+  speed,
+  frame,
+  currentCommand,
+  primaryColor,
+}) => {
+  // Triple the commands for seamless loop
+  const tripled = [...commands, ...commands, ...commands];
+
+  // Calculate scroll position
+  const totalWidth = commands.length * 240; // Approximate width per badge
+  let scrollX = (frame * speed) % totalWidth;
+  if (direction === "right") scrollX = -scrollX;
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 16,
+        transform: `translateX(${-scrollX}px)`,
+        willChange: "transform",
+      }}
+    >
+      {tripled.map((cmd, idx) => (
+        <CommandBadge
+          key={`${cmd.cmd}-${idx}`}
+          cmd={cmd}
+          isCurrentCommand={currentCommand.includes(cmd.cmd.replace("/", ""))}
+          primaryColor={primaryColor}
+        />
+      ))}
+    </div>
+  );
+};
+
+interface PluginOutroProps {
+  primaryColor: string;
+  currentCommand: string;
+}
+
+const PluginOutro: React.FC<PluginOutroProps> = ({ primaryColor, currentCommand }) => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+
+  // Title entrance
+  const titleOpacity = interpolate(frame, [0, 20], [0, 1], { extrapolateRight: "clamp" });
+  const titleScale = spring({
+    frame,
+    fps,
+    config: { damping: 12, stiffness: 100 },
+  });
+
+  // Marquee entrance with zoom
+  const marqueeOpacity = interpolate(frame, [10, 30], [0, 1], { extrapolateRight: "clamp" });
+  const marqueeScale = interpolate(frame, [0, fps * 2], [1.3, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  // 3D perspective tilt
+  const tiltX = interpolate(frame, [0, fps * 1.5], [12, 4], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  return (
+    <AbsoluteFill
+      style={{
+        backgroundColor: "#0a0a0f",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
+        perspective: 1200,
+      }}
+    >
+      {/* Background gradient */}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `
+            radial-gradient(ellipse at 50% 30%, ${primaryColor}12 0%, transparent 50%),
+            radial-gradient(ellipse at 30% 70%, #22c55e08 0%, transparent 40%),
+            radial-gradient(ellipse at 70% 70%, #06b6d408 0%, transparent 40%)
+          `,
+        }}
+      />
+
+      {/* Header */}
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: 40,
+          opacity: titleOpacity,
+          transform: `scale(${titleScale})`,
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 16,
+            color: primaryColor,
+            fontWeight: 600,
+            textTransform: "uppercase",
+            letterSpacing: "4px",
+            marginBottom: 10,
+          }}
+        >
+          OrchestKit
+        </div>
+        <div
+          style={{
+            fontSize: 44,
+            fontWeight: 800,
+            color: "#f8fafc",
+            textShadow: `0 0 60px ${primaryColor}30`,
+          }}
+        >
+          23 Commands at Your Fingertips
+        </div>
+        <div
+          style={{
+            fontSize: 16,
+            color: "#6b7280",
+            marginTop: 12,
+          }}
+        >
+          185 skills • 35 agents • 167 hooks
+        </div>
+      </div>
+
+      {/* Animated Marquee Container */}
+      <div
+        style={{
+          width: "130vw",
+          opacity: marqueeOpacity,
+          transform: `scale(${marqueeScale}) rotateX(${tiltX}deg)`,
+          transformStyle: "preserve-3d",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
+        {/* Row 1 - Left */}
+        <div style={{ overflow: "hidden" }}>
+          <MarqueeRow
+            commands={COMMANDS_ROW1}
+            direction="left"
+            speed={1.8}
+            frame={frame}
+            currentCommand={currentCommand}
+            primaryColor={primaryColor}
+          />
+        </div>
+
+        {/* Row 2 - Right */}
+        <div style={{ overflow: "hidden" }}>
+          <MarqueeRow
+            commands={COMMANDS_ROW2}
+            direction="right"
+            speed={1.4}
+            frame={frame}
+            currentCommand={currentCommand}
+            primaryColor={primaryColor}
+          />
+        </div>
+
+        {/* Row 3 - Left (faster) */}
+        <div style={{ overflow: "hidden" }}>
+          <MarqueeRow
+            commands={COMMANDS_ROW3}
+            direction="left"
+            speed={2.0}
+            frame={frame}
+            currentCommand={currentCommand}
+            primaryColor={primaryColor}
+          />
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div
+        style={{
+          textAlign: "center",
+          marginTop: 40,
+          opacity: interpolate(frame, [fps * 2, fps * 2.5], [0, 1], { extrapolateRight: "clamp" }),
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            display: "inline-block",
+            backgroundColor: `${primaryColor}15`,
+            border: `2px solid ${primaryColor}`,
+            borderRadius: 14,
+            padding: "16px 32px",
+            boxShadow: `0 0 40px ${primaryColor}30`,
+          }}
+        >
+          <span
+            style={{
+              fontFamily: "Menlo, Monaco, monospace",
+              fontSize: 20,
+              fontWeight: 600,
+              color: primaryColor,
+            }}
+          >
+            /plugin install ork
+          </span>
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
 
 // ============================================================================
 // MAIN COMPONENT
@@ -1515,7 +1811,9 @@ export const SkillPhaseDemo: React.FC<SkillPhaseDemoProps> = ({
   const phaseTime = fps * 2.5; // 2.5 seconds per phase
   const phaseDuration = phases.length * phaseTime;
   const summaryStart = hookDuration + phaseDuration;
-  const summaryDuration = durationInFrames - summaryStart;
+  const outroDuration = fps * 4; // 4 seconds for outro
+  const summaryDuration = Math.max(fps * 4, durationInFrames - summaryStart - outroDuration); // At least 4s for summary
+  const outroStart = summaryStart + summaryDuration;
 
   // Calculate current phase and progress
   const phaseSceneFrame = Math.max(0, frame - hookDuration);
@@ -1763,6 +2061,11 @@ export const SkillPhaseDemo: React.FC<SkillPhaseDemoProps> = ({
             </div>
           </div>
         </AbsoluteFill>
+      </Sequence>
+
+      {/* ========== PLUGIN OUTRO SCENE ========== */}
+      <Sequence from={outroStart} durationInFrames={outroDuration}>
+        <PluginOutro primaryColor={primaryColor} currentCommand={skillCommand} />
       </Sequence>
     </AbsoluteFill>
   );

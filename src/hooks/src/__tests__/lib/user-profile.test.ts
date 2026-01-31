@@ -179,7 +179,7 @@ describe('User Profile Management', () => {
       expect(profile.sessions_count).toBe(0);
     });
 
-    it('should migrate profile version when needed', () => {
+    it('should migrate profile from v1 to v2 (Issue #245)', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(JSON.stringify({
         user_id: 'version@user.com',
@@ -188,7 +188,7 @@ describe('User Profile Management', () => {
         sessions_count: 5,
         first_seen: '2026-01-01T00:00:00Z',
         last_seen: '2026-01-27T00:00:00Z',
-        version: 0, // Old version
+        version: 1, // Old version
         skill_usage: {},
         agent_usage: {},
         tool_usage: {},
@@ -200,7 +200,89 @@ describe('User Profile Management', () => {
 
       const profile = loadUserProfile('version@user.com');
 
-      expect(profile.version).toBe(1); // Should be migrated to current version
+      expect(profile.version).toBe(2); // Should be migrated to v2
+      expect(profile.tool_preferences).toEqual({}); // v1->v2 adds this
+      expect(profile.tool_usage_by_category).toEqual({}); // v1->v2 adds this
+    });
+
+    it('should auto-save profile after migration', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'autosave@user.com',
+        anonymous_id: 'anon999',
+        display_name: 'User',
+        sessions_count: 5,
+        first_seen: '2026-01-01T00:00:00Z',
+        last_seen: '2026-01-27T00:00:00Z',
+        version: 1, // Old version triggers migration
+        skill_usage: {},
+        agent_usage: {},
+        tool_usage: {},
+        decisions: [],
+        preferences: [],
+        workflow_patterns: [],
+        aggregated_sessions: [],
+      }));
+
+      loadUserProfile('autosave@user.com');
+
+      // Should have saved the migrated profile
+      expect(mockWriteFileSync).toHaveBeenCalledWith(
+        expect.stringContaining('profile.json'),
+        expect.stringContaining('"version": 2')
+      );
+    });
+
+    it('should preserve existing tool_preferences during migration', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'preserve@user.com',
+        anonymous_id: 'anon999',
+        display_name: 'User',
+        sessions_count: 5,
+        first_seen: '2026-01-01T00:00:00Z',
+        last_seen: '2026-01-27T00:00:00Z',
+        version: 1,
+        skill_usage: {},
+        agent_usage: {},
+        tool_usage: {},
+        tool_preferences: { search: 'Grep' }, // Already exists somehow
+        decisions: [],
+        preferences: [],
+        workflow_patterns: [],
+        aggregated_sessions: [],
+      }));
+
+      const profile = loadUserProfile('preserve@user.com');
+
+      expect(profile.version).toBe(2);
+      expect(profile.tool_preferences).toEqual({ search: 'Grep' }); // Preserved
+    });
+
+    it('should handle profiles without version field', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'no-version@user.com',
+        anonymous_id: 'anon999',
+        display_name: 'User',
+        sessions_count: 5,
+        first_seen: '2026-01-01T00:00:00Z',
+        last_seen: '2026-01-27T00:00:00Z',
+        // No version field - defaults to 1
+        skill_usage: {},
+        agent_usage: {},
+        tool_usage: {},
+        decisions: [],
+        preferences: [],
+        workflow_patterns: [],
+        aggregated_sessions: [],
+      }));
+
+      const profile = loadUserProfile('no-version@user.com');
+
+      expect(profile.version).toBe(2); // Should be migrated to current
+      expect(profile.tool_preferences).toEqual({});
+      expect(profile.tool_usage_by_category).toEqual({});
     });
 
     it('should use resolveUserIdentity when userId not provided', () => {
@@ -283,9 +365,9 @@ describe('User Profile Management', () => {
       // mkdirSync should not have been called during migration (dir exists)
     });
 
-    it('should skip migration when new profile already exists', () => {
+    it('should skip migration when new profile already exists with current version', () => {
       // New path exists, so no migration needed
-      mockExistsSync.mockImplementation((path: any) => {
+      mockExistsSync.mockImplementation((path: unknown) => {
         if (typeof path === 'string' && path.includes('orchestkit/users')) {
           return true; // new path exists
         }
@@ -298,10 +380,12 @@ describe('User Profile Management', () => {
         sessions_count: 10,
         first_seen: '2026-01-01T00:00:00Z',
         last_seen: '2026-01-27T00:00:00Z',
-        version: 1,
+        version: 2, // Current version - no migration needed
         skill_usage: {},
         agent_usage: {},
         tool_usage: {},
+        tool_preferences: {},
+        tool_usage_by_category: {},
         decisions: [],
         preferences: [],
         workflow_patterns: [],
@@ -310,7 +394,7 @@ describe('User Profile Management', () => {
 
       loadUserProfile('existing@user.com');
 
-      // writeFileSync should only be called once (for reading), not for migration
+      // writeFileSync should not be called when profile is already at current version
       expect(mockWriteFileSync).not.toHaveBeenCalled();
     });
 
@@ -1026,6 +1110,85 @@ describe('User Profile Management', () => {
       const found = hasDecisionAbout(profile, 'mongodb');
 
       expect(found).toBeUndefined();
+    });
+  });
+
+  describe('tool_preferences and tool_usage_by_category', () => {
+    it('should initialize empty tool_preferences on new profile', () => {
+      mockExistsSync.mockReturnValue(false);
+
+      const profile = loadUserProfile('tool-prefs@user.com');
+
+      expect(profile.tool_preferences).toBeUndefined();
+      expect(profile.tool_usage_by_category).toBeUndefined();
+    });
+
+    it('should preserve tool_preferences when loading existing profile', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'tool-prefs-existing@user.com',
+        anonymous_id: 'anon',
+        display_name: 'User',
+        sessions_count: 5,
+        first_seen: '2026-01-01T00:00:00Z',
+        last_seen: '2026-01-01T00:00:00Z',
+        version: 1,
+        skill_usage: {},
+        agent_usage: {},
+        tool_usage: {},
+        tool_preferences: {
+          search: 'Grep',
+          file_read: 'Read',
+        },
+        tool_usage_by_category: {
+          search: { Grep: 50, Glob: 10 },
+          file_read: { Read: 100 },
+        },
+        decisions: [],
+        preferences: [],
+        workflow_patterns: [],
+        aggregated_sessions: [],
+      }));
+
+      const profile = loadUserProfile('tool-prefs-existing@user.com');
+
+      expect(profile.tool_preferences).toBeDefined();
+      expect(profile.tool_preferences?.search).toBe('Grep');
+      expect(profile.tool_preferences?.file_read).toBe('Read');
+      expect(profile.tool_usage_by_category).toBeDefined();
+      expect(profile.tool_usage_by_category?.search.Grep).toBe(50);
+      expect(profile.tool_usage_by_category?.search.Glob).toBe(10);
+    });
+
+    it('should include tool_preferences in exportForTeam', () => {
+      mockExistsSync.mockReturnValue(true);
+      mockReadFileSync.mockReturnValue(JSON.stringify({
+        user_id: 'team-prefs@user.com',
+        anonymous_id: 'anon',
+        display_name: 'User',
+        team_id: 'backend',
+        sessions_count: 5,
+        first_seen: '2026-01-01T00:00:00Z',
+        last_seen: '2026-01-01T00:00:00Z',
+        version: 1,
+        skill_usage: {},
+        agent_usage: {},
+        tool_usage: {},
+        tool_preferences: {
+          search: 'Grep',
+        },
+        decisions: [],
+        preferences: [],
+        workflow_patterns: [],
+        aggregated_sessions: [],
+      }));
+
+      const profile = loadUserProfile('team-prefs@user.com');
+      const exported = exportForTeam(profile);
+
+      expect(exported.skill_usage).toBeDefined();
+      // exportForTeam includes user_id but not tool_preferences (not in export spec)
+      expect(exported.user_id).toBe('team-prefs@user.com');
     });
   });
 

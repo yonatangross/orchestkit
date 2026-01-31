@@ -32,6 +32,7 @@ vi.mock('node:fs', async () => {
     readFileSync: vi.fn(),
     appendFileSync: vi.fn(),
     mkdirSync: vi.fn(),
+    writeFileSync: vi.fn(),
   };
 });
 
@@ -47,21 +48,27 @@ import {
   trackToolUsed,
   trackSessionStart,
   trackSessionEnd,
+  trackCommunicationStyle,
   loadSessionEvents,
   generateSessionSummary,
+  resetEventCounter,
+  flushEventCounter,
   // GAP-008/009: Removed listSessionIds and getRecentUserSessions (dead code)
 } from '../../lib/session-tracker.js';
-import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, appendFileSync, mkdirSync, writeFileSync } from 'node:fs';
 
 describe('Session Event Tracker', () => {
   const mockExistsSync = vi.mocked(existsSync);
   const mockReadFileSync = vi.mocked(readFileSync);
   const mockAppendFileSync = vi.mocked(appendFileSync);
   const mockMkdirSync = vi.mocked(mkdirSync);
+  const mockWriteFileSync = vi.mocked(writeFileSync);
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockExistsSync.mockReturnValue(false);
+    // Reset counter state between tests
+    resetEventCounter();
   });
 
   describe('trackEvent', () => {
@@ -217,6 +224,195 @@ describe('Session Event Tracker', () => {
 
       expect(event.event_type).toBe('session_end');
     });
+
+    it('trackToolUsed should include category in input', () => {
+      trackToolUsed('Grep', true, 50, 'search');
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.event_type).toBe('tool_used');
+      expect(event.payload.input.category).toBe('search');
+    });
+  });
+
+  describe('trackCommunicationStyle', () => {
+    beforeEach(() => {
+      mockExistsSync.mockReturnValue(true);
+    });
+
+    it('should track terse verbosity style', () => {
+      trackCommunicationStyle({
+        verbosity: 'terse',
+        interaction_type: 'command',
+        technical_level: 'expert',
+      });
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.event_type).toBe('communication_style_detected');
+      expect(event.payload.name).toBe('communication');
+      expect(event.payload.input.verbosity).toBe('terse');
+      expect(event.payload.input.interaction_type).toBe('command');
+      expect(event.payload.input.technical_level).toBe('expert');
+    });
+
+    it('should track moderate verbosity style', () => {
+      trackCommunicationStyle({
+        verbosity: 'moderate',
+        interaction_type: 'question',
+        technical_level: 'intermediate',
+      });
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.verbosity).toBe('moderate');
+      expect(event.payload.input.interaction_type).toBe('question');
+      expect(event.payload.input.technical_level).toBe('intermediate');
+    });
+
+    it('should track detailed verbosity style', () => {
+      trackCommunicationStyle({
+        verbosity: 'detailed',
+        interaction_type: 'discussion',
+        technical_level: 'beginner',
+      });
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.verbosity).toBe('detailed');
+      expect(event.payload.input.interaction_type).toBe('discussion');
+      expect(event.payload.input.technical_level).toBe('beginner');
+    });
+  });
+
+  describe('trackSessionStart with time_of_day', () => {
+    beforeEach(() => {
+      mockExistsSync.mockReturnValue(true);
+    });
+
+    // Helper to create local time for a specific hour
+    // Use local time (no Z suffix) to ensure getHours() returns the expected value
+    const createLocalTime = (hour: number) => {
+      const date = new Date(2026, 0, 28, hour, 0, 0); // Jan 28, 2026, hour:00:00 local time
+      return date;
+    };
+
+    it('should set morning for hour 5 (boundary)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(5));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('morning');
+      vi.useRealTimers();
+    });
+
+    it('should set morning for hour 11', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(11));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('morning');
+      vi.useRealTimers();
+    });
+
+    it('should set afternoon for hour 12 (boundary)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(12));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('afternoon');
+      vi.useRealTimers();
+    });
+
+    it('should set afternoon for hour 16', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(16));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('afternoon');
+      vi.useRealTimers();
+    });
+
+    it('should set evening for hour 17 (boundary)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(17));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('evening');
+      vi.useRealTimers();
+    });
+
+    it('should set evening for hour 20', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(20));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('evening');
+      vi.useRealTimers();
+    });
+
+    it('should set night for hour 21 (boundary)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(21));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('night');
+      vi.useRealTimers();
+    });
+
+    it('should set night for hour 4 (before morning boundary)', () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(createLocalTime(4));
+
+      trackSessionStart();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('night');
+      vi.useRealTimers();
+    });
+
+    it('should use provided time_of_day context when given', () => {
+      trackSessionStart({ time_of_day: 'evening' });
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.payload.input.time_of_day).toBe('evening');
+    });
   });
 
   describe('loadSessionEvents', () => {
@@ -314,6 +510,159 @@ describe('Session Event Tracker', () => {
 
       expect(event.payload.context.length).toBeLessThan(1000);
       expect(event.payload.context).toContain('...');
+    });
+  });
+
+  describe('Persistent Event Counter (Issue #245)', () => {
+    beforeEach(() => {
+      vi.clearAllMocks();
+      // Reset counter state BEFORE setting up mocks
+      resetEventCounter();
+      // Default: no counter file exists
+      mockExistsSync.mockReturnValue(false);
+    });
+
+    it('should load persisted counter value on first event', () => {
+      // Mock counter file exists with value 100
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return true;
+        if (typeof path === 'string' && path.includes('sessions')) return true;
+        return false;
+      });
+      mockReadFileSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) {
+          return JSON.stringify({ counter: 100, updated_at: new Date().toISOString() });
+        }
+        throw new Error('File not found');
+      });
+
+      trackEvent('skill_invoked', 'test', { success: true });
+
+      // Event ID should be evt-{timestamp}-101 (loaded 100 + 1)
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      expect(event.event_id).toMatch(/^evt-\d+-101$/);
+    });
+
+    it('should increment counter across events', () => {
+      // No counter file - starts fresh
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return false;
+        return true;
+      });
+
+      trackEvent('skill_invoked', 'first', { success: true });
+      trackEvent('skill_invoked', 'second', { success: true });
+      trackEvent('skill_invoked', 'third', { success: true });
+
+      const event1 = JSON.parse((mockAppendFileSync.mock.calls[0][1] as string).trim());
+      const event2 = JSON.parse((mockAppendFileSync.mock.calls[1][1] as string).trim());
+      const event3 = JSON.parse((mockAppendFileSync.mock.calls[2][1] as string).trim());
+
+      // Extract counter values from event IDs
+      const counter1 = parseInt(event1.event_id.split('-').pop());
+      const counter2 = parseInt(event2.event_id.split('-').pop());
+      const counter3 = parseInt(event3.event_id.split('-').pop());
+
+      expect(counter1).toBe(1);
+      expect(counter2).toBe(counter1 + 1);
+      expect(counter3).toBe(counter2 + 1);
+    });
+
+    it('should flush counter to file', () => {
+      // No counter file - starts fresh
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return false;
+        return true;
+      });
+
+      // Generate some events to increment counter
+      trackEvent('skill_invoked', 'test', { success: true });
+
+      // Force flush
+      flushEventCounter();
+
+      // Verify writeFileSync was called with counter data
+      const writeCall = mockWriteFileSync.mock.calls.find(
+        (call: unknown[]) => typeof call[0] === 'string' && (call[0] as string).includes('counter.json')
+      );
+
+      expect(writeCall).toBeDefined();
+      if (writeCall) {
+        const data = JSON.parse(writeCall[1] as string);
+        expect(data.counter).toBe(1);
+        expect(data.updated_at).toBeDefined();
+      }
+    });
+
+    it('should reset counter state', () => {
+      // No counter file - starts fresh
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return false;
+        return true;
+      });
+
+      trackEvent('skill_invoked', 'first', { success: true });
+      const event1 = JSON.parse((mockAppendFileSync.mock.calls[0][1] as string).trim());
+      const counter1 = parseInt(event1.event_id.split('-').pop());
+      expect(counter1).toBe(1);
+
+      // Reset counter and clear mocks
+      resetEventCounter();
+      vi.clearAllMocks();
+
+      // Re-setup mocks after clearAllMocks
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return false;
+        return true;
+      });
+
+      trackEvent('skill_invoked', 'after-reset', { success: true });
+      const event2 = JSON.parse((mockAppendFileSync.mock.calls[0][1] as string).trim());
+      const counter2 = parseInt(event2.event_id.split('-').pop());
+
+      // Counter should restart from 1 after reset
+      expect(counter2).toBe(1);
+    });
+
+    it('should handle missing counter file gracefully', () => {
+      mockExistsSync.mockReturnValue(false);
+
+      // Should not throw
+      expect(() => {
+        trackEvent('skill_invoked', 'test', { success: true });
+      }).not.toThrow();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      // Should start from 1
+      expect(event.event_id).toMatch(/^evt-\d+-1$/);
+    });
+
+    it('should handle corrupted counter file gracefully', () => {
+      mockExistsSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) return true;
+        return true;
+      });
+      mockReadFileSync.mockImplementation((path: unknown) => {
+        if (typeof path === 'string' && path.includes('counter.json')) {
+          return 'invalid json';
+        }
+        throw new Error('File not found');
+      });
+
+      // Should not throw
+      expect(() => {
+        trackEvent('skill_invoked', 'test', { success: true });
+      }).not.toThrow();
+
+      const written = mockAppendFileSync.mock.calls[0][1] as string;
+      const event = JSON.parse(written.trim());
+
+      // Should start from 1 when counter file is corrupted
+      expect(event.event_id).toMatch(/^evt-\d+-1$/);
     });
   });
 });
