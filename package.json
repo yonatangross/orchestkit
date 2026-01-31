@@ -16,7 +16,10 @@
     "test:manifests:uniqueness": "bash tests/manifests/test-skill-uniqueness.sh",
     "test:manifests:deps": "bash tests/manifests/test-manifest-dependencies.sh",
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
-    "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh"
+    "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
+    "test:playgrounds": "bash tests/playgrounds/test-data-freshness.sh && bash tests/playgrounds/test-data-accuracy.sh",
+    "test:playgrounds:freshness": "bash tests/playgrounds/test-data-freshness.sh",
+    "test:playgrounds:accuracy": "bash tests/playgrounds/test-data-accuracy.sh"
   },
   "repository": {
     "type": "git",

@@ -62,7 +62,15 @@ jobs:
       - name: Validate data.js syntax
         run: |
           echo "Validating data.js syntax..."
-          node --check docs/playgrounds/data.js
+          # data.js is a browser script using window global, mock it for Node.js
+          node -e "
+            const fs = require('fs');
+            const code = fs.readFileSync('docs/playgrounds/data.js', 'utf8');
+            global.window = {};
+            eval(code);
+            const data = window.ORCHESTKIT_DATA;
+            console.log('✓ Parsed:', data.plugins.length, 'plugins,', data.agents.length, 'agents');
+          "
           echo "data.js syntax valid"
 
       - name: Verify thumbnails
@@ -97,14 +105,18 @@ jobs:
       - name: Check data freshness
         run: |
           echo "Checking if data.js needs regeneration..."
-          # Regenerate and compare
+          cp docs/playgrounds/data.js /tmp/data.js.original
           node scripts/generate-playground-data.js
-          if git diff --quiet docs/playgrounds/data.js; then
-            echo "data.js is up to date"
+          if diff -q docs/playgrounds/data.js /tmp/data.js.original > /dev/null 2>&1; then
+            echo "✓ data.js is up to date with manifests"
           else
-            echo "WARNING: data.js may be stale (differs from generated version)"
-            echo "Run 'npm run generate:playground-data' to update"
-            # Don't fail, just warn - manual edits to compositions are valid
+            echo "✗ FAIL: data.js is stale!"
+            echo ""
+            echo "Differences:"
+            diff /tmp/data.js.original docs/playgrounds/data.js | head -30 || true
+            echo ""
+            echo "Fix: Run 'npm run generate:playground-data' and commit"
+            exit 1
           fi
 
   deploy:
