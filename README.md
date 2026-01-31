@@ -5,16 +5,16 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**182 skills · 35 agents · 152 hooks · 33 modular plugins**
+**195 skills · 35 agents · 119 hooks · 33 modular plugins**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.20-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
-[![Skills](https://img.shields.io/badge/Skills-181-blue?style=for-the-badge)](./skills)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Skills](https://img.shields.io/badge/Skills-195-blue?style=for-the-badge)](./skills)
 [![Agents](https://img.shields.io/badge/Agents-35-green?style=for-the-badge)](./agents)
-[![Hooks](https://img.shields.io/badge/Hooks-152-orange?style=for-the-badge)](./hooks)
+[![Hooks](https://img.shields.io/badge/Hooks-119-orange?style=for-the-badge)](./hooks)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
-[Why OrchestKit?](#why-orchestkit) · [Quick Start](#quick-start) · [Commands](#commands) · [Skills](#skills) · [Agents](#agents) · [FAQ](#faq)
+[Why OrchestKit?](#why-orchestkit) · [Quick Start](#quick-start) · [Commands](#commands) · [Skills](#skills) · [Agents](#agents) · [Playgrounds](https://orchestkit.vercel.app/) · [FAQ](#faq)
 
 </div>
 
@@ -43,7 +43,7 @@
 
 **The Problem:** Every Claude Code session starts from zero. You explain your stack, your patterns, your preferences—again and again.
 
-**The Solution:** OrchestKit gives Claude persistent knowledge of 181 production patterns, 35 specialized agents, and 152 security/quality hooks that work automatically.
+**The Solution:** OrchestKit gives Claude persistent knowledge of 195 production patterns, 35 specialized agents, and 119 security/quality hooks that work automatically.
 
 <table>
 <tr>
@@ -89,7 +89,7 @@
         │ Git protect   │    │ Best practice │    │ Auto-activate │
         │ Quality check │    │ Code templates│    │ Domain expert │
         │               │    │               │    │               │
-        │  152 hooks  │    │  182 skills   │    │   35 agents   │
+        │  119 hooks    │    │  195 skills   │    │   35 agents   │
         └───────┬───────┘    └───────┬───────┘    └───────┬───────┘
                 │                    │                    │
                 │    ┌───────────────┴───────────────┐    │
@@ -318,7 +318,7 @@ Codebase Analysis:
 
 ## Skills
 
-**182 skills** with progressive loading (~70% token savings):
+**195 skills** with progressive loading (~70% token savings):
 
 ### 🤖 AI & ML
 
@@ -366,7 +366,7 @@ Codebase Analysis:
 `github-operations` · `git-workflow` · `stacked-prs` · `release-management` · `observability-monitoring` · `devops-deployment` · `zero-downtime-migration` · `database-versioning` · `alembic-migrations`
 
 <details>
-<summary><strong>📁 View all 182 skills</strong></summary>
+<summary><strong>📁 View all 195 skills</strong></summary>
 
 ```bash
 ls skills/
@@ -469,7 +469,7 @@ flowchart TB
     subgraph OrchestKit["🔷 ORCHESTKIT PLUGIN"]
         direction TB
 
-        subgraph Hooks["🛡️ 152 HOOKS"]
+        subgraph Hooks["🛡️ 119 HOOKS"]
             direction LR
             H1["PreToolUse"]
             H2["PostToolUse"]
@@ -477,7 +477,7 @@ flowchart TB
             H4["Lifecycle"]
         end
 
-        subgraph Skills["📚 161 SKILLS"]
+        subgraph Skills["📚 195 SKILLS"]
             direction LR
             S1["Backend"]
             S2["Frontend"]
@@ -485,7 +485,7 @@ flowchart TB
             S4["Testing"]
         end
 
-        subgraph Agents["🤖 34 AGENTS"]
+        subgraph Agents["🤖 35 AGENTS"]
             direction LR
             A1["Architects"]
             A2["Engineers"]
@@ -534,33 +534,17 @@ orchestkit/
 │       ├── agents/          # Specialized agents
 │       ├── skills/          # Knowledge modules
 │       └── scripts/         # Hook executables
-├── skills/                  # 181 knowledge modules (full)
+├── skills/                  # 195 knowledge modules (full)
 │   └── <skill-name>/
 │       ├── SKILL.md         # Overview + patterns (~500 tokens)
 │       ├── references/      # Deep-dive guides (~200 tokens)
 │       ├── scripts/         # Executable code and generators
 │       └── assets/          # Templates and copyable files
 ├── agents/                  # 35 specialized agents
-├── commands/                # 21 slash commands
-├── hooks/                   # 152 lifecycle hooks
+├── commands/                # 23 slash commands
+├── hooks/                   # 119 lifecycle hooks
 └── tests/                   # Validation suite
 ```
-
----
-
-## Comparison
-
-| Feature | OrchestKit | [claude-code-showcase](https://github.com/ChrisWiles/claude-code-showcase) | DIY Hooks |
-|---------|:----------:|:--------------------:|:---------:|
-| **Skills/Patterns** | ✅ 181 | ⚠️ ~10 | ❌ 0 |
-| **Specialized Agents** | ✅ 35 | ⚠️ ~5 | ❌ 0 |
-| **Security Layers** | ✅ 8-layer | ⚠️ Basic | ❌ Manual |
-| **AI/ML Patterns** | ✅ 27 | ⚠️ Limited | ❌ None |
-| **Testing Patterns** | ✅ 10 | ⚠️ Basic | ❌ None |
-| **Setup Time** | ✅ 2 min | ⚠️ 5 min | ❌ Hours |
-| **Maintenance** | ✅ Auto | ❌ Manual | ❌ Manual |
-| **Progressive Loading** | ✅ Yes | ❌ No | ❌ No |
-| **Memory Integration** | ✅ Graph + Mem0 | ❌ None | ❌ None |
 
 ---
 
@@ -718,7 +702,7 @@ Yes! OrchestKit is additive—it won't modify your files. Skills and agents acti
 <details>
 <summary><strong>❓ Claude Code version requirements?</strong></summary>
 
-Requires **Claude Code ≥2.1.16** for full features:
+Requires **Claude Code ≥2.1.27** for full features:
 - CC 2.1.6: Agent skill injection
 - CC 2.1.7: Parallel hook execution
 - CC 2.1.9: additionalContext injection
@@ -726,6 +710,7 @@ Requires **Claude Code ≥2.1.16** for full features:
 - CC 2.1.14: Plugin versioning (git SHA/tag pinning)
 - CC 2.1.15: Engine field, plugin search
 - CC 2.1.16: Task dependencies, VSCode native plugins
+- CC 2.1.27: `--from-pr` session linking, permission precedence fix
 
 </details>
 
@@ -741,9 +726,9 @@ OrchestKit uses a **build system** to assemble modular plugins from source files
 
 ```
 src/
-├── skills/      # 182 skills (single source of truth - edit these)
+├── skills/      # 195 skills (single source of truth - edit these)
 ├── agents/      # 35 agents (single source of truth - edit these)
-└── hooks/       # 152 hooks (single source of truth - edit these)
+└── hooks/       # 119 hooks (single source of truth - edit these)
 
 manifests/       # Plugin definitions (34 manifests - edit these)
 ├── ork.json
@@ -816,13 +801,17 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## What's New
 
-**v4.28.x** — CC 2.1.16 support, README marketplace alignment, subagent compatibility
+**v5.5.0** — CC 2.1.27 support, TypeScript hooks migration, agent-scoped hooks
 
 **Recent:**
-- CC 2.1.16: Task dependencies, VSCode native plugins
+- CC 2.1.27: `--from-pr` auto PR linking, permission precedence fix
+- 119 TypeScript hooks (91 global + 28 agent/skill-scoped)
+- 6 fire-and-forget hook dispatchers for async background tasks
+- Plugin dependency validation in build system
+- PostToolUseFailure hooks for error-path handling
 - agent-browser CLI integration (93% less context vs Playwright MCP)
 - 33 modular plugins for selective installation
-- AI safety skills (guardrails, prompt injection defense)
+- Interactive [Playgrounds](https://orchestkit.vercel.app/) with demo gallery
 
 [Full Changelog →](./CHANGELOG.md)
 
