@@ -5,9 +5,9 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **195 skills**: Reusable knowledge modules
+- **196 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
-- **119 hooks**: TypeScript lifecycle automation (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
+- **120 hooks**: TypeScript lifecycle automation (92 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 195 skills
+├── skills/             # 196 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,7 +149,7 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-195 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+196 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
@@ -165,7 +165,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 35 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-119 hook entries (91 global + 28 agent/skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+120 hook entries (92 global + 28 agent/skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -254,6 +254,6 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 
 - **Current**: 5.5.0
 - **Claude Code**: >= 2.1.27
-- **Hooks**: 119 entries (91 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
+- **Hooks**: 120 entries (92 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**195 skills · 35 agents · 119 hooks · 33 plugins**
+**196 skills · 35 agents · 120 hooks · 33 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
