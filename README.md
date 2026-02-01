@@ -17,7 +17,7 @@
 
 <p align="center">
   <a href="https://orchestkit.vercel.app/">
-    <img src="https://orchestkit.vercel.app/thumbnails/MarketplaceDemo.png" alt="OrchestKit Playgrounds" width="600">
+    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Playgrounds Demo" width="700">
   </a>
   <br>
   <a href="https://orchestkit.vercel.app/"><strong>🎮 Explore the Playgrounds →</strong></a><br>
