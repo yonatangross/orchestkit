@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**195 skills · 35 agents · 119 hooks · 33 plugins**
+**196 skills · 35 agents · 120 hooks · 33 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -57,9 +57,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 195 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 196 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 35 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 119 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 120 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 33 | Mix and match: `ork-rag`, `ork-fastapi`, `ork-react` |
 
 **[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
@@ -159,9 +159,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v5.5.0** — CC 2.1.27, TypeScript hooks, agent-scoped hooks
+**v5.6.0** — Memory system improvements, graph visualization, queue recovery
 
-- 119 TypeScript hooks (91 global + 28 agent-scoped)
+- 120 TypeScript hooks (92 global + 28 agent-scoped)
 - Interactive [Playgrounds](https://orchestkit.vercel.app/)
 - Fire-and-forget hook dispatchers
 

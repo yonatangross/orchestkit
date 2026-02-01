@@ -68,6 +68,12 @@ echo "  Mem0 Python Scripts Test Suite"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
+# Check if mem0ai is available for execution tests
+MEM0AI_AVAILABLE="false"
+if python3 -c "from mem0 import MemoryClient" >/dev/null 2>&1; then
+    MEM0AI_AVAILABLE="true"
+fi
+
 # =============================================================================
 # Test Group 1: Script Structure
 # =============================================================================
@@ -294,9 +300,18 @@ test_new_scripts_show_help() {
 
 test_scripts_are_executable
 test_scripts_have_shebang
-test_core_scripts_show_help
-test_advanced_scripts_show_help
-test_new_scripts_show_help
+if [[ "$MEM0AI_AVAILABLE" == "true" ]]; then
+    test_core_scripts_show_help
+    test_advanced_scripts_show_help
+    test_new_scripts_show_help
+else
+    test_start "core scripts show --help"
+    test_skip "mem0ai not installed"
+    test_start "advanced scripts show --help"
+    test_skip "mem0ai not installed"
+    test_start "new enhancement scripts show --help"
+    test_skip "mem0ai not installed"
+fi
 
 echo ""
 
@@ -492,10 +507,21 @@ test_scripts_handle_missing_api_key() {
     fi
 }
 
-test_add_memory_requires_args
-test_search_memories_requires_query
-test_scripts_output_json
-test_scripts_handle_missing_api_key
+if [[ "$MEM0AI_AVAILABLE" == "true" ]]; then
+    test_add_memory_requires_args
+    test_search_memories_requires_query
+    test_scripts_output_json
+    test_scripts_handle_missing_api_key
+else
+    test_start "add-memory.py requires --text and --user-id"
+    test_skip "mem0ai not installed"
+    test_start "search-memories.py requires --query"
+    test_skip "mem0ai not installed"
+    test_start "scripts output JSON format"
+    test_skip "mem0ai not installed"
+    test_start "scripts handle missing API key gracefully"
+    test_skip "mem0ai not installed"
+fi
 
 echo ""
 
@@ -526,8 +552,15 @@ test_scripts_can_be_called_via_bash() {
     fi
 }
 
-test_scripts_work_from_project_root
-test_scripts_can_be_called_via_bash
+if [[ "$MEM0AI_AVAILABLE" == "true" ]]; then
+    test_scripts_work_from_project_root
+    test_scripts_can_be_called_via_bash
+else
+    test_start "scripts work from project root (Cursor perspective)"
+    test_skip "mem0ai not installed"
+    test_start "scripts can be called via bash tool"
+    test_skip "mem0ai not installed"
+fi
 
 echo ""
 
@@ -605,8 +638,15 @@ test_update_memory_requires_args() {
     fi
 }
 
-test_error_output_is_json
-test_error_has_type_field
+if [[ "$MEM0AI_AVAILABLE" == "true" ]]; then
+    test_error_output_is_json
+    test_error_has_type_field
+else
+    test_start "error output is valid JSON"
+    test_skip "mem0ai not installed"
+    test_start "error output includes type field"
+    test_skip "mem0ai not installed"
+fi
 test_update_memory_api_signature
 test_update_memory_requires_args
 

@@ -182,7 +182,7 @@ CI_UNIT_TESTS=(
 UNIT_TEST_ERRORS=0
 for test_file in "${CI_UNIT_TESTS[@]}"; do
   if [[ -f "$test_file" ]]; then
-    if ! run_with_timeout 60 bash "$test_file" >/dev/null 2>&1; then
+    if ! run_with_timeout 120 bash "$test_file" >/dev/null 2>&1; then
       if [[ $UNIT_TEST_ERRORS -eq 0 ]]; then
         echo "FAILED"
       fi

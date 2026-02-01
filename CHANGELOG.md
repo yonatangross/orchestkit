@@ -5,6 +5,34 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.6.0] - 2026-02-01
+
+### Added
+
+- **Memory health check library** (`memory-health.ts`) — Validates JSONL integrity, tier status, queue depths, and file analysis for `/ork:doctor`
+- **Memory metrics collector** (`memory-metrics.ts`) — Counts decisions by category/type, queue depths, completed flows; appends timestamped snapshots to `memory-metrics.jsonl`
+- **Memory metrics lifecycle hook** (`memory-metrics-collector.ts`) — SessionStart hook that collects and persists memory metrics on every session
+- **Queue recovery hook** (`queue-recovery.ts`) — Sync `UserPromptSubmit` hook (runs once) that rescues orphaned graph/mem0 queues from crashed sessions via `systemMessage` with MCP calls
+- **Shared queue processor library** (`queue-processor.ts`) — Extracted shared functions from stop hooks: read, aggregate, deduplicate, clear, archive, staleness check
+- **Graph visualization skill** (`/ork:graph-viz`) — Generates Mermaid diagrams from knowledge graph with 8 entity types, 8 relation types, color-coded nodes, and filtering support
+- **Python syntax tests in CI** (`test-python-syntax.sh`) — Validates all Python scripts compile cleanly via `py_compile`
+- **183 new tests** — Unit (56), integration (38), E2E (21), performance (30), security (38) covering all new modules
+
+### Changed
+
+- Refactored `graph-queue-sync.ts` and `mem0-queue-sync.ts` to use shared `queue-processor.ts` library
+- `mem0-analytics-tracker.ts` now always tracks `session_start` with `mem0_available` field (previously gated on MEM0_API_KEY)
+- Updated component counts: 196 skills, 35 agents, 120 hooks (92 global + 28 scoped)
+- Doctor skill updated with automated memory health check instructions
+
+### Fixed
+
+- `aggregateGraphOperations` crash on null/undefined payload (added optional chaining guards)
+- `archiveQueue` path extraction uses `basename()` instead of fragile `split('/')`
+
+---
+
+
 ## [5.5.0] - 2026-01-30
 
 ### Added

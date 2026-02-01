@@ -167,6 +167,7 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true
     run_test "Hook Unit Tests" "$SCRIPT_DIR/unit/test-hooks-unit.sh" || true
+    run_test "Graph Utils Unit Tests" "$SCRIPT_DIR/unit/test-graph-utils.sh" || true
 
     # TypeScript hook tests (vitest) - if node_modules exist
     if [[ -d "$PROJECT_ROOT/src/hooks/node_modules" ]]; then

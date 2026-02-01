@@ -383,6 +383,8 @@ jobs:
           bash tests/mem0/test-mem0-integration.sh
           bash tests/mem0/test-mem0-v1.1.0-enhancements.sh
           bash tests/mem0/test-mem0-library.sh
+          bash tests/mem0/test-python-syntax.sh
+          bash tests/mem0/test-mem0-scripts.sh
 
   # ============================================================================
   # STAGE 7: Agent & Skill Validation

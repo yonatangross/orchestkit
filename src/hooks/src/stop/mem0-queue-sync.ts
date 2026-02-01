@@ -7,119 +7,24 @@
  * This hook reads the mem0-queue.jsonl file and outputs a systemMessage
  * prompting Claude to execute the queued mcp__mem0__add_memory operations.
  *
- * The queue contains memories queued by memory-writer.ts:queueForMem0()
- * with structure:
- * - text: The memory content
- * - user_id: Scoped user identifier (project/global)
- * - metadata: Category, confidence, source, etc.
- * - queued_at: ISO timestamp
+ * Refactored to use shared queue-processor.ts functions.
  *
  * CC 2.1.19 Compliant: Outputs systemMessage for Claude to act on
  */
 
-import { existsSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { getProjectDir, logHook, outputSilentSuccess } from '../lib/common.js';
 import { isMem0Configured } from '../lib/memory-writer.js';
+import {
+  readMem0Queue,
+  deduplicateMem0Memories,
+  clearQueueFile,
+  type QueuedMem0Memory,
+} from '../lib/queue-processor.js';
 
-// =============================================================================
-// TYPES
-// =============================================================================
-
-/**
- * Queued mem0 memory payload (written by memory-writer.ts:queueForMem0)
- */
-export interface QueuedMem0Memory {
-  /** Memory text content */
-  text: string;
-  /** User ID scope (project or global) */
-  user_id: string;
-  /** Memory metadata */
-  metadata: {
-    type?: string;
-    category?: string;
-    confidence?: number;
-    source?: string;
-    project?: string;
-    timestamp?: string;
-    entities?: string[];
-    has_rationale?: boolean;
-    has_alternatives?: boolean;
-    importance?: 'high' | 'medium' | 'low';
-    is_generalizable?: boolean;
-    contributor_id?: string;
-  };
-  /** When this was queued */
-  queued_at: string;
-}
-
-// =============================================================================
-// PATHS
-// =============================================================================
-
-/**
- * Get path to mem0 operations queue
- */
-function getMem0QueuePath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'mem0-queue.jsonl');
-}
-
-// =============================================================================
-// QUEUE READING
-// =============================================================================
-
-/**
- * Read all queued memories from the mem0 queue
- */
-function readQueuedMemories(): QueuedMem0Memory[] {
-  const queuePath = getMem0QueuePath();
-
-  if (!existsSync(queuePath)) {
-    return [];
-  }
-
-  try {
-    const content = readFileSync(queuePath, 'utf8');
-    const lines = content.trim().split('\n').filter(line => line.trim());
-
-    const memories: QueuedMem0Memory[] = [];
-    for (const line of lines) {
-      try {
-        const memory = JSON.parse(line) as QueuedMem0Memory;
-        // Validate required fields
-        if (memory.text && memory.user_id) {
-          memories.push(memory);
-        } else {
-          logHook('mem0-queue-sync', `Skipping invalid memory (missing text or user_id)`, 'warn');
-        }
-      } catch {
-        logHook('mem0-queue-sync', `Failed to parse queue line: ${line.slice(0, 100)}`, 'warn');
-      }
-    }
-
-    return memories;
-  } catch (error) {
-    logHook('mem0-queue-sync', `Failed to read queue: ${error}`, 'warn');
-    return [];
-  }
-}
-
-/**
- * Clear the queue after processing
- */
-function clearQueue(): void {
-  const queuePath = getMem0QueuePath();
-
-  if (existsSync(queuePath)) {
-    try {
-      unlinkSync(queuePath);
-      logHook('mem0-queue-sync', 'Cleared mem0 queue', 'debug');
-    } catch (error) {
-      logHook('mem0-queue-sync', `Failed to clear queue: ${error}`, 'warn');
-    }
-  }
-}
+// Re-export the type for consumers that import from this module
+export type { QueuedMem0Memory };
 
 // =============================================================================
 // AGGREGATION
@@ -138,26 +43,6 @@ function groupByUserId(memories: QueuedMem0Memory[]): Map<string, QueuedMem0Memo
   }
 
   return groups;
-}
-
-/**
- * Deduplicate memories by text (keep most recent)
- */
-function deduplicateMemories(memories: QueuedMem0Memory[]): QueuedMem0Memory[] {
-  const seen = new Map<string, QueuedMem0Memory>();
-
-  for (const memory of memories) {
-    // Use text as dedup key (normalized)
-    const key = memory.text.trim().toLowerCase();
-    const existing = seen.get(key);
-
-    // Keep the most recent one
-    if (!existing || memory.queued_at > existing.queued_at) {
-      seen.set(key, memory);
-    }
-  }
-
-  return Array.from(seen.values());
 }
 
 // =============================================================================
@@ -234,8 +119,10 @@ export function mem0QueueSync(_input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
+  const queuePath = join(getProjectDir(), '.claude', 'memory', 'mem0-queue.jsonl');
+
   // Read queued memories
-  const rawMemories = readQueuedMemories();
+  const rawMemories = readMem0Queue(queuePath);
 
   if (rawMemories.length === 0) {
     logHook('mem0-queue-sync', 'No queued mem0 memories', 'debug');
@@ -245,7 +132,7 @@ export function mem0QueueSync(_input: HookInput): HookResult {
   logHook('mem0-queue-sync', `Processing ${rawMemories.length} queued memories`, 'info');
 
   // Deduplicate
-  const memories = deduplicateMemories(rawMemories);
+  const memories = deduplicateMem0Memories(rawMemories);
   if (memories.length < rawMemories.length) {
     logHook(
       'mem0-queue-sync',
@@ -258,7 +145,7 @@ export function mem0QueueSync(_input: HookInput): HookResult {
   const systemMessage = generateSystemMessage(memories);
 
   // Clear the queue
-  clearQueue();
+  clearQueueFile(queuePath);
 
   if (!systemMessage) {
     return outputSilentSuccess();

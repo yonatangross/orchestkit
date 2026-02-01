@@ -25,26 +25,22 @@ function isMem0Available(): boolean {
 
 /**
  * Mem0 analytics tracker hook
+ * Tracks session_start for all users (graph-only and mem0)
  */
 export function mem0AnalyticsTracker(input: HookInput): HookResult {
   logHook('mem0-analytics-tracker', 'Mem0 analytics tracker starting');
-
-  // Check if mem0 is available
-  if (!isMem0Available()) {
-    logHook('mem0-analytics-tracker', 'Mem0 not available, skipping analytics');
-    return outputSilentSuccess();
-  }
 
   const projectDir = input.project_dir || getProjectDir();
   const analyticsFile = `${projectDir}/.claude/logs/mem0-analytics.jsonl`;
   const sessionId = input.session_id || getSessionId();
   const timestamp = new Date().toISOString();
 
-  // Create analytics entry
+  // Create analytics entry - track for all users, flag mem0 availability
   const analyticsEntry = JSON.stringify({
     session_id: sessionId,
     timestamp: timestamp,
     event: 'session_start',
+    mem0_available: isMem0Available(),
   });
 
   // Append to analytics log

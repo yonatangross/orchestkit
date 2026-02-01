@@ -10,6 +10,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 
@@ -27,27 +28,27 @@ const BUILTIN_TYPES = new Set([
 ]);
 
 // -----------------------------------------------------------------------------
-// Path Helpers
+// Path Helpers (cross-platform using path.join)
 // -----------------------------------------------------------------------------
 
 function getTrackingLog(): string {
-  return `${getProjectDir()}/.claude/logs/subagent-spawns.jsonl`;
+  return join(getProjectDir(), '.claude', 'logs', 'subagent-spawns.jsonl');
 }
 
 function getPluginJson(): string {
-  return `${getProjectDir()}/plugin.json`;
+  return join(getProjectDir(), 'plugin.json');
 }
 
 function getAgentsDir(): string {
-  return `${getProjectDir()}/agents`;
+  return join(getProjectDir(), 'agents');
 }
 
 function getClaudeAgentsDir(): string {
-  return `${getProjectDir()}/.claude/agents`;
+  return join(getProjectDir(), '.claude', 'agents');
 }
 
 function getSkillsDir(): string {
-  return `${getProjectDir()}/skills`;
+  return join(getProjectDir(), 'skills');
 }
 
 // -----------------------------------------------------------------------------
@@ -96,8 +97,8 @@ function getValidAgentTypes(): Set<string> {
 function extractAgentSkills(agentType: string): string[] {
   const skills: string[] = [];
   const agentFiles = [
-    `${getAgentsDir()}/${agentType}.md`,
-    `${getClaudeAgentsDir()}/${agentType}.md`,
+    join(getAgentsDir(), `${agentType}.md`),
+    join(getClaudeAgentsDir(), `${agentType}.md`),
   ];
 
   let agentFile: string | null = null;
@@ -163,7 +164,7 @@ function validateAgentSkills(agentType: string): string[] {
   const skillsDir = getSkillsDir();
 
   for (const skill of skills) {
-    const skillPath = `${skillsDir}/${skill}/SKILL.md`;
+    const skillPath = join(skillsDir, skill, 'SKILL.md');
     if (!existsSync(skillPath)) {
       missingSkills.push(skill);
     }
@@ -178,8 +179,8 @@ function validateAgentSkills(agentType: string): string[] {
 function extractAgentTools(agentType: string): string[] {
   const tools: string[] = [];
   const agentFiles = [
-    `${getAgentsDir()}/${agentType}.md`,
-    `${getClaudeAgentsDir()}/${agentType}.md`,
+    join(getAgentsDir(), `${agentType}.md`),
+    join(getClaudeAgentsDir(), `${agentType}.md`),
   ];
 
   let agentFile: string | null = null;

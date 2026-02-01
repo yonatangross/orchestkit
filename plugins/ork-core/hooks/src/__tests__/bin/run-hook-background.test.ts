@@ -731,6 +731,11 @@ describe('run-hook-background.mjs - Mock Bundle Execution', () => {
 
     mkdirSync(distDir, { recursive: true });
 
+    // Use JSON.stringify for proper cross-platform path escaping
+    // This handles Windows backslashes correctly without manual escaping
+    const markerFilePath = JSON.stringify(markerFile);
+    const distDirPath = JSON.stringify(distDir);
+
     // Create a mock posttool bundle that writes a marker file when executed
     const mockBundleCode = `
 // Mock bundle for testing hook execution
@@ -739,7 +744,7 @@ export const hooks = {
     // Import fs dynamically to avoid issues
     const { writeFileSync } = await import('node:fs');
     // Write a marker file to prove the hook ran
-    writeFileSync('${markerFile.replace(/\\/g, '\\\\')}', JSON.stringify({
+    writeFileSync(${markerFilePath}, JSON.stringify({
       executed: true,
       timestamp: new Date().toISOString(),
       input: input,
@@ -761,10 +766,10 @@ export const hooks = {
       'utf-8'
     );
 
-    // Modify distDir to point to our mock dist
+    // Modify distDir to point to our mock dist using JSON.stringify for proper escaping
     const modifiedScript = originalScript.replace(
       "const distDir = join(__dirname, '..', 'dist');",
-      `const distDir = '${distDir.replace(/\\/g, '\\\\')}';`
+      `const distDir = ${distDirPath};`
     );
 
     writeFileSync(join(testBinDir, 'run-hook-background.mjs'), modifiedScript);
@@ -810,6 +815,9 @@ export const hooks = {
 
     mkdirSync(distDir, { recursive: true });
 
+    // Use JSON.stringify for proper cross-platform path escaping
+    const distDirPath = JSON.stringify(distDir);
+
     // Create a mock bundle that throws an error
     const mockBundleCode = `
 export const hooks = {
@@ -830,9 +838,10 @@ export const hooks = {
       'utf-8'
     );
 
+    // Use JSON.stringify for proper cross-platform path escaping
     const modifiedScript = originalScript.replace(
       "const distDir = join(__dirname, '..', 'dist');",
-      `const distDir = '${distDir.replace(/\\/g, '\\\\')}';`
+      `const distDir = ${distDirPath};`
     );
 
     writeFileSync(join(testBinDir, 'run-hook-background.mjs'), modifiedScript);
@@ -869,6 +878,9 @@ export const hooks = {
 
     mkdirSync(distDir, { recursive: true });
 
+    // Use JSON.stringify for proper cross-platform path escaping
+    const distDirPath = JSON.stringify(distDir);
+
     // Create a mock bundle that succeeds
     const mockBundleCode = `
 export const hooks = {
@@ -889,9 +901,10 @@ export const hooks = {
       'utf-8'
     );
 
+    // Use JSON.stringify for proper cross-platform path escaping
     const modifiedScript = originalScript.replace(
       "const distDir = join(__dirname, '..', 'dist');",
-      `const distDir = '${distDir.replace(/\\/g, '\\\\')}';`
+      `const distDir = ${distDirPath};`
     );
 
     writeFileSync(join(testBinDir, 'run-hook-background.mjs'), modifiedScript);

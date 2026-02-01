@@ -16,7 +16,7 @@
  * Usage: run-hook-background.mjs <hook-name> <base64-encoded-input>
  */
 
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
 import { existsSync, appendFileSync, mkdirSync, writeFileSync, readFileSync, unlinkSync, readdirSync, renameSync } from 'node:fs';
 
@@ -264,7 +264,8 @@ async function loadBundle(hookName) {
   const bundlePath = join(distDir, `${bundleName}.mjs`);
   if (!existsSync(bundlePath)) return null;
 
-  return await import(bundlePath);
+  // On Windows, ESM dynamic imports require file:// URLs for absolute paths
+  return await import(pathToFileURL(bundlePath));
 }
 
 /**

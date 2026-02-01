@@ -173,7 +173,8 @@ describe('autoSaveContext', () => {
 
       expect(mockWriteFileSync).toHaveBeenCalledTimes(1);
       const [path, content] = mockWriteFileSync.mock.calls[0];
-      expect(path).toBe('/test/project/.claude/context/session/state.json');
+      // Cross-platform: accept either / or \ path separators
+      expect(path).toMatch(/[/\\]test[/\\]project[/\\]\.claude[/\\]context[/\\]session[/\\]state\.json$/);
 
       const state = JSON.parse(content);
       expect(state.$schema).toBe('context://session/v1');
@@ -1134,8 +1135,9 @@ describe('sessionContextLoader', () => {
 
       sessionContextLoader(createHookInput({ project_dir: '/custom/path' }));
 
+      // Cross-platform: accept either / or \ path separators
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('/custom/path/')
+        expect.stringMatching(/[/\\]custom[/\\]path[/\\]/)
       );
     });
   });
