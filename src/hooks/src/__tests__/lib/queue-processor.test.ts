@@ -343,7 +343,7 @@ describe('Queue Processor Unit Tests', () => {
       const [src, dest] = mockRenameSync.mock.calls[0];
       expect(src).toBe('/test/memory/graph-queue.jsonl');
       expect(String(dest)).toContain('graph-queue.jsonl');
-      expect(String(dest)).toMatch(/\/test\/archive\//);
+      expect(String(dest).replace(/\\/g, '/')).toMatch(/\/test\/archive\//);
     });
 
     it('falls back to clearQueueFile when renameSync throws', () => {

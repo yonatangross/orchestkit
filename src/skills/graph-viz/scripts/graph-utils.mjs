@@ -6,7 +6,7 @@
  */
 
 import { readFileSync, existsSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 // ---------------------------------------------------------------------------
 // Entity type configuration (single source of truth)
@@ -183,7 +183,7 @@ export function openInBrowser(filePath) {
   try {
     const platform = process.platform;
     const cmd = platform === 'darwin' ? 'open' : platform === 'win32' ? 'start' : 'xdg-open';
-    execSync(`${cmd} "${filePath}"`, { stdio: 'ignore' });
+    execFileSync(cmd, [filePath], { stdio: 'ignore' });
     console.log('Opened in browser.');
   } catch {
     console.log(`Open manually: ${filePath}`);

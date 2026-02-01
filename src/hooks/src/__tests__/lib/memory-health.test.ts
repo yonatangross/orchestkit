@@ -120,7 +120,7 @@ describe('checkMemoryHealth', () => {
   it('returns healthy when all tiers operational', () => {
     // Memory directory exists
     mockExistsSync.mockImplementation((path: unknown) => {
-      const p = String(path);
+      const p = String(path).replace(/\\/g, '/');
       if (p.includes('.claude/memory')) return true;
       if (p.includes('decisions.jsonl')) return true;
       if (p.includes('mem0-analytics.jsonl')) return true;
@@ -128,11 +128,11 @@ describe('checkMemoryHealth', () => {
     });
     mockStatSync.mockReturnValue(mockStat(100));
     mockReadFileSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.toString().includes('decisions.jsonl')) {
+      const p = String(path).replace(/\\/g, '/');
+      if (p.includes('decisions.jsonl')) {
         return '{"type":"decision"}\n';
       }
-      if (p.toString().includes('mem0-analytics.jsonl')) {
+      if (p.includes('mem0-analytics.jsonl')) {
         return '{"timestamp":"2025-01-15T10:00:00Z","event":"session_start"}\n';
       }
       return '';
@@ -153,7 +153,7 @@ describe('checkMemoryHealth', () => {
 
   it('reports degraded when decisions.jsonl has corrupt lines', () => {
     mockExistsSync.mockImplementation((path: unknown) => {
-      const p = String(path);
+      const p = String(path).replace(/\\/g, '/');
       return p.includes('.claude/memory') || p.includes('decisions.jsonl');
     });
     mockStatSync.mockReturnValue(mockStat(100));
@@ -168,7 +168,7 @@ describe('checkMemoryHealth', () => {
 
   it('reports mem0 unavailable without API key', () => {
     mockExistsSync.mockImplementation((path: unknown) => {
-      return String(path).includes('.claude/memory');
+      return String(path).replace(/\\/g, '/').includes('.claude/memory');
     });
 
     delete process.env.MEM0_API_KEY;
@@ -198,9 +198,9 @@ describe('checkMemoryHealth', () => {
     mockExistsSync.mockReturnValue(true);
     mockStatSync.mockReturnValue(mockStat(5000));
     mockReadFileSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.toString().includes('graph-queue.jsonl')) return queueLines;
-      if (p.toString().includes('decisions.jsonl')) return '{"type":"decision"}\n';
+      const p = String(path).replace(/\\/g, '/');
+      if (p.includes('graph-queue.jsonl')) return queueLines;
+      if (p.includes('decisions.jsonl')) return '{"type":"decision"}\n';
       return '';
     });
 
@@ -215,11 +215,11 @@ describe('checkMemoryHealth', () => {
     mockExistsSync.mockReturnValue(true);
     mockStatSync.mockReturnValue(mockStat(100));
     mockReadFileSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.toString().includes('mem0-analytics.jsonl')) {
+      const p = String(path).replace(/\\/g, '/');
+      if (p.includes('mem0-analytics.jsonl')) {
         return '{"timestamp":"2025-01-10T08:00:00Z"}\n{"timestamp":"2025-01-15T12:00:00Z"}\n';
       }
-      if (p.toString().includes('decisions.jsonl')) return '{"type":"decision"}\n';
+      if (p.includes('decisions.jsonl')) return '{"type":"decision"}\n';
       return '';
     });
     process.env.MEM0_API_KEY = 'test-key';
