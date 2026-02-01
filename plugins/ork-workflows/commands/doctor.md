@@ -73,7 +73,7 @@ Combined: 38 skills, 2 agents
 **Full ork plugin output:**
 ```
 Installed Plugins: 1
-- ork: 195 skills, 35 agents (includes all domains)
+- ork: 196 skills, 35 agents (includes all domains)
 - ork-core: hooks dependency (22 entries, 11 bundles)
 ```
 
@@ -147,21 +147,29 @@ See [Hook Validation](references/hook-validation.md) for details.
 
 ### 4. Memory System (NEW)
 
-Validates 3-tier memory architecture:
+Validates 3-tier memory architecture with file-level integrity checks:
 
 ```bash
-# Checks performed:
-# - Tier 1 (Graph): .claude/memory/ exists, graph queryable
-# - Tier 2 (Mem0): MEM0_API_KEY detection, fallback behavior
-# - Tier 3 (Fabric): Orchestration health
+# Automated checks:
+# - Tier 1 (Graph): .claude/memory/ exists, decisions.jsonl valid JSONL, queue depth
+# - Tier 2 (Mem0): MEM0_API_KEY detection, mem0-queue.jsonl depth, last sync
+# - Tier 3 (Fabric): Both tiers available, session registry
+
+# Run these commands to gather memory health data:
+wc -l .claude/memory/decisions.jsonl 2>/dev/null || echo "No decisions yet"
+wc -l .claude/memory/graph-queue.jsonl 2>/dev/null || echo "No graph queue"
+wc -l .claude/memory/mem0-queue.jsonl 2>/dev/null || echo "No mem0 queue"
+ls -la .claude/memory/ 2>/dev/null || echo "Memory directory missing"
 ```
+
+Read `.claude/memory/decisions.jsonl` directly to validate JSONL integrity (each line must parse as valid JSON). Count total lines, corrupt lines, and report per-category breakdown.
 
 **Output:**
 ```
 Memory System: healthy
-- Graph Memory: connected (42 nodes)
-- Mem0 Cloud: available (API key detected)
-- Memory Fabric: active
+- Graph Memory: 42 decisions, 0 corrupt, queue depth 3
+- Mem0 Cloud: available (API key detected), queue depth 0
+- Memory Fabric: active (both tiers)
 ```
 
 See [Memory Health](references/memory-health.md) for details.

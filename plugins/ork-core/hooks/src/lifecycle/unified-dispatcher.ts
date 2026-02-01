@@ -31,6 +31,7 @@ import { multiInstanceInit } from './multi-instance-init.js';
 import { instanceHeartbeat } from './instance-heartbeat.js';
 import { sessionEnvSetup } from './session-env-setup.js';
 import { sessionTracking } from './session-tracking.js';
+import { memoryMetricsCollector } from './memory-metrics-collector.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -59,6 +60,7 @@ const HOOKS: HookConfig[] = [
   { name: 'instance-heartbeat', fn: instanceHeartbeat },
   { name: 'session-env-setup', fn: sessionEnvSetup },
   { name: 'session-tracking', fn: sessionTracking },
+  { name: 'memory-metrics-collector', fn: memoryMetricsCollector },
 ];
 
 /** Exposed for registry wiring tests */

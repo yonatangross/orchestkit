@@ -152,7 +152,7 @@ async def stream_analysis_with_tracing(content: str, analysis_id: str):
         yield chunk.content
 
     # Trace automatically captures full response
-    return full_response
+    return
 
 
 # Example 4: Batch processing with tracing

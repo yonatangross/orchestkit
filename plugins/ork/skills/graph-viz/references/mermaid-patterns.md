@@ -1,0 +1,292 @@
+# Mermaid Diagram Patterns for Graph Visualization
+
+Complete reference for the OrchestKit visualization system (GH #246).
+
+## Color Scheme - 8 Entity Types
+
+| Entity Type | Fill | Stroke | Hex Fill | Hex Stroke |
+|------------|------|--------|----------|------------|
+| Decision | Blue | Dark Blue | `#3B82F6` | `#1E40AF` |
+| Preference | Green | Dark Green | `#10B981` | `#047857` |
+| Problem | Red | Dark Red | `#EF4444` | `#B91C1C` |
+| Solution | Bright Green | Forest Green | `#22C55E` | `#15803D` |
+| Technology | Orange | Dark Orange | `#F59E0B` | `#B45309` |
+| Pattern | Purple | Dark Purple | `#8B5CF6` | `#5B21B6` |
+| Tool | Cyan | Dark Cyan | `#06B6D4` | `#0E7490` |
+| Workflow | Pink | Dark Pink | `#EC4899` | `#BE185D` |
+
+## Class Definitions (copy-paste ready)
+
+```mermaid
+classDef decision fill:#3B82F6,stroke:#1E40AF,color:#fff
+classDef preference fill:#10B981,stroke:#047857,color:#fff
+classDef problem fill:#EF4444,stroke:#B91C1C,color:#fff
+classDef solution fill:#22C55E,stroke:#15803D,color:#fff
+classDef tech fill:#F59E0B,stroke:#B45309,color:#fff
+classDef pattern fill:#8B5CF6,stroke:#5B21B6,color:#fff
+classDef tool fill:#06B6D4,stroke:#0E7490,color:#fff
+classDef workflow fill:#EC4899,stroke:#BE185D,color:#fff
+```
+
+## Edge Styles - 8 Relation Types
+
+| Relation | Mermaid Syntax | Color Intent | Semantic |
+|----------|---------------|--------------|----------|
+| CHOSE | `A -->│CHOSE│ B` | Solid (strong positive) | Selected this option |
+| CHOSE_OVER | `A -..->│CHOSE_OVER│ B` | Dashed (rejected) | Rejected alternative |
+| MENTIONS | `A -.->│MENTIONS│ B` | Dotted (weak) | Passive reference |
+| CONSTRAINT | `A -->│CONSTRAINT│ B` | Solid (limiting) | Limits or restricts |
+| TRADEOFF | `A -..->│TRADEOFF│ B` | Dashed (cost) | Acknowledged cost |
+| RELATES_TO | `A -.->│RELATES_TO│ B` | Dotted (general) | General association |
+| SOLVED_BY | `A -->│SOLVED_BY│ B` | Solid (resolution) | Problem resolved |
+| PREFERS | `A -->│PREFERS│ B` | Solid (preference) | Stated preference |
+
+### Edge Categorization
+
+**Strong edges** (solid arrows `-->`):
+- CHOSE, SOLVED_BY, PREFERS, CONSTRAINT
+
+**Rejected/cost edges** (long dashes `-..->`):
+- CHOSE_OVER, TRADEOFF
+
+**Weak edges** (dotted `-.->`)
+- MENTIONS, RELATES_TO
+
+## Node ID Prefixes
+
+| Type | Prefix | Example ID | Label |
+|------|--------|-----------|-------|
+| Decision | `d_` | `d_use_postgresql` | `"Use PostgreSQL"` |
+| Preference | `pref_` | `pref_func_components` | `"Functional components"` |
+| Problem | `prob_` | `prob_n1_query` | `"N+1 query problem"` |
+| Solution | `sol_` | `sol_dataloader` | `"DataLoader batching"` |
+| Technology | `t_` | `t_postgresql` | `"PostgreSQL"` |
+| Pattern | `p_` | `p_cqrs` | `"CQRS"` |
+| Tool | `tool_` | `tool_eslint` | `"ESLint"` |
+| Workflow | `w_` | `w_deploy_pipeline` | `"Deploy pipeline"` |
+
+## Node ID Sanitization
+
+Convert entity names to valid Mermaid IDs:
+
+```
+"PostgreSQL"           -> t_postgresql
+"cursor-pagination"    -> p_cursor_pagination
+"Use PostgreSQL"       -> d_use_postgresql
+"FastAPI v2.0"         -> t_fastapi_v2_0
+"N+1 query problem"   -> prob_n1_query_problem
+"DataLoader batching"  -> sol_dataloader_batching
+"Deploy pipeline v3"   -> w_deploy_pipeline_v3
+```
+
+Rules:
+- Lowercase the name
+- Replace spaces, hyphens, dots with underscores
+- Remove special characters except `[a-z0-9_]`
+- Prefix with type abbreviation
+- Use quoted labels: `id["Human Readable Label"]`
+- Keep labels under 40 characters for readability
+
+## Small Graph Example (< 10 entities)
+
+```mermaid
+graph TD
+    classDef decision fill:#3B82F6,stroke:#1E40AF,color:#fff
+    classDef tech fill:#F59E0B,stroke:#B45309,color:#fff
+    classDef pattern fill:#10B981,stroke:#047857,color:#fff
+
+    d1["Use PostgreSQL"]:::decision
+    t1["PostgreSQL"]:::tech
+    t2["MongoDB"]:::tech
+    p1["cursor-pagination"]:::pattern
+
+    d1 -->|CHOSE| t1
+    d1 -..->|CHOSE_OVER| t2
+    t1 -.->|RELATES_TO| p1
+```
+
+## Medium Graph Example (10-30 entities)
+
+Use subgraphs for organization:
+
+```mermaid
+graph TD
+    classDef decision fill:#3B82F6,stroke:#1E40AF,color:#fff
+    classDef preference fill:#10B981,stroke:#047857,color:#fff
+    classDef problem fill:#EF4444,stroke:#B91C1C,color:#fff
+    classDef solution fill:#22C55E,stroke:#15803D,color:#fff
+    classDef tech fill:#F59E0B,stroke:#B45309,color:#fff
+    classDef pattern fill:#8B5CF6,stroke:#5B21B6,color:#fff
+    classDef tool fill:#06B6D4,stroke:#0E7490,color:#fff
+
+    subgraph Decisions
+        d1["Use PostgreSQL for DB"]:::decision
+        d2["Implement CQRS pattern"]:::decision
+        d3["Choose FastAPI framework"]:::decision
+    end
+
+    subgraph Preferences
+        pref1["Prefer TypeScript strict"]:::preference
+    end
+
+    subgraph Problems
+        prob1["N+1 query in user list"]:::problem
+    end
+
+    subgraph Solutions
+        sol1["DataLoader batching"]:::solution
+    end
+
+    subgraph Technologies
+        t1["PostgreSQL"]:::tech
+        t2["FastAPI"]:::tech
+        t3["Redis"]:::tech
+        t4["MongoDB"]:::tech
+    end
+
+    subgraph Patterns
+        p1["CQRS"]:::pattern
+        p2["Event Sourcing"]:::pattern
+        p3["cursor-pagination"]:::pattern
+    end
+
+    subgraph Tools
+        tool1["ESLint"]:::tool
+        tool2["Docker"]:::tool
+    end
+
+    d1 -->|CHOSE| t1
+    d1 -..->|CHOSE_OVER| t4
+    d2 -->|CHOSE| p1
+    d3 -->|CHOSE| t2
+    pref1 -->|PREFERS| tool1
+    prob1 -->|SOLVED_BY| sol1
+    prob1 -->|CONSTRAINT| t1
+    p1 -.->|RELATES_TO| p2
+    t1 -.->|RELATES_TO| p3
+    t2 -.->|RELATES_TO| t3
+    sol1 -.->|MENTIONS| t3
+    d2 -..->|TRADEOFF| p2
+```
+
+## Large Graph Example (30+ entities)
+
+For large graphs, truncate to most-connected entities:
+
+1. Count connections per entity (in-degree + out-degree)
+2. Keep top N entities by connection count (default: 50)
+3. Switch to `graph LR` for wide graphs
+4. Add note: *"Showing 50 of 120 entities (most connected)"*
+
+```mermaid
+graph LR
+    classDef decision fill:#3B82F6,stroke:#1E40AF,color:#fff
+    classDef tech fill:#F59E0B,stroke:#B45309,color:#fff
+    classDef pattern fill:#8B5CF6,stroke:#5B21B6,color:#fff
+
+    note["Showing 15 of 85 entities (most connected)"]
+
+    subgraph Core Decisions
+        d1["Use PostgreSQL"]:::decision
+        d2["Adopt CQRS"]:::decision
+        d3["Choose FastAPI"]:::decision
+    end
+
+    subgraph Key Technologies
+        t1["PostgreSQL"]:::tech
+        t2["FastAPI"]:::tech
+        t3["Redis"]:::tech
+        t4["Kafka"]:::tech
+    end
+
+    subgraph Key Patterns
+        p1["CQRS"]:::pattern
+        p2["Event Sourcing"]:::pattern
+    end
+
+    d1 -->|CHOSE| t1
+    d2 -->|CHOSE| p1
+    d3 -->|CHOSE| t2
+    p1 -.->|RELATES_TO| p2
+    t2 -.->|RELATES_TO| t3
+    t3 -.->|RELATES_TO| t4
+```
+
+For very large graphs (100+ relations), collapse weak relations:
+```
+Hiding 45 weak relations (MENTIONS, RELATES_TO). Use --relation all to show all edges.
+```
+
+## Complete Template
+
+Full copy-paste template for generating a graph visualization:
+
+```mermaid
+graph TD
+    %% === Entity Type Styles (8 types) ===
+    classDef decision fill:#3B82F6,stroke:#1E40AF,color:#fff
+    classDef preference fill:#10B981,stroke:#047857,color:#fff
+    classDef problem fill:#EF4444,stroke:#B91C1C,color:#fff
+    classDef solution fill:#22C55E,stroke:#15803D,color:#fff
+    classDef tech fill:#F59E0B,stroke:#B45309,color:#fff
+    classDef pattern fill:#8B5CF6,stroke:#5B21B6,color:#fff
+    classDef tool fill:#06B6D4,stroke:#0E7490,color:#fff
+    classDef workflow fill:#EC4899,stroke:#BE185D,color:#fff
+
+    %% === Subgraphs by Entity Type ===
+    subgraph Decisions
+        %% d_<id>["Label"]:::decision
+    end
+
+    subgraph Preferences
+        %% pref_<id>["Label"]:::preference
+    end
+
+    subgraph Problems
+        %% prob_<id>["Label"]:::problem
+    end
+
+    subgraph Solutions
+        %% sol_<id>["Label"]:::solution
+    end
+
+    subgraph Technologies
+        %% t_<id>["Label"]:::tech
+    end
+
+    subgraph Patterns
+        %% p_<id>["Label"]:::pattern
+    end
+
+    subgraph Tools
+        %% tool_<id>["Label"]:::tool
+    end
+
+    subgraph Workflows
+        %% w_<id>["Label"]:::workflow
+    end
+
+    %% === Relations (8 types) ===
+    %% Strong: CHOSE, SOLVED_BY, PREFERS, CONSTRAINT
+    %% src -->|CHOSE| dst
+    %% src -->|SOLVED_BY| dst
+    %% src -->|PREFERS| dst
+    %% src -->|CONSTRAINT| dst
+
+    %% Rejected/Cost: CHOSE_OVER, TRADEOFF
+    %% src -..->|CHOSE_OVER| dst
+    %% src -..->|TRADEOFF| dst
+
+    %% Weak: MENTIONS, RELATES_TO
+    %% src -.->|MENTIONS| dst
+    %% src -.->|RELATES_TO| dst
+```
+
+## Rendering Notes
+
+- Mermaid diagrams render in GitHub, VS Code, and most Markdown viewers
+- Keep node labels under 40 characters for readability
+- Use `graph TD` (top-bottom) for hierarchical graphs
+- Use `graph LR` (left-right) for sequential/timeline or very wide graphs
+- Empty subgraphs should be omitted from output
+- Self-referential edges (entity -> itself) should be excluded

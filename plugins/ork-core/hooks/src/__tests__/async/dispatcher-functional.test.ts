@@ -27,9 +27,10 @@ const mocks = vi.hoisted(() => {
     skillEditTracker: fn(), coordinationHeartbeat: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
-    // lifecycle (6)
+    // lifecycle (7)
     mem0ContextRetrieval: fn(), mem0AnalyticsTracker: fn(), patternSyncPull: fn(),
     multiInstanceInit: fn(), instanceHeartbeat: fn(), sessionEnvSetup: fn(),
+    memoryMetricsCollector: fn(),
     // stop (4)
     autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
     // subagent-stop (4)
@@ -76,6 +77,7 @@ vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.
 vi.mock('../../lifecycle/multi-instance-init.js', () => ({ multiInstanceInit: mocks.multiInstanceInit }));
 vi.mock('../../lifecycle/instance-heartbeat.js', () => ({ instanceHeartbeat: mocks.instanceHeartbeat }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
+vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
 
 // stop hooks
 vi.mock('../../stop/auto-save-context.js', () => ({ autoSaveContext: mocks.autoSaveContext }));
@@ -170,6 +172,7 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'multi-instance-init': mocks.multiInstanceInit,
   'instance-heartbeat': mocks.instanceHeartbeat,
   'session-env-setup': mocks.sessionEnvSetup,
+  'memory-metrics-collector': mocks.memoryMetricsCollector,
 };
 
 const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
@@ -440,7 +443,7 @@ describe('Dispatcher Functional Tests', () => {
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/7 hooks failed'),
+        expect.stringContaining('1/8 hooks failed'),
       );
     });
 

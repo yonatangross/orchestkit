@@ -90,6 +90,7 @@ describe('Dispatcher Registry Wiring', () => {
         'instance-heartbeat',
         'session-env-setup',
         'session-tracking',
+        'memory-metrics-collector',
       ]);
     });
   });
@@ -212,8 +213,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 17, lifecycle: 7, stop: 29 (Issue #243: all stop hooks consolidated), subagent-stop: 4, notification: 2, setup: 3
-      expect(total).toBe(62);
+      // posttool: 17, lifecycle: 8, stop: 29 (Issue #243: all stop hooks consolidated), subagent-stop: 4, notification: 2, setup: 3
+      expect(total).toBe(63);
     });
   });
 });

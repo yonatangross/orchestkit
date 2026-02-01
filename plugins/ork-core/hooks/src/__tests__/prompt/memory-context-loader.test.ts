@@ -401,8 +401,9 @@ describe('prompt/memory-context-loader', () => {
       const input = createInput({ project_dir: '/custom/project' });
       memoryContextLoader(input);
 
+      // Cross-platform: accept either / or \ path separators
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('/custom/project/.claude/memory/decisions.jsonl')
+        expect.stringMatching(/[/\\]custom[/\\]project[/\\]\.claude[/\\]memory[/\\]decisions\.jsonl/)
       );
     });
 
@@ -413,8 +414,9 @@ describe('prompt/memory-context-loader', () => {
       delete (input as Record<string, unknown>).project_dir;
       memoryContextLoader(input);
 
+      // Cross-platform: accept either / or \ path separators
       expect(mockExistsSync).toHaveBeenCalledWith(
-        expect.stringContaining('/test/project/.claude/memory/decisions.jsonl')
+        expect.stringMatching(/[/\\]test[/\\]project[/\\]\.claude[/\\]memory[/\\]decisions\.jsonl/)
       );
     });
   });

@@ -447,8 +447,9 @@ describe('prompt/capture-user-intent', () => {
       const input = createPromptInput('Getting an import error in the main module');
       captureUserIntent(input);
 
+      // Cross-platform: accept / or \ path separators
       expect(mockMkdirSync).toHaveBeenCalledWith(
-        expect.stringContaining('.claude/memory'),
+        expect.stringMatching(/\.claude[/\\]memory/),
         { recursive: true }
       );
     });
