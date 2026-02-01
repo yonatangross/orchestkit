@@ -154,7 +154,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 23 | `user-invocable: true` | User runs via `/ork:name` |
+| Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
 | Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
@@ -252,7 +252,7 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 
 ## Version
 
-- **Current**: 5.5.0
+- **Current**: 5.6.0
 - **Claude Code**: >= 2.1.27
 - **Hooks**: 120 entries (92 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 

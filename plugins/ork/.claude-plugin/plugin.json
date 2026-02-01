@@ -10,14 +10,6 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": [
-    "ai-development",
-    "langgraph",
-    "fastapi",
-    "react",
-    "typescript",
-    "python",
-    "multi-agent"
-  ],
-  "skills": "./skills/"
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
 }

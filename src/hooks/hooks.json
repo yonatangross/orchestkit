@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 91 global entries + 28 agent/skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 92 global entries + 28 agent/skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {

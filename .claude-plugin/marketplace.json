@@ -15,7 +15,7 @@
     {
       "name": "ork-core",
       "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Context engineering, architecture decisions, project structure. Required for all other OrchestKit plugins.",
-      "version": "5.6.0",
+      "version": "5.5.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -290,7 +290,7 @@
     {
       "name": "ork",
       "description": "Complete AI development toolkit with 196 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 35 specialized agents and 120 lifecycle hooks.",
-      "version": "5.5.0",
+      "version": "5.6.0",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
