@@ -107,7 +107,7 @@ window.ORCHESTKIT_DATA = {
       hooks: 0, color: "#8b5cf6", required: false },
 
     { name: "ork-memory-graph", description: "Knowledge graph memory - remember, recall, load-context", fullDescription: "Zero-config knowledge graph memory that always works. Store decisions, patterns, and context as graph entities. Recall by semantic search. Auto-load relevant context at session start.", category: "development", version: "1.0.0",
-      skills: ["remember","recall","load-context"],
+      skills: ["remember","recall","load-context","graph-viz"],
       agents: [],
       commands: ["remember","recall","load-context"],
       hooks: 0, color: "#8b5cf6", required: false },
