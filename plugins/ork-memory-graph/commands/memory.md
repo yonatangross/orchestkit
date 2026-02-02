@@ -11,7 +11,7 @@ allowed-tools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nod
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
-## Quick Start
+## Usage
 
 ```bash
 /ork:memory search <query>  # Search knowledge graph

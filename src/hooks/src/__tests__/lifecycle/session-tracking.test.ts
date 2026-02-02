@@ -40,7 +40,7 @@ import { trackSessionStart } from '../../lib/session-tracker.js';
 // Test Setup
 // =============================================================================
 
-let TEST_PROJECT_DIR: string;
+const TEST_PROJECT_DIR = join(tmpdir(), 'session-tracking-test');
 
 /**
  * Create realistic HookInput for testing

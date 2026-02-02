@@ -14,7 +14,7 @@ plugin: ork-memory-graph
 
 Unified read-side memory skill with subcommands for searching, loading, syncing, history, and visualization.
 
-## Quick Start
+## Usage
 
 ```bash
 /ork:memory search <query>  # Search knowledge graph

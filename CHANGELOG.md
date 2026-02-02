@@ -42,6 +42,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `rag-retrieval` — LangGraph 1.0 API updates
   - `alternative-agent-frameworks` — OpenAI Agents SDK 0.7.0, CrewAI 1.8.x
 
+### Fixed
+
+- `memory/SKILL.md` — Renamed "Quick Start" to "Usage" for test validation
+- `implement/SKILL.md` — Reduced from 527 to 474 lines (under 500 limit)
+- `data.js` — Regenerated with correct version 5.7.0
+- `session-tracking.test.ts` — Fixed TEST_PROJECT_DIR initialization
+
 ---
 
 ## [5.6.2] - 2026-02-02
@@ -365,7 +372,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Minor hook registration fixes for CC 2.1.19 compatibility
 
 ---
 
@@ -490,7 +497,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Hotfix for skill frontmatter validation in build pipeline
 
 ---
 
