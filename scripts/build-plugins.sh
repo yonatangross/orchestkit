@@ -33,7 +33,7 @@ TOTAL_AGENTS_COPIED=0
 TOTAL_COMMANDS_GENERATED=0
 
 echo -e "${CYAN}============================================================${NC}"
-echo -e "${CYAN}        OrchestKit Plugin Build System v2.1.0${NC}"
+echo -e "${CYAN}        OrchestKit Plugin Build System v2.2.0${NC}"
 echo -e "${CYAN}============================================================${NC}"
 echo ""
 
@@ -79,7 +79,7 @@ generate_command_from_skill() {
 # ============================================================================
 # Phase 1: Validate Environment
 # ============================================================================
-echo -e "${BLUE}[1/7] Validating environment...${NC}"
+echo -e "${BLUE}[1/8] Validating environment...${NC}"
 
 if [[ ! -d "$SRC_DIR" ]]; then
     echo -e "${RED}Error: src/ directory not found${NC}"
@@ -104,7 +104,7 @@ echo ""
 # ============================================================================
 # Phase 2: Clean Previous Build
 # ============================================================================
-echo -e "${BLUE}[2/7] Cleaning previous build...${NC}"
+echo -e "${BLUE}[2/8] Cleaning previous build...${NC}"
 
 rm -rf "$PLUGINS_DIR"
 mkdir -p "$PLUGINS_DIR"
@@ -114,7 +114,7 @@ echo ""
 # ============================================================================
 # Phase 3: Build Plugins from Manifests
 # ============================================================================
-echo -e "${BLUE}[3/7] Building plugins from manifests...${NC}"
+echo -e "${BLUE}[3/8] Building plugins from manifests...${NC}"
 echo ""
 
 CURRENT=0
@@ -246,7 +246,7 @@ echo ""
 # ============================================================================
 # Phase 4: Validate Built Plugins
 # ============================================================================
-echo -e "${BLUE}[4/7] Validating built plugins...${NC}"
+echo -e "${BLUE}[4/8] Validating built plugins...${NC}"
 
 VALIDATION_ERRORS=0
 
@@ -288,7 +288,7 @@ echo ""
 # ============================================================================
 # Phase 5: Validate Plugin Dependencies
 # ============================================================================
-echo -e "${BLUE}[5/7] Validating plugin dependencies...${NC}"
+echo -e "${BLUE}[5/8] Validating plugin dependencies...${NC}"
 
 DEP_WARNINGS=0
 DEP_CHECKED=0
@@ -325,9 +325,22 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 6: Sync marketplace.json versions from manifests
+# Phase 6: Generate Passive Indexes (Tier 1 + Tier 2)
 # ============================================================================
-echo -e "${BLUE}[6/7] Syncing marketplace.json...${NC}"
+echo -e "${BLUE}[6/8] Generating passive indexes...${NC}"
+
+if [[ -x "$SCRIPT_DIR/generate-indexes.sh" ]]; then
+    bash "$SCRIPT_DIR/generate-indexes.sh"
+else
+    echo -e "${YELLOW}  generate-indexes.sh not found or not executable, skipping${NC}"
+fi
+
+echo ""
+
+# ============================================================================
+# Phase 7: Sync marketplace.json versions from manifests
+# ============================================================================
+echo -e "${BLUE}[7/8] Syncing marketplace.json...${NC}"
 
 MARKETPLACE_FILE="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_FILE" ]]; then
@@ -360,9 +373,9 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 7: Summary
+# Phase 8: Summary
 # ============================================================================
-echo -e "${BLUE}[7/7] Build Summary${NC}"
+echo -e "${BLUE}[8/8] Build Summary${NC}"
 echo ""
 echo -e "${CYAN}============================================================${NC}"
 echo -e "${CYAN}                    BUILD COMPLETE${NC}"

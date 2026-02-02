@@ -151,6 +151,7 @@ if [[ "$RUN_LINT" == "true" ]]; then
     echo ""
 
     run_test "Static Analysis Suite" "$SCRIPT_DIR/ci/lint.sh" || true
+    run_test "Passive Index Generation" "$SCRIPT_DIR/indexes/test-index-generation.sh" || true
 fi
 
 # ============================================================
