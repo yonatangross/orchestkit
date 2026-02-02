@@ -615,14 +615,13 @@ describe('structure-location-validator', () => {
     });
 
     test('handles Windows-style paths', () => {
-      // Arrange
-      const input = createWriteInput('C:\\project\\src\\utils\\Button.tsx');
+      // Arrange - use a valid location (components/) so structure rules pass
+      const input = createWriteInput('C:\\project\\src\\components\\Button.tsx');
 
       // Act
       const result = structureLocationValidator(input);
 
-      // Assert
-      // Path parsing uses forward slashes, so Windows paths need normalization
+      // Assert - Windows backslash paths are normalized and validated correctly
       expect(result.continue).toBe(true);
     });
 

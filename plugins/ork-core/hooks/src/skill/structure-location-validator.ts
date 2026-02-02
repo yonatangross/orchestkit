@@ -19,8 +19,11 @@ export function structureLocationValidator(input: HookInput): HookResult {
   const guard = guardCodeFiles(input);
   if (guard) return guard;
 
-  const filePath = input.tool_input.file_path || '';
-  if (!filePath) return outputSilentSuccess();
+  const rawPath = input.tool_input.file_path || '';
+  if (!rawPath) return outputSilentSuccess();
+
+  // Normalize to forward slashes so all rules work on Windows paths too
+  const filePath = rawPath.replace(/\\/g, '/');
 
   const errors: string[] = [];
   const filename = basename(filePath);
