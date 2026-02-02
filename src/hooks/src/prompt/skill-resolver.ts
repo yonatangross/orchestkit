@@ -17,7 +17,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook, getPluginRoot, estimateTokenCount } from '../lib/common.js';
+import { outputSilentSuccess, outputWithNotification, logHook, getPluginRoot, estimateTokenCount, normalizeLineEndings } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -74,8 +74,7 @@ function loadCompressedSkillContent(skillName: string, maxTokens: number): strin
   }
 
   try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    let content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
+    let content = normalizeLineEndings(readFileSync(skillFile, 'utf8'));
 
     // Remove frontmatter
     const frontmatterMatch = content.match(/^---\n[\s\S]*?\n---\n/);
@@ -129,8 +128,7 @@ function getSkillDescription(skillName: string): string {
   if (!existsSync(skillFile)) return '';
 
   try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
+    const content = normalizeLineEndings(readFileSync(skillFile, 'utf8'));
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const descMatch = frontmatterMatch[1].match(/^description:\s*(.+)$/m);
@@ -140,32 +138,6 @@ function getSkillDescription(skillName: string): string {
     // Ignore
   }
   return '';
-}
-
-/**
- * Extract 3 key bullet points from skill content for summary tier
- */
-function extractKeyBullets(skillName: string): string[] {
-  const pluginRoot = getPluginRoot();
-  const skillFile = join(pluginRoot, 'skills', skillName, 'SKILL.md');
-
-  if (!existsSync(skillFile)) return [];
-
-  try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
-    const bullets: string[] = [];
-    const headings = content.match(/^## .+$/gm) || [];
-    for (const h of headings.slice(0, 3)) {
-      const text = h.replace(/^## /, '').trim();
-      if (text && text !== 'References' && text.length < 80) {
-        bullets.push(text);
-      }
-    }
-    return bullets.slice(0, 3);
-  } catch {
-    return [];
-  }
 }
 
 // -----------------------------------------------------------------------------
@@ -221,38 +193,6 @@ function buildHintContext(skills: SimpleSkillMatch[]): string {
   if (skills.length === 0) return '';
   const names = skills.map(s => s.skill).join(', ');
   return `Related skills available: ${names}. Use /ork:<skill> if needed.`;
-}
-
-// Legacy message builders (kept for backward compatibility if needed)
-function buildHintMessage(skills: SimpleSkillMatch[]): string {
-  if (skills.length === 0) return '';
-  const lines = skills.map(s => '- **' + s.skill + '** \u2014 Use `/ork:' + s.skill + '` to load');
-  return '## Skill Hints\n\n' + lines.join('\n');
-}
-
-function buildSummaryMessage(skills: SimpleSkillMatch[]): string {
-  if (skills.length === 0) return '';
-  let message = '## Relevant Skills\n\n';
-  for (const { skill } of skills) {
-    const desc = getSkillDescription(skill);
-    const bullets = extractKeyBullets(skill);
-    message += '### ' + skill + '\n';
-    if (desc) message += desc + '\n';
-    if (bullets.length > 0) {
-      message += bullets.map(b => '- ' + b).join('\n') + '\n';
-    }
-    message += 'Use `/ork:' + skill + '` to load full content.\n\n';
-  }
-  return message.trim();
-}
-
-function buildFullInjectionMessage(skills: Array<{ skill: string; content: string }>): string {
-  if (skills.length === 0) return '';
-  let message = '## Relevant Patterns Loaded\n\n';
-  for (const { skill, content } of skills) {
-    message += '### ' + skill + '\n\n' + content + '\n\n---\n\n';
-  }
-  return message.trim();
 }
 
 // -----------------------------------------------------------------------------
@@ -357,23 +297,7 @@ export function skillResolver(input: HookInput): HookResult {
     '(~' + estimateTokenCount(fullContext) + 't context)');
 
   // Return with appropriate channels (Issue #278: systemMessage + additionalContext)
-  const hookResult: HookResult = {
-    continue: true,
-    suppressOutput: true,
-  };
-
-  if (userMessage) {
-    hookResult.systemMessage = userMessage;
-  }
-
-  if (fullContext) {
-    hookResult.hookSpecificOutput = {
-      hookEventName: 'UserPromptSubmit',
-      additionalContext: fullContext,
-    };
-  }
-
-  return hookResult;
+  return outputWithNotification(userMessage || undefined, fullContext || undefined);
 }
 
 // -----------------------------------------------------------------------------
