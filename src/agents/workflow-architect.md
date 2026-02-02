@@ -1,6 +1,7 @@
 ---
 name: workflow-architect
 description: Multi-agent workflow specialist who designs LangGraph pipelines, implements supervisor-worker patterns, manages state and checkpointing, and orchestrates RAG retrieval flows for complex AI systems. Auto-activates for LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent
+category: llm
 model: opus
 context: fork
 color: blue

@@ -1,6 +1,7 @@
 ---
 name: deployment-manager
 description: Release and deployment specialist who manages production releases, rollback procedures, feature flags, and blue-green deployments. Focuses on zero-downtime deployments and incident response. Auto Mode keywords - deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production, rollout, incident
+category: devops
 model: inherit
 context: fork
 color: green

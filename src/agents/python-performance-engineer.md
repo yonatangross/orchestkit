@@ -1,6 +1,7 @@
 ---
 name: python-performance-engineer
 description: Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1
+category: backend
 model: opus
 context: fork
 color: orange

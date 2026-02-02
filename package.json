@@ -1,6 +1,6 @@
 {
   "name": "orchestkit",
-  "version": "5.5.0",
+  "version": "5.6.2",
   "description": "OrchestKit Claude Plugin - AI-assisted development toolkit",
   "scripts": {
     "build": "bash scripts/build-plugins.sh",
@@ -17,6 +17,7 @@
     "test:manifests:deps": "bash tests/manifests/test-manifest-dependencies.sh",
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
+    "test:indexes": "bash tests/indexes/test-index-generation.sh",
     "test:playgrounds": "bash tests/playgrounds/test-data-freshness.sh && bash tests/playgrounds/test-data-accuracy.sh",
     "test:playgrounds:freshness": "bash tests/playgrounds/test-data-freshness.sh",
     "test:playgrounds:accuracy": "bash tests/playgrounds/test-data-accuracy.sh"
