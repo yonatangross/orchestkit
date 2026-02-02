@@ -325,7 +325,7 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 6: Sync marketplace.json versions and dependencies from manifests
+# Phase 6: Sync marketplace.json versions from manifests
 # ============================================================================
 echo -e "${BLUE}[6/7] Syncing marketplace.json...${NC}"
 
@@ -334,13 +334,11 @@ if [[ -f "$MARKETPLACE_FILE" ]]; then
   # Use the top-level project version for ALL plugin entries
   PROJECT_VERSION=$(jq -r '.version' "$MARKETPLACE_FILE")
   VER_SYNC_COUNT=0
-  DEP_SYNC_COUNT=0
 
   for manifest in "$MANIFESTS_DIR"/*.json; do
     PLUGIN_NAME=$(jq -r '.name' "$manifest")
-    MANIFEST_DEPS=$(jq -c '.dependencies // []' "$manifest")
 
-    # 1) Set version to project version
+    # Set version to project version
     CURRENT_VERSION=$(jq -r --arg name "$PLUGIN_NAME" '.plugins[] | select(.name == $name) | .version' "$MARKETPLACE_FILE" 2>/dev/null || echo "")
     if [[ -n "$CURRENT_VERSION" && "$CURRENT_VERSION" != "$PROJECT_VERSION" ]]; then
       jq --arg name "$PLUGIN_NAME" --arg ver "$PROJECT_VERSION" \
@@ -348,20 +346,13 @@ if [[ -f "$MARKETPLACE_FILE" ]]; then
         "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
       VER_SYNC_COUNT=$((VER_SYNC_COUNT + 1))
     fi
-
-    # 2) Propagate dependencies from manifest
-    HAS_DEPS=$(jq --arg name "$PLUGIN_NAME" '[.plugins[] | select(.name == $name)] | .[0] | has("deps")' "$MARKETPLACE_FILE" 2>/dev/null || echo "false")
-    CURRENT_DEPS=$(jq -c --arg name "$PLUGIN_NAME" '(.plugins[] | select(.name == $name)).deps // []' "$MARKETPLACE_FILE" 2>/dev/null || echo "[]")
-    if [[ "$HAS_DEPS" != "true" || "$CURRENT_DEPS" != "$MANIFEST_DEPS" ]]; then
-      jq --arg name "$PLUGIN_NAME" --argjson deps "$MANIFEST_DEPS" \
-        '(.plugins[] | select(.name == $name)).deps = $deps' \
-        "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
-      DEP_SYNC_COUNT=$((DEP_SYNC_COUNT + 1))
-    fi
   done
 
+  # NOTE: Dependencies are tracked in manifests/*.json for internal use only.
+  # They must NOT be written to marketplace.json — Claude Code's schema validator
+  # rejects unrecognized keys like "deps".
+
   echo -e "${GREEN}  Versions: synced $VER_SYNC_COUNT to $PROJECT_VERSION${NC}"
-  echo -e "${GREEN}  Dependencies: synced $DEP_SYNC_COUNT from manifests${NC}"
 else
   echo -e "${YELLOW}  No marketplace.json found, skipping${NC}"
 fi

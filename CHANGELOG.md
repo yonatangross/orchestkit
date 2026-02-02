@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.6.2] - 2026-02-02
+
+### Fixed
+
+- **Critical**: Remove `"deps"` key from marketplace.json that caused "Invalid schema: Unrecognized key: deps" errors on all 26 plugins when installing via `/plugin`
+- Remove dependency propagation from build script (deps stay in manifests for internal use only)
+- Upgrade marketplace schema test from denylist to allowlist validation to catch any future unrecognized keys
+
+---
+
+
 ## [5.6.1] - 2026-02-02
 
 ### Fixed

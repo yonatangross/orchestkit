@@ -1,6 +1,6 @@
 {
   "name": "ork-git",
-  "version": "5.6.1",
+  "version": "5.6.2",
   "description": "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs",
   "dependencies": [
     "ork-core"
