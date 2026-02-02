@@ -6,6 +6,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { basename } from 'node:path';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
@@ -55,7 +56,7 @@ function isSqlite3Available(): boolean {
  * Generate unique instance ID
  */
 function generateInstanceId(projectDir: string): string {
-  const worktreeName = projectDir.split('/').pop() || 'unknown';
+  const worktreeName = basename(projectDir) || 'unknown';
   const timestamp = new Date().toISOString().replace(/[-:T.Z]/g, '').slice(0, 14);
   const random = Math.random().toString(16).substring(2, 10);
   return `${worktreeName}-${timestamp}-${random}`;
@@ -115,7 +116,7 @@ function createInstanceIdentity(projectDir: string, instanceId: string): Instanc
 
   const identity: InstanceIdentity = {
     instance_id: instanceId,
-    worktree_name: projectDir.split('/').pop() || 'unknown',
+    worktree_name: basename(projectDir) || 'unknown',
     worktree_path: projectDir,
     branch,
     capabilities,
