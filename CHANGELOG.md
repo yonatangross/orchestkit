@@ -5,6 +5,17 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.6.1] - 2026-02-02
+
+### Fixed
+
+- Build script syncs all marketplace.json plugin versions to the project version (eliminates version drift)
+- Build script propagates `dependencies` from manifests into marketplace.json `deps` fields
+- Version bump script now updates all 26 manifests (prevents build from overwriting bumped versions)
+
+---
+
+
 ## [5.6.0] - 2026-02-01
 
 ### Added

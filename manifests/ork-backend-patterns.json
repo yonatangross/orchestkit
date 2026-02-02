@@ -1,8 +1,10 @@
 {
   "name": "ork-backend-patterns",
-  "version": "5.3.0",
+  "version": "5.6.1",
   "description": "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC",
-  "dependencies": ["ork-core"],
+  "dependencies": [
+    "ork-core"
+  ],
   "skills": [
     "clean-architecture",
     "domain-driven-design",
