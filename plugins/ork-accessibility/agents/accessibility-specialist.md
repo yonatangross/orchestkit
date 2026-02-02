@@ -1,6 +1,7 @@
 ---
 name: accessibility-specialist
 description: Accessibility expert who audits and implements WCAG 2.2 compliance, screen reader compatibility, and keyboard navigation patterns. Focuses on inclusive design, ARIA patterns, and automated a11y testing. Auto Mode keywords - accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, inclusive design, contrast, focus management
+category: frontend
 model: inherit
 context: fork
 color: blue
@@ -22,7 +23,7 @@ skills:
   - e2e-testing
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.
@@ -240,3 +241,18 @@ Task: "Audit and fix login form accessibility"
 - **Receives from:** frontend-ui-developer (components), rapid-ui-designer (designs)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
 - **Skill references:** wcag-compliance, a11y-testing, design-system-starter
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for accessibility-specialist]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|wcag-compliance:{SKILL.md,references/{wcag-criteria.md}}|accessibility,wcag,a11y,aria,screen-reader,compliance
+|a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
+|focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
+```

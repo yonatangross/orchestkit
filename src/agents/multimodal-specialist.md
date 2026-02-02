@@ -1,6 +1,7 @@
 ---
 name: multimodal-specialist
 description: Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.
+category: llm
 model: inherit
 context: fork
 color: magenta
@@ -20,7 +21,7 @@ skills:
   - llm-streaming
   - embeddings
   - task-dependency-patterns
-  - recall
+  - memory
   - remember
 ---
 

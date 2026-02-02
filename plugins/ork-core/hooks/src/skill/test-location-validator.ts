@@ -7,6 +7,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
+import { basename } from 'node:path';
 
 /**
  * Check if file is a test file
@@ -33,7 +34,7 @@ export function testLocationValidator(input: HookInput): HookResult {
   const filePath = input.tool_input.file_path || '';
   if (!filePath) return outputSilentSuccess();
 
-  const filename = filePath.split('/').pop() || '';
+  const filename = basename(filePath);
   const isTest = isTestFile(filePath);
 
   // Rule 1: Test files MUST be in test directories

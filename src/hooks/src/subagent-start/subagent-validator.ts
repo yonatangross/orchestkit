@@ -10,7 +10,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 
@@ -258,7 +258,7 @@ ${hasBash ? '> This agent requests Bash access. Review commands carefully.\n' : 
 
 function logSpawn(subagentType: string, description: string, sessionId: string): void {
   const trackingLog = getTrackingLog();
-  const dir = trackingLog.substring(0, trackingLog.lastIndexOf('/'));
+  const dir = dirname(trackingLog);
 
   try {
     mkdirSync(dir, { recursive: true });

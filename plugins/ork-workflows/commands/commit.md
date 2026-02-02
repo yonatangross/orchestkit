@@ -1,5 +1,5 @@
 ---
-description: Creates git commits with conventional format, branch protection, and pre-commit validation. Use when committing changes, staging files, generating commit messages, saving changes, or pushing changes.
+description: "[GIT] Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 allowed-tools: [Bash]
 ---
 

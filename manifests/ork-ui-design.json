@@ -1,6 +1,6 @@
 {
   "name": "ork-ui-design",
-  "version": "5.6.2",
+  "version": "5.7.0",
   "description": "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns",
   "dependencies": [
     "ork-core"

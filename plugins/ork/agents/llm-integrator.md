@@ -1,6 +1,7 @@
 ---
 name: llm-integrator
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.
+category: llm
 model: inherit
 context: fork
 color: orange
@@ -28,7 +29,7 @@ skills:
   - ollama-local
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
@@ -67,7 +68,7 @@ Return structured integration report:
 {
   "integration": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-20250514",
+    "model": "claude-sonnet-4-5-20251101",
     "sdk_version": "0.40.0"
   },
   "endpoints_created": [
@@ -85,7 +86,7 @@ Return structured integration report:
     "cache_type": "ephemeral",
     "estimated_savings": "72%"
   },
-  "fallback_chain": ["claude-sonnet-4", "gpt-4o", "ollama/llama3"],
+  "fallback_chain": ["claude-sonnet-4", "gpt-5.2", "ollama/llama3"],
   "rate_limiting": {
     "requests_per_minute": 60,
     "tokens_per_minute": 100000
@@ -132,8 +133,8 @@ PROVIDERS = {
         "client": Anthropic(),
         "models": {
             "fast": "claude-haiku-3-5-20241022",
-            "balanced": "claude-sonnet-4-20250514",
-            "powerful": "claude-opus-4-20250514"
+            "balanced": "claude-sonnet-4-5-20251101",
+            "powerful": "claude-opus-4-5-20251101"
         },
         "supports_caching": True,
         "supports_streaming": True
@@ -141,8 +142,8 @@ PROVIDERS = {
     "openai": {
         "client": OpenAI(),
         "models": {
-            "fast": "gpt-4o-mini",
-            "balanced": "gpt-4o",
+            "fast": "gpt-5.2-mini",
+            "balanced": "gpt-5.2",
             "powerful": "o1"
         },
         "supports_caching": False,
@@ -150,7 +151,7 @@ PROVIDERS = {
     },
     "ollama": {
         "base_url": "http://localhost:11434",
-        "models": {"balanced": "llama3.2"},
+        "models": {"balanced": "llama3.3"},
         "supports_caching": False,
         "supports_streaming": True
     }
@@ -161,7 +162,7 @@ PROVIDERS = {
 ```python
 async def stream_completion(
     prompt: str,
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "claude-sonnet-4-5-20251101"
 ) -> AsyncIterator[str]:
     """Stream LLM response as SSE events."""
     async with client.messages.stream(
@@ -235,3 +236,31 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
 - **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for llm-integrator]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
+|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api,2026
+|prompt-caching:{SKILL.md}|llm,caching,cost-optimization,anthropic
+|semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,2026
+|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
+|llm-safety-patterns:{SKILL.md,references/{context-separation.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,prompt-audit.md}}|ai,safety,guardrails,security,llm
+|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse,2026
+|fine-tuning-customization:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,synthetic-data.md,when-to-finetune.md}}|fine-tuning,lora,qlora,dpo,synthetic-data,rlhf,2026
+|high-performance-inference:{SKILL.md,references/{edge-deployment.md,quantization-guide.md,speculative-decoding.md,vllm-deployment.md}}|vllm,quantization,inference,performance,edge,speculative,2026
+|mcp-advanced-patterns:{SKILL.md,references/{resource-management.md,scaling-strategies.md,server-building-advanced.md,tool-composition.md}}|mcp,tools,resources,scaling,servers,composition,2026
+|ollama-local:{SKILL.md,references/{model-selection.md}}|llm,ollama,local,self-hosted
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

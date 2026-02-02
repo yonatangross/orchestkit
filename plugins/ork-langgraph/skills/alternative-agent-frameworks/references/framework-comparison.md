@@ -76,7 +76,7 @@ agent = AssistantAgent(name="assistant", llm_config=config)
 # MS Agent Framework (new)
 from autogen_agentchat.agents import AssistantAgent
 from autogen_ext.models.openai import OpenAIChatCompletionClient
-model_client = OpenAIChatCompletionClient(model="gpt-4o")
+model_client = OpenAIChatCompletionClient(model="gpt-5.2")
 agent = AssistantAgent(name="assistant", model_client=model_client)
 ```
 

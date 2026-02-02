@@ -71,7 +71,7 @@ from anthropic import AsyncAnthropic
 async def call_claude_with_prompt_cache(
     system_prompt: str,
     user_message: str,
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "claude-sonnet-4-5-20251101"
 ) -> str:
     """Call Claude with prompt caching for system prompts."""
 

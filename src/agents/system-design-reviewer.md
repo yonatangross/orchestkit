@@ -1,6 +1,7 @@
 ---
 name: system-design-reviewer
 description: System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written. Auto Mode keywords: system design, architecture review, scale, security review, implementation plan
+category: design
 model: opus
 context: inherit
 color: cyan
@@ -17,7 +18,7 @@ skills:
   - security-scanning
   - performance-optimization
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

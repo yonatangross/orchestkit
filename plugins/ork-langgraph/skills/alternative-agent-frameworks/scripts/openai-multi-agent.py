@@ -163,7 +163,7 @@ When the technical issue is resolved or requires escalation,
 hand back to the triage agent with a summary.
 
 Always be patient and clear in your explanations.""",
-    model="gpt-4o",
+    model="gpt-5.2",
     tools=[search_knowledge_base, create_support_ticket]
 )
 
@@ -184,7 +184,7 @@ When the billing issue is resolved or requires escalation,
 hand back to the triage agent with a summary.
 
 Be empathetic and transparent about billing matters.""",
-    model="gpt-4o",
+    model="gpt-5.2",
     tools=[check_account_status, process_refund]
 )
 
@@ -205,7 +205,7 @@ When the account matter is resolved, hand back to the
 triage agent with a summary.
 
 Be helpful and proactive in suggesting improvements.""",
-    model="gpt-4o",
+    model="gpt-5.2",
     tools=[check_account_status]
 )
 
@@ -233,7 +233,7 @@ When specialists hand back to you:
 3. Route to another specialist if needed
 
 Always be friendly, professional, and efficient.""",
-    model="gpt-4o",
+    model="gpt-5.2",
     handoffs=[
         handoff(agent=technical_agent),
         handoff(agent=billing_agent),

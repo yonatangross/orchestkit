@@ -456,6 +456,6 @@ describe('stop/mem0-pre-compaction-sync (standalone hook)', () => {
 
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toContain('2 decisions to sync');
-    expect(result.systemMessage).toContain('/mem0-sync');
+    expect(result.systemMessage).toContain('/ork:memory sync');
   });
 });

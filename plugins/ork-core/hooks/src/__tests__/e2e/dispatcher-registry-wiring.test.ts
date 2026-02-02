@@ -33,7 +33,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
   let hooksConfig: HooksConfig;
 
   beforeAll(() => {
-    const hooksPath = path.resolve(process.cwd(), 'hooks.json');
+    // Resolve hooks.json relative to this test file so it works regardless of cwd
+    const hooksPath = path.resolve(__dirname, '..', '..', '..', 'hooks.json');
     const content = fs.readFileSync(hooksPath, 'utf-8');
     hooksConfig = JSON.parse(content);
   });

@@ -10,6 +10,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir } from '../lib/common.js';
+import { basename } from 'node:path';
 
 /**
  * Generate stop prompt for session continuity
@@ -18,7 +19,7 @@ export function autoRememberContinuity(input: HookInput): HookResult {
   logHook('auto-remember-continuity', 'Hook triggered');
 
   const projectDir = input.project_dir || getProjectDir();
-  const projectId = projectDir.split('/').pop() || 'project';
+  const projectId = basename(projectDir) || 'project';
 
   // Check if mem0 is available (by checking env var)
   const mem0Available = !!process.env.MEM0_API_KEY;

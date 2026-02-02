@@ -1,6 +1,7 @@
 ---
 name: monitoring-engineer
 description: Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, SLOs/SLIs. Use for monitoring, prometheus, grafana, alerting, tracing, opentelemetry, metrics, observability, logs, slo, sli.
+category: devops
 model: inherit
 context: fork
 color: orange
@@ -20,7 +21,7 @@ skills:
   - performance-testing
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive
@@ -361,3 +362,17 @@ Task: "Set up monitoring for the order service"
 8. Define SLOs (99.9% availability, p99 < 500ms)
 9. Document runbooks for each alert
 10. Return configuration files and instrumentation code
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for monitoring-engineer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
+```

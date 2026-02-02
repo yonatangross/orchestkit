@@ -57,7 +57,7 @@ async def analyze_with_langchain(content: str, analysis_id: str) -> str:
 
     # Create LLM with callback
     llm = ChatAnthropic(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5-20251101",
         temperature=1.0,
         max_tokens=4096,
         callbacks=[langfuse_handler],  # Pass as list!
@@ -90,7 +90,7 @@ async def run_langgraph_workflow(content: str, analysis_id: str):
 
     # Create LLMs with shared handler
     llm = ChatAnthropic(
-        model="claude-sonnet-4-20250514", callbacks=[langfuse_handler]
+        model="claude-sonnet-4-5-20251101", callbacks=[langfuse_handler]
     )
 
     # Define nodes
@@ -135,7 +135,7 @@ async def stream_analysis_with_tracing(content: str, analysis_id: str):
     )
 
     llm = ChatAnthropic(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5-20251101",
         streaming=True,
         callbacks=[langfuse_handler],
     )
@@ -168,7 +168,7 @@ async def batch_analyze_with_tracing(items: list[str], batch_id: str):
     )
 
     llm = ChatAnthropic(
-        model="claude-sonnet-4-20250514", callbacks=[langfuse_handler]
+        model="claude-sonnet-4-5-20251101", callbacks=[langfuse_handler]
     )
 
     results = []
@@ -208,13 +208,13 @@ async def multi_context_analysis(content: str, analysis_id: str):
 
     # Retrieval LLM
     retrieval_llm = ChatAnthropic(
-        model="claude-haiku-4-20250514",  # Faster, cheaper for retrieval
+        model="claude-haiku-4-5-20251101",  # Faster, cheaper for retrieval
         callbacks=[retrieval_handler],
     )
 
     # Generation LLM
     generation_llm = ChatAnthropic(
-        model="claude-sonnet-4-20250514",  # More capable for generation
+        model="claude-sonnet-4-5-20251101",  # More capable for generation
         callbacks=[generation_handler],
     )
 
@@ -243,7 +243,7 @@ if __name__ == "__main__":
     # Trace structure:
     # Session: analysis_abc123
     # └── ChatAnthropic.ainvoke (auto-traced)
-    #     ├── model: claude-sonnet-4-20250514
+    #     ├── model: claude-sonnet-4-5-20251101
     #     ├── input_tokens: 150
     #     ├── output_tokens: 300
     #     └── cost: $0.0045

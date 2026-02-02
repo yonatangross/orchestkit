@@ -1,6 +1,7 @@
 ---
 name: git-operations-engineer
 description: Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset
+category: git
 model: inherit
 context: fork
 color: orange
@@ -23,7 +24,7 @@ skills:
   - issue-progress-tracking
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -296,3 +297,19 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 - **Receives from:** All developers (commit requests), code-quality-reviewer (merge approval), release-management workflow
 - **Hands off to:** code-quality-reviewer (PR review), deployment-manager (release tags), original developer (conflict resolution in application code)
 - **Skill references:** git-workflow, github-operations, stacked-prs, worktree-coordination, commit, release-management
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for git-operations-engineer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging
+|stacked-prs:{SKILL.md,references/{stack-management.md}}|git,pull-request,stacked,workflow,code-review
+|git-recovery-command:{SKILL.md}|git,recovery,undo,reflog,reset
+|issue-progress-tracking:{SKILL.md,references/{branch-naming.md,gh-api-commands.md}}|github,issues,progress,tracking,automation,commits
+```

@@ -96,7 +96,7 @@ async def target_model(prompt: str) -> str:
     Should match your actual production setup.
     """
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[
             {"role": "system", "content": YOUR_SYSTEM_PROMPT},
             {"role": "user", "content": prompt}
@@ -120,7 +120,7 @@ from deepteam.goat import GOATAgent
 
 # Initialize GOAT agent
 goat = GOATAgent(
-    attacker_model="gpt-4o",  # Model to generate attacks
+    attacker_model="gpt-5.2",  # Model to generate attacks
     max_turns=5,               # Maximum conversation turns
     persistence_level="high",  # low, medium, high
 )

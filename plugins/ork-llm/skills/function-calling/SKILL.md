@@ -97,7 +97,7 @@ class Analysis(BaseModel):
 
 # OpenAI structured output
 response = await client.beta.chat.completions.parse(
-    model="gpt-4o",
+    model="gpt-5.2",
     messages=[{"role": "user", "content": "Analyze this text..."}],
     response_format=Analysis
 )
@@ -139,7 +139,7 @@ structured_llm = llm.with_structured_output(SearchResult)
 response = await llm.chat(
     messages=messages,
     tools=tools,
-    parallel_tool_calls=True  # Default in GPT-4o
+    parallel_tool_calls=True  # Default in GPT-5 series
 )
 
 # Handle multiple calls in parallel

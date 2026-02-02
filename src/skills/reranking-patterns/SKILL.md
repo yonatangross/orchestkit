@@ -83,7 +83,7 @@ async def llm_rerank(
     ])
 
     response = await llm.chat.completions.create(
-        model="gpt-4o-mini",  # Fast, cheap
+        model="gpt-5.2-mini",  # Fast, cheap
         messages=[
             {"role": "system", "content": """
 Rate each document's relevance to the query (0.0-1.0).
@@ -248,7 +248,7 @@ class ReRankingService:
 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | ~50ms | Free | Good |
 | `BAAI/bge-reranker-large` | ~100ms | Free | Better |
 | `cohere rerank-english-v3.0` | ~200ms | $1/1K | Best |
-| `gpt-4o-mini` (LLM) | ~500ms | $0.15/1M | Great |
+| `gpt-5.2-mini` (LLM) | ~500ms | $0.15/1M | Great |
 
 ## Best Practices
 

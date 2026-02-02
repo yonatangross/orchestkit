@@ -19,7 +19,7 @@ trace = langfuse.trace(
 # Log generation with automatic cost calculation
 generation = trace.generation(
     name="security_audit",
-    model="claude-sonnet-4-20250514",
+    model="claude-sonnet-4-5-20251101",
     model_parameters={"temperature": 1.0, "max_tokens": 4096},
     input=[{"role": "user", "content": "Analyze for XSS..."}],
     output="Analysis: Found 3 vulnerabilities...",
@@ -40,7 +40,7 @@ Langfuse maintains a pricing database for all major models. You can also define 
 ```python
 # Custom model pricing
 langfuse.create_model(
-    model_name="claude-sonnet-4-20250514",
+    model_name="claude-sonnet-4-5-20251101",
     match_pattern="claude-sonnet-4.*",
     unit="TOKENS",
     input_price=0.000003,  # $3/MTok

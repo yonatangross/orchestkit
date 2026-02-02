@@ -32,7 +32,7 @@ config/
 models:
   - type: main
     engine: openai
-    model: gpt-4o
+    model: gpt-5.2
     parameters:
       temperature: 0.7
       max_tokens: 1024

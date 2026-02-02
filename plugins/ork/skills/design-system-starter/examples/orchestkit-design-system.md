@@ -70,21 +70,27 @@ All colors use **OKLCH** (Oklab Lightness, Chroma, Hue) for better perceptual un
 ### Typography
 
 ```css
-/* Primary font family */
-body {
-  font-family: Outfit, sans-serif;
-  letter-spacing: 0.025em;
+/* frontend/src/index.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
+
+@theme {
+  /* Custom font family */
+  --font-sans: Outfit, sans-serif;
+
+  /* Typography scale (Tailwind defaults) */
+  /* text-xs:   0.75rem (12px) */
+  /* text-sm:   0.875rem (14px) */
+  /* text-base: 1rem (16px) - default */
+  /* text-lg:   1.125rem (18px) */
+  /* text-xl:   1.25rem (20px) */
+  /* text-2xl:  1.5rem (24px) */
+  /* text-3xl:  1.875rem (30px) */
+  /* text-4xl:  2.25rem (36px) */
 }
 
-/* Tailwind Typography Scale (configured in tailwind.config.js) */
-text-xs    /* 0.75rem (12px) */
-text-sm    /* 0.875rem (14px) */
-text-base  /* 1rem (16px) - default */
-text-lg    /* 1.125rem (18px) */
-text-xl    /* 1.25rem (20px) */
-text-2xl   /* 1.5rem (24px) */
-text-3xl   /* 1.875rem (30px) */
-text-4xl   /* 2.25rem (36px) */
+body {
+  letter-spacing: 0.025em;
+}
 ```
 
 **Usage:**
@@ -118,20 +124,22 @@ Tailwind's default spacing scale (0.25rem increments):
 ### Border Radius
 
 ```css
-/* Defined in Tailwind config */
---radius: 0.5rem;  /* Base radius (8px) */
+/* frontend/src/index.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
 
-/* Computed variants */
---radius-sm: calc(var(--radius) - 4px);  /* 4px */
---radius-md: calc(var(--radius) - 2px);  /* 6px */
---radius-lg: var(--radius);              /* 8px */
---radius-xl: calc(var(--radius) + 4px);  /* 12px */
+@theme {
+  /* Custom radius tokens */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px - base radius */
+  --radius-xl: 0.75rem;   /* 12px */
+}
 
 /* Tailwind utilities */
-rounded-sm   /* 4px */
-rounded-md   /* 6px */
-rounded-lg   /* 8px */
-rounded-xl   /* 12px */
+/* rounded-sm: 4px */
+/* rounded-md: 6px */
+/* rounded-lg: 8px */
+/* rounded-xl: 12px */
 ```
 
 ---

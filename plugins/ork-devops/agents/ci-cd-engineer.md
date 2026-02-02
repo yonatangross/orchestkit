@@ -1,6 +1,7 @@
 ---
 name: ci-cd-engineer
 description: CI/CD specialist who designs and implements GitHub Actions workflows, GitLab CI pipelines, and automated deployment strategies. Focuses on build optimization, caching, matrix testing, and security scanning integration. Auto Mode keywords - CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, deploy, artifact, cache, matrix testing, release automation
+category: devops
 model: inherit
 context: fork
 color: orange
@@ -20,7 +21,7 @@ skills:
   - vite-advanced
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"
@@ -183,3 +184,18 @@ Task: "Set up CI/CD for FastAPI backend"
 - **Receives from:** backend-system-architect (build requirements), infrastructure-architect (deployment targets)
 - **Hands off to:** deployment-manager (for releases), security-auditor (scan results)
 - **Skill references:** devops-deployment, security-scanning, github-operations
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for ci-cd-engineer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
+|github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
+|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+```

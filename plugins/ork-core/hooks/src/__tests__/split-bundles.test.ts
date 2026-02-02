@@ -286,7 +286,8 @@ describe('Cross-Bundle Consistency', () => {
     // 152 -> 157: added graph-queue-sync hook
     // 160 -> 162: Issue #245 added trackEvent export in session-tracker
     // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
-    expect(totalHooks).toBe(165);
+    // 165 -> 163: passive-index-migration removed agent-auto-suggest + agent-orchestrator
+    expect(totalHooks).toBe(163);
   });
 });
 

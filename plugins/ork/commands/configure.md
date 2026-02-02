@@ -1,5 +1,5 @@
 ---
-description: Interactive OrchestKit configuration wizard. Use when you need to configure OrchestKit settings, MCP servers, or plugin options.
+description: "[CONFIG] OrchestKit configuration wizard. Use when configuring settings, MCP servers, or plugin options."
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 

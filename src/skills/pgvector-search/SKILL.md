@@ -180,6 +180,52 @@ final = deduplicate_and_rerank(all_results)
 
 ---
 
+## Redis 8 FT.HYBRID Alternative
+
+Redis 8.4 introduced `FT.HYBRID` with native hybrid search support. Consider this alternative when latency is critical.
+
+### FT.HYBRID Command Syntax
+
+```redis
+FT.HYBRID index query
+  VECTOR $embedding AS vec_score
+  TEXT "search terms" AS text_score
+  COMBINE RRF
+  LIMIT 0 10
+  RETURN 3 content title score
+```
+
+### Comparison: pgvector vs Redis 8 FT.HYBRID
+
+| Aspect | pgvector | Redis 8 FT.HYBRID |
+|--------|----------|-------------------|
+| **Setup complexity** | Medium (extensions, indexes) | Low (single FT.CREATE) |
+| **RRF implementation** | Manual SQL with FULL OUTER JOIN | Native `COMBINE RRF` |
+| **Keyword scoring** | `ts_rank_cd` (TF-IDF variant) | `BM25STD` (configurable) |
+| **Typical latency** | 5-20ms | 2-5ms |
+| **Persistence** | ACID transactions | AOF/RDB (configurable) |
+| **Max dataset** | Billions (with partitioning) | Memory-bound (~100M vectors) |
+| **Joins/relations** | Full SQL support | Limited (hash/JSON docs) |
+| **Operational maturity** | Battle-tested | New (8.4, 2024) |
+
+### When to Choose pgvector
+
+- **Already using PostgreSQL** - No new infrastructure, single source of truth
+- **Need ACID transactions** - Atomic updates across search index and relational data
+- **Complex joins with relational data** - Foreign keys, aggregations, reporting
+- **Large datasets** - Billions of vectors with table partitioning
+- **Compliance requirements** - Established PostgreSQL security/audit tooling
+
+### When to Choose Redis 8
+
+- **Need sub-5ms latency** - Real-time autocomplete, typeahead, live recommendations
+- **Caching layer with search** - Already using Redis for cache, add search capability
+- **Simpler deployment** - Single binary, no extensions or complex configuration
+- **Ephemeral search indexes** - Rebuild from source of truth is acceptable
+- **Memory budget allows** - Dataset fits comfortably in RAM
+
+---
+
 ## References
 
 ### Detailed Implementation Guides

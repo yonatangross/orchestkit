@@ -30,7 +30,7 @@ from openai import AsyncOpenAI
 # Configuration
 # =============================================================================
 
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gpt-5.2"
 SELF_CONSISTENCY_TEMPERATURE = 0.7
 DEFAULT_PATHS = 5
 

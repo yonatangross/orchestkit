@@ -1,6 +1,7 @@
 ---
 name: rapid-ui-designer
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup
+category: frontend
 model: inherit
 context: fork
 color: cyan
@@ -16,7 +17,7 @@ skills:
   - motion-animation-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

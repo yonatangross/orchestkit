@@ -71,7 +71,7 @@ test_auto_remember_has_mem0_logic() {
 # AGENT SKILLS INTEGRATION TESTS
 # ============================================================================
 
-describe "Agent Remember/Recall Skills"
+describe "Agent Remember/Memory Skills"
 
 test_all_agents_have_remember_skill() {
     local agents_dir="$PROJECT_ROOT/src/agents"
@@ -89,20 +89,20 @@ test_all_agents_have_remember_skill() {
     assert_equals "0" "$missing_count" "All agents should have 'remember' skill"
 }
 
-test_all_agents_have_recall_skill() {
+test_all_agents_have_memory_skill() {
     local agents_dir="$PROJECT_ROOT/src/agents"
     local missing_count=0
 
     for agent in "$agents_dir"/*.md; do
         if [[ -f "$agent" ]]; then
-            if ! grep -q "^  - recall$" "$agent"; then
-                echo "Missing 'recall' skill: $(basename "$agent")"
+            if ! grep -q "^  - memory$" "$agent"; then
+                echo "Missing 'memory' skill: $(basename "$agent")"
                 ((missing_count++))
             fi
         fi
     done
 
-    assert_equals "0" "$missing_count" "All agents should have 'recall' skill"
+    assert_equals "0" "$missing_count" "All agents should have 'memory' skill"
 }
 
 # ============================================================================

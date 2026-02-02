@@ -163,7 +163,7 @@ async function generateAnswer(
 
   // Generate answer with LLM
   const response = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-5.2',
     temperature: 0.1, // Low temperature for factual responses
     messages: [
       {

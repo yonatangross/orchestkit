@@ -1,6 +1,7 @@
 ---
 name: test-generator
 description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions. Activates for test, coverage, unit test, integration test, MSW, VCR, fixture
+category: testing
 model: inherit
 context: fork
 color: green
@@ -29,7 +30,7 @@ skills:
   - run-tests
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.

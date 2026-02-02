@@ -8,7 +8,6 @@ Complete setup and configuration checklist.
 - [ ] Select style (New York or Default)
 - [ ] Select base color
 - [ ] Configure CSS variables: Yes
-- [ ] Configure `tailwind.config.js` path
 - [ ] Configure `components.json` generated
 
 ## File Structure Verification
@@ -17,39 +16,29 @@ Complete setup and configuration checklist.
 - [ ] `lib/utils.ts` created with `cn()` function
 - [ ] `components/ui/` directory created
 - [ ] CSS variables added to `globals.css` or `app.css`
-- [ ] Tailwind config updated for dark mode: `darkMode: "class"`
+- [ ] Dark mode configured via CSS (Tailwind v4 CSS-first approach)
 
 ## Dependencies Installed
 
 - [ ] `class-variance-authority` for variants
 - [ ] `clsx` for conditional classes
 - [ ] `tailwind-merge` for class merging
-- [ ] `@radix-ui/react-*` (installed per component)
+- [ ] `radix-ui` unified package (or individual `@radix-ui/react-*`)
 - [ ] `lucide-react` for icons (optional)
 
-## Tailwind Configuration
+## Tailwind Configuration (v4 CSS-First)
 
-```javascript
-// tailwind.config.js
-module.exports = {
-  darkMode: ["class"],
-  content: [
-    './pages/**/*.{ts,tsx}',
-    './components/**/*.{ts,tsx}',
-    './app/**/*.{ts,tsx}',
-  ],
-  theme: {
-    extend: {
-      // Colors reference CSS variables
-    },
-  },
-  plugins: [require("tailwindcss-animate")],
-}
+```css
+/* app.css or globals.css */
+@import "tailwindcss";
+
+/* Dark mode via CSS variables - no tailwind.config.js needed */
+/* Tailwind v4 auto-detects content files */
 ```
 
-- [ ] `darkMode: ["class"]` configured
-- [ ] Content paths include all component locations
-- [ ] `tailwindcss-animate` plugin added
+- [ ] `@import "tailwindcss"` in CSS entry file
+- [ ] CSS variables define theme tokens
+- [ ] No `tailwind.config.js` needed (Tailwind v4 auto-detects content)
 
 ## CSS Variables
 
@@ -133,7 +122,7 @@ if (!mounted) return null
 - Verify variable names match exactly
 
 ### Tailwind Classes Not Applying
-- Check content paths in `tailwind.config.js`
+- Verify `@import "tailwindcss"` in CSS entry file
 - Restart dev server after config changes
 
 ## Recommended First Components

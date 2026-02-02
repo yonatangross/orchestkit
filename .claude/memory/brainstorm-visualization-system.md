@@ -225,8 +225,8 @@ Features:
 ### Phase V4: Integration (2 days)
 
 - Add visualization links to session-end output
-- Hook into mem0-sync for cloud graph visualization
-- Add to `/ork:decision-history` skill output
+- Hook into memory sync for cloud graph visualization
+- Add to `/ork:memory history` skill output
 
 ## Relation to Issue #245
 

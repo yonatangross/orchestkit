@@ -1,6 +1,7 @@
 ---
 name: event-driven-architect
 description: Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns. Auto Mode keywords - event sourcing, message queue, Kafka, RabbitMQ, pub/sub, CQRS, event-driven, async, saga, event store, outbox, CDC, Debezium
+category: backend
 model: opus
 context: fork
 color: purple
@@ -24,7 +25,7 @@ skills:
   - idempotency-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.

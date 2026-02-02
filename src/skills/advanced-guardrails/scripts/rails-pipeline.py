@@ -600,7 +600,7 @@ async def main():
             messages.insert(0, {"role": "system", "content": system})
 
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5.2",
             messages=messages,
         )
         return response.choices[0].message.content

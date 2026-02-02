@@ -1,6 +1,6 @@
 ---
 name: skill-evolution
-description: Analyze, evolve, and rollback skills based on usage patterns. Use when evolving skills, improving skill definitions, updating skill content.
+description: "[CONFIG] Evolve skills based on usage patterns. Use when improving or rolling back skill definitions."
 context: inherit
 version: 1.0.0
 author: OrchestKit

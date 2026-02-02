@@ -459,7 +459,7 @@ describe('mem0PreCompactionSync', () => {
 
       expect(result.continue).toBe(true);
       expect(result.systemMessage).toContain('1 decisions to sync');
-      expect(result.systemMessage).toContain('/mem0-sync');
+      expect(result.systemMessage).toContain('/ork:memory sync');
     });
 
     test('returns systemMessage when patterns are pending sync', () => {

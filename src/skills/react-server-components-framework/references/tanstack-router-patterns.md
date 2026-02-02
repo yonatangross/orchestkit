@@ -4,11 +4,11 @@
 
 ## Overview
 
-While the main skill covers Next.js 15 + React Server Components, **OrchestKit uses React 19 with TanStack Router**. This supplement documents the equivalent patterns for client-rendered SPAs with React 19's new features.
+While the main skill covers Next.js 16 + React Server Components, **OrchestKit uses React 19 with TanStack Router**. This supplement documents the equivalent patterns for client-rendered SPAs with React 19's new features.
 
 ## Key Differences from Next.js RSC
 
-| Pattern | Next.js 15 App Router | React 19 + TanStack Router |
+| Pattern | Next.js 16 App Router | React 19 + TanStack Router |
 |---------|----------------------|---------------------------|
 | Data Fetching | Server Components | TanStack Query + route loaders |
 | Mutations | Server Actions | React 19 `useActionState` + API calls |

@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
+import { basename, dirname } from 'node:path';
 
 /**
  * Find project root by looking for package.json
@@ -19,7 +20,7 @@ function findProjectRoot(startDir: string): string | null {
     if (existsSync(`${dir}/package.json`)) {
       return dir;
     }
-    dir = dir.substring(0, dir.lastIndexOf('/'));
+    dir = dirname(dir);
   }
   return null;
 }
@@ -35,9 +36,9 @@ export function testRunner(input: HookInput): HookResult {
 
   // Python test files
   if (/test.*\.py$/.test(filePath) || /_test\.py$/.test(filePath)) {
-    process.stderr.write(`::group::Auto-running Python test: ${filePath.split('/').pop()}\n`);
+    process.stderr.write(`::group::Auto-running Python test: ${basename(filePath)}\n`);
 
-    const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+    const dir = dirname(filePath);
 
     try {
       // Check for poetry
@@ -83,17 +84,15 @@ export function testRunner(input: HookInput): HookResult {
 
   // TypeScript/JavaScript test files
   if (/\.(test|spec)\.(ts|tsx|js|jsx)$/.test(filePath)) {
-    process.stderr.write(`::group::Auto-running TypeScript test: ${filePath.split('/').pop()}\n`);
+    process.stderr.write(`::group::Auto-running TypeScript test: ${basename(filePath)}\n`);
 
     // Find project root
-    const projectRoot = findProjectRoot(filePath.substring(0, filePath.lastIndexOf('/')));
+    const projectRoot = findProjectRoot(dirname(filePath));
 
     if (projectRoot) {
       try {
-        const testPattern = filePath
-          .split('/')
-          .pop()
-          ?.replace(/\.[^.]+$/, '')
+        const testPattern = basename(filePath)
+          .replace(/\.[^.]+$/, '')
           .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
         const result = execSync(`npm test -- --testPathPattern="${testPattern}"`, {

@@ -1,13 +1,13 @@
 ---
 name: explore
-description: Deep codebase exploration with parallel specialized agents. Use when exploring a repo, finding files, or discovering architecture with the explore agent.
+description: "[EXPLORE] Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture."
 context: fork
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
-skills: [ascii-visualizer, architecture-decision-record, recall, clean-architecture, assess-complexity]
+allowedTools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
+skills: [ascii-visualizer, architecture-decision-record, memory, clean-architecture, assess-complexity]
 ---
 
 # Codebase Exploration
@@ -19,6 +19,36 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 ```bash
 /explore authentication
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify what the user wants to explore:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What aspect do you want to explore?",
+    "header": "Focus",
+    "options": [
+      {"label": "Full exploration (Recommended)", "description": "Code structure + data flow + architecture + health assessment"},
+      {"label": "Code structure only", "description": "Find files, classes, functions related to topic"},
+      {"label": "Data flow", "description": "Trace how data moves through the system"},
+      {"label": "Architecture patterns", "description": "Identify design patterns and integrations"},
+      {"label": "Quick search", "description": "Just find relevant files, skip deep analysis"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Full exploration**: All 8 phases, all parallel agents
+- **Code structure only**: Skip phases 4-6 (health, dependencies, product)
+- **Data flow**: Focus phase 3 agents on data tracing
+- **Architecture patterns**: Focus on backend-system-architect agent
+- **Quick search**: Skip to phase 1-2 only, return file list
 
 ---
 

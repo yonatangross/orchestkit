@@ -1229,7 +1229,7 @@ describe('lifecycle/coordination-cleanup', () => {
 // Prompt Hooks Tests (UserPromptSubmit)
 // =============================================================================
 
-import { agentAutoSuggest } from '../prompt/agent-auto-suggest.js';
+// Routing hooks removed — replaced by passive index (passive-index-migration)
 import { skillAutoSuggest } from '../prompt/skill-auto-suggest.js';
 
 /**
@@ -1243,89 +1243,7 @@ function createPromptInput(prompt: string, overrides: Partial<HookInput> = {}): 
   });
 }
 
-describe('prompt/agent-auto-suggest', () => {
-  describe('basic behavior', () => {
-    test('returns silent success for empty prompt', () => {
-      const input = createPromptInput('');
-      const result = agentAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('returns silent success for short prompt (<10 chars)', () => {
-      const input = createPromptInput('hi there');
-      const result = agentAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('skips meta questions about agents', () => {
-      const input = createPromptInput('What agents are available?');
-      const result = agentAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-      // Should not include suggestions for meta questions
-      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-    });
-
-    test('skips "list agents" queries', () => {
-      const input = createPromptInput('Can you list agents for this project?');
-      const result = agentAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-    });
-  });
-
-  describe('keyword matching', () => {
-    test('suggests agent for matching keywords', () => {
-      // Keywords that should match backend-system-architect
-      const input = createPromptInput('Help me design a REST API with database schema for microservices');
-      const result = agentAutoSuggest(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('Agent');
-      }
-    });
-
-    test('always returns continue:true', () => {
-      const inputs = [
-        'Design a database schema',
-        'Implement GraphQL endpoint',
-        'Review my code for security',
-        'Random unrelated prompt about gardening',
-      ];
-
-      for (const prompt of inputs) {
-        const input = createPromptInput(prompt);
-        const result = agentAutoSuggest(input);
-        expect(result.continue).toBe(true);
-      }
-    });
-  });
-
-  describe('CC 2.1.9 compliance', () => {
-    test('uses hookEventName: UserPromptSubmit when providing context', () => {
-      const input = createPromptInput('Help me design a REST API for backend microservice architecture');
-      const result = agentAutoSuggest(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.hookEventName).toBe('UserPromptSubmit');
-      }
-    });
-
-    test('always includes suppressOutput: true', () => {
-      const input = createPromptInput('Design a backend API with database integration');
-      const result = agentAutoSuggest(input);
-
-      expect(result.suppressOutput).toBe(true);
-    });
-  });
-});
+// agent-auto-suggest tests removed — hook replaced by passive index (passive-index-migration)
 
 describe('prompt/skill-auto-suggest', () => {
   describe('basic behavior', () => {

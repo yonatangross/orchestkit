@@ -1,6 +1,7 @@
 ---
 name: prioritization-analyst
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.
+category: product
 model: inherit
 context: fork
 color: plum
@@ -13,7 +14,7 @@ skills:
   - prioritization-frameworks
   - github-operations
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"
@@ -255,3 +256,16 @@ Task: "Prioritize the Q1 backlog"
 - Uses RICE by default, ICE for quick scoring, WSJF for time-sensitive
 - Always shows scoring rationale (not just numbers)
 - Flags trade-offs for human decision (doesn't resolve them)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for prioritization-analyst]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|prioritization-frameworks:{SKILL.md,references/{rice-scoring-guide.md,wsjf-guide.md}}|product,prioritization,rice,ice,wsjf,moscow,backlog,2026
+```

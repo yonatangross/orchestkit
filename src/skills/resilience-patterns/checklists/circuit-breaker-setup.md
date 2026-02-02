@@ -281,7 +281,7 @@ Add to your service's README:
 
 | Service | Threshold | Recovery | Fallback |
 |---------|-----------|----------|----------|
-| openai | 3 failures | 60s | Use gpt-4o-mini |
+| openai | 3 failures | 60s | Use gpt-5.2-mini |
 | anthropic | 3 failures | 60s | Use cache |
 | youtube | 5 failures | 120s | Return partial data |
 

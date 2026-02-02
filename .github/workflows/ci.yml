@@ -37,6 +37,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate passive indexes
+        run: bash tests/indexes/test-index-generation.sh
+
       - name: Upload built plugins
         uses: actions/upload-artifact@v4
         with:
@@ -434,7 +437,7 @@ jobs:
           bash tests/skills/test-skill-references.sh
           bash tests/skills/test-skill-length.sh
           bash tests/skills/test-description-triggers.sh
-          bash tests/skills/test-remember-recall-integration.sh
+          bash tests/skills/test-remember-memory-integration.sh
           bash tests/skills/structure/test-skill-md.sh
           bash tests/skills/integration/test-skill-agent-integration.sh
 

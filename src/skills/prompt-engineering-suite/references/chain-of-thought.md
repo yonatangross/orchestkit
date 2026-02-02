@@ -14,7 +14,7 @@ client = AsyncOpenAI()
 async def zero_shot_cot(question: str) -> str:
     """Apply zero-shot Chain-of-Thought."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "user",
             "content": f"{question}\n\nLet's think step by step."
@@ -76,7 +76,7 @@ async def self_consistent_cot(
 
     async def generate_path() -> str:
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-5.2",
             messages=[{
                 "role": "user",
                 "content": f"{question}\n\nThink step by step, then give your final answer on the last line starting with 'Answer:'"
@@ -120,7 +120,7 @@ async def cot_with_verification(question: str) -> dict:
 
     # Step 1: Generate initial answer with CoT
     initial = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "user",
             "content": f"{question}\n\nThink step by step."
@@ -130,7 +130,7 @@ async def cot_with_verification(question: str) -> dict:
 
     # Step 2: Verify the reasoning
     verification = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "user",
             "content": f"""Review this reasoning for errors:

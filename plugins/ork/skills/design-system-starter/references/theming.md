@@ -82,12 +82,12 @@ For manual dark mode classes:
 </div>
 ```
 
-Configure in `tailwind.config.js`:
-```javascript
-module.exports = {
-  darkMode: 'class', // or 'media' for system preference
-  // ...
-}
+Configure in CSS (Tailwind v4):
+```css
+/* Dark mode uses CSS-first approach in Tailwind v4 */
+@import "tailwindcss";
+
+/* Use @media or .dark class for dark mode overrides */
 ```
 
 ---

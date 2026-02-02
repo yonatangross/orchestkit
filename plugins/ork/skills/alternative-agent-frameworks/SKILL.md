@@ -1,8 +1,8 @@
 ---
 name: alternative-agent-frameworks
-description: Multi-agent frameworks beyond LangGraph. CrewAI crews, Microsoft Agent Framework, OpenAI Agents SDK. Use when building multi-agent systems, choosing frameworks.
-version: 1.0.0
-tags: [crewai, autogen, openai-agents, microsoft, multi-agent, orchestration, 2026]
+description: Multi-agent frameworks beyond LangGraph. CrewAI crews, Microsoft Agent Framework, OpenAI Agents SDK, GPT-5.2-Codex. Use when building multi-agent systems, choosing frameworks.
+version: 1.1.0
+tags: [crewai, autogen, openai-agents, microsoft, multi-agent, orchestration, gpt-5.2-codex, 2026]
 context: fork
 agent: workflow-architect
 author: OrchestKit
@@ -18,12 +18,13 @@ Multi-agent frameworks beyond LangGraph for specialized use cases.
 | Framework | Best For | Key Features | 2026 Status |
 |-----------|----------|--------------|-------------|
 | LangGraph 1.0.6 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
-| CrewAI 0.203.x | Role-based collaboration | Hierarchical crews, a2a, HITL for Flows | Production |
-| OpenAI Agents SDK 0.6.x | OpenAI ecosystem | Handoffs, guardrails, GPT-5.1, RealtimeRunner | Production |
+| CrewAI 1.8.x | Role-based collaboration | Flows, hierarchical crews, a2a, HITL | Production |
+| OpenAI Agents SDK 0.7.0 | OpenAI ecosystem | Handoffs, guardrails, MCPServerManager, Sessions | Production |
+| GPT-5.2-Codex | Long-horizon coding | Context compaction, project-scale, security | Production |
 | MS Agent Framework | Enterprise | AutoGen+SK merger, A2A, compliance | Public Preview |
 | AG2 | Open-source, flexible | Community fork of AutoGen | Active |
 
-## CrewAI Hierarchical Crew (0.203.x)
+## CrewAI Hierarchical Crew (1.8.x)
 
 ```python
 from crewai import Agent, Crew, Task, Process
@@ -68,7 +69,7 @@ crew = Crew(
     agents=[manager, researcher, writer],
     tasks=[project_task],
     process=Process.hierarchical,
-    manager_llm="gpt-4o",
+    manager_llm="gpt-5.2",
     memory=True,
     verbose=True
 )
@@ -76,12 +77,12 @@ crew = Crew(
 result = crew.kickoff()
 ```
 
-## OpenAI Agents SDK Multi-Agent (0.6.x)
+## OpenAI Agents SDK Multi-Agent (0.7.0)
 
 ```python
-from agents import Agent, Runner, handoff, tool
+from agents import Agent, Runner, handoff, RunConfig
 from agents.extensions.handoff_prompt import RECOMMENDED_PROMPT_PREFIX
-# Note: v0.6.6 adds GPT-5.1 support, shell/apply_patch tools, RealtimeRunner
+# Note: v0.7.0 adds MCPServerManager, opt-in nested handoffs, requires openai v2.x
 
 # Define specialized agents
 researcher_agent = Agent(
@@ -89,7 +90,7 @@ researcher_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a research specialist. Gather information and facts.
 When research is complete, hand off to the writer.""",
-    model="gpt-4o"
+    model="gpt-5.2"
 )
 
 writer_agent = Agent(
@@ -97,7 +98,7 @@ writer_agent = Agent(
     instructions=f"""{RECOMMENDED_PROMPT_PREFIX}
 You are a content writer. Create compelling content from research.
 When done, hand off to orchestrator for final review.""",
-    model="gpt-4o"
+    model="gpt-5.2"
 )
 
 # Orchestrator with handoffs
@@ -107,17 +108,18 @@ orchestrator = Agent(
 You coordinate research and writing tasks.
 Hand off to researcher for information gathering.
 Hand off to writer for content creation.""",
-    model="gpt-4o",
+    model="gpt-5.2",
     handoffs=[
         handoff(agent=researcher_agent),
         handoff(agent=writer_agent)
     ]
 )
 
-# Run with handoffs
+# Run with handoffs (v0.7.0: nested handoffs are opt-in)
 async def run_workflow(task: str):
     runner = Runner()
-    result = await runner.run(orchestrator, task)
+    config = RunConfig(nest_handoff_history=True)  # Opt-in for history packaging
+    result = await runner.run(orchestrator, task, run_config=config)
     return result.final_output
 ```
 
@@ -130,7 +132,7 @@ from autogen_agentchat.conditions import TextMentionTermination
 from autogen_ext.models.openai import OpenAIChatCompletionClient
 
 # Create model client
-model_client = OpenAIChatCompletionClient(model="gpt-4o")
+model_client = OpenAIChatCompletionClient(model="gpt-5.2")
 
 # Define agents
 planner = AssistantAgent(
@@ -174,6 +176,8 @@ async def run_team(task: str):
 | Need persistence & checkpoints | LangGraph |
 | Role-based collaboration | CrewAI |
 | OpenAI-native ecosystem | OpenAI Agents SDK |
+| Long-horizon coding tasks | GPT-5.2-Codex |
+| Project-scale refactors | GPT-5.2-Codex |
 | Enterprise compliance | Microsoft Agent Framework |
 | Open-source flexibility | AG2 |
 | Complex state machines | LangGraph |
@@ -195,6 +199,14 @@ async def run_team(task: str):
 - Ignoring framework maturity (beta vs production)
 - No fallback strategy (framework lock-in)
 - Overcomplicating simple tasks (use single agent)
+
+## Reference Documents
+
+- `references/gpt-5-2-codex.md` - GPT-5.2-Codex agentic coding model
+- `references/openai-agents-sdk.md` - OpenAI Agents SDK patterns
+- `references/crewai-patterns.md` - CrewAI hierarchical crews
+- `references/microsoft-agent-framework.md` - Microsoft Agent Framework
+- `references/framework-comparison.md` - Decision matrix for framework selection
 
 ## Related Skills
 
@@ -231,3 +243,12 @@ async def run_team(task: str):
 - Select appropriate framework
 - Compare framework capabilities
 - Match framework to requirements
+
+### gpt-5-2-codex
+**Keywords:** gpt-5.2-codex, codex, openai, agentic, coding, long-horizon, refactor, migration
+**Solves:**
+- Long-horizon coding sessions
+- Project-scale refactors and migrations
+- Context compaction for extended tasks
+- Security-aware code generation
+- IDE integration with Cursor, Windsurf, GitHub

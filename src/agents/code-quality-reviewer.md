@@ -1,6 +1,7 @@
 ---
 name: code-quality-reviewer
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check
+category: testing
 model: inherit
 context: inherit
 color: green
@@ -25,7 +26,7 @@ skills:
   - project-structure-enforcer
   - best-practices
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

@@ -13,7 +13,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 // GAP-007: Wire trackSolutionFound to session events
 import { trackSolutionFound } from './session-tracker.js';
@@ -359,7 +359,7 @@ export function summarizeSolution(output: string, tool: string, file?: string): 
 
   // Generic summary based on tool
   if (file) {
-    return `${tool} operation on ${file.split('/').pop()} completed`;
+    return `${tool} operation on ${basename(file)} completed`;
   }
 
   return `${tool} completed successfully`;
@@ -408,7 +408,7 @@ export function pairSolutionWithProblems(
     return 0;
   }
 
-  const project = getProjectDir().split('/').pop() || 'unknown';
+  const project = basename(getProjectDir()) || 'unknown';
   const timestamp = new Date().toISOString();
   let paired = 0;
 

@@ -106,11 +106,7 @@ import { memoryContext } from './prompt/memory-context.js';
 import { satisfactionDetector } from './prompt/satisfaction-detector.js';
 import { skillAutoSuggest } from './prompt/skill-auto-suggest.js';
 import { todoEnforcer } from './prompt/todo-enforcer.js';
-import { agentAutoSuggest } from './prompt/agent-auto-suggest.js';
-
-// Prompt hooks - Orchestration (Issue #197)
-import { agentOrchestrator } from './prompt/agent-orchestrator.js';
-import { skillInjector } from './prompt/skill-injector.js';
+// Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
 // SubagentStart hooks (6)
@@ -280,10 +276,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/skill-auto-suggest': skillAutoSuggest,
   'prompt/todo-enforcer': todoEnforcer,
-  'prompt/agent-auto-suggest': agentAutoSuggest,
-  // Orchestration hooks (Issue #197)
-  'prompt/agent-orchestrator': agentOrchestrator,
-  'prompt/skill-injector': skillInjector,
   'prompt/pipeline-detector': pipelineDetector,
 
   // SubagentStart hooks (6)

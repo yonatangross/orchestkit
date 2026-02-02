@@ -1,5 +1,5 @@
 ---
-description: Store decisions and patterns in knowledge graph with optional cloud sync. Use when saving patterns, storing decisions, remembering approaches that worked.
+description: "[MEMORY] Store decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 ---
 
@@ -33,6 +33,7 @@ The remember skill uses **graph memory as PRIMARY** storage:
 
 ## Usage
 
+### Store Decisions (Default)
 ```
 /remember <text>
 /remember --category <category> <text>
@@ -333,8 +334,9 @@ Before storing, search for similar patterns in graph:
 3. If similar pattern found with opposite outcome:
    - Warn: "⚠️ This conflicts with an existing pattern. Store anyway?"
 
+
 ## Related Skills
-- recall: Retrieve stored information
+- `memory` - Search, load, sync, visualize (read-side operations)
 
 ## Error Handling
 

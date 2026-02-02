@@ -1,4 +1,4 @@
-# Playwright 1.57+ API Reference
+# Playwright 1.58+ API Reference
 
 ## Semantic Locators (2026 Best Practice)
 
@@ -75,10 +75,80 @@ export default defineConfig({
 });
 ```
 
-## New Assertions (1.57+)
+## Breaking Changes (1.58)
+
+### Removed Features
+
+| Feature | Status | Migration |
+|---------|--------|-----------|
+| `_react` selector | Removed | Use `getByRole()` or `getByTestId()` |
+| `_vue` selector | Removed | Use `getByRole()` or `getByTestId()` |
+| `:light` selector suffix | Removed | Use standard CSS selectors |
+| `devtools` launch option | Removed | Use `args: ['--auto-open-devtools-for-tabs']` |
+| macOS 13 WebKit | Removed | Upgrade to macOS 14+ |
+
+### Migration Examples
 
 ```typescript
-// Assert individual class names (NEW)
+// React/Vue component selectors - Before
+await page.locator('_react=MyComponent').click();
+await page.locator('_vue=MyComponent').click();
+
+// After - Use semantic locators or test IDs
+await page.getByRole('button', { name: 'My Component' }).click();
+await page.getByTestId('my-component').click();
+
+// :light selector - Before
+await page.locator('.card:light').click();
+
+// After - Just use the selector directly
+await page.locator('.card').click();
+
+// DevTools option - Before
+const browser = await chromium.launch({ devtools: true });
+
+// After - Use args
+const browser = await chromium.launch({
+  args: ['--auto-open-devtools-for-tabs']
+});
+```
+
+## New Features (1.58+)
+
+### connectOverCDP with isLocal
+
+```typescript
+// Optimized CDP connection for local debugging
+const browser = await chromium.connectOverCDP({
+  endpointURL: 'http://localhost:9222',
+  isLocal: true  // NEW: Optimizes for local connections
+});
+
+// Use for connecting to locally running Chrome instances
+// Reduces latency and improves reliability
+```
+
+### Timeline in Speedboard HTML Reports
+
+HTML reports now include an interactive timeline:
+
+```typescript
+// playwright.config.ts
+export default defineConfig({
+  reporter: [['html', { open: 'never' }]],
+});
+
+// The HTML report shows:
+// - Test execution sequence
+// - Parallel test distribution
+// - Time spent in each test phase
+// - Performance bottlenecks
+```
+
+### New Assertions (1.57+)
+
+```typescript
+// Assert individual class names (1.57+)
 await expect(page.locator('.card')).toContainClass('highlighted');
 await expect(page.locator('.card')).toContainClass(['active', 'visible']);
 
@@ -103,40 +173,24 @@ await expect(page).toHaveScreenshot('page.png');
 await expect(page.locator('.hero')).toHaveScreenshot('hero.png');
 ```
 
-## AI Agents (1.57+)
+## AI Agents (1.58+)
 
-### Planner Agent
-
-Explores your app and generates a Markdown test plan:
+### Initialize AI Agents
 
 ```bash
-# Generate test plan for a user flow
-npx playwright agents planner --url http://localhost:3000/checkout
-
-# Output: checkout-test-plan.md with steps, assertions, edge cases
+# Initialize agents for your preferred AI tool
+npx playwright init-agents --loop=claude    # For Claude Code
+npx playwright init-agents --loop=vscode    # For VS Code (requires v1.105+)
+npx playwright init-agents --loop=opencode  # For OpenCode
 ```
 
-### Generator Agent
+### Generated Structure
 
-Transforms the Markdown plan into Playwright test files:
-
-```bash
-# Generate tests from plan
-npx playwright agents generator --plan checkout-test-plan.md
-
-# Output: checkout.spec.ts with complete test implementation
-```
-
-### Healer Agent
-
-Automatically repairs failing tests by analyzing failures:
-
-```bash
-# Run healer on failing tests
-npx playwright agents healer --test checkout.spec.ts
-
-# Analyzes failures, updates locators, re-runs until passing
-```
+| Directory/File | Purpose |
+|----------------|---------|
+| `.github/` | Agent definitions and configuration |
+| `specs/` | Test plans in Markdown format |
+| `tests/seed.spec.ts` | Seed file for AI agents to reference |
 
 ### Configuration
 
@@ -146,8 +200,8 @@ export default defineConfig({
   use: {
     aiAgents: {
       enabled: true,
-      model: 'gpt-4o',  // or local Ollama
-      autoHeal: true,   // Auto-repair on CI failures
+      model: 'claude-3.5-sonnet',  // or local Ollama
+      autoHeal: true,              // Auto-repair on CI failures
     }
   }
 });
@@ -173,7 +227,7 @@ const context = await browser.newContext({
 // Save storage state including IndexedDB
 await page.context().storageState({
   path: 'auth.json',
-  indexedDB: true  // NEW: Include IndexedDB
+  indexedDB: true  // Include IndexedDB in storage state
 });
 
 // Restore with IndexedDB
@@ -254,7 +308,7 @@ submitBtn.describe('Main form submit button');
 
 ## Chrome for Testing (1.57+)
 
-Playwright 1.57 uses Chrome for Testing builds instead of Chromium:
+Playwright uses Chrome for Testing builds instead of Chromium:
 
 ```bash
 # Install browsers (includes Chrome for Testing)
@@ -266,6 +320,6 @@ npx playwright install
 ## External Links
 
 - [Playwright Documentation](https://playwright.dev/docs/intro)
-- [Playwright 1.57 Release Notes](https://playwright.dev/docs/release-notes)
+- [Playwright 1.58 Release Notes](https://playwright.dev/docs/release-notes)
 - [Locators Guide](https://playwright.dev/docs/locators)
 - [Authentication Guide](https://playwright.dev/docs/auth)

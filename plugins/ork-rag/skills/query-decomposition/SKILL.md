@@ -81,7 +81,7 @@ async def decompose_query(
     """Extract independent concepts using LLM."""
 
     response = await llm.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5.2-mini",
         messages=[
             {"role": "system", "content": """
 Extract 2-4 independent concepts from this query.
@@ -255,7 +255,7 @@ async def decomposed_hyde_search(
 | Decomposition detection | Heuristic first, LLM second | Sub-millisecond fast path for simple queries |
 | Max concepts | 2-4 | More concepts increase latency without proportional benefit |
 | Fusion algorithm | Reciprocal Rank Fusion (RRF) | Robust, parameter-free rank combination |
-| LLM for decomposition | gpt-4o-mini | Fast, cheap, good at concept extraction |
+| LLM for decomposition | gpt-5.2-mini | Fast, cheap, good at concept extraction |
 
 ## References
 

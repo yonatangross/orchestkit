@@ -181,7 +181,7 @@ def vcr_config():
 async def test_llm_completion():
     """Test with recorded LLM response."""
     response = await llm_client.complete(
-        model="claude-3-sonnet",
+        model="claude-sonnet-4-5",
         messages=[{"role": "user", "content": "Say hello"}],
     )
 

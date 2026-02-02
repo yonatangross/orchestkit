@@ -265,9 +265,9 @@ Memory Fabric combines mem0 graph relationships with knowledge graph entities:
 
 Memory Fabric sits above mem0-memory, adding graph cross-referencing.
 
-### With recall Skill
+### With memory Skill
 
-When recall searches, it can optionally use Memory Fabric for unified results.
+When memory search runs, it can optionally use Memory Fabric for unified results.
 
 ### With Hooks
 
@@ -326,7 +326,7 @@ MEMORY_FABRIC_MAX_RESULTS=20          # Max results per source
 ## Related Skills
 
 - `mem0-memory` - Direct mem0 operations
-- `recall` - User-facing memory search
+- `memory` - User-facing memory operations (search, load, sync, viz)
 - `remember` - User-facing memory storage
 - `semantic-caching` - Caching layer that can use fabric
 

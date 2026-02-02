@@ -110,8 +110,8 @@ TECHNOLOGIES = [
     },
     {
         "name": "Redis",
-        "description": "In-memory data structure store. Used for caching, session storage, and distributed locking patterns.",
-        "version": "7.0+",
+        "description": "In-memory data structure store with built-in search and JSON modules (formerly Redis Stack). Used for caching, session storage, and distributed locking patterns.",
+        "version": "8.0+",
         "category": "Cache/Store"
     },
     {
@@ -152,8 +152,8 @@ TECHNOLOGIES = [
     },
     {
         "name": "Vite",
-        "description": "Next-generation frontend build tool. Used in frontend skills for fast development and optimized production builds.",
-        "version": "7.0+",
+        "description": "Next-generation frontend build tool. Vite 7 stable with Environment API; Vite 8 beta introduces Rolldown (Rust bundler, 10-30x faster). Used in frontend skills for fast development and optimized production builds.",
+        "version": "7.0+ (8.0 beta)",
         "category": "Build Tool"
     },
     {

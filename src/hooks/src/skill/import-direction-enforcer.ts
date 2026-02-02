@@ -7,6 +7,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
+import { basename } from 'node:path';
 
 /**
  * Determine the architectural layer of a file
@@ -94,7 +95,7 @@ export function importDirectionEnforcer(input: HookInput): HookResult {
 
   // Report errors
   if (errors.length > 0) {
-    const filename = filePath.split('/').pop() || filePath;
+    const filename = basename(filePath) || filePath;
     const reason = `Import direction violation in ${filename}: ${errors[0]}`;
     logHook('import-direction-enforcer', `BLOCKED: ${reason}`);
     return outputBlock(reason);

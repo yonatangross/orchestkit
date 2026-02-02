@@ -1,6 +1,7 @@
 ---
 name: database-engineer
 description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint
+category: backend
 model: inherit
 context: fork
 color: green
@@ -22,7 +23,7 @@ skills:
   - caching-strategies
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"

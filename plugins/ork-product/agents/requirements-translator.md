@@ -1,6 +1,7 @@
 ---
 name: requirements-translator
 description: Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification
+category: product
 model: inherit
 context: fork
 color: magenta
@@ -13,7 +14,7 @@ skills:
   - requirements-engineering
   - github-operations
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Transform ambiguous product ideas into clear, actionable requirements with user stories, acceptance criteria, and defined scope boundaries.
@@ -297,3 +298,16 @@ Task: "Write requirements for the workflow builder"
 - Scope clarity is critical (explicit IN/OUT)
 - Every story must be INVEST-compliant
 - Edge cases prevent engineering surprises
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for requirements-translator]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|requirements-engineering:{SKILL.md,references/{user-story-workshop-guide.md}}|product,requirements,user-stories,prd,acceptance-criteria,agile,2026
+```

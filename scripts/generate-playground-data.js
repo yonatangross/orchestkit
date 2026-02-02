@@ -16,6 +16,7 @@ const MANIFESTS_DIR = path.join(__dirname, '../manifests');
 const AGENTS_DIR = path.join(__dirname, '../src/agents');
 const DATA_JS_PATH = path.join(__dirname, '../docs/playgrounds/data.js');
 const PACKAGE_JSON = path.join(__dirname, '../package.json');
+const MARKETPLACE_JSON = path.join(__dirname, '../.claude-plugin/marketplace.json');
 
 // Plugin metadata not in manifests (hand-curated)
 const PLUGIN_METADATA = {
@@ -183,6 +184,12 @@ function loadAgents() {
 }
 
 function getVersion() {
+  // Read from marketplace.json (source of truth, updated by bump-version.sh)
+  // Falls back to package.json if marketplace.json doesn't exist
+  if (fs.existsSync(MARKETPLACE_JSON)) {
+    const marketplace = JSON.parse(fs.readFileSync(MARKETPLACE_JSON, 'utf8'));
+    return marketplace.version;
+  }
   const pkg = JSON.parse(fs.readFileSync(PACKAGE_JSON, 'utf8'));
   return pkg.version;
 }

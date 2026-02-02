@@ -23,7 +23,7 @@ client = OpenAI()
 async def stream_response(prompt: str):
     """Stream tokens as they're generated."""
     stream = client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{"role": "user", "content": prompt}],
         stream=True
     )
@@ -43,7 +43,7 @@ client = AsyncOpenAI()
 async def async_stream(prompt: str):
     """Async streaming for better concurrency."""
     stream = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{"role": "user", "content": prompt}],
         stream=True
     )
@@ -116,7 +116,7 @@ await streamChat('Hello', (token) => {
 async def stream_with_tools(messages: list, tools: list):
     """Handle streaming responses that include tool calls."""
     stream = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=messages,
         tools=tools,
         stream=True

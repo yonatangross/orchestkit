@@ -35,7 +35,7 @@ ollama serve
 | Reasoning | `deepseek-r1:70b` | ~42GB | GPT-4 level |
 | Coding | `qwen2.5-coder:32b` | ~35GB | 73.7% Aider benchmark |
 | Embeddings | `nomic-embed-text` | ~0.5GB | 768 dims, fast |
-| General | `llama3.2:70b` | ~40GB | Good all-around |
+| General | `llama3.3:70b` | ~40GB | Good all-around |
 
 ## LangChain Integration
 
@@ -103,15 +103,15 @@ def get_llm_provider(task_type: str = "general"):
         models = {
             "reasoning": "deepseek-r1:70b",
             "coding": "qwen2.5-coder:32b",
-            "general": "llama3.2:70b",
+            "general": "llama3.3:70b",
         }
         return ChatOllama(
-            model=models.get(task_type, "llama3.2:70b"),
+            model=models.get(task_type, "llama3.3:70b"),
             keep_alive="5m"
         )
     else:
         # Fall back to cloud API
-        return ChatOpenAI(model="gpt-4o")
+        return ChatOpenAI(model="gpt-5.2")
 
 # Usage
 llm = get_llm_provider(task_type="coding")

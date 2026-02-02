@@ -1,6 +1,6 @@
 ---
 name: configure
-description: Interactive OrchestKit configuration wizard. Use when you need to configure OrchestKit settings, MCP servers, or plugin options.
+description: "[CONFIG] OrchestKit configuration wizard. Use when configuring settings, MCP servers, or plugin options."
 context: inherit
 version: 1.0.0
 author: OrchestKit

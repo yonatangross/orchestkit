@@ -7,6 +7,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
+import { basename, dirname as pathDirname } from 'node:path';
 
 /**
  * Validate backend Python file naming conventions
@@ -24,15 +25,15 @@ export function backendFileNaming(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  const filename = filePath.split('/').pop() || '';
-  const dirname = filePath.substring(0, filePath.lastIndexOf('/'));
+  const filename = basename(filePath);
+  const dirPath = pathDirname(filePath);
   const errors: string[] = [];
 
   // Skip __init__.py files
   if (filename === '__init__.py') return outputSilentSuccess();
 
   // Router naming conventions
-  if (dirname.endsWith('/routers') || dirname.includes('/routers/')) {
+  if (dirPath.endsWith('/routers') || dirPath.includes('/routers/')) {
     const validRouterPattern = /^(router_|routes_|api_).*\.py$/;
     const utilPattern = /^(deps|dependencies|utils|helpers|base)\.py$/;
     if (!validRouterPattern.test(filename) && !utilPattern.test(filename)) {
@@ -43,7 +44,7 @@ export function backendFileNaming(input: HookInput): HookResult {
   }
 
   // Service naming conventions
-  if (dirname.endsWith('/services') || dirname.includes('/services/')) {
+  if (dirPath.endsWith('/services') || dirPath.includes('/services/')) {
     const validServicePattern = /_service\.py$/;
     const utilPattern = /^(base|utils|helpers|abstract)\.py$/;
     if (!validServicePattern.test(filename) && !utilPattern.test(filename)) {
@@ -54,7 +55,7 @@ export function backendFileNaming(input: HookInput): HookResult {
   }
 
   // Repository naming conventions
-  if (dirname.endsWith('/repositories') || dirname.includes('/repositories/')) {
+  if (dirPath.endsWith('/repositories') || dirPath.includes('/repositories/')) {
     const validRepoPattern = /_(repository|repo)\.py$/;
     const utilPattern = /^(base|abstract|utils)\.py$/;
     if (!validRepoPattern.test(filename) && !utilPattern.test(filename)) {
@@ -65,7 +66,7 @@ export function backendFileNaming(input: HookInput): HookResult {
   }
 
   // Schema naming conventions
-  if (dirname.endsWith('/schemas') || dirname.includes('/schemas/')) {
+  if (dirPath.endsWith('/schemas') || dirPath.includes('/schemas/')) {
     const validSchemaPattern = /_(schema|dto|request|response)\.py$/;
     const utilPattern = /^(base|common|shared|utils)\.py$/;
     if (!validSchemaPattern.test(filename) && !utilPattern.test(filename)) {
@@ -76,7 +77,7 @@ export function backendFileNaming(input: HookInput): HookResult {
   }
 
   // Model naming conventions
-  if (dirname.endsWith('/models') || dirname.includes('/models/')) {
+  if (dirPath.endsWith('/models') || dirPath.includes('/models/')) {
     const validModelPattern = /_(model|entity|orm)\.py$/;
     const utilPattern = /^(base|abstract|mixins)\.py$/;
     if (!validModelPattern.test(filename) && !utilPattern.test(filename)) {

@@ -16,7 +16,7 @@ from scipy import stats
 # =============================================================================
 
 QUALITY_THRESHOLD = 0.7
-JUDGE_MODEL = "gpt-4o-mini"  # Use different model than evaluated
+JUDGE_MODEL = "gpt-5.2-mini"  # Use different model than evaluated
 
 QUALITY_DIMENSIONS = {
     "relevance": "How relevant is the output to the input?",

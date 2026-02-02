@@ -25,7 +25,7 @@
  */
 
 import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 import {
   getIdentityContext,
@@ -591,7 +591,7 @@ export function createDecisionRecord(
 ): DecisionRecord {
   const timestamp = new Date().toISOString();
   const id = generateId(type);
-  const project = getProjectDir().split('/').pop() || 'unknown';
+  const project = basename(getProjectDir()) || 'unknown';
   const identityCtx = getIdentityContext();
   const confidence = metadata.confidence ?? 0.5;
 

@@ -5,6 +5,52 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.0] - 2026-02-02
+
+### Changed
+
+- **Model Updates (February 2026)**:
+  - OpenAI: gpt-4o → gpt-5.2, gpt-4o-mini → gpt-5.2-mini
+  - Anthropic: Claude model dates updated to 20251101 (Opus 4.5, Sonnet 4.5, Haiku 4.5)
+  - Meta: llama3.2 → llama3.3
+  - Google: Gemini 2.5 → Gemini 3
+  - xAI: Grok 3 → Grok 4
+
+- **Framework Updates**:
+  - Next.js 16: Cache Components with `"use cache"` directive, async params/searchParams
+  - Tailwind CSS v4: CSS-first configuration with `@theme {}`, no tailwind.config.js needed
+  - LangGraph 1.0: `create_react_agent` → `create_agent`, `prompt=` → `system_prompt=`
+  - Redis 8.4: Built-in Search/JSON modules, FT.HYBRID with RRF fusion
+  - Vite 8: Rolldown bundler with `advancedChunks` API
+  - CrewAI 1.8.x: Flows architecture with `@start()`, `@listen()`, `@router()` decorators
+  - Playwright 1.58: Agents workflow with `init-agents`, planner/generator/healer pattern
+
+### Added
+
+- **New reference files**:
+  - `cache-components.md` — Next.js 16 Cache Components comprehensive guide
+  - `nextjs-16-upgrade.md` — Breaking changes and migration path
+  - `gpt-5-2-codex.md` — GPT-5.2-Codex agentic coding model documentation
+  - Redis 8 FT.HYBRID comparison added to `pgvector-search` skill
+  - CrewAI 1.8.x Flows patterns added to `crewai-patterns.md`
+
+- **Updated skills** (193 skills updated with current best practices):
+  - `react-server-components-framework` — v1.4.0 with Cache Components
+  - `vite-advanced` — Rolldown bundler patterns
+  - `e2e-testing` — Playwright Agents workflow
+  - `semantic-caching` — Redis 8 built-in modules
+  - `rag-retrieval` — LangGraph 1.0 API updates
+  - `alternative-agent-frameworks` — OpenAI Agents SDK 0.7.0, CrewAI 1.8.x
+
+### Fixed
+
+- `memory/SKILL.md` — Renamed "Quick Start" to "Usage" for test validation
+- `implement/SKILL.md` — Reduced from 527 to 474 lines (under 500 limit)
+- `data.js` — Regenerated with correct version 5.7.0
+- `session-tracking.test.ts` — Fixed TEST_PROJECT_DIR initialization
+
+---
+
 ## [5.6.2] - 2026-02-02
 
 ### Fixed
@@ -326,7 +372,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Minor hook registration fixes for CC 2.1.19 compatibility
 
 ---
 
@@ -451,7 +497,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- TODO: Describe your changes here
+- Hotfix for skill frontmatter validation in build pipeline
 
 ---
 

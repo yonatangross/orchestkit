@@ -7,7 +7,7 @@ Synthetic data generation uses large teacher models (GPT-4, Claude) to create tr
 ## Teacher-Student Paradigm
 
 ```
-Teacher Model (GPT-4o) → Generate Examples → Train Student (Llama-8B)
+Teacher Model (GPT-5.2) → Generate Examples → Train Student (Llama-8B)
                                                     ↓
                                               Deploy Student (cheaper)
 ```
@@ -27,7 +27,7 @@ async def generate_training_example(
 ) -> dict:
     """Generate a single training example."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "system",
             "content": f"""Generate a training example for a {style} AI assistant.
@@ -120,7 +120,7 @@ async def generate_conversation(
 ) -> list[dict]:
     """Generate multi-turn conversation examples."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "system",
             "content": f"""Generate a realistic {num_turns}-turn conversation between a user and AI assistant about {topic}.
@@ -149,7 +149,7 @@ Make it realistic with follow-up questions and clarifications."""
 ```python
 async def validate_example(
     example: dict,
-    validator_model: str = "gpt-4o-mini",
+    validator_model: str = "gpt-5.2-mini",
 ) -> dict:
     """Validate and score a training example."""
     response = await client.chat.completions.create(
@@ -253,7 +253,7 @@ async def generate_code_examples(
 ) -> list[dict]:
     """Generate coding instruction-response pairs."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "system",
             "content": f"""Generate {num_examples} {language} coding examples at {difficulty} level.
@@ -282,7 +282,7 @@ async def generate_domain_examples(
 ) -> list[dict]:
     """Generate domain-specific training data."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{
             "role": "system",
             "content": f"""Generate training examples for a {domain} expert assistant.
@@ -339,16 +339,16 @@ def estimate_generation_cost(
     num_examples: int,
     avg_input_tokens: int = 100,
     avg_output_tokens: int = 300,
-    model: str = "gpt-4o",
+    model: str = "gpt-5.2",
 ) -> float:
     """Estimate synthetic data generation cost."""
-    # GPT-4o pricing (as of 2024)
+    # GPT-5.2 pricing (as of 2026)
     prices = {
-        "gpt-4o": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
-        "gpt-4o-mini": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
+        "gpt-5.2": {"input": 2.50 / 1_000_000, "output": 10.00 / 1_000_000},
+        "gpt-5.2-mini": {"input": 0.15 / 1_000_000, "output": 0.60 / 1_000_000},
     }
 
-    price = prices.get(model, prices["gpt-4o"])
+    price = prices.get(model, prices["gpt-5.2"])
 
     input_cost = num_examples * avg_input_tokens * price["input"]
     output_cost = num_examples * avg_output_tokens * price["output"]

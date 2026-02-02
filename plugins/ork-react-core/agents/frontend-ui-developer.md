@@ -1,6 +1,7 @@
 ---
 name: frontend-ui-developer
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
+category: frontend
 model: inherit
 context: fork
 color: purple
@@ -46,7 +47,7 @@ skills:
   - streaming-api-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
@@ -425,3 +426,21 @@ Action: Build real AnalysisStatus.tsx with:
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
 - **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for frontend-ui-developer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|react-server-components-framework:{SKILL.md,references/{cache-components.md,client-components.md,component-patterns.md,data-fetching.md,migration-guide.md,nextjs-16-upgrade.md,react-19-patterns.md,routing-patterns.md,server-actions.md,server-components.md,streaming-patterns.md,tanstack-router-patterns.md}}|frontend,react,react-19.2,nextjs-16,server-components,streaming,cache-components,2026
+|type-safety-validation:{SKILL.md,references/{prisma-types.md,trpc-setup.md,ty-type-checker-patterns.md,typescript-5-features.md,typescript-advanced.md,zod-patterns.md}}|typescript,zod,trpc,prisma,type-safety,validation,exhaustive-types,branded-types,2026
+|zustand-patterns:{SKILL.md,references/{middleware-composition.md}}|zustand,state-management,react,immer,middleware,persistence,slices
+|tanstack-query-advanced:{SKILL.md,references/{cache-strategies.md}}|tanstack-query,react-query,caching,infinite-scroll,optimistic-updates,prefetching,suspense
+|form-state-patterns:{SKILL.md,references/{validation-patterns.md}}|react-hook-form,zod,forms,validation,server-actions,field-arrays,useActionState
+|react-aria-patterns:{SKILL.md,references/{react-aria-hooks.md}}|accessibility,react,aria,a11y,react-aria,wcag,hooks,adobe
+```

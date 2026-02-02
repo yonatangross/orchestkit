@@ -1,6 +1,7 @@
 ---
 name: security-layer-auditor
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers
+category: security
 model: opus
 context: fork
 color: red
@@ -16,7 +17,7 @@ skills:
   - auth-patterns
   - input-validation
   - remember
-  - recall
+  - memory
 hooks:
   PostToolUse:
     - matcher: "Bash"

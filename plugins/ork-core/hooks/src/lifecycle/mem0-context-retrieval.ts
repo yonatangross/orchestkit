@@ -13,6 +13,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, renameSync } from 'node:fs';
+import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
@@ -33,11 +34,11 @@ interface Memory {
 
 /**
  * Get project ID for user_id hint
+ * Uses path.basename() for cross-platform compatibility (Unix/Windows)
  */
 function getProjectId(projectDir: string): string {
-  const parts = projectDir.split('/');
-  const basename = parts[parts.length - 1] || 'unknown';
-  return basename.toLowerCase().replace(/\s+/g, '-');
+  const dirBasename = basename(projectDir) || 'unknown';
+  return dirBasename.toLowerCase().replace(/\s+/g, '-');
 }
 
 /**
@@ -80,8 +81,8 @@ function archivePendingSync(filePath: string, projectDir: string): void {
   try {
     mkdirSync(processedDir, { recursive: true });
 
-    const basename = filePath.split('/').pop() || 'pending-sync';
-    const archiveName = basename.replace('.json', `.processed-${timestamp}.json`);
+    const fileBasename = basename(filePath) || 'pending-sync';
+    const archiveName = fileBasename.replace('.json', `.processed-${timestamp}.json`);
     const archivePath = `${processedDir}/${archiveName}`;
 
     renameSync(filePath, archivePath);

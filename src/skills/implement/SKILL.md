@@ -1,13 +1,13 @@
 ---
 name: implement
-description: Full-power feature implementation with parallel subagents, skills, and MCPs. Use when implementing features, building features, creating features, or developing features.
+description: "[BUILD] Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 context: fork
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
-skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, recall, worktree-coordination]
+allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
+skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, memory, worktree-coordination]
 ---
 
 # Implement Feature
@@ -21,6 +21,47 @@ Maximum utilization of parallel subagent execution for feature implementation wi
 /implement real-time notifications
 /implement dashboard analytics
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks or doing ANY work**, ask the user to clarify scope:
+
+```python
+AskUserQuestion(
+  questions=[
+    {
+      "question": "What scope for this implementation?",
+      "header": "Scope",
+      "options": [
+        {"label": "Full-stack (Recommended)", "description": "Backend + frontend + tests + docs"},
+        {"label": "Backend only", "description": "API + database + backend tests"},
+        {"label": "Frontend only", "description": "UI components + state + frontend tests"},
+        {"label": "Quick prototype", "description": "Minimal working version, skip tests"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "question": "Any constraints I should know about?",
+      "header": "Constraints",
+      "options": [
+        {"label": "None (Recommended)", "description": "Use best practices and modern patterns"},
+        {"label": "Match existing patterns", "description": "Follow existing codebase conventions exactly"},
+        {"label": "Minimal dependencies", "description": "Avoid adding new packages"},
+        {"label": "Specific tech stack", "description": "I'll specify the technologies to use"}
+      ],
+      "multiSelect": false
+    }
+  ]
+)
+```
+
+**Based on user's answers, adjust the workflow:**
+- **Full-stack**: All 10 phases, all parallel agents
+- **Backend only**: Skip frontend agents (phases 5b, 6b)
+- **Frontend only**: Skip backend agents (phases 5a, 6a)
+- **Quick prototype**: Skip phases 7-10 (scope check, verification, docs, reflection)
 
 ---
 
@@ -138,15 +179,6 @@ For each task from Phase 1, create a micro-plan:
 [X] minutes / hours
 ```
 
-### Why Micro-Planning Matters
-
-| Without Micro-Plan | With Micro-Plan |
-|-------------------|-----------------|
-| Scope expands mid-task | Clear boundaries upfront |
-| "While I'm here..." syndrome | Disciplined focus |
-| Unclear completion criteria | Defined acceptance |
-| Time estimates way off | Realistic estimates |
-
 ---
 
 ## Phase 3: Git Worktree Isolation (Optional but Recommended)
@@ -180,13 +212,6 @@ git merge feature/feature-name
 git worktree remove ../project-feature-name
 ```
 
-### Worktree Benefits
-
-- **Isolation:** Changes don't affect main workspace
-- **Parallel work:** Multiple features simultaneously
-- **Clean rollback:** Easy to discard entire feature
-- **Context switching:** Instant switch between features
-
 ---
 
 ## Phase 4: Parallel Architecture Design (5 Agents)
@@ -201,24 +226,7 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 | llm-integrator | LLM integration (if needed) |
 | ux-researcher | User experience, accessibility |
 
-```python
-# PARALLEL - All agents in ONE message
-Task(
-  subagent_type="workflow-architect",
-  prompt="""ARCHITECTURE DESIGN for: $ARGUMENTS
-
-  Design system architecture:
-  1. Component breakdown and boundaries
-  2. Data flow between components
-  3. Integration points and dependencies
-  4. Implementation order (dependency graph)
-
-  SUMMARY: End with: "RESULT: [N] components, [M] integrations - [key pattern]"
-  """,
-  run_in_background=True
-)
-# ... (other agents as in original)
-```
+Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY line.
 
 ## Phase 5: Parallel Implementation (8 Agents)
 
@@ -455,26 +463,6 @@ TaskUpdate(taskId=task_id, status="completed")
 - Reflect and capture lessons learned
 
 ---
-
-**Version:** 2.0.0 (January 2026)
-
-**v2.0.0 Enhancements:**
-- Added **Micro-Planning Per Task**: Detailed scope and acceptance criteria before implementation
-- Added **Git Worktree Isolation**: Optional clean workspace for feature development
-- Added **Scope Creep Detector**: Compare implementation vs original scope (0-10 score)
-- Added **Continuous Feedback Loop**: Checkpoints after each task completion
-- Added **Post-Implementation Reflection**: Capture lessons learned, estimate accuracy, reusable patterns
-- Expanded from 7-phase to 10-phase process
-
-## Key Decisions
-
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Micro-planning | Required per task | Prevents scope creep, improves estimates |
-| Worktree isolation | Optional, recommended for large features | Clean workspace, easy rollback |
-| Scope creep scoring | 0-10 scale with action thresholds | Quantifiable, actionable |
-| Reflection phase | Required, not optional | Learning compounds over time |
-| Continuous feedback | Checkpoint after each task | Early detection of issues |
 
 ## Related Skills
 - explore: Explore codebase before implementing

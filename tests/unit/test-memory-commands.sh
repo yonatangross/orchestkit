@@ -4,7 +4,7 @@
 # ============================================================================
 # Tests for memory/feedback slash commands (CC 2.1.3 merged with skills):
 # - /remember (skills/remember/SKILL.md)
-# - /recall (skills/recall/SKILL.md)
+# - /ork:memory search (skills/memory/SKILL.md)
 # - /ork:feedback (skills/feedback/SKILL.md)
 # ============================================================================
 
@@ -73,38 +73,38 @@ test_remember_specifies_user_id_format() {
 }
 
 # ============================================================================
-# /recall COMMAND TESTS
+# /ork:memory search COMMAND TESTS (consolidated from recall)
 # ============================================================================
 
-describe "Command: /recall"
+describe "Command: /ork:memory search"
 
-test_recall_command_exists() {
-    assert_file_exists "$SKILLS_DIR/recall/SKILL.md"
+test_memory_command_exists() {
+    assert_file_exists "$SKILLS_DIR/memory/SKILL.md"
 }
 
-test_recall_has_usage_section() {
-    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Usage"
+test_memory_has_usage_section() {
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Usage"
 }
 
-test_recall_has_options() {
-    local file="$SKILLS_DIR/recall/SKILL.md"
+test_memory_has_search_options() {
+    local file="$SKILLS_DIR/memory/SKILL.md"
 
-    grep -q "category" "$file" || fail "recall SKILL.md should mention category option"
-    grep -q "limit" "$file" || fail "recall SKILL.md should mention limit option"
+    grep -q "category" "$file" || fail "memory SKILL.md should mention category option"
+    grep -q "limit" "$file" || fail "memory SKILL.md should mention limit option"
 }
 
-test_recall_references_mem0_search() {
+test_memory_references_mem0_search() {
     # Check for script reference instead of MCP
-    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "search-memories.py"
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "search-memories.py"
 }
 
-test_recall_has_workflow() {
-    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Workflow"
+test_memory_has_workflow() {
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "## Workflow"
 }
 
-test_recall_has_when_to_use() {
+test_memory_has_when_to_use() {
     # Overview is optional if description has trigger phrases (standardized in #179)
-    local file="$SKILLS_DIR/recall/SKILL.md"
+    local file="$SKILLS_DIR/memory/SKILL.md"
     if grep -q "## Overview" "$file"; then
         # Has Overview - OK
         return 0
@@ -112,18 +112,20 @@ test_recall_has_when_to_use() {
         # Description has triggers - Overview optional
         return 0
     else
-        fail "recall SKILL.md should have Overview section or trigger phrases in description"
+        fail "memory SKILL.md should have Overview section or trigger phrases in description"
     fi
 }
 
-test_recall_has_filter_options() {
-    local file="$SKILLS_DIR/recall/SKILL.md"
+test_memory_has_filter_options() {
+    local file="$SKILLS_DIR/memory/SKILL.md"
     # Should explain filter construction
-    grep -qi "filter" "$file" || fail "recall SKILL.md should mention filters"
+    grep -qi "filter" "$file" || fail "memory SKILL.md should mention filters"
 }
 
-test_recall_has_advanced_flags() {
-    assert_file_contains "$SKILLS_DIR/recall/SKILL.md" "## Advanced Flags"
+test_memory_has_subcommands() {
+    local file="$SKILLS_DIR/memory/SKILL.md"
+    # Memory skill should document its subcommands: search, load, viz, history, sync
+    grep -qi "search" "$file" || fail "memory SKILL.md should mention search subcommand"
 }
 
 # ============================================================================
@@ -187,7 +189,7 @@ test_feedback_has_output_examples() {
 describe "Commands: Format Validation"
 
 test_all_commands_have_title() {
-    for cmd in remember recall feedback; do
+    for cmd in remember memory feedback; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # Should have a title with the command name
@@ -199,7 +201,7 @@ test_all_commands_have_title() {
 }
 
 test_all_commands_are_readable() {
-    for cmd in remember recall feedback; do
+    for cmd in remember memory feedback; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # Should be readable
@@ -211,7 +213,7 @@ test_all_commands_are_readable() {
 }
 
 test_commands_have_reasonable_size() {
-    for cmd in remember recall feedback; do
+    for cmd in remember memory feedback; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             local size
@@ -231,7 +233,7 @@ test_commands_have_reasonable_size() {
 }
 
 test_all_commands_have_user_invocable_true() {
-    for cmd in remember recall feedback; do
+    for cmd in remember memory feedback; do
         local file="$SKILLS_DIR/${cmd}/SKILL.md"
         if [[ -f "$file" ]]; then
             # CC 2.1.3: Commands should have user-invocable: true

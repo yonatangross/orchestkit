@@ -34,10 +34,27 @@ import type { ClassificationResult } from '../lib/orchestration-types.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'orchestration-state-test');
-const TEST_SESSION_ID = 'test-session-state-' + Date.now();
+// Use per-test unique directories to avoid cross-test contamination
+let TEST_PROJECT_DIR: string;
+let TEST_SESSION_ID: string;
+
+let originalEnv: {
+  CLAUDE_PROJECT_DIR?: string;
+  CLAUDE_SESSION_ID?: string;
+};
 
 beforeEach(() => {
+  // Generate unique paths per test
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `orchestration-state-test-${unique}`);
+  TEST_SESSION_ID = `test-session-state-${unique}`;
+
+  // Store original environment
+  originalEnv = {
+    CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+    CLAUDE_SESSION_ID: process.env.CLAUDE_SESSION_ID,
+  };
+
   // Set test environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
   process.env.CLAUDE_SESSION_ID = TEST_SESSION_ID;
@@ -53,9 +70,17 @@ beforeEach(() => {
 
 afterEach(() => {
   // Clean up test files
-  const stateDir = `${TEST_PROJECT_DIR}/.claude/orchestration`;
-  if (existsSync(stateDir)) {
-    rmSync(stateDir, { recursive: true, force: true });
+  if (existsSync(TEST_PROJECT_DIR)) {
+    rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });
+  }
+
+  // Restore original environment
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    } else {
+      delete process.env[key];
+    }
   }
 });
 

@@ -1,13 +1,12 @@
 {
   "name": "ork-memory-mem0",
-  "version": "5.6.2",
+  "version": "5.7.0",
   "description": "Mem0 cloud memory — semantic search, cross-session sync, analytics. Requires MEM0_API_KEY. Depends on ork-memory-graph.",
   "dependencies": [
     "ork-memory-graph"
   ],
   "skills": [
-    "mem0-memory",
-    "mem0-sync"
+    "mem0-memory"
   ],
   "agents": [],
   "hooks": "none"

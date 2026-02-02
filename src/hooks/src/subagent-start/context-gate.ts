@@ -15,6 +15,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputDeny, outputWarning, logHook, getProjectDir } from '../lib/common.js';
 
@@ -49,7 +50,7 @@ interface StateData {
 
 function initState(): void {
   const stateFile = getStateFile();
-  const dir = stateFile.substring(0, stateFile.lastIndexOf('/'));
+  const dir = dirname(stateFile);
 
   try {
     mkdirSync(dir, { recursive: true });

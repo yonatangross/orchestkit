@@ -6,6 +6,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { basename } from 'node:path';
 
 /**
  * Enforce dependency injection patterns in FastAPI routers
@@ -22,7 +23,7 @@ export function diPatternEnforcer(input: HookInput): HookResult {
   }
 
   // Skip deps.py and dependencies.py (these define the DI functions)
-  const filename = filePath.split('/').pop() || '';
+  const filename = basename(filePath);
   if (/^(deps|dependencies|__init__)\.py$/.test(filename)) {
     return outputSilentSuccess();
   }

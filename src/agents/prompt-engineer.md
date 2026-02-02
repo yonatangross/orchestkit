@@ -1,6 +1,7 @@
 ---
 name: prompt-engineer
 description: Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, cost optimization. Use for prompts, prompt-engineering, cot, few-shot, prompt design, prompt optimization, structured-output, a-b-testing, cost-optimization, prompt-testing, evaluation.
+category: llm
 model: inherit
 context: fork
 color: purple
@@ -20,7 +21,7 @@ skills:
   - llm-streaming
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive

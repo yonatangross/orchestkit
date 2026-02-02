@@ -1,13 +1,13 @@
 ---
 name: verify
-description: Comprehensive feature verification with parallel analysis agents. Use when verifying implementations, testing changes, validating features, or checking correctness.
+description: "[BUILD] Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 context: fork
-version: 3.0.0
+version: 3.1.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, unit-testing, integration-testing, recall, quality-gates]
+allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, unit-testing, integration-testing, memory, quality-gates]
 ---
 
 # Verify Feature
@@ -21,6 +21,36 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 /verify user profile feature
 /verify --scope=backend database migrations
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify verification scope:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What scope for this verification?",
+    "header": "Scope",
+    "options": [
+      {"label": "Full verification (Recommended)", "description": "All tests + security + code quality + grades"},
+      {"label": "Tests only", "description": "Run unit + integration + e2e tests"},
+      {"label": "Security audit", "description": "Focus on security vulnerabilities"},
+      {"label": "Code quality", "description": "Lint, types, complexity analysis"},
+      {"label": "Quick check", "description": "Just run tests, skip detailed analysis"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Full verification**: All 8 phases, all 5 parallel agents
+- **Tests only**: Skip phases 2 (security), 5 (UI/UX analysis)
+- **Security audit**: Focus on security-auditor agent
+- **Code quality**: Focus on code-quality-reviewer agent
+- **Quick check**: Run tests only, skip grading and suggestions
 
 ---
 

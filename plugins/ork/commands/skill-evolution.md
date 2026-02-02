@@ -1,5 +1,5 @@
 ---
-description: Analyze, evolve, and rollback skills based on usage patterns. Use when evolving skills, improving skill definitions, updating skill content.
+description: "[CONFIG] Evolve skills based on usage patterns. Use when improving or rolling back skill definitions."
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 ---
 

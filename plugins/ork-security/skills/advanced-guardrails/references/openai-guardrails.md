@@ -152,7 +152,7 @@ def with_moderation(
 async def generate_response(prompt: str) -> str:
     """Generate response with automatic moderation."""
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{"role": "user", "content": prompt}]
     )
     return response.choices[0].message.content
@@ -371,7 +371,7 @@ async def stream_with_moderation(prompt: str):
     check_interval = 100  # Check every 100 chars
 
     async with client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{"role": "user", "content": prompt}],
         stream=True
     ) as stream:

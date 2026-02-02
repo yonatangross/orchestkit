@@ -6,7 +6,7 @@
 
 source "$(dirname "$0")/../fixtures/test-helpers.sh"
 
-GRAPH_UTILS_PATH="$PROJECT_ROOT/src/skills/graph-viz/scripts/graph-utils.mjs"
+GRAPH_UTILS_PATH="$PROJECT_ROOT/src/skills/memory/scripts/graph-utils.mjs"
 
 describe "Graph Utils Module"
 

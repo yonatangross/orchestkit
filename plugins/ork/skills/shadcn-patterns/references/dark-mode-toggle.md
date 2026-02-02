@@ -212,14 +212,33 @@ Ensure your CSS supports both themes:
 />
 ```
 
-## Tailwind Dark Mode
+## Tailwind v4 Dark Mode
 
-Ensure Tailwind is configured for class-based dark mode:
+In Tailwind CSS v4, dark mode uses a CSS-first approach. The `dark:` variant works automatically based on the `.dark` class or `prefers-color-scheme` media query.
 
-```javascript
-// tailwind.config.js
-module.exports = {
-  darkMode: 'class',
-  // ...
+```css
+/* app.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
+
+@theme {
+  /* Define your theme tokens */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+}
+
+/* Dark mode via .dark class (used by next-themes) */
+.dark {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+}
+
+/* Or automatic detection via media query */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background: oklch(0.145 0 0);
+    --color-foreground: oklch(0.985 0 0);
+  }
 }
 ```
+
+No `tailwind.config.js` configuration needed - the `dark:` variant is enabled by default in v4 and responds to the `.dark` class on a parent element.

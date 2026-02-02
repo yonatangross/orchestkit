@@ -12,6 +12,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 
@@ -73,7 +74,7 @@ const BEST_PRACTICE_CATEGORIES: Record<string, RegExp> = {
  */
 function getProjectId(): string {
   const projectDir = getProjectDir();
-  return projectDir.split('/').pop() || 'unknown';
+  return basename(projectDir) || 'unknown';
 }
 
 /**

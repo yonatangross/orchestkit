@@ -1,6 +1,7 @@
 ---
 name: business-case-builder
 description: Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale. Activates for ROI, cost-benefit, risk assessment, investment justification, business case, budget, revenue impact, cost analysis, financial, payback period, NPV, IRR, TCO, revenue projection
+category: product
 model: inherit
 context: fork
 color: indigo
@@ -16,7 +17,7 @@ skills:
   - brainstorming
   - github-operations
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Build compelling business cases with ROI projections, cost-benefit analysis, and risk assessment to justify product investments.

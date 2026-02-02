@@ -21,7 +21,7 @@ import {
 } from '../../lib/common.js';
 import { guardCodeFiles, guardSkipInternal, runGuards, isDontAskMode } from '../../lib/guards.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join, dirname, extname } from 'node:path';
+import { join, dirname, extname, basename } from 'node:path';
 
 // Thresholds
 const MAX_FUNCTION_LINES = 50;
@@ -206,8 +206,8 @@ function getCachedTypeErrors(filePath: string, projectDir: string): string {
 
   try {
     const cache = JSON.parse(readFileSync(cacheFile, 'utf8'));
-    const basename = filePath.split('/').pop() || '';
-    return cache[basename] || '';
+    const fileBasename = basename(filePath);
+    return cache[fileBasename] || '';
   } catch {
     return '';
   }

@@ -107,7 +107,7 @@ async def generate_synthetic(topic: str, n: int = 100) -> list[dict]:
     examples = []
     for _ in range(n):
         response = await client.chat.completions.create(
-            model="gpt-4o",  # Teacher
+            model="gpt-5.2",  # Teacher
             messages=[{
                 "role": "system",
                 "content": f"Generate a training example about {topic}. "

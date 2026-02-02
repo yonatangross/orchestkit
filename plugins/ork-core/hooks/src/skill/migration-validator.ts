@@ -9,6 +9,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../lib/common.js';
+import { basename } from 'node:path';
 
 /**
  * Validate alembic migration files
@@ -27,7 +28,7 @@ export function migrationValidator(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  process.stderr.write(`::group::Migration Validation: ${filePath.split('/').pop()}\n`);
+  process.stderr.write(`::group::Migration Validation: ${basename(filePath)}\n`);
 
   const errors: string[] = [];
   let content: string;

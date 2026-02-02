@@ -63,7 +63,7 @@ def analyze_image_openai(image_path: str, prompt: str) -> str:
     base64_data, mime_type = encode_image_base64(image_path)
 
     response = client.chat.completions.create(
-        model="gpt-5",  # or "gpt-4o", "gpt-4.1"
+        model="gpt-5.2",  # or "gpt-4.1" for cost optimization
         messages=[{
             "role": "user",
             "content": [
@@ -91,7 +91,7 @@ def analyze_image_claude(image_path: str, prompt: str) -> str:
     base64_data, media_type = encode_image_base64(image_path)
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251124",  # or claude-sonnet-4-5
+        model="claude-opus-4-5-20251101",  # or claude-sonnet-4-5
         max_tokens=4096,
         messages=[{
             "role": "user",
@@ -189,7 +189,7 @@ async def compare_images(images: list[str], prompt: str) -> str:
     content.append({"type": "text", "text": prompt})
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251124",
+        model="claude-opus-4-5-20251101",
         max_tokens=8192,
         messages=[{"role": "user", "content": content}]
     )
@@ -226,7 +226,7 @@ def detect_objects_gemini(image_path: str) -> list[dict]:
 ```python
 # Cost-optimized simple classification
 response = client.chat.completions.create(
-    model="gpt-4o-mini",  # Cheaper for simple tasks
+    model="gpt-5.2-mini",  # Cheaper for simple tasks
     messages=[{
         "role": "user",
         "content": [
@@ -272,7 +272,7 @@ response = client.chat.completions.create(
 
 - Cannot identify specific people (privacy restriction)
 - May hallucinate on low-quality/rotated images (<200px)
-- GPT-4o: struggles with non-Latin text, precise spatial reasoning
+- GPT-5: may struggle with precise spatial reasoning on edge cases
 - No real-time video (use frame extraction except Gemini)
 
 ## Related Skills

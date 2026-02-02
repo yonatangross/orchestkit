@@ -1,6 +1,7 @@
 ---
 name: ai-safety-auditor
 description: AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, OWASP LLM compliance. Use for safety audit, security audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, vulnerabilities, penetration testing, mcp security, tool poisoning.
+category: security
 model: opus
 context: fork
 color: red
@@ -20,7 +21,7 @@ skills:
   - owasp-top-10
   - input-validation
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive
@@ -228,3 +229,18 @@ Task: "Audit the chat endpoint for prompt injection vulnerabilities"
 7. Assess against OWASP LLM01 (Prompt Injection)
 8. Generate findings with severity and remediation
 9. Return structured audit report
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for ai-safety-auditor]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|advanced-guardrails:{SKILL.md,references/{factuality-checking.md,guardrails-ai.md,nemo-guardrails.md,openai-guardrails.md,red-teaming.md}}|guardrails,nemo,safety,hallucination,factuality,red-teaming,colang,2026
+|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
+|input-validation:{SKILL.md,references/{zod-v4-api.md}}|security,validation,zod,pydantic,2026
+```

@@ -1,7 +1,7 @@
 {
   "name": "ork",
-  "version": "5.6.2",
-  "description": "Full OrchestKit toolkit — 196 skills, 35 agents, 120 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns. Hooks provided by ork-core dependency.",
+  "version": "5.7.0",
+  "description": "Full OrchestKit toolkit — 193 skills, 35 agents, 118 hooks. Complete AI development powerhouse with Memory Fabric, progressive loading, and production patterns. Hooks provided by ork-core dependency.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",
@@ -10,14 +10,6 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": [
-    "ai-development",
-    "langgraph",
-    "fastapi",
-    "react",
-    "typescript",
-    "python",
-    "multi-agent"
-  ],
-  "skills": "./skills/"
+  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
+  ,"skills": "./skills/"
 }

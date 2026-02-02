@@ -70,8 +70,8 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 **Example Results:**
 | Model | Daily Cost | Monthly (Projected) |
 |-------|------------|---------------------|
-| claude-sonnet-4-20250514 | $5.20 | $156 |
-| gemini-1.5-flash | $1.80 | $54 |
+| claude-sonnet-4-5-20251101 | $5.20 | $156 |
+| gemini-3-flash | $1.80 | $54 |
 | voyage-code-2 | $0.40 | $12 |
 | **Total** | **$7.40** | **$222** |
 
@@ -262,7 +262,7 @@ histogram_quantile(0.95,
 {
   "event": "llm_call_completed",
   "level": "info",
-  "model": "claude-sonnet-4-20250514",
+  "model": "claude-sonnet-4-5-20251101",
   "operation": "security_audit",
   "input_tokens": 1800,
   "output_tokens": 1200,

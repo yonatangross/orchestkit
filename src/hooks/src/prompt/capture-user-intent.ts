@@ -38,7 +38,7 @@ import {
   storeDecision,
 } from '../lib/memory-writer.js';
 import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 
 // =============================================================================
 // CONSTANTS
@@ -80,7 +80,7 @@ function generateId(prefix: string): string {
  */
 function getProjectName(): string {
   const projectDir = getProjectDir();
-  return projectDir.split('/').pop() || 'unknown';
+  return basename(projectDir) || 'unknown';
 }
 
 /**

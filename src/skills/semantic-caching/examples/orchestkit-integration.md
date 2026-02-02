@@ -48,7 +48,7 @@ poetry install
 # docker-compose.yml
 services:
   redis:
-    image: redis/redis-stack:latest
+    image: redis:8
     container_name: orchestkit-redis-cache
     ports:
       - "6379:6379"      # Redis
@@ -342,7 +342,7 @@ async def test_agent_cache_hit():
 
 ## Deployment Checklist
 
-- [ ] Redis Stack deployed and accessible
+- [ ] Redis 8+ deployed and accessible (search modules built-in)
 - [ ] RedisSearch index created
 - [ ] Cache service initialized on startup
 - [ ] Cache warming script executed

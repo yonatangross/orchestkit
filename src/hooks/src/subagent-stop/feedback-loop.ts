@@ -13,6 +13,7 @@
  */
 
 import { existsSync, writeFileSync, mkdirSync, readFileSync, appendFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
@@ -177,7 +178,7 @@ function writeDecision(
   taskId?: string
 ): void {
   const decisionLog = getDecisionLog();
-  const logDir = decisionLog.substring(0, decisionLog.lastIndexOf('/'));
+  const logDir = dirname(decisionLog);
 
   try {
     mkdirSync(logDir, { recursive: true });

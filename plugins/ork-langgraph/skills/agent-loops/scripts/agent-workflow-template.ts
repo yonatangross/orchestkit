@@ -160,7 +160,7 @@ IMPORTANT:
 
   for (let i = 0; i < maxIterations; i++) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-5.2',
       messages,
       temperature: 0.1
     })
@@ -237,7 +237,7 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
   let iteration = 0
   while (iteration < 10) {
     const response = await openai.chat.completions.create({
-      model: 'gpt-4-turbo-preview',
+      model: 'gpt-5.2',
       messages,
       tools: openaiTools
     })
@@ -305,7 +305,7 @@ export async function multiAgentCollaboration(
 
   // 1. Coordinator plans the task
   const planResponse = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',
@@ -333,7 +333,7 @@ Provide a numbered plan with agent assignments.`
   const agentResults = await Promise.all(
     agents.map(async (agent) => {
       const response = await openai.chat.completions.create({
-        model: 'gpt-4-turbo-preview',
+        model: 'gpt-5.2',
         messages: [
           { role: 'system', content: agent.systemPrompt },
           { role: 'user', content: `Task: ${task}\n\nPlan:\n${plan}\n\nComplete your part.` }
@@ -351,7 +351,7 @@ Provide a numbered plan with agent assignments.`
 
   // 3. Synthesize results
   const synthesisResponse = await openai.chat.completions.create({
-    model: 'gpt-4-turbo-preview',
+    model: 'gpt-5.2',
     messages: [
       {
         role: 'system',

@@ -1,6 +1,7 @@
 ---
 name: llm-integrator
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.
+category: llm
 model: inherit
 context: fork
 color: orange
@@ -28,7 +29,7 @@ skills:
   - ollama-local
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
@@ -67,7 +68,7 @@ Return structured integration report:
 {
   "integration": {
     "provider": "anthropic",
-    "model": "claude-sonnet-4-20250514",
+    "model": "claude-sonnet-4-5-20251101",
     "sdk_version": "0.40.0"
   },
   "endpoints_created": [
@@ -85,7 +86,7 @@ Return structured integration report:
     "cache_type": "ephemeral",
     "estimated_savings": "72%"
   },
-  "fallback_chain": ["claude-sonnet-4", "gpt-4o", "ollama/llama3"],
+  "fallback_chain": ["claude-sonnet-4", "gpt-5.2", "ollama/llama3"],
   "rate_limiting": {
     "requests_per_minute": 60,
     "tokens_per_minute": 100000
@@ -132,8 +133,8 @@ PROVIDERS = {
         "client": Anthropic(),
         "models": {
             "fast": "claude-haiku-3-5-20241022",
-            "balanced": "claude-sonnet-4-20250514",
-            "powerful": "claude-opus-4-20250514"
+            "balanced": "claude-sonnet-4-5-20251101",
+            "powerful": "claude-opus-4-5-20251101"
         },
         "supports_caching": True,
         "supports_streaming": True
@@ -141,8 +142,8 @@ PROVIDERS = {
     "openai": {
         "client": OpenAI(),
         "models": {
-            "fast": "gpt-4o-mini",
-            "balanced": "gpt-4o",
+            "fast": "gpt-5.2-mini",
+            "balanced": "gpt-5.2",
             "powerful": "o1"
         },
         "supports_caching": False,
@@ -150,7 +151,7 @@ PROVIDERS = {
     },
     "ollama": {
         "base_url": "http://localhost:11434",
-        "models": {"balanced": "llama3.2"},
+        "models": {"balanced": "llama3.3"},
         "supports_caching": False,
         "supports_streaming": True
     }
@@ -161,7 +162,7 @@ PROVIDERS = {
 ```python
 async def stream_completion(
     prompt: str,
-    model: str = "claude-sonnet-4-20250514"
+    model: str = "claude-sonnet-4-5-20251101"
 ) -> AsyncIterator[str]:
     """Stream LLM response as SSE events."""
     async with client.messages.stream(
