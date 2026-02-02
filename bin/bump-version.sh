@@ -65,12 +65,23 @@ sync_versions() {
 
   echo "Syncing version files..."
 
-  # marketplace.json
+  # marketplace.json (top-level only; plugin entries synced by build)
   local marketplace="$PROJECT_ROOT/.claude-plugin/marketplace.json"
   if [[ -f "$marketplace" ]]; then
-    jq --arg v "$version" '.version = $v | .plugins[0].version = $v' "$marketplace" > "$marketplace.tmp"
+    jq --arg v "$version" '.version = $v' "$marketplace" > "$marketplace.tmp"
     mv "$marketplace.tmp" "$marketplace"
     echo "  ✓ marketplace.json"
+  fi
+
+  # All manifests (build reads version from manifests for plugin.json generation)
+  local manifests_dir="$PROJECT_ROOT/manifests"
+  if [[ -d "$manifests_dir" ]]; then
+    local manifest_count=0
+    for m in "$manifests_dir"/*.json; do
+      jq --arg v "$version" '.version = $v' "$m" > "$m.tmp" && mv "$m.tmp" "$m"
+      manifest_count=$((manifest_count + 1))
+    done
+    echo "  ✓ $manifest_count manifests"
   fi
 
   # pyproject.toml
@@ -143,6 +154,7 @@ stage_changes() {
   echo "Staging changes..."
   cd "$PROJECT_ROOT"
   git add plugins/ork/.claude-plugin/plugin.json .claude-plugin/marketplace.json 2>/dev/null || true
+  git add manifests/*.json 2>/dev/null || true
   git add pyproject.toml CLAUDE.md CHANGELOG.md 2>/dev/null || true
   echo "  ✓ Changes staged"
 }
