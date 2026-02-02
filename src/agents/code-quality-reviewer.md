@@ -25,7 +25,7 @@ skills:
   - project-structure-enforcer
   - best-practices
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

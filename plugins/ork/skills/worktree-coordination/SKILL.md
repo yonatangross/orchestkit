@@ -1,6 +1,6 @@
 ---
 name: worktree-coordination
-description: Manage multiple Claude Code instances across git worktrees. Check status, claim/release file locks, sync decisions, and prevent conflicts. Use when coordinating multiple worktrees or Claude instances.
+description: "[EXPLORE] Coordinate multiple Claude instances across worktrees. Use when managing parallel development."
 context: none
 version: 1.0.0
 author: OrchestKit

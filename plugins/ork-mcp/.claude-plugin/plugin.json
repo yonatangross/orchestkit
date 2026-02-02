@@ -1,6 +1,6 @@
 {
   "name": "ork-mcp",
-  "version": "5.2.6",
+  "version": "5.6.1",
   "description": "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture",
   "author": {
     "name": "Yonatan Gross",

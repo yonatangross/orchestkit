@@ -1,5 +1,5 @@
 ---
-description: Assess task complexity with automated codebase metrics. Use when determining if a task needs breakdown or estimating implementation effort
+description: "[QUALITY] Assess task complexity with codebase metrics. Use when determining if a task needs breakdown."
 allowed-tools: [Read, Grep, Glob, Bash, Task, mcp__memory__search_nodes]
 ---
 

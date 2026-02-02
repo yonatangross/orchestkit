@@ -45,7 +45,7 @@ skills:
   - distributed-locks
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.

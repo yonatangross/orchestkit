@@ -19,7 +19,7 @@ skills:
   - manim-visualizer
   - remotion-composer
   - task-dependency-patterns
-  - recall
+  - memory
   - remember
 ---
 
@@ -116,10 +116,10 @@ Add composition to `orchestkit-demos/src/Root.tsx` in the correct folder:
 Production/
 ├── Landscape-16x9/
 │   ├── Core-Skills/      → implement, verify, commit, explore
-│   ├── Memory-Skills/    → remember, recall, load-context, mem0-sync
+│   ├── Memory-Skills/    → remember, memory
 │   ├── Review-Skills/    → review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/    → doctor, configure, run-tests, feedback
-│   ├── AI-Skills/        → brainstorming, assess, assess-complexity, decision-history
+│   ├── AI-Skills/        → brainstorming, assess, assess-complexity
 │   └── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer, add-golden
 ├── Vertical-9x16/
 ├── Square-1x1/

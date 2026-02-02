@@ -18,7 +18,7 @@ skills:
   - resilience-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.

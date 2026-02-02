@@ -13,7 +13,7 @@ skills:
   - requirements-engineering
   - github-operations
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Transform ambiguous product ideas into clear, actionable requirements with user stories, acceptance criteria, and defined scope boundaries.

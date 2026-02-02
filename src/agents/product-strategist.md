@@ -18,7 +18,7 @@ skills:
   - brainstorming
   - github-operations
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.

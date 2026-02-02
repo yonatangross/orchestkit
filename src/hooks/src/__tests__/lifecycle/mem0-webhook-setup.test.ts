@@ -15,8 +15,9 @@ import { mem0WebhookSetup } from '../../lifecycle/mem0-webhook-setup.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'mem0-webhook-setup-test');
-const TEST_SESSION_ID = 'test-session-webhook-' + Date.now();
+// Use per-test unique directories to avoid cross-test contamination
+let TEST_PROJECT_DIR: string;
+let TEST_SESSION_ID: string;
 
 /**
  * Create realistic HookInput for testing
@@ -57,6 +58,13 @@ let originalEnv: {
 };
 
 beforeEach(() => {
+  vi.clearAllMocks();
+
+  // Generate unique paths per test to prevent cross-test contamination
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `mem0-webhook-setup-test-${unique}`);
+  TEST_SESSION_ID = `test-session-webhook-${unique}`;
+
   // Store original environment
   originalEnv = {
     MEM0_API_KEY: process.env.MEM0_API_KEY,
@@ -71,12 +79,11 @@ beforeEach(() => {
 
   // Create test directory
   mkdirSync(TEST_PROJECT_DIR, { recursive: true });
-
-  // Clear any mocks
-  vi.clearAllMocks();
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
+
   // Clean up test directory
   if (existsSync(TEST_PROJECT_DIR)) {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });

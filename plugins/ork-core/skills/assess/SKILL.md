@@ -1,13 +1,13 @@
 ---
 name: assess
-description: Rate quality 0-10 with dimension breakdown, list pros/cons, compare alternatives with scores, suggest improvements with effort estimates. Use when evaluating code, designs, approaches, or asking "is this good?"
+description: "[QUALITY] Rate quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
-skills: [code-review-playbook, assess-complexity, quality-gates, architecture-decision-record, recall]
+allowedTools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
+skills: [code-review-playbook, assess-complexity, quality-gates, architecture-decision-record, memory]
 argument-hint: [code-path-or-topic]
 ---
 
@@ -23,6 +23,34 @@ Comprehensive assessment skill for answering "is this good?" with structured eva
 /assess the current database schema
 /assess frontend/src/components/Dashboard
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify assessment dimensions:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What dimensions to assess?",
+    "header": "Dimensions",
+    "options": [
+      {"label": "Full assessment (Recommended)", "description": "All dimensions: quality, maintainability, security, performance"},
+      {"label": "Code quality only", "description": "Readability, complexity, best practices"},
+      {"label": "Security focus", "description": "Vulnerabilities, attack surface, compliance"},
+      {"label": "Quick score", "description": "Just give me a 0-10 score with brief notes"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Full assessment**: All 7 phases, parallel agents
+- **Code quality only**: Skip security and performance phases
+- **Security focus**: Prioritize security-auditor agent
+- **Quick score**: Single pass, brief output
 
 ---
 

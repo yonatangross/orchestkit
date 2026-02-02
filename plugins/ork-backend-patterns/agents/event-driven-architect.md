@@ -24,7 +24,7 @@ skills:
   - idempotency-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design event-driven architectures with event sourcing, message queues, and CQRS patterns for scalable distributed systems.

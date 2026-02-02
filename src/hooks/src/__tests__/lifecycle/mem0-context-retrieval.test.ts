@@ -15,9 +15,9 @@ import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js'
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'mem0-context-retrieval-test');
-const TEST_HOME_DIR = join(tmpdir(), 'mem0-context-test-home');
-const TEST_SESSION_ID = 'test-session-context-' + Date.now();
+let TEST_PROJECT_DIR: string;
+let TEST_HOME_DIR: string;
+let TEST_SESSION_ID: string;
 
 /**
  * Create realistic HookInput for testing
@@ -78,6 +78,12 @@ let originalEnv: {
 };
 
 beforeEach(() => {
+  // Generate unique paths per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `mem0-context-retrieval-test-${unique}`);
+  TEST_HOME_DIR = join(tmpdir(), `mem0-context-test-home-${unique}`);
+  TEST_SESSION_ID = `test-session-context-${unique}`;
+
   // Store original environment
   originalEnv = {
     MEM0_API_KEY: process.env.MEM0_API_KEY,
@@ -117,6 +123,9 @@ afterEach(() => {
       delete process.env[key];
     }
   }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

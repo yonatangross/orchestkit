@@ -25,56 +25,97 @@ import { THRESHOLDS } from '../lib/orchestration-types.js';
 const MAX_SUGGESTIONS = 2;
 
 /**
+ * Map agent types to relevant skill suggestions
+ */
+const AGENT_TO_SKILLS: Record<string, string[]> = {
+  'backend-system-architect': ['implement', 'explore'],
+  'frontend-ui-developer': ['implement', 'explore'],
+  'workflow-architect': ['implement', 'brainstorming'],
+  'security-auditor': ['verify', 'review-pr'],
+  'code-quality-reviewer': ['verify', 'assess'],
+  'test-generator': ['verify'],
+  'debug-investigator': ['fix-issue', 'explore'],
+  'ux-researcher': ['brainstorming', 'assess'],
+  'database-engineer': ['implement', 'explore'],
+  'llm-integrator': ['implement', 'brainstorming'],
+  'performance-engineer': ['verify', 'assess'],
+};
+
+/**
+ * Get category label for agent type
+ */
+function getAgentCategory(agent: string): string {
+  if (agent.includes('backend') || agent.includes('database') || agent.includes('api')) return 'Backend';
+  if (agent.includes('frontend') || agent.includes('ui') || agent.includes('ux')) return 'Frontend';
+  if (agent.includes('security') || agent.includes('audit')) return 'Security';
+  if (agent.includes('test') || agent.includes('quality')) return 'Quality';
+  if (agent.includes('debug') || agent.includes('investigator')) return 'Debug';
+  if (agent.includes('workflow') || agent.includes('architect')) return 'Architecture';
+  if (agent.includes('llm') || agent.includes('prompt')) return 'AI/LLM';
+  return 'Specialized';
+}
+
+/**
  * Build suggestion message based on confidence level
- * (Backward compatible message format)
+ * v2.0: More user-friendly with skill alternatives
  */
 function buildSuggestionMessage(matches: AgentMatch[]): string {
   if (matches.length === 0) return '';
 
   const topMatch = matches[0];
+  const category = getAgentCategory(topMatch.agent);
+  const relatedSkills = AGENT_TO_SKILLS[topMatch.agent] || ['implement', 'explore'];
   let message = '';
 
   if (topMatch.confidence >= THRESHOLDS.AUTO_DISPATCH) {
-    // HIGH CONFIDENCE - Strong directive
-    message = `## 🎯 AGENT DISPATCH RECOMMENDED
+    // HIGH CONFIDENCE (90%+) - Using this agent
+    message = `## 💡 Detected: ${category} Task
 
-**Agent:** \`${topMatch.agent}\` (${topMatch.confidence}% confidence)
+Using \`${topMatch.agent}\` for this.
 
-This task strongly matches the agent's specialization. **Spawn this agent:**
-
-\`\`\`
-Task tool with subagent_type: "${topMatch.agent}"
-\`\`\`
-
-Matched: ${topMatch.matchedKeywords.slice(0, 5).join(', ')}`;
+**Or use a skill:**
+${relatedSkills.map(s => `- \`/ork:${s}\` — ${getSkillDescription(s)}`).join('\n')}`;
 
   } else if (topMatch.confidence >= THRESHOLDS.STRONG_RECOMMEND) {
-    // MEDIUM-HIGH - Recommendation
-    message = `## Agent Recommendation
+    // MEDIUM-HIGH (80-89%) - Suggestion
+    message = `## 💭 This looks like a ${category.toLowerCase()} task
 
-**RECOMMENDED:** \`${topMatch.agent}\` (${topMatch.confidence}% match)
-${topMatch.description}
+**Suggested:** \`${topMatch.agent}\`
 
-Matched keywords: ${topMatch.matchedKeywords.slice(0, 4).join(', ')}
-
-Consider spawning with: \`Task tool, subagent_type: "${topMatch.agent}"\``;
+**Or try a skill:**
+${relatedSkills.map(s => `- \`/ork:${s}\``).join('\n')}`;
 
   } else if (topMatch.confidence >= THRESHOLDS.SUGGEST) {
-    // MEDIUM - Suggestion
-    message = `## Agent Suggestion
+    // MEDIUM (60-79%) - Hint
+    message = `## ℹ️ Possible match: \`${topMatch.agent}\`
 
-**Consider:** \`${topMatch.agent}\` (${topMatch.confidence}% match)
-
-This agent specializes in: ${topMatch.matchedKeywords.slice(0, 3).join(', ')}`;
+Not sure? Try \`/ork:help\` to see all options.`;
   }
 
-  // Add second match if exists and significant
+  // Add alternative agent if exists
   if (matches.length > 1 && matches[1].confidence >= THRESHOLDS.SUGGEST) {
     const second = matches[1];
-    message += `\n\n**Alternative:** \`${second.agent}\` (${second.confidence}% match)`;
+    message += `\n\n**Also consider:** \`${second.agent}\``;
   }
 
   return message;
+}
+
+/**
+ * Get short skill description for suggestions
+ */
+function getSkillDescription(skill: string): string {
+  const descriptions: Record<string, string> = {
+    'implement': 'Full feature workflow',
+    'explore': 'Understand existing code',
+    'verify': 'Run tests and validations',
+    'brainstorming': 'Design exploration',
+    'review-pr': 'Code review',
+    'fix-issue': 'Debug and fix',
+    'assess': 'Quality assessment',
+    'commit': 'Create commit',
+  };
+  return descriptions[skill] || skill;
 }
 
 /**

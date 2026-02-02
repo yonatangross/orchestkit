@@ -29,7 +29,7 @@ MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices"
 
 # Skill paths (CC 2.1.6 nested structure)
 REMEMBER_SKILL="$PROJECT_ROOT/src/skills/remember"
-RECALL_SKILL="$PROJECT_ROOT/src/skills/recall"
+MEMORY_SKILL_DIR="$PROJECT_ROOT/src/skills/memory"
 BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/best-practices"
 FEEDBACK_SKILL="$PROJECT_ROOT/src/skills/feedback"
 
@@ -395,11 +395,11 @@ test_remember_skill_has_best_practices_scope() {
     assert_file_contains "$REMEMBER_SKILL/SKILL.md" "best-practices"
 }
 
-test_recall_skill_exists() {
-    assert_file_exists "$RECALL_SKILL/SKILL.md"
+test_memory_skill_exists() {
+    assert_file_exists "$MEMORY_SKILL_DIR/SKILL.md"
 }
 
-test_recall_skill_has_capabilities() {
+test_memory_skill_has_capabilities() {
     : # Placeholder
 }
 

@@ -18,7 +18,6 @@
     "doctor",
     "errors",
     "run-tests",
-    "decision-history",
     "multi-scenario-orchestration"
   ],
   "agents": [

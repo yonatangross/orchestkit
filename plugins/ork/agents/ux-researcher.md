@@ -15,7 +15,7 @@ skills:
   - persona-journey-mapping
   - design-system-starter
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Conduct user research, create actionable personas, map user journeys, and validate design decisions through data-driven insights and behavioral analysis.

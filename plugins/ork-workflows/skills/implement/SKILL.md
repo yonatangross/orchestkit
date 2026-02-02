@@ -1,13 +1,13 @@
 ---
 name: implement
-description: Full-power feature implementation with parallel subagents, skills, and MCPs. Use when implementing features, building features, creating features, or developing features.
+description: "[BUILD] Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 context: fork
-version: 2.0.0
+version: 2.1.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
-skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, recall, worktree-coordination]
+allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
+skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, memory, worktree-coordination]
 ---
 
 # Implement Feature
@@ -21,6 +21,47 @@ Maximum utilization of parallel subagent execution for feature implementation wi
 /implement real-time notifications
 /implement dashboard analytics
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks or doing ANY work**, ask the user to clarify scope:
+
+```python
+AskUserQuestion(
+  questions=[
+    {
+      "question": "What scope for this implementation?",
+      "header": "Scope",
+      "options": [
+        {"label": "Full-stack (Recommended)", "description": "Backend + frontend + tests + docs"},
+        {"label": "Backend only", "description": "API + database + backend tests"},
+        {"label": "Frontend only", "description": "UI components + state + frontend tests"},
+        {"label": "Quick prototype", "description": "Minimal working version, skip tests"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "question": "Any constraints I should know about?",
+      "header": "Constraints",
+      "options": [
+        {"label": "None (Recommended)", "description": "Use best practices and modern patterns"},
+        {"label": "Match existing patterns", "description": "Follow existing codebase conventions exactly"},
+        {"label": "Minimal dependencies", "description": "Avoid adding new packages"},
+        {"label": "Specific tech stack", "description": "I'll specify the technologies to use"}
+      ],
+      "multiSelect": false
+    }
+  ]
+)
+```
+
+**Based on user's answers, adjust the workflow:**
+- **Full-stack**: All 10 phases, all parallel agents
+- **Backend only**: Skip frontend agents (phases 5b, 6b)
+- **Frontend only**: Skip backend agents (phases 5a, 6a)
+- **Quick prototype**: Skip phases 7-10 (scope check, verification, docs, reflection)
 
 ---
 

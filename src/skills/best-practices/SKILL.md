@@ -173,4 +173,4 @@ See `references/proactive-warnings.md` for automatic anti-pattern detection.
 
 - `/remember --success <text>` - Add a successful pattern
 - `/remember --failed <text>` - Add an anti-pattern
-- `/recall <query>` - Search all memories (not just best practices)
+- `/ork:memory search <query>` - Search all memories (not just best practices)

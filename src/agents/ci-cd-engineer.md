@@ -20,7 +20,7 @@ skills:
   - vite-advanced
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"

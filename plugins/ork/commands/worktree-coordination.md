@@ -1,5 +1,5 @@
 ---
-description: Manage multiple Claude Code instances across git worktrees. Check status, claim/release file locks, sync decisions, and prevent conflicts. Use when coordinating multiple worktrees or Claude instances.
+description: "[EXPLORE] Coordinate multiple Claude instances across worktrees. Use when managing parallel development."
 allowed-tools: [Read, Write, Bash, Grep, Glob]
 ---
 

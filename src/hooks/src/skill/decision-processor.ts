@@ -9,7 +9,7 @@
  * 2. Extract entities (Agent, Technology, Pattern) for graph memory
  * 3. Suggest mem0 storage with enriched metadata
  *
- * CC 2.1.16 Compliant - Enriched metadata for decision-history
+ * CC 2.1.16 Compliant - Enriched metadata for memory history
  * Version: 2.0.0 - Consolidated from 2 hooks (~520 LOC → ~250 LOC)
  */
 

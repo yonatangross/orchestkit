@@ -1,6 +1,6 @@
 ---
 name: demo-producer
-description: Create polished demo videos for anything. Use when producing skill showcases, plugin demos, tutorials, or CLI tool demonstrations with VHS and Remotion
+description: "[MEDIA] Create polished demo videos. Use for skill showcases, tutorials, or CLI demonstrations."
 user-invocable: true
 context: fork
 version: 1.0.0
@@ -234,10 +234,10 @@ Compositions are organized in `orchestkit-demos/src/Root.tsx` using this hierarc
 Production/                    # Ready-to-render videos
 ├── Landscape-16x9/           # YouTube, Website (1920x1080)
 │   ├── Core-Skills/          # implement, verify, commit, explore
-│   ├── Memory-Skills/        # remember, recall, load-context, mem0-sync
+│   ├── Memory-Skills/        # remember, memory
 │   ├── Review-Skills/        # review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/        # doctor, configure, run-tests, feedback
-│   ├── AI-Skills/            # brainstorming, assess, assess-complexity, decision-history
+│   ├── AI-Skills/            # brainstorming, assess, assess-complexity
 │   ├── Advanced-Skills/      # worktree-coordination, skill-evolution, demo-producer, add-golden
 │   └── Styles/               # Alternative visualizations (ProgressiveZoom, SplitMerge, etc.)
 ├── Vertical-9x16/            # TikTok, Reels, Shorts (1080x1920)
@@ -252,10 +252,10 @@ Experiments/                  # Work in progress, testing new ideas
 | Category | Skills |
 |----------|--------|
 | Core-Skills | implement, verify, commit, explore |
-| Memory-Skills | remember, recall, load-context, mem0-sync |
+| Memory-Skills | remember, memory |
 | Review-Skills | review-pr, create-pr, fix-issue |
 | DevOps-Skills | doctor, configure, run-tests, feedback |
-| AI-Skills | brainstorming, assess, assess-complexity, decision-history |
+| AI-Skills | brainstorming, assess, assess-complexity |
 | Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden |
 
 ### Adding New Compositions

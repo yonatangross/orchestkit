@@ -21,7 +21,7 @@ skills:
   - caching-strategies
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive

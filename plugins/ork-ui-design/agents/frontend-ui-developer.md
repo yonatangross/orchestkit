@@ -46,7 +46,7 @@ skills:
   - streaming-api-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.

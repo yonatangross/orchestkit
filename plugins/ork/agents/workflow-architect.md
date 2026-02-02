@@ -28,7 +28,7 @@ skills:
   - context-compression
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design LangGraph workflow graphs, implement supervisor-worker coordination, manage state with checkpointing, and orchestrate RAG pipelines for production AI systems.

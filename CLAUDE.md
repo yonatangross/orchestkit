@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **196 skills**: Reusable knowledge modules
+- **193 skills**: Reusable knowledge modules
 - **35 agents**: Specialized AI personas
 - **120 hooks**: TypeScript lifecycle automation (92 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 196 skills
+├── skills/             # 193 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,7 +149,7 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-196 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+193 skills available. 21 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
@@ -231,8 +231,8 @@ Memory is split into 3 independent plugins (not a monolith):
 
 | Plugin | Tier | Skills | Requires |
 |--------|------|--------|----------|
-| `ork-memory-graph` | 1 (always works) | remember, recall, load-context | Nothing |
-| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory, mem0-sync | `MEM0_API_KEY` env var |
+| `ork-memory-graph` | 1 (always works) | remember, memory | Nothing |
+| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory | `MEM0_API_KEY` env var |
 | `ork-memory-fabric` | 3 (orchestrator) | memory-fabric | ork-memory-graph |
 
 - Graph is PRIMARY and always available (zero-config)

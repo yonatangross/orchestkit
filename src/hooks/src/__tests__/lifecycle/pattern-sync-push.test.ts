@@ -15,7 +15,7 @@ import { patternSyncPush } from '../../lifecycle/pattern-sync-push.js';
 // Mock Setup - BEFORE imports
 // =============================================================================
 
-const mockHomeDir = join(tmpdir(), 'pattern-sync-push-home-' + Date.now());
+let mockHomeDir: string;
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/common.js')>();
@@ -39,8 +39,8 @@ vi.mock('../../lib/paths.js', async (importOriginal) => {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'pattern-sync-push-test-' + Date.now());
-const TEST_SESSION_ID = 'test-session-push-' + Date.now();
+let TEST_PROJECT_DIR: string;
+let TEST_SESSION_ID: string;
 
 /**
  * Create realistic HookInput for testing
@@ -111,8 +111,26 @@ function readGlobalPatternsFile(): { patterns?: unknown[]; updated?: string; ver
   return JSON.parse(readFileSync(patternsFile, 'utf-8'));
 }
 
+/**
+ * Store original environment values
+ */
+let originalEnv: {
+  CLAUDE_PROJECT_DIR?: string;
+};
+
 beforeEach(() => {
+  // Generate unique paths per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `pattern-sync-push-test-${unique}`);
+  TEST_SESSION_ID = `test-session-push-${unique}`;
+  mockHomeDir = join(tmpdir(), `pattern-sync-push-home-${unique}`);
+
   vi.clearAllMocks();
+
+  // Store original environment
+  originalEnv = {
+    CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+  };
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
@@ -131,8 +149,17 @@ afterEach(() => {
     rmSync(mockHomeDir, { recursive: true, force: true });
   }
 
-  // Clean up environment
-  delete process.env.CLAUDE_PROJECT_DIR;
+  // Restore original environment
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    } else {
+      delete process.env[key];
+    }
+  }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

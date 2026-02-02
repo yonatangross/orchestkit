@@ -16,7 +16,7 @@ skills:
   - auth-patterns
   - input-validation
   - remember
-  - recall
+  - memory
 hooks:
   PostToolUse:
     - matcher: "Bash"

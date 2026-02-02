@@ -19,7 +19,7 @@ skills:
   - resilience-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"

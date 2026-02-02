@@ -28,7 +28,7 @@ skills:
   - ollama-local
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.

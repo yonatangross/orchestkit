@@ -7,7 +7,7 @@
  * Run: npm run generate:playground-data
  */
 window.ORCHESTKIT_DATA = {
-  version: "5.5.0",
+  version: "5.6.2",
 
   plugins: [
     { name: "ork-core", description: "Core foundation - context engineering, architecture decisions, project structure", fullDescription: "The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 119 lifecycle hooks live here.", category: "development", version: "5.6.2",
@@ -17,7 +17,7 @@ window.ORCHESTKIT_DATA = {
       hooks: 119, color: "#8b5cf6", required: true },
 
     { name: "ork-workflows", description: "Implement, explore, verify, review-pr, commit, doctor, feedback", fullDescription: "Essential workflow commands that power the core development loop. Implements parallel subagent execution for feature building, deep codebase exploration, comprehensive verification, PR review with 6+ agents, smart commits, and skill evolution tracking.", category: "development", version: "5.6.2",
-      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","decision-history","multi-scenario-orchestration"],
+      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","multi-scenario-orchestration"],
       agents: ["code-quality-reviewer"],
       commands: ["implement","explore","verify","review-pr","commit","doctor","feedback","worktree-coordination","decision-history","skill-evolution"],
       hooks: 0, color: "#8b5cf6", required: true },
@@ -107,13 +107,13 @@ window.ORCHESTKIT_DATA = {
       hooks: 0, color: "#8b5cf6", required: false },
 
     { name: "ork-memory-graph", description: "Knowledge graph memory - remember, recall, load-context", fullDescription: "Zero-config knowledge graph memory that always works. Store decisions, patterns, and context as graph entities. Recall by semantic search. Auto-load relevant context at session start.", category: "development", version: "5.6.2",
-      skills: ["remember","recall","load-context","graph-viz"],
+      skills: ["remember","memory"],
       agents: [],
       commands: ["remember","recall","load-context"],
       hooks: 0, color: "#8b5cf6", required: false },
 
     { name: "ork-memory-mem0", description: "Mem0 cloud memory - semantic search, cross-session sync", fullDescription: "Optional cloud memory layer using Mem0 API. Provides semantic search across sessions, automatic sync of decisions and patterns. Requires MEM0_API_KEY environment variable.", category: "development", version: "5.6.2",
-      skills: ["mem0-memory","mem0-sync"],
+      skills: ["mem0-memory"],
       agents: [],
       commands: ["mem0-sync"],
       hooks: 0, color: "#8b5cf6", required: false },
@@ -221,9 +221,7 @@ window.ORCHESTKIT_DATA = {
 
     // === Production / Landscape 16:9 / Memory Skills ===
     { id: "Remember", skill: "remember", command: "/ork:remember", hook: "Build your team's knowledge base", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", thumbnail: "thumbnails/Remember.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/7f4b1fcaf5783671e1cd06cc078206f85442dbf8-639x360.png", relatedPlugin: "ork-memory-graph", tags: ["memory","landscape","tri-terminal"] },
-    { id: "Recall", skill: "recall", command: "/ork:recall", hook: "Your team's decisions, instantly searchable", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", thumbnail: "thumbnails/Recall.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/ff8664b1b2bd7238c6a878a9e6078f30ae961bbf-639x360.png", relatedPlugin: "ork-memory-graph", tags: ["memory","landscape","tri-terminal"] },
-    { id: "LoadContext", skill: "load-context", command: "/ork:load-context", hook: "Resume where you left off, instantly", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#8b5cf6", thumbnail: "thumbnails/LoadContext.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/e5b7fd4c66b232baa035e5184d2f566d6f9b4597-639x360.png", relatedPlugin: "ork-memory-graph", tags: ["memory","landscape","tri-terminal"] },
-    { id: "Mem0Sync", skill: "mem0-sync", command: "/ork:mem0-sync", hook: "Session context that persists forever", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", thumbnail: "thumbnails/Mem0Sync.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/b2f28592bca62ee3a994fe30f4b7c7167b477616-639x360.png", relatedPlugin: "ork-memory-mem0", tags: ["memory","landscape","tri-terminal"] },
+    { id: "Memory", skill: "memory", command: "/ork:memory", hook: "Search, load, sync, visualize your knowledge", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Memory-Skills", category: "memory", primaryColor: "#06b6d4", thumbnail: "thumbnails/Memory.png", thumbnailCdn: "", relatedPlugin: "ork-memory-graph", tags: ["memory","landscape","tri-terminal"] },
 
     // === Production / Landscape 16:9 / Review Skills ===
     { id: "ReviewPR", skill: "review-pr", command: "/ork:review-pr", hook: "Expert PR review in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Review-Skills", category: "review", primaryColor: "#f97316", thumbnail: "thumbnails/ReviewPR.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/b187e003ab94d1e9b3eae5aae5e7d47a1fa7fc3d-639x360.png", relatedPlugin: "ork-workflows", tags: ["review","landscape","tri-terminal"] },
@@ -240,7 +238,6 @@ window.ORCHESTKIT_DATA = {
     { id: "Brainstorming", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel. 4 specialists. Synthesis included.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f59e0b", thumbnail: "thumbnails/Brainstorming.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/5f5a4e19631f87fd49c9853f63b8b472e1d5d657-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
     { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", thumbnail: "thumbnails/Assess.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/8c69c775078b8d410530eeda745c7b84cef3d7bb-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
     { id: "AssessComplexity", skill: "assess-complexity", command: "/ork:assess-complexity", hook: "Know before you code: 7 metrics, 1 decision", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f97316", thumbnail: "thumbnails/AssessComplexity.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/0f061f093ea95cff65f2327a697ff7c6f430e6ab-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
-    { id: "DecisionHistory", skill: "decision-history", command: "/ork:decision-history", hook: "Every decision tracked. Every rationale preserved. Time travel.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#6366f1", thumbnail: "thumbnails/DecisionHistory.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/1f53e733a3cf7276818c14a14ce7e13a73b94baa-639x360.png", relatedPlugin: "ork-workflows", tags: ["ai","landscape","tri-terminal"] },
 
     // === Production / Landscape 16:9 / Advanced Skills ===
     { id: "WorktreeCoordination", skill: "worktree-coordination", command: "/ork:worktree-coordination", hook: "3 Claude instances. 0 merge conflicts. Perfect sync.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#3b82f6", thumbnail: "thumbnails/WorktreeCoordination.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/b41eea564397ec0739f9ae690e93de0e9b1209c1-639x360.png", relatedPlugin: "ork-workflows", tags: ["advanced","landscape","tri-terminal"] },

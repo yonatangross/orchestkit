@@ -1,6 +1,6 @@
 ---
-description: Fix GitHub issue with parallel analysis and implementation. Use when fixing issues, resolving bugs, closing GitHub issues.
-allowed-tools: [Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
+description: "[GIT] Fix GitHub issues with parallel analysis. Use when fixing bugs or resolving issues."
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
 ---
 
 # Auto-generated from skills/fix-issue/SKILL.md
@@ -17,6 +17,33 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 /fix-issue 123
 /fix-issue 456
 ```
+
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify fix approach:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What approach for this fix?",
+    "header": "Approach",
+    "options": [
+      {"label": "Proper fix (Recommended)", "description": "Full RCA, tests, prevention recommendations"},
+      {"label": "Quick fix", "description": "Minimal fix to resolve the immediate issue"},
+      {"label": "Investigate first", "description": "Understand the issue before deciding on approach"},
+      {"label": "Hotfix", "description": "Emergency patch, minimal testing"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Proper fix**: All 11 phases, parallel agents for RCA
+- **Quick fix**: Skip phases 8-10 (prevention, runbook, lessons)
+- **Investigate first**: Only phases 1-4 (understand, search, hypotheses, analyze)
+- **Hotfix**: Minimal phases, skip similar issue search
 
 
 ## Task Management (CC 2.1.16)

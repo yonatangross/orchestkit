@@ -18,7 +18,7 @@ skills:
   - git-workflow
   - release-management
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive

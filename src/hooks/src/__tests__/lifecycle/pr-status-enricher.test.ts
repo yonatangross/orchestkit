@@ -36,7 +36,7 @@ import { logHook, getProjectDir, getCachedBranch, outputSilentSuccess } from '..
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'pr-status-enricher-test');
+let TEST_PROJECT_DIR: string;
 
 /**
  * Create realistic HookInput for testing
@@ -80,9 +80,29 @@ function createThreadsResponse(threads: { isResolved: boolean }[] = []): string 
   });
 }
 
+/**
+ * Store original environment values
+ */
+let originalEnv: {
+  CLAUDE_PROJECT_DIR?: string;
+  ORCHESTKIT_PR_URL?: string;
+  ORCHESTKIT_PR_STATE?: string;
+};
+
 beforeEach(() => {
+  // Generate unique path per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `pr-status-enricher-test-${unique}`);
+
   // Reset mocks
   vi.clearAllMocks();
+
+  // Store original environment
+  originalEnv = {
+    CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+    ORCHESTKIT_PR_URL: process.env.ORCHESTKIT_PR_URL,
+    ORCHESTKIT_PR_STATE: process.env.ORCHESTKIT_PR_STATE,
+  };
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
@@ -93,10 +113,17 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // Clean up environment
-  delete process.env.CLAUDE_PROJECT_DIR;
-  delete process.env.ORCHESTKIT_PR_URL;
-  delete process.env.ORCHESTKIT_PR_STATE;
+  // Restore original environment
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    } else {
+      delete process.env[key];
+    }
+  }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

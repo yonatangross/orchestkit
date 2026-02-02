@@ -1,6 +1,6 @@
 {
   "name": "ork-memory-fabric",
-  "version": "1.0.0",
+  "version": "5.6.1",
   "description": "Memory orchestration — parallel query dispatch, cross-reference boosting, deduplication across graph and mem0. Depends on ork-memory-graph.",
   "author": {
     "name": "Yonatan Gross",

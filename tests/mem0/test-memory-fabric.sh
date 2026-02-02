@@ -10,9 +10,9 @@
 # - Entity extraction from text
 # - One-way sync (mem0 → graph when mem0 used explicitly)
 # - Real-time sync priority classification
-# - load-context command auto-loading
+# - memory load command auto-loading
 # - Graph-first storage in remember skill
-# - Graph-first search in recall skill
+# - Graph-first search in memory skill
 
 set -uo pipefail
 
@@ -87,14 +87,19 @@ test_memory_fabric_library_exists() {
 # Test: Load Context Command
 # =============================================================================
 
-test_load_context_command_exists() {
-    test_start "load-context command exists"
+test_memory_load_command_exists() {
+    test_start "memory load subcommand exists"
 
-    # Check skill (new structure) or command (legacy)
-    if [[ -f "$PROJECT_ROOT/src/skills/load-context/SKILL.md" ]] || [[ -f "$PROJECT_ROOT/commands/load-context.md" ]]; then
-        test_pass
+    # load-context consolidated into memory skill as 'memory load' subcommand
+    if [[ -f "$PROJECT_ROOT/src/skills/memory/SKILL.md" ]]; then
+        # Verify the memory skill contains load subcommand documentation
+        if grep -qi "load" "$PROJECT_ROOT/src/skills/memory/SKILL.md"; then
+            test_pass
+        else
+            test_fail "memory SKILL.md missing 'load' subcommand"
+        fi
     else
-        test_fail "load-context skill/command not found"
+        test_fail "memory skill not found"
     fi
 }
 
@@ -172,8 +177,8 @@ test_memory_fabric_skill_exists
 test_memory_fabric_library_exists
 echo ""
 
-echo "Load Context Command:"
-test_load_context_command_exists
+echo "Memory Load Subcommand:"
+test_memory_load_command_exists
 echo ""
 
 echo "Sync Hooks:"

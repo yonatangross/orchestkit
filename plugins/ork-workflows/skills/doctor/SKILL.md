@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: OrchestKit health diagnostics command that validates plugin configuration and reports issues. Use when running doctor checks or troubleshooting plugin health.
+description: "[QUALITY] OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
 context: inherit
 version: 3.0.0
 author: OrchestKit

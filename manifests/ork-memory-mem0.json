@@ -6,8 +6,7 @@
     "ork-memory-graph"
   ],
   "skills": [
-    "mem0-memory",
-    "mem0-sync"
+    "mem0-memory"
   ],
   "agents": [],
   "hooks": "none"

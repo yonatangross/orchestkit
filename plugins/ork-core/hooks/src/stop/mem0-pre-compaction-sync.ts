@@ -291,7 +291,7 @@ export function mem0PreCompactionSync(input: HookInput): HookResult {
 
     skillMsg = `[Mem0 Sync] Auto-synced: ${summary}`;
   } else {
-    skillMsg = `[Mem0 Sync] ${summary} - Execute /mem0-sync to persist session context`;
+    skillMsg = `[Mem0 Sync] ${summary} - Execute /ork:memory sync to persist session context`;
   }
 
   logHook('mem0-pre-compaction-sync', skillMsg);

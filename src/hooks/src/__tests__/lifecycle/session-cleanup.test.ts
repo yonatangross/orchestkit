@@ -14,8 +14,9 @@ import { sessionCleanup } from '../../lifecycle/session-cleanup.js';
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'session-cleanup-test');
-const METRICS_FILE = join(tmpdir(), 'claude-session-metrics.json');
+// Use per-test unique directories to avoid cross-test contamination
+let TEST_PROJECT_DIR: string;
+let METRICS_FILE: string;
 
 /**
  * Create realistic HookInput for testing
@@ -73,11 +74,22 @@ function createRotatedLogs(count: number): void {
 }
 
 beforeEach(() => {
+  vi.clearAllMocks();
+
+  // Generate unique paths per test to prevent cross-test contamination
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `session-cleanup-test-${unique}`);
+  // The hook reads from /tmp/claude-session-metrics.json so our METRICS_FILE
+  // must match that path for the test to exercise the real code path
+  METRICS_FILE = '/tmp/claude-session-metrics.json';
+
   // Create test directory
   mkdirSync(TEST_PROJECT_DIR, { recursive: true });
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
+
   // Clean up test directory
   if (existsSync(TEST_PROJECT_DIR)) {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });

@@ -97,27 +97,26 @@ function estimateTokens(content: string): number {
 
 /**
  * Build injection message for skills
+ * v2.0: Cleaner, more concise format
  */
 function buildInjectionMessage(skills: Array<{ skill: string; content: string }>): string {
   if (skills.length === 0) return '';
 
-  let message = `## 📚 Skill Knowledge Injected
-
-The following skill patterns have been auto-loaded based on your prompt:
+  const skillNames = skills.map(s => `\`${s.skill}\``).join(', ');
+  let message = `## 📚 Loaded: ${skillNames}
 
 `;
 
   for (const { skill, content } of skills) {
-    message += `### ${skill}
+    message += `<details>
+<summary><strong>${skill}</strong> patterns</summary>
 
 ${content}
 
----
+</details>
 
 `;
   }
-
-  message += `*Auto-injected by OrchestKit Agent Orchestration Layer*`;
 
   return message;
 }

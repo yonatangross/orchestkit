@@ -25,7 +25,7 @@ skills:
   - celery-advanced
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.

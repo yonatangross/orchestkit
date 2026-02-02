@@ -7,7 +7,7 @@
 # - Agent memory chain propagation (pretool→posttool agent_id)
 # - Cross-project best practices (global user_id pattern)
 # - Graph memory relationships (enable_graph flow)
-# - remember/recall user_id alignment
+# - remember/memory user_id alignment
 # - Category filter in search
 # - Session start context retrieval hook
 # - Agent memory injection (PreToolUse Task)
@@ -701,11 +701,11 @@ test_graph_memory_relation_builder() {
 }
 
 # =============================================================================
-# NEW v1.1.0 TESTS: Remember/Recall User ID Alignment
+# NEW v1.1.0 TESTS: Remember/Memory User ID Alignment
 # =============================================================================
 
-test_remember_recall_user_id_alignment() {
-    test_start "remember and recall use same user_id pattern"
+test_remember_memory_user_id_alignment() {
+    test_start "remember and memory use same user_id pattern"
 
     # Source mem0 library
     # Helper functions are now inline at top of file (TypeScript migration)
@@ -719,7 +719,7 @@ test_remember_recall_user_id_alignment() {
     local add_user_id
     add_user_id=$(echo "$add_json" | jq -r '.user_id')
 
-    # Test recall (search) generates same user_id
+    # Test memory search generates same user_id
     local search_json
     search_json=$(mem0_search_memory_json "decisions" "FastAPI decision" "10" "false" "" "" "false")
 
@@ -947,9 +947,9 @@ test_graph_memory_entity_builder
 test_graph_memory_relation_builder
 
 echo ""
-echo "▶ v1.1.0: Remember/Recall User ID Alignment"
+echo "▶ v1.1.0: Remember/Memory User ID Alignment"
 echo "────────────────────────────────────────"
-test_remember_recall_user_id_alignment
+test_remember_memory_user_id_alignment
 
 echo ""
 echo "▶ v1.1.0: Category Filter in Search"

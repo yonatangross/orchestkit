@@ -20,7 +20,7 @@ skills:
   - owasp-top-10
   - input-validation
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive

@@ -1,12 +1,10 @@
 {
   "name": "ork-memory-graph",
   "version": "5.6.2",
-  "description": "Knowledge graph memory — zero-config, always works. Graph-first architecture with remember, recall, and session context loading.",
+  "description": "Knowledge graph memory — zero-config, always works. Graph-first architecture with remember (write) and memory (read).",
   "skills": [
     "remember",
-    "recall",
-    "load-context",
-    "graph-viz"
+    "memory"
   ],
   "agents": [],
   "hooks": "none"

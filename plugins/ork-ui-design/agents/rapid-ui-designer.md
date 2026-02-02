@@ -16,7 +16,7 @@ skills:
   - motion-animation-patterns
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

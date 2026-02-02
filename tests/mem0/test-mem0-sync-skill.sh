@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Test suite for mem0-sync Skill
+# Test suite for memory sync subcommand (formerly mem0-sync skill)
 # Validates skill structure and hook integration
 #
 # Part of Mem0 Pro Integration - Auto-Sync Feature
+# NOTE: mem0-sync has been consolidated into the memory skill as 'memory sync'
 
 set -euo pipefail
 
@@ -106,16 +107,26 @@ assert_json_valid() {
 
 echo ""
 echo "=========================================="
-echo "Testing mem0-sync Skill Structure"
+echo "Testing memory sync (formerly mem0-sync)"
 echo "=========================================="
 
-SKILL_DIR="$PROJECT_ROOT/src/skills/mem0-sync"
+SKILL_DIR="$PROJECT_ROOT/src/skills/memory"
 
-assert_dir_exists "$SKILL_DIR" "mem0-sync skill directory exists"
+assert_dir_exists "$SKILL_DIR" "memory skill directory exists"
 assert_file_exists "$SKILL_DIR/SKILL.md" "SKILL.md exists"
+
+# Check that the memory skill documents sync subcommand
+TESTS_RUN=$((TESTS_RUN + 1))
+if grep -qi "sync" "$SKILL_DIR/SKILL.md" 2>/dev/null; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    echo -e "${GREEN}PASS${NC}: memory SKILL.md contains sync subcommand"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    echo -e "${RED}FAIL${NC}: memory SKILL.md should document sync subcommand"
+fi
+
+# Check references directory for sync-related content
 assert_dir_exists "$SKILL_DIR/references" "references/ directory exists"
-assert_dir_exists "$SKILL_DIR/templates" "templates/ directory exists"
-assert_dir_exists "$SKILL_DIR/checklists" "checklists/ directory exists"
 
 # -----------------------------------------------------------------------------
 # Test: Reference Files
@@ -126,9 +137,16 @@ echo "=========================================="
 echo "Testing Reference Files"
 echo "=========================================="
 
-assert_file_exists "$SKILL_DIR/references/session-sync.md" "session-sync.md reference exists"
-assert_file_exists "$SKILL_DIR/references/pattern-sync.md" "pattern-sync.md reference exists"
-assert_file_exists "$SKILL_DIR/references/decision-sync.md" "decision-sync.md reference exists"
+# References are now under memory skill directory
+# Check that memory references directory has content
+TESTS_RUN=$((TESTS_RUN + 1))
+if ls "$SKILL_DIR/references/"*.md >/dev/null 2>&1; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    echo -e "${GREEN}PASS${NC}: memory/references/ has markdown files"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    echo -e "${RED}FAIL${NC}: memory/references/ should have reference files"
+fi
 
 # -----------------------------------------------------------------------------
 # Test: Template File
@@ -136,26 +154,18 @@ assert_file_exists "$SKILL_DIR/references/decision-sync.md" "decision-sync.md re
 
 echo ""
 echo "=========================================="
-echo "Testing Template File"
+echo "Testing Memory Skill Structure"
 echo "=========================================="
 
-TEMPLATE_FILE="$SKILL_DIR/templates/sync-payload.json"
-assert_file_exists "$TEMPLATE_FILE" "sync-payload.json template exists"
-
-TEMPLATE_CONTENT=$(cat "$TEMPLATE_FILE")
-assert_json_valid "$TEMPLATE_CONTENT" "sync-payload.json is valid JSON"
-
-# -----------------------------------------------------------------------------
-# Test: Checklist File
-# -----------------------------------------------------------------------------
-
-echo ""
-echo "=========================================="
-echo "Testing Checklist File"
-echo "=========================================="
-
-CHECKLIST_FILE="$SKILL_DIR/checklists/pre-sync-checklist.md"
-assert_file_exists "$CHECKLIST_FILE" "pre-sync-checklist.md exists"
+# Verify the memory skill has scripts (migrated from graph-viz)
+TESTS_RUN=$((TESTS_RUN + 1))
+if [[ -d "$SKILL_DIR/scripts" ]]; then
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    echo -e "${GREEN}PASS${NC}: memory/scripts/ directory exists"
+else
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    echo -e "${RED}FAIL${NC}: memory/scripts/ directory should exist (graph-viz migration)"
+fi
 
 # -----------------------------------------------------------------------------
 # Test: Hook Integration (mem0-pre-compaction-sync.sh)

@@ -16,7 +16,7 @@ skills:
   - brainstorming
   - github-operations
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Build compelling business cases with ROI projections, cost-benefit analysis, and risk assessment to justify product investments.

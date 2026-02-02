@@ -22,7 +22,7 @@ skills:
   - e2e-testing
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Audit and implement WCAG 2.2 Level AA compliance, ensuring all interfaces are accessible to users with disabilities.

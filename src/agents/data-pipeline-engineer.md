@@ -32,7 +32,7 @@ skills:
   - memory-fabric
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.

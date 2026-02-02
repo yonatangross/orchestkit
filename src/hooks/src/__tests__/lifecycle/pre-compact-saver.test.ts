@@ -14,7 +14,9 @@ import type { HookInput } from '../../types.js';
 // =============================================================================
 
 const mockSessionId = 'test-compact-session-123';
-const mockLogDir = join(tmpdir(), 'pre-compact-saver-test', '.claude', 'logs');
+// Use a unique base path per process to avoid collisions in parallel test workers
+const testBaseDir = join(tmpdir(), `pre-compact-saver-test-${process.pid}`);
+const mockLogDir = join(testBaseDir, '.claude', 'logs');
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/common.js')>();
@@ -35,7 +37,7 @@ import { logHook, getLogDir, getSessionId, outputSilentSuccess } from '../../lib
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'pre-compact-saver-test');
+const TEST_PROJECT_DIR = testBaseDir;
 const TEST_SESSIONS_DIR = join(mockLogDir, 'sessions');
 const STATE_FILE = join(TEST_SESSIONS_DIR, `${mockSessionId}-state.json`);
 
@@ -87,6 +89,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.restoreAllMocks();
+
   // Clean up test directory
   if (existsSync(TEST_PROJECT_DIR)) {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });

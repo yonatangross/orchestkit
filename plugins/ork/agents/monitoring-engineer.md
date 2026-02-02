@@ -20,7 +20,7 @@ skills:
   - performance-testing
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive

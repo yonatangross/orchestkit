@@ -1,13 +1,13 @@
 ---
 name: create-pr
-description: Create GitHub pull requests with validation and auto-generated descriptions. Use when creating pull requests, opening PRs, submitting code for review.
+description: "[GIT] Create GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 context: fork
-version: 2.2.0
+version: 2.3.0
 author: OrchestKit
 tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
-allowedTools: [Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [commit, review-pr, security-scanning, recall]
+allowedTools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+skills: [commit, review-pr, security-scanning, memory]
 ---
 
 # Create Pull Request
@@ -19,6 +19,34 @@ Comprehensive PR creation with validation. All output goes directly to GitHub PR
 ```bash
 /create-pr
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify PR type:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What type of PR is this?",
+    "header": "Type",
+    "options": [
+      {"label": "Feature (Recommended)", "description": "New functionality with full validation"},
+      {"label": "Bug fix", "description": "Fix for existing issue"},
+      {"label": "Refactor", "description": "Code improvement, no behavior change"},
+      {"label": "Quick", "description": "Skip validation, just create PR"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Feature**: Full validation with all agents
+- **Bug fix**: Focus on test verification
+- **Refactor**: Skip new feature validation
+- **Quick**: Skip all validation, just create PR
 
 ---
 

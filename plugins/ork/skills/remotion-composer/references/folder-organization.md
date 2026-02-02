@@ -41,10 +41,10 @@ Root.tsx
 | Category | Skills | Primary Color |
 |----------|--------|---------------|
 | Core-Skills | implement, verify, commit, explore | #8b5cf6 (purple), #22c55e (green), #06b6d4 (cyan) |
-| Memory-Skills | remember, recall, load-context, mem0-sync | #ec4899 (pink) |
+| Memory-Skills | remember, memory | #ec4899 (pink) |
 | Review-Skills | review-pr, create-pr, fix-issue | #f97316 (orange) |
 | DevOps-Skills | doctor, configure, run-tests, feedback | #14b8a6 (teal) |
-| AI-Skills | brainstorming, assess, assess-complexity, decision-history | #f59e0b (amber) |
+| AI-Skills | brainstorming, assess, assess-complexity | #f59e0b (amber) |
 | Advanced-Skills | worktree-coordination, skill-evolution, demo-producer, add-golden | #6366f1 (indigo) |
 
 ## Composition ID Conventions

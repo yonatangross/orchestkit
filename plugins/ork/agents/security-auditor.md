@@ -19,7 +19,7 @@ skills:
   - mcp-security-hardening
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PostToolUse:
     - matcher: "Bash"

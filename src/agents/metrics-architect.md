@@ -17,7 +17,7 @@ skills:
   - cache-cost-tracking
   - performance-testing
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Design measurable success criteria, define OKRs and KPIs, and create instrumentation plans to validate product hypotheses and track outcomes.

@@ -1,6 +1,6 @@
 ---
-description: Use when creating or developing anything, before writing code or implementation plans. Brainstorming skill refines ideas through structured questioning and alternatives.
-allowed-tools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+description: "[BUILD] Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/brainstorming/SKILL.md
@@ -12,6 +12,46 @@ allowed-tools: [Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__m
 Transform rough ideas into fully-formed designs through intelligent agent selection and structured exploration.
 
 **Core principle:** Analyze the topic, select relevant agents dynamically, explore alternatives in parallel, present design incrementally.
+
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify brainstorming constraints:
+
+```python
+AskUserQuestion(
+  questions=[
+    {
+      "question": "What type of design exploration?",
+      "header": "Type",
+      "options": [
+        {"label": "Open exploration (Recommended)", "description": "Generate 10+ ideas, evaluate all, synthesize top 3"},
+        {"label": "Constrained design", "description": "I have specific requirements to work within"},
+        {"label": "Comparison", "description": "Compare 2-3 specific approaches I have in mind"},
+        {"label": "Quick ideation", "description": "Generate ideas fast, skip deep evaluation"}
+      ],
+      "multiSelect": false
+    },
+    {
+      "question": "Any preferences or constraints?",
+      "header": "Constraints",
+      "options": [
+        {"label": "None", "description": "Explore all possibilities"},
+        {"label": "Use existing patterns", "description": "Prefer patterns already in codebase"},
+        {"label": "Minimize complexity", "description": "Favor simpler solutions"},
+        {"label": "I'll specify", "description": "Let me provide specific constraints"}
+      ],
+      "multiSelect": false
+    }
+  ]
+)
+```
+
+**Based on answers, adjust workflow:**
+- **Open exploration**: Full 7-phase process with all agents
+- **Constrained design**: Skip divergent phase, focus on feasibility
+- **Comparison**: Skip ideation, jump to evaluation phase
+- **Quick ideation**: Generate ideas, skip deep evaluation
 
 
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)

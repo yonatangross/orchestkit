@@ -30,8 +30,8 @@ describe('Async Hooks Registry', () => {
   let hooksConfig: HooksConfig;
 
   beforeAll(() => {
-    // Use process.cwd() since tests run from src/hooks directory
-    const hooksPath = path.resolve(process.cwd(), 'hooks.json');
+    // Resolve hooks.json relative to this test file so it works regardless of cwd
+    const hooksPath = path.resolve(__dirname, '..', '..', '..', 'hooks.json');
     const content = fs.readFileSync(hooksPath, 'utf-8');
     hooksConfig = JSON.parse(content);
   });

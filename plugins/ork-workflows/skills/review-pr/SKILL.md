@@ -1,13 +1,13 @@
 ---
 name: review-pr
-description: Comprehensive PR review with 6-7 parallel specialized agents. Use when reviewing pull requests, checking PRs, code review.
+description: "[GIT] PR review with parallel specialized agents. Use when reviewing pull requests or code."
 context: fork
-version: 1.3.1
+version: 1.4.0
 author: OrchestKit
 tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
-allowedTools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [code-review-playbook, security-scanning, type-safety-validation, recall]
+allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+skills: [code-review-playbook, security-scanning, type-safety-validation, memory]
 ---
 
 # Review PR
@@ -20,6 +20,34 @@ Deep code review using 6-7 parallel specialized agents.
 /review-pr 123
 /review-pr feature-branch
 ```
+
+---
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify review focus:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What type of review do you need?",
+    "header": "Focus",
+    "options": [
+      {"label": "Full review (Recommended)", "description": "Security + code quality + tests + architecture"},
+      {"label": "Security focus", "description": "Prioritize security vulnerabilities"},
+      {"label": "Performance focus", "description": "Focus on performance implications"},
+      {"label": "Quick review", "description": "High-level review, skip deep analysis"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Full review**: All 6-7 parallel agents
+- **Security focus**: Prioritize security-auditor, reduce other agents
+- **Performance focus**: Add performance-engineer agent
+- **Quick review**: Single code-quality-reviewer agent only
 
 ---
 

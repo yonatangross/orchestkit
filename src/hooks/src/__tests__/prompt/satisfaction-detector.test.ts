@@ -659,7 +659,7 @@ describe('prompt/satisfaction-detector', () => {
 
     test('skips skill commands starting with /', () => {
       vi.stubEnv('SATISFACTION_SAMPLE_RATE', '1');
-      const input = createPromptInput('/ork:recall database', { project_dir: tempDir });
+      const input = createPromptInput('/ork:memory search database', { project_dir: tempDir });
       const result = satisfactionDetector(input);
 
       expect(result.continue).toBe(true);

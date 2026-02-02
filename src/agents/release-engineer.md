@@ -16,7 +16,7 @@ skills:
   - github-operations
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"

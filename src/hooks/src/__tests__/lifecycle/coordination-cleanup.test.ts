@@ -29,9 +29,9 @@ vi.mock('../../lib/common.js', async (importOriginal) => {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'coordination-cleanup-test-' + Date.now());
-const TEST_SESSION_ID = 'test-session-cleanup-' + Date.now();
-const TEST_INSTANCE_ID = 'test-instance-' + Date.now();
+let TEST_PROJECT_DIR: string;
+let TEST_SESSION_ID: string;
+let TEST_INSTANCE_ID: string;
 
 /**
  * Create realistic HookInput for testing
@@ -81,8 +81,28 @@ function createCoordinationDb(): void {
   writeFileSync(`${coordDir}/.claude.db`, 'mock database');
 }
 
+/**
+ * Store original environment values
+ */
+let originalEnv: {
+  CLAUDE_PROJECT_DIR?: string;
+  CLAUDE_SESSION_ID?: string;
+};
+
 beforeEach(() => {
+  // Generate unique paths per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `coordination-cleanup-test-${unique}`);
+  TEST_SESSION_ID = `test-session-cleanup-${unique}`;
+  TEST_INSTANCE_ID = `test-instance-${unique}`;
+
   vi.clearAllMocks();
+
+  // Store original environment
+  originalEnv = {
+    CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+    CLAUDE_SESSION_ID: process.env.CLAUDE_SESSION_ID,
+  };
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
@@ -98,9 +118,17 @@ afterEach(() => {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });
   }
 
-  // Clean up environment
-  delete process.env.CLAUDE_PROJECT_DIR;
-  delete process.env.CLAUDE_SESSION_ID;
+  // Restore original environment
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    } else {
+      delete process.env[key];
+    }
+  }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

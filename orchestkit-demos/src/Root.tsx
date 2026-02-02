@@ -82,16 +82,12 @@ import { assessDemoConfig } from "./components/configs/assess-demo";
 import { doctorDemoConfig } from "./components/configs/doctor-demo";
 import { createPRDemoConfig } from "./components/configs/create-pr-demo";
 import { fixIssueDemoConfig } from "./components/configs/fix-issue-demo";
-import { recallDemoConfig } from "./components/configs/recall-demo";
-import { loadContextDemoConfig } from "./components/configs/load-context-demo";
 import { configureDemoConfig } from "./components/configs/configure-demo";
-import { mem0SyncDemoConfig } from "./components/configs/mem0-sync-demo";
 import { addGoldenDemoConfig } from "./components/configs/add-golden-demo";
 import { demoProducerDemoConfig } from "./components/configs/demo-producer-demo";
 import { runTestsDemoConfig } from "./components/configs/run-tests-demo";
 import { assessComplexityDemoConfig } from "./components/configs/assess-complexity-demo";
 import { skillEvolutionDemoConfig } from "./components/configs/skill-evolution-demo";
-import { decisionHistoryDemoConfig } from "./components/configs/decision-history-demo";
 import { feedbackDemoConfig } from "./components/configs/feedback-demo";
 import { worktreeCoordinationDemoConfig } from "./components/configs/worktree-coordination-demo";
 import {
@@ -141,9 +137,6 @@ export const RemotionRoot: React.FC = () => {
           {/* ─────────── Memory Skills: remember, recall, load-context, mem0-sync ─────────── */}
           <Folder name="Memory-Skills">
             <Composition id="Remember" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={rememberDemoConfig} />
-            <Composition id="Recall" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={recallDemoConfig} />
-            <Composition id="LoadContext" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={loadContextDemoConfig} />
-            <Composition id="Mem0Sync" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={mem0SyncDemoConfig} />
           </Folder>
 
           {/* ─────────── Review Skills: review-pr, create-pr, fix-issue ─────────── */}
@@ -161,12 +154,11 @@ export const RemotionRoot: React.FC = () => {
             <Composition id="Feedback" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={feedbackDemoConfig} />
           </Folder>
 
-          {/* ─────────── AI Skills: brainstorming, assess, assess-complexity, decision-history ─────────── */}
+          {/* ─────────── AI Skills: brainstorming, assess, assess-complexity ─────────── */}
           <Folder name="AI-Skills">
             <Composition id="Brainstorming" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={brainstormDemoConfig} />
             <Composition id="Assess" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={assessDemoConfig} />
             <Composition id="AssessComplexity" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={assessComplexityDemoConfig} />
-            <Composition id="DecisionHistory" component={TriTerminalRace} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={triTerminalRaceSchema} defaultProps={decisionHistoryDemoConfig} />
           </Folder>
 
           {/* ─────────── Advanced Skills: worktree, skill-evolution, demo-producer, add-golden ─────────── */}

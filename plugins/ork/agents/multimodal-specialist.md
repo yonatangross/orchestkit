@@ -20,7 +20,7 @@ skills:
   - llm-streaming
   - embeddings
   - task-dependency-patterns
-  - recall
+  - memory
   - remember
 ---
 

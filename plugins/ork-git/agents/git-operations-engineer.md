@@ -23,7 +23,7 @@ skills:
   - issue-progress-tracking
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Bash"

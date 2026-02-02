@@ -1,6 +1,6 @@
 ---
-description: Comprehensive PR review with 6-7 parallel specialized agents. Use when reviewing pull requests, checking PRs, code review.
-allowed-tools: [Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
+description: "[GIT] PR review with parallel specialized agents. Use when reviewing pull requests or code."
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/review-pr/SKILL.md
@@ -17,6 +17,33 @@ Deep code review using 6-7 parallel specialized agents.
 /review-pr 123
 /review-pr feature-branch
 ```
+
+
+## STEP 0: Verify User Intent with AskUserQuestion
+
+**BEFORE creating tasks**, clarify review focus:
+
+```python
+AskUserQuestion(
+  questions=[{
+    "question": "What type of review do you need?",
+    "header": "Focus",
+    "options": [
+      {"label": "Full review (Recommended)", "description": "Security + code quality + tests + architecture"},
+      {"label": "Security focus", "description": "Prioritize security vulnerabilities"},
+      {"label": "Performance focus", "description": "Focus on performance implications"},
+      {"label": "Quick review", "description": "High-level review, skip deep analysis"}
+    ],
+    "multiSelect": false
+  }]
+)
+```
+
+**Based on answer, adjust workflow:**
+- **Full review**: All 6-7 parallel agents
+- **Security focus**: Prioritize security-auditor, reduce other agents
+- **Performance focus**: Add performance-engineer agent
+- **Quick review**: Single code-quality-reviewer agent only
 
 
 ## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)

@@ -272,7 +272,7 @@ Detailed content here.
       expect(result.continue).toBe(true);
       expect(outputPromptContext).toHaveBeenCalled();
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Skill Knowledge Injected');
+      expect(contextArg).toContain('Loaded: `api-design-framework`');
     });
 
     test('injects skill at 90% confidence', () => {

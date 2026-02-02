@@ -13,7 +13,7 @@ skills:
   - prioritization-frameworks
   - github-operations
   - remember
-  - recall
+  - memory
 hooks:
   PreToolUse:
     - matcher: "Write|Edit"

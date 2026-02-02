@@ -37,7 +37,7 @@ import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../..
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'session-env-setup-test');
+let TEST_PROJECT_DIR: string;
 const METRICS_FILE = '/tmp/claude-session-metrics.json';
 
 /**
@@ -62,9 +62,27 @@ function createSessionState(state: Record<string, unknown> = {}): void {
   writeFileSync(`${stateDir}/state.json`, JSON.stringify(state));
 }
 
+/**
+ * Store original environment values
+ */
+let originalEnv: {
+  CLAUDE_PROJECT_DIR?: string;
+  AGENT_TYPE?: string;
+};
+
 beforeEach(() => {
+  // Generate unique path per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `session-env-setup-test-${unique}`);
+
   // Reset mocks
   vi.clearAllMocks();
+
+  // Store original environment
+  originalEnv = {
+    CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+    AGENT_TYPE: process.env.AGENT_TYPE,
+  };
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
@@ -96,9 +114,17 @@ afterEach(() => {
     rmSync(METRICS_FILE, { force: true });
   }
 
-  // Clean up environment
-  delete process.env.CLAUDE_PROJECT_DIR;
-  delete process.env.AGENT_TYPE;
+  // Restore original environment
+  for (const [key, value] of Object.entries(originalEnv)) {
+    if (value !== undefined) {
+      process.env[key] = value;
+    } else {
+      delete process.env[key];
+    }
+  }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

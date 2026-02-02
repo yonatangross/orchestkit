@@ -29,7 +29,7 @@ skills:
   - run-tests
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.

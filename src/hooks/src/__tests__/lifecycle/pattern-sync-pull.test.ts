@@ -15,7 +15,7 @@ import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
 // Mock Setup - BEFORE imports
 // =============================================================================
 
-const mockHomeDir = join(tmpdir(), 'pattern-sync-home-' + Date.now());
+let mockHomeDir: string;
 
 vi.mock('../../lib/common.js', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../lib/common.js')>();
@@ -39,8 +39,8 @@ vi.mock('../../lib/paths.js', async (importOriginal) => {
 // Test Setup
 // =============================================================================
 
-const TEST_PROJECT_DIR = join(tmpdir(), 'pattern-sync-pull-test-' + Date.now());
-const TEST_SESSION_ID = 'test-session-pattern-' + Date.now();
+let TEST_PROJECT_DIR: string;
+let TEST_SESSION_ID: string;
 
 /**
  * Store original environment values
@@ -109,6 +109,12 @@ function readProjectPatterns(): Array<{ text: string; [key: string]: unknown }> 
 }
 
 beforeEach(() => {
+  // Generate unique paths per test to avoid parallel worker collisions
+  const unique = `${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  TEST_PROJECT_DIR = join(tmpdir(), `pattern-sync-pull-test-${unique}`);
+  TEST_SESSION_ID = `test-session-pattern-${unique}`;
+  mockHomeDir = join(tmpdir(), `pattern-sync-home-${unique}`);
+
   vi.clearAllMocks();
 
   // Store original environment
@@ -143,6 +149,9 @@ afterEach(() => {
       delete process.env[key];
     }
   }
+
+  // Restore all mocks
+  vi.restoreAllMocks();
 });
 
 // =============================================================================

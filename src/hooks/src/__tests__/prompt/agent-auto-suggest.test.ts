@@ -188,7 +188,7 @@ describe('prompt/agent-auto-suggest', () => {
   // ---------------------------------------------------------------------------
 
   describe('high confidence suggestions (85%+)', () => {
-    test('outputs AGENT DISPATCH RECOMMENDED at 85% confidence', () => {
+    test('outputs Detected header at 85% confidence', () => {
       // Arrange
       const match = createAgentMatch('backend-system-architect', 85, ['api', 'design']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -209,11 +209,11 @@ describe('prompt/agent-auto-suggest', () => {
       expect(result.continue).toBe(true);
       expect(outputPromptContext).toHaveBeenCalled();
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('AGENT DISPATCH RECOMMENDED');
+      expect(contextArg).toContain('Detected:');
       expect(contextArg).toContain('backend-system-architect');
     });
 
-    test('outputs AGENT DISPATCH RECOMMENDED at 90% confidence', () => {
+    test('outputs Detected header at 90% confidence', () => {
       // Arrange
       const match = createAgentMatch('database-engineer', 90, ['database', 'schema']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -232,10 +232,10 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('AGENT DISPATCH RECOMMENDED');
+      expect(contextArg).toContain('Detected:');
     });
 
-    test('includes spawn instruction in high confidence message', () => {
+    test('includes Using agent and skill suggestions in high confidence message', () => {
       // Arrange
       const match = createAgentMatch('test-generator', 88, ['test', 'pytest']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -254,8 +254,8 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Task tool with subagent_type');
-      expect(contextArg).toContain('test-generator');
+      expect(contextArg).toContain('Using `test-generator`');
+      expect(contextArg).toContain('Or use a skill:');
     });
   });
 
@@ -264,7 +264,7 @@ describe('prompt/agent-auto-suggest', () => {
   // ---------------------------------------------------------------------------
 
   describe('medium-high confidence suggestions (70-84%)', () => {
-    test('outputs RECOMMENDED at 75% confidence', () => {
+    test('outputs Suggested at 75% confidence', () => {
       // Arrange
       const match = createAgentMatch('frontend-ui-developer', 75, ['react', 'component']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -283,12 +283,12 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('RECOMMENDED');
+      expect(contextArg).toContain('Suggested:');
       expect(contextArg).toContain('frontend-ui-developer');
-      expect(contextArg).not.toContain('AGENT DISPATCH');
+      expect(contextArg).not.toContain('Detected:');
     });
 
-    test('outputs RECOMMENDED at 70% confidence (threshold)', () => {
+    test('outputs Suggested at 70% confidence (threshold)', () => {
       // Arrange
       const match = createAgentMatch('workflow-architect', 70, ['langgraph']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -307,10 +307,10 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('RECOMMENDED');
+      expect(contextArg).toContain('Suggested:');
     });
 
-    test('outputs RECOMMENDED at 84% confidence', () => {
+    test('outputs Suggested at 84% confidence', () => {
       // Arrange
       const match = createAgentMatch('llm-integrator', 84, ['llm']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -329,11 +329,11 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('RECOMMENDED');
-      expect(contextArg).not.toContain('AGENT DISPATCH');
+      expect(contextArg).toContain('Suggested:');
+      expect(contextArg).not.toContain('Detected:');
     });
 
-    test('includes agent description in recommendation', () => {
+    test('includes agent name and skill suggestions in recommendation', () => {
       // Arrange
       const match = createAgentMatch('security-auditor', 78, ['security']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -352,7 +352,8 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('security-auditor agent description');
+      expect(contextArg).toContain('security-auditor');
+      expect(contextArg).toContain('Or try a skill:');
     });
   });
 
@@ -361,7 +362,7 @@ describe('prompt/agent-auto-suggest', () => {
   // ---------------------------------------------------------------------------
 
   describe('medium confidence suggestions (50-69%)', () => {
-    test('outputs Consider at 55% confidence', () => {
+    test('outputs Possible match at 55% confidence', () => {
       // Arrange
       const match = createAgentMatch('performance-engineer', 55, ['performance']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -380,12 +381,12 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Consider');
+      expect(contextArg).toContain('Possible match');
       expect(contextArg).toContain('performance-engineer');
-      expect(contextArg).not.toContain('RECOMMENDED');
+      expect(contextArg).not.toContain('Suggested:');
     });
 
-    test('outputs Consider at 50% confidence (threshold)', () => {
+    test('outputs Possible match at 50% confidence (threshold)', () => {
       // Arrange
       const match = createAgentMatch('debug-investigator', 50, ['debug']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -404,10 +405,10 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Consider');
+      expect(contextArg).toContain('Possible match');
     });
 
-    test('outputs Consider at 69% confidence', () => {
+    test('outputs Possible match at 69% confidence', () => {
       // Arrange
       const match = createAgentMatch('accessibility-specialist', 69, ['a11y']);
       vi.mocked(classifyIntent).mockReturnValueOnce({
@@ -426,8 +427,8 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Consider');
-      expect(contextArg).not.toContain('RECOMMENDED');
+      expect(contextArg).toContain('Possible match');
+      expect(contextArg).not.toContain('Suggested:');
     });
   });
 
@@ -505,7 +506,7 @@ describe('prompt/agent-auto-suggest', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('Alternative');
+      expect(contextArg).toContain('Also consider:');
       expect(contextArg).toContain('database-engineer');
     });
 
@@ -740,13 +741,13 @@ describe('prompt/agent-auto-suggest', () => {
         expect(outputSilentSuccess).toHaveBeenCalled();
       } else if (expectedBehavior === 'suggest') {
         const ctx = vi.mocked(outputPromptContext).mock.calls[0]?.[0] || '';
-        expect(ctx).toContain('Consider');
+        expect(ctx).toContain('Possible match');
       } else if (expectedBehavior === 'recommend') {
         const ctx = vi.mocked(outputPromptContext).mock.calls[0]?.[0] || '';
-        expect(ctx).toContain('RECOMMENDED');
+        expect(ctx).toContain('Suggested:');
       } else if (expectedBehavior === 'dispatch') {
         const ctx = vi.mocked(outputPromptContext).mock.calls[0]?.[0] || '';
-        expect(ctx).toContain('AGENT DISPATCH RECOMMENDED');
+        expect(ctx).toContain('Detected:');
       }
     });
   });

@@ -20,7 +20,7 @@ skills:
   - llm-streaming
   - task-dependency-patterns
   - remember
-  - recall
+  - memory
 ---
 
 ## Directive
