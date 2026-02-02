@@ -1,6 +1,8 @@
 # React Server Components Implementation Checklist
 
-Use this checklist when implementing features with React Server Components and Next.js 15 App Router.
+Use this checklist when implementing features with React Server Components and Next.js 16 App Router.
+
+> **Note**: Next.js 16 introduces Cache Components for fine-grained caching control. See the Caching section for details.
 
 ## Component Architecture
 

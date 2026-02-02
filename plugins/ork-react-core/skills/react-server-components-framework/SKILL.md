@@ -1,11 +1,11 @@
 ---
 name: react-server-components-framework
-description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
+description: Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture.
 context: fork
 agent: frontend-ui-developer
-version: 1.3.0
+version: 1.4.0
 author: AI Agent Hub
-tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, 2026]
+tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, 2026]
 user-invocable: false
 ---
 
@@ -41,6 +41,26 @@ React Server Components (RSC) enable server-first rendering with client-side int
 
 ### Data Fetching Quick Reference
 
+**Next.js 16 Cache Components (Recommended):**
+
+```tsx
+import { cacheLife, cacheTag } from 'next/cache'
+
+// Cached component with duration
+async function CachedProducts() {
+  'use cache'
+  cacheLife('hours')
+  cacheTag('products')
+  return await db.product.findMany()
+}
+
+// Invalidate cache
+import { revalidateTag } from 'next/cache'
+revalidateTag('products')
+```
+
+**Legacy Fetch Options (Next.js 15):**
+
 ```tsx
 // Static (cached indefinitely)
 await fetch(url, { cache: 'force-cache' })
@@ -67,6 +87,27 @@ export async function createPost(formData: FormData) {
   redirect("/posts/" + post.id)
 }
 ```
+
+### Async Params/SearchParams (Next.js 16)
+
+Route parameters and search parameters are now Promises that must be awaited:
+
+```tsx
+// app/posts/[slug]/page.tsx
+export default async function PostPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ page?: string }>
+}) {
+  const { slug } = await params
+  const { page } = await searchParams
+  return <Post slug={slug} page={page} />
+}
+```
+
+**Note:** Also applies to `layout.tsx`, `generateMetadata()`, and route handlers. See `references/nextjs-16-upgrade.md` for complete migration guide.
 
 ---
 
@@ -138,6 +179,31 @@ Key topics covered:
 - getServerSideProps/getStaticProps replacement
 - Layout and metadata migration
 
+### Cache Components (Next.js 16)
+**See: `references/cache-components.md`**
+
+**Important:** Cache Components replaces `experimental_ppr` as the declarative caching model in Next.js 16.
+
+Key topics covered:
+- The `"use cache"` directive replacing `experimental_ppr`
+- `cacheLife()` for fine-grained cache duration control
+- `cacheTag()` and `revalidateTag()` for on-demand invalidation
+- Configuration: `cacheComponents: true` in next.config.ts
+- Before/after migration examples (Next.js 15 to 16)
+- Integration with Partial Prerendering (PPR)
+- Serialization rules and constraints
+
+### Next.js 16 Upgrade Guide
+**See: `references/nextjs-16-upgrade.md`**
+
+Key topics covered:
+- Version requirements (Node.js 20.9+, TypeScript 5.1+)
+- Breaking changes (async params, cookies, headers)
+- middleware.ts to proxy.ts migration
+- PPR removal and Cache Components replacement
+- Turbopack as default bundler
+- New caching APIs (updateTag, refresh, revalidateTag)
+
 ### TanStack Router
 **See: `references/tanstack-router-patterns.md`**
 
@@ -204,6 +270,9 @@ grep -n "Parallel Routes" references/routing-patterns.md
 | "async/await is not valid in non-async Server Components" | Add `async` to function declaration |
 | "Cannot use Server Component inside Client Component" | Pass Server Component as `children` prop |
 | "Hydration mismatch" | Use `'use client'` for Date.now(), Math.random(), browser APIs |
+| "params is not defined" or params returning Promise | Add `await` before `params` (Next.js 16 breaking change) |
+| "experimental_ppr is not a valid export" | Use Cache Components with `"use cache"` directive instead |
+| "cookies/headers is not a function" | Add `await` before `cookies()` or `headers()` (Next.js 16) |
 
 ---
 
@@ -277,8 +346,17 @@ After mastering React Server Components:
 ### caching
 **Keywords:** cache, revalidate, static, dynamic, isr
 **Solves:**
-- How do I cache in Next.js 15?
+- How do I cache in Next.js 16?
 - Revalidation strategies
+
+### cache-components
+**Keywords:** use cache, cacheLife, cacheTag, cacheComponents, revalidateTag, updateTag, cache directive
+**Solves:**
+- How do I use the "use cache" directive?
+- What replaced experimental_ppr?
+- How do I set cache duration with cacheLife?
+- How do I invalidate cache with cacheTag?
+- How do I migrate from Next.js 15 fetch caching to use cache?
 
 ### tanstack-router-patterns
 **Keywords:** tanstack router, react router, vite, spa, client rendering, prefetch
@@ -286,3 +364,21 @@ After mastering React Server Components:
 - How do I use React 19 features without Next.js?
 - TanStack Router prefetching setup
 - Route-based data fetching with TanStack Query
+
+### async-params
+**Keywords:** async params, searchParams, Promise params, await params, dynamic route params
+**Solves:**
+- How do I access params in Next.js 16?
+- Why are my route params undefined?
+- How do I use searchParams in Next.js 16?
+- How do I type params as Promise?
+
+### nextjs-16-upgrade
+**Keywords:** next.js 16, nextjs 16, upgrade, migration, breaking changes, async params, turbopack, proxy.ts, cache components
+**Solves:**
+- How do I upgrade to Next.js 16?
+- What are the breaking changes in Next.js 16?
+- How do I migrate middleware.ts to proxy.ts?
+- How do I use async params and searchParams?
+- What replaced experimental_ppr?
+- How do I use the new caching APIs?

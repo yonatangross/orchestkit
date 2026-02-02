@@ -1,6 +1,7 @@
 ---
 name: documentation-specialist
 description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.
+category: docs
 model: inherit
 context: fork
 color: gray
@@ -305,3 +306,16 @@ Task: "Document the user authentication API"
 6. Add code examples in multiple languages
 7. Review for completeness and accuracy
 8. Return documentation files
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for documentation-specialist]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
+```

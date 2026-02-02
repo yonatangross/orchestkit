@@ -16,8 +16,8 @@ Deploy LLMs on resource-constrained devices: mobile, edge servers, embedded syst
 
 | Device | Memory | Recommended Models |
 |--------|--------|-------------------|
-| Mobile (iOS/Android) | 4-8 GB | Llama-3.2-1B, Phi-3-mini |
-| Edge Server | 16-24 GB | Llama-3.2-3B, Mistral-7B-4bit |
+| Mobile (iOS/Android) | 4-8 GB | Llama-3.3-1B, Phi-3-mini |
+| Edge Server | 16-24 GB | Llama-3.3-3B, Mistral-7B-4bit |
 | Raspberry Pi 5 | 8 GB | Gemma-2B, TinyLlama |
 | Jetson Orin | 32-64 GB | Llama-3.1-8B, Mixtral-8x7B-4bit |
 
@@ -37,9 +37,9 @@ quant_config = QuantizeConfig(
     damp_percent=0.1,
 )
 
-model = GPTQModel.load("meta-llama/Llama-3.2-1B-Instruct", quant_config)
+model = GPTQModel.load("meta-llama/Llama-3.3-1B-Instruct", quant_config)
 model.quantize(calibration_data)
-model.save("Llama-3.2-1B-2bit-edge")
+model.save("Llama-3.3-1B-2bit-edge")
 ```
 
 **Quality vs Memory Trade-off**:
@@ -70,7 +70,7 @@ make LLAMA_CUDA=1
 make LLAMA_VULKAN=1
 
 # Run inference
-./main -m models/llama-3.2-1b-q4_k_m.gguf \
+./main -m models/llama-3.3-1b-q4_k_m.gguf \
     -p "Hello, how are you?" \
     -n 128 \
     -ngl 99  # Offload all layers to GPU
@@ -97,7 +97,7 @@ import mlx.core as mx
 from mlx_lm import load, generate
 
 # Load quantized model
-model, tokenizer = load("mlx-community/Llama-3.2-1B-Instruct-4bit")
+model, tokenizer = load("mlx-community/Llama-3.3-1B-Instruct-4bit")
 
 # Generate on device
 prompt = "Explain machine learning briefly:"
@@ -108,13 +108,13 @@ response = generate(model, tokenizer, prompt=prompt, max_tokens=100)
 
 ```bash
 # Build for Android
-mlc_llm compile meta-llama/Llama-3.2-1B-Instruct \
+mlc_llm compile meta-llama/Llama-3.3-1B-Instruct \
     --quantization q4f16_1 \
     --target android
 
 # Deploy APK with bundled model
 mlc_llm package \
-    --model-lib ./dist/llama-3.2-1b-q4f16_1-android.tar \
+    --model-lib ./dist/llama-3.3-1b-q4f16_1-android.tar \
     --apk-output ./LlamaApp.apk
 ```
 
@@ -129,7 +129,7 @@ Optimized for Jetson Orin and embedded NVIDIA:
 from tensorrt_llm import LLM, SamplingParams
 
 llm = LLM(
-    model="meta-llama/Llama-3.2-3B-Instruct",
+    model="meta-llama/Llama-3.3-3B-Instruct",
     max_batch_size=4,  # Limit for memory
     max_input_len=2048,
     max_output_len=512,
@@ -151,7 +151,7 @@ outputs = llm.generate(
 ```python
 # Limit context length for edge
 llm = LLM(
-    model="meta-llama/Llama-3.2-1B-Instruct",
+    model="meta-llama/Llama-3.3-1B-Instruct",
     max_model_len=1024,  # Reduce from default 4096
     gpu_memory_utilization=0.95,  # Maximize usage
 )
@@ -175,7 +175,7 @@ llm = LLM(
 ```python
 # Enable Flash Attention for memory efficiency
 llm = LLM(
-    model="meta-llama/Llama-3.2-1B-Instruct",
+    model="meta-llama/Llama-3.3-1B-Instruct",
     use_flash_attention=True,  # Default on supported hardware
 )
 ```
@@ -200,7 +200,7 @@ sudo nvpmodel -m 0  # Max performance
 ```python
 # Smaller batches = lower peak power
 llm = LLM(
-    model="meta-llama/Llama-3.2-1B-Instruct",
+    model="meta-llama/Llama-3.3-1B-Instruct",
     max_num_seqs=8,  # Limit concurrent requests
 )
 
@@ -222,13 +222,13 @@ from huggingface_hub import snapshot_download
 
 # Pre-download model
 snapshot_download(
-    "meta-llama/Llama-3.2-1B-Instruct",
-    local_dir="./models/llama-3.2-1b",
+    "meta-llama/Llama-3.3-1B-Instruct",
+    local_dir="./models/llama-3.3-1b",
     local_dir_use_symlinks=False,
 )
 
 # Use local path
-llm = LLM(model="./models/llama-3.2-1b")
+llm = LLM(model="./models/llama-3.3-1b")
 ```
 
 ### Air-gapped Environments
@@ -236,12 +236,12 @@ llm = LLM(model="./models/llama-3.2-1b")
 ```bash
 # Export model to portable format
 python -m llama_cpp.convert \
-    --model meta-llama/Llama-3.2-1B-Instruct \
-    --output ./llama-3.2-1b.gguf \
+    --model meta-llama/Llama-3.3-1B-Instruct \
+    --output ./llama-3.3-1b.gguf \
     --quantize q4_k_m
 
 # Transfer and run on air-gapped device
-./main -m ./llama-3.2-1b.gguf -p "Hello"
+./main -m ./llama-3.3-1b.gguf -p "Hello"
 ```
 
 ---

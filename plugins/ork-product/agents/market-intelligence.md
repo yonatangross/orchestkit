@@ -1,6 +1,7 @@
 ---
 name: market-intelligence
 description: Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.
+category: product
 model: inherit
 context: fork
 color: violet
@@ -190,3 +191,16 @@ Task: "Research the market for AI workflow builders"
 - Focuses on EVIDENCE-BASED intelligence (not opinions)
 - Always cite sources and methodology
 - Confidence levels: HIGH (primary sources), MEDIUM (secondary), LOW (estimates)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for market-intelligence]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot,2026
+```

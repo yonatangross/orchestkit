@@ -8,8 +8,8 @@ Choose the right Ollama model for your task and hardware.
 |-------|------|------|-----------|----------|
 | deepseek-r1:70b | 42GB | 48GB+ | GPT-4 level | Reasoning, analysis |
 | qwen2.5-coder:32b | 35GB | 40GB+ | 73.7% Aider | Code generation |
-| llama3.2:70b | 40GB | 48GB+ | Strong | General purpose |
-| llama3.2:7b | 4GB | 8GB+ | Good | Fast inference |
+| llama3.3:70b | 40GB | 48GB+ | Strong | General purpose |
+| llama3.3:7b | 4GB | 8GB+ | Good | Fast inference |
 | nomic-embed-text | 0.5GB | 2GB | 768 dims | Embeddings |
 
 ## Hardware Requirements
@@ -19,19 +19,19 @@ HARDWARE_PROFILES = {
     "m4_max_256gb": {
         "reasoning": "deepseek-r1:70b",
         "coding": "qwen2.5-coder:32b",
-        "general": "llama3.2:70b",
+        "general": "llama3.3:70b",
         "embeddings": "nomic-embed-text",
         "max_loaded": 3
     },
     "m3_pro_36gb": {
-        "reasoning": "llama3.2:7b",
+        "reasoning": "llama3.3:7b",
         "coding": "qwen2.5-coder:7b",
-        "general": "llama3.2:7b",
+        "general": "llama3.3:7b",
         "embeddings": "nomic-embed-text",
         "max_loaded": 2
     },
     "ci_runner": {
-        "all": "llama3.2:7b",  # Fast, low memory
+        "all": "llama3.3:7b",  # Fast, low memory
         "embeddings": "nomic-embed-text",
         "max_loaded": 1
     }
@@ -40,7 +40,7 @@ HARDWARE_PROFILES = {
 def get_model_for_task(task: str, hardware: str = "m4_max_256gb") -> str:
     """Select model based on task and available hardware."""
     profile = HARDWARE_PROFILES[hardware]
-    return profile.get(task, profile.get("general", "llama3.2:7b"))
+    return profile.get(task, profile.get("general", "llama3.3:7b"))
 ```
 
 ## Quantization Options

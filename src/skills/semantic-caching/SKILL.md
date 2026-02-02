@@ -13,6 +13,8 @@ user-invocable: false
 
 Cache LLM responses by semantic similarity.
 
+> **Redis 8 Note:** Redis 8+ includes Search, JSON, TimeSeries, and Bloom modules built-in. No separate Redis Stack installation is required. Use `redis:8` in Docker or any Redis 8+ deployment.
+
 ## Cache Hierarchy
 
 ```
@@ -98,6 +100,33 @@ async def get_llm_response(query: str, agent_type: str) -> dict:
     return response
 ```
 
+## Redis 8.4+ Hybrid Search (FT.HYBRID)
+
+Redis 8.4 introduces native hybrid search combining semantic (vector) and exact (keyword) matching in a single query. This is ideal for caches that need both similarity and metadata filtering.
+
+```python
+# Redis 8.4 native hybrid search
+result = redis.execute_command(
+    "FT.HYBRID", "llm_cache",
+    "SEARCH", f"@agent_type:{{{agent_type}}}",
+    "VSIM", "@embedding", "$query_vec",
+    "KNN", "2", "K", "5",
+    "COMBINE", "RRF", "4", "CONSTANT", "60",
+    "PARAMS", "2", "query_vec", embedding_bytes
+)
+```
+
+**Hybrid Search Benefits:**
+- Single query for keyword + vector matching
+- RRF (Reciprocal Rank Fusion) combines scores intelligently
+- Better results than sequential filtering
+- BM25STD is now the default scorer for keyword matching
+
+**When to Use Hybrid:**
+- Filtering by metadata (agent_type, tenant, category) + semantic similarity
+- Multi-tenant caches where exact tenant match is required
+- Combining keyword search with vector similarity
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -106,6 +135,8 @@ async def get_llm_response(query: str, agent_type: str) -> dict:
 | TTL | 24h for production |
 | Embedding | text-embedding-3-small (fast) |
 | L1 size | 1000-10000 entries |
+| Scorer | BM25STD (Redis 8+ default) |
+| Hybrid | Use FT.HYBRID for metadata + vector queries |
 
 ## Common Mistakes
 
@@ -149,3 +180,11 @@ async def get_llm_response(query: str, agent_type: str) -> dict:
 - Production cache service template
 - Complete implementation example
 - Redis integration code
+
+### hybrid-search
+**Keywords:** hybrid, ft.hybrid, bm25, rrf, keyword, metadata, filter
+**Solves:**
+- Combine semantic and keyword search
+- Filter cache by metadata with vector similarity
+- Use Redis 8.4 FT.HYBRID command
+- BM25STD scoring for keyword matching

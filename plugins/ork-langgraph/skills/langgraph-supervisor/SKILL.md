@@ -142,7 +142,7 @@ Select the next agent or 'DONE' if all work is complete."""
 async def llm_supervisor_openai(state: WorkflowState) -> WorkflowState:
     """OpenAI with strict structured output."""
     response = await client.beta.chat.completions.parse(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[{"role": "user", "content": prompt}],
         response_format=SupervisorDecision
     )

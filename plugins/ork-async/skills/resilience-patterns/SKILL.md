@@ -167,8 +167,8 @@ Patterns specific to LLM API integrations.
 |               [Default Response] --> Graceful Degradation         |
 |                                                                   |
 |   Example Chain:                                                  |
-|   1. claude-sonnet-4-20250514 (primary)                           |
-|   2. gpt-4o-mini (fallback)                                       |
+|   1. claude-sonnet-4-5-20251101 (primary)                         |
+|   2. gpt-5.2-mini (fallback)                                      |
 |   3. Semantic cache lookup                                        |
 |   4. "Analysis unavailable" + partial results                     |
 |                                                                   |

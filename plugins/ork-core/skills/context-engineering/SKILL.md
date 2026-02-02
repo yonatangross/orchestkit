@@ -198,8 +198,12 @@ def calculate_budget(model: str, task_type: str) -> dict:
     """Calculate optimal token allocation."""
 
     MAX_CONTEXT = {
-        "gpt-4o": 128_000,
-        "claude-3": 200_000,
+        "gpt-5.2": 256_000,
+        "gpt-5.2-mini": 128_000,
+        "claude-opus-4-5": 1_000_000,
+        "claude-sonnet-4-5": 1_000_000,
+        "gemini-3-pro": 2_000_000,
+        "gemini-3-flash": 1_000_000,
         "llama-3": 128_000,
     }
 

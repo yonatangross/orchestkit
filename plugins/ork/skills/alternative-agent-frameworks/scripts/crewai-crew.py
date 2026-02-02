@@ -240,7 +240,7 @@ def create_research_crew(topic: str) -> tuple[Crew, list[Task]]:
         agents=[manager, researcher, analyst, writer],
         tasks=tasks,
         process=Process.hierarchical,
-        manager_llm="gpt-4o",  # Manager uses GPT-4 for coordination
+        manager_llm="gpt-5.2",  # Manager uses GPT-5.2 for coordination
         memory=True,  # Enable shared memory
         verbose=True,
         max_rpm=20,  # Rate limit API calls

@@ -31,10 +31,10 @@ content_analysis (session_id: analysis_550e8400)
     │   └── next_agent: tech_comparator
     ├── tech_comparator (2.1s, $0.018)
     │   ├── analyze_technologies (1.8s, $0.015)
-    │   │   └── model: claude-sonnet-4-20250514
+    │   │   └── model: claude-sonnet-4-5-20251101
     │   │   └── tokens: 1,500 input, 1,000 output
     │   └── compress_findings (0.2s, $0.003)
-    │       └── model: claude-sonnet-4-20250514
+    │       └── model: claude-sonnet-4-5-20251101
     │       └── tokens: 800 input, 400 output
     ├── supervisor_route_2 (0.1s)
     │   └── next_agent: security_auditor
@@ -158,7 +158,7 @@ from langfuse.decorators import observe, langfuse_context
 @observe(name="llm_call")
 async def call_anthropic(
     messages: list[dict],
-    model: str = "claude-sonnet-4-20250514",
+    model: str = "claude-sonnet-4-5-20251101",
     **kwargs
 ) -> str:
     """Call Anthropic with automatic Langfuse cost tracking."""

@@ -323,7 +323,7 @@ export default defineConfig({
 
 ```bash
 # Run tests in same container as CI
-docker run --rm -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.40.0-jammy \
+docker run --rm -v $(pwd):/work -w /work mcr.microsoft.com/playwright:v1.58.0-jammy \
   npx playwright test --project=chromium
 ```
 

@@ -50,7 +50,9 @@ cqw  /* Container width */
 cqh  /* Container height */
 ```
 
-## Tailwind CSS Integration
+## Tailwind CSS v4 Integration
+
+Container queries are built into Tailwind CSS v4 - no plugin required.
 
 ```html
 <!-- Enable container with @container -->
@@ -68,12 +70,16 @@ cqh  /* Container height */
 </div>
 ```
 
-```javascript
-// tailwind.config.js
-module.exports = {
-  plugins: [
-    require('@tailwindcss/container-queries'),
-  ],
+```css
+/* app.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
+
+@theme {
+  /* Custom container breakpoints (optional) */
+  --container-3xs: 16rem;
+  --container-2xs: 18rem;
+  --container-xs: 20rem;
+  /* Default breakpoints: @sm (20rem), @md (28rem), @lg (32rem), etc. */
 }
 ```
 

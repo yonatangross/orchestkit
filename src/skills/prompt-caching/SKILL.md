@@ -18,7 +18,7 @@ Cache LLM prompt prefixes for 90% token savings.
 | Provider | Models |
 |----------|--------|
 | Claude | Opus 4.1, Opus 4, Sonnet 4.5, Sonnet 4, Sonnet 3.7, Haiku 4.5, Haiku 3.5, Haiku 3 |
-| OpenAI | gpt-4o, gpt-4o-mini, o1, o1-mini (automatic caching) |
+| OpenAI | gpt-5.2, gpt-5.2-mini, o3, o3-mini (automatic caching) |
 
 ## Claude Prompt Caching
 
@@ -121,7 +121,7 @@ Use 1-hour cache when:
 # No cache_control markers needed
 
 response = await openai.chat.completions.create(
-    model="gpt-4o",
+    model="gpt-5.2",
     messages=[
         {"role": "system", "content": system_prompt},  # Cached
         {"role": "user", "content": user_content}      # Not cached

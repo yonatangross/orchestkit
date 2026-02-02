@@ -1,6 +1,7 @@
 ---
 name: multimodal-specialist
 description: Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.
+category: llm
 model: inherit
 context: fork
 color: magenta
@@ -235,3 +236,18 @@ Task: "Add image analysis endpoint with document OCR"
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
 - **Skill references:** vision-language-models, audio-language-models, multimodal-rag, streaming-api-patterns
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for multimodal-specialist]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|vision-language-models:{SKILL.md,references/{cost-optimization.md,document-vision.md,image-captioning.md}}|vision,multimodal,image,gpt-5,claude-4,gemini,grok,vlm,2026
+|audio-language-models:{SKILL.md,references/{streaming-audio.md,tts-patterns.md,whisper-integration.md}}|audio,multimodal,gemini-live,grok-voice,whisper,tts,speech,voice-agent,2026
+|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
+```

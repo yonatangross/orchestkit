@@ -699,7 +699,7 @@ class PromptTemplateManager:
         Example:
             system, messages = manager.render_to_anthropic("classification", **vars)
             response = anthropic.messages.create(
-                model="claude-sonnet-4-20250514",
+                model="claude-sonnet-4-5-20251101",
                 system=system,
                 messages=messages,
             )

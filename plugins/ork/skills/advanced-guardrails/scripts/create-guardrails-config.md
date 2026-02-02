@@ -10,7 +10,7 @@ Create guardrails config: $ARGUMENTS
 ## Guardrails Context (Auto-Detected)
 
 - **LLM Provider**: !`grep -r "openai\|anthropic\|google" .env* package.json 2>/dev/null | head -1 | grep -oE 'openai|anthropic|google' || echo "openai (recommended)"`
-- **Model**: !`grep -r "gpt-4\|claude\|gemini" .env* 2>/dev/null | head -1 | grep -oE 'gpt-4|claude|gemini' || echo "gpt-4o"`
+- **Model**: !`grep -r "gpt-5\|claude\|gemini" .env* 2>/dev/null | head -1 | grep -oE 'gpt-5|claude|gemini' || echo "gpt-5.2"`
 - **Embedding Model**: !`grep -r "embedding\|text-embedding" .env* 2>/dev/null | head -1 | grep -oE 'text-embedding-[0-9a-z-]+' || echo "text-embedding-3-small"`
 - **Existing Config**: !`find . -name "*guardrail*" -o -name "*nemo*" 2>/dev/null | head -3 || echo "None found"`
 
@@ -24,7 +24,7 @@ Create guardrails config: $ARGUMENTS
 models:
   - type: main
     engine: !`grep -r "openai\|anthropic" .env* 2>/dev/null | head -1 | grep -oE 'openai|anthropic' || echo "openai"`
-    model: !`grep -r "gpt-4\|claude" .env* 2>/dev/null | head -1 | grep -oE 'gpt-4[^"]*|claude-[0-9]' || echo "gpt-4o"`
+    model: !`grep -r "gpt-5\|claude" .env* 2>/dev/null | head -1 | grep -oE 'gpt-5[^"]*|claude-[0-9]' || echo "gpt-5.2"`
     parameters:
       temperature: 0.7
       max_tokens: 1024

@@ -54,7 +54,7 @@ class PromptCacheWrapper:
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "claude-sonnet-4-20250514",
+        model: str = "claude-sonnet-4-5-20251101",
         max_tokens: int = 4096
     ):
         """Initialize prompt cache wrapper.

@@ -38,7 +38,7 @@ from deepeval.metrics import AnswerRelevancyMetric
 
 metric = AnswerRelevancyMetric(
     threshold=0.7,
-    model="gpt-4o-mini",
+    model="gpt-5.2-mini",
     include_reason=True,
 )
 
@@ -54,7 +54,7 @@ from deepeval.metrics import FaithfulnessMetric
 
 metric = FaithfulnessMetric(
     threshold=0.8,
-    model="gpt-4o-mini",
+    model="gpt-5.2-mini",
 )
 
 # Measures if output is faithful to the context
@@ -98,7 +98,7 @@ from deepeval.metrics import HallucinationMetric
 
 hallucination_metric = HallucinationMetric(
     threshold=0.5,  # Lower is better (0 = no hallucination)
-    model="gpt-4o-mini",
+    model="gpt-5.2-mini",
 )
 
 test_case = LLMTestCase(
@@ -118,7 +118,7 @@ from deepeval.metrics import SummarizationMetric
 
 metric = SummarizationMetric(
     threshold=0.7,
-    model="gpt-4o-mini",
+    model="gpt-5.2-mini",
     assessment_questions=[
         "Does the summary capture the main points?",
         "Is the summary concise?",

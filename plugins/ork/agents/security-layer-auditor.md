@@ -1,6 +1,7 @@
 ---
 name: security-layer-auditor
 description: Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers
+category: security
 model: opus
 context: fork
 color: red
@@ -415,3 +416,22 @@ This agent uses:
 ---
 
 **Version:** 1.0.2 (January 2026)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for security-layer-auditor]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
+|security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
+|defense-in-depth:{SKILL.md,references/{audit-logging.md,request-context-pattern.md,tenant-isolation.md}}|security,validation,layers,hardening
+|auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys,2026
+|input-validation:{SKILL.md,references/{zod-v4-api.md}}|security,validation,zod,pydantic,2026
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

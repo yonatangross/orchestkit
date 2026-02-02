@@ -1,6 +1,7 @@
 ---
 name: python-performance-engineer
 description: Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1
+category: backend
 model: opus
 context: fork
 color: orange
@@ -384,4 +385,18 @@ redis-cli INFO memory
 
 # Connection pool status (from app)
 curl localhost:8000/health/db-pool
+```
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for python-performance-engineer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|asyncio-advanced:{SKILL.md,references/{semaphore-patterns.md,taskgroup-patterns.md}}|asyncio,python,concurrency,taskgroup,structured-concurrency,2026
+|celery-advanced:{SKILL.md,references/{canvas-workflows.md,celery-beat-scheduling.md,priority-queue-setup.md,rate-limiting-patterns.md}}|celery,canvas,workflow,priority-queue,rate-limiting,task-routing,flower,2026
 ```

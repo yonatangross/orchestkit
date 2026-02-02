@@ -29,7 +29,7 @@ async def analyze_content(content: str, agent_type: str):
         langfuse_context.update_current_observation(
             input=content[:500],
             output=response[:500],
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-5-20251101",
             usage={
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens
@@ -48,7 +48,7 @@ analyze_content (2.3s, $0.045)
 ├── retrieval (0.1s)
 │   └── metadata: {chunks_retrieved: 5}
 └── generation (2.2s, $0.045)
-    └── model: claude-sonnet-4-20250514
+    └── model: claude-sonnet-4-5-20251101
     └── tokens: 1500 input, 1000 output
 ```
 
@@ -96,7 +96,7 @@ langfuse_handler = CallbackHandler(
 from langchain_anthropic import ChatAnthropic
 
 llm = ChatAnthropic(
-    model="claude-sonnet-4-20250514",
+    model="claude-sonnet-4-5-20251101",
     callbacks=[langfuse_handler]
 )
 

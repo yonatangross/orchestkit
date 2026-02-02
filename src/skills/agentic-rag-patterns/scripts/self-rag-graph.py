@@ -493,7 +493,7 @@ async def example_usage():
     from langchain_community.vectorstores import FAISS
 
     # Setup components (replace with your actual setup)
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5.2-mini", temperature=0)
 
     # Create a simple retriever (replace with your vector store)
     embeddings = OpenAIEmbeddings()

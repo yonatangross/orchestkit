@@ -84,7 +84,7 @@ if scores["average"] > 0.7:
 
 | Decision | Recommendation |
 |----------|----------------|
-| Judge model | GPT-4o-mini or Claude Haiku |
+| Judge model | GPT-5.2-mini or Claude Haiku 4.5 |
 | Threshold | 0.7 for production, 0.6 for drafts |
 | Dimensions | 3-5 most relevant to use case |
 | Sample size | 50+ for reliable metrics |

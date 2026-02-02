@@ -14,7 +14,7 @@ async def hyde_rag(question: str, top_k: int = 5) -> str:
 
     # 1. Generate hypothetical answer (HyDE)
     hyde_response = await client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5.2-mini",
         messages=[{
             "role": "user",
             "content": f"""Write a short, factual paragraph that would answer this question.
@@ -40,7 +40,7 @@ Question: {question}"""
     context = "\n\n".join([f"[{i+1}] {doc.text}" for i, doc in enumerate(docs)])
 
     response = await client.chat.completions.create(
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[
             {"role": "system", "content": "Answer using ONLY the provided context."},
             {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}
@@ -166,16 +166,18 @@ def summarize_documents(doc_ids: list[str]) -> str:
     docs = [document_store.get(id) for id in doc_ids]
     return llm.invoke(f"Summarize: {docs}")
 
-# Agent with RAG tools
-from langgraph.prebuilt import create_react_agent
+# Agent with RAG tools (LangGraph 1.0 pattern)
+from langchain.agents import create_agent
 
-rag_agent = create_react_agent(
-    model=ChatOpenAI(model="gpt-4o"),
+rag_agent = create_agent(
+    model=ChatOpenAI(model="gpt-5.2"),
     tools=[search_documents, get_document_by_id, summarize_documents],
-    prompt="""You are a research assistant with access to a document database.
+    system_prompt="""You are a research assistant with access to a document database.
 Use the search tool to find relevant documents, then synthesize an answer.
 Always cite your sources."""
 )
+# Note: LangGraph 1.0 replaced create_react_agent with create_agent,
+# and renamed prompt= to system_prompt=
 
 # Usage
 result = await rag_agent.ainvoke({

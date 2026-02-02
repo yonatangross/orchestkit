@@ -42,7 +42,7 @@ from openai import AsyncOpenAI
 
 DEFAULT_N_EXAMPLES = 3
 EMBEDDING_MODEL = "text-embedding-3-small"
-DEFAULT_MODEL = "gpt-4o"
+DEFAULT_MODEL = "gpt-5.2"
 
 
 # =============================================================================

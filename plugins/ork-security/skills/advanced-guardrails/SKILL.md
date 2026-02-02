@@ -43,7 +43,7 @@ Production LLM safety using NeMo Guardrails, Guardrails AI, and OpenAI moderatio
 models:
   - type: main
     engine: openai
-    model: gpt-4o
+    model: gpt-5.2
 
 rails:
   config:
@@ -131,7 +131,7 @@ guard = Guard().use_many(
 # Validate LLM output
 result = guard(
     llm_api=openai.chat.completions.create,
-    model="gpt-4o",
+    model="gpt-5.2",
     messages=[{"role": "user", "content": user_input}],
 )
 

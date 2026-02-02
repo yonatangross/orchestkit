@@ -18,7 +18,7 @@ pip install dspy-ai
 import dspy
 
 # Configure LLM
-lm = dspy.LM("openai/gpt-4o-mini")
+lm = dspy.LM("openai/gpt-5.2-mini")
 dspy.configure(lm=lm)
 ```
 

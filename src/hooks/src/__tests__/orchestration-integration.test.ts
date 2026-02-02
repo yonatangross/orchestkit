@@ -4,7 +4,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
-import { existsSync, mkdirSync, rmSync, unlinkSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { classifyIntent, clearCache } from '../lib/intent-classifier.js';
@@ -16,8 +16,6 @@ import {
   trackInjectedSkill,
   addToPromptHistory,
   cacheClassification,
-  getLastClassification,
-  loadConfig,
   saveConfig,
 } from '../lib/orchestration-state.js';
 import {
@@ -35,8 +33,7 @@ import {
   detectPipeline,
   createPipelineExecution,
 } from '../lib/multi-agent-coordinator.js';
-import { agentOrchestrator } from '../prompt/agent-orchestrator.js';
-import { skillInjector } from '../prompt/skill-injector.js';
+// Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 import type { HookInput } from '../types.js';
 
@@ -408,117 +405,7 @@ describe('orchestration workflow - multi-agent pipelines', () => {
 // Hook Integration Tests
 // =============================================================================
 
-describe('orchestration hooks - agentOrchestrator', () => {
-  test('auto-dispatches at 85%+ confidence', () => {
-    // Enable auto-dispatch
-    saveConfig({ enableAutoDispatch: true });
-
-    const input = createPromptInput(
-      'Design a comprehensive REST API with database schema for microservices backend'
-    );
-
-    const result = agentOrchestrator(input);
-
-    expect(result.continue).toBe(true);
-
-    // Check if auto-dispatch triggered
-    if (result.hookSpecificOutput?.additionalContext) {
-      expect(result.hookSpecificOutput.additionalContext).toContain('AUTO-DISPATCH');
-    }
-  });
-
-  test('provides strong recommendation at 70-84% confidence', () => {
-    const input = createPromptInput('Design a backend API');
-
-    const result = agentOrchestrator(input);
-
-    expect(result.continue).toBe(true);
-
-    // May have recommendation
-    if (result.hookSpecificOutput?.additionalContext) {
-      const context = result.hookSpecificOutput.additionalContext;
-      expect(
-        context.includes('RECOMMENDED') || context.includes('Consider')
-      ).toBe(true);
-    }
-  });
-
-  test('uses cached classification when available', () => {
-    const prompt = 'Generate unit tests';
-
-    // First classification
-    const classification = classifyIntent(prompt);
-    cacheClassification(classification);
-
-    // Hook should use cached result
-    const input = createPromptInput(prompt);
-    const result = agentOrchestrator(input);
-
-    expect(result.continue).toBe(true);
-
-    const cached = getLastClassification();
-    expect(cached).toBeDefined();
-  });
-
-  test('skips meta questions about agents', () => {
-    const input = createPromptInput('What agents are available?');
-
-    const result = agentOrchestrator(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-  });
-});
-
-describe('orchestration hooks - skillInjector', () => {
-  test('injects skills at 80%+ confidence', () => {
-    saveConfig({ enableSkillInjection: true, maxSkillInjectionTokens: 800 });
-
-    const input = createPromptInput(
-      'Write integration tests with pytest and vcr for HTTP recording'
-    );
-
-    const result = skillInjector(input);
-
-    expect(result.continue).toBe(true);
-
-    // Check if skills were injected
-    if (result.hookSpecificOutput?.additionalContext) {
-      expect(result.hookSpecificOutput.additionalContext).toContain('Skill');
-    }
-  });
-
-  test('respects token budget for skill injection', () => {
-    saveConfig({ maxSkillInjectionTokens: 200 }); // Very low budget
-
-    const input = createPromptInput('Write tests with integration e2e unit coverage');
-
-    const result = skillInjector(input);
-
-    expect(result.continue).toBe(true);
-
-    // Should limit injections
-    const state = loadState();
-    expect(state.injectedSkills.length).toBeLessThanOrEqual(2);
-  });
-
-  test('does not inject already-injected skills', () => {
-    saveConfig({ enableSkillInjection: true });
-
-    trackInjectedSkill('integration-testing');
-
-    const input = createPromptInput('Write integration tests');
-
-    const result = skillInjector(input);
-
-    expect(result.continue).toBe(true);
-
-    const state = loadState();
-    const count = state.injectedSkills.filter(s => s === 'integration-testing').length;
-    expect(count).toBe(1); // Should not duplicate
-  });
-});
+// agentOrchestrator and skillInjector tests removed — hooks replaced by passive index (passive-index-migration)
 
 describe('orchestration hooks - pipelineDetector', () => {
   test('detects and creates pipeline execution plan', () => {
@@ -568,33 +455,9 @@ describe('orchestration hooks - pipelineDetector', () => {
 // Configuration Impact Tests
 // =============================================================================
 
+// agentOrchestrator/skillInjector config tests removed — hooks replaced by passive index (passive-index-migration)
+
 describe('orchestration workflow - configuration changes', () => {
-  test('disabling auto-dispatch prevents automatic dispatch', () => {
-    saveConfig({ enableAutoDispatch: false });
-
-    const input = createPromptInput(
-      'Design comprehensive REST API with database'
-    );
-
-    const result = agentOrchestrator(input);
-
-    // Should provide recommendation but not auto-dispatch
-    if (result.hookSpecificOutput?.additionalContext) {
-      expect(result.hookSpecificOutput.additionalContext).not.toContain('AUTO-DISPATCH');
-    }
-  });
-
-  test('disabling skill injection prevents injection', () => {
-    saveConfig({ enableSkillInjection: false });
-
-    const input = createPromptInput('Write integration tests');
-
-    const result = skillInjector(input);
-
-    expect(result.continue).toBe(true);
-    expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
-  });
-
   test('disabling pipelines prevents pipeline detection', () => {
     saveConfig({ enablePipelines: false });
 

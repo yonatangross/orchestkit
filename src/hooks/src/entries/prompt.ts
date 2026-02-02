@@ -26,10 +26,7 @@ import { contextPruningAdvisor } from '../prompt/context-pruning-advisor.js';
 import { memoryContext } from '../prompt/memory-context.js';
 import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
-import { agentAutoSuggest } from '../prompt/agent-auto-suggest.js';
-
-// Orchestration hooks (Issue #197)
-import { agentOrchestrator } from '../prompt/agent-orchestrator.js';
+// Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 
 // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
@@ -60,9 +57,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/memory-context': memoryContext,
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
-  'prompt/agent-auto-suggest': agentAutoSuggest,
-  // Orchestration hooks (Issue #197)
-  'prompt/agent-orchestrator': agentOrchestrator,
   'prompt/pipeline-detector': pipelineDetector,
   // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
   'prompt/skill-resolver': skillResolver,

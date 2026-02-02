@@ -545,7 +545,7 @@ async def example_usage():
     from langchain_community.vectorstores import FAISS
 
     # Setup components
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+    llm = ChatOpenAI(model="gpt-5.2-mini", temperature=0)
 
     # Create a simple retriever
     embeddings = OpenAIEmbeddings()

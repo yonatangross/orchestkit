@@ -35,7 +35,7 @@ guard = Guard().use_many(
 # Use guard with LLM
 result = guard(
     llm_api=openai.chat.completions.create,
-    model="gpt-4o",
+    model="gpt-5.2",
     messages=[{"role": "user", "content": user_input}],
 )
 
@@ -263,7 +263,7 @@ async def validate_llm_output(
     """Validate LLM output through all guards."""
     result = comprehensive_guard(
         llm_api=openai.chat.completions.create,
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=[
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_input},
@@ -315,7 +315,7 @@ structured_guard = Guard.from_pydantic(
 # Validate structured output
 result = structured_guard(
     llm_api=openai.chat.completions.create,
-    model="gpt-4o",
+    model="gpt-5.2",
     prompt_params={"review_text": user_review},
 )
 
@@ -340,7 +340,7 @@ async_guard = AsyncGuard().use_many(
 async def validate_async(messages: list[dict]) -> str:
     result = await async_guard(
         llm_api=openai.chat.completions.acreate,  # Async API
-        model="gpt-4o",
+        model="gpt-5.2",
         messages=messages,
     )
     return result.validated_output

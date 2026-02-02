@@ -192,7 +192,7 @@ async def check_grounding_llm(
     context_text = "\n".join(context)
 
     llm_response = await client.chat.completions.create(
-        model="gpt-4o-mini",  # Cheaper model for evaluation
+        model="gpt-5.2-mini",  # Cheaper model for evaluation
         messages=[{
             "role": "user",
             "content": FACTUALITY_PROMPT.format(

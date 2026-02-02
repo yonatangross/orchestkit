@@ -55,7 +55,7 @@ async def generate_hyde(
 
     # Generate hypothetical answer
     response = await llm.chat.completions.create(
-        model="gpt-4o-mini",  # Fast, cheap model
+        model="gpt-5.2-mini",  # Fast, cheap model
         messages=[
             {"role": "system", "content":
                 "Write a short paragraph that would answer this query. "
@@ -153,7 +153,7 @@ async def hyde_with_fallback(
 
 ## Performance Tips
 
-- Use fast model (gpt-4o-mini, claude-3-haiku) for generation
+- Use fast model (gpt-5.2-mini, claude-haiku-4-5) for generation
 - Cache aggressively (queries often repeat)
 - Set tight timeouts (2-3s) with fallback
 - Keep hypothetical docs concise (100-200 tokens)
@@ -170,7 +170,7 @@ async def hyde_with_fallback(
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| Generation model | gpt-4o-mini / claude-3-haiku | Fast and cheap for hypothetical doc generation |
+| Generation model | gpt-5.2-mini / claude-haiku-4-5 | Fast and cheap for hypothetical doc generation |
 | Temperature | 0.3 | Low temperature for consistent, factual hypothetical docs |
 | Max tokens | 100-200 | Concise docs match embedding sweet spot |
 | Timeout with fallback | 2-3 seconds | Graceful degradation to direct query embedding |

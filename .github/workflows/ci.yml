@@ -37,6 +37,9 @@ jobs:
             exit 1
           fi
 
+      - name: Validate passive indexes
+        run: bash tests/indexes/test-index-generation.sh
+
       - name: Upload built plugins
         uses: actions/upload-artifact@v4
         with:

@@ -1,6 +1,7 @@
 ---
 name: code-quality-reviewer
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check
+category: testing
 model: inherit
 context: inherit
 color: green
@@ -364,3 +365,16 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
 - **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook, i18n-date-patterns
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for code-quality-reviewer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|code-review-playbook:{SKILL.md,references/{review-patterns.md}}|code-review,quality,collaboration,best-practices
+```

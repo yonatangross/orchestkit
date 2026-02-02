@@ -1,6 +1,6 @@
 {
   "name": "ork-langgraph",
-  "version": "5.6.1",
+  "version": "5.6.2",
   "description": "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal",
   "author": {
     "name": "Yonatan Gross",

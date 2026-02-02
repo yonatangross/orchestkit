@@ -328,7 +328,7 @@ analysis_llm_chain = LLMFallbackChain(
     primary=AnthropicProvider(
         LLMConfig(
             name="primary",
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-5-20251101",
             timeout=60.0,
             max_tokens=8192,
         )
@@ -337,7 +337,7 @@ analysis_llm_chain = LLMFallbackChain(
         OpenAIProvider(
             LLMConfig(
                 name="fallback",
-                model="gpt-4o-mini",
+                model="gpt-5.2-mini",
                 timeout=30.0,
                 max_tokens=4096,
             )

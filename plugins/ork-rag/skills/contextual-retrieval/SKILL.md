@@ -57,7 +57,7 @@ Answer only with the context, nothing else.
 def generate_context(document: str, chunk: str) -> str:
     """Generate context for a single chunk."""
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-4-5-20251101",
         max_tokens=150,
         messages=[{
             "role": "user",
@@ -87,7 +87,7 @@ def contextualize_chunks_cached(document: str, chunks: list[str]) -> list[str]:
 
     for i, chunk in enumerate(chunks):
         response = client.messages.create(
-            model="claude-sonnet-4-20250514",
+            model="claude-sonnet-4-5-20251101",
             max_tokens=150,
             messages=[{
                 "role": "user",

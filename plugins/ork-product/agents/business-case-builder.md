@@ -1,6 +1,7 @@
 ---
 name: business-case-builder
 description: Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale. Activates for ROI, cost-benefit, risk assessment, investment justification, business case, budget, revenue impact, cost analysis, financial, payback period, NPV, IRR, TCO, revenue projection
+category: product
 model: inherit
 context: fork
 color: indigo
@@ -264,3 +265,16 @@ Task: "Build business case for the workflow builder"
 - All projections include explicit assumptions
 - Sensitivity analysis is mandatory (never single-point estimates)
 - Recommends but doesn't approve (human decides on investments)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for business-case-builder]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|business-case-analysis:{SKILL.md,references/{roi-calculation-guide.md}}|product,finance,roi,npv,irr,tco,business-case,2026
+```
