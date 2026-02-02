@@ -8,6 +8,7 @@
  */
 
 import { existsSync, writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir } from '../lib/common.js';
 
@@ -79,7 +80,7 @@ function readJsonFile<T>(filePath: string, defaultValue: T): T {
 }
 
 function writeJsonFile(filePath: string, data: unknown): void {
-  const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+  const dir = dirname(filePath);
   ensureDir(dir);
   try {
     writeFileSync(filePath, JSON.stringify(data, null, 2));
@@ -110,7 +111,7 @@ export function contextPublisher(input: HookInput): HookResult {
 
   // === Update Decisions File (Context Protocol 2.0) ===
   const decisionsFile = getDecisionsFile();
-  const decisionsDir = decisionsFile.substring(0, decisionsFile.lastIndexOf('/'));
+  const decisionsDir = dirname(decisionsFile);
   ensureDir(decisionsDir);
 
   const defaultDecisions: DecisionsFile = {
@@ -137,7 +138,7 @@ export function contextPublisher(input: HookInput): HookResult {
 
   // === Update Session State (Context Protocol 2.0) ===
   const sessionStateFile = getSessionState();
-  const sessionDir = sessionStateFile.substring(0, sessionStateFile.lastIndexOf('/'));
+  const sessionDir = dirname(sessionStateFile);
   ensureDir(sessionDir);
 
   const defaultState: SessionState = {

@@ -16,6 +16,7 @@
  */
 
 import { existsSync, mkdirSync, appendFileSync, unlinkSync } from 'node:fs';
+import { basename, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 
@@ -60,7 +61,7 @@ function getAgentTrackingDir(): string {
 
 function getProjectId(): string {
   const projectDir = getProjectDir();
-  const projectName = projectDir.split('/').pop() || 'default-project';
+  const projectName = basename(projectDir) || 'default-project';
   return projectName
     .toLowerCase()
     .replace(/ /g, '-')
@@ -210,7 +211,7 @@ export function agentMemoryStore(input: HookInput): HookResult {
 
   // Log patterns for storage
   const patternsLog = getPatternsLog();
-  const logDir = patternsLog.substring(0, patternsLog.lastIndexOf('/'));
+  const logDir = dirname(patternsLog);
   try {
     mkdirSync(logDir, { recursive: true });
   } catch {
