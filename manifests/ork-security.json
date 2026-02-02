@@ -1,6 +1,6 @@
 {
   "name": "ork-security",
-  "version": "5.6.1",
+  "version": "5.6.2",
   "description": "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails",
   "dependencies": [
     "ork-core"
