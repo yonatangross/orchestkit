@@ -12,6 +12,7 @@ import { existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getField, logHook } from '../lib/common.js';
+import { basename } from 'node:path';
 
 /**
  * Get language from file extension
@@ -159,10 +160,10 @@ export function autoLint(input: HookInput): HookResult {
 
   // Build output message
   if (fixesApplied && lintIssues > 0) {
-    const basename = filePath.split('/').pop();
+    const fileBasename = basename(filePath);
     return {
       continue: true,
-      systemMessage: `Auto-lint: fixed issues, ${lintIssues} remaining in ${basename}`,
+      systemMessage: `Auto-lint: fixed issues, ${lintIssues} remaining in ${fileBasename}`,
     };
   }
 

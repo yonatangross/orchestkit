@@ -421,13 +421,18 @@ export function decisionProcessor(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  if (!hasDecisionContent(skillOutput)) {
+  // Truncate to MAX_TEXT_LENGTH to avoid expensive regex on very long output
+  const truncatedOutput = skillOutput.length > MAX_TEXT_LENGTH
+    ? skillOutput.slice(0, MAX_TEXT_LENGTH)
+    : skillOutput;
+
+  if (!hasDecisionContent(truncatedOutput)) {
     return outputSilentSuccess();
   }
 
   // Extract enriched decisions with rationale
-  const enrichedDecisions = extractEnrichedDecisions(skillOutput);
-  const entities = extractEntities(skillOutput);
+  const enrichedDecisions = extractEnrichedDecisions(truncatedOutput);
+  const entities = extractEntities(truncatedOutput);
   const totalEntities = entities.agents.length + entities.technologies.length + entities.patterns.length;
 
   if (enrichedDecisions.length === 0 && totalEntities === 0) {

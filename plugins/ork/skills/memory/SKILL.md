@@ -91,11 +91,17 @@ Result limits automatically adjust based on `context_window.used_percentage`:
 **Search Workflow:**
 
 1. Parse flags (--category, --limit, --mem0, --agent, --global)
-2. Search knowledge graph via `mcp__memory__search_nodes`:
+2. Build filters from flags:
+   ```
+   Check for --category <cat> flag → metadata.category: "<cat>"
+   Check for --agent <agent-id> flag → agent_id: "ork:{agent-id}"
+   Check for --global flag → user_id: "orchestkit-global-best-practices"
+   ```
+3. Search knowledge graph via `mcp__memory__search_nodes`:
    ```json
    { "query": "user's search query" }
    ```
-3. If `--mem0` flag set and MEM0_API_KEY configured, search mem0 in parallel:
+4. If `--mem0` flag set and MEM0_API_KEY configured, search mem0 in parallel:
    ```bash
    !bash skills/mem0-memory/scripts/crud/search-memories.py \
      --query "user's search query" \
@@ -103,7 +109,7 @@ Result limits automatically adjust based on `context_window.used_percentage`:
      --limit 10 \
      --enable-graph
    ```
-4. Merge and deduplicate results (if --mem0):
+5. Merge and deduplicate results (if --mem0):
    - Graph results first, then mem0 results
    - Mark cross-references as `[CROSS-REF]`
    - Remove pure duplicates

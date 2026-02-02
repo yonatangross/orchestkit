@@ -13,7 +13,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, basename } from 'node:path';
 import { getProjectDir, logHook } from './common.js';
 
 // =============================================================================
@@ -249,13 +249,13 @@ export function summarizeAction(
   const resultStr = result === 'success' ? '✓' : result === 'failure' ? '✗' : '~';
 
   if (tool === 'Read') {
-    return `${resultStr} Read ${file?.split('/').pop() || 'file'}`;
+    return `${resultStr} Read ${basename(file ?? '') || 'file'}`;
   }
   if (tool === 'Write') {
-    return `${resultStr} Write ${file?.split('/').pop() || 'file'}`;
+    return `${resultStr} Write ${basename(file ?? '') || 'file'}`;
   }
   if (tool === 'Edit') {
-    return `${resultStr} Edit ${file?.split('/').pop() || 'file'}`;
+    return `${resultStr} Edit ${basename(file ?? '') || 'file'}`;
   }
   if (tool === 'Glob') {
     return `${resultStr} Search files`;

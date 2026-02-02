@@ -14,7 +14,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 
 // Keywords that suggest memory search would be valuable
 const MEMORY_TRIGGER_KEYWORDS = [
@@ -172,7 +172,7 @@ function extractSearchTerms(prompt: string): string {
  * Generate mem0 user ID for a scope
  */
 function getMem0UserId(scope: string, projectDir: string): string {
-  const projectName = projectDir.split('/').pop() || 'unknown';
+  const projectName = basename(projectDir) || 'unknown';
   return `project:${projectName}:${scope}`;
 }
 

@@ -6,7 +6,7 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { existsSync, readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, basename } from 'node:path';
 import { tmpdir, homedir } from 'node:os';
 import type { HookInput } from '../../types.js';
 import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js';
@@ -59,11 +59,11 @@ function createMemoryFabricSkill(): void {
 
 /**
  * Get project ID from project directory
+ * Uses path.basename for cross-platform compatibility (Unix/Windows)
  */
 function getExpectedProjectId(projectDir: string): string {
-  const parts = projectDir.split('/');
-  const basename = parts[parts.length - 1] || 'unknown';
-  return basename.toLowerCase().replace(/\s+/g, '-');
+  const dirBasename = basename(projectDir) || 'unknown';
+  return dirBasename.toLowerCase().replace(/\s+/g, '-');
 }
 
 /**

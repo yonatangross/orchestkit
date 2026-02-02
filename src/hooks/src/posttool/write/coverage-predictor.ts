@@ -6,6 +6,7 @@
 
 import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir } from '../../lib/common.js';
 
@@ -41,15 +42,15 @@ export function coveragePredictor(input: HookInput): HookResult {
 
   // Determine corresponding test file location
   let testPattern = '';
-  const basename = filePath.split('/').pop() || '';
+  const fileBasename = basename(filePath);
 
   if (filePath.endsWith('.py')) {
     // Python: backend/app/services/foo.py -> backend/tests/unit/test_foo.py
-    const nameWithoutExt = basename.replace('.py', '');
+    const nameWithoutExt = fileBasename.replace('.py', '');
     testPattern = `test_${nameWithoutExt}.py`;
   } else if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
     // TypeScript: src/components/Foo.tsx -> src/components/__tests__/Foo.test.tsx
-    const nameWithoutExt = basename.replace(/\.[^.]+$/, '');
+    const nameWithoutExt = fileBasename.replace(/\.[^.]+$/, '');
     testPattern = `${nameWithoutExt}.test.*`;
   } else {
     return outputSilentSuccess();

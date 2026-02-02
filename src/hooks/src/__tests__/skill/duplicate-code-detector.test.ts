@@ -7,6 +7,7 @@
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { basename } from 'node:path';
 import type { HookInput } from '../../types.js';
 
 // =============================================================================
@@ -79,12 +80,12 @@ function mockCodeFiles(files: string[]): void {
   mockReaddirSync.mockImplementation((dir: string, opts?: { withFileTypes: boolean }) => {
     if (opts?.withFileTypes) {
       return files.map((f) => ({
-        name: f.split('/').pop(),
+        name: basename(f),
         isDirectory: () => f.endsWith('/'),
         isFile: () => !f.endsWith('/'),
       }));
     }
-    return files.map((f) => f.split('/').pop());
+    return files.map((f) => basename(f));
   });
 }
 

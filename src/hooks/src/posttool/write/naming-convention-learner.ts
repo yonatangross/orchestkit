@@ -14,6 +14,8 @@
  * Memory Fabric v2.1: Cross-project learning via patterns queue
  */
 
+import { basename } from 'node:path';
+
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
@@ -160,7 +162,7 @@ function countCases(identifiers: string[]): Record<NamingCase, number> {
  * Detect file naming convention from file path
  */
 function detectFileNaming(filePath: string): string {
-  const filename = filePath.split('/').pop() || '';
+  const filename = basename(filePath);
   const nameWithoutExt = filename.replace(/\.[^.]+$/, '');
 
   if (/^[a-z][a-z0-9_]*$/.test(nameWithoutExt)) {

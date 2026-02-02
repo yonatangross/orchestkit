@@ -8,6 +8,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { basename } from 'node:path';
 
 // Keywords that suggest implementation work where antipatterns matter
 const IMPLEMENTATION_KEYWORDS = [
@@ -46,7 +47,7 @@ function detectCategory(prompt: string): string {
  * Generate mem0 user ID for a scope
  */
 function getMem0UserId(scope: string, projectDir: string): string {
-  const projectName = projectDir.split('/').pop() || 'unknown';
+  const projectName = basename(projectDir) || 'unknown';
   return `project:${projectName}:${scope}`;
 }
 

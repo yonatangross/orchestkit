@@ -7,6 +7,7 @@
  */
 
 import { existsSync, statSync, appendFileSync, mkdirSync } from 'node:fs';
+import { basename, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 
@@ -20,8 +21,8 @@ interface ChangeAnalysis {
  * Analyze file for README-relevant changes
  */
 function analyzeFileChange(filePath: string, projectDir: string): ChangeAnalysis | null {
-  const filename = filePath.split('/').pop() || '';
-  const dirname = filePath.split('/').slice(0, -1).join('/');
+  const filename = basename(filePath);
+  const dirPath = dirname(filePath);
   const extLower = (filePath.split('.').pop() || '').toLowerCase();
 
   // 1. Package configuration files
@@ -81,7 +82,7 @@ function analyzeFileChange(filePath: string, projectDir: string): ChangeAnalysis
   }
 
   // 3. Configuration directories
-  if (dirname.includes('/config') || dirname.includes('/settings')) {
+  if (dirPath.includes('/config') || dirPath.includes('/settings')) {
     return {
       changeType: 'config',
       readmeSection: 'Configuration',
@@ -91,7 +92,7 @@ function analyzeFileChange(filePath: string, projectDir: string): ChangeAnalysis
 
   // 4. Main entry points / index files
   if (['index.ts', 'index.js', 'main.py', 'app.py', '__init__.py'].includes(filename)) {
-    const depth = filePath.split('/').length;
+    const depth = filePath.split(/[/\\]/).length;
     if (depth <= 4) {
       return {
         changeType: 'entry-point',
@@ -211,7 +212,7 @@ export function readmeSync(input: HookInput): HookResult {
       suggestion = `${suggestion} (README last updated ${daysOld}+ days ago)`;
     }
 
-    contextMsg = `README sync: ${analysis.changeType} change in ${filePath.split('/').pop()}. Section: '${analysis.readmeSection}'. ${suggestion}`;
+    contextMsg = `README sync: ${analysis.changeType} change in ${basename(filePath)}. Section: '${analysis.readmeSection}'. ${suggestion}`;
   } else {
     contextMsg = `README sync: ${analysis.changeType} change detected but no README.md found. Consider creating one.`;
   }

@@ -14,6 +14,7 @@ import {
   getProjectDir,
 } from '../lib/common.js';
 import { getRepoRoot } from '../lib/git.js';
+import { basename, dirname } from 'node:path';
 
 /**
  * Check if file is a test file
@@ -47,8 +48,8 @@ function findTestFile(implFile: string): string | null {
     }
 
     // Check __tests__ directory
-    const dir = implFile.substring(0, implFile.lastIndexOf('/'));
-    const filename = implFile.split('/').pop() || '';
+    const dir = dirname(implFile);
+    const filename = basename(implFile);
     const baseFilename = filename.replace(/\.[^.]+$/, '');
 
     const testDirPatterns = [
@@ -60,8 +61,8 @@ function findTestFile(implFile: string): string | null {
       if (existsSync(pattern)) return pattern;
     }
   } else if (implFile.endsWith('.py')) {
-    const dir = implFile.substring(0, implFile.lastIndexOf('/'));
-    const filename = implFile.split('/').pop() || '';
+    const dir = dirname(implFile);
+    const filename = basename(implFile);
     const testFilename = `test_${filename}`;
 
     // Try same directory
@@ -70,7 +71,7 @@ function findTestFile(implFile: string): string | null {
     }
 
     // Try tests/ directory
-    const parentDir = dir.substring(0, dir.lastIndexOf('/'));
+    const parentDir = dirname(dir);
     if (existsSync(`${parentDir}/tests/${testFilename}`)) {
       return `${parentDir}/tests/${testFilename}`;
     }
@@ -146,15 +147,15 @@ export function crossInstanceTestValidator(input: HookInput): HookResult {
       if (/\.(ts|tsx|js|jsx)$/.test(filePath)) {
         const base = filePath.replace(/\.[^.]+$/, '');
         const ext = filePath.split('.').pop() || 'ts';
-        const dir = filePath.substring(0, filePath.lastIndexOf('/'));
-        const filename = filePath.split('/').pop() || '';
+        const dir = dirname(filePath);
+        const fname = basename(filePath);
         errors.push(`    - ${base}.test.${ext}`);
-        errors.push(`    - ${dir}/__tests__/${filename}`);
+        errors.push(`    - ${dir}/__tests__/${fname}`);
       } else if (filePath.endsWith('.py')) {
-        const filename = filePath.split('/').pop() || '';
-        const dir = filePath.substring(0, filePath.lastIndexOf('/'));
-        errors.push(`    - ${dir}/test_${filename}`);
-        errors.push(`    - ${dir.substring(0, dir.lastIndexOf('/'))}/tests/test_${filename}`);
+        const fname = basename(filePath);
+        const dir = dirname(filePath);
+        errors.push(`    - ${dir}/test_${fname}`);
+        errors.push(`    - ${dirname(dir)}/tests/test_${fname}`);
       }
 
       errors.push('');

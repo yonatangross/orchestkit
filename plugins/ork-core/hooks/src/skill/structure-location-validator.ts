@@ -7,6 +7,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardCodeFiles } from '../lib/guards.js';
+import { basename, dirname as pathDirname } from 'node:path';
 
 const MAX_DEPTH = 4;
 
@@ -22,7 +23,7 @@ export function structureLocationValidator(input: HookInput): HookResult {
   if (!filePath) return outputSilentSuccess();
 
   const errors: string[] = [];
-  const filename = filePath.split('/').pop() || '';
+  const filename = basename(filePath);
 
   // Rule: Max nesting depth (4 levels from src/ or app/)
   if (filePath.includes('/src/') || filePath.includes('/app/')) {
@@ -33,7 +34,7 @@ export function structureLocationValidator(input: HookInput): HookResult {
       relativePath = filePath.split('/app/')[1] || '';
     }
 
-    const depth = relativePath.split('/').filter(Boolean).length;
+    const depth = relativePath.split(/[/\\]/).filter(Boolean).length;
     if (depth > MAX_DEPTH) {
       errors.push(`NESTING: Max depth exceeded - ${depth} levels (max: ${MAX_DEPTH})`);
     }
@@ -65,25 +66,25 @@ export function structureLocationValidator(input: HookInput): HookResult {
 
   // FastAPI/Python structure rules
   if (filePath.endsWith('.py')) {
-    const dirname = filePath.substring(0, filePath.lastIndexOf('/'));
+    const dirPath = pathDirname(filePath);
 
     // Rule: Router files must be in routers/
     if (/^(router_|routes_|api_).*\.py$/.test(filename)) {
-      if (!dirname.endsWith('/routers') && !dirname.endsWith('routers')) {
+      if (!dirPath.endsWith('/routers') && !dirPath.endsWith('routers')) {
         errors.push('ROUTER: Router files must be in routers/ directory');
       }
     }
 
     // Rule: Service files must be in services/
     if (/_service\.py$/.test(filename)) {
-      if (!dirname.endsWith('/services') && !dirname.endsWith('services')) {
+      if (!dirPath.endsWith('/services') && !dirPath.endsWith('services')) {
         errors.push('SERVICE: Service files must be in services/ directory');
       }
     }
 
     // Rule: Repository files must be in repositories/
     if (/_(repository|repo)\.py$/.test(filename)) {
-      if (!dirname.endsWith('/repositories') && !dirname.endsWith('repositories')) {
+      if (!dirPath.endsWith('/repositories') && !dirPath.endsWith('repositories')) {
         errors.push('REPOSITORY: Repository files must be in repositories/ directory');
       }
     }

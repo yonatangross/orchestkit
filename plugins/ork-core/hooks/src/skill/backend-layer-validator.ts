@@ -7,6 +7,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputBlock, logHook } from '../lib/common.js';
 import { guardPythonFiles } from '../lib/guards.js';
+import { basename } from 'node:path';
 
 /**
  * Validate FastAPI layer architecture rules
@@ -64,7 +65,7 @@ export function backendLayerValidator(input: HookInput): HookResult {
 
   // Report errors
   if (errors.length > 0) {
-    const filename = filePath.split('/').pop() || filePath;
+    const filename = basename(filePath) || filePath;
     const reason = `Layer violation in ${filename}: ${errors[0]}`;
     logHook('backend-layer-validator', `BLOCKED: ${reason}`);
     return outputBlock(reason);

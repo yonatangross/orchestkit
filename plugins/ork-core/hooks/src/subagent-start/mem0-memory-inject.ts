@@ -11,6 +11,7 @@
  * Version: 1.0.0 (split from agent-memory-inject.ts)
  */
 
+import { basename } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
 
@@ -60,7 +61,7 @@ function getRelatedAgents(agentType: string): string[] {
 
 function getProjectId(): string {
   const projectDir = getProjectDir();
-  const projectName = projectDir.split('/').pop() || 'default-project';
+  const projectName = basename(projectDir) || 'default-project';
   return projectName
     .toLowerCase()
     .replace(/ /g, '-')

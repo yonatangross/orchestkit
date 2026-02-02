@@ -10,6 +10,7 @@
  */
 
 import { existsSync, readFileSync, mkdirSync, appendFileSync, writeFileSync } from 'node:fs';
+import { basename } from 'node:path';
 import { spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getPluginRoot, outputSilentSuccess } from '../lib/common.js';
@@ -70,7 +71,7 @@ function countPendingPatterns(patternsLog: string): { count: number; patterns: u
  * Get project ID from directory
  */
 function getProjectId(projectDir: string): string {
-  return projectDir.split('/').pop() || 'project';
+  return basename(projectDir) || 'project';
 }
 
 /**

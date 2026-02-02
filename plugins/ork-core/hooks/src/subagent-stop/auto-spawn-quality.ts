@@ -10,6 +10,7 @@
  */
 
 import { existsSync, writeFileSync, mkdirSync, appendFileSync, readFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getProjectDir, getSessionId } from '../lib/common.js';
 
@@ -108,7 +109,7 @@ function queueSpawn(
     .padStart(4, '0')}`;
 
   const spawnQueue = getSpawnQueue();
-  const queueDir = spawnQueue.substring(0, spawnQueue.lastIndexOf('/'));
+  const queueDir = dirname(spawnQueue);
 
   try {
     mkdirSync(queueDir, { recursive: true });
