@@ -5,7 +5,8 @@
 # Based on official CC marketplace format from anthropics/claude-code:
 # - Required plugin fields: name, description, source, category
 # - Optional plugin fields: version, author
-# - Invalid plugin fields: featured, engine (these cause CC schema errors)
+# - ONLY allowed plugin fields: name, description, source, category, version, author
+# - ANY other field (deps, featured, engine, etc.) causes CC schema errors
 
 set -euo pipefail
 
@@ -115,13 +116,12 @@ fi
 echo ""
 echo "6. Validating plugin entries..."
 
-# Fields that are NOT allowed in plugin entries (cause CC schema errors)
-invalid_plugin_fields='["featured", "engine"]'
-
 # Required plugin fields (based on official CC marketplace)
 required_plugin_fields=("name" "description" "source" "category")
 
-# Valid plugin fields
+# Valid plugin fields — ONLY these are allowed by Claude Code's schema validator.
+# Any other key (e.g., "deps", "featured", "engine") causes:
+#   "Invalid schema: plugins.N: Unrecognized key: ..."
 valid_plugin_fields='["name", "description", "source", "category", "version", "author"]'
 
 plugin_count=$(jq '.plugins | length' "$MARKETPLACE_FILE")
@@ -130,12 +130,13 @@ log_info "Found $plugin_count plugins"
 for i in $(seq 0 $((plugin_count - 1))); do
     plugin_name=$(jq -r ".plugins[$i].name // \"plugin_$i\"" "$MARKETPLACE_FILE")
 
-    # Check for invalid fields (featured, engine)
-    invalid_fields=$(jq -r --argjson invalid "$invalid_plugin_fields" ".plugins[$i] | keys | map(select(. as \$k | \$invalid | index(\$k))) | .[]" "$MARKETPLACE_FILE")
-    if [[ -n "$invalid_fields" ]]; then
+    # Check for ANY unrecognized fields (allowlist enforcement)
+    # Claude Code rejects all keys not in its schema — use allowlist, not denylist
+    unrecognized_fields=$(jq -r --argjson valid "$valid_plugin_fields" ".plugins[$i] | keys - \$valid | .[]" "$MARKETPLACE_FILE")
+    if [[ -n "$unrecognized_fields" ]]; then
         while IFS= read -r field; do
-            log_error "Plugin '$plugin_name' has invalid field: '$field' (CC schema doesn't allow this)"
-        done <<< "$invalid_fields"
+            log_error "Plugin '$plugin_name' has unrecognized field: '$field' (CC schema only allows: name, description, source, category, version, author)"
+        done <<< "$unrecognized_fields"
     fi
 
     # Check required fields
