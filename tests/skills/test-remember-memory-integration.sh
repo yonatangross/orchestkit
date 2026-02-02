@@ -50,8 +50,8 @@ echo ""
 echo "Test 2: User ID Alignment"
 echo "   Verifying both skills use 'orchestkit-{project}-decisions' format..."
 
-remember_has_project_user_id=$(grep -c "orchestkit-{project-name}-decisions" "$REMEMBER_SKILL" || echo "0")
-memory_has_project_user_id=$(grep -c "orchestkit-{project-name}-decisions" "$MEMORY_SKILL" || echo "0")
+remember_has_project_user_id=$(grep -c "orchestkit-{project-name}-decisions" "$REMEMBER_SKILL" || true)
+memory_has_project_user_id=$(grep -c "orchestkit-{project-name}-decisions" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_project_user_id -gt 0 && $memory_has_project_user_id -gt 0 ]]; then
   pass_test "Both skills use project-scoped user_id: orchestkit-{project-name}-decisions"
@@ -64,7 +64,7 @@ echo ""
 echo "Test 3: Category Filtering Implementation"
 echo "   Verifying memory skill properly adds metadata.category to filters..."
 
-memory_has_category_filter=$(grep -c "metadata.category" "$MEMORY_SKILL" || echo "0")
+memory_has_category_filter=$(grep -c "metadata.category" "$MEMORY_SKILL" || true)
 
 if [[ $memory_has_category_filter -gt 0 ]]; then
   pass_test "Memory skill implements metadata.category filtering (found $memory_has_category_filter references)"
@@ -77,8 +77,8 @@ echo ""
 echo "Test 4: Graph Flag Propagation"
 echo "   Verifying --graph flag adds enable_graph=true..."
 
-remember_has_graph=$(grep -c "enable_graph\|--enable-graph" "$REMEMBER_SKILL" || echo "0")
-memory_has_graph=$(grep -c "enable_graph\|--enable-graph" "$MEMORY_SKILL" || echo "0")
+remember_has_graph=$(grep -c "enable_graph\|--enable-graph" "$REMEMBER_SKILL" || true)
+memory_has_graph=$(grep -c "enable_graph\|--enable-graph" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_graph -gt 0 && $memory_has_graph -gt 0 ]]; then
   pass_test "Both skills support graph flag with enable_graph=true"
@@ -91,8 +91,8 @@ echo ""
 echo "Test 5: Agent Scoping"
 echo "   Verifying --agent flag adds agent_id to requests..."
 
-remember_has_agent_id=$(grep -c "agent_id.*ork:" "$REMEMBER_SKILL" || echo "0")
-memory_has_agent_filter=$(grep -c "agent_id.*ork:" "$MEMORY_SKILL" || echo "0")
+remember_has_agent_id=$(grep -c "agent_id.*ork:" "$REMEMBER_SKILL" || true)
+memory_has_agent_filter=$(grep -c "agent_id.*ork:" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_agent_id -gt 0 && $memory_has_agent_filter -gt 0 ]]; then
   pass_test "Both skills implement agent scoping with ork:{agent-id} format"
@@ -105,8 +105,8 @@ echo ""
 echo "Test 6: Global Flag User ID"
 echo "   Verifying --global uses orchestkit-global-best-practices..."
 
-remember_has_global_user_id=$(grep -c "orchestkit-global-best-practices" "$REMEMBER_SKILL" || echo "0")
-memory_has_global_user_id=$(grep -c "orchestkit-global-best-practices" "$MEMORY_SKILL" || echo "0")
+remember_has_global_user_id=$(grep -c "orchestkit-global-best-practices" "$REMEMBER_SKILL" || true)
+memory_has_global_user_id=$(grep -c "orchestkit-global-best-practices" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_global_user_id -gt 0 && $memory_has_global_user_id -gt 0 ]]; then
   pass_test "Both skills use global user_id: orchestkit-global-best-practices"
@@ -119,8 +119,8 @@ echo ""
 echo "Test 7: mem0 Script Integration"
 echo "   Verifying both skills reference correct mem0 scripts..."
 
-remember_has_add_memory=$(grep -c "add-memory.py" "$REMEMBER_SKILL" || echo "0")
-memory_has_search_memories=$(grep -c "search-memories.py" "$MEMORY_SKILL" || echo "0")
+remember_has_add_memory=$(grep -c "add-memory.py" "$REMEMBER_SKILL" || true)
+memory_has_search_memories=$(grep -c "search-memories.py" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_add_memory -gt 0 && $memory_has_search_memories -gt 0 ]]; then
   pass_test "Both skills reference correct mem0 scripts"
@@ -133,8 +133,8 @@ echo ""
 echo "Test 8: Error Handling Documentation"
 echo "   Verifying both skills document error handling..."
 
-remember_has_error_handling=$(grep -c "## Error Handling" "$REMEMBER_SKILL" || echo "0")
-memory_has_error_handling=$(grep -c "## Error Handling" "$MEMORY_SKILL" || echo "0")
+remember_has_error_handling=$(grep -c "## Error Handling" "$REMEMBER_SKILL" || true)
+memory_has_error_handling=$(grep -c "## Error Handling" "$MEMORY_SKILL" || true)
 
 if [[ $remember_has_error_handling -gt 0 && $memory_has_error_handling -gt 0 ]]; then
   pass_test "Both skills document error handling"
