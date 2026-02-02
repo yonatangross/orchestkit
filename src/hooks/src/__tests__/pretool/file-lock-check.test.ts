@@ -5,7 +5,7 @@
 
 /// <reference types="node" />
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fileLockCheck } from '../../pretool/write-edit/file-lock-check.js';
 import type { HookInput } from '../../types.js';
 
@@ -66,7 +66,7 @@ describe('file-lock-check', () => {
   });
 
   describe('Coordination not enabled', () => {
-    test('passes when coordination directory does not exist', () => {
+    it('passes when coordination directory does not exist', () => {
       mockExistsSync.mockReturnValue(false);
 
       const input = createWriteInput('/test/project/src/file.ts');
@@ -86,14 +86,14 @@ describe('file-lock-check', () => {
       });
     });
 
-    test('passes when locks.json does not exist', () => {
+    it('passes when locks.json does not exist', () => {
       const input = createWriteInput('/test/project/src/file.ts');
       const result = fileLockCheck(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('passes when locks array is empty', () => {
+    it('passes when locks array is empty', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(createLocksJson([]));
 
@@ -112,7 +112,7 @@ describe('file-lock-check', () => {
       mockExistsSync.mockReturnValue(true);
     });
 
-    test('blocks when file is locked by another instance', () => {
+    it('blocks when file is locked by another instance', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'other-session-id',
@@ -130,7 +130,7 @@ describe('file-lock-check', () => {
       expect(result.stopReason).toContain('locked');
     });
 
-    test('passes when file is locked by current instance', () => {
+    it('passes when file is locked by current instance', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'current-session-id',
@@ -146,7 +146,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('passes when lock has expired', () => {
+    it('passes when lock has expired', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'other-session-id',
@@ -162,7 +162,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('passes when different file is locked', () => {
+    it('passes when different file is locked', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'other-session-id',
@@ -186,7 +186,7 @@ describe('file-lock-check', () => {
       mockExistsSync.mockReturnValue(true);
     });
 
-    test('blocks when target file has active lock among many', () => {
+    it('blocks when target file has active lock among many', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'session-1',
@@ -214,7 +214,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('passes when all locks are for different files', () => {
+    it('passes when all locks are for different files', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'session-1',
@@ -243,7 +243,7 @@ describe('file-lock-check', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([]));
     });
 
-    test('skips lock check for coordination directory itself', () => {
+    it('skips lock check for coordination directory itself', () => {
       const input = createWriteInput('/test/project/.claude/coordination/locks.json');
       const result = fileLockCheck(input);
 
@@ -251,7 +251,7 @@ describe('file-lock-check', () => {
       // Should not even check the locks
     });
 
-    test('skips for other coordination files', () => {
+    it('skips for other coordination files', () => {
       const input = createWriteInput('/test/project/.claude/coordination/work-registry.json');
       const result = fileLockCheck(input);
 
@@ -266,7 +266,7 @@ describe('file-lock-check', () => {
       mockExistsSync.mockReturnValue(true);
     });
 
-    test('normalizes absolute path to relative for matching', () => {
+    it('normalizes absolute path to relative for matching', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'other-session-id',
@@ -283,7 +283,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('handles relative path in input', () => {
+    it('handles relative path in input', () => {
       mockReadFileSync.mockReturnValue(createLocksJson([
         {
           instance_id: 'other-session-id',
@@ -304,14 +304,14 @@ describe('file-lock-check', () => {
   });
 
   describe('Edge cases', () => {
-    test('handles empty file path', () => {
+    it('handles empty file path', () => {
       const input = createWriteInput('');
       const result = fileLockCheck(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('handles missing file_path in tool_input', () => {
+    it('handles missing file_path in tool_input', () => {
       const input: HookInput = {
         tool_name: 'Write',
         session_id: 'test-session-123',
@@ -323,7 +323,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles malformed locks.json', () => {
+    it('handles malformed locks.json', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('not valid json');
 
@@ -334,7 +334,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles locks.json with missing locks array', () => {
+    it('handles locks.json with missing locks array', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('{}');
 
@@ -344,7 +344,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles fs read error', () => {
+    it('handles fs read error', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockImplementation(() => {
         throw new Error('EACCES: permission denied');
@@ -357,7 +357,7 @@ describe('file-lock-check', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles missing CLAUDE_SESSION_ID', () => {
+    it('handles missing CLAUDE_SESSION_ID', () => {
       delete process.env.CLAUDE_SESSION_ID;
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(createLocksJson([
@@ -390,14 +390,14 @@ describe('file-lock-check', () => {
       ]));
     });
 
-    test('blocks Write operations', () => {
+    it('blocks Write operations', () => {
       const input = createWriteInput('/test/project/src/file.ts', 'Write');
       const result = fileLockCheck(input);
 
       expect(result.continue).toBe(false);
     });
 
-    test('blocks Edit operations', () => {
+    it('blocks Edit operations', () => {
       const input = createWriteInput('/test/project/src/file.ts', 'Edit');
       const result = fileLockCheck(input);
 
@@ -406,7 +406,7 @@ describe('file-lock-check', () => {
   });
 
   describe('Lock message content', () => {
-    test('includes lock details in denial message', () => {
+    it('includes lock details in denial message', () => {
       const acquiredAt = new Date().toISOString();
       const expiresAt = new Date(Date.now() + 60000).toISOString();
 

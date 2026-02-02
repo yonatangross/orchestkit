@@ -3,7 +3,7 @@
  * Tests detection of security anti-patterns in code
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { securityPatternValidator } from '../../pretool/Write/security-pattern-validator.js';
 import type { HookInput } from '../../types.js';
 
@@ -55,7 +55,7 @@ describe('security-pattern-validator', () => {
       { content: 'api-key = "abc123"', name: 'api-key with hyphen' },
     ];
 
-    test.each(secretPatterns)('detects hardcoded $name', ({ content }) => {
+    it.each(secretPatterns)('detects hardcoded $name', ({ content }) => {
       const input = createWriteInput('src/config.ts', content);
       const result = securityPatternValidator(input);
 
@@ -63,13 +63,13 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('hardcoded secret');
     });
 
-    test('detects secrets in various formats', () => {
+    it('detects secrets in various formats', () => {
       const input = createWriteInput('src/config.ts', 'api_key = "test123"');
       const result = securityPatternValidator(input);
       expect(result.hookSpecificOutput?.additionalContext).toContain('secret');
     });
 
-    test('does not flag environment variable references', () => {
+    it('does not flag environment variable references', () => {
       const content = `
         const apiKey = process.env.API_KEY;
         const password = os.environ.get("PASSWORD");
@@ -82,7 +82,7 @@ describe('security-pattern-validator', () => {
   });
 
   describe('SQL injection detection (HIGH severity)', () => {
-    test('detects SQL injection via string concatenation with execute', () => {
+    it('detects SQL injection via string concatenation with execute', () => {
       const content = 'execute("SELECT * FROM users WHERE id = " + user_id)';
       const input = createWriteInput('src/db.py', content);
       const result = securityPatternValidator(input);
@@ -91,7 +91,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('SQL injection');
     });
 
-    test('detects SQL injection via f-string interpolation', () => {
+    it('detects SQL injection via f-string interpolation', () => {
       const content = 'f"SELECT * FROM users WHERE name = {name}"';
       const input = createWriteInput('src/db.py', content);
       const result = securityPatternValidator(input);
@@ -100,7 +100,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('SQL injection');
     });
 
-    test('may not detect all injection patterns (depends on regex)', () => {
+    it('may not detect all injection patterns (depends on regex)', () => {
       // Simple concatenation without execute() may not be detected
       const content = 'query = "SELECT * FROM " + table_name';
       const input = createWriteInput('src/db.py', content);
@@ -110,7 +110,7 @@ describe('security-pattern-validator', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('does not flag parameterized queries', () => {
+    it('does not flag parameterized queries', () => {
       const content = `
         cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
         cursor.execute("SELECT * FROM users WHERE name = %s", (name,))
@@ -130,7 +130,7 @@ describe('security-pattern-validator', () => {
       { content: 'exec("import os; os.system(cmd)")', name: 'exec with string' },
     ];
 
-    test.each(evalPatterns)('detects dangerous $name', ({ content }) => {
+    it.each(evalPatterns)('detects dangerous $name', ({ content }) => {
       const input = createWriteInput('src/runtime.py', content);
       const result = securityPatternValidator(input);
 
@@ -138,7 +138,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('eval');
     });
 
-    test('does not flag safe JSON.parse', () => {
+    it('does not flag safe JSON.parse', () => {
       const content = `
         const result = JSON.parse(jsonString);
         const data = JSON.stringify(obj);
@@ -159,7 +159,7 @@ describe('security-pattern-validator', () => {
       { content: 'subprocess.Popen(cmd, shell=True)', name: 'Popen with shell=True' },
     ];
 
-    test.each(shellPatterns)('detects $name', ({ content }) => {
+    it.each(shellPatterns)('detects $name', ({ content }) => {
       const input = createWriteInput('src/runner.py', content);
       const result = securityPatternValidator(input);
 
@@ -167,7 +167,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('shell=True');
     });
 
-    test('does not flag shell=False', () => {
+    it('does not flag shell=False', () => {
       const content = `
         subprocess.run(["ls", "-la"], shell=False)
         subprocess.call(cmd_list)
@@ -187,7 +187,7 @@ describe('security-pattern-validator', () => {
       { content: '<div dangerouslySetInnerHTML={{__html: content}} />', name: 'React dangerouslySetInnerHTML' },
     ];
 
-    test.each(xssPatterns)('detects $name', ({ content }) => {
+    it.each(xssPatterns)('detects $name', ({ content }) => {
       const input = createWriteInput('src/component.tsx', content);
       const result = securityPatternValidator(input);
 
@@ -195,7 +195,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('XSS');
     });
 
-    test('does not flag textContent', () => {
+    it('does not flag textContent', () => {
       const content = `
         element.textContent = userInput;
         element.innerText = safeText;
@@ -208,7 +208,7 @@ describe('security-pattern-validator', () => {
   });
 
   describe('Insecure random detection (MEDIUM severity)', () => {
-    test('detects Math.random for password generation', () => {
+    it('detects Math.random for password generation', () => {
       // Pattern requires Math.random() followed by password/token/secret/key
       const content = 'const userPassword = Math.random().toString(36) + generatePassword()';
       const input = createWriteInput('src/auth.ts', content);
@@ -218,7 +218,7 @@ describe('security-pattern-validator', () => {
       // May or may not detect based on pattern matching
     });
 
-    test('does not flag crypto.randomBytes', () => {
+    it('does not flag crypto.randomBytes', () => {
       const content = `
         const tok = crypto.randomBytes(32).toString('hex');
         const uuid = crypto.randomUUID();
@@ -230,7 +230,7 @@ describe('security-pattern-validator', () => {
       expect(context).not.toContain('Insecure random');
     });
 
-    test('does not flag regular Math.random for non-security use', () => {
+    it('does not flag regular Math.random for non-security use', () => {
       const content = `
         const randomColor = Math.random() * 255;
         const shuffleIndex = Math.floor(Math.random() * array.length);
@@ -250,7 +250,7 @@ describe('security-pattern-validator', () => {
       { content: 'os.system("rm " + filename)', name: 'os.system with concatenation' },
     ];
 
-    test.each(commandInjectionPatterns)('detects $name', ({ content }) => {
+    it.each(commandInjectionPatterns)('detects $name', ({ content }) => {
       const input = createWriteInput('src/runner.py', content);
       const result = securityPatternValidator(input);
 
@@ -266,7 +266,7 @@ describe('security-pattern-validator', () => {
       { content: 'const url = "http://production.example.com"', name: 'production http url' },
     ];
 
-    test.each(insecureHttpPatterns)('detects $name', ({ content }) => {
+    it.each(insecureHttpPatterns)('detects $name', ({ content }) => {
       const input = createWriteInput('src/api.ts', content);
       const result = securityPatternValidator(input);
 
@@ -274,7 +274,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain('HTTP');
     });
 
-    test('does not flag localhost http', () => {
+    it('does not flag localhost http', () => {
       const content = `
         fetch("http://localhost:3000/api")
         axios.get("http://127.0.0.1:8080/data")
@@ -286,7 +286,7 @@ describe('security-pattern-validator', () => {
       expect(context).not.toContain('Insecure HTTP');
     });
 
-    test('does not flag https', () => {
+    it('does not flag https', () => {
       const content = `
         fetch("https://api.example.com/data")
         const url = "https://production.example.com"
@@ -300,7 +300,7 @@ describe('security-pattern-validator', () => {
   });
 
   describe('Multiple vulnerabilities in same file', () => {
-    test('reports all detected issues', () => {
+    it('reports all detected issues', () => {
       const content = `
         const apiKey = "sk-12345";
         element.innerHTML = userInput;
@@ -318,7 +318,7 @@ describe('security-pattern-validator', () => {
   });
 
   describe('Clean code (should pass without warnings)', () => {
-    test('passes clean TypeScript code', () => {
+    it('passes clean TypeScript code', () => {
       const content = `
         import { config } from './config';
 
@@ -334,7 +334,7 @@ describe('security-pattern-validator', () => {
       expect(result.hookSpecificOutput?.additionalContext).toBeUndefined();
     });
 
-    test('passes clean Python code', () => {
+    it('passes clean Python code', () => {
       const content = `
         import os
         from typing import Optional
@@ -354,21 +354,21 @@ describe('security-pattern-validator', () => {
   });
 
   describe('Edge cases', () => {
-    test('handles empty content', () => {
+    it('handles empty content', () => {
       const input = createWriteInput('src/empty.ts', '');
       const result = securityPatternValidator(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('handles empty file path', () => {
+    it('handles empty file path', () => {
       const input = createWriteInput('', 'const x = 1;');
       const result = securityPatternValidator(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('handles very large content', () => {
+    it('handles very large content', () => {
       const content = 'const x = 1;\n'.repeat(10000);
       const input = createWriteInput('src/large.ts', content);
       const result = securityPatternValidator(input);
@@ -376,7 +376,7 @@ describe('security-pattern-validator', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles binary-like content gracefully', () => {
+    it('handles binary-like content gracefully', () => {
       const content = '\x00\x01\x02\x03\xff\xfe\xfd';
       const input = createWriteInput('src/binary.bin', content);
       const result = securityPatternValidator(input);
@@ -384,7 +384,7 @@ describe('security-pattern-validator', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles content with only comments', () => {
+    it('handles content with only comments', () => {
       const content = `
         // This is a comment about api_key
         /* password = "example" in documentation */
@@ -399,19 +399,19 @@ describe('security-pattern-validator', () => {
   });
 
   describe('File type handling', () => {
-    test('processes TypeScript files', () => {
+    it('processes TypeScript files', () => {
       const input = createWriteInput('src/file.ts', 'api_key = "secret"');
       const result = securityPatternValidator(input);
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
     });
 
-    test('processes JavaScript files', () => {
+    it('processes JavaScript files', () => {
       const input = createWriteInput('src/file.js', 'api_key = "secret"');
       const result = securityPatternValidator(input);
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
     });
 
-    test('processes Python files', () => {
+    it('processes Python files', () => {
       const input = createWriteInput('src/file.py', 'api_key = "secret"');
       const result = securityPatternValidator(input);
       expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
