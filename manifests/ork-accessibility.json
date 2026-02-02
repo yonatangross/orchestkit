@@ -1,6 +1,6 @@
 {
   "name": "ork-accessibility",
-  "version": "5.6.2",
+  "version": "5.7.0",
   "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management",
   "dependencies": [
     "ork-core"
