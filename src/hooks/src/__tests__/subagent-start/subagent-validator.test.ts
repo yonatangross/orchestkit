@@ -15,6 +15,11 @@ import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { HookInput } from '../../types.js';
 
 // ---------------------------------------------------------------------------
+// Cross-platform path helper (normalize Windows backslashes to Unix forward slashes)
+// ---------------------------------------------------------------------------
+const normalizePath = (p: string): string => p.replace(/\\/g, '/');
+
+// ---------------------------------------------------------------------------
 // Mock node:fs at module level before any hook imports
 // ---------------------------------------------------------------------------
 vi.mock('node:fs', () => ({
@@ -97,8 +102,10 @@ function setupMocks(config: {
   agentMdContent?: string | false;
   skillsExist?: string[];
 }): void {
-  (existsSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
-    if (typeof path !== 'string') return false;
+  (existsSync as ReturnType<typeof vi.fn>).mockImplementation((rawPath: string) => {
+    if (typeof rawPath !== 'string') return false;
+    // Normalize path for cross-platform compatibility (Windows uses backslashes)
+    const path = normalizePath(rawPath);
 
     // plugin.json
     if (path.includes('plugin.json')) {
@@ -122,8 +129,10 @@ function setupMocks(config: {
     return false;
   });
 
-  (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((path: string) => {
-    if (typeof path !== 'string') return '{}';
+  (readFileSync as ReturnType<typeof vi.fn>).mockImplementation((rawPath: string) => {
+    if (typeof rawPath !== 'string') return '{}';
+    // Normalize path for cross-platform compatibility
+    const path = normalizePath(rawPath);
     if (path.includes('plugin.json') && config.pluginJson) {
       return JSON.stringify(config.pluginJson);
     }
