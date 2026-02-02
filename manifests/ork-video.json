@@ -1,6 +1,6 @@
 {
   "name": "ork-video",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing",
   "dependencies": [
     "ork-core"

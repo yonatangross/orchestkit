@@ -1,6 +1,6 @@
 {
   "name": "ork-frontend",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite",
   "dependencies": [
     "ork-core"
