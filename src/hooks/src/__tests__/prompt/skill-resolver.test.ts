@@ -1,6 +1,10 @@
 /**
  * Skill Resolver Tests
  * Tests the unified skill-resolver hook that replaces skill-auto-suggest + skill-injector
+ *
+ * Issue #278: Three-tier UX with dual output channels
+ * - systemMessage: Brief user notification (80-89% confidence)
+ * - additionalContext: Full context for Claude (all tiers)
  */
 
 import { describe, test, expect, beforeEach, vi } from 'vitest';
@@ -128,15 +132,37 @@ describe('prompt/skill-resolver', () => {
     });
   });
 
-  describe('tiered output', () => {
-    test('includes skill hints for medium-confidence matches', () => {
+  describe('tiered output (Issue #278)', () => {
+    test('includes skill content for matches', () => {
       const result = skillResolver(createPromptInput('Help me with some component state management'));
       if (result.hookSpecificOutput?.additionalContext) {
         const ctx = result.hookSpecificOutput.additionalContext;
-        // Should contain hint or summary formatting
-        const hasHintOrSummary = ctx.includes('Skill Hints') || ctx.includes('Relevant Skills') || ctx.includes('Skill Knowledge');
-        expect(hasHintOrSummary).toBe(true);
+        // Should contain new friendly formatting (Issue #278)
+        const hasContent =
+          ctx.includes('Relevant Patterns') ||
+          ctx.includes('Also Available') ||
+          ctx.includes('Related skills');
+        expect(hasContent).toBe(true);
       }
+    });
+
+    test('does not include raw percentages in additionalContext', () => {
+      const result = skillResolver(createPromptInput('Design a REST API endpoint'));
+      if (result.hookSpecificOutput?.additionalContext) {
+        const ctx = result.hookSpecificOutput.additionalContext;
+        // Issue #278: No raw percentages like "(85% match)"
+        expect(ctx).not.toMatch(/\(\d+% match\)/);
+      }
+    });
+
+    test('may include systemMessage for notify-tier matches', () => {
+      const result = skillResolver(createPromptInput('Help me with fastapi uvicorn middleware'));
+      // systemMessage is optional, depends on confidence tier
+      if (result.systemMessage) {
+        // Issue #278: User notification should be friendly
+        expect(result.systemMessage).toMatch(/^[💡🔧📋]/);
+      }
+      expect(result.continue).toBe(true);
     });
   });
 
