@@ -325,34 +325,43 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 6: Sync marketplace.json versions from manifests
+# Phase 6: Sync marketplace.json versions and dependencies from manifests
 # ============================================================================
-echo -e "${BLUE}[6/7] Syncing marketplace.json versions...${NC}"
+echo -e "${BLUE}[6/7] Syncing marketplace.json...${NC}"
 
 MARKETPLACE_FILE="$PROJECT_ROOT/.claude-plugin/marketplace.json"
 if [[ -f "$MARKETPLACE_FILE" ]]; then
-  SYNC_COUNT=0
+  # Use the top-level project version for ALL plugin entries
+  PROJECT_VERSION=$(jq -r '.version' "$MARKETPLACE_FILE")
+  VER_SYNC_COUNT=0
+  DEP_SYNC_COUNT=0
+
   for manifest in "$MANIFESTS_DIR"/*.json; do
     PLUGIN_NAME=$(jq -r '.name' "$manifest")
-    MANIFEST_VERSION=$(jq -r '.version' "$manifest")
+    MANIFEST_DEPS=$(jq -c '.dependencies // []' "$manifest")
 
-    # Update the version for this plugin in marketplace.json
+    # 1) Set version to project version
     CURRENT_VERSION=$(jq -r --arg name "$PLUGIN_NAME" '.plugins[] | select(.name == $name) | .version' "$MARKETPLACE_FILE" 2>/dev/null || echo "")
-
-    if [[ -n "$CURRENT_VERSION" && "$CURRENT_VERSION" != "$MANIFEST_VERSION" ]]; then
-      # Use jq to update the version in-place
-      jq --arg name "$PLUGIN_NAME" --arg ver "$MANIFEST_VERSION" \
+    if [[ -n "$CURRENT_VERSION" && "$CURRENT_VERSION" != "$PROJECT_VERSION" ]]; then
+      jq --arg name "$PLUGIN_NAME" --arg ver "$PROJECT_VERSION" \
         '(.plugins[] | select(.name == $name)).version = $ver' \
         "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
-      SYNC_COUNT=$((SYNC_COUNT + 1))
+      VER_SYNC_COUNT=$((VER_SYNC_COUNT + 1))
+    fi
+
+    # 2) Propagate dependencies from manifest
+    HAS_DEPS=$(jq --arg name "$PLUGIN_NAME" '[.plugins[] | select(.name == $name)] | .[0] | has("deps")' "$MARKETPLACE_FILE" 2>/dev/null || echo "false")
+    CURRENT_DEPS=$(jq -c --arg name "$PLUGIN_NAME" '(.plugins[] | select(.name == $name)).deps // []' "$MARKETPLACE_FILE" 2>/dev/null || echo "[]")
+    if [[ "$HAS_DEPS" != "true" || "$CURRENT_DEPS" != "$MANIFEST_DEPS" ]]; then
+      jq --arg name "$PLUGIN_NAME" --argjson deps "$MANIFEST_DEPS" \
+        '(.plugins[] | select(.name == $name)).deps = $deps' \
+        "$MARKETPLACE_FILE" > "${MARKETPLACE_FILE}.tmp" && mv "${MARKETPLACE_FILE}.tmp" "$MARKETPLACE_FILE"
+      DEP_SYNC_COUNT=$((DEP_SYNC_COUNT + 1))
     fi
   done
 
-  if [[ $SYNC_COUNT -gt 0 ]]; then
-    echo -e "${GREEN}  Synced $SYNC_COUNT plugin versions in marketplace.json${NC}"
-  else
-    echo -e "${GREEN}  All marketplace.json versions up to date${NC}"
-  fi
+  echo -e "${GREEN}  Versions: synced $VER_SYNC_COUNT to $PROJECT_VERSION${NC}"
+  echo -e "${GREEN}  Dependencies: synced $DEP_SYNC_COUNT from manifests${NC}"
 else
   echo -e "${YELLOW}  No marketplace.json found, skipping${NC}"
 fi
