@@ -17,7 +17,8 @@ set -uo pipefail
 # Find all script-enhanced skills (scripts/*.md files)
 find_all_script_files() {
     local skills_dir="${1:-skills}"
-    find "$skills_dir" -path "*/scripts/*.md" -type f | sort
+    # Exclude README files - they're documentation, not scripts
+    find "$skills_dir" -path "*/scripts/*.md" -type f ! -iname "README*.md" | sort
 }
 
 # Count script-enhanced skills
