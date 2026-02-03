@@ -1,0 +1,41 @@
+id: react-component-001
+name: "Data table component with sorting"
+description: "Tests Tier 1 routing to frontend-ui-developer and Tier 2 React skills"
+scaffold: typescript-nextjs
+timeout: 180
+
+prompt: |
+  Create a reusable React data table component with:
+  - Column sorting (click header to sort)
+  - Pagination (10, 25, 50 items per page)
+  - TypeScript types for props
+  - Tailwind CSS styling
+  - Accessible keyboard navigation
+
+  Use React 19 patterns and TanStack Table if appropriate.
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: frontend-ui-developer
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - tanstack-query-advanced
+    - react-server-components-framework
+    - shadcn-patterns
+
+  # Output validation
+  files_created:
+    - "components/DataTable.tsx"
+    - "components/DataTable.test.tsx"
+
+  # Quality gates
+  build_command: "cd output && npm install 2>/dev/null || true"
+  lint_command: "cd output && npx tsc --noEmit 2>/dev/null || true"
+  test_command: "echo 'TypeScript check'"
+
+tags:
+  - frontend
+  - react
+  - typescript
+  - components

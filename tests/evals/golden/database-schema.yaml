@@ -1,0 +1,38 @@
+id: database-schema-001
+name: "E-commerce database schema"
+description: "Tests Tier 1 routing to database-engineer and Tier 2 schema design skills"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  Design a PostgreSQL database schema for an e-commerce platform with:
+  - Users table with authentication fields
+  - Products table with categories
+  - Orders table with order items
+  - Proper foreign keys and indexes
+
+  Create the SQL migration file with CREATE TABLE statements.
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: database-engineer
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - database-schema-designer
+    - zero-downtime-migration
+
+  # Output validation
+  files_created:
+    - "migrations/001_initial_schema.sql"
+
+  # Quality gates (just syntax check)
+  build_command: "echo 'SQL file created'"
+  lint_command: "test -f output/migrations/001_initial_schema.sql"
+  test_command: "grep -i 'CREATE TABLE' output/migrations/001_initial_schema.sql"
+
+tags:
+  - database
+  - postgresql
+  - schema
+  - migrations

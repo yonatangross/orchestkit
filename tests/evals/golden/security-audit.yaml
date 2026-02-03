@@ -1,0 +1,40 @@
+id: security-audit-001
+name: "Security audit for authentication code"
+description: "Tests Tier 1 routing to security-auditor and Tier 2 security skills"
+scaffold: python-fastapi
+timeout: 120
+
+prompt: |
+  Perform a security audit on this authentication code and provide:
+  - List of vulnerabilities found (OWASP categories)
+  - Severity rating for each (Critical/High/Medium/Low)
+  - Remediation steps for each issue
+  - Code examples showing the fix
+
+  Focus on: SQL injection, XSS, CSRF, insecure session management,
+  weak password policies, and sensitive data exposure.
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: security-auditor
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - owasp-top-10
+    - auth-patterns
+    - llm-safety-patterns
+
+  # Output validation
+  files_created:
+    - "SECURITY_AUDIT.md"
+
+  # Quality gates (just check output exists)
+  build_command: "echo 'Audit report generated'"
+  lint_command: "test -f output/SECURITY_AUDIT.md"
+  test_command: "grep -i 'vulnerability\\|OWASP\\|remediation' output/SECURITY_AUDIT.md"
+
+tags:
+  - security
+  - audit
+  - owasp
+  - authentication

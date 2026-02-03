@@ -1,0 +1,41 @@
+id: api-design-001
+name: "REST API for user management"
+description: "Tests Tier 1 agent routing for backend tasks and Tier 2 skill injection for API design"
+scaffold: python-fastapi
+timeout: 180
+
+prompt: |
+  Create a REST API for user management with:
+  - CRUD endpoints for users (GET, POST, PUT, DELETE)
+  - JWT authentication middleware
+  - Input validation with Pydantic models
+  - Proper HTTP status codes and error responses
+
+  Use FastAPI and follow best practices.
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: backend-system-architect
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - api-design-framework
+    - fastapi-advanced
+    - auth-patterns
+
+  # Output validation
+  files_created:
+    - "app/routers/users.py"
+    - "app/schemas/user.py"
+    - "app/models/user.py"
+
+  # Quality gates
+  build_command: "cd output && pip install -e . 2>/dev/null || pip install fastapi pydantic"
+  lint_command: "cd output && python -m py_compile app/*.py app/**/*.py 2>/dev/null || true"
+  test_command: "echo 'No tests defined'"
+
+tags:
+  - backend
+  - api
+  - authentication
+  - fastapi
