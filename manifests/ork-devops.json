@@ -1,6 +1,6 @@
 {
   "name": "ork-devops",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing",
   "dependencies": [
     "ork-core"

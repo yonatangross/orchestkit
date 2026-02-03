@@ -6,7 +6,7 @@
  * and environment files are protected from writes/edits.
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { fileGuard } from '../../pretool/write-edit/file-guard.js';
 
@@ -63,7 +63,7 @@ function createHookInput(overrides: Partial<HookInput> = {}): HookInput {
 
 describe('file-guard', () => {
   describe('environment files protection', () => {
-    test('blocks .env file', () => {
+    it('blocks .env file', () => {
       // Arrange
       const input = createWriteInput('/project/.env', 'API_KEY=secret');
 
@@ -77,7 +77,7 @@ describe('file-guard', () => {
       expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
     });
 
-    test('blocks .env.local file', () => {
+    it('blocks .env.local file', () => {
       // Arrange
       const input = createWriteInput('/project/.env.local', 'LOCAL_SECRET=value');
 
@@ -89,7 +89,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('protected file');
     });
 
-    test('blocks .env.production file', () => {
+    it('blocks .env.production file', () => {
       // Arrange
       const input = createWriteInput('/project/.env.production', 'PROD_SECRET=value');
 
@@ -101,7 +101,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('protected file');
     });
 
-    test('blocks .env in nested directory', () => {
+    it('blocks .env in nested directory', () => {
       // Arrange
       const input = createWriteInput('/project/backend/config/.env', 'SECRET=value');
 
@@ -112,7 +112,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('allows .env.example file', () => {
+    it('allows .env.example file', () => {
       // Arrange
       const input = createWriteInput('/project/.env.example', 'API_KEY=your_key_here');
 
@@ -123,7 +123,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows .env.sample file', () => {
+    it('allows .env.sample file', () => {
       // Arrange
       const input = createWriteInput('/project/.env.sample', 'DATABASE_URL=...');
 
@@ -136,7 +136,7 @@ describe('file-guard', () => {
   });
 
   describe('credential files protection', () => {
-    test('blocks credentials.json', () => {
+    it('blocks credentials.json', () => {
       // Arrange
       const input = createWriteInput('/project/credentials.json', '{"key":"secret"}');
 
@@ -148,7 +148,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('credentials.json');
     });
 
-    test('blocks secrets.json', () => {
+    it('blocks secrets.json', () => {
       // Arrange
       const input = createWriteInput('/config/secrets.json', '{"password":"secret"}');
 
@@ -160,7 +160,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('secrets.json');
     });
 
-    test('blocks credentials.json in nested path', () => {
+    it('blocks credentials.json in nested path', () => {
       // Arrange
       const input = createWriteInput('/project/config/gcp/credentials.json', '{}');
 
@@ -173,7 +173,7 @@ describe('file-guard', () => {
   });
 
   describe('private key protection', () => {
-    test('blocks .pem files', () => {
+    it('blocks .pem files', () => {
       // Arrange
       const input = createWriteInput('/keys/private.pem', '-----BEGIN RSA PRIVATE KEY-----');
 
@@ -185,7 +185,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('.pem');
     });
 
-    test('blocks private.key', () => {
+    it('blocks private.key', () => {
       // Arrange
       const input = createWriteInput('/ssl/private.key', 'PRIVATE KEY');
 
@@ -197,7 +197,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('private.key');
     });
 
-    test('blocks id_rsa', () => {
+    it('blocks id_rsa', () => {
       // Arrange
       const input = createWriteInput('/home/user/.ssh/id_rsa', 'SSH PRIVATE KEY');
 
@@ -209,7 +209,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('id_rsa');
     });
 
-    test('blocks id_ed25519', () => {
+    it('blocks id_ed25519', () => {
       // Arrange
       const input = createWriteInput('/home/user/.ssh/id_ed25519', 'ED25519 PRIVATE KEY');
 
@@ -221,7 +221,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('id_ed25519');
     });
 
-    test('blocks .pem in any directory', () => {
+    it('blocks .pem in any directory', () => {
       // Arrange
       const input = createWriteInput('/var/certs/server.pem', 'CERTIFICATE');
 
@@ -234,7 +234,7 @@ describe('file-guard', () => {
   });
 
   describe('normal files are allowed', () => {
-    test('allows TypeScript files', () => {
+    it('allows TypeScript files', () => {
       // Arrange
       const input = createWriteInput('/src/app.ts', 'export const app = {}');
 
@@ -246,7 +246,7 @@ describe('file-guard', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('allows Python files', () => {
+    it('allows Python files', () => {
       // Arrange
       const input = createWriteInput('/app/main.py', 'def main(): pass');
 
@@ -257,7 +257,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows JavaScript files', () => {
+    it('allows JavaScript files', () => {
       // Arrange
       const input = createWriteInput('/src/index.js', 'console.log("hello")');
 
@@ -268,7 +268,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows markdown files', () => {
+    it('allows markdown files', () => {
       // Arrange
       const input = createWriteInput('/README.md', '# Project');
 
@@ -279,7 +279,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows JSON files that are not credentials', () => {
+    it('allows JSON files that are not credentials', () => {
       // Arrange
       const input = createWriteInput('/config/settings.json', '{"debug":true}');
 
@@ -290,7 +290,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows HTML files', () => {
+    it('allows HTML files', () => {
       // Arrange
       const input = createWriteInput('/public/index.html', '<html></html>');
 
@@ -301,7 +301,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows CSS files', () => {
+    it('allows CSS files', () => {
       // Arrange
       const input = createWriteInput('/src/styles.css', 'body { margin: 0; }');
 
@@ -312,7 +312,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows YAML files', () => {
+    it('allows YAML files', () => {
       // Arrange
       const input = createWriteInput('/docker-compose.yml', 'version: "3"');
 
@@ -325,7 +325,7 @@ describe('file-guard', () => {
   });
 
   describe('config files are allowed (with warning)', () => {
-    test('allows package.json', () => {
+    it('allows package.json', () => {
       // Arrange
       const input = createWriteInput('/package.json', '{"name":"app"}');
 
@@ -336,7 +336,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows pyproject.toml', () => {
+    it('allows pyproject.toml', () => {
       // Arrange
       const input = createWriteInput('/pyproject.toml', '[tool.poetry]');
 
@@ -347,7 +347,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows tsconfig.json', () => {
+    it('allows tsconfig.json', () => {
       // Arrange
       const input = createWriteInput('/tsconfig.json', '{"compilerOptions":{}}');
 
@@ -360,7 +360,7 @@ describe('file-guard', () => {
   });
 
   describe('Edit tool also protected', () => {
-    test('blocks editing .env file', () => {
+    it('blocks editing .env file', () => {
       // Arrange
       const input = createEditInput('/project/.env');
 
@@ -372,7 +372,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('protected file');
     });
 
-    test('blocks editing credentials.json', () => {
+    it('blocks editing credentials.json', () => {
       // Arrange
       const input = createEditInput('/config/credentials.json');
 
@@ -383,7 +383,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('blocks editing private keys', () => {
+    it('blocks editing private keys', () => {
       // Arrange
       const input = createEditInput('/keys/server.pem');
 
@@ -396,7 +396,7 @@ describe('file-guard', () => {
   });
 
   describe('edge cases and boundary conditions', () => {
-    test('handles empty file path', () => {
+    it('handles empty file path', () => {
       // Arrange
       const input = createHookInput({
         tool_name: 'Write',
@@ -411,7 +411,7 @@ describe('file-guard', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('handles undefined file path', () => {
+    it('handles undefined file path', () => {
       // Arrange
       const input = createHookInput({
         tool_name: 'Write',
@@ -425,7 +425,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles file path with only filename (no directory)', () => {
+    it('handles file path with only filename (no directory)', () => {
       // Arrange
       const input = createWriteInput('.env', 'SECRET=value');
 
@@ -436,7 +436,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('handles absolute paths', () => {
+    it('handles absolute paths', () => {
       // Arrange
       const input = createWriteInput('/absolute/path/to/.env', 'SECRET=value');
 
@@ -447,7 +447,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('handles relative paths', () => {
+    it('handles relative paths', () => {
       // Arrange
       const input = createWriteInput('./relative/path/.env', 'SECRET=value');
 
@@ -458,7 +458,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('handles paths with special characters', () => {
+    it('handles paths with special characters', () => {
       // Arrange
       const input = createWriteInput('/path/with spaces/and-dashes/.env', 'SECRET');
 
@@ -474,7 +474,7 @@ describe('file-guard', () => {
     // Note: These tests verify the pattern exists - actual symlink following
     // requires filesystem operations which are handled by the hook itself
 
-    test('blocks file ending with protected pattern regardless of path complexity', () => {
+    it('blocks file ending with protected pattern regardless of path complexity', () => {
       // Arrange - attacker might try weird paths
       const input = createWriteInput('/some/../project/./config/.env', 'SECRET');
 
@@ -485,7 +485,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('error message includes resolved path information', () => {
+    it('error message includes resolved path information', () => {
       // Arrange
       const input = createWriteInput('/project/.env', 'SECRET');
 
@@ -496,7 +496,7 @@ describe('file-guard', () => {
       expect(result.stopReason).toContain('Resolved path');
     });
 
-    test('error message includes matched pattern', () => {
+    it('error message includes matched pattern', () => {
       // Arrange
       const input = createWriteInput('/project/.env', 'SECRET');
 
@@ -509,7 +509,7 @@ describe('file-guard', () => {
   });
 
   describe('similar but safe filenames', () => {
-    test('allows environment.ts (not .env)', () => {
+    it('allows environment.ts (not .env)', () => {
       // Arrange
       const input = createWriteInput('/src/environment.ts', 'export const env = {}');
 
@@ -520,7 +520,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows config.json (not credentials.json)', () => {
+    it('allows config.json (not credentials.json)', () => {
       // Arrange
       const input = createWriteInput('/src/config.json', '{}');
 
@@ -531,7 +531,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('blocks public.pem (all .pem files blocked for safety)', () => {
+    it('blocks public.pem (all .pem files blocked for safety)', () => {
       // Arrange - .pem is blocked regardless of public/private
       const input = createWriteInput('/keys/public.pem', 'PUBLIC KEY');
 
@@ -542,7 +542,7 @@ describe('file-guard', () => {
       expect(result.continue).toBe(false);
     });
 
-    test('allows id_rsa.pub (public key)', () => {
+    it('allows id_rsa.pub (public key)', () => {
       // Arrange
       const input = createWriteInput('/home/user/.ssh/id_rsa.pub', 'ssh-rsa AAAA...');
 
@@ -555,7 +555,7 @@ describe('file-guard', () => {
   });
 
   describe('output format compliance (CC 2.1.7)', () => {
-    test('blocked file returns proper deny structure', () => {
+    it('blocked file returns proper deny structure', () => {
       // Arrange
       const input = createWriteInput('/project/.env', 'SECRET');
 
@@ -574,7 +574,7 @@ describe('file-guard', () => {
       });
     });
 
-    test('allowed file returns proper silent success structure', () => {
+    it('allowed file returns proper silent success structure', () => {
       // Arrange
       const input = createWriteInput('/src/app.ts', 'content');
 
@@ -588,7 +588,7 @@ describe('file-guard', () => {
       });
     });
 
-    test('error message provides helpful guidance', () => {
+    it('error message provides helpful guidance', () => {
       // Arrange
       const input = createWriteInput('/project/.env', 'SECRET');
 
@@ -605,7 +605,7 @@ describe('file-guard', () => {
   });
 
   describe('comprehensive protected patterns coverage', () => {
-    test('blocks all known protected patterns', () => {
+    it('blocks all known protected patterns', () => {
       // Arrange - test each protected pattern
       const protectedFiles = [
         '/path/.env',

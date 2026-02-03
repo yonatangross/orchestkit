@@ -1,6 +1,6 @@
 {
   "name": "ork-core",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Context engineering, architecture decisions, project structure. Required for all other OrchestKit plugins.",
   "skills": [
     "architecture-decision-record",

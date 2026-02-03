@@ -8,7 +8,7 @@
 
 /// <reference types="node" />
 
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { fileLockRelease } from '../../posttool/write-edit/file-lock-release.js';
 import type { HookInput } from '../../types.js';
 
@@ -90,7 +90,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Basic functionality', () => {
-    test('releases lock from locks.json (not SQLite)', () => {
+    it('releases lock from locks.json (not SQLite)', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
@@ -117,7 +117,7 @@ describe('file-lock-release', () => {
       expect(writtenLocks.locks).toHaveLength(0);
     });
 
-    test('only releases locks owned by current instance', () => {
+    it('only releases locks owned by current instance', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
@@ -145,7 +145,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Tool guard', () => {
-    test('only runs for Write tool', () => {
+    it('only runs for Write tool', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(createLocksJson([]));
 
@@ -160,7 +160,7 @@ describe('file-lock-release', () => {
       expect(mockWriteFileSync).not.toHaveBeenCalled();
     });
 
-    test('only runs for Edit tool', () => {
+    it('only runs for Edit tool', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
@@ -188,7 +188,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Coordination disabled', () => {
-    test('skips when coordination directory does not exist', () => {
+    it('skips when coordination directory does not exist', () => {
       mockExistsSync.mockImplementation((path: string) => {
         if (path.includes('coordination')) return false;
         return true;
@@ -203,7 +203,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Path normalization', () => {
-    test('normalizes absolute path to relative for matching', () => {
+    it('normalizes absolute path to relative for matching', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
@@ -233,7 +233,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Expired lock cleanup', () => {
-    test('cleans expired locks when releasing', () => {
+    it('cleans expired locks when releasing', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
       const pastTime = new Date(Date.now() - 60000).toISOString();
 
@@ -271,7 +271,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Coordination paths', () => {
-    test('skips release for coordination directory files', () => {
+    it('skips release for coordination directory files', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue(createLocksJson([]));
 
@@ -284,7 +284,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Error handling', () => {
-    test('handles malformed locks.json gracefully', () => {
+    it('handles malformed locks.json gracefully', () => {
       mockExistsSync.mockReturnValue(true);
       mockReadFileSync.mockReturnValue('not valid json');
 
@@ -295,7 +295,7 @@ describe('file-lock-release', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles missing locks.json', () => {
+    it('handles missing locks.json', () => {
       mockExistsSync.mockImplementation((path: string) => {
         if (path.includes('coordination') && !path.includes('locks.json')) return true;
         if (path.includes('locks.json')) return false;
@@ -308,7 +308,7 @@ describe('file-lock-release', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles empty file_path', () => {
+    it('handles empty file_path', () => {
       const input = createPostToolInput('');
       const result = fileLockRelease(input);
 
@@ -318,7 +318,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Instance ID fallback', () => {
-    test('uses smart session ID when CLAUDE_SESSION_ID is missing', () => {
+    it('uses smart session ID when CLAUDE_SESSION_ID is missing', () => {
       delete process.env.CLAUDE_SESSION_ID;
 
       const futureTime = new Date(Date.now() + 60000).toISOString();
@@ -351,7 +351,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Multiple locks scenario', () => {
-    test('releases only matching lock, keeps others', () => {
+    it('releases only matching lock, keeps others', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
@@ -400,7 +400,7 @@ describe('file-lock-release', () => {
   });
 
   describe('Critical fix verification', () => {
-    test('CRITICAL: does NOT use SQLite for lock release', () => {
+    it('CRITICAL: does NOT use SQLite for lock release', () => {
       // This test documents the fix for the bug where locks were acquired
       // in locks.json but released from SQLite, causing orphaned locks.
 
@@ -432,7 +432,7 @@ describe('file-lock-release', () => {
       expect(writeCall[0]).toContain('locks.json');
     });
 
-    test('CRITICAL: lock is actually removed after write completes', () => {
+    it('CRITICAL: lock is actually removed after write completes', () => {
       const futureTime = new Date(Date.now() + 60000).toISOString();
 
       mockExistsSync.mockReturnValue(true);
