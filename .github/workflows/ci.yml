@@ -10,6 +10,11 @@ on:
     # Nightly at 2 AM UTC
     - cron: '0 2 * * *'
 
+# Cancel in-progress runs on new commits to same branch
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
@@ -21,8 +26,9 @@ jobs:
   build-plugins:
     name: Build Plugins
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -41,7 +47,7 @@ jobs:
         run: bash tests/indexes/test-index-generation.sh
 
       - name: Upload built plugins
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -54,11 +60,12 @@ jobs:
     name: Static Analysis
     needs: build-plugins
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -73,27 +80,43 @@ jobs:
         run: bash tests/ci/lint.sh
 
   # ============================================================================
-  # STAGE 1b: Dependency Security Audit
+  # STAGE 1b: Dependency Security Audit (BLOCKING)
   # ============================================================================
   security-audit:
     name: Dependency Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
       - name: Audit root dependencies
-        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=high
 
       - name: Audit hooks dependencies
         working-directory: src/hooks
-        run: npm audit --audit-level=high || echo "::warning::hooks npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=high
+
+  # ============================================================================
+  # STAGE 1c: Secret Scanning
+  # ============================================================================
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ============================================================================
   # STAGE 2: Unit Tests (< 5m)
@@ -104,16 +127,17 @@ jobs:
     name: Unit Tests (${{ matrix.os }}, node ${{ matrix.node-version }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -184,13 +208,14 @@ jobs:
     name: TypeScript Tests (${{ matrix.os }}, node ${{ matrix.node-version }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -214,15 +239,16 @@ jobs:
     name: Security Tests (${{ matrix.os }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: true  # Stop immediately on security failure
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -255,15 +281,16 @@ jobs:
     name: Integration Tests (${{ matrix.os }})
     needs: [unit-tests, security-tests]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -296,15 +323,16 @@ jobs:
     name: Performance Tests (${{ matrix.os }})
     needs: [unit-tests, security-tests]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -329,15 +357,16 @@ jobs:
     name: Compliance Tests (${{ matrix.os }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -361,15 +390,16 @@ jobs:
     name: Mem0 Integration (${{ matrix.os }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -397,15 +427,16 @@ jobs:
     name: Agents & Skills (${{ matrix.os }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -455,15 +486,16 @@ jobs:
     name: System Tests (${{ matrix.os }})
     needs: lint
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -498,11 +530,12 @@ jobs:
     name: Hook Coverage
     needs: [unit-tests, security-tests]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: built-plugins
           path: plugins/
@@ -522,7 +555,7 @@ jobs:
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hook-coverage-report
           path: coverage-report.txt
@@ -534,8 +567,9 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     if: always()
     steps:
       - name: Check all jobs
@@ -543,6 +577,7 @@ jobs:
           echo "=== CI Summary ==="
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
+          echo "Secret Scanning: ${{ needs.secret-scanning.result }}"
           echo "Unit Tests: ${{ needs.unit-tests.result }}"
           echo "Hook TS Tests: ${{ needs.hook-typescript-tests.result }}"
           echo "Security Tests: ${{ needs.security-tests.result }}"
@@ -554,8 +589,10 @@ jobs:
           echo "System Tests: ${{ needs.system-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
-          # Security audit is warning-only, don't fail on it
+          # All security checks must pass (audit + scanning + tests)
           if [[ "${{ needs.lint.result }}" != "success" ]] || \
+             [[ "${{ needs.security-audit.result }}" != "success" ]] || \
+             [[ "${{ needs.secret-scanning.result }}" != "success" ]] || \
              [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
              [[ "${{ needs.hook-typescript-tests.result }}" != "success" ]] || \
              [[ "${{ needs.security-tests.result }}" != "success" ]] || \

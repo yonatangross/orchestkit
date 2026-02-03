@@ -19,30 +19,30 @@ jobs:
   update-and-visualize:
     name: Update Mem0 Visualization
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install dependencies
         run: |
           pip install --user mem0ai plotly networkx matplotlib kaleido pyyaml
 
       - name: Check Mem0 API key
+        id: check_key
         run: |
           if [ -z "${{ secrets.MEM0_API_KEY }}" ]; then
-            echo "Warning: MEM0_API_KEY not set. Skipping Mem0 operations."
-            echo "skip_mem0=true" >> $GITHUB_ENV
+            echo "skip_mem0=true" >> $GITHUB_OUTPUT
           else
-            echo "MEM0_API_KEY is set"
-            echo "skip_mem0=false" >> $GITHUB_ENV
+            echo "skip_mem0=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Update memories metadata
-        if: env.skip_mem0 == 'false'
+        if: steps.check_key.outputs.skip_mem0 == 'false'
         timeout-minutes: 5
         continue-on-error: true
         run: |
@@ -51,7 +51,7 @@ jobs:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
 
       - name: Generate visualization
-        if: env.skip_mem0 == 'false'
+        if: steps.check_key.outputs.skip_mem0 == 'false'
         timeout-minutes: 10
         continue-on-error: true
         run: |
@@ -65,7 +65,7 @@ jobs:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
 
       - name: Generate Plotly visualization
-        if: env.skip_mem0 == 'false'
+        if: steps.check_key.outputs.skip_mem0 == 'false'
         timeout-minutes: 10
         continue-on-error: true
         run: |
@@ -79,7 +79,7 @@ jobs:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
 
       - name: Generate Mermaid diagram
-        if: env.skip_mem0 == 'false'
+        if: steps.check_key.outputs.skip_mem0 == 'false'
         timeout-minutes: 5
         continue-on-error: true
         run: |
@@ -113,7 +113,7 @@ jobs:
           cat outputs/mem0-ci-summary.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: mem0-visualization-${{ github.run_id }}
@@ -123,8 +123,8 @@ jobs:
           retention-days: 30
 
       - name: Comment on PR (if PR)
-        if: github.event_name == 'pull_request' && env.skip_mem0 == 'false'
-        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && steps.check_key.outputs.skip_mem0 == 'false'
+        uses: actions/github-script@v8
         with:
           script: |
             const fs = require('fs');
