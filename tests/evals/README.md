@@ -98,6 +98,20 @@ The GitHub Actions workflow (`.github/workflows/eval-index-effectiveness.yml`) r
 4. Run locally to verify
 5. Commit and push
 
+## Security Model
+
+The eval framework runs with specific security mitigations:
+
+| Aspect | Mitigation |
+|--------|------------|
+| Command Execution | Allowlist-based validation (no arbitrary `eval`) |
+| Binary Downloads | yq pinned to v4.40.5 with SHA256 checksum |
+| Workspace Isolation | Each test runs in `mktemp -d` with cleanup trap |
+| CI Isolation | Ephemeral GitHub Actions runners |
+| Timeouts | Configurable per-test (default 120s) |
+
+**Trust Model**: Golden YAML files are version-controlled and must be reviewed by maintainers. Commands in `build_command`, `lint_command`, `test_command` are validated against an allowlist in `run-evals.sh`.
+
 ## References
 
 - [Vercel agents.md evaluation](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)

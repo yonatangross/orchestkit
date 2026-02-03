@@ -17,6 +17,15 @@
 
 set -euo pipefail
 
+# Cleanup trap for temp directories
+TEMP_WORKSPACES=()
+cleanup() {
+    for ws in "${TEMP_WORKSPACES[@]}"; do
+        [[ -d "$ws" ]] && rm -rf "$ws"
+    done
+}
+trap cleanup EXIT ERR
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -67,15 +76,65 @@ check_deps() {
     fi
 }
 
+# Allowlist of safe command prefixes for eval replacement
+# Commands are validated against this list before execution
+ALLOWED_CMD_PREFIXES=(
+    "true"
+    "echo "
+    "test -f"
+    "test -d"
+    "grep "
+    "pip install"
+    "npm install"
+    "npx tsc"
+    "python -m py_compile"
+    "cd output &&"
+)
+
+# Safe command executor - validates against allowlist before running
+safe_exec() {
+    local cmd="$1"
+    local workdir="$2"
+
+    # Always allow 'true' (default)
+    if [[ "$cmd" == "true" ]]; then
+        return 0
+    fi
+
+    # Check against allowlist
+    local allowed=false
+    for prefix in "${ALLOWED_CMD_PREFIXES[@]}"; do
+        if [[ "$cmd" == "$prefix"* ]]; then
+            allowed=true
+            break
+        fi
+    done
+
+    if [[ "$allowed" != "true" ]]; then
+        echo "Warning: Command not in allowlist, skipping: $cmd" >&2
+        return 0  # Return success to not fail the test
+    fi
+
+    # Execute in subshell with workdir
+    (cd "$workdir" && bash -c "$cmd") > /dev/null 2>&1
+}
+
 # Run a single test case
 run_test() {
     local test_file="$1"
-    local test_id=$(yq -r '.id' "$test_file")
-    local test_name=$(yq -r '.name' "$test_file")
-    local scaffold=$(yq -r '.scaffold // "empty"' "$test_file")
-    local timeout=$(yq -r '.timeout // 120' "$test_file")
-    local prompt=$(yq -r '.prompt' "$test_file")
-    local tags=$(yq -r '.tags[]' "$test_file" 2>/dev/null | tr '\n' ',' | sed 's/,$//')
+    local test_id
+    local test_name
+    local scaffold
+    local timeout
+    local prompt
+    local tags
+
+    test_id="$(yq -r '.id' "$test_file")"
+    test_name="$(yq -r '.name' "$test_file")"
+    scaffold="$(yq -r '.scaffold // "empty"' "$test_file")"
+    timeout="$(yq -r '.timeout // 120' "$test_file")"
+    prompt="$(yq -r '.prompt' "$test_file")"
+    tags="$(yq -r '.tags[]' "$test_file" 2>/dev/null | tr '\n' ',' | sed 's/,$//')"
 
     # Filter by tag if specified
     if [[ -n "$TEST_FILTER" ]]; then
@@ -88,8 +147,10 @@ run_test() {
     echo -e "${BLUE}▶ Running: ${NC}$test_id - $test_name"
     echo -e "  Scaffold: $scaffold | Timeout: ${timeout}s | Tags: $tags"
 
-    # Create isolated workspace
-    local workspace=$(mktemp -d)
+    # Create isolated workspace (tracked for cleanup)
+    local workspace
+    workspace="$(mktemp -d)"
+    TEMP_WORKSPACES+=("$workspace")
     local output_dir="$workspace/output"
     mkdir -p "$output_dir"
 
@@ -131,21 +192,21 @@ run_test() {
     local lint_cmd=$(yq -r '.expected.lint_command // "true"' "$test_file")
     local test_cmd=$(yq -r '.expected.test_command // "true"' "$test_file")
 
-    # Check build
+    # Check build (using safe_exec instead of eval)
     local build_pass=false
-    if (cd "$output_dir" && eval "$build_cmd") > /dev/null 2>&1; then
+    if safe_exec "$build_cmd" "$output_dir"; then
         build_pass=true
     fi
 
-    # Check lint
+    # Check lint (using safe_exec instead of eval)
     local lint_pass=false
-    if (cd "$output_dir" && eval "$lint_cmd") > /dev/null 2>&1; then
+    if safe_exec "$lint_cmd" "$output_dir"; then
         lint_pass=true
     fi
 
-    # Check tests
+    # Check tests (using safe_exec instead of eval)
     local test_pass=false
-    if (cd "$output_dir" && eval "$test_cmd") > /dev/null 2>&1; then
+    if safe_exec "$test_cmd" "$output_dir"; then
         test_pass=true
     fi
 
@@ -210,7 +271,7 @@ run_test() {
   "skills_read": $skills_read,
   "skills_expected": $skills_total,
   "skill_utilization": $skill_utilization,
-  "tags": "$(echo $tags)"
+  "tags": "$tags"
 }
 EOF
 

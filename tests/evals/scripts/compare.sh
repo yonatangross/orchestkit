@@ -91,18 +91,6 @@ jq -n \
 echo -e "| Metric           | Without Index | With Index | Delta     |"
 echo -e "|------------------|---------------|------------|-----------|"
 
-# Format helper
-format_delta() {
-    local val=$1
-    if (( $(echo "$val > 0" | bc -l) )); then
-        echo -e "${GREEN}+${val}%${NC}"
-    elif (( $(echo "$val < 0" | bc -l) )); then
-        echo -e "${RED}${val}%${NC}"
-    else
-        echo -e "${YELLOW}${val}%${NC}"
-    fi
-}
-
 # Read values
 build_without=$(jq -r '.without.build | floor' "$COMPARISON_FILE")
 build_with=$(jq -r '.with.build | floor' "$COMPARISON_FILE")
