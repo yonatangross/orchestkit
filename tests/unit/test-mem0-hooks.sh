@@ -3,10 +3,10 @@
 # Part of OrchestKit Claude Plugin test suite
 #
 # Tests:
-# 1. All new hooks are executable
-# 2. Hooks output CC 2.1.7 compliant JSON
-# 3. Hooks handle missing mem0 gracefully
-# 4. Hooks create expected config files
+# 1. All mem0 TypeScript hooks exist (source files)
+# 2. Compiled bundles exist in dist/
+# 3. Hooks output CC 2.1.7 compliant JSON via run-hook.mjs
+# 4. Hooks handle missing MEM0_API_KEY gracefully
 
 set -uo pipefail
 
@@ -16,9 +16,12 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 # Export for hooks
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT"
+export CLAUDE_SESSION_ID="test-session-$$"
 
-# Hooks directory
-HOOKS_DIR="$PROJECT_ROOT/src/hooks"
+# Hooks directory - TypeScript sources are in src/hooks/src/
+HOOKS_SRC_DIR="$PROJECT_ROOT/src/hooks/src"
+HOOKS_BIN_DIR="$PROJECT_ROOT/src/hooks/bin"
+HOOKS_DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
 # Test counters
 TESTS_RUN=0
@@ -68,50 +71,22 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # =============================================================================
-# Test Group 1: Hook Structure
+# Test Group 1: Hook Source Files Exist (TypeScript)
 # =============================================================================
 
-echo -e "${CYAN}Test Group 1: Hook Structure${NC}"
+echo -e "${CYAN}Test Group 1: TypeScript Hook Sources${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
-test_lifecycle_hooks_exist() {
-    test_start "lifecycle hooks exist"
-    local hooks=(
-        "lifecycle/mem0-webhook-setup.sh"
-        "lifecycle/mem0-analytics-tracker.sh"
-    )
-    local missing=()
-    for hook in "${hooks[@]}"; do
-        if [[ ! -f "$HOOKS_DIR/$hook" ]]; then
-            missing+=("$hook")
-        fi
-    done
-    if [[ ${#missing[@]} -eq 0 ]]; then
-        test_pass
-    else
-        test_fail "Missing hooks: ${missing[*]}"
-    fi
-}
-
-test_posttool_hooks_exist() {
-    test_start "posttool hooks exist"
-    if [[ -f "$HOOKS_DIR/posttool/mem0-webhook-handler.sh" ]]; then
-        test_pass
-    else
-        test_fail "mem0-webhook-handler.sh not found"
-    fi
-}
-
 test_setup_hooks_exist() {
-    test_start "setup hooks exist"
+    test_start "setup mem0 hooks exist (TypeScript)"
     local hooks=(
-        "setup/mem0-backup-setup.sh"
-        "setup/mem0-cleanup.sh"
-        "setup/mem0-analytics-dashboard.sh"
+        "setup/mem0-backup-setup.ts"
+        "setup/mem0-cleanup.ts"
+        "setup/mem0-analytics-dashboard.ts"
     )
     local missing=()
     for hook in "${hooks[@]}"; do
-        if [[ ! -f "$HOOKS_DIR/$hook" ]]; then
+        if [[ ! -f "$HOOKS_SRC_DIR/$hook" ]]; then
             missing+=("$hook")
         fi
     done
@@ -122,66 +97,117 @@ test_setup_hooks_exist() {
     fi
 }
 
-test_hooks_are_executable() {
-    test_start "all hooks are executable"
-    local non_executable=()
-    local hooks=(
-        "lifecycle/mem0-webhook-setup.sh"
-        "lifecycle/mem0-analytics-tracker.sh"
-        "posttool/mem0-webhook-handler.sh"
-        "setup/mem0-backup-setup.sh"
-        "setup/mem0-cleanup.sh"
-        "setup/mem0-analytics-dashboard.sh"
-    )
-    for hook in "${hooks[@]}"; do
-        if [[ -f "$HOOKS_DIR/$hook" ]] && [[ ! -x "$HOOKS_DIR/$hook" ]]; then
-            non_executable+=("$hook")
-        fi
-    done
-    if [[ ${#non_executable[@]} -eq 0 ]]; then
+test_subagent_hooks_exist() {
+    test_start "subagent-start mem0 hooks exist (TypeScript)"
+    if [[ -f "$HOOKS_SRC_DIR/subagent-start/mem0-memory-inject.ts" ]]; then
         test_pass
     else
-        test_fail "Non-executable hooks: ${non_executable[*]}"
+        test_fail "mem0-memory-inject.ts not found"
     fi
 }
 
-test_lifecycle_hooks_exist
-test_posttool_hooks_exist
+test_stop_hooks_exist() {
+    test_start "stop mem0 hooks exist (TypeScript)"
+    local hooks=(
+        "stop/mem0-pre-compaction-sync.ts"
+        "stop/mem0-queue-sync.ts"
+    )
+    local missing=()
+    for hook in "${hooks[@]}"; do
+        if [[ ! -f "$HOOKS_SRC_DIR/$hook" ]]; then
+            missing+=("$hook")
+        fi
+    done
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        test_pass
+    else
+        test_fail "Missing hooks: ${missing[*]}"
+    fi
+}
+
 test_setup_hooks_exist
-test_hooks_are_executable
+test_subagent_hooks_exist
+test_stop_hooks_exist
 
 echo ""
 
 # =============================================================================
-# Test Group 2: CC 2.1.7 Compliance
+# Test Group 2: Compiled Bundles Exist
 # =============================================================================
 
-echo -e "${CYAN}Test Group 2: CC 2.1.7 Compliance${NC}"
+echo -e "${CYAN}Test Group 2: Compiled Bundles${NC}"
+echo "────────────────────────────────────────────────────────────────────────────"
+
+test_compiled_bundles_exist() {
+    test_start "required bundles exist in dist/"
+    local bundles=(
+        "setup.mjs"
+        "subagent.mjs"
+        "stop.mjs"
+    )
+    local missing=()
+    for bundle in "${bundles[@]}"; do
+        if [[ ! -f "$HOOKS_DIST_DIR/$bundle" ]]; then
+            missing+=("$bundle")
+        fi
+    done
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        test_pass
+    else
+        test_fail "Missing bundles: ${missing[*]}"
+    fi
+}
+
+test_run_hook_script_exists() {
+    test_start "run-hook.mjs runner exists"
+    if [[ -f "$HOOKS_BIN_DIR/run-hook.mjs" ]]; then
+        test_pass
+    else
+        test_fail "run-hook.mjs not found"
+    fi
+}
+
+test_compiled_bundles_exist
+test_run_hook_script_exists
+
+echo ""
+
+# =============================================================================
+# Test Group 3: CC 2.1.7 Compliance via run-hook.mjs
+# =============================================================================
+
+echo -e "${CYAN}Test Group 3: CC 2.1.7 Compliance${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 test_hooks_output_json() {
     test_start "hooks output CC 2.1.7 compliant JSON"
-    # Test hooks with empty input (simulating no mem0)
+
+    # Check if run-hook.mjs exists
+    if [[ ! -f "$HOOKS_BIN_DIR/run-hook.mjs" ]]; then
+        test_fail "run-hook.mjs not found"
+        return
+    fi
+
+    # Test registered hooks via run-hook.mjs with empty input
     local failed=()
     local hooks=(
-        "lifecycle/mem0-webhook-setup.sh"
-        "lifecycle/mem0-analytics-tracker.sh"
+        "setup/mem0-cleanup"
+        "setup/mem0-analytics-dashboard"
+        "setup/mem0-backup-setup"
     )
-    
+
     # Unset MEM0_API_KEY to simulate missing mem0
-    unset MEM0_API_KEY
-    
+    unset MEM0_API_KEY 2>/dev/null || true
+
     for hook in "${hooks[@]}"; do
-        if [[ -f "$HOOKS_DIR/$hook" ]]; then
-            # Run hook with empty stdin
-            output=$(echo "" | bash "$HOOKS_DIR/$hook" 2>&1)
-            # Check if output contains valid JSON with "continue" field
-            if ! echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
-                failed+=("$hook")
-            fi
+        # Run hook with empty JSON input via run-hook.mjs
+        output=$(echo '{}' | node "$HOOKS_BIN_DIR/run-hook.mjs" "$hook" 2>&1) || true
+        # Check if output contains valid JSON with "continue" field
+        if ! echo "$output" | jq -e '.continue' >/dev/null 2>&1; then
+            failed+=("$hook")
         fi
     done
-    
+
     if [[ ${#failed[@]} -eq 0 ]]; then
         test_pass
     else
@@ -194,40 +220,80 @@ test_hooks_output_json
 echo ""
 
 # =============================================================================
-# Test Group 3: Graceful Degradation
+# Test Group 4: Graceful Degradation
 # =============================================================================
 
-echo -e "${CYAN}Test Group 3: Graceful Degradation${NC}"
+echo -e "${CYAN}Test Group 4: Graceful Degradation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 test_hooks_handle_missing_mem0() {
-    test_start "hooks handle missing mem0 gracefully"
+    test_start "hooks handle missing MEM0_API_KEY gracefully"
+
+    # Check if run-hook.mjs exists
+    if [[ ! -f "$HOOKS_BIN_DIR/run-hook.mjs" ]]; then
+        test_fail "run-hook.mjs not found"
+        return
+    fi
+
     # Unset MEM0_API_KEY to simulate missing mem0
-    unset MEM0_API_KEY
-    
+    unset MEM0_API_KEY 2>/dev/null || true
+
     local failed=()
     local hooks=(
-        "lifecycle/mem0-webhook-setup.sh"
-        "lifecycle/mem0-analytics-tracker.sh"
+        "setup/mem0-cleanup"
+        "setup/mem0-analytics-dashboard"
     )
-    
+
     for hook in "${hooks[@]}"; do
-        if [[ -f "$HOOKS_DIR/$hook" ]]; then
-            # Run hook - should exit with 0 even without mem0
-            if ! echo "" | bash "$HOOKS_DIR/$hook" >/dev/null 2>&1; then
-                failed+=("$hook")
-            fi
+        # Run hook - should exit with 0 even without mem0
+        if ! echo '{}' | node "$HOOKS_BIN_DIR/run-hook.mjs" "$hook" >/dev/null 2>&1; then
+            failed+=("$hook")
         fi
     done
-    
+
     if [[ ${#failed[@]} -eq 0 ]]; then
         test_pass
     else
-        test_fail "Hooks don't handle missing mem0 gracefully: ${failed[*]}"
+        test_fail "Hooks don't handle missing MEM0_API_KEY gracefully: ${failed[*]}"
+    fi
+}
+
+test_hooks_continue_true_without_mem0() {
+    test_start "hooks return continue:true without MEM0_API_KEY"
+
+    # Check if run-hook.mjs exists
+    if [[ ! -f "$HOOKS_BIN_DIR/run-hook.mjs" ]]; then
+        test_fail "run-hook.mjs not found"
+        return
+    fi
+
+    # Unset MEM0_API_KEY to simulate missing mem0
+    unset MEM0_API_KEY 2>/dev/null || true
+
+    local failed=()
+    local hooks=(
+        "setup/mem0-cleanup"
+        "setup/mem0-analytics-dashboard"
+    )
+
+    for hook in "${hooks[@]}"; do
+        # Run hook and check continue is true
+        output=$(echo '{}' | node "$HOOKS_BIN_DIR/run-hook.mjs" "$hook" 2>&1) || true
+        continue_val=$(echo "$output" | jq -r '.continue' 2>/dev/null)
+        if [[ "$continue_val" != "true" ]]; then
+            failed+=("$hook (continue=$continue_val)")
+        fi
+    done
+
+    if [[ ${#failed[@]} -eq 0 ]]; then
+        test_pass
+    else
+        test_fail "Hooks don't return continue:true: ${failed[*]}"
     fi
 }
 
 test_hooks_handle_missing_mem0
+test_hooks_continue_true_without_mem0
 
 echo ""
 
