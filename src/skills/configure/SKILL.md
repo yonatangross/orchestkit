@@ -174,7 +174,48 @@ Enable monorepo detection? [Y/n]: y
 
 Detects monorepo indicators and suggests `--add-dir` usage.
 
-## Step 8: Preview & Save
+## Step 8: CC 2.1.23 Settings
+
+Configure CC 2.1.23-specific features:
+
+### Spinner Verbs Customization
+
+Replace default Claude Code spinner verbs ("Thinking", "Working", etc.) with custom branding:
+
+```
+Customize spinner verbs? [Y/n]: y
+```
+
+Adds to `.claude/settings.json`:
+```json
+{
+  "spinnerVerbs": {
+    "mode": "replace",
+    "verbs": [
+      "Orchestrating",
+      "Coordinating",
+      "Synthesizing",
+      "Analyzing",
+      "Reasoning",
+      "Crafting",
+      "Architecting",
+      "Validating",
+      "Dispatching",
+      "Assembling",
+      "Engineering",
+      "Composing"
+    ]
+  }
+}
+```
+
+**Options:**
+- `mode: "replace"` - Use only your custom verbs
+- `mode: "append"` - Add your verbs to the defaults
+
+**OrchestKit-themed verbs** focus on orchestration, architecture, and engineering actions.
+
+## Step 9: Preview & Save
 
 Save to: `~/.claude/plugins/orchestkit/config.json`
 
