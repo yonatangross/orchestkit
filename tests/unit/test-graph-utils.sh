@@ -4,6 +4,12 @@
 #
 # Usage: ./test-graph-utils.sh
 
+# Skip on Windows - path handling differs
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+    echo "SKIP: Graph utils tests not supported on Windows (path differences)"
+    exit 0
+fi
+
 source "$(dirname "$0")/../fixtures/test-helpers.sh"
 
 GRAPH_UTILS_PATH="$PROJECT_ROOT/src/skills/memory/scripts/graph-utils.mjs"

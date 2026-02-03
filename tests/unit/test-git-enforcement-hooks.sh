@@ -8,6 +8,12 @@
 
 set -euo pipefail
 
+# Skip on Windows - hook execution requires Unix shell features
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+    echo "SKIP: Git enforcement hooks tests not supported on Windows"
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
