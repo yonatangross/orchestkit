@@ -1,0 +1,40 @@
+id: rag-pipeline-001
+name: "RAG pipeline implementation"
+description: "Tests Tier 1 agent routing for LLM tasks and Tier 2 skill injection for RAG patterns"
+scaffold: python-fastapi
+timeout: 180
+
+prompt: |
+  Implement a RAG (Retrieval-Augmented Generation) pipeline with:
+  - Document loading and chunking
+  - Embedding generation with OpenAI
+  - Vector storage with pgvector
+  - Semantic search with hybrid retrieval
+  - Context formatting for the LLM
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: llm-integrator
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - rag-retrieval
+    - embeddings
+    - pgvector-search
+    - contextual-retrieval
+
+  # Output validation
+  files_created:
+    - "app/services/rag.py"
+    - "app/services/embeddings.py"
+
+  # Quality gates
+  build_command: "cd output && pip install -e . 2>/dev/null || pip install fastapi langchain pgvector"
+  lint_command: "cd output && python -m py_compile app/**/*.py 2>/dev/null || true"
+  test_command: "true"
+
+tags:
+  - backend
+  - llm
+  - rag
+  - embeddings

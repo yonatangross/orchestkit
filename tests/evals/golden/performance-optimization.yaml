@@ -1,0 +1,38 @@
+id: performance-001
+name: "Frontend performance optimization"
+description: "Tests Tier 1 agent routing for performance tasks and Tier 2 skill injection for optimization patterns"
+scaffold: typescript-nextjs
+timeout: 180
+
+prompt: |
+  Analyze and optimize the performance of this Next.js application:
+  - Identify Core Web Vitals issues (LCP, INP, CLS)
+  - Implement code splitting and lazy loading
+  - Add image optimization
+  - Reduce bundle size
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: performance-engineer
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - core-web-vitals
+    - lazy-loading-patterns
+    - image-optimization
+    - performance-optimization
+
+  # Output validation
+  files_created:
+    - "components/LazyComponent.tsx"
+
+  # Quality gates
+  build_command: "cd output && npm install 2>/dev/null || true"
+  lint_command: "cd output && npx tsc --noEmit 2>/dev/null || true"
+  test_command: "true"
+
+tags:
+  - frontend
+  - performance
+  - optimization
+  - nextjs

@@ -1,0 +1,35 @@
+id: pr-creation-001
+name: "Pull request creation"
+description: "Tests Tier 1 agent routing for PR operations and Tier 2 skill injection for PR patterns"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  Create a pull request for my feature branch with:
+  - A descriptive title summarizing the changes
+  - A summary section with bullet points
+  - A test plan section
+  - Link to any related issues
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: git-operations-engineer
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - create-pr
+    - github-operations
+    - git-workflow
+
+  # Output validation
+  files_created: []
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - git
+  - pull-request
+  - github

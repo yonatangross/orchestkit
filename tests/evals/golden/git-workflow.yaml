@@ -1,0 +1,34 @@
+id: git-workflow-001
+name: "Git commit workflow"
+description: "Tests Tier 1 agent routing for git operations and Tier 2 skill injection for commit patterns"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  I've made changes to the authentication module. Create a proper
+  conventional commit with:
+  - A clear commit message describing the changes
+  - Proper Co-Authored-By footer
+  - Stage only relevant files (not node_modules or .env)
+
+expected:
+  # Tier 1: Agent routing correctness
+  agent_spawned: git-operations-engineer
+
+  # Tier 2: Skill utilization
+  skills_should_read:
+    - git-workflow
+    - commit
+
+  # Output validation (git commands should be used)
+  files_created: []
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - git
+  - commit
+  - workflow
