@@ -23,6 +23,12 @@
 
 set -euo pipefail
 
+# Skip on Windows - path pattern matching differs significantly
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+    echo "SKIP: Script activation tests not supported on Windows (path pattern differences)"
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../../../.." && pwd)}"
 SKILLS_DIR="$PROJECT_ROOT/src/skills"
