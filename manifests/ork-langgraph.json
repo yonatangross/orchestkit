@@ -1,6 +1,6 @@
 {
   "name": "ork-langgraph",
-  "version": "5.7.2",
+  "version": "5.7.3",
   "description": "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal",
   "dependencies": [
     "ork-core"

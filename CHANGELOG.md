@@ -5,6 +5,24 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.3] - 2026-02-03
+
+### Changed
+
+- Removed redundant skill-resolver hook (Claude Code natively auto-injects skills from agent frontmatter)
+- Hook count: 117 total (89 global + 28 agent/skill-scoped)
+- Eval framework focuses on agent routing correctness via CLAUDE.md agent-index (removed skill metrics)
+
+### Fixed
+
+- Eval scripts: Fixed dry-run mode to create all required output directories
+- Eval scripts: Fixed path prefixes in golden test commands
+- Eval scripts: Added explicit exit 0 to ensure proper exit status
+- CI workflow: Exclude eval scripts from artifact to prevent overwriting
+
+---
+
+
 ## [5.7.2] - 2026-02-03
 
 ### Added

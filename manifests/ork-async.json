@@ -1,6 +1,6 @@
 {
   "name": "ork-async",
-  "version": "5.7.2",
+  "version": "5.7.3",
   "description": "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
   "dependencies": [
     "ork-core"
