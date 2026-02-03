@@ -15,12 +15,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
           node-version: '22'
 
@@ -29,9 +29,11 @@ jobs:
 
       - name: Check if version bump required
         id: check_required
+        env:
+          BRANCH_NAME: ${{ github.head_ref }}
         run: |
           # Skip version check for docs, chore, ci, style, test branches/commits
-          BRANCH_NAME="${{ github.head_ref }}"
+          # Note: BRANCH_NAME set via env to prevent shell injection from PR branch names
 
           # Check branch name prefix
           if [[ "$BRANCH_NAME" =~ ^(docs|chore|ci|style|test)/ ]]; then
@@ -114,7 +116,7 @@ jobs:
 
       - name: Comment on PR with issues
         if: steps.check_required.outputs.skip != 'true' && (steps.version_check.outputs.bumped == 'false' || steps.changelog_check.outputs.updated == 'false' || steps.changelog_version_check.outputs.matches == 'false')
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
         with:
           script: |
             const prVersion = '${{ steps.pr_version.outputs.version }}';

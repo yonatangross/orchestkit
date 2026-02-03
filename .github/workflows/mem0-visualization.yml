@@ -21,10 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
           python-version: '3.12'
 
@@ -113,7 +113,7 @@ jobs:
           cat outputs/mem0-ci-summary.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         if: always()
         with:
           name: mem0-visualization-${{ github.run_id }}
@@ -124,7 +124,7 @@ jobs:
 
       - name: Comment on PR (if PR)
         if: github.event_name == 'pull_request' && steps.check_key.outputs.skip_mem0 == 'false'
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
         with:
           script: |
             const fs = require('fs');

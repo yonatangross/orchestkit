@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -47,7 +47,7 @@ jobs:
         run: bash tests/indexes/test-index-generation.sh
 
       - name: Upload built plugins
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -62,10 +62,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -87,10 +87,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
           node-version: '22'
 
@@ -109,12 +109,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
         with:
           fetch-depth: 0
 
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@dcedce43c6f43de0b836d1fe38946645c9c638dc  # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -122,6 +122,7 @@ jobs:
   # STAGE 2: Unit Tests (< 5m)
   # Cross-platform: ubuntu + macos + windows
   # Node versions: 20 (LTS), 22 (Current LTS)
+  # Uses dynamic test discovery
   # ============================================================================
   unit-tests:
     name: Unit Tests (${{ matrix.os }}, node ${{ matrix.node-version }})
@@ -134,10 +135,10 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -152,53 +153,7 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          # Core validation tests
-          bash tests/unit/test-json-validity.sh
-          bash tests/unit/test-hook-executability.sh
-          bash tests/unit/test-context-schemas.sh
-          bash tests/unit/test-hooks-unit.sh
-          bash tests/unit/test-shell-syntax.sh
-          bash tests/unit/test-hook-json-output.sh
-          bash tests/unit/test-edge-cases.sh
-          bash tests/unit/test-count-components.sh
-          # Hook-specific tests
-          bash tests/unit/test-best-practices.sh
-          bash tests/unit/test-lifecycle-hooks.sh
-          bash tests/unit/test-pretool-all-hooks.sh
-          bash tests/unit/test-pretool-mcp-hooks.sh
-          bash tests/unit/test-pretool-skill-hooks.sh
-          bash tests/unit/test-pretool-task-hooks.sh
-          bash tests/unit/test-permission-posttool-hooks.sh
-          bash tests/unit/test-prompt-hooks.sh
-          bash tests/unit/test-file-lock-hooks.sh
-          bash tests/unit/test-subagent-hooks.sh
-          bash tests/unit/test-skill-hooks.sh
-          bash tests/unit/test-learning-tracker-hook.sh
-          # Memory and context tests
-          bash tests/unit/test-mem0-prompt-hooks.sh
-          bash tests/unit/test-memory-lib.sh
-          bash tests/unit/test-memory-commands.sh
-          bash tests/unit/test-memory-context-hook.sh
-          bash tests/unit/test-mcp-pretool-hooks.sh
-          bash tests/unit/test-agent-memory-hooks.sh
-          # Coordination tests
-          bash tests/unit/test-coordination-lib.sh
-          bash tests/unit/test-decision-sync.sh
-          bash tests/unit/test-pattern-sync.sh
-          bash tests/unit/test-worktree-cli.sh
-          # Analytics and feedback tests
-          bash tests/unit/test-analytics.sh
-          bash tests/unit/test-feedback-lib.sh
-          bash tests/unit/test-satisfaction-detection.sh
-          bash tests/unit/test-consent-manager.sh
-          # Skill and agent unit tests
-          bash tests/unit/test-skill-analytics.sh
-          bash tests/unit/test-skill-edit-tracker.sh
-          bash tests/unit/test-agent-performance.sh
-          # Other unit tests
-          bash tests/unit/test-pii-validation.sh
-          bash tests/unit/test-evolution-engine.sh
-          bash tests/unit/test-version-manager.sh
+          bash scripts/ci/run-tests.sh tests/unit --verbose
 
   # ============================================================================
   # STAGE 2b: TypeScript Hook Tests (vitest)
@@ -215,7 +170,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         node-version: ['20', '22']
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -234,6 +189,7 @@ jobs:
   # STAGE 3: Security Tests (< 3m)
   # ZERO TOLERANCE: Any failure blocks merge
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   security-tests:
     name: Security Tests (${{ matrix.os }})
@@ -245,10 +201,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -262,20 +218,12 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/security/test-command-injection.sh
-          bash tests/security/test-jq-injection.sh
-          bash tests/security/test-path-traversal.sh
-          bash tests/security/test-unicode-attacks.sh
-          bash tests/security/test-symlink-attacks.sh
-          bash tests/security/test-line-continuation-bypass.sh
-          bash tests/security/test-compound-commands.sh
-          bash tests/security/test-sqlite-injection.sh
-          bash tests/security/test-input-validation.sh
-          bash tests/security/test-additional-security.sh
+          bash scripts/ci/run-tests.sh tests/security --verbose
 
   # ============================================================================
   # STAGE 4: Integration Tests (< 5m)
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   integration-tests:
     name: Integration Tests (${{ matrix.os }})
@@ -287,10 +235,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -304,20 +252,18 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/integration/test-hook-chains.sh
-          bash tests/integration/test-context-system.sh
-          bash tests/integration/test-context-deferral.sh
-          bash tests/integration/test-coordination-hooks.sh
-          bash tests/integration/test-multi-instance-gates.sh
-          bash tests/integration/test-full-mcp-integration.sh
-          bash tests/integration/test-plugin-installation.sh
-          bash tests/e2e/test-progressive-loading.sh
-          bash tests/e2e/test-agent-lifecycle.sh
-          bash tests/e2e/test-coordination-e2e.sh
+          bash scripts/ci/run-tests.sh tests/integration --verbose
+
+      - name: Run e2e tests
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash scripts/ci/run-tests.sh tests/e2e --verbose
 
   # ============================================================================
   # STAGE 5: Performance Tests (< 2m)
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   performance-tests:
     name: Performance Tests (${{ matrix.os }})
@@ -329,10 +275,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -346,12 +292,12 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/performance/test-token-budget.sh
-          bash tests/performance/test-hook-timing.sh
+          bash scripts/ci/run-tests.sh tests/performance --verbose
 
   # ============================================================================
   # STAGE 6: Compliance Tests
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   compliance-tests:
     name: Compliance Tests (${{ matrix.os }})
@@ -363,10 +309,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -376,15 +322,16 @@ jobs:
         with:
           build-plugins: 'false'
 
-      - name: Run skills structure compliance tests
+      - name: Run compliance tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/compliance/test-cc-216-compliance.sh
+          bash scripts/ci/run-tests.sh tests/compliance --verbose
 
   # ============================================================================
   # STAGE 6b: Mem0 Integration Tests
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   mem0-tests:
     name: Mem0 Integration (${{ matrix.os }})
@@ -396,10 +343,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -409,19 +356,16 @@ jobs:
         with:
           build-plugins: 'false'
 
-      - name: Run mem0 integration tests
+      - name: Run mem0 tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/mem0/test-mem0-integration.sh
-          bash tests/mem0/test-mem0-v1.1.0-enhancements.sh
-          bash tests/mem0/test-mem0-library.sh
-          bash tests/mem0/test-python-syntax.sh
-          bash tests/mem0/test-mem0-scripts.sh
+          bash scripts/ci/run-tests.sh tests/mem0 --verbose
 
   # ============================================================================
   # STAGE 7: Agent & Skill Validation
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   agent-skill-tests:
     name: Agents & Skills (${{ matrix.os }})
@@ -433,10 +377,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -450,37 +394,24 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/agents/test-agent-model-selection.sh
-          bash tests/agents/test-agent-context-modes.sh
-          bash tests/agents/test-agent-required-hooks.sh
-          bash tests/agents/test-agent-frontmatter.sh
-          bash tests/agents/test-agent-skill-validation.sh
-          bash tests/agents/test-agent-lifecycle-e2e.sh
-          bash tests/agents/test-auto-mode-in-description.sh
-          bash tests/agents/test-hook-paths.sh
+          bash scripts/ci/run-tests.sh tests/agents --verbose
 
       - name: Run skill tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/skills/test-skill-structure.sh
-          bash tests/skills/test-skill-context-modes.sh
-          bash tests/skills/test-skill-references.sh
-          bash tests/skills/test-skill-length.sh
-          bash tests/skills/test-description-triggers.sh
-          bash tests/skills/test-remember-memory-integration.sh
-          bash tests/skills/structure/test-skill-md.sh
-          bash tests/skills/integration/test-skill-agent-integration.sh
+          bash scripts/ci/run-tests.sh tests/skills --verbose
 
       - name: Run subagent definition tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/subagents/definition/test-agent-definitions.sh
+          bash scripts/ci/run-tests.sh tests/subagents --verbose
 
   # ============================================================================
   # STAGE 8: System Tests
   # Cross-platform: ubuntu + macos + windows
+  # Uses dynamic test discovery
   # ============================================================================
   system-tests:
     name: System Tests (${{ matrix.os }})
@@ -492,10 +423,10 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -509,19 +440,19 @@ jobs:
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/config/test-config-system.sh
+          bash scripts/ci/run-tests.sh tests/config --verbose
 
       - name: Run feedback tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/feedback/test-feedback-system.sh
+          bash scripts/ci/run-tests.sh tests/feedback --verbose
 
       - name: Run evaluation tests
         shell: bash
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash tests/evaluations/validate-evaluations.sh
+          bash scripts/ci/run-tests.sh tests/evaluations --verbose
 
   # ============================================================================
   # STAGE 9: Coverage Report
@@ -532,10 +463,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -555,7 +486,7 @@ jobs:
           bash tests/coverage/hook-coverage-report.sh | tee coverage-report.txt
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: hook-coverage-report
           path: coverage-report.txt

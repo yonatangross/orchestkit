@@ -49,21 +49,34 @@ runs:
         rsync --version || echo "WARNING: rsync not found, some operations may fail"
 
     - name: Setup Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
       with:
         node-version: ${{ inputs.node-version }}
 
     - name: Cache npm dependencies
       if: inputs.use-cache == 'true'
-      uses: actions/cache@v5
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
       with:
         path: |
           ~/.npm
+          node_modules
           src/hooks/node_modules
+          plugins/ork-core/hooks/node_modules
         key: ${{ runner.os }}-node-${{ inputs.node-version }}-${{ hashFiles('**/package-lock.json', 'src/hooks/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-${{ inputs.node-version }}-
           ${{ runner.os }}-node-
+
+    - name: Cache vitest
+      if: inputs.use-cache == 'true' && inputs.install-hooks-deps == 'true'
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5
+      with:
+        path: |
+          src/hooks/node_modules/.vitest
+        key: ${{ runner.os }}-vitest-${{ inputs.node-version }}-${{ hashFiles('src/hooks/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-vitest-${{ inputs.node-version }}-
+          ${{ runner.os }}-vitest-
 
     - name: Build plugins
       if: inputs.build-plugins == 'true'
@@ -73,7 +86,7 @@ runs:
     - name: Setup CI environment
       if: inputs.run-ci-setup == 'true'
       shell: bash
-      run: ./bin/ci-setup.sh ${{ inputs.ci-setup-flags }}
+      run: ./bin/ci-setup.sh "${{ inputs.ci-setup-flags }}"
 
     - name: Make test scripts executable
       if: runner.os != 'Windows'
@@ -82,6 +95,7 @@ runs:
         chmod +x tests/**/*.sh 2>/dev/null || true
         find src/hooks -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
         chmod +x bin/*.sh 2>/dev/null || true
+        chmod +x scripts/ci/*.sh 2>/dev/null || true
 
     - name: Install hook dependencies
       if: inputs.install-hooks-deps == 'true'
