@@ -5,11 +5,35 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.7.2] - 2026-02-03
+
+### Security
+
+- Pin `googleapis/release-please-action@v4` to SHA commit (SEC-001)
+- Fix shell injection risk in version-check.yml by using env variable pattern for `github.head_ref` (SEC-002)
+- Quote `inputs.ci-setup-flags` in setup action to prevent command injection (SEC-003)
+
+### Changed
+
+- All 8 external GitHub Actions now pinned to SHA commits for supply chain security
+- Add SHA documentation in `.github/action-versions.md`
+
+---
+
+
 ## [5.7.1] - 2026-02-02
 
-### Fixed
+### Added
 
-- TODO: Describe your changes here
+- Dynamic test discovery via `scripts/ci/run-tests.sh` (discovers 154 tests vs ~100 hardcoded)
+- Reusable test-runner workflow (`.github/workflows/reusable-test-runner.yml`)
+- Composite action for test execution (`.github/actions/run-tests/action.yml`)
+- Expanded npm caching strategy (node_modules, vitest cache)
+
+### Changed
+
+- CI workflows now use SHA-pinned GitHub Actions
+- Test execution uses dynamic discovery instead of hardcoded invocations
 
 ---
 

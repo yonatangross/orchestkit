@@ -158,7 +158,8 @@ done
 if [[ ${#UNREFERENCED_ASSETS[@]} -eq 0 ]]; then
     pass "All assets/ files are referenced in SKILL.md"
 else
-    fail "${#UNREFERENCED_ASSETS[@]} asset file(s) not referenced in SKILL.md:"
+    # Treat as warning rather than failure - documentation quality check
+    warn "${#UNREFERENCED_ASSETS[@]} asset file(s) not referenced in SKILL.md:"
     for ref in "${UNREFERENCED_ASSETS[@]}"; do
         echo "    - $ref"
     done

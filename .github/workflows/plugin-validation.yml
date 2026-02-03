@@ -7,6 +7,11 @@ on:
     branches: [main, dev]
   workflow_dispatch:
 
+# Cancel in-progress runs on new commits
+concurrency:
+  group: plugin-validation-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   CLAUDE_PROJECT_DIR: ${{ github.workspace }}
 
@@ -17,8 +22,9 @@ jobs:
   build:
     name: Build Plugins
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup environment
         uses: ./.github/actions/setup
@@ -27,7 +33,7 @@ jobs:
           run-ci-setup: 'false'
 
       - name: Upload built plugins
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -38,15 +44,16 @@ jobs:
     name: Syntax & Structure (${{ matrix.os }})
     needs: build
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -74,19 +81,20 @@ jobs:
     name: Schema Validation
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Install jsonschema
         run: pip install jsonschema
@@ -106,15 +114,16 @@ jobs:
     name: Hook Unit Tests (${{ matrix.os }})
     needs: [build, syntax-validation]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -133,15 +142,16 @@ jobs:
     name: Integration Tests (${{ matrix.os }})
     needs: [build, syntax-validation, hook-unit-tests]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -164,11 +174,12 @@ jobs:
     name: Plugin Manifest
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -254,11 +265,12 @@ jobs:
     name: Component Counts
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -278,11 +290,12 @@ jobs:
     name: Skills Validation
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -331,11 +344,12 @@ jobs:
     name: Skill Sync Drift
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download built plugins
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -363,6 +377,7 @@ jobs:
   validation-summary:
     name: Validation Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [syntax-validation, schema-validation, hook-unit-tests, integration-tests, manifest-validation, counts-validation, skills-validation, skill-sync-validation]
     if: always()
     steps:

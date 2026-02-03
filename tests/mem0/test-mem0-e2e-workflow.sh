@@ -126,6 +126,24 @@ if ! command -v python3 &>/dev/null; then
 fi
 echo -e "  \033[0;32m+\033[0m python3 is available"
 
+# Check mem0ai package
+if ! python3 -c 'import mem0' 2>/dev/null; then
+    echo ""
+    echo -e "\033[0;33mSKIP\033[0m: mem0ai package not installed, skipping all E2E workflow tests"
+    echo "  Install with: pip install mem0ai"
+    echo ""
+    echo "=================================================="
+    echo "Test Summary"
+    echo "=================================================="
+    echo "Total tests: 0"
+    echo -e "Passed: \033[0;32m0\033[0m"
+    echo -e "Failed: \033[0;31m0\033[0m"
+    echo -e "Skipped: \033[0;33mALL\033[0m (mem0ai not installed)"
+    echo ""
+    exit 0
+fi
+echo -e "  \033[0;32m+\033[0m mem0ai is installed"
+
 # Check CRUD scripts exist
 if [[ ! -f "$SCRIPTS_DIR/crud/add-memory.py" ]]; then
     echo -e "\033[0;31mERROR\033[0m: CRUD scripts not found at $SCRIPTS_DIR/crud/"

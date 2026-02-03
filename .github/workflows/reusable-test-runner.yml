@@ -1,0 +1,75 @@
+name: Reusable Test Runner
+
+on:
+  workflow_call:
+    inputs:
+      test-category:
+        description: 'Test category (unit, security, integration, etc.)'
+        type: string
+        required: true
+      test-dir:
+        description: 'Directory containing test scripts'
+        type: string
+        required: true
+      include-node-matrix:
+        description: 'Include node version matrix (20, 22)'
+        type: boolean
+        default: false
+      timeout-minutes:
+        description: 'Job timeout in minutes'
+        type: number
+        default: 30
+      fail-fast:
+        description: 'Stop on first failure'
+        type: boolean
+        default: false
+      needs-plugins:
+        description: 'Download built plugins artifact'
+        type: boolean
+        default: true
+      ci-setup-flags:
+        description: 'Extra flags for ci-setup.sh'
+        type: string
+        default: ''
+      run-ci-setup:
+        description: 'Whether to run ci-setup.sh'
+        type: boolean
+        default: true
+
+env:
+  CLAUDE_PROJECT_DIR: ${{ github.workspace }}
+
+jobs:
+  run-tests:
+    name: ${{ inputs.test-category }} (${{ matrix.os }}${{ inputs.include-node-matrix && format(', node {0}', matrix.node-version) || '' }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    strategy:
+      fail-fast: ${{ inputs.fail-fast }}
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ${{ inputs.include-node-matrix && fromJSON('["20", "22"]') || fromJSON('["22"]') }}
+
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+
+      - name: Download built plugins
+        if: inputs.needs-plugins
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
+        with:
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node-version }}
+          build-plugins: 'false'
+          run-ci-setup: ${{ inputs.run-ci-setup && 'true' || 'false' }}
+          ci-setup-flags: ${{ inputs.ci-setup-flags }}
+
+      - name: Run ${{ inputs.test-category }} tests
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash scripts/ci/run-tests.sh "${{ inputs.test-dir }}" --verbose

@@ -6,6 +6,7 @@
 # - Individual async hooks are now consolidated into unified dispatchers
 # - SessionStart, PostToolUse, Setup use async dispatchers
 # - Dispatchers internally route to multiple hooks via Promise.allSettled
+# - Async behavior is indicated by run-hook-silent.mjs or *-fire-and-forget.mjs runners
 #
 # Usage: ./test-async-hooks.sh
 # Exit codes: 0 = pass, 1 = fail
@@ -43,10 +44,10 @@ else
     exit 1
 fi
 
-# Test 2: Count async hooks (now unified dispatchers)
+# Test 2: Count async hooks (identified by run-hook-silent.mjs or *-fire-and-forget.mjs)
 # With dispatcher architecture: ~5-10 async entries (dispatchers, not individual hooks)
 echo -n "  Async dispatchers exist (>= 5)... "
-ASYNC_COUNT=$(jq '[.. | objects | select(.async == true)] | length' "$HOOKS_JSON")
+ASYNC_COUNT=$(jq '[.. | strings | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $ASYNC_COUNT -ge 5 ]]; then
     echo -e "${GREEN}PASS${NC} ($ASYNC_COUNT async dispatchers)"
     PASSED=$((PASSED + 1))
@@ -55,42 +56,42 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 3: All async hooks have timeout
-echo -n "  All async hooks have timeout... "
-ASYNC_WITHOUT_TIMEOUT=$(jq '[.. | objects | select(.async == true and .timeout == null)] | length' "$HOOKS_JSON")
-if [[ $ASYNC_WITHOUT_TIMEOUT -eq 0 ]]; then
-    echo -e "${GREEN}PASS${NC}"
+# Test 3: All async hooks use silent/fire-and-forget runners (no timeout needed since they're fire-and-forget)
+echo -n "  Async hooks use fire-and-forget runners... "
+ASYNC_RUNNERS=$(jq '[.. | strings | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+if [[ $ASYNC_RUNNERS -ge 1 ]]; then
+    echo -e "${GREEN}PASS${NC} ($ASYNC_RUNNERS fire-and-forget runners)"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($ASYNC_WITHOUT_TIMEOUT async hooks without timeout)"
+    echo -e "${RED}FAIL${NC} (no fire-and-forget runners found)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 4: PreToolUse hooks are NOT async (critical path)
+# Test 4: PreToolUse hooks are NOT async (critical path) - no silent/fire-and-forget runners
 echo -n "  PreToolUse hooks are NOT async... "
-PRETOOL_ASYNC=$(jq '.hooks.PreToolUse[]?.hooks[]? | select(.async == true) | .command' "$HOOKS_JSON" | wc -l)
+PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $PRETOOL_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PRETOOL_ASYNC PreToolUse hooks have async: true)"
+    echo -e "${RED}FAIL${NC} ($PRETOOL_ASYNC PreToolUse hooks use async runners)"
     FAILED=$((FAILED + 1))
 fi
 
 # Test 5: PermissionRequest hooks are NOT async (critical path)
 echo -n "  PermissionRequest hooks are NOT async... "
-PERMISSION_ASYNC=$(jq '.hooks.PermissionRequest[]?.hooks[]? | select(.async == true) | .command' "$HOOKS_JSON" | wc -l)
+PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $PERMISSION_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
 else
-    echo -e "${RED}FAIL${NC} ($PERMISSION_ASYNC PermissionRequest hooks have async: true)"
+    echo -e "${RED}FAIL${NC} ($PERMISSION_ASYNC PermissionRequest hooks use async runners)"
     FAILED=$((FAILED + 1))
 fi
 
-# Test 6: SessionStart has unified dispatcher (async)
+# Test 6: SessionStart has unified dispatcher (async via run-hook-silent.mjs)
 echo -n "  SessionStart has async dispatcher... "
-SESSIONSTART_ASYNC=$(jq '[.hooks.SessionStart[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
+SESSIONSTART_ASYNC=$(jq '[.hooks.SessionStart[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $SESSIONSTART_ASYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC} ($SESSIONSTART_ASYNC async dispatcher)"
     PASSED=$((PASSED + 1))
@@ -99,9 +100,9 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 7: PostToolUse has unified dispatcher (async)
+# Test 7: PostToolUse has unified dispatcher (async via run-hook-silent.mjs)
 echo -n "  PostToolUse has async dispatcher... "
-POSTTOOL_ASYNC=$(jq '[.hooks.PostToolUse[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
+POSTTOOL_ASYNC=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $POSTTOOL_ASYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC} ($POSTTOOL_ASYNC async dispatcher)"
     PASSED=$((PASSED + 1))
@@ -110,9 +111,9 @@ else
     FAILED=$((FAILED + 1))
 fi
 
-# Test 8: Setup has unified dispatcher (async) - Issue #239
+# Test 8: Setup has unified dispatcher (async via run-hook-silent.mjs) - Issue #239
 echo -n "  Setup has async dispatcher... "
-SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]? | select(.async == true)] | length' "$HOOKS_JSON")
+SETUP_ASYNC=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $SETUP_ASYNC -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC} ($SETUP_ASYNC async dispatcher)"
     PASSED=$((PASSED + 1))
@@ -123,7 +124,7 @@ fi
 
 # Test 9: Setup dispatcher references unified-dispatcher
 echo -n "  Setup uses unified-dispatcher... "
-SETUP_UNIFIED=$(jq '.hooks.Setup[]?.hooks[]? | select(.command | contains("setup/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+SETUP_UNIFIED=$(jq '[.hooks.Setup[]?.hooks[]?.command | select(contains("setup/unified-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $SETUP_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
@@ -134,7 +135,7 @@ fi
 
 # Test 10: SessionStart dispatcher references unified-dispatcher
 echo -n "  SessionStart uses unified-dispatcher... "
-SESSIONSTART_UNIFIED=$(jq '.hooks.SessionStart[]?.hooks[]? | select(.command | contains("lifecycle/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+SESSIONSTART_UNIFIED=$(jq '[.hooks.SessionStart[]?.hooks[]?.command | select(contains("lifecycle/unified-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $SESSIONSTART_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
@@ -145,7 +146,7 @@ fi
 
 # Test 11: PostToolUse dispatcher references unified-dispatcher
 echo -n "  PostToolUse uses unified-dispatcher... "
-POSTTOOL_UNIFIED=$(jq '.hooks.PostToolUse[]?.hooks[]? | select(.command | contains("posttool/unified-dispatcher")) | .command' "$HOOKS_JSON" | wc -l)
+POSTTOOL_UNIFIED=$(jq '[.hooks.PostToolUse[]?.hooks[]?.command | select(contains("posttool/unified-dispatcher"))] | length' "$HOOKS_JSON")
 if [[ $POSTTOOL_UNIFIED -ge 1 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))

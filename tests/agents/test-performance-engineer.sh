@@ -51,7 +51,7 @@ echo ""
 # Test 3: Model is valid
 echo "Test 3: Model validation"
 model=$(grep "^model:" "$AGENT_FILE" | sed 's/model: *//')
-if [[ "$model" == "sonnet" || "$model" == "opus" || "$model" == "haiku" ]]; then
+if [[ "$model" == "sonnet" || "$model" == "opus" || "$model" == "haiku" || "$model" == "inherit" ]]; then
   log_pass "Model is valid: $model"
 else
   log_fail "Invalid model: $model"

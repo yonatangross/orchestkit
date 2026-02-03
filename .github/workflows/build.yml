@@ -17,8 +17,9 @@ jobs:
   build:
     name: Build Plugins
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
         with:
           # Needed for git operations
           fetch-depth: 0
@@ -42,11 +43,11 @@ jobs:
             exit 1
           fi
 
-          echo "✓ No symlinks found"
+          echo "No symlinks found"
 
       - name: Upload build artifacts
         if: github.event_name == 'pull_request'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: built-plugins
           path: plugins/
@@ -59,8 +60,9 @@ jobs:
     name: Validate Build
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
@@ -94,7 +96,7 @@ jobs:
               fi
             done
 
-            echo "✓ $plugin_name validated"
+            echo "$plugin_name validated"
           done
 
           if [[ $errors -gt 0 ]]; then
@@ -114,7 +116,7 @@ jobs:
             exit 1
           fi
 
-          echo "✓ No symlinks found"
+          echo "No symlinks found"
 
       - name: Verify manifest coverage
         run: |
@@ -131,4 +133,4 @@ jobs:
             exit 1
           fi
 
-          echo "✓ All manifests built"
+          echo "All manifests built"

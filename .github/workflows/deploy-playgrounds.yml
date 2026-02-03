@@ -40,13 +40,14 @@ jobs:
   validate:
     name: Validate Playgrounds
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Validate JSON files
         run: |
@@ -69,7 +70,7 @@ jobs:
             global.window = {};
             eval(code);
             const data = window.ORCHESTKIT_DATA;
-            console.log('✓ Parsed:', data.plugins.length, 'plugins,', data.agents.length, 'agents');
+            console.log('Parsed:', data.plugins.length, 'plugins,', data.agents.length, 'agents');
           "
           echo "data.js syntax valid"
 
@@ -108,9 +109,9 @@ jobs:
           cp docs/playgrounds/data.js /tmp/data.js.original
           node scripts/generate-playground-data.js
           if diff -q docs/playgrounds/data.js /tmp/data.js.original > /dev/null 2>&1; then
-            echo "✓ data.js is up to date with manifests"
+            echo "data.js is up to date with manifests"
           else
-            echo "✗ FAIL: data.js is stale!"
+            echo "FAIL: data.js is stale!"
             echo ""
             echo "Differences:"
             diff /tmp/data.js.original docs/playgrounds/data.js | head -30 || true
@@ -123,8 +124,9 @@ jobs:
     name: Deploy to Vercel
     needs: validate
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
@@ -155,7 +157,7 @@ jobs:
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
         with:
           script: |
             const url = '${{ steps.deploy.outputs.url }}';

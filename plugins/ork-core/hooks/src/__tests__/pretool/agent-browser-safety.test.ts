@@ -1,0 +1,120 @@
+/**
+ * Unit tests for agent-browser-safety hook
+ * Tests URL blocking and sensitive action detection for browser automation
+ */
+
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// Mock dependencies before imports
+vi.mock('../../lib/common.js', () => ({
+  logHook: vi.fn(),
+  logPermissionFeedback: vi.fn(),
+  outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+  outputDeny: vi.fn((reason: string) => ({
+    continue: false,
+    stopReason: reason,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision: 'deny',
+      permissionDecisionReason: reason,
+    },
+  })),
+  outputAllowWithContext: vi.fn((ctx: string) => ({
+    continue: true,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: ctx,
+      permissionDecision: 'allow',
+    },
+  })),
+}));
+
+import { agentBrowserSafety } from '../../pretool/bash/agent-browser-safety.js';
+import type { HookInput } from '../../types.js';
+
+function createBashInput(command: string): HookInput {
+  return {
+    tool_name: 'Bash',
+    session_id: 'test-session-123',
+    project_dir: '/test/project',
+    tool_input: { command },
+  };
+}
+
+describe('agent-browser-safety', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('returns silent success for non-agent-browser commands', () => {
+    // Arrange
+    const input = createBashInput('npm run build');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+
+  it('blocks agent-browser navigating to internal admin URLs', () => {
+    // Arrange
+    const input = createBashInput('agent-browser navigate "http://localhost:8080/admin"');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('blocks agent-browser navigating to file:// URLs', () => {
+    // Arrange
+    const input = createBashInput('agent-browser goto "file:///etc/passwd"');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('blocks navigation to OAuth provider login pages', () => {
+    // Arrange
+    const input = createBashInput('agent-browser navigate "https://accounts.google.com/signin"');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('blocked');
+  });
+
+  it('warns about sensitive actions like clicking delete buttons', () => {
+    // Arrange
+    const input = createBashInput('agent-browser click delete-account-button');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('Sensitive browser action');
+  });
+
+  it('allows safe agent-browser commands', () => {
+    // Arrange
+    const input = createBashInput('agent-browser navigate "https://example.com/docs"');
+
+    // Act
+    const result = agentBrowserSafety(input);
+
+    // Assert
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+});

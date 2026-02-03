@@ -10,6 +10,12 @@
 
 set -uo pipefail
 
+# Skip on Windows - these tests require Unix shell features
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+    echo "SKIP: Cross-hook integration tests not supported on Windows (requires Unix shell)"
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
@@ -426,7 +432,7 @@ test_subagent_memory_lifecycle() {
 ENDJSON
 )
 
-    run_hook "subagent-start/agent-memory-inject" "$start_input"
+    run_hook "subagent-start/graph-memory-inject" "$start_input"
     if [[ $HOOK_EXIT_CODE -eq 0 ]] && assert_valid_json && assert_jq '.continue == true'; then
         lifecycle_success=$((lifecycle_success + 1))
     fi
@@ -483,6 +489,12 @@ echo "--- Sequence 5: Session End Chain ---"
 
 test_session_end_chain() {
     test_start "session end chain (pre-compaction-sync detects pending decisions)"
+
+    # Skip if MEM0_API_KEY not set (hook gates on this and returns silently)
+    if [[ -z "${MEM0_API_KEY:-}" ]]; then
+        test_skip "MEM0_API_KEY not set (set secret to enable)"
+        return
+    fi
 
     local tmp_dir
     tmp_dir=$(mktemp -d)
@@ -807,8 +819,8 @@ ENDJSON
 ENDJSON
 )
 
-    # Hook 9: subagent-start/agent-memory-inject
-    run_hook "subagent-start/agent-memory-inject" "$subagent_start_input"
+    # Hook 9: subagent-start/graph-memory-inject
+    run_hook "subagent-start/graph-memory-inject" "$subagent_start_input"
     if [[ $HOOK_EXIT_CODE -eq 0 ]] && assert_valid_json && assert_jq '.continue == true'; then
         hooks_passed=$((hooks_passed + 1))
     fi
