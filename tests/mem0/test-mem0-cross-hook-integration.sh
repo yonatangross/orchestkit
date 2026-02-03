@@ -10,6 +10,12 @@
 
 set -uo pipefail
 
+# Skip on Windows - these tests require Unix shell features
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || "${OS:-}" == "Windows_NT" ]]; then
+    echo "SKIP: Cross-hook integration tests not supported on Windows (requires Unix shell)"
+    exit 0
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
