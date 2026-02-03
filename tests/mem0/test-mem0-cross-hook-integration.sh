@@ -484,6 +484,12 @@ echo "--- Sequence 5: Session End Chain ---"
 test_session_end_chain() {
     test_start "session end chain (pre-compaction-sync detects pending decisions)"
 
+    # Skip if MEM0_API_KEY not set (hook gates on this)
+    if [[ -z "${MEM0_API_KEY:-}" ]]; then
+        test_skip "MEM0_API_KEY not set (hook gates on this)"
+        return
+    fi
+
     local tmp_dir
     tmp_dir=$(mktemp -d)
     mkdir -p "$tmp_dir/.claude/logs"
