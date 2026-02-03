@@ -323,3 +323,6 @@ jq -r '"  Total tests: \(.total)
 
 echo ""
 echo -e "${GREEN}Results saved to: $RESULTS_DIR/summary.json${NC}"
+
+# Explicit success exit (required for set -e with complex pipelines)
+exit 0
