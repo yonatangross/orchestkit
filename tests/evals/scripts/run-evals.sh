@@ -16,7 +16,9 @@
 #   - jq for JSON processing
 # =============================================================================
 
-set -euo pipefail
+set -uo pipefail
+# Note: Removed -e to allow script to continue on non-fatal errors
+# The script handles errors gracefully and exits with explicit code
 
 # Cleanup trap for temp directories
 TEMP_WORKSPACES=()
