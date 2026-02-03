@@ -2,16 +2,22 @@
  * Skill Resolver - Unified UserPromptSubmit Hook
  * Merges skill-auto-suggest + skill-injector into a single hook.
  *
- * Runs classifyIntent() once and applies tiered response:
- * - confidence >= 80%: inject full (compressed) skill content
- * - confidence 50-79%: output lightweight suggestion list
- * - confidence < 50%: silent success
+ * Issue #278: Three-tier UX with dual output channels
+ * - systemMessage: Brief user notification (80-89% confidence)
+ * - additionalContext: Full context for Claude (all tiers)
  *
- * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext
+ * Confidence tiers:
+ * - >= 90%: Silent injection (Claude gets content, user sees nothing)
+ * - 80-89%: Notify injection (user sees "💡 Loaded: X", Claude gets content)
+ * - 70-79%: Suggestion (Claude gets summary, user sees nothing)
+ * - 50-69%: Hint (Claude gets minimal hint, user sees nothing)
+ * - < 50%: Silent success (nothing)
+ *
+ * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext + systemMessage
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputPromptContext, logHook, getPluginRoot, estimateTokenCount } from '../lib/common.js';
+import { outputSilentSuccess, outputWithNotification, logHook, getPluginRoot, estimateTokenCount, normalizeLineEndings } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import {
@@ -37,9 +43,16 @@ const MAX_FULL_INJECT = 2;
 /** Maximum skills to suggest (hint/summary tier) */
 const MAX_SUGGESTIONS = 3;
 
-/** Confidence tiers */
-const TIER_FULL = 80;
-const TIER_SUMMARY = 70;
+/**
+ * Confidence tiers (Issue #278: Three-tier UX)
+ * - SILENT: High confidence, inject without user notification
+ * - NOTIFY: Good confidence, notify user + inject
+ * - SUGGEST: Medium confidence, suggest to Claude only
+ * - HINT: Low confidence, minimal hint to Claude
+ */
+const TIER_SILENT = 90;
+const TIER_NOTIFY = 80;
+const TIER_SUGGEST = 70;
 const TIER_HINT = 50;
 
 // -----------------------------------------------------------------------------
@@ -61,8 +74,7 @@ function loadCompressedSkillContent(skillName: string, maxTokens: number): strin
   }
 
   try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    let content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
+    let content = normalizeLineEndings(readFileSync(skillFile, 'utf8'));
 
     // Remove frontmatter
     const frontmatterMatch = content.match(/^---\n[\s\S]*?\n---\n/);
@@ -116,8 +128,7 @@ function getSkillDescription(skillName: string): string {
   if (!existsSync(skillFile)) return '';
 
   try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
+    const content = normalizeLineEndings(readFileSync(skillFile, 'utf8'));
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const descMatch = frontmatterMatch[1].match(/^description:\s*(.+)$/m);
@@ -129,65 +140,59 @@ function getSkillDescription(skillName: string): string {
   return '';
 }
 
+// -----------------------------------------------------------------------------
+// Message Building (Issue #278: User-friendly, no raw percentages)
+// -----------------------------------------------------------------------------
+
 /**
- * Extract 3 key bullet points from skill content for summary tier
+ * Build user notification for systemMessage channel.
+ * Brief, friendly message shown to user.
  */
-function extractKeyBullets(skillName: string): string[] {
-  const pluginRoot = getPluginRoot();
-  const skillFile = join(pluginRoot, 'skills', skillName, 'SKILL.md');
+function buildUserNotification(loadedSkills: Array<{ skill: string }>): string {
+  if (loadedSkills.length === 0) return '';
+  const names = loadedSkills.slice(0, 2).map(s => s.skill).join(', ');
+  return `\u{1F4A1} Loaded: ${names}`;
+}
 
-  if (!existsSync(skillFile)) return [];
+/**
+ * Build Claude context for additionalContext channel.
+ * Full content without raw percentages, friendlier headers.
+ */
+function buildClaudeContext(
+  loadedSkills: Array<{ skill: string; content: string }>,
+  suggestedSkills: SimpleSkillMatch[]
+): string {
+  const parts: string[] = [];
 
-  try {
-    // Normalize CRLF to LF for cross-platform compatibility (Windows uses \r\n)
-    const content = readFileSync(skillFile, 'utf8').replace(/\r\n/g, '\n');
-    const bullets: string[] = [];
-    const headings = content.match(/^## .+$/gm) || [];
-    for (const h of headings.slice(0, 3)) {
-      const text = h.replace(/^## /, '').trim();
-      if (text && text !== 'References' && text.length < 80) {
-        bullets.push(text);
-      }
+  // Full content for loaded skills (no percentages)
+  if (loadedSkills.length > 0) {
+    parts.push('## Relevant Patterns Loaded\n');
+    for (const { skill, content } of loadedSkills) {
+      parts.push(`### ${skill}\n\n${content}\n\n---\n`);
     }
-    return bullets.slice(0, 3);
-  } catch {
-    return [];
   }
-}
 
-// -----------------------------------------------------------------------------
-// Message Building
-// -----------------------------------------------------------------------------
-
-function buildHintMessage(skills: SimpleSkillMatch[]): string {
-  if (skills.length === 0) return '';
-  const lines = skills.map(s => '- **' + s.skill + '** \u2014 Use `/ork:' + s.skill + '` to load');
-  return '## Skill Hints\n\n' + lines.join('\n');
-}
-
-function buildSummaryMessage(skills: SimpleSkillMatch[]): string {
-  if (skills.length === 0) return '';
-  let message = '## Relevant Skills\n\n';
-  for (const { skill, confidence } of skills) {
-    const desc = getSkillDescription(skill);
-    const bullets = extractKeyBullets(skill);
-    message += '### ' + skill + ' (' + confidence + '% match)\n';
-    if (desc) message += desc + '\n';
-    if (bullets.length > 0) {
-      message += bullets.map(b => '- ' + b).join('\n') + '\n';
+  // Suggestions for medium-confidence skills (no percentages)
+  if (suggestedSkills.length > 0) {
+    parts.push('\n## Also Available\n');
+    for (const { skill } of suggestedSkills) {
+      const desc = getSkillDescription(skill);
+      parts.push(`- **${skill}**${desc ? ` \u2014 ${desc}` : ''}`);
     }
-    message += 'Use `/ork:' + skill + '` to load full content.\n\n';
+    parts.push('\nUse `/ork:<skill>` to load full content.');
   }
-  return message.trim();
+
+  return parts.join('\n').trim();
 }
 
-function buildFullInjectionMessage(skills: Array<{ skill: string; content: string }>): string {
+/**
+ * Build hint context for low-confidence matches.
+ * Minimal hint for Claude, no user notification.
+ */
+function buildHintContext(skills: SimpleSkillMatch[]): string {
   if (skills.length === 0) return '';
-  let message = '## Skill Knowledge Injected\n\nAuto-loaded based on your prompt:\n\n';
-  for (const { skill, content } of skills) {
-    message += '### ' + skill + '\n\n' + content + '\n\n---\n\n';
-  }
-  return message.trim();
+  const names = skills.map(s => s.skill).join(', ');
+  return `Related skills available: ${names}. Use /ork:<skill> if needed.`;
 }
 
 // -----------------------------------------------------------------------------
@@ -236,23 +241,23 @@ export function skillResolver(input: HookInput): HookResult {
   logHook('skill-resolver',
     'Found ' + allSkills.length + ' skills: ' + allSkills.map(s => s.skill + ':' + s.confidence).join(', '));
 
-  // Partition into tiers
-  const fullTier = allSkills.filter(s => s.confidence >= TIER_FULL);
-  const summaryTier = allSkills.filter(s => s.confidence >= TIER_SUMMARY && s.confidence < TIER_FULL);
-  const hintTier = allSkills.filter(s => s.confidence >= TIER_HINT && s.confidence < TIER_SUMMARY);
+  // Partition into NEW tiers (Issue #278: Three-tier UX)
+  const silentTier = allSkills.filter(s => s.confidence >= TIER_SILENT);
+  const notifyTier = allSkills.filter(s => s.confidence >= TIER_NOTIFY && s.confidence < TIER_SILENT);
+  const suggestTier = allSkills.filter(s => s.confidence >= TIER_SUGGEST && s.confidence < TIER_NOTIFY);
+  const hintTier = allSkills.filter(s => s.confidence >= TIER_HINT && s.confidence < TIER_SUGGEST);
 
-  const parts: string[] = [];
+  // Load full content for high-confidence skills (silent + notify tiers)
+  const loadedSkills: Array<{ skill: string; content: string }> = [];
 
-  // Full tier: inject compressed content (if injection enabled)
-  if (fullTier.length > 0 && config.enableSkillInjection) {
+  if (config.enableSkillInjection) {
     const maxTotalTokens = config.maxSkillInjectionTokens || MAX_INJECTION_TOKENS;
-    const skillCount = Math.min(fullTier.length, MAX_FULL_INJECT);
-    const tokensPerSkill = Math.floor(maxTotalTokens / skillCount);
-
-    const loadedSkills: Array<{ skill: string; content: string }> = [];
+    const skillsToLoad = [...silentTier, ...notifyTier].slice(0, MAX_FULL_INJECT);
+    const skillCount = Math.min(skillsToLoad.length, MAX_FULL_INJECT);
+    const tokensPerSkill = skillCount > 0 ? Math.floor(maxTotalTokens / skillCount) : maxTotalTokens;
     let totalTokens = 0;
 
-    for (const match of fullTier.slice(0, MAX_FULL_INJECT)) {
+    for (const match of skillsToLoad) {
       if (isSkillInjected(match.skill)) continue;
 
       const remainingTokens = maxTotalTokens - totalTokens;
@@ -268,37 +273,31 @@ export function skillResolver(input: HookInput): HookResult {
         totalTokens += tokens;
         loadedSkills.push({ skill: match.skill, content });
         trackInjectedSkill(match.skill);
-        logHook('skill-resolver', 'Full inject: ' + match.skill + ' (~' + tokens + 't)');
+        logHook('skill-resolver', 'Loaded: ' + match.skill + ' (~' + tokens + 't)');
       }
     }
-
-    if (loadedSkills.length > 0) {
-      parts.push(buildFullInjectionMessage(loadedSkills));
-    }
   }
 
-  // Summary tier
-  if (summaryTier.length > 0) {
-    const summarySkills = summaryTier.slice(0, MAX_SUGGESTIONS);
-    parts.push(buildSummaryMessage(summarySkills));
-    logHook('skill-resolver', 'Summary: ' + summarySkills.map(s => s.skill).join(', '));
-  }
+  // Build outputs for each channel (Issue #278: Dual-channel output)
+  const claudeContext = buildClaudeContext(loadedSkills, suggestTier.slice(0, MAX_SUGGESTIONS));
+  const hintContext = buildHintContext(hintTier.slice(0, MAX_SUGGESTIONS));
+  const fullContext = [claudeContext, hintContext].filter(Boolean).join('\n\n');
 
-  // Hint tier
-  if (hintTier.length > 0) {
-    const hintSkills = hintTier.slice(0, MAX_SUGGESTIONS);
-    parts.push(buildHintMessage(hintSkills));
-    logHook('skill-resolver', 'Hints: ' + hintSkills.map(s => s.skill).join(', '));
-  }
+  // Determine user notification (only for notify tier, not silent tier)
+  const shouldNotifyUser = notifyTier.length > 0 && loadedSkills.length > 0;
+  const userMessage = shouldNotifyUser ? buildUserNotification(loadedSkills) : '';
 
-  if (parts.length === 0) {
+  if (!fullContext && !userMessage) {
+    logHook('skill-resolver', 'No content to output');
     return outputSilentSuccess();
   }
 
-  const message = parts.join('\n\n');
-  logHook('skill-resolver', 'Outputting ' + parts.length + ' tiers (~' + estimateTokenCount(message) + 't)');
+  logHook('skill-resolver',
+    'Output: ' + (userMessage ? 'notify ' : 'silent ') +
+    '(~' + estimateTokenCount(fullContext) + 't context)');
 
-  return outputPromptContext(message);
+  // Return with appropriate channels (Issue #278: systemMessage + additionalContext)
+  return outputWithNotification(userMessage || undefined, fullContext || undefined);
 }
 
 // -----------------------------------------------------------------------------

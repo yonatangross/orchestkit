@@ -1,6 +1,6 @@
 {
   "name": "ork-ai-observability",
-  "version": "5.7.0",
+  "version": "5.7.1",
   "description": "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification",
   "author": {
     "name": "Yonatan Gross",
