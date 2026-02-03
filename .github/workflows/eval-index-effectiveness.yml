@@ -90,7 +90,8 @@ jobs:
           name: prepared-workspace
           path: |
             plugins/
-            tests/evals/
+            tests/evals/golden/
+            tests/evals/scaffolds/
           retention-days: 1
 
   # ============================================================================
