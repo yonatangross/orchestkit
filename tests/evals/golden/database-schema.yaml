@@ -23,8 +23,8 @@ expected:
 
   # Quality gates (just syntax check)
   build_command: "echo 'SQL file created'"
-  lint_command: "test -f output/migrations/001_initial_schema.sql"
-  test_command: "grep -i 'CREATE TABLE' output/migrations/001_initial_schema.sql"
+  lint_command: "test -f migrations/001_initial_schema.sql"
+  test_command: "grep -i 'CREATE TABLE' migrations/001_initial_schema.sql"
 
 tags:
   - database

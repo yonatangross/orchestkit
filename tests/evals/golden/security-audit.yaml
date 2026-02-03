@@ -24,8 +24,8 @@ expected:
 
   # Quality gates (just check output exists)
   build_command: "echo 'Audit report generated'"
-  lint_command: "test -f output/SECURITY_AUDIT.md"
-  test_command: "grep -i 'vulnerability\\|OWASP\\|remediation' output/SECURITY_AUDIT.md"
+  lint_command: "test -f SECURITY_AUDIT.md"
+  test_command: "grep -i 'vulnerability\\|OWASP\\|remediation' SECURITY_AUDIT.md"
 
 tags:
   - security

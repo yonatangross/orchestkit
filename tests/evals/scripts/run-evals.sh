@@ -184,7 +184,7 @@ run_test() {
         echo "# Simulated output" > "$output_dir/app/services/embeddings.py"
         echo "# Simulated output" > "$output_dir/tests/test_user_service.py"
         echo "# Simulated output" > "$output_dir/tests/conftest.py"
-        echo "-- Simulated SQL" > "$output_dir/migrations/001_initial_schema.sql"
+        echo "-- CREATE TABLE users (id SERIAL PRIMARY KEY);" > "$output_dir/migrations/001_initial_schema.sql"
         echo "// Simulated component" > "$output_dir/components/DataTable.tsx"
         echo "// Simulated test" > "$output_dir/components/DataTable.test.tsx"
         echo "// Simulated component" > "$output_dir/components/LazyComponent.tsx"
@@ -192,7 +192,7 @@ run_test() {
         echo "# API Documentation" > "$output_dir/docs/api.md"
         echo "# Simulated K8s deployment" > "$output_dir/k8s/deployment.yaml"
         echo "# Simulated K8s service" > "$output_dir/k8s/service.yaml"
-        echo "# Security Audit - OWASP vulnerability found" > "$output_dir/SECURITY_AUDIT.md"
+        echo "# Security Audit - OWASP vulnerability found. Remediation: update dependencies." > "$output_dir/SECURITY_AUDIT.md"
     fi
 
     # Record end time
