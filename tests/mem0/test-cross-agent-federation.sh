@@ -24,8 +24,9 @@ NC='\033[0m' # No Color
 # Set up environment
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
 
-# TypeScript source file under test
-TS_HOOK="$PROJECT_ROOT/src/hooks/src/subagent-start/agent-memory-inject.ts"
+# TypeScript source files under test (refactored to graph + mem0 memory inject)
+GRAPH_HOOK="$PROJECT_ROOT/src/hooks/src/subagent-start/graph-memory-inject.ts"
+MEM0_HOOK="$PROJECT_ROOT/src/hooks/src/subagent-start/mem0-memory-inject.ts"
 
 # -----------------------------------------------------------------------------
 # Test Utilities
@@ -96,15 +97,16 @@ assert_file_contains_all() {
 }
 
 # -----------------------------------------------------------------------------
-# Test: TypeScript Hook File Exists
+# Test: TypeScript Hook Files Exist
 # -----------------------------------------------------------------------------
 
 echo ""
 echo "=========================================="
-echo "Testing agent-memory-inject.ts existence"
+echo "Testing memory inject hook files"
 echo "=========================================="
 
-assert_file_exists "$TS_HOOK" "agent-memory-inject.ts exists"
+assert_file_exists "$GRAPH_HOOK" "graph-memory-inject.ts exists"
+assert_file_exists "$MEM0_HOOK" "mem0-memory-inject.ts exists"
 
 # -----------------------------------------------------------------------------
 # Summary

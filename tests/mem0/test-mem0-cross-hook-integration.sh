@@ -426,7 +426,7 @@ test_subagent_memory_lifecycle() {
 ENDJSON
 )
 
-    run_hook "subagent-start/agent-memory-inject" "$start_input"
+    run_hook "subagent-start/graph-memory-inject" "$start_input"
     if [[ $HOOK_EXIT_CODE -eq 0 ]] && assert_valid_json && assert_jq '.continue == true'; then
         lifecycle_success=$((lifecycle_success + 1))
     fi
@@ -807,8 +807,8 @@ ENDJSON
 ENDJSON
 )
 
-    # Hook 9: subagent-start/agent-memory-inject
-    run_hook "subagent-start/agent-memory-inject" "$subagent_start_input"
+    # Hook 9: subagent-start/graph-memory-inject
+    run_hook "subagent-start/graph-memory-inject" "$subagent_start_input"
     if [[ $HOOK_EXIT_CODE -eq 0 ]] && assert_valid_json && assert_jq '.continue == true'; then
         hooks_passed=$((hooks_passed + 1))
     fi
