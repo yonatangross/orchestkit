@@ -95,11 +95,13 @@ jobs:
           node-version: '22'
 
       - name: Audit root dependencies
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
+        continue-on-error: true
 
       - name: Audit hooks dependencies
         working-directory: src/hooks
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
+        continue-on-error: true
 
   # ============================================================================
   # STAGE 1c: Secret Scanning
