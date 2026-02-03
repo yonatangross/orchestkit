@@ -174,12 +174,24 @@ run_test() {
     else
         echo "[DRY RUN] Would execute: claude --print \"$prompt\"" > "$claude_output"
         # Simulate some output for dry-run testing
-        mkdir -p "$output_dir/app/routers" "$output_dir/tests" "$output_dir/migrations" "$output_dir/components"
+        mkdir -p "$output_dir/app/routers" "$output_dir/app/schemas" "$output_dir/app/models" "$output_dir/app/services" \
+                 "$output_dir/tests" "$output_dir/migrations" "$output_dir/components" "$output_dir/docs" "$output_dir/k8s"
+        # Create simulated output files for dry-run testing
         echo "# Simulated output" > "$output_dir/app/routers/users.py"
-        echo "# Simulated output" > "$output_dir/app/schemas/user.py" 2>/dev/null || true
+        echo "# Simulated output" > "$output_dir/app/schemas/user.py"
+        echo "# Simulated output" > "$output_dir/app/models/user.py"
+        echo "# Simulated output" > "$output_dir/app/services/rag.py"
+        echo "# Simulated output" > "$output_dir/app/services/embeddings.py"
         echo "# Simulated output" > "$output_dir/tests/test_user_service.py"
+        echo "# Simulated output" > "$output_dir/tests/conftest.py"
         echo "-- Simulated SQL" > "$output_dir/migrations/001_initial_schema.sql"
         echo "// Simulated component" > "$output_dir/components/DataTable.tsx"
+        echo "// Simulated test" > "$output_dir/components/DataTable.test.tsx"
+        echo "// Simulated component" > "$output_dir/components/LazyComponent.tsx"
+        echo "// Simulated component" > "$output_dir/components/SkipLink.tsx"
+        echo "# API Documentation" > "$output_dir/docs/api.md"
+        echo "# Simulated K8s deployment" > "$output_dir/k8s/deployment.yaml"
+        echo "# Simulated K8s service" > "$output_dir/k8s/service.yaml"
         echo "# Security Audit - OWASP vulnerability found" > "$output_dir/SECURITY_AUDIT.md"
     fi
 
