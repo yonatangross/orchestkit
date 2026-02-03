@@ -51,8 +51,11 @@ if [[ ! -d "$TEST_DIR" ]]; then
   exit 1
 fi
 
-# Discover all test scripts
-mapfile -t TEST_FILES < <(find "$TEST_DIR" -name "$PATTERN" -type f | sort)
+# Discover all test scripts (POSIX-compatible, works on macOS bash 3.2)
+TEST_FILES=()
+while IFS= read -r file; do
+  [[ -n "$file" ]] && TEST_FILES+=("$file")
+done <<< "$(find "$TEST_DIR" -name "$PATTERN" -type f | sort)"
 
 if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
   echo -e "${YELLOW}WARNING: No tests found matching '$PATTERN' in $TEST_DIR${NC}"
