@@ -1062,8 +1062,10 @@ Fourth paragraph with even more content that definitely won't fit.
       expect(trackInjectedSkill).toHaveBeenCalledWith('silent-1');
       expect(trackInjectedSkill).toHaveBeenCalledWith('silent-2');
 
-      // No systemMessage for silent tier only
-      expect(result.systemMessage).toBeUndefined();
+      // Has systemMessage because notify-tier skills (88%, 82%) trigger notification
+      // Even though only silent-tier skills are injected, notify-tier skills exist
+      expect(result.systemMessage).toBeDefined();
+      expect(result.systemMessage).toMatch(/Loaded:/);  // Shows loaded skill names
 
       // Check additionalContext structure
       const ctx = result.hookSpecificOutput?.additionalContext;
