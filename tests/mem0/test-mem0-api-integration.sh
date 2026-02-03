@@ -138,6 +138,25 @@ if ! command -v python3 &>/dev/null; then
 fi
 echo "  python3: $(python3 --version 2>&1)"
 
+# Check mem0ai package
+if ! python3 -c 'import mem0' 2>/dev/null; then
+    echo ""
+    echo -e "  \033[0;33mSKIPPING ALL TESTS\033[0m: mem0ai package is not installed."
+    echo "  Install with: pip install mem0ai"
+    echo "  Or: pip install -r src/skills/mem0-memory/scripts/requirements.txt"
+    echo ""
+    echo "========================================================================"
+    echo " Test Summary"
+    echo "========================================================================"
+    echo "  Total:   0"
+    echo "  Passed:  0"
+    echo "  Failed:  0"
+    echo "  Skipped: ALL (mem0ai not installed)"
+    echo ""
+    exit 0
+fi
+echo "  mem0ai: installed"
+
 # Check that CRUD scripts exist
 if [[ ! -f "$CRUD_DIR/add-memory.py" ]]; then
     echo -e "  \033[0;31mERROR\033[0m: CRUD scripts not found at $CRUD_DIR"
