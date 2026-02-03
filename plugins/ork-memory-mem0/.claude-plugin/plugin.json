@@ -1,6 +1,6 @@
 {
   "name": "ork-memory-mem0",
-  "version": "5.7.1",
+  "version": "5.7.2",
   "description": "Mem0 cloud memory — semantic search, cross-session sync, analytics. Requires MEM0_API_KEY. Depends on ork-memory-graph.",
   "author": {
     "name": "Yonatan Gross",

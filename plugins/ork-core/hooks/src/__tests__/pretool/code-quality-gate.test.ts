@@ -3,7 +3,7 @@
  * Tests function length, nesting depth, and complexity detection
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { codeQualityGate } from '../../pretool/Write/code-quality-gate.js';
 import type { HookInput } from '../../types.js';
 
@@ -96,7 +96,7 @@ describe('code-quality-gate', () => {
 
   describe('Function length detection', () => {
     describe('Python functions', () => {
-      test('warns for function over 50 lines', () => {
+      it('warns for function over 50 lines', () => {
         const content = generateLongFunction(60, 'py');
         const input = createWriteInput('src/module.py', content);
         const result = codeQualityGate(input);
@@ -105,7 +105,7 @@ describe('code-quality-gate', () => {
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
       });
 
-      test('passes function under 50 lines', () => {
+      it('passes function under 50 lines', () => {
         const content = generateLongFunction(30, 'py');
         const input = createWriteInput('src/module.py', content);
         const result = codeQualityGate(input);
@@ -116,7 +116,7 @@ describe('code-quality-gate', () => {
         expect(context).not.toContain('is 30 lines');
       });
 
-      test('handles async def functions', () => {
+      it('handles async def functions', () => {
         const content = `
 async def long_async_function():
 ${Array(55).fill('    await asyncio.sleep(0)').join('\n')}
@@ -127,7 +127,7 @@ ${Array(55).fill('    await asyncio.sleep(0)').join('\n')}
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
       });
 
-      test('handles class methods', () => {
+      it('handles class methods', () => {
         const content = `
 class MyClass:
     def long_method(self):
@@ -141,7 +141,7 @@ ${Array(55).fill('        pass').join('\n')}
     });
 
     describe('TypeScript functions', () => {
-      test('warns for function over 50 lines', () => {
+      it('warns for function over 50 lines', () => {
         const content = generateLongFunction(60, 'ts');
         const input = createWriteInput('src/module.ts', content);
         const result = codeQualityGate(input);
@@ -150,7 +150,7 @@ ${Array(55).fill('        pass').join('\n')}
         expect(result.hookSpecificOutput?.additionalContext).toContain('lines');
       });
 
-      test('passes function under 50 lines', () => {
+      it('passes function under 50 lines', () => {
         const content = generateLongFunction(30, 'ts');
         const input = createWriteInput('src/module.ts', content);
         const result = codeQualityGate(input);
@@ -158,7 +158,7 @@ ${Array(55).fill('        pass').join('\n')}
         expect(result.continue).toBe(true);
       });
 
-      test('handles arrow functions', () => {
+      it('handles arrow functions', () => {
         const content = `
 const longArrowFunction = () => {
 ${Array(55).fill('  console.log("line");').join('\n')}
@@ -171,7 +171,7 @@ ${Array(55).fill('  console.log("line");').join('\n')}
         expect(result.continue).toBe(true);
       });
 
-      test('handles const function expressions', () => {
+      it('handles const function expressions', () => {
         const content = `
 const myFunction = async (param: string) => {
 ${Array(55).fill('  await Promise.resolve();').join('\n')}
@@ -185,7 +185,7 @@ ${Array(55).fill('  await Promise.resolve();').join('\n')}
     });
 
     describe('Multiple functions', () => {
-      test('reports all long functions', () => {
+      it('reports all long functions', () => {
         const content = `
 function first() {
 ${Array(55).fill('  console.log("a");').join('\n')}
@@ -207,7 +207,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
 
   describe('Nesting depth detection', () => {
     describe('Python nesting', () => {
-      test('warns for nesting deeper than 4 levels', () => {
+      it('warns for nesting deeper than 4 levels', () => {
         const content = generateDeepNesting(6, 'py');
         const input = createWriteInput('src/nested.py', content);
         const result = codeQualityGate(input);
@@ -216,7 +216,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
         expect(result.hookSpecificOutput?.additionalContext).toContain('nesting');
       });
 
-      test('passes nesting within limits', () => {
+      it('passes nesting within limits', () => {
         const content = generateDeepNesting(3, 'py');
         const input = createWriteInput('src/shallow.py', content);
         const result = codeQualityGate(input);
@@ -228,7 +228,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
     });
 
     describe('TypeScript nesting', () => {
-      test('warns for deep nesting', () => {
+      it('warns for deep nesting', () => {
         const content = generateDeepNesting(6, 'ts');
         const input = createWriteInput('src/nested.ts', content);
         const result = codeQualityGate(input);
@@ -237,7 +237,7 @@ ${Array(55).fill('  console.log("b");').join('\n')}
         expect(result.hookSpecificOutput?.additionalContext).toContain('nesting');
       });
 
-      test('handles nested loops', () => {
+      it('handles nested loops', () => {
         const content = `
 function matrix() {
   for (let i = 0; i < 10; i++) {
@@ -263,7 +263,7 @@ function matrix() {
   });
 
   describe('Cyclomatic complexity detection', () => {
-    test('warns for high conditional density', () => {
+    it('warns for high conditional density', () => {
       const content = `
 function complex(a, b, c, d, e) {
   if (a) return 1;
@@ -287,7 +287,7 @@ function complex(a, b, c, d, e) {
       expect(result.hookSpecificOutput?.additionalContext).toContain('complexity');
     });
 
-    test('passes simple functions', () => {
+    it('passes simple functions', () => {
       const content = `
 function simple(x: number): number {
   if (x > 0) {
@@ -304,7 +304,7 @@ function simple(x: number): number {
       expect(context).not.toContain('cyclomatic');
     });
 
-    test('counts ternary operators', () => {
+    it('counts ternary operators', () => {
       const content = `
 function ternaryHeavy(a, b, c, d, e, f, g, h, i, j, k) {
   const r1 = a ? 1 : 0;
@@ -327,7 +327,7 @@ function ternaryHeavy(a, b, c, d, e, f, g, h, i, j, k) {
       expect(result.continue).toBe(true);
     });
 
-    test('handles switch statements', () => {
+    it('handles switch statements', () => {
       const content = `
 function switchy(x: string): number {
   switch (x) {
@@ -348,7 +348,7 @@ function switchy(x: string): number {
   });
 
   describe('Multiple quality issues', () => {
-    test('reports all issues together', () => {
+    it('reports all issues together', () => {
       const content = `
 function badFunction(a, b, c, d, e, f, g, h, i, j, k) {
   if (a) {
@@ -381,21 +381,21 @@ ${Array(55).fill('  console.log("padding");').join('\n')}
   });
 
   describe('Edge cases', () => {
-    test('handles empty content', () => {
+    it('handles empty content', () => {
       const input = createWriteInput('src/empty.ts', '');
       const result = codeQualityGate(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('handles empty file path', () => {
+    it('handles empty file path', () => {
       const input = createWriteInput('', 'const x = 1;');
       const result = codeQualityGate(input);
 
       expect(result.continue).toBe(true);
     });
 
-    test('handles content without functions', () => {
+    it('handles content without functions', () => {
       const content = `
 const x = 1;
 const y = 2;
@@ -407,7 +407,7 @@ export { x, y };
       expect(result.continue).toBe(true);
     });
 
-    test('handles very large file', () => {
+    it('handles very large file', () => {
       const content = Array(1000).fill('const x = 1;').join('\n');
       const input = createWriteInput('src/large.ts', content);
       const result = codeQualityGate(input);
@@ -415,7 +415,7 @@ export { x, y };
       expect(result.continue).toBe(true);
     });
 
-    test('handles Go code', () => {
+    it('handles Go code', () => {
       const content = `
 func longGoFunction() {
 ${Array(55).fill('	fmt.Println("line")').join('\n')}
@@ -427,7 +427,7 @@ ${Array(55).fill('	fmt.Println("line")').join('\n')}
       expect(result.continue).toBe(true);
     });
 
-    test('handles Java code', () => {
+    it('handles Java code', () => {
       const content = `
 public class Main {
     public void longMethod() {
@@ -441,7 +441,7 @@ ${Array(55).fill('        System.out.println("line");').join('\n')}
       expect(result.continue).toBe(true);
     });
 
-    test('handles Rust code', () => {
+    it('handles Rust code', () => {
       const content = `
 fn long_rust_function() {
 ${Array(55).fill('    println!("line");').join('\n')}
@@ -455,7 +455,7 @@ ${Array(55).fill('    println!("line");').join('\n')}
   });
 
   describe('Non-code files', () => {
-    test('skips markdown files when guards active', () => {
+    it('skips markdown files when guards active', () => {
       // With guards mocked to return null, it won't skip
       const input = createWriteInput('README.md', '# Title\n\nContent');
       const result = codeQualityGate(input);
@@ -463,7 +463,7 @@ ${Array(55).fill('    println!("line");').join('\n')}
       expect(result.continue).toBe(true);
     });
 
-    test('skips JSON files', () => {
+    it('skips JSON files', () => {
       const input = createWriteInput('package.json', '{"name": "test"}');
       const result = codeQualityGate(input);
 

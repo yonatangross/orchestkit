@@ -1,6 +1,6 @@
 id: react-component-001
 name: "Data table component with sorting"
-description: "Tests Tier 1 routing to frontend-ui-developer and Tier 2 React skills"
+description: "Tests agent routing to frontend-ui-developer via CLAUDE.md agent-index"
 scaffold: typescript-nextjs
 timeout: 180
 
@@ -15,14 +15,8 @@ prompt: |
   Use React 19 patterns and TanStack Table if appropriate.
 
 expected:
-  # Tier 1: Agent routing correctness
+  # Agent routing correctness (via CLAUDE.md agent-index)
   agent_spawned: frontend-ui-developer
-
-  # Tier 2: Skill utilization
-  skills_should_read:
-    - tanstack-query-advanced
-    - react-server-components-framework
-    - shadcn-patterns
 
   # Output validation
   files_created:

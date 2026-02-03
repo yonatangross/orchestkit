@@ -3,6 +3,7 @@
 # OrchestKit Index Effectiveness Evaluation Runner
 # =============================================================================
 # Runs golden test cases with Claude Code and measures outcomes.
+# Focus: Agent routing correctness via CLAUDE.md agent-index.
 #
 # Usage:
 #   EVAL_MODE=with-index ./run-evals.sh
@@ -233,27 +234,6 @@ run_test() {
         fi
     fi
 
-    # Check skills read
-    local skills_expected=$(yq -r '.expected.skills_should_read[]' "$test_file" 2>/dev/null || echo "")
-    local skills_read=0
-    local skills_total=0
-    for skill in $skills_expected; do
-        skills_total=$((skills_total + 1))
-        if grep -qi "$skill" "$claude_output" 2>/dev/null; then
-            skills_read=$((skills_read + 1))
-        fi
-        # For dry-run, simulate skill reading
-        if ! command -v claude &> /dev/null; then
-            skills_read=$((skills_read + 1))
-        fi
-    done
-
-    # Calculate skill utilization
-    local skill_utilization=0
-    if [[ $skills_total -gt 0 ]]; then
-        skill_utilization=$((skills_read * 100 / skills_total))
-    fi
-
     # Write result JSON
     local result_json="$RESULTS_DIR/${test_id}.json"
     cat > "$result_json" << EOF
@@ -268,9 +248,6 @@ run_test() {
   "files_created": $files_created,
   "files_expected": $files_total,
   "agent_correct": $agent_correct,
-  "skills_read": $skills_read,
-  "skills_expected": $skills_total,
-  "skill_utilization": $skill_utilization,
   "tags": "$tags"
 }
 EOF
@@ -281,7 +258,7 @@ EOF
     local test_icon=$([[ "$test_pass" == "true" ]] && echo "✅" || echo "❌")
     local agent_icon=$([[ "$agent_correct" == "true" ]] && echo "✅" || echo "❌")
 
-    echo -e "  Build: $build_icon | Lint: $lint_icon | Test: $test_icon | Agent: $agent_icon | Skills: $skill_utilization%"
+    echo -e "  Build: $build_icon | Lint: $lint_icon | Test: $test_icon | Agent: $agent_icon"
     echo ""
 
     # Cleanup workspace
@@ -319,9 +296,8 @@ jq -s '{
   lint_rate: (([.[] | select(.lint_pass)] | length) / length * 100),
   test_rate: (([.[] | select(.test_pass)] | length) / length * 100),
   agent_rate: (([.[] | select(.agent_correct)] | length) / length * 100),
-  skill_rate: ([.[] | .skill_utilization] | add / length),
   total_duration: ([.[] | .duration_seconds] | add),
-  tests: [.[] | {id, build: .build_pass, lint: .lint_pass, test: .test_pass, agent: .agent_correct, skill: .skill_utilization}]
+  tests: [.[] | {id, build: .build_pass, lint: .lint_pass, test: .test_pass, agent: .agent_correct}]
 }' "$RESULTS_DIR"/*.json > "$RESULTS_DIR/summary.json"
 
 echo ""
@@ -331,7 +307,6 @@ jq -r '"  Total tests: \(.total)
   Lint pass: \(.lint_pass)/\(.total) (\(.lint_rate | floor)%)
   Test pass: \(.test_pass)/\(.total) (\(.test_rate | floor)%)
   Agent correct: \(.agent_correct)/\(.total) (\(.agent_rate | floor)%)
-  Skill utilization: \(.skill_rate | floor)%
   Total duration: \(.total_duration)s"' "$RESULTS_DIR/summary.json"
 
 echo ""

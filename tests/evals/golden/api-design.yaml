@@ -1,6 +1,6 @@
 id: api-design-001
 name: "REST API for user management"
-description: "Tests Tier 1 agent routing for backend tasks and Tier 2 skill injection for API design"
+description: "Tests agent routing for backend tasks via CLAUDE.md agent-index"
 scaffold: python-fastapi
 timeout: 180
 
@@ -14,14 +14,8 @@ prompt: |
   Use FastAPI and follow best practices.
 
 expected:
-  # Tier 1: Agent routing correctness
+  # Agent routing correctness (via CLAUDE.md agent-index)
   agent_spawned: backend-system-architect
-
-  # Tier 2: Skill utilization
-  skills_should_read:
-    - api-design-framework
-    - fastapi-advanced
-    - auth-patterns
 
   # Output validation
   files_created:

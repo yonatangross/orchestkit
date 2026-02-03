@@ -8,8 +8,7 @@
 #   - Build success rate
 #   - Lint compliance rate
 #   - Test pass rate
-#   - Agent routing accuracy
-#   - Skill utilization
+#   - Agent routing accuracy (via CLAUDE.md agent-index)
 # =============================================================================
 
 name: Index Effectiveness Eval
@@ -172,11 +171,10 @@ jobs:
 
       - name: Remove indexes (simulate no-index)
         run: |
-          # Remove CLAUDE.md and skill indexes to simulate no-index scenario
+          # Remove CLAUDE.md and agent indexes to simulate no-index scenario
           find plugins/ -name "CLAUDE.md" -delete || true
           find plugins/ -name "AGENTS.md" -delete || true
           find plugins/ -name "agent-index.md" -delete || true
-          find plugins/ -name "*-skill-index.md" -delete || true
           echo "Removed all index files for baseline comparison"
 
       - name: Run evaluation (without index)
@@ -241,7 +239,6 @@ jobs:
             build_delta=$(jq -r '.delta.build | floor' tests/evals/comparison.json)
             test_delta=$(jq -r '.delta.test | floor' tests/evals/comparison.json)
             agent_delta=$(jq -r '.delta.agent | floor' tests/evals/comparison.json)
-            skill_delta=$(jq -r '.delta.skill | floor' tests/evals/comparison.json)
             regression=$(jq -r '.regression_detected' tests/evals/comparison.json)
 
             echo "| Metric | Delta |" >> $GITHUB_STEP_SUMMARY
@@ -249,7 +246,6 @@ jobs:
             echo "| Build Success | ${build_delta:+$build_delta}% |" >> $GITHUB_STEP_SUMMARY
             echo "| Test Pass | ${test_delta:+$test_delta}% |" >> $GITHUB_STEP_SUMMARY
             echo "| Agent Routing | ${agent_delta:+$agent_delta}% |" >> $GITHUB_STEP_SUMMARY
-            echo "| Skill Utilization | ${skill_delta:+$skill_delta}% |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
 
             if [[ "$regression" == "true" ]]; then
@@ -318,7 +314,6 @@ jobs:
             | Lint Compliance | ${Math.floor(comparison.without?.lint || 0)}% | ${Math.floor(comparison.with?.lint || 0)}% | ${formatDelta(delta.lint || 0)} |
             | Test Pass | ${Math.floor(comparison.without?.test || 0)}% | ${Math.floor(comparison.with?.test || 0)}% | ${formatDelta(delta.test || 0)} |
             | Agent Routing | ${Math.floor(comparison.without?.agent || 0)}% | ${Math.floor(comparison.with?.agent || 0)}% | ${formatDelta(delta.agent || 0)} |
-            | Skill Utilization | ${Math.floor(comparison.without?.skill || 0)}% | ${Math.floor(comparison.with?.skill || 0)}% | ${formatDelta(delta.skill || 0)} |
 
             ${regression ? ':warning: **Regression detected!** Review changes before merging.' : ':white_check_mark: All metrics stable or improved.'}
 

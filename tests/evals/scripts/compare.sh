@@ -3,6 +3,7 @@
 # OrchestKit A/B Comparison Script
 # =============================================================================
 # Compares with-index vs without-index evaluation results.
+# Focus: Agent routing correctness via CLAUDE.md agent-index.
 #
 # Usage:
 #   ./compare.sh
@@ -60,22 +61,19 @@ jq -n \
         build: $with.build_rate,
         lint: $with.lint_rate,
         test: $with.test_rate,
-        agent: $with.agent_rate,
-        skill: $with.skill_rate
+        agent: $with.agent_rate
       },
       without: {
         build: $without.build_rate,
         lint: $without.lint_rate,
         test: $without.test_rate,
-        agent: $without.agent_rate,
-        skill: ($without.skill_rate // 0)
+        agent: $without.agent_rate
       },
       delta: {
         build: ($with.build_rate - $without.build_rate),
         lint: ($with.lint_rate - $without.lint_rate),
         test: ($with.test_rate - $without.test_rate),
-        agent: ($with.agent_rate - $without.agent_rate),
-        skill: ($with.skill_rate - ($without.skill_rate // 0))
+        agent: ($with.agent_rate - $without.agent_rate)
       },
       total_tests: $with.total,
       duration_seconds: ($with.total_duration + $without.total_duration),
@@ -108,16 +106,11 @@ agent_without=$(jq -r '.without.agent | floor' "$COMPARISON_FILE")
 agent_with=$(jq -r '.with.agent | floor' "$COMPARISON_FILE")
 agent_delta=$(jq -r '.delta.agent | floor' "$COMPARISON_FILE")
 
-skill_without=$(jq -r '.without.skill | floor' "$COMPARISON_FILE")
-skill_with=$(jq -r '.with.skill | floor' "$COMPARISON_FILE")
-skill_delta=$(jq -r '.delta.skill | floor' "$COMPARISON_FILE")
-
 # Print table
 printf "| %-16s | %13s | %10s | %+9s |\n" "Build Success" "${build_without}%" "${build_with}%" "${build_delta}%"
 printf "| %-16s | %13s | %10s | %+9s |\n" "Lint Compliance" "${lint_without}%" "${lint_with}%" "${lint_delta}%"
 printf "| %-16s | %13s | %10s | %+9s |\n" "Test Passing" "${test_without}%" "${test_with}%" "${test_delta}%"
 printf "| %-16s | %13s | %10s | %+9s |\n" "Agent Routing" "${agent_without}%" "${agent_with}%" "${agent_delta}%"
-printf "| %-16s | %13s | %10s | %+9s |\n" "Skill Util" "${skill_without}%" "${skill_with}%" "${skill_delta}%"
 
 echo ""
 

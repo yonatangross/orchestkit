@@ -1,6 +1,6 @@
 id: security-audit-001
 name: "Security audit for authentication code"
-description: "Tests Tier 1 routing to security-auditor and Tier 2 security skills"
+description: "Tests agent routing to security-auditor via CLAUDE.md agent-index"
 scaffold: python-fastapi
 timeout: 120
 
@@ -15,14 +15,8 @@ prompt: |
   weak password policies, and sensitive data exposure.
 
 expected:
-  # Tier 1: Agent routing correctness
+  # Agent routing correctness (via CLAUDE.md agent-index)
   agent_spawned: security-auditor
-
-  # Tier 2: Skill utilization
-  skills_should_read:
-    - owasp-top-10
-    - auth-patterns
-    - llm-safety-patterns
 
   # Output validation
   files_created:

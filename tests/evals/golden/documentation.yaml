@@ -1,6 +1,6 @@
 id: documentation-001
 name: "API documentation generation"
-description: "Tests Tier 1 agent routing for documentation tasks and Tier 2 skill injection for doc patterns"
+description: "Tests agent routing to documentation-specialist via CLAUDE.md agent-index"
 scaffold: python-fastapi
 timeout: 180
 
@@ -13,12 +13,8 @@ prompt: |
   - Error response documentation
 
 expected:
-  # Tier 1: Agent routing correctness
+  # Agent routing correctness (via CLAUDE.md agent-index)
   agent_spawned: documentation-specialist
-
-  # Tier 2: Skill utilization
-  skills_should_read:
-    - api-design-framework
 
   # Output validation
   files_created:
