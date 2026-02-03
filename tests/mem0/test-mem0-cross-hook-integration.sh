@@ -484,9 +484,9 @@ echo "--- Sequence 5: Session End Chain ---"
 test_session_end_chain() {
     test_start "session end chain (pre-compaction-sync detects pending decisions)"
 
-    # Skip if MEM0_API_KEY not set (hook gates on this)
+    # Skip if MEM0_API_KEY not set (hook gates on this and returns silently)
     if [[ -z "${MEM0_API_KEY:-}" ]]; then
-        test_skip "MEM0_API_KEY not set (hook gates on this)"
+        test_skip "MEM0_API_KEY not set (set secret to enable)"
         return
     fi
 

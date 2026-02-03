@@ -360,6 +360,8 @@ jobs:
 
       - name: Run mem0 tests
         shell: bash
+        env:
+          MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/mem0 --verbose
