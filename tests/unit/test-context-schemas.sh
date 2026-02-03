@@ -28,24 +28,27 @@ echo "  Context Schema Validation"
 echo "=========================================="
 echo ""
 
-# Check for ajv-cli or python jsonschema
+# Check for ajv-cli or python jsonschema (optional - basic validation is sufficient)
 VALIDATOR=""
+AJV_CMD=""
 if command -v ajv &> /dev/null; then
     VALIDATOR="ajv"
+    AJV_CMD="ajv"
+elif [[ -x "$SCRIPT_DIR/../../node_modules/.bin/ajv" ]]; then
+    VALIDATOR="ajv"
+    AJV_CMD="$SCRIPT_DIR/../../node_modules/.bin/ajv"
 elif command -v python3 &> /dev/null && python3 -c "import jsonschema" 2>/dev/null; then
     VALIDATOR="python"
 else
-    echo -e "${YELLOW}WARNING: No JSON schema validator found${NC}"
-    echo "Install one of: npm install -g ajv-cli OR pip install jsonschema"
-    echo ""
-    echo "Falling back to basic structure validation..."
+    # Basic validation is sufficient for CI - full schema validation is optional
     VALIDATOR="basic"
 fi
 
 validate_with_ajv() {
     local schema="$1"
     local file="$2"
-    ajv validate -s "$schema" -d "$file" 2>&1
+    # --spec=draft2020 for JSON Schema 2020-12, --all-errors shows all issues
+    "$AJV_CMD" validate --spec=draft2020 --all-errors -s "$schema" -d "$file" 2>&1
 }
 
 validate_with_python() {

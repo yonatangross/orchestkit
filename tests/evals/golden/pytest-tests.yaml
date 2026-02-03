@@ -1,0 +1,35 @@
+id: pytest-tests-001
+name: "Pytest test suite for service layer"
+description: "Tests agent routing to test-generator via CLAUDE.md agent-index"
+scaffold: python-fastapi
+timeout: 150
+
+prompt: |
+  Write a comprehensive pytest test suite for a UserService class that:
+  - Has methods: create_user, get_user, update_user, delete_user
+  - Uses fixtures for test data
+  - Mocks the database repository
+  - Tests both success and error cases
+  - Uses parametrized tests for edge cases
+
+  Follow pytest best practices with AAA pattern.
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: test-generator
+
+  # Output validation
+  files_created:
+    - "tests/test_user_service.py"
+    - "tests/conftest.py"
+
+  # Quality gates
+  build_command: "cd output && pip install pytest pytest-mock 2>/dev/null || true"
+  lint_command: "cd output && python -m py_compile tests/*.py 2>/dev/null || true"
+  test_command: "echo 'Test files created'"
+
+tags:
+  - testing
+  - pytest
+  - backend
+  - mocking

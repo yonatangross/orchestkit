@@ -18,7 +18,7 @@ export * from '../lib/retry-manager.js';
 export * from '../lib/calibration-engine.js';
 export * from '../lib/multi-agent-coordinator.js';
 
-// Prompt hooks (11) - UserPromptSubmit
+// Prompt hooks (10) - UserPromptSubmit
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { contextInjector } from '../prompt/context-injector.js';
@@ -29,8 +29,9 @@ import { todoEnforcer } from '../prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
 
-// Unified skill resolver (replaces skill-auto-suggest + skill-injector)
-import { skillResolver } from '../prompt/skill-resolver.js';
+// NOTE: skill-resolver removed - Claude Code natively auto-injects skills
+// from agent frontmatter when agents are spawned via Task tool.
+// See: docs/passive-index-migration.md
 
 // Intelligent Decision Capture System (Issue #245)
 import { captureUserIntent } from '../prompt/capture-user-intent.js';
@@ -58,8 +59,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
-  // Unified skill resolver (replaces skill-auto-suggest + skill-injector)
-  'prompt/skill-resolver': skillResolver,
   // Intelligent Decision Capture System
   'prompt/capture-user-intent': captureUserIntent,
   // Memory Context Loader (Issue #245 - session-start memory loading)

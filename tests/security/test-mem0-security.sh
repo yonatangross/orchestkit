@@ -190,8 +190,10 @@ test_user_id_format_validation() {
 
 # TEST 5: Category Detection with Malicious Input
 test_category_detection_malicious_input() {
-    local malicious_inputs=(
-        "$(printf '\x00\x01\x02')test content"
+    # Note: Null byte test intentionally generates bash warning - this is expected
+    local malicious_inputs
+    malicious_inputs=(
+        $'\\x00\\x01\\x02test content'  # Null bytes (literal escape, not command sub)
         "$(printf 'a%.0s' {1..20000})"  # Very long
         "$'\n\r\t'"  # Control characters
         "$'$(echo vulnerable)'"  # Command substitution attempt

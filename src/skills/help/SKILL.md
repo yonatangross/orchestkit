@@ -171,7 +171,7 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 
 ---
 
-## Related
+## Related Skills
 
 - `/help` - Claude Code built-in help
 - `/config` - Claude Code configuration

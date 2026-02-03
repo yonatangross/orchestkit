@@ -1,0 +1,29 @@
+id: pr-creation-001
+name: "Pull request creation"
+description: "Tests agent routing to git-operations-engineer via CLAUDE.md agent-index"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  Create a pull request for my feature branch with:
+  - A descriptive title summarizing the changes
+  - A summary section with bullet points
+  - A test plan section
+  - Link to any related issues
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: git-operations-engineer
+
+  # Output validation
+  files_created: []
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - git
+  - pull-request
+  - github

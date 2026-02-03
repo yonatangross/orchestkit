@@ -421,6 +421,29 @@ done
 echo -e "${GREEN}  Generated CLAUDE.md for ${CLAUDE_MD_COUNT} plugins${NC}"
 
 # ============================================================================
+# Generate AGENTS.md for cross-tool compatibility (Cursor, Codex, Amp, Zed)
+# ============================================================================
+# AGENTS.md is the open standard for AI coding agents (https://agents.md/)
+# Claude Code uses CLAUDE.md, but other tools use AGENTS.md.
+# We generate both to ensure cross-tool compatibility.
+# See: https://github.com/anthropics/claude-code/issues/6235
+AGENTS_MD_COUNT=0
+
+for plugin_dir in "$PLUGINS_DIR"/*/; do
+    [[ ! -d "$plugin_dir" ]] && continue
+
+    # Only generate AGENTS.md where CLAUDE.md exists
+    [[ ! -f "$plugin_dir/CLAUDE.md" ]] && continue
+
+    # Copy CLAUDE.md to AGENTS.md (identical content)
+    cp "$plugin_dir/CLAUDE.md" "$plugin_dir/AGENTS.md"
+
+    AGENTS_MD_COUNT=$((AGENTS_MD_COUNT + 1))
+done
+
+echo -e "${GREEN}  Generated AGENTS.md for ${AGENTS_MD_COUNT} plugins (cross-tool compat)${NC}"
+
+# ============================================================================
 # Inject Tier 2 skill indexes into agent markdown files
 # ============================================================================
 # Appends the skill index to the agent's body in the built plugin.

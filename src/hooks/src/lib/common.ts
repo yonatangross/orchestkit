@@ -187,6 +187,42 @@ export function outputPromptContext(ctx: string): HookResult {
 }
 
 /**
+ * Output with user notification + Claude context (CC 2.1.9+)
+ * Issue #278: Dual-channel output for three-tier UX
+ *
+ * @param userMessage - Brief message shown to user via systemMessage (optional)
+ * @param claudeContext - Full context for Claude via additionalContext (optional)
+ * @returns HookResult with appropriate channels set
+ *
+ * Usage:
+ * - Both set: User sees notification, Claude gets context
+ * - Only claudeContext: Silent injection (Claude-only)
+ * - Only userMessage: User notification without context
+ */
+export function outputWithNotification(
+  userMessage: string | undefined,
+  claudeContext: string | undefined
+): HookResult {
+  const result: HookResult = {
+    continue: true,
+    suppressOutput: true,
+  };
+
+  if (userMessage) {
+    result.systemMessage = userMessage;
+  }
+
+  if (claudeContext) {
+    result.hookSpecificOutput = {
+      hookEventName: 'UserPromptSubmit',
+      additionalContext: claudeContext,
+    };
+  }
+
+  return result;
+}
+
+/**
  * Output allow with additionalContext - permission hook approves with context (CC 2.1.9)
  */
 export function outputAllowWithContext(ctx: string, systemMessage?: string): HookResult {

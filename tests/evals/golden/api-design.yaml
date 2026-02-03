@@ -1,0 +1,35 @@
+id: api-design-001
+name: "REST API for user management"
+description: "Tests agent routing for backend tasks via CLAUDE.md agent-index"
+scaffold: python-fastapi
+timeout: 180
+
+prompt: |
+  Create a REST API for user management with:
+  - CRUD endpoints for users (GET, POST, PUT, DELETE)
+  - JWT authentication middleware
+  - Input validation with Pydantic models
+  - Proper HTTP status codes and error responses
+
+  Use FastAPI and follow best practices.
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: backend-system-architect
+
+  # Output validation
+  files_created:
+    - "app/routers/users.py"
+    - "app/schemas/user.py"
+    - "app/models/user.py"
+
+  # Quality gates
+  build_command: "cd output && pip install -e . 2>/dev/null || pip install fastapi pydantic"
+  lint_command: "cd output && python -m py_compile app/*.py app/**/*.py 2>/dev/null || true"
+  test_command: "echo 'No tests defined'"
+
+tags:
+  - backend
+  - api
+  - authentication
+  - fastapi

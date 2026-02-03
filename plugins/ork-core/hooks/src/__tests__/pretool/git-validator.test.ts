@@ -5,7 +5,7 @@
  * Security Focus: Validates protected branch enforcement and commit message validation
  */
 
-import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { HookInput } from '../../types.js';
 import { gitValidator } from '../../pretool/bash/git-validator.js';
 import { isProtectedBranch, validateBranchName, extractIssueNumber } from '../../lib/git.js';
@@ -33,148 +33,148 @@ function createBashInput(command: string, overrides: Partial<HookInput> = {}): H
 
 describe('lib/git.ts utilities', () => {
   describe('isProtectedBranch', () => {
-    test('returns true for main', () => {
+    it('returns true for main', () => {
       expect(isProtectedBranch('main')).toBe(true);
     });
 
-    test('returns true for master', () => {
+    it('returns true for master', () => {
       expect(isProtectedBranch('master')).toBe(true);
     });
 
-    test('returns true for dev', () => {
+    it('returns true for dev', () => {
       expect(isProtectedBranch('dev')).toBe(true);
     });
 
-    test('returns false for feature branches', () => {
+    it('returns false for feature branches', () => {
       expect(isProtectedBranch('feature/new-feature')).toBe(false);
     });
 
-    test('returns false for issue branches', () => {
+    it('returns false for issue branches', () => {
       expect(isProtectedBranch('issue/123-fix-bug')).toBe(false);
     });
 
-    test('returns false for fix branches', () => {
+    it('returns false for fix branches', () => {
       expect(isProtectedBranch('fix/broken-test')).toBe(false);
     });
 
-    test('returns false for release branches', () => {
+    it('returns false for release branches', () => {
       expect(isProtectedBranch('release/1.0.0')).toBe(false);
     });
 
-    test('is case sensitive - Main is not protected', () => {
+    it('is case sensitive - Main is not protected', () => {
       expect(isProtectedBranch('Main')).toBe(false);
       expect(isProtectedBranch('MAIN')).toBe(false);
     });
   });
 
   describe('extractIssueNumber', () => {
-    test('extracts from issue/ prefix', () => {
+    it('extracts from issue/ prefix', () => {
       expect(extractIssueNumber('issue/123-description')).toBe(123);
     });
 
-    test('extracts from feature/ prefix', () => {
+    it('extracts from feature/ prefix', () => {
       expect(extractIssueNumber('feature/456-new-thing')).toBe(456);
     });
 
-    test('extracts from fix/ prefix', () => {
+    it('extracts from fix/ prefix', () => {
       expect(extractIssueNumber('fix/789-bug')).toBe(789);
     });
 
-    test('extracts from number prefix', () => {
+    it('extracts from number prefix', () => {
       expect(extractIssueNumber('123-my-branch')).toBe(123);
     });
 
-    test('extracts from number suffix', () => {
+    it('extracts from number suffix', () => {
       expect(extractIssueNumber('my-branch-456')).toBe(456);
     });
 
-    test('extracts from # notation', () => {
+    it('extracts from # notation', () => {
       expect(extractIssueNumber('fix-#789')).toBe(789);
     });
 
-    test('extracts from bug/ prefix', () => {
+    it('extracts from bug/ prefix', () => {
       expect(extractIssueNumber('bug/101-crash-on-load')).toBe(101);
     });
 
-    test('extracts from feat/ prefix', () => {
+    it('extracts from feat/ prefix', () => {
       expect(extractIssueNumber('feat/202-user-auth')).toBe(202);
     });
 
-    test('returns null for branches without numbers', () => {
+    it('returns null for branches without numbers', () => {
       expect(extractIssueNumber('feature/my-feature')).toBe(null);
     });
 
-    test('returns null for protected branches', () => {
+    it('returns null for protected branches', () => {
       expect(extractIssueNumber('main')).toBe(null);
       expect(extractIssueNumber('dev')).toBe(null);
     });
   });
 
   describe('validateBranchName', () => {
-    test('accepts valid feature/ branch', () => {
+    it('accepts valid feature/ branch', () => {
       expect(validateBranchName('feature/new-feature')).toBe(null);
     });
 
-    test('accepts valid issue/ branch with number', () => {
+    it('accepts valid issue/ branch with number', () => {
       expect(validateBranchName('issue/123-fix-bug')).toBe(null);
     });
 
-    test('accepts valid fix/ branch', () => {
+    it('accepts valid fix/ branch', () => {
       expect(validateBranchName('fix/broken-test')).toBe(null);
     });
 
-    test('accepts protected branches without validation', () => {
+    it('accepts protected branches without validation', () => {
       expect(validateBranchName('main')).toBe(null);
       expect(validateBranchName('dev')).toBe(null);
       expect(validateBranchName('master')).toBe(null);
     });
 
-    test('accepts chore/ prefix', () => {
+    it('accepts chore/ prefix', () => {
       expect(validateBranchName('chore/update-deps')).toBe(null);
     });
 
-    test('accepts docs/ prefix', () => {
+    it('accepts docs/ prefix', () => {
       expect(validateBranchName('docs/readme-update')).toBe(null);
     });
 
-    test('accepts refactor/ prefix', () => {
+    it('accepts refactor/ prefix', () => {
       expect(validateBranchName('refactor/cleanup')).toBe(null);
     });
 
-    test('accepts test/ prefix', () => {
+    it('accepts test/ prefix', () => {
       expect(validateBranchName('test/add-unit-tests')).toBe(null);
     });
 
-    test('accepts ci/ prefix', () => {
+    it('accepts ci/ prefix', () => {
       expect(validateBranchName('ci/github-actions')).toBe(null);
     });
 
-    test('accepts perf/ prefix', () => {
+    it('accepts perf/ prefix', () => {
       expect(validateBranchName('perf/optimize-queries')).toBe(null);
     });
 
-    test('accepts style/ prefix', () => {
+    it('accepts style/ prefix', () => {
       expect(validateBranchName('style/format-code')).toBe(null);
     });
 
-    test('accepts release/ prefix', () => {
+    it('accepts release/ prefix', () => {
       expect(validateBranchName('release/1.0.0')).toBe(null);
     });
 
-    test('accepts hotfix/ prefix', () => {
+    it('accepts hotfix/ prefix', () => {
       expect(validateBranchName('hotfix/urgent-fix')).toBe(null);
     });
 
-    test('accepts bug/ prefix', () => {
+    it('accepts bug/ prefix', () => {
       expect(validateBranchName('bug/123-crash')).toBe(null);
     });
 
-    test('rejects branch without valid prefix', () => {
+    it('rejects branch without valid prefix', () => {
       const result = validateBranchName('my-random-branch');
       expect(result).toContain('valid prefix');
     });
 
-    test('rejects issue/ branch without number', () => {
+    it('rejects issue/ branch without number', () => {
       const result = validateBranchName('issue/my-issue');
       expect(result).toContain('issue number');
     });
@@ -187,7 +187,7 @@ describe('lib/git.ts utilities', () => {
 
 describe('gitValidator hook', () => {
   describe('non-git commands', () => {
-    test('ignores non-git commands', () => {
+    it('ignores non-git commands', () => {
       // Arrange
       const input = createBashInput('npm test');
 
@@ -199,7 +199,7 @@ describe('gitValidator hook', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('ignores docker commands', () => {
+    it('ignores docker commands', () => {
       // Arrange
       const input = createBashInput('docker build -t myapp .');
 
@@ -211,7 +211,7 @@ describe('gitValidator hook', () => {
       expect(result.suppressOutput).toBe(true);
     });
 
-    test('ignores commands starting with git-like words', () => {
+    it('ignores commands starting with git-like words', () => {
       // Arrange - "github" starts with "git" but is not a git command
       const input = createBashInput('github-actions-runner --help');
 
@@ -224,7 +224,7 @@ describe('gitValidator hook', () => {
   });
 
   describe('commit message validation', () => {
-    test('blocks invalid commit message format', () => {
+    it('blocks invalid commit message format', () => {
       // Arrange
       const input = createBashInput('git commit -m "bad commit message"');
 
@@ -237,7 +237,7 @@ describe('gitValidator hook', () => {
       expect(result.stopReason).toContain('Required: type(#issue): description');
     });
 
-    test('allows valid conventional commit with issue reference', () => {
+    it('allows valid conventional commit with issue reference', () => {
       // Arrange
       const input = createBashInput('git commit -m "feat(#123): Add user authentication"');
 
@@ -248,7 +248,7 @@ describe('gitValidator hook', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows valid conventional commit without issue reference', () => {
+    it('allows valid conventional commit without issue reference', () => {
       // Arrange
       const input = createBashInput('git commit -m "fix: Resolve memory leak"');
 
@@ -259,7 +259,7 @@ describe('gitValidator hook', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('allows all valid commit types', () => {
+    it('allows all valid commit types', () => {
       // Arrange
       const validTypes = ['feat', 'fix', 'refactor', 'docs', 'test', 'chore', 'style', 'perf', 'ci', 'build'];
 
@@ -271,7 +271,7 @@ describe('gitValidator hook', () => {
       }
     });
 
-    test('allows commit with scope', () => {
+    it('allows commit with scope', () => {
       // Arrange
       const input = createBashInput('git commit -m "feat(auth): Add OAuth2 support"');
 
@@ -282,7 +282,7 @@ describe('gitValidator hook', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('warns about long commit title', () => {
+    it('warns about long commit title', () => {
       // Arrange - title > 72 chars
       const longTitle = 'feat: ' + 'A'.repeat(80);
       const input = createBashInput(`git commit -m "${longTitle}"`);
@@ -297,7 +297,7 @@ describe('gitValidator hook', () => {
       }
     });
 
-    test('provides guidance for heredoc commits', () => {
+    it('provides guidance for heredoc commits', () => {
       // Arrange
       const input = createBashInput(`git commit -m "$(cat <<'EOF'
 feat(#123): Add feature
@@ -316,7 +316,7 @@ EOF
       }
     });
 
-    test('handles commit with single quotes', () => {
+    it('handles commit with single quotes', () => {
       // Arrange
       const input = createBashInput("git commit -m 'feat: Add feature'");
 
@@ -329,7 +329,7 @@ EOF
   });
 
   describe('protected branch detection patterns', () => {
-    test('detects git commit command pattern', () => {
+    it('detects git commit command pattern', () => {
       // Arrange
       const command = 'git commit -m "direct commit"';
 
@@ -337,7 +337,7 @@ EOF
       expect(/git\s+commit/.test(command)).toBe(true);
     });
 
-    test('detects git push command pattern', () => {
+    it('detects git push command pattern', () => {
       // Arrange
       const command = 'git push origin dev';
 
@@ -345,7 +345,7 @@ EOF
       expect(/git\s+push/.test(command)).toBe(true);
     });
 
-    test('does not match git fetch', () => {
+    it('does not match git fetch', () => {
       // Arrange
       const command = 'git fetch origin';
 
@@ -354,7 +354,7 @@ EOF
       expect(/git\s+push/.test(command)).toBe(false);
     });
 
-    test('does not match git pull', () => {
+    it('does not match git pull', () => {
       // Arrange
       const command = 'git pull origin main';
 
@@ -365,7 +365,7 @@ EOF
   });
 
   describe('safe git commands', () => {
-    test('allows git status', () => {
+    it('allows git status', () => {
       // Arrange
       const input = createBashInput('git status');
 
@@ -376,7 +376,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git log', () => {
+    it('allows git log', () => {
       // Arrange
       const input = createBashInput('git log --oneline -10');
 
@@ -387,7 +387,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git diff', () => {
+    it('allows git diff', () => {
       // Arrange
       const input = createBashInput('git diff HEAD~1');
 
@@ -398,7 +398,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git fetch', () => {
+    it('allows git fetch', () => {
       // Arrange
       const input = createBashInput('git fetch origin');
 
@@ -409,7 +409,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git pull', () => {
+    it('allows git pull', () => {
       // Arrange
       const input = createBashInput('git pull origin main');
 
@@ -420,7 +420,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git stash', () => {
+    it('allows git stash', () => {
       // Arrange
       const input = createBashInput('git stash');
 
@@ -431,7 +431,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows git branch listing', () => {
+    it('allows git branch listing', () => {
       // Arrange
       const input = createBashInput('git branch -a');
 
@@ -444,7 +444,7 @@ EOF
   });
 
   describe('branch creation validation', () => {
-    test('provides guidance for invalid branch name on checkout -b', () => {
+    it('provides guidance for invalid branch name on checkout -b', () => {
       // Arrange
       const input = createBashInput('git checkout -b random-branch-name');
 
@@ -458,7 +458,7 @@ EOF
       }
     });
 
-    test('allows valid branch creation with checkout -b', () => {
+    it('allows valid branch creation with checkout -b', () => {
       // Arrange
       const input = createBashInput('git checkout -b feature/new-feature');
 
@@ -469,7 +469,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('allows valid issue branch creation', () => {
+    it('allows valid issue branch creation', () => {
       // Arrange
       const input = createBashInput('git checkout -b issue/123-fix-bug');
 
@@ -480,7 +480,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('provides guidance for issue/ branch without number', () => {
+    it('provides guidance for issue/ branch without number', () => {
       // Arrange
       const input = createBashInput('git checkout -b issue/no-number-here');
 
@@ -496,7 +496,7 @@ EOF
   });
 
   describe('edge cases', () => {
-    test('handles empty command', () => {
+    it('handles empty command', () => {
       // Arrange
       const input = createBashInput('');
 
@@ -507,7 +507,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('handles git command without subcommand', () => {
+    it('handles git command without subcommand', () => {
       // Arrange
       const input = createBashInput('git');
 
@@ -518,7 +518,7 @@ EOF
       expect(result.continue).toBe(true);
     });
 
-    test('handles git with extra whitespace', () => {
+    it('handles git with extra whitespace', () => {
       // Arrange
       const input = createBashInput('git   status');
 
@@ -531,7 +531,7 @@ EOF
   });
 
   describe('output format compliance (CC 2.1.7/2.1.9)', () => {
-    test('blocked commit returns proper deny structure', () => {
+    it('blocked commit returns proper deny structure', () => {
       // Arrange
       const input = createBashInput('git commit -m "bad message"');
 
@@ -544,7 +544,7 @@ EOF
       expect(result.hookSpecificOutput?.permissionDecision).toBe('deny');
     });
 
-    test('advisory context uses additionalContext field', () => {
+    it('advisory context uses additionalContext field', () => {
       // Arrange - commit that passes but has guidance
       const input = createBashInput('git checkout -b random-name');
 

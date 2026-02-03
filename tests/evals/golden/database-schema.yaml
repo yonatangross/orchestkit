@@ -1,0 +1,33 @@
+id: database-schema-001
+name: "E-commerce database schema"
+description: "Tests agent routing to database-engineer via CLAUDE.md agent-index"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  Design a PostgreSQL database schema for an e-commerce platform with:
+  - Users table with authentication fields
+  - Products table with categories
+  - Orders table with order items
+  - Proper foreign keys and indexes
+
+  Create the SQL migration file with CREATE TABLE statements.
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: database-engineer
+
+  # Output validation
+  files_created:
+    - "migrations/001_initial_schema.sql"
+
+  # Quality gates (just syntax check)
+  build_command: "echo 'SQL file created'"
+  lint_command: "test -f migrations/001_initial_schema.sql"
+  test_command: "grep -i 'CREATE TABLE' migrations/001_initial_schema.sql"
+
+tags:
+  - database
+  - postgresql
+  - schema
+  - migrations

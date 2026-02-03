@@ -1,0 +1,29 @@
+id: git-workflow-001
+name: "Git commit workflow"
+description: "Tests agent routing for git operations via CLAUDE.md agent-index"
+scaffold: empty
+timeout: 120
+
+prompt: |
+  I've made changes to the authentication module. Create a proper
+  conventional commit with:
+  - A clear commit message describing the changes
+  - Proper Co-Authored-By footer
+  - Stage only relevant files (not node_modules or .env)
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: git-operations-engineer
+
+  # Output validation (git commands should be used)
+  files_created: []
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - git
+  - commit
+  - workflow

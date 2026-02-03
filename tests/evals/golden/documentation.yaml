@@ -1,0 +1,31 @@
+id: documentation-001
+name: "API documentation generation"
+description: "Tests agent routing to documentation-specialist via CLAUDE.md agent-index"
+scaffold: python-fastapi
+timeout: 180
+
+prompt: |
+  Generate comprehensive API documentation for this FastAPI application:
+  - OpenAPI/Swagger specification
+  - Endpoint descriptions with examples
+  - Request/response schemas
+  - Authentication requirements
+  - Error response documentation
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: documentation-specialist
+
+  # Output validation
+  files_created:
+    - "docs/api.md"
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - documentation
+  - api
+  - openapi

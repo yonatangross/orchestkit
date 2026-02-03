@@ -1,0 +1,32 @@
+id: accessibility-001
+name: "Accessibility audit and fixes"
+description: "Tests agent routing to accessibility-specialist via CLAUDE.md agent-index"
+scaffold: typescript-nextjs
+timeout: 180
+
+prompt: |
+  Audit this React application for WCAG 2.2 compliance and fix issues:
+  - Check color contrast ratios
+  - Add proper ARIA labels and roles
+  - Ensure keyboard navigation works
+  - Add focus management for modals
+  - Implement skip links
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: accessibility-specialist
+
+  # Output validation
+  files_created:
+    - "components/SkipLink.tsx"
+
+  # Quality gates
+  build_command: "cd output && npm install 2>/dev/null || true"
+  lint_command: "cd output && npx tsc --noEmit 2>/dev/null || true"
+  test_command: "true"
+
+tags:
+  - frontend
+  - accessibility
+  - wcag
+  - a11y

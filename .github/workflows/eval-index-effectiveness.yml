@@ -1,0 +1,335 @@
+# =============================================================================
+# OrchestKit Index Effectiveness Evaluation
+# =============================================================================
+# Compares with-index vs without-index performance using golden test cases.
+# Runs on PR to main/dev and weekly for regression detection.
+#
+# Metrics tracked:
+#   - Build success rate
+#   - Lint compliance rate
+#   - Test pass rate
+#   - Agent routing accuracy (via CLAUDE.md agent-index)
+# =============================================================================
+
+name: Index Effectiveness Eval
+
+on:
+  # Run on PRs that touch index-related files
+  pull_request:
+    branches: [main, dev]
+    paths:
+      - 'scripts/generate-indexes.sh'
+      - 'src/skills/**/SKILL.md'
+      - 'src/agents/*.md'
+      - 'manifests/*.json'
+      - 'tests/evals/**'
+
+  # Weekly regression check
+  schedule:
+    - cron: '0 6 * * 1'  # Monday 6 AM UTC
+
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: 'Filter tests by tag (e.g., backend, frontend)'
+        required: false
+        default: ''
+
+env:
+  EVAL_TIMEOUT: 300  # 5 minutes per test
+
+jobs:
+  # ============================================================================
+  # Build indexes (both with and without)
+  # ============================================================================
+  prepare:
+    name: Prepare Evaluation Environment
+    runs-on: ubuntu-latest
+    outputs:
+      has_claude: ${{ steps.check-claude.outputs.has_claude }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build plugins (with index)
+        run: npm run build
+
+      - name: Check Claude CLI availability
+        id: check-claude
+        run: |
+          if command -v claude &> /dev/null; then
+            echo "has_claude=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_claude=false" >> $GITHUB_OUTPUT
+            echo "::warning::Claude CLI not available - running in dry-run mode"
+          fi
+
+      - name: Install eval dependencies
+        run: |
+          # Install yq for YAML parsing (pinned version with checksum verification)
+          YQ_VERSION="v4.40.5"
+          YQ_SHA256="0d6aaf1cf44a8d18fbc7ed0ef14f735a8df8d2e314c4cc0f0242d35c0a440c95"
+          sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /usr/local/bin/yq" | sha256sum -c
+          sudo chmod +x /usr/local/bin/yq
+
+          # jq is pre-installed on GitHub runners
+
+      - name: Upload prepared workspace
+        uses: actions/upload-artifact@v4
+        with:
+          name: prepared-workspace
+          path: |
+            plugins/
+            tests/evals/golden/
+            tests/evals/scaffolds/
+          retention-days: 1
+
+  # ============================================================================
+  # Run evaluation WITH index
+  # ============================================================================
+  eval-with-index:
+    name: Evaluate With Index
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-workspace
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install eval dependencies
+        run: |
+          # Install yq (pinned version with checksum verification)
+          YQ_VERSION="v4.40.5"
+          YQ_SHA256="0d6aaf1cf44a8d18fbc7ed0ef14f735a8df8d2e314c4cc0f0242d35c0a440c95"
+          sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /usr/local/bin/yq" | sha256sum -c
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Run evaluation (with index)
+        env:
+          EVAL_MODE: with-index
+          TEST_FILTER: ${{ github.event.inputs.test_filter || '' }}
+        run: |
+          chmod +x tests/evals/scripts/run-evals.sh
+          ./tests/evals/scripts/run-evals.sh
+        timeout-minutes: 30
+
+      - name: Upload with-index results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-with-index
+          path: tests/evals/results/with-index/
+          retention-days: 30
+
+  # ============================================================================
+  # Run evaluation WITHOUT index
+  # ============================================================================
+  eval-without-index:
+    name: Evaluate Without Index
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download prepared workspace
+        uses: actions/download-artifact@v4
+        with:
+          name: prepared-workspace
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install eval dependencies
+        run: |
+          # Install yq (pinned version with checksum verification)
+          YQ_VERSION="v4.40.5"
+          YQ_SHA256="0d6aaf1cf44a8d18fbc7ed0ef14f735a8df8d2e314c4cc0f0242d35c0a440c95"
+          sudo wget -qO /usr/local/bin/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64"
+          echo "${YQ_SHA256}  /usr/local/bin/yq" | sha256sum -c
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Remove indexes (simulate no-index)
+        run: |
+          # Remove CLAUDE.md and agent indexes to simulate no-index scenario
+          find plugins/ -name "CLAUDE.md" -delete || true
+          find plugins/ -name "AGENTS.md" -delete || true
+          find plugins/ -name "agent-index.md" -delete || true
+          echo "Removed all index files for baseline comparison"
+
+      - name: Run evaluation (without index)
+        env:
+          EVAL_MODE: without-index
+          TEST_FILTER: ${{ github.event.inputs.test_filter || '' }}
+        run: |
+          chmod +x tests/evals/scripts/run-evals.sh
+          ./tests/evals/scripts/run-evals.sh
+        timeout-minutes: 30
+
+      - name: Upload without-index results
+        uses: actions/upload-artifact@v4
+        with:
+          name: results-without-index
+          path: tests/evals/results/without-index/
+          retention-days: 30
+
+  # ============================================================================
+  # Compare results and detect regressions
+  # ============================================================================
+  compare:
+    name: Compare Results
+    needs: [eval-with-index, eval-without-index]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download with-index results
+        uses: actions/download-artifact@v4
+        with:
+          name: results-with-index
+          path: tests/evals/results/with-index/
+
+      - name: Download without-index results
+        uses: actions/download-artifact@v4
+        with:
+          name: results-without-index
+          path: tests/evals/results/without-index/
+
+      - name: Run comparison
+        id: compare
+        run: |
+          chmod +x tests/evals/scripts/compare.sh
+          ./tests/evals/scripts/compare.sh || echo "comparison_failed=true" >> $GITHUB_OUTPUT
+
+      - name: Upload comparison results
+        uses: actions/upload-artifact@v4
+        with:
+          name: comparison-results
+          path: tests/evals/comparison.json
+          retention-days: 90
+
+      - name: Generate summary
+        run: |
+          echo "## Index Effectiveness Evaluation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [[ -f tests/evals/comparison.json ]]; then
+            # Extract values
+            build_delta=$(jq -r '.delta.build | floor' tests/evals/comparison.json)
+            test_delta=$(jq -r '.delta.test | floor' tests/evals/comparison.json)
+            agent_delta=$(jq -r '.delta.agent | floor' tests/evals/comparison.json)
+            regression=$(jq -r '.regression_detected' tests/evals/comparison.json)
+
+            echo "| Metric | Delta |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Build Success | ${build_delta:+$build_delta}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Test Pass | ${test_delta:+$test_delta}% |" >> $GITHUB_STEP_SUMMARY
+            echo "| Agent Routing | ${agent_delta:+$agent_delta}% |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [[ "$regression" == "true" ]]; then
+              echo ":warning: **Regression detected!** Review changes before merging." >> $GITHUB_STEP_SUMMARY
+            else
+              echo ":white_check_mark: All metrics stable or improved." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo ":x: Comparison failed - check logs for details" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for regression
+        run: |
+          if [[ -f tests/evals/comparison.json ]]; then
+            regression=$(jq -r '.regression_detected' tests/evals/comparison.json)
+            if [[ "$regression" == "true" ]]; then
+              echo "::error::Regression detected in index effectiveness"
+              exit 1
+            fi
+          fi
+
+  # ============================================================================
+  # Post results to PR (if applicable)
+  # ============================================================================
+  post-results:
+    name: Post Results to PR
+    needs: compare
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download comparison results
+        uses: actions/download-artifact@v4
+        with:
+          name: comparison-results
+
+      - name: Post comment to PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comparison;
+            try {
+              comparison = JSON.parse(fs.readFileSync('comparison.json', 'utf8'));
+            } catch (e) {
+              console.log('Could not read comparison.json:', e.message);
+              return;
+            }
+
+            const delta = comparison.delta || {};
+            const regression = comparison.regression_detected;
+
+            const formatDelta = (val) => {
+              if (val > 0) return `+${Math.floor(val)}% :arrow_up:`;
+              if (val < 0) return `${Math.floor(val)}% :arrow_down:`;
+              return `${Math.floor(val)}%`;
+            };
+
+            const body = `## Index Effectiveness Evaluation Results
+
+            | Metric | Without Index | With Index | Delta |
+            |--------|---------------|------------|-------|
+            | Build Success | ${Math.floor(comparison.without?.build || 0)}% | ${Math.floor(comparison.with?.build || 0)}% | ${formatDelta(delta.build || 0)} |
+            | Lint Compliance | ${Math.floor(comparison.without?.lint || 0)}% | ${Math.floor(comparison.with?.lint || 0)}% | ${formatDelta(delta.lint || 0)} |
+            | Test Pass | ${Math.floor(comparison.without?.test || 0)}% | ${Math.floor(comparison.with?.test || 0)}% | ${formatDelta(delta.test || 0)} |
+            | Agent Routing | ${Math.floor(comparison.without?.agent || 0)}% | ${Math.floor(comparison.with?.agent || 0)}% | ${formatDelta(delta.agent || 0)} |
+
+            ${regression ? ':warning: **Regression detected!** Review changes before merging.' : ':white_check_mark: All metrics stable or improved.'}
+
+            <details>
+            <summary>View full comparison data</summary>
+
+            \`\`\`json
+            ${JSON.stringify(comparison, null, 2)}
+            \`\`\`
+            </details>
+            `;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: body
+            });

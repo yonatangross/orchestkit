@@ -1,6 +1,6 @@
 {
   "name": "ork-accessibility",
-  "version": "5.7.0",
+  "version": "5.7.2",
   "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management",
   "author": {
     "name": "Yonatan Gross",

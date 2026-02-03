@@ -1,0 +1,35 @@
+id: react-component-001
+name: "Data table component with sorting"
+description: "Tests agent routing to frontend-ui-developer via CLAUDE.md agent-index"
+scaffold: typescript-nextjs
+timeout: 180
+
+prompt: |
+  Create a reusable React data table component with:
+  - Column sorting (click header to sort)
+  - Pagination (10, 25, 50 items per page)
+  - TypeScript types for props
+  - Tailwind CSS styling
+  - Accessible keyboard navigation
+
+  Use React 19 patterns and TanStack Table if appropriate.
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: frontend-ui-developer
+
+  # Output validation
+  files_created:
+    - "components/DataTable.tsx"
+    - "components/DataTable.test.tsx"
+
+  # Quality gates
+  build_command: "cd output && npm install 2>/dev/null || true"
+  lint_command: "cd output && npx tsc --noEmit 2>/dev/null || true"
+  test_command: "echo 'TypeScript check'"
+
+tags:
+  - frontend
+  - react
+  - typescript
+  - components

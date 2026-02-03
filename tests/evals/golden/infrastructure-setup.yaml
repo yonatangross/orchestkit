@@ -1,0 +1,32 @@
+id: infrastructure-001
+name: "Kubernetes deployment setup"
+description: "Tests agent routing to infrastructure-architect via CLAUDE.md agent-index"
+scaffold: empty
+timeout: 180
+
+prompt: |
+  Set up Kubernetes deployment manifests for a microservice with:
+  - Deployment with resource limits and health checks
+  - Service for internal communication
+  - Ingress for external access
+  - ConfigMap and Secret for configuration
+  - HorizontalPodAutoscaler for scaling
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: infrastructure-architect
+
+  # Output validation
+  files_created:
+    - "k8s/deployment.yaml"
+    - "k8s/service.yaml"
+
+  # Quality gates
+  build_command: "true"
+  lint_command: "true"
+  test_command: "true"
+
+tags:
+  - infrastructure
+  - kubernetes
+  - devops

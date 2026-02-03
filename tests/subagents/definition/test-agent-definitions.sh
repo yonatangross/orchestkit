@@ -70,16 +70,10 @@ get_frontmatter() {
     awk '/^---$/{if(++n==1){next}else{exit}}n' "$file"
 }
 
-# Check if a skill exists in the CC 2.1.6 nested structure
+# Check if a skill exists (flat structure: skills/<skill-name>)
 skill_exists() {
     local skill_name="$1"
-    # Search in all category directories
-    for category_dir in "$SKILLS_DIR"/*/; do
-        if [[ -d "${category_dir}${skill_name}" ]]; then
-            return 0
-        fi
-    done
-    return 1
+    [[ -d "$SKILLS_DIR/$skill_name" ]]
 }
 
 # Extract skills from YAML frontmatter (handles both inline and list formats)

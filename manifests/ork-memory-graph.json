@@ -1,6 +1,6 @@
 {
   "name": "ork-memory-graph",
-  "version": "5.7.2",
+  "version": "5.7.3",
   "description": "Knowledge graph memory — zero-config, always works. Graph-first architecture with remember (write) and memory (read).",
   "skills": [
     "remember",

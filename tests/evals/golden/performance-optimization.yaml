@@ -1,0 +1,31 @@
+id: performance-001
+name: "Frontend performance optimization"
+description: "Tests agent routing to performance-engineer via CLAUDE.md agent-index"
+scaffold: typescript-nextjs
+timeout: 180
+
+prompt: |
+  Analyze and optimize the performance of this Next.js application:
+  - Identify Core Web Vitals issues (LCP, INP, CLS)
+  - Implement code splitting and lazy loading
+  - Add image optimization
+  - Reduce bundle size
+
+expected:
+  # Agent routing correctness (via CLAUDE.md agent-index)
+  agent_spawned: performance-engineer
+
+  # Output validation
+  files_created:
+    - "components/LazyComponent.tsx"
+
+  # Quality gates
+  build_command: "cd output && npm install 2>/dev/null || true"
+  lint_command: "cd output && npx tsc --noEmit 2>/dev/null || true"
+  test_command: "true"
+
+tags:
+  - frontend
+  - performance
+  - optimization
+  - nextjs

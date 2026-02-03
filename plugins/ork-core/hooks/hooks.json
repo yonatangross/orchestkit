@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 92 global entries + 28 agent/skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 91 global entries + 28 agent/skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -292,10 +292,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/antipattern-warning"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs prompt/skill-resolver"
           },
           {
             "type": "command",
