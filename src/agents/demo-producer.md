@@ -20,6 +20,8 @@ skills:
   - manim-visualizer
   - remotion-composer
   - task-dependency-patterns
+  - remember
+  - memory
 ---
 
 ## Directive

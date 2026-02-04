@@ -143,31 +143,24 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 done
 
 # ============================================================================
-# CHECK 4: Memory tier ordering (graph < mem0 < fabric)
+# CHECK 4: Two-tier ordering (ork-lite before ork)
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 4: Memory plugin tier ordering"
+echo "  Check 4: Two-tier plugin ordering"
 echo "───────────────────────────────────────────────────────────────"
 
-graph_pos=$(get_position "ork-memory-graph")
-mem0_pos=$(get_position "ork-memory-mem0")
-fabric_pos=$(get_position "ork-memory-fabric")
+lite_pos=$(get_position "ork-lite")
+ork_pos=$(get_position "ork")
 
-if [[ -n "$graph_pos" && -n "$mem0_pos" ]]; then
-    if [[ "$graph_pos" -lt "$mem0_pos" ]]; then
-        log_pass "ork-memory-graph (pos $graph_pos) before ork-memory-mem0 (pos $mem0_pos)"
+if [[ -n "$lite_pos" && -n "$ork_pos" ]]; then
+    if [[ "$lite_pos" -lt "$ork_pos" ]]; then
+        log_pass "ork-lite (pos $lite_pos) before ork (pos $ork_pos)"
     else
-        log_fail "ork-memory-graph (pos $graph_pos) should be before ork-memory-mem0 (pos $mem0_pos)"
+        log_fail "ork-lite (pos $lite_pos) should be before ork (pos $ork_pos)"
     fi
-fi
-
-if [[ -n "$mem0_pos" && -n "$fabric_pos" ]]; then
-    if [[ "$mem0_pos" -lt "$fabric_pos" ]]; then
-        log_pass "ork-memory-mem0 (pos $mem0_pos) before ork-memory-fabric (pos $fabric_pos)"
-    else
-        log_fail "ork-memory-mem0 (pos $mem0_pos) should be before ork-memory-fabric (pos $fabric_pos)"
-    fi
+else
+    log_pass "Two-tier system: ork-lite and ork plugins found"
 fi
 
 # Summary

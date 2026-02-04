@@ -279,36 +279,27 @@ cat > "$TMPDIR5/manifests/ork.json" <<'EOF'
 {"name": "ork", "version": "5.4.0", "description": "main"}
 EOF
 
-cat > "$TMPDIR5/manifests/ork-core.json" <<'EOF'
-{"name": "ork-core", "version": "5.4.0", "description": "core"}
-EOF
-
-cat > "$TMPDIR5/manifests/ork-memory-graph.json" <<'EOF'
-{"name": "ork-memory-graph", "version": "5.4.0", "description": "memory"}
+cat > "$TMPDIR5/manifests/ork-lite.json" <<'EOF'
+{"name": "ork-lite", "version": "6.0.0", "description": "universal"}
 EOF
 
 cat > "$TMPDIR5/marketplace.json" <<'EOF'
 {
   "name": "orchestkit",
-  "version": "5.4.0",
+  "version": "6.0.0",
   "plugins": [
-    {"name": "ork", "version": "5.3.0", "description": "main", "source": ".", "category": "dev"},
-    {"name": "ork-core", "version": "5.2.0", "description": "core", "source": "./plugins/ork-core", "category": "dev"},
-    {"name": "ork-memory-graph", "version": "5.1.0", "description": "memory", "source": "./plugins/ork-memory-graph", "category": "dev"}
+    {"name": "ork-lite", "version": "5.9.0", "description": "universal", "source": "./plugins/ork-lite", "category": "dev"},
+    {"name": "ork", "version": "5.9.0", "description": "full", "source": "./plugins/ork", "category": "dev"}
   ]
 }
 EOF
 
 SYNC_RESULT=$(run_sync "$TMPDIR5/manifests" "$TMPDIR5/marketplace.json")
-assert_eq "3" "$SYNC_RESULT" "Sync count is 3 for 3 mismatched plugins"
+assert_eq "1" "$SYNC_RESULT" "Sync count is 1 for 1 mismatched plugin"
 
-V1=$(jq -r '.plugins[] | select(.name == "ork") | .version' "$TMPDIR5/marketplace.json")
-V2=$(jq -r '.plugins[] | select(.name == "ork-core") | .version' "$TMPDIR5/marketplace.json")
-V3=$(jq -r '.plugins[] | select(.name == "ork-memory-graph") | .version' "$TMPDIR5/marketplace.json")
+V1=$(jq -r '.plugins[] | select(.name == "ork-lite") | .version' "$TMPDIR5/marketplace.json")
 
-assert_eq "5.4.0" "$V1" "ork plugin synced to 5.4.0"
-assert_eq "5.4.0" "$V2" "ork-core plugin synced to 5.4.0"
-assert_eq "5.4.0" "$V3" "ork-memory-graph plugin synced to 5.4.0"
+assert_eq "6.0.0" "$V1" "ork-lite plugin synced to 6.0.0"
 
 rm -rf "$TMPDIR5"
 echo ""
@@ -596,55 +587,49 @@ echo ""
 # ============================================================================
 # Test 14: Realistic scale — 36 plugins matching production (P3.7)
 # ============================================================================
-echo "--- Test 14: Realistic 36-plugin scale test ---"
+echo "--- Test 14: Two-tier plugin scale test ---"
 
 TMPDIR14=$(mktemp -d)
 mkdir -p "$TMPDIR14/manifests"
 
-# Generate 36 manifests (matching OrchestKit production count)
+# Generate 2 manifests (matching OrchestKit v6.0.0 two-tier system)
 PLUGIN_NAMES=(
-    "ork" "ork-core" "ork-memory-graph" "ork-memory-mem0" "ork-memory-fabric"
-    "ork-security" "ork-testing" "ork-ci" "ork-frontend" "ork-backend"
-    "ork-database" "ork-api" "ork-auth" "ork-cache" "ork-queue"
-    "ork-search" "ork-ml" "ork-monitoring" "ork-logging" "ork-analytics"
-    "ork-notifications" "ork-storage" "ork-cdn" "ork-gateway" "ork-proxy"
-    "ork-scheduler" "ork-workers" "ork-webhooks" "ork-events" "ork-stream"
-    "ork-config" "ork-secrets" "ork-vault" "ork-audit" "ork-compliance" "ork-governance"
+    "ork-lite" "ork"
 )
 
-# Create marketplace with all 36 plugins at version 5.3.0
+# Create marketplace with 2 plugins at version 5.9.0
 MARKETPLACE_PLUGINS=""
 for i in "${!PLUGIN_NAMES[@]}"; do
     name="${PLUGIN_NAMES[$i]}"
     if [[ $i -gt 0 ]]; then
         MARKETPLACE_PLUGINS+=","
     fi
-    MARKETPLACE_PLUGINS+="{\"name\":\"$name\",\"version\":\"5.3.0\",\"source\":\".\",\"category\":\"dev\"}"
+    MARKETPLACE_PLUGINS+="{\"name\":\"$name\",\"version\":\"5.9.0\",\"source\":\"./plugins/$name\",\"category\":\"dev\"}"
 done
 
-echo "{\"name\":\"orchestkit\",\"version\":\"5.4.0\",\"plugins\":[$MARKETPLACE_PLUGINS]}" > "$TMPDIR14/marketplace.json"
+echo "{\"name\":\"orchestkit\",\"version\":\"6.0.0\",\"plugins\":[$MARKETPLACE_PLUGINS]}" > "$TMPDIR14/marketplace.json"
 
-# Create manifests for all 36 at version 5.4.0
+# Create manifests for both at version 6.0.0
 for name in "${PLUGIN_NAMES[@]}"; do
-    echo "{\"name\":\"$name\",\"version\":\"5.4.0\",\"description\":\"test\"}" > "$TMPDIR14/manifests/${name}.json"
+    echo "{\"name\":\"$name\",\"version\":\"6.0.0\",\"description\":\"test\"}" > "$TMPDIR14/manifests/${name}.json"
 done
 
 SYNC_RESULT=$(run_sync "$TMPDIR14/manifests" "$TMPDIR14/marketplace.json")
-assert_eq "36" "$SYNC_RESULT" "Sync count is 36 for 36 mismatched plugins"
+assert_eq "2" "$SYNC_RESULT" "Sync count is 2 for 2 mismatched plugins"
 
-# Verify a sample of plugins were updated
-V_FIRST=$(jq -r '.plugins[] | select(.name == "ork") | .version' "$TMPDIR14/marketplace.json")
-V_LAST=$(jq -r '.plugins[] | select(.name == "ork-governance") | .version' "$TMPDIR14/marketplace.json")
-assert_eq "5.4.0" "$V_FIRST" "First plugin (ork) synced to 5.4.0"
-assert_eq "5.4.0" "$V_LAST" "Last plugin (ork-governance) synced to 5.4.0"
+# Verify plugins were updated
+V_LITE=$(jq -r '.plugins[] | select(.name == "ork-lite") | .version' "$TMPDIR14/marketplace.json")
+V_ORK=$(jq -r '.plugins[] | select(.name == "ork") | .version' "$TMPDIR14/marketplace.json")
+assert_eq "6.0.0" "$V_LITE" "ork-lite synced to 6.0.0"
+assert_eq "6.0.0" "$V_ORK" "ork synced to 6.0.0"
 
-# Verify no .tmp files left behind at scale
+# Verify no .tmp files left behind
 tests_run=$((tests_run + 1))
 TMP_COUNT=$(find "$TMPDIR14" -name "*.tmp" 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$TMP_COUNT" == "0" ]]; then
-    log_success "No .tmp files left behind at 36-plugin scale"
+    log_success "No .tmp files left behind"
 else
-    log_error "$TMP_COUNT .tmp files left behind at scale"
+    log_error "$TMP_COUNT .tmp files left behind"
 fi
 
 rm -rf "$TMPDIR14"
