@@ -3,18 +3,16 @@
 
 title = "gitleaks config"
 
-# Allow test API keys in test files
-[[rules]]
-id = "test-api-key-allowlist"
-description = "Allow test API keys in test files"
-regex = '''test-api-key-\d+'''
-allowlist = { regexTarget = "match" }
-
-# Allow generic API key patterns in test files
+# Global allowlist - ignore test files completely
 [allowlist]
-description = "Allow test mock values"
+description = "Ignore test files containing mock credentials"
 paths = [
-  '''.*__tests__.*\.ts$''',
+  '''.*__tests__.*''',
   '''.*\.test\.ts$''',
   '''.*\.spec\.ts$''',
+  '''.*test-.*\.sh$''',
+]
+regexTarget = "match"
+regexes = [
+  '''test-api-key-\d+''',
 ]

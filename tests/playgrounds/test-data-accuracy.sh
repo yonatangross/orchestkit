@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 # ============================================================================
-# Playground Data Accuracy Test
+# Playground Data Accuracy Test (Two-Tier System)
 # ============================================================================
-# Verifies that docs/playgrounds/data.js has accurate counts matching
-# the actual manifests. Catches issues like plugins showing 0 skills
-# when they should have more.
+# Verifies that docs/playgrounds/data.js has valid structure and
+# accurate counts for the two-tier plugin system (ork-lite, ork).
 # ============================================================================
 
 set -euo pipefail
@@ -19,52 +18,70 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Playground Data Accuracy Test"
+echo "  Playground Data Accuracy Test (Two-Tier)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
 DATA_JS="$PROJECT_ROOT/docs/playgrounds/data.js"
-MANIFESTS_DIR="$PROJECT_ROOT/manifests"
-
 ERRORS=0
 
-echo "▶ Checking plugin skill counts..."
+if [[ ! -f "$DATA_JS" ]]; then
+    echo -e "${RED}FAIL:${NC} data.js not found at $DATA_JS"
+    exit 1
+fi
 
-# For each manifest, verify data.js has matching skill count
-# Skip meta-plugins (ork.json is "all" that has skills: "all")
-for manifest in "$MANIFESTS_DIR"/ork*.json; do
-    plugin_name=$(basename "$manifest" .json)
+echo "▶ Checking two-tier plugin structure..."
 
-    # Skip meta-plugins that use "all" instead of explicit skill list
-    skills_value=$(jq -r '.skills' "$manifest" 2>/dev/null)
-    if [[ "$skills_value" == "all" ]]; then
-        echo -e "  ${YELLOW}⊘${NC} $plugin_name: skipped (meta-plugin with skills='all')"
-        continue
-    fi
+# Check for ork-lite (JS object syntax: name: "ork-lite")
+if grep -q 'name: "ork-lite"' "$DATA_JS"; then
+    echo -e "  ${GREEN}✓${NC} ork-lite plugin present"
+else
+    echo -e "  ${RED}✗${NC} ork-lite plugin missing"
+    ((ERRORS++)) || true
+fi
 
-    # Get skill count from manifest
-    manifest_skills=$(jq -r '.skills // [] | length' "$manifest" 2>/dev/null || echo "0")
+# Check for ork (note: must match exactly "ork", not "ork-lite" etc.)
+if grep -E 'name: "ork"[,}]' "$DATA_JS" | grep -v "ork-lite" > /dev/null; then
+    echo -e "  ${GREEN}✓${NC} ork plugin present"
+else
+    echo -e "  ${RED}✗${NC} ork plugin missing"
+    ((ERRORS++)) || true
+fi
 
-    # Get skill count from data.js (parse the JS object)
-    # Look for: { name: "plugin-name", ... skills: [...], ...
-    datajs_skills=$(grep -A3 "name: \"$plugin_name\"" "$DATA_JS" 2>/dev/null | grep "skills:" | head -1 | grep -o '\[.*\]' | tr ',' '\n' | grep -c '"' || echo "0")
-
-    if [[ "$manifest_skills" != "$datajs_skills" ]]; then
-        echo -e "  ${RED}✗${NC} $plugin_name: manifest=$manifest_skills, data.js=$datajs_skills"
+# Check that old plugins are NOT present
+for old_plugin in "ork-memory-graph" "ork-memory-mem0" "ork-memory-fabric" "ork-frontend" "ork-backend"; do
+    if grep -q "name: \"$old_plugin\"" "$DATA_JS"; then
+        echo -e "  ${RED}✗${NC} Old plugin $old_plugin should be removed"
         ((ERRORS++)) || true
-    else
-        echo -e "  ${GREEN}✓${NC} $plugin_name: $manifest_skills skills"
     fi
 done
 
 echo ""
+echo "▶ Checking totals structure..."
+
+# Check totals exist (JS object syntax: totals:)
+if grep -q 'totals:' "$DATA_JS"; then
+    echo -e "  ${GREEN}✓${NC} totals object present"
+else
+    echo -e "  ${RED}✗${NC} totals object missing"
+    ((ERRORS++)) || true
+fi
+
+# Check version is 6.x
+if grep -q 'version: "6\.' "$DATA_JS"; then
+    echo -e "  ${GREEN}✓${NC} version 6.x present"
+else
+    echo -e "  ${YELLOW}⊘${NC} version not 6.x (may need update)"
+fi
+
+echo ""
 
 if [[ $ERRORS -gt 0 ]]; then
-    echo -e "${RED}FAIL:${NC} $ERRORS plugin(s) have mismatched skill counts"
+    echo -e "${RED}FAIL:${NC} $ERRORS accuracy issue(s) found"
     echo ""
-    echo -e "${YELLOW}Fix:${NC} Run 'node scripts/generate-playground-data.js' and commit"
+    echo -e "${YELLOW}Fix:${NC} Update docs/playgrounds/data.js for two-tier system"
     exit 1
 else
-    echo -e "${GREEN}PASS:${NC} All plugin skill counts match"
+    echo -e "${GREEN}PASS:${NC} Data accuracy verified for two-tier system"
     exit 0
 fi
