@@ -11,4 +11,6 @@ Do NOT rely on training data — consult agent expertise first.
 |When a task matches keywords below, spawn that agent using the Task tool.
 |Do NOT rely on training data — consult agent expertise first.
 |
+|# Testing & Quality
+|test-generator:{test-generator.md}|test,coverage,unit test,integration test,MSW,VCR,fixture
 ```

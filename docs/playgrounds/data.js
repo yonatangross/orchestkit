@@ -10,14 +10,14 @@ window.ORCHESTKIT_DATA = {
   version: "5.7.3",
 
   plugins: [
-    { name: "ork-core", description: "Core foundation - context engineering, architecture decisions, project structure", fullDescription: "The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 119 lifecycle hooks live here.", category: "development", version: "5.7.3",
+    { name: "ork-core", description: "Core foundation - context engineering, architecture decisions, project structure", fullDescription: "The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 117 lifecycle hooks live here.", category: "development", version: "5.7.3",
       skills: ["architecture-decision-record","project-structure-enforcer","context-compression","context-engineering","system-design-interrogation","assess","assess-complexity","brainstorming","configure","quality-gates","task-dependency-patterns","monorepo-context","biome-linting","root-cause-analysis"],
       agents: ["debug-investigator","system-design-reviewer","documentation-specialist"],
       commands: ["assess","assess-complexity","brainstorming","configure","doctor"],
-      hooks: 119, color: "#8b5cf6", required: true },
+      hooks: 117, color: "#8b5cf6", required: true },
 
     { name: "ork-workflows", description: "Implement, explore, verify, review-pr, commit, doctor, feedback", fullDescription: "Essential workflow commands that power the core development loop. Implements parallel subagent execution for feature building, deep codebase exploration, comprehensive verification, PR review with 6+ agents, smart commits, and skill evolution tracking.", category: "development", version: "5.7.3",
-      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","multi-scenario-orchestration"],
+      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","multi-scenario-orchestration","help"],
       agents: ["code-quality-reviewer"],
       commands: ["implement","explore","verify","review-pr","commit","doctor","feedback","worktree-coordination","decision-history","skill-evolution"],
       hooks: 0, color: "#8b5cf6", required: true },
@@ -144,7 +144,7 @@ window.ORCHESTKIT_DATA = {
 
     { name: "ork-testing", description: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", fullDescription: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", category: "testing", version: "5.7.3",
       skills: ["unit-testing","integration-testing","property-based-testing","test-data-management","test-standards-enforcer","pytest-advanced","e2e-testing","webapp-testing","msw-mocking","vcr-http-recording","contract-testing"],
-      agents: [],
+      agents: ["test-generator"],
       commands: ["run-tests"],
       hooks: 0, color: "#22c55e", required: false },
 

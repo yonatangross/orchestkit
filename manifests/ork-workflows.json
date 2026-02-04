@@ -18,7 +18,8 @@
     "doctor",
     "errors",
     "run-tests",
-    "multi-scenario-orchestration"
+    "multi-scenario-orchestration",
+    "help"
   ],
   "agents": [
     "code-quality-reviewer"

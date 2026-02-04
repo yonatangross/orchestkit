@@ -18,6 +18,6 @@
     "vcr-http-recording",
     "contract-testing"
   ],
-  "agents": [],
+  "agents": ["test-generator"],
   "hooks": "none"
 }
