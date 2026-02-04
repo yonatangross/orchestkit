@@ -74,6 +74,10 @@ interface CoverageResult {
   current: number;
   previous: number;
   delta: number;
+  lines: number;
+  functions: number;
+  branches: number;
+  statements: number;
   files?: Array<{ file: string; coverage: number; delta: number }>;
 }
 
@@ -225,18 +229,42 @@ function collectSecurityResults(): SecurityResult {
 }
 
 function collectCoverageResults(): CoverageResult {
-  const envResult = getEnvJson<CoverageResult>('CI_COVERAGE', {
+  const defaultResult: CoverageResult = {
     current: 0,
     previous: 0,
     delta: 0,
-  });
+    lines: 0,
+    functions: 0,
+    branches: 0,
+    statements: 0,
+  };
 
-  if (envResult.current > 0) return envResult;
+  // Try CI_COVERAGE env var first (detailed format from vitest)
+  const envResult = getEnvJson<Partial<CoverageResult>>('CI_COVERAGE', {});
+
+  if (envResult.lines && envResult.lines > 0) {
+    const lines = envResult.lines || 0;
+    const functions = envResult.functions || 0;
+    const branches = envResult.branches || 0;
+    const statements = envResult.statements || 0;
+    const current = (lines + functions + branches + statements) / 4;
+
+    return {
+      current,
+      previous: 0,
+      delta: 0,
+      lines,
+      functions,
+      branches,
+      statements,
+    };
+  }
 
   // Try to read coverage from common locations
   const coveragePaths = [
+    'coverage-summary.json', // Root (copied from hooks)
     'coverage/coverage-summary.json',
-    'coverage/lcov-report/index.html',
+    'src/hooks/coverage/coverage-summary.json',
     '.nyc_output/coverage-summary.json',
   ];
 
@@ -244,10 +272,24 @@ function collectCoverageResults(): CoverageResult {
     if (existsSync(path)) {
       try {
         const content = readFileSync(path, 'utf-8');
-        if (path.endsWith('.json')) {
-          const data = JSON.parse(content);
-          const current = data.total?.lines?.pct || data.total?.statements?.pct || 0;
-          return { current, previous: 0, delta: 0 };
+        const data = JSON.parse(content);
+
+        if (data.total) {
+          const lines = data.total.lines?.pct || 0;
+          const functions = data.total.functions?.pct || 0;
+          const branches = data.total.branches?.pct || 0;
+          const statements = data.total.statements?.pct || 0;
+          const current = (lines + functions + branches + statements) / 4;
+
+          return {
+            current,
+            previous: 0,
+            delta: 0,
+            lines,
+            functions,
+            branches,
+            statements,
+          };
         }
       } catch {
         continue;
@@ -255,7 +297,7 @@ function collectCoverageResults(): CoverageResult {
     }
   }
 
-  return { current: 0, previous: 0, delta: 0 };
+  return defaultResult;
 }
 
 function getGitInfo(): { commit: string; branch: string } {
@@ -467,10 +509,66 @@ function generateHtml(report: CIReport): string {
         <div class="text-2xl font-bold ${report.coverage.current >= 80 ? 'text-ci-green' : report.coverage.current >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">
           ${report.coverage.current.toFixed(1)}%
         </div>
-        <div class="text-sm text-gray-400">Coverage</div>
+        <div class="text-sm text-gray-400">Coverage (Avg)</div>
         ${report.coverage.delta !== 0 ? `<div class="text-xs ${report.coverage.delta >= 0 ? 'text-ci-green' : 'text-ci-red'} mt-1">${report.coverage.delta >= 0 ? '+' : ''}${report.coverage.delta.toFixed(1)}%</div>` : ''}
       </div>
     </div>
+
+    <!-- Coverage Details (Full Width) -->
+    ${
+      report.coverage.lines > 0
+        ? `
+    <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+      <h2 class="text-lg font-semibold mb-4">📊 Coverage Breakdown (vitest + @vitest/coverage-v8)</h2>
+      <div class="grid grid-cols-4 gap-4">
+        <!-- Lines -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-400">Lines</span>
+            <span class="text-sm font-medium ${report.coverage.lines >= 80 ? 'text-ci-green' : report.coverage.lines >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.lines.toFixed(1)}%</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-3">
+            <div class="${report.coverage.lines >= 80 ? 'bg-ci-green' : report.coverage.lines >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.lines)}%"></div>
+          </div>
+        </div>
+        <!-- Functions -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-400">Functions</span>
+            <span class="text-sm font-medium ${report.coverage.functions >= 80 ? 'text-ci-green' : report.coverage.functions >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.functions.toFixed(1)}%</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-3">
+            <div class="${report.coverage.functions >= 80 ? 'bg-ci-green' : report.coverage.functions >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.functions)}%"></div>
+          </div>
+        </div>
+        <!-- Branches -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-400">Branches</span>
+            <span class="text-sm font-medium ${report.coverage.branches >= 80 ? 'text-ci-green' : report.coverage.branches >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.branches.toFixed(1)}%</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-3">
+            <div class="${report.coverage.branches >= 80 ? 'bg-ci-green' : report.coverage.branches >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.branches)}%"></div>
+          </div>
+        </div>
+        <!-- Statements -->
+        <div>
+          <div class="flex justify-between mb-1">
+            <span class="text-sm text-gray-400">Statements</span>
+            <span class="text-sm font-medium ${report.coverage.statements >= 80 ? 'text-ci-green' : report.coverage.statements >= 60 ? 'text-ci-yellow' : 'text-ci-red'}">${report.coverage.statements.toFixed(1)}%</span>
+          </div>
+          <div class="w-full bg-gray-700 rounded-full h-3">
+            <div class="${report.coverage.statements >= 80 ? 'bg-ci-green' : report.coverage.statements >= 60 ? 'bg-ci-yellow' : 'bg-ci-red'} h-3 rounded-full transition-all" style="width: ${Math.min(100, report.coverage.statements)}%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 text-xs text-gray-500">
+        Thresholds: <span class="text-ci-green">≥80% Good</span> • <span class="text-ci-yellow">≥60% Warning</span> • <span class="text-ci-red">&lt;60% Needs Improvement</span>
+      </div>
+    </div>
+    `
+        : ''
+    }
 
     <!-- Details Sections -->
     <div class="grid grid-cols-2 gap-6">

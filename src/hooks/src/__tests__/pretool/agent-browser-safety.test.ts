@@ -9,6 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   logPermissionFeedback: vi.fn(),
+  getLogDir: vi.fn(() => '/tmp/test-orchestkit'),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
   outputDeny: vi.fn((reason: string) => ({
     continue: false,
@@ -27,6 +28,19 @@ vi.mock('../../lib/common.js', () => ({
       permissionDecision: 'allow',
     },
   })),
+}));
+
+// Mock node:fs to prevent actual file operations
+vi.mock('node:fs', () => ({
+  existsSync: vi.fn(() => false),
+  readFileSync: vi.fn(() => '{}'),
+  writeFileSync: vi.fn(),
+  mkdirSync: vi.fn(),
+}));
+
+// Mock child_process for robots.txt fetching
+vi.mock('node:child_process', () => ({
+  execSync: vi.fn(() => ''),
 }));
 
 import { agentBrowserSafety } from '../../pretool/bash/agent-browser-safety.js';

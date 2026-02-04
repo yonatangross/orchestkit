@@ -568,7 +568,8 @@ describe('Multi-Instance Coordination E2E', () => {
       }
 
       const elapsed = Date.now() - startTime;
-      expect(elapsed).toBeLessThan(500);
+      // Allow more time in CI/coverage environments
+      expect(elapsed).toBeLessThan(process.env.CI ? 2000 : 500);
     });
   });
 

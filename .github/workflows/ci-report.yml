@@ -37,16 +37,48 @@ jobs:
             echo "status=failure" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run tests
+      - name: Run tests with coverage
         id: tests
         continue-on-error: true
         run: |
-          npm test 2>&1 | tee test.log || true
-          # Extract test counts (adjust regex for your test runner)
-          passed=$(grep -oP '\d+(?=\s*passing)' test.log | head -1 || echo "0")
-          failed=$(grep -oP '\d+(?=\s*failing)' test.log | head -1 || echo "0")
+          # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
+          cd src/hooks
+          npm ci
+          npm run test:coverage 2>&1 | tee ../../test.log || true
+
+          # Copy coverage to root for report generator
+          if [ -f coverage/coverage-summary.json ]; then
+            cp coverage/coverage-summary.json ../../coverage-summary.json
+          fi
+          cd ../..
+
+          # Run other tests
+          npm test 2>&1 | tee -a test.log || true
+
+          # Extract test counts (vitest format)
+          passed=$(grep -oP '\d+(?=\s*passed)' test.log | tail -1 || echo "0")
+          failed=$(grep -oP '\d+(?=\s*failed)' test.log | tail -1 || echo "0")
+          skipped=$(grep -oP '\d+(?=\s*skipped)' test.log | tail -1 || echo "0")
           echo "passed=${passed:-0}" >> $GITHUB_OUTPUT
           echo "failed=${failed:-0}" >> $GITHUB_OUTPUT
+          echo "skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+
+          # Extract coverage from summary
+          if [ -f coverage-summary.json ]; then
+            lines=$(jq '.total.lines.pct // 0' coverage-summary.json)
+            functions=$(jq '.total.functions.pct // 0' coverage-summary.json)
+            branches=$(jq '.total.branches.pct // 0' coverage-summary.json)
+            statements=$(jq '.total.statements.pct // 0' coverage-summary.json)
+            echo "coverage_lines=${lines}" >> $GITHUB_OUTPUT
+            echo "coverage_functions=${functions}" >> $GITHUB_OUTPUT
+            echo "coverage_branches=${branches}" >> $GITHUB_OUTPUT
+            echo "coverage_statements=${statements}" >> $GITHUB_OUTPUT
+          else
+            echo "coverage_lines=0" >> $GITHUB_OUTPUT
+            echo "coverage_functions=0" >> $GITHUB_OUTPUT
+            echo "coverage_branches=0" >> $GITHUB_OUTPUT
+            echo "coverage_statements=0" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run linting
         id: lint
@@ -78,9 +110,10 @@ jobs:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_BRANCH: ${{ github.ref_name }}
           CI_PR_NUMBER: ${{ github.event.pull_request.number }}
-          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": 0, "total": ${{ steps.tests.outputs.passed || 0 }}, "failures": []}'
+          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": ${{ steps.tests.outputs.passed || 0 }}, "failures": []}'
           CI_LINT_RESULTS: '{"errors": ${{ steps.lint.outputs.errors || 0 }}, "warnings": ${{ steps.lint.outputs.warnings || 0 }}, "files": 0, "issues": []}'
           CI_SECURITY_RESULTS: '{"critical": ${{ steps.security.outputs.critical || 0 }}, "high": ${{ steps.security.outputs.high || 0 }}, "medium": ${{ steps.security.outputs.medium || 0 }}, "low": ${{ steps.security.outputs.low || 0 }}, "vulnerabilities": []}'
+          CI_COVERAGE: '{"lines": ${{ steps.tests.outputs.coverage_lines || 0 }}, "functions": ${{ steps.tests.outputs.coverage_functions || 0 }}, "branches": ${{ steps.tests.outputs.coverage_branches || 0 }}, "statements": ${{ steps.tests.outputs.coverage_statements || 0 }}}'
         run: |
           npx tsx scripts/generate-ci-report.ts --output ci-report.html
 
@@ -109,6 +142,11 @@ jobs:
                          report.score >= 70 ? 'C' :
                          report.score >= 60 ? 'D' : 'F';
 
+            const coverageEmoji = report.coverage.current >= 80 ? '✅' : report.coverage.current >= 60 ? '⚠️' : '❌';
+            const coverageDetail = report.coverage.lines > 0
+              ? `\n\n<details>\n<summary>📊 Coverage Details</summary>\n\n| Metric | Coverage |\n|--------|----------|\n| Lines | ${report.coverage.lines?.toFixed(1) || 0}% |\n| Functions | ${report.coverage.functions?.toFixed(1) || 0}% |\n| Branches | ${report.coverage.branches?.toFixed(1) || 0}% |\n| Statements | ${report.coverage.statements?.toFixed(1) || 0}% |\n\n</details>`
+              : '';
+
             const body = `## ${statusEmoji} CI Assessment Report
 
             **Score:** ${report.score}/100 (Grade ${grade})
@@ -120,12 +158,13 @@ jobs:
             | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed |
             | Lint | ${report.lint.errors > 0 ? '❌' : report.lint.warnings > 0 ? '⚠️' : '✅'} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
             | Security | ${report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅'} ${report.security.critical} critical, ${report.security.high} high |
-            | Coverage | ${report.coverage.current >= 80 ? '✅' : report.coverage.current >= 60 ? '⚠️' : '❌'} ${report.coverage.current.toFixed(1)}% |
+            | Coverage | ${coverageEmoji} ${report.coverage.current.toFixed(1)}% avg |
+            ${coverageDetail}
 
             📊 [View full report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
 
             ---
-            *Generated by OrchestKit CI Report*`;
+            *Generated by OrchestKit CI Report • vitest + @vitest/coverage-v8*`;
 
             // Find existing comment
             const { data: comments } = await github.rest.issues.listComments({
