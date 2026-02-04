@@ -314,18 +314,3 @@ Task: "Design a prompt for customer support classification"
 8. Create A/B test variant
 9. Document final prompt
 10. Return structured prompt specification
-
-## Skill Index
-
-Read the specific file before advising. Do NOT rely on training data.
-
-```
-[Skills for prompt-engineer]
-|root: ./skills
-|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
-|Do NOT rely on training data for framework patterns.
-|
-|prompt-engineering-suite:{SKILL.md,references/{chain-of-thought.md,few-shot-patterns.md,prompt-optimization.md,prompt-versioning.md}}|prompts,cot,few-shot,versioning,optimization,langfuse,dspy,2026
-|function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
-|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
-```

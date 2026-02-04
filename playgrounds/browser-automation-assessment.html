@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OrchestKit Browser Automation Assessment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'ork-purple': '#8B5CF6',
+            'ork-blue': '#3B82F6',
+            'ork-green': '#10B981',
+            'ork-yellow': '#F59E0B',
+            'ork-red': '#EF4444',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    .card-hover { transition: all 0.2s ease; }
+    .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 40px -10px rgba(0,0,0,0.3); }
+    .severity-critical { border-left: 4px solid #EF4444; }
+    .severity-high { border-left: 4px solid #F59E0B; }
+    .severity-medium { border-left: 4px solid #3B82F6; }
+    .severity-low { border-left: 4px solid #10B981; }
+    .tab-active { border-bottom: 2px solid #8B5CF6; color: #8B5CF6; }
+    .filter-active { background: linear-gradient(135deg, #8B5CF6, #3B82F6); color: white; }
+  </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen">
+  <div id="app" class="max-w-7xl mx-auto px-4 py-8">
+
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold bg-gradient-to-r from-ork-purple to-ork-blue bg-clip-text text-transparent">
+            Browser Automation Assessment
+          </h1>
+          <p class="text-gray-400 mt-1">OrchestKit capability analysis & improvement roadmap</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <div class="text-right">
+            <div class="text-2xl font-bold text-ork-green">8.5/10</div>
+            <div class="text-xs text-gray-500">Updated Score</div>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-ork-green to-emerald-500 flex items-center justify-center text-xl font-bold">
+            A-
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-5 gap-4 mb-8">
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
+        <div class="text-3xl font-bold text-ork-green">6/6</div>
+        <div class="text-sm text-gray-400">Issues Fixed</div>
+        <div class="mt-2 text-xs text-green-400">All phases complete</div>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
+        <div class="text-3xl font-bold text-ork-blue">195</div>
+        <div class="text-sm text-gray-400">Total Skills</div>
+        <div class="mt-2 text-xs text-blue-400">+2 new</div>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
+        <div class="text-3xl font-bold text-ork-purple">36</div>
+        <div class="text-sm text-gray-400">Total Agents</div>
+        <div class="mt-2 text-xs text-purple-400">+1 new</div>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
+        <div class="text-3xl font-bold text-ork-yellow">8/36</div>
+        <div class="text-sm text-gray-400">Browser-Enabled</div>
+        <div class="mt-2">
+          <div class="w-full bg-gray-700 rounded-full h-2">
+            <div class="bg-ork-yellow h-2 rounded-full" style="width: 22%"></div>
+          </div>
+        </div>
+      </div>
+      <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 card-hover">
+        <div class="text-3xl font-bold text-ork-green">117</div>
+        <div class="text-sm text-gray-400">Hooks</div>
+        <div class="mt-2 text-xs text-green-400">+safety features</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex gap-6 border-b border-gray-800 mb-6">
+      <button onclick="switchTab('implemented')" id="tab-implemented" class="pb-3 px-1 text-sm font-medium tab-active">
+        Implemented
+      </button>
+      <button onclick="switchTab('agents')" id="tab-agents" class="pb-3 px-1 text-sm font-medium text-gray-400 hover:text-gray-200">
+        Agent Status
+      </button>
+      <button onclick="switchTab('issues')" id="tab-issues" class="pb-3 px-1 text-sm font-medium text-gray-400 hover:text-gray-200">
+        GitHub Issues
+      </button>
+      <button onclick="switchTab('roadmap')" id="tab-roadmap" class="pb-3 px-1 text-sm font-medium text-gray-400 hover:text-gray-200">
+        Roadmap
+      </button>
+    </div>
+
+    <!-- Implemented Panel -->
+    <div id="panel-implemented" class="panel">
+      <div class="grid gap-4">
+        <!-- CI Dashboard -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#317</span>
+            </div>
+            <span class="text-xs text-gray-500">CI/CD</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">CI/CD Assessment Dashboard Report Generator</h3>
+          <p class="text-gray-400 text-sm mb-3">Created scripts/generate-ci-report.ts and .github/workflows/ci-report.yml</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">scripts/generate-ci-report.ts</code>
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">.github/workflows/ci-report.yml</code>
+          </div>
+        </div>
+
+        <!-- Rate Limiting -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in" style="animation-delay: 50ms">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#318</span>
+            </div>
+            <span class="text-xs text-gray-500">Security</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">Rate Limiting for agent-browser-safety Hook</h3>
+          <p class="text-gray-400 text-sm mb-3">Per-domain rate limiting: 10 req/min, 100 req/hour, burst protection</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">AGENT_BROWSER_RATE_LIMIT_PER_MIN</code>
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">AGENT_BROWSER_RATE_LIMIT_PER_HOUR</code>
+          </div>
+        </div>
+
+        <!-- robots.txt -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in" style="animation-delay: 100ms">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#319</span>
+            </div>
+            <span class="text-xs text-gray-500">Security</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">robots.txt Enforcement</h3>
+          <p class="text-gray-400 text-sm mb-3">Fetch and enforce robots.txt rules with 1-hour caching</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">AGENT_BROWSER_IGNORE_ROBOTS=true</code>
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">AGENT_BROWSER_ROBOTS_CACHE_TTL</code>
+          </div>
+        </div>
+
+        <!-- web-research-workflow -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in" style="animation-delay: 150ms">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#320</span>
+            </div>
+            <span class="text-xs text-gray-500">Skill</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">web-research-workflow Meta-Skill</h3>
+          <p class="text-gray-400 text-sm mb-3">Unified decision tree for WebFetch vs agent-browser selection</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">src/skills/web-research-workflow/SKILL.md</code>
+          </div>
+        </div>
+
+        <!-- competitive-monitoring -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in" style="animation-delay: 200ms">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#321</span>
+            </div>
+            <span class="text-xs text-gray-500">Skill</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">competitive-monitoring Skill</h3>
+          <p class="text-gray-400 text-sm mb-3">Track competitor page changes over time with diff detection</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">src/skills/competitive-monitoring/SKILL.md</code>
+            <code class="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded">user-invocable</code>
+          </div>
+        </div>
+
+        <!-- web-research-analyst -->
+        <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 card-hover severity-low fade-in" style="animation-delay: 250ms">
+          <div class="flex items-start justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <span class="px-2 py-1 text-xs rounded font-medium bg-green-500/20 text-green-400">DONE</span>
+              <span class="px-2 py-1 text-xs rounded bg-gray-700">#322</span>
+            </div>
+            <span class="text-xs text-gray-500">Agent</span>
+          </div>
+          <h3 class="font-semibold text-lg mb-2">web-research-analyst Agent</h3>
+          <p class="text-gray-400 text-sm mb-3">Specialized agent for deep web research using browser automation</p>
+          <div class="flex gap-2 flex-wrap">
+            <code class="px-2 py-1 bg-gray-800 text-xs rounded">src/agents/web-research-analyst.md</code>
+            <code class="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded">8 skills</code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agents Panel -->
+    <div id="panel-agents" class="panel hidden">
+      <div class="grid grid-cols-2 gap-6">
+        <div>
+          <h3 class="text-lg font-semibold mb-4 text-ork-green flex items-center gap-2">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+            Browser-Enabled Agents (8)
+          </h3>
+          <div class="space-y-3">
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">web-research-analyst</div>
+              <div class="text-sm text-gray-400 mt-1">NEW - Specialized browser research</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">market-intelligence</div>
+              <div class="text-sm text-gray-400 mt-1">Competitor SPA analysis</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">product-strategist</div>
+              <div class="text-sm text-gray-400 mt-1">Deep competitive research</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">ux-researcher</div>
+              <div class="text-sm text-gray-400 mt-1">Design system capture</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">documentation-specialist</div>
+              <div class="text-sm text-gray-400 mt-1">Swagger UI, API docs</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">test-generator</div>
+              <div class="text-sm text-gray-400 mt-1">E2E test automation</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">accessibility-specialist</div>
+              <div class="text-sm text-gray-400 mt-1">WCAG auditing with axe-core</div>
+            </div>
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+              <div class="font-medium text-ork-green">frontend-ui-developer</div>
+              <div class="text-sm text-gray-400 mt-1">Visual testing</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold mb-4 text-gray-400">Other Agents (28)</h3>
+          <div class="text-sm text-gray-500">
+            These agents don't require browser automation for their primary functions.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Issues Panel -->
+    <div id="panel-issues" class="panel hidden">
+      <div class="space-y-3">
+        <a href="https://github.com/yonatangross/orchestkit/issues/317" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#317 CI/CD Assessment Dashboard</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+        <a href="https://github.com/yonatangross/orchestkit/issues/318" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#318 Rate Limiting</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+        <a href="https://github.com/yonatangross/orchestkit/issues/319" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#319 robots.txt Enforcement</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+        <a href="https://github.com/yonatangross/orchestkit/issues/320" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#320 web-research-workflow Skill</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+        <a href="https://github.com/yonatangross/orchestkit/issues/321" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#321 competitive-monitoring Skill</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+        <a href="https://github.com/yonatangross/orchestkit/issues/322" target="_blank" class="block bg-gray-900 rounded-lg p-4 border border-gray-800 hover:border-gray-700">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">#322 web-research-analyst Agent</span>
+            <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">Implemented</span>
+          </div>
+        </a>
+      </div>
+      <div class="mt-6 p-4 bg-gray-900 rounded-lg border border-gray-800">
+        <a href="https://github.com/yonatangross/orchestkit/milestone/52" target="_blank" class="text-ork-purple hover:underline">
+          View Milestone: Browser Automation Enhancement →
+        </a>
+      </div>
+    </div>
+
+    <!-- Roadmap Panel -->
+    <div id="panel-roadmap" class="panel hidden">
+      <div class="space-y-6">
+        <div class="relative pl-8 pb-8 border-l-2 border-green-500">
+          <div class="absolute left-0 top-0 w-4 h-4 rounded-full bg-ork-green -translate-x-[7px]"></div>
+          <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-lg">Phase 1: Quick Wins</h3>
+              <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">COMPLETE</span>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Added browser-content-capture to 4 research agents
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="relative pl-8 pb-8 border-l-2 border-green-500">
+          <div class="absolute left-0 top-0 w-4 h-4 rounded-full bg-ork-green -translate-x-[7px]"></div>
+          <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-lg">Phase 2: Safety Enhancements</h3>
+              <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">COMPLETE</span>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                Rate limiting (10/min, 100/hour, burst protection)
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                robots.txt enforcement with caching
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="relative pl-8 pb-8 border-l-2 border-green-500">
+          <div class="absolute left-0 top-0 w-4 h-4 rounded-full bg-ork-green -translate-x-[7px]"></div>
+          <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-lg">Phase 3: New Skills</h3>
+              <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">COMPLETE</span>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                web-research-workflow meta-skill
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                competitive-monitoring skill
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="relative pl-8">
+          <div class="absolute left-0 top-0 w-4 h-4 rounded-full bg-ork-green -translate-x-[7px]"></div>
+          <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-lg">Phase 4: New Agent</h3>
+              <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">COMPLETE</span>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                web-research-analyst specialized agent
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="relative pl-8 mt-6">
+          <div class="absolute left-0 top-0 w-4 h-4 rounded-full bg-ork-blue -translate-x-[7px]"></div>
+          <div class="bg-gray-900 rounded-xl p-5 border border-blue-500/30">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-semibold text-lg">Bonus: CI Integration</h3>
+              <span class="px-2 py-1 text-xs rounded bg-green-500/20 text-green-400">COMPLETE</span>
+            </div>
+            <ul class="space-y-2 text-sm text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                CI report generator script
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-ork-green" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                GitHub Actions workflow with PR comments
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.querySelectorAll('[id^="tab-"]').forEach(t => {
+        t.classList.remove('tab-active');
+        t.classList.add('text-gray-400');
+      });
+      document.getElementById(`panel-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).classList.add('tab-active');
+      document.getElementById(`tab-${tab}`).classList.remove('text-gray-400');
+    }
+  </script>
+</body>
+</html>
