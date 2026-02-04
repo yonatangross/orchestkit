@@ -645,28 +645,8 @@
         <h1 class="welcome-title">Welcome to OrchestKit</h1>
         <p class="welcome-subtitle">Supercharge Claude Code with AI-powered development tools</p>
 
-        <div class="welcome-features">
-          <div class="welcome-feature">
-            <span class="feature-icon" style="background:var(--accent)">&#x1f4da;</span>
-            <div class="feature-text">
-              <strong>193 Skills</strong>
-              <span>Reusable knowledge modules for every stack</span>
-            </div>
-          </div>
-          <div class="welcome-feature">
-            <span class="feature-icon" style="background:var(--accent2)">&#x1f916;</span>
-            <div class="feature-text">
-              <strong>35 Agents</strong>
-              <span>Specialized AI personas for different tasks</span>
-            </div>
-          </div>
-          <div class="welcome-feature">
-            <span class="feature-icon" style="background:var(--accent4)">&#x26a1;</span>
-            <div class="feature-text">
-              <strong>117 Hooks</strong>
-              <span>Automated quality gates & lifecycle automation</span>
-            </div>
-          </div>
+        <div class="welcome-features" id="welcomeFeatures">
+          <!-- Populated dynamically from ORCHESTKIT_DATA.totals -->
         </div>
 
         <p class="welcome-cta-text">Answer 3 quick questions to get your personalized setup</p>
@@ -1123,7 +1103,7 @@ function updateAll() {
           ${p.hooks ? `
           <div class="pi-detail-section">
             <div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">${p.hooks}</span></div>
-            <div style="font-size:12px;color:var(--text-muted)">117 lifecycle hooks across 11 split bundles (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
+            <div style="font-size:12px;color:var(--text-muted)">' + ORCHESTKIT_DATA.totals.hooks + ' lifecycle hooks across 11 split bundles (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
           </div>` : ''}
         </div>
       </div>`;
@@ -1184,6 +1164,28 @@ function copyPrompt() {
   });
 }
 
+// Populate welcome screen with dynamic data
+function initWelcomeScreen() {
+  const totals = ORCHESTKIT_DATA.totals;
+  const featuresEl = document.getElementById('welcomeFeatures');
+
+  const features = [
+    { icon: '&#x1f4da;', color: 'var(--accent)', count: totals.skills, label: 'Skills', desc: 'Reusable knowledge modules for every stack' },
+    { icon: '&#x1f916;', color: 'var(--accent2)', count: totals.agents, label: 'Agents', desc: 'Specialized AI personas for different tasks' },
+    { icon: '&#x26a1;', color: 'var(--accent4)', count: totals.hooks, label: 'Hooks', desc: 'Automated quality gates & lifecycle automation' },
+  ];
+
+  featuresEl.innerHTML = features.map(f => `
+    <div class="welcome-feature">
+      <span class="feature-icon" style="background:${f.color}">${f.icon}</span>
+      <div class="feature-text">
+        <strong>${f.count} ${f.label}</strong>
+        <span>${f.desc}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
 // Welcome screen functions
 function startWizard() {
   document.getElementById('welcomeScreen').style.display = 'none';
@@ -1239,6 +1241,7 @@ updateAll = function() {
 };
 
 // Init
+initWelcomeScreen();
 updateAll();
 </script>
 <script src="nav.js"></script>
