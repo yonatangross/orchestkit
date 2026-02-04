@@ -111,10 +111,7 @@ if [[ $MISMATCH -eq 1 ]]; then
 fi
 echo "OK (all at v$PLUGIN_V)"
 
-# ===== Unit Tests (mirrors CI exactly) =====
-echo -n "  Running unit tests... "
-
-# Cross-platform timeout function
+# Cross-platform timeout function (defined early for use in all checks)
 run_with_timeout() {
   local timeout_secs=$1
   shift
@@ -127,6 +124,62 @@ run_with_timeout() {
     perl -e "alarm $timeout_secs; exec @ARGV" "$@"
   fi
 }
+
+# ===== TypeScript Type Check =====
+echo -n "  Running TypeScript type check... "
+
+if [[ -f "src/hooks/tsconfig.json" ]]; then
+  if ! run_with_timeout 120 npx tsc --noEmit -p src/hooks/tsconfig.json >/dev/null 2>&1; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  TypeScript validation failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: cd src/hooks && npx tsc --noEmit"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+else
+  echo "SKIP (no tsconfig.json)"
+fi
+
+# ===== Build Verification =====
+echo -n "  Verifying build... "
+
+if ! run_with_timeout 300 npm run build >/dev/null 2>&1; then
+  echo "FAILED"
+  echo ""
+  echo "╔════════════════════════════════════════════════════════════╗"
+  echo "║  Build failed!"
+  echo "╠════════════════════════════════════════════════════════════╣"
+  echo "║  Run: npm run build"
+  echo "╚════════════════════════════════════════════════════════════╝"
+  exit 1
+fi
+echo "OK"
+
+# ===== Import Verification =====
+echo -n "  Verifying imports... "
+
+if [[ -f "scripts/verify-imports.js" ]]; then
+  if ! run_with_timeout 60 node scripts/verify-imports.js >/dev/null 2>&1; then
+    echo "FAILED"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  Import verification failed!"
+    echo "╠════════════════════════════════════════════════════════════╣"
+    echo "║  Run: node scripts/verify-imports.js"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    exit 1
+  fi
+  echo "OK"
+else
+  echo "SKIP (verify-imports.js not found)"
+fi
+
+# ===== Unit Tests (mirrors CI exactly) =====
+echo -n "  Running unit tests... "
 
 # CI test list - must match .github/workflows/ci.yml exactly
 CI_UNIT_TESTS=(

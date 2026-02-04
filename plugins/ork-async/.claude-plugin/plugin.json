@@ -1,6 +1,6 @@
 {
   "name": "ork-async",
-  "version": "5.7.3",
+  "version": "5.7.4",
   "description": "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
   "author": {
     "name": "Yonatan Gross",

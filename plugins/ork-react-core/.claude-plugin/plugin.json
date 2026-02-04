@@ -1,6 +1,6 @@
 {
   "name": "ork-react-core",
-  "version": "5.7.3",
+  "version": "5.7.4",
   "description": "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation",
   "author": {
     "name": "Yonatan Gross",
