@@ -1,6 +1,6 @@
 {
   "name": "ork-testing",
-  "version": "5.7.3",
+  "version": "5.7.4",
   "description": "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest",
   "dependencies": [
     "ork-core"
@@ -18,6 +18,8 @@
     "vcr-http-recording",
     "contract-testing"
   ],
-  "agents": [],
+  "agents": [
+    "test-generator"
+  ],
   "hooks": "none"
 }

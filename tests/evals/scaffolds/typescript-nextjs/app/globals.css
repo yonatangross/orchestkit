@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Tailwind CSS v4 uses CSS-based configuration */
+@theme {
+  /* Custom colors */
+  --color-primary: oklch(0.7 0.15 220);
+  --color-secondary: oklch(0.6 0.12 280);
+
+  /* Custom spacing */
+  --spacing-18: 4.5rem;
+
+  /* Custom fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, monospace;
+}
+
+/* Base styles */
+@layer base {
+  html {
+    @apply antialiased;
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  }
+}

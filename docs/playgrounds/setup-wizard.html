@@ -442,6 +442,7 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
+    margin-bottom: 24px;
   }
   .prompt-header {
     display: flex;
@@ -495,6 +496,133 @@
     transition: width 0.4s ease;
   }
 
+  /* Welcome Screen */
+  .welcome-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 120px);
+    text-align: center;
+    padding: 24px;
+  }
+  .welcome-content { max-width: 480px; }
+  .logo-box-large {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 24px;
+    color: white;
+    margin-bottom: 20px;
+  }
+  .welcome-title {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .welcome-subtitle {
+    color: var(--text-muted);
+    font-size: 16px;
+    margin-bottom: 32px;
+  }
+  .welcome-features {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 32px;
+    text-align: left;
+  }
+  .welcome-feature {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .feature-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .feature-text { display: flex; flex-direction: column; gap: 2px; }
+  .feature-text strong { font-size: 14px; font-weight: 700; }
+  .feature-text span { font-size: 12px; color: var(--text-muted); }
+  .welcome-cta-text {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .welcome-cta {
+    width: 100%;
+    padding: 14px 28px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .welcome-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3); }
+  .welcome-skip {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .skip-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-size: 13px;
+    text-decoration: underline;
+  }
+  .skip-link:hover { color: var(--accent3); }
+
+  /* Progress Bar */
+  .progress-container { margin-bottom: 24px; }
+  .progress-bar {
+    height: 4px;
+    background: var(--surface2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent3));
+    transition: width 0.4s ease;
+  }
+  .progress-steps {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .progress-step { transition: color 0.2s; }
+  .progress-step.active { color: var(--accent); font-weight: 600; }
+  .progress-step.completed { color: var(--accent2); }
+
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .controls-panel, .preview-panel {
@@ -508,15 +636,52 @@
 
 <div class="layout">
   <div class="controls-panel">
-    <div class="wizard-header">
-      <div class="logo">
-        <div class="logo-box">ork</div>
-        <h1>Setup Wizard</h1>
+    <!-- Welcome Screen (Step 0) -->
+    <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-content">
+        <div class="welcome-logo">
+          <div class="logo-box-large">ork</div>
+        </div>
+        <h1 class="welcome-title">Welcome to OrchestKit</h1>
+        <p class="welcome-subtitle">Supercharge Claude Code with AI-powered development tools</p>
+
+        <div class="welcome-features" id="welcomeFeatures">
+          <!-- Populated dynamically from ORCHESTKIT_DATA.totals -->
+        </div>
+
+        <p class="welcome-cta-text">Answer 3 quick questions to get your personalized setup</p>
+        <button class="welcome-cta" onclick="startWizard()">Get Started &rarr;</button>
+
+        <div class="welcome-skip">
+          <span>Already know what you need?</span>
+          <button class="skip-link" onclick="skipToPresets()">Jump to presets</button>
+        </div>
       </div>
-      <p>Answer a few questions to get your personalized OrchestKit setup.</p>
     </div>
 
-    <div class="preset-bar">
+    <!-- Wizard Content (hidden initially) -->
+    <div class="wizard-content" id="wizardContent" style="display:none">
+      <div class="wizard-header">
+        <div class="logo">
+          <div class="logo-box">ork</div>
+          <h1>Setup Wizard</h1>
+        </div>
+        <p>Answer a few questions to get your personalized OrchestKit setup.</p>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width:33%"></div>
+        </div>
+        <div class="progress-steps">
+          <span class="progress-step active" data-step="1">Language</span>
+          <span class="progress-step" data-step="2">Focus</span>
+          <span class="progress-step" data-step="3">Features</span>
+        </div>
+      </div>
+
+      <div class="preset-bar">
       <span style="font-size:12px;color:var(--text-muted);line-height:28px;margin-right:4px">Presets:</span>
       <button class="preset-btn" onclick="applyPreset('minimal')">Minimal</button>
       <button class="preset-btn" onclick="applyPreset('backend')">Backend Dev</button>
@@ -620,9 +785,18 @@
         <div class="toggle-switch"></div>
       </div>
     </div>
+    </div><!-- end wizard-content -->
   </div>
 
   <div class="preview-panel">
+    <div class="prompt-box">
+      <div class="prompt-header">
+        <h3>Install Commands</h3>
+        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
+      </div>
+      <div class="prompt-body" id="promptOutput"></div>
+    </div>
+
     <div class="results-header">
       <div>
         <div class="results-title" id="resultsTitle">Your OrchestKit Setup</div>
@@ -634,14 +808,6 @@
     <div class="summary-bar" id="summaryBar"></div>
 
     <div class="plugin-list" id="pluginList"></div>
-
-    <div class="prompt-box">
-      <div class="prompt-header">
-        <h3>Install Commands</h3>
-        <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">Copy</button>
-      </div>
-      <div class="prompt-body" id="promptOutput"></div>
-    </div>
   </div>
 </div>
 
@@ -937,7 +1103,7 @@ function updateAll() {
           ${p.hooks ? `
           <div class="pi-detail-section">
             <div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">${p.hooks}</span></div>
-            <div style="font-size:12px;color:var(--text-muted)">119 lifecycle hooks across 11 split bundles (91 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
+            <div style="font-size:12px;color:var(--text-muted)">' + ORCHESTKIT_DATA.totals.hooks + ' lifecycle hooks across 11 split bundles (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
           </div>` : ''}
         </div>
       </div>`;
@@ -998,7 +1164,84 @@ function copyPrompt() {
   });
 }
 
+// Populate welcome screen with dynamic data
+function initWelcomeScreen() {
+  const totals = ORCHESTKIT_DATA.totals;
+  const featuresEl = document.getElementById('welcomeFeatures');
+
+  const features = [
+    { icon: '&#x1f4da;', color: 'var(--accent)', count: totals.skills, label: 'Skills', desc: 'Reusable knowledge modules for every stack' },
+    { icon: '&#x1f916;', color: 'var(--accent2)', count: totals.agents, label: 'Agents', desc: 'Specialized AI personas for different tasks' },
+    { icon: '&#x26a1;', color: 'var(--accent4)', count: totals.hooks, label: 'Hooks', desc: 'Automated quality gates & lifecycle automation' },
+  ];
+
+  featuresEl.innerHTML = features.map(f => `
+    <div class="welcome-feature">
+      <span class="feature-icon" style="background:${f.color}">${f.icon}</span>
+      <div class="feature-text">
+        <strong>${f.count} ${f.label}</strong>
+        <span>${f.desc}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Welcome screen functions
+function startWizard() {
+  document.getElementById('welcomeScreen').style.display = 'none';
+  document.getElementById('wizardContent').style.display = 'block';
+  updateProgress();
+}
+
+function skipToPresets() {
+  startWizard();
+  // Scroll to presets
+  document.querySelector('.preset-bar').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Progress bar
+function updateProgress() {
+  let progress = 0;
+  let currentStep = 1;
+
+  if (state.lang) {
+    progress += 33;
+    currentStep = 2;
+  }
+  if (state.focus) {
+    progress += 33;
+    currentStep = 3;
+  }
+  // Features always count as partial progress when visible
+  if (state.lang && state.focus) {
+    progress = 100;
+  }
+
+  document.getElementById('progressFill').style.width = progress + '%';
+
+  // Update step indicators
+  document.querySelectorAll('.progress-step').forEach((step, i) => {
+    const stepNum = i + 1;
+    step.classList.remove('active', 'completed');
+    if (stepNum < currentStep || (stepNum === 3 && progress === 100)) {
+      step.classList.add('completed');
+    } else if (stepNum === currentStep) {
+      step.classList.add('active');
+    }
+  });
+}
+
+// Override updateAll to also update progress
+const originalUpdateAll = updateAll;
+updateAll = function() {
+  originalUpdateAll();
+  if (document.getElementById('wizardContent').style.display !== 'none') {
+    updateProgress();
+  }
+};
+
 // Init
+initWelcomeScreen();
 updateAll();
 </script>
 <script src="nav.js"></script>

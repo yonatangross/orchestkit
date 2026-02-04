@@ -31,8 +31,16 @@ ERRORS=0
 echo "▶ Checking plugin skill counts..."
 
 # For each manifest, verify data.js has matching skill count
+# Skip meta-plugins (ork.json is "all" that has skills: "all")
 for manifest in "$MANIFESTS_DIR"/ork*.json; do
     plugin_name=$(basename "$manifest" .json)
+
+    # Skip meta-plugins that use "all" instead of explicit skill list
+    skills_value=$(jq -r '.skills' "$manifest" 2>/dev/null)
+    if [[ "$skills_value" == "all" ]]; then
+        echo -e "  ${YELLOW}⊘${NC} $plugin_name: skipped (meta-plugin with skills='all')"
+        continue
+    fi
 
     # Get skill count from manifest
     manifest_skills=$(jq -r '.skills // [] | length' "$manifest" 2>/dev/null || echo "0")

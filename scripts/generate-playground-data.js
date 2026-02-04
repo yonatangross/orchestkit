@@ -25,7 +25,7 @@ const PLUGIN_METADATA = {
     color: '#8b5cf6',
     required: true,
     shortDescription: 'Core foundation - context engineering, architecture decisions, project structure',
-    fullDescription: 'The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 119 lifecycle hooks live here.'
+    fullDescription: 'The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 117 lifecycle hooks live here.'
   },
   'ork-workflows': {
     category: 'development',
@@ -197,7 +197,7 @@ function getVersion() {
 function countHooks(manifest) {
   // Only ork-core has hooks
   if (manifest.name === 'ork-core' && manifest.hooks === 'all') {
-    return 119; // Current hook count
+    return 117; // Current hook count (89 global + 28 agent/skill-scoped)
   }
   return 0;
 }

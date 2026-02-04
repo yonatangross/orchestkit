@@ -120,6 +120,11 @@ jobs:
             exit 1
           fi
 
+      - name: Run Playground E2E Tests
+        run: |
+          echo "Running comprehensive playground tests..."
+          bash tests/playgrounds/test-playgrounds.sh
+
   deploy:
     name: Deploy to Vercel
     needs: validate

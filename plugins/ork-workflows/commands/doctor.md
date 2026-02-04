@@ -1,5 +1,5 @@
 ---
-description: "[QUALITY] OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
+description: "[QUALITY] OrchestKit doctor for health diagnostics. Use when checking plugin health or troubleshooting issues."
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 

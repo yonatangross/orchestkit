@@ -7,154 +7,154 @@
  * Run: npm run generate:playground-data
  */
 window.ORCHESTKIT_DATA = {
-  version: "5.7.3",
+  version: "5.7.4",
 
   plugins: [
-    { name: "ork-core", description: "Core foundation - context engineering, architecture decisions, project structure", fullDescription: "The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 119 lifecycle hooks live here.", category: "development", version: "5.7.3",
+    { name: "ork-core", description: "Core foundation - context engineering, architecture decisions, project structure", fullDescription: "The required foundation plugin. Provides context engineering, architecture decision records, project structure enforcement, brainstorming workflows, quality gates, and task dependency patterns. All 117 lifecycle hooks live here.", category: "development", version: "5.7.4",
       skills: ["architecture-decision-record","project-structure-enforcer","context-compression","context-engineering","system-design-interrogation","assess","assess-complexity","brainstorming","configure","quality-gates","task-dependency-patterns","monorepo-context","biome-linting","root-cause-analysis"],
       agents: ["debug-investigator","system-design-reviewer","documentation-specialist"],
       commands: ["assess","assess-complexity","brainstorming","configure","doctor"],
-      hooks: 119, color: "#8b5cf6", required: true },
+      hooks: 117, color: "#8b5cf6", required: true },
 
-    { name: "ork-workflows", description: "Implement, explore, verify, review-pr, commit, doctor, feedback", fullDescription: "Essential workflow commands that power the core development loop. Implements parallel subagent execution for feature building, deep codebase exploration, comprehensive verification, PR review with 6+ agents, smart commits, and skill evolution tracking.", category: "development", version: "5.7.3",
-      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","multi-scenario-orchestration"],
+    { name: "ork-workflows", description: "Implement, explore, verify, review-pr, commit, doctor, feedback", fullDescription: "Essential workflow commands that power the core development loop. Implements parallel subagent execution for feature building, deep codebase exploration, comprehensive verification, PR review with 6+ agents, smart commits, and skill evolution tracking.", category: "development", version: "5.7.4",
+      skills: ["implement","explore","verify","review-pr","code-review-playbook","skill-evolution","feedback","worktree-coordination","commit","doctor","errors","run-tests","multi-scenario-orchestration","help"],
       agents: ["code-quality-reviewer"],
       commands: ["implement","explore","verify","review-pr","commit","doctor","feedback","worktree-coordination","decision-history","skill-evolution"],
       hooks: 0, color: "#8b5cf6", required: true },
 
-    { name: "ork-accessibility", description: "Accessibility patterns — wcag-compliance, a11y-testing, focus-management", fullDescription: "Accessibility patterns — wcag-compliance, a11y-testing, focus-management", category: "accessibility", version: "5.7.3",
+    { name: "ork-accessibility", description: "Accessibility patterns — wcag-compliance, a11y-testing, focus-management", fullDescription: "Accessibility patterns — wcag-compliance, a11y-testing, focus-management", category: "accessibility", version: "5.7.4",
       skills: ["wcag-compliance","a11y-testing","focus-management"],
       agents: ["accessibility-specialist"],
       commands: [],
       hooks: 0, color: "#14b8a6", required: false },
 
-    { name: "ork-ai-observability", description: "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification", fullDescription: "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification", category: "ai", version: "5.7.3",
+    { name: "ork-ai-observability", description: "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification", fullDescription: "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification", category: "ai", version: "5.7.4",
       skills: ["langfuse-observability","cache-cost-tracking","evidence-verification","drift-detection","pii-masking-patterns","silent-failure-detection","skill-analyzer"],
       agents: ["monitoring-engineer"],
       commands: ["drift-detection","silent-failure-detection"],
       hooks: 0, color: "#06b6d4", required: false },
 
-    { name: "ork-api", description: "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling", fullDescription: "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling", category: "backend", version: "5.7.3",
+    { name: "ork-api", description: "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling", fullDescription: "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling", category: "backend", version: "5.7.4",
       skills: ["fastapi-advanced","api-design-framework","api-versioning","streaming-api-patterns","rate-limiting","error-handling-rfc9457","strawberry-graphql"],
       agents: ["backend-system-architect"],
       commands: [],
       hooks: 0, color: "#f59e0b", required: false },
 
-    { name: "ork-async", description: "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns", fullDescription: "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns", category: "backend", version: "5.7.3",
+    { name: "ork-async", description: "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns", fullDescription: "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns", category: "backend", version: "5.7.4",
       skills: ["asyncio-advanced","background-jobs","celery-advanced","distributed-locks","resilience-patterns"],
       agents: ["backend-system-architect","python-performance-engineer"],
       commands: [],
       hooks: 0, color: "#f59e0b", required: false },
 
-    { name: "ork-backend-patterns", description: "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC", fullDescription: "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC", category: "backend", version: "5.7.3",
+    { name: "ork-backend-patterns", description: "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC", fullDescription: "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC", category: "backend", version: "5.7.4",
       skills: ["clean-architecture","domain-driven-design","backend-architecture-enforcer","cqrs-patterns","event-sourcing","saga-patterns","aggregate-patterns","outbox-pattern","idempotency-patterns","caching-strategies","grpc-python","message-queues"],
       agents: ["backend-system-architect","event-driven-architect"],
       commands: [],
       hooks: 0, color: "#f59e0b", required: false },
 
-    { name: "ork-database", description: "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling", fullDescription: "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling", category: "backend", version: "5.7.3",
+    { name: "ork-database", description: "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling", fullDescription: "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling", category: "backend", version: "5.7.4",
       skills: ["sqlalchemy-2-async","alembic-migrations","database-schema-designer","database-versioning","zero-downtime-migration","connection-pooling"],
       agents: ["database-engineer"],
       commands: [],
       hooks: 0, color: "#f59e0b", required: false },
 
-    { name: "ork-devops", description: "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing", fullDescription: "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing", category: "devops", version: "5.7.3",
+    { name: "ork-devops", description: "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing", fullDescription: "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing", category: "devops", version: "5.7.4",
       skills: ["devops-deployment","observability-monitoring","performance-testing","github-operations","release-management","edge-computing-patterns","slack-integration","best-practices"],
       agents: ["ci-cd-engineer","deployment-manager","release-engineer","infrastructure-architect","monitoring-engineer"],
       commands: ["performance-testing","release-management"],
       hooks: 0, color: "#f97316", required: false },
 
-    { name: "ork-evaluation", description: "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden", fullDescription: "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden", category: "data", version: "5.7.3",
+    { name: "ork-evaluation", description: "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden", fullDescription: "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden", category: "data", version: "5.7.4",
       skills: ["llm-evaluation","golden-dataset-curation","golden-dataset-management","golden-dataset-validation","add-golden"],
       agents: ["data-pipeline-engineer"],
       commands: ["add-golden"],
       hooks: 0, color: "#6366f1", required: false },
 
-    { name: "ork-frontend", description: "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite", fullDescription: "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite", category: "frontend", version: "5.7.3",
+    { name: "ork-frontend", description: "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite", fullDescription: "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite", category: "frontend", version: "5.7.4",
       skills: ["pwa-patterns","view-transitions","scroll-driven-animations","responsive-patterns","dashboard-patterns","performance-optimization","render-optimization","lazy-loading-patterns","image-optimization","core-web-vitals","vite-advanced","recharts-patterns"],
       agents: ["frontend-ui-developer","performance-engineer"],
       commands: [],
       hooks: 0, color: "#ec4899", required: false },
 
-    { name: "ork-git", description: "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs", fullDescription: "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs", category: "development", version: "5.7.3",
+    { name: "ork-git", description: "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs", fullDescription: "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs", category: "development", version: "5.7.4",
       skills: ["git-workflow","git-recovery-command","create-pr","fix-issue","issue-progress-tracking","stacked-prs"],
       agents: ["git-operations-engineer"],
       commands: ["create-pr","fix-issue","git-recovery-command"],
       hooks: 0, color: "#8b5cf6", required: false },
 
-    { name: "ork-langgraph", description: "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal", fullDescription: "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal", category: "ai", version: "5.7.3",
+    { name: "ork-langgraph", description: "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal", fullDescription: "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal", category: "ai", version: "5.7.4",
       skills: ["langgraph-state","langgraph-routing","langgraph-parallel","langgraph-checkpoints","langgraph-functional","langgraph-supervisor","langgraph-human-in-loop","multi-agent-orchestration","agent-loops","alternative-agent-frameworks","temporal-io"],
       agents: ["workflow-architect"],
       commands: [],
       hooks: 0, color: "#06b6d4", required: false },
 
-    { name: "ork-llm", description: "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama", fullDescription: "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama", category: "ai", version: "5.7.3",
+    { name: "ork-llm", description: "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama", fullDescription: "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama", category: "ai", version: "5.7.4",
       skills: ["function-calling","prompt-engineering-suite","llm-streaming","llm-testing","llm-safety-patterns","prompt-caching","fine-tuning-customization","vision-language-models","audio-language-models","high-performance-inference","ollama-local"],
       agents: ["llm-integrator","prompt-engineer","multimodal-specialist"],
       commands: [],
       hooks: 0, color: "#06b6d4", required: false },
 
-    { name: "ork-mcp", description: "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture", fullDescription: "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture", category: "development", version: "5.7.3",
+    { name: "ork-mcp", description: "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture", fullDescription: "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture", category: "development", version: "5.7.4",
       skills: ["mcp-server-building","mcp-advanced-patterns","mcp-security-hardening","agent-browser","browser-content-capture"],
       agents: [],
       commands: ["agent-browser","browser-content-capture"],
       hooks: 0, color: "#8b5cf6", required: false },
 
-    { name: "ork-memory-fabric", description: "Memory orchestration - parallel query, cross-reference boosting", fullDescription: "Orchestration layer that merges results from graph and mem0 memory with deduplication and cross-reference boosting. Dispatches queries to both memory backends in parallel.", category: "development", version: "5.7.3",
+    { name: "ork-memory-fabric", description: "Memory orchestration - parallel query, cross-reference boosting", fullDescription: "Orchestration layer that merges results from graph and mem0 memory with deduplication and cross-reference boosting. Dispatches queries to both memory backends in parallel.", category: "development", version: "5.7.4",
       skills: ["memory-fabric"],
       agents: [],
       commands: [],
       hooks: 0, color: "#8b5cf6", required: false },
 
-    { name: "ork-memory-graph", description: "Knowledge graph memory - remember, recall, load-context", fullDescription: "Zero-config knowledge graph memory that always works. Store decisions, patterns, and context as graph entities. Recall by semantic search. Auto-load relevant context at session start.", category: "development", version: "5.7.3",
+    { name: "ork-memory-graph", description: "Knowledge graph memory - remember, recall, load-context", fullDescription: "Zero-config knowledge graph memory that always works. Store decisions, patterns, and context as graph entities. Recall by semantic search. Auto-load relevant context at session start.", category: "development", version: "5.7.4",
       skills: ["remember","memory"],
       agents: [],
       commands: ["remember","recall","load-context"],
       hooks: 0, color: "#8b5cf6", required: false },
 
-    { name: "ork-memory-mem0", description: "Mem0 cloud memory - semantic search, cross-session sync", fullDescription: "Optional cloud memory layer using Mem0 API. Provides semantic search across sessions, automatic sync of decisions and patterns. Requires MEM0_API_KEY environment variable.", category: "development", version: "5.7.3",
+    { name: "ork-memory-mem0", description: "Mem0 cloud memory - semantic search, cross-session sync", fullDescription: "Optional cloud memory layer using Mem0 API. Provides semantic search across sessions, automatic sync of decisions and patterns. Requires MEM0_API_KEY environment variable.", category: "development", version: "5.7.4",
       skills: ["mem0-memory"],
       agents: [],
       commands: ["mem0-sync"],
       hooks: 0, color: "#8b5cf6", required: false },
 
-    { name: "ork-product", description: "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence", fullDescription: "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence", category: "product", version: "5.7.3",
+    { name: "ork-product", description: "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence", fullDescription: "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence", category: "product", version: "5.7.4",
       skills: ["product-strategy-frameworks","prioritization-frameworks","business-case-analysis","market-analysis-patterns","requirements-engineering","okr-kpi-patterns"],
       agents: ["product-strategist","business-case-builder","prioritization-analyst","market-intelligence","requirements-translator","metrics-architect"],
       commands: [],
       hooks: 0, color: "#a855f7", required: false },
 
-    { name: "ork-rag", description: "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching", fullDescription: "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching", category: "ai", version: "5.7.3",
+    { name: "ork-rag", description: "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching", fullDescription: "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching", category: "ai", version: "5.7.4",
       skills: ["rag-retrieval","embeddings","contextual-retrieval","hyde-retrieval","reranking-patterns","query-decomposition","agentic-rag-patterns","multimodal-rag","pgvector-search","semantic-caching"],
       agents: ["data-pipeline-engineer","multimodal-specialist"],
       commands: [],
       hooks: 0, color: "#06b6d4", required: false },
 
-    { name: "ork-react-core", description: "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation", fullDescription: "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation", category: "frontend", version: "5.7.3",
+    { name: "ork-react-core", description: "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation", fullDescription: "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation", category: "frontend", version: "5.7.4",
       skills: ["react-server-components-framework","form-state-patterns","zustand-patterns","tanstack-query-advanced","react-aria-patterns","type-safety-validation"],
       agents: ["frontend-ui-developer"],
       commands: [],
       hooks: 0, color: "#ec4899", required: false },
 
-    { name: "ork-security", description: "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails", fullDescription: "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails", category: "security", version: "5.7.3",
+    { name: "ork-security", description: "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails", fullDescription: "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails", category: "security", version: "5.7.4",
       skills: ["owasp-top-10","auth-patterns","input-validation","defense-in-depth","security-scanning","advanced-guardrails"],
       agents: ["security-auditor","security-layer-auditor","ai-safety-auditor"],
       commands: [],
       hooks: 0, color: "#ef4444", required: false },
 
-    { name: "ork-testing", description: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", fullDescription: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", category: "testing", version: "5.7.3",
+    { name: "ork-testing", description: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", fullDescription: "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest", category: "testing", version: "5.7.4",
       skills: ["unit-testing","integration-testing","property-based-testing","test-data-management","test-standards-enforcer","pytest-advanced","e2e-testing","webapp-testing","msw-mocking","vcr-http-recording","contract-testing"],
-      agents: [],
+      agents: ["test-generator"],
       commands: ["run-tests"],
       hooks: 0, color: "#22c55e", required: false },
 
-    { name: "ork-ui-design", description: "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns", fullDescription: "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns", category: "frontend", version: "5.7.3",
+    { name: "ork-ui-design", description: "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns", fullDescription: "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns", category: "frontend", version: "5.7.4",
       skills: ["design-system-starter","shadcn-patterns","radix-primitives","motion-animation-patterns","i18n-date-patterns","user-research-methods","persona-journey-mapping"],
       agents: ["frontend-ui-developer","rapid-ui-designer","ux-researcher"],
       commands: [],
       hooks: 0, color: "#ec4899", required: false },
 
-    { name: "ork-video", description: "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing", fullDescription: "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing", category: "development", version: "5.7.3",
+    { name: "ork-video", description: "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing", fullDescription: "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing", category: "development", version: "5.7.4",
       skills: ["demo-producer","terminal-demo-generator","remotion-composer","manim-visualizer","video-storyboarding","video-pacing","narration-scripting","elevenlabs-narration","content-type-recipes","scene-intro-cards","hook-formulas","callout-positioning","heygen-avatars","thumbnail-first-frame","ascii-visualizer","audio-mixing-patterns","music-sfx-selection"],
       agents: ["demo-producer"],
       commands: ["demo-producer","remotion-composer"],
@@ -214,7 +214,7 @@ window.ORCHESTKIT_DATA = {
 
   compositions: [
     // === Production / Landscape 16:9 / Core Skills ===
-    { id: "Implement", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#8b5cf6", thumbnail: "thumbnails/Implement.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/ac596921e6535c7f52c0d6177b50803d5cbebecd-639x360.png", relatedPlugin: "ork-workflows", tags: ["core","landscape","tri-terminal"] },
+    { id: "Implement", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#8b5cf6", thumbnail: "thumbnails/Implement.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/ebd9b9be8a68c1b174b30476a939282a26e76b4c.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/ac596921e6535c7f52c0d6177b50803d5cbebecd-639x360.png", relatedPlugin: "ork-workflows", tags: ["core","landscape","tri-terminal"] },
     { id: "Verify", skill: "verify", command: "/ork:verify", hook: "6 agents validate your feature", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#22c55e", thumbnail: "thumbnails/Verify.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/43bf6882afcd73f8f5ae8e35d312b32ded656eeb-639x360.png", relatedPlugin: "ork-workflows", tags: ["core","landscape","tri-terminal"] },
     { id: "Commit", skill: "commit", command: "/ork:commit", hook: "Conventional commits in seconds", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", thumbnail: "thumbnails/Commit.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/66f43642b59e09d058ab03cfdd0d10073a2f3eba-639x360.png", relatedPlugin: "ork-workflows", tags: ["core","landscape","tri-terminal"] },
     { id: "Explore", skill: "explore", command: "/ork:explore", hook: "Understand codebases in minutes", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Core-Skills", category: "core", primaryColor: "#06b6d4", thumbnail: "thumbnails/Explore.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/d0741c09b66f877401ccfc27f956578e3ce47e2c-639x360.png", relatedPlugin: "ork-workflows", tags: ["core","landscape","tri-terminal"] },
@@ -235,7 +235,7 @@ window.ORCHESTKIT_DATA = {
     { id: "Feedback", skill: "feedback", command: "/ork:feedback", hook: "Your patterns. Your control. Privacy-first learning.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/DevOps-Skills", category: "devops", primaryColor: "#ec4899", thumbnail: "thumbnails/Feedback.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/6c9d91b24a99652598ed8648c4ffd639654e4ac1-639x360.png", relatedPlugin: "ork-workflows", tags: ["devops","landscape","tri-terminal"] },
 
     // === Production / Landscape 16:9 / AI Skills ===
-    { id: "Brainstorming", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel. 4 specialists. Synthesis included.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f59e0b", thumbnail: "thumbnails/Brainstorming.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/5f5a4e19631f87fd49c9853f63b8b472e1d5d657-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
+    { id: "Brainstorming", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel. 4 specialists. Synthesis included.", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f59e0b", thumbnail: "thumbnails/Brainstorming.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/ec4da43076fd69090737ce846df4fea831475f22.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/5f5a4e19631f87fd49c9853f63b8b472e1d5d657-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
     { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", thumbnail: "thumbnails/Assess.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/8c69c775078b8d410530eeda745c7b84cef3d7bb-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
     { id: "AssessComplexity", skill: "assess-complexity", command: "/ork:assess-complexity", hook: "Know before you code: 7 metrics, 1 decision", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#f97316", thumbnail: "thumbnails/AssessComplexity.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/0f061f093ea95cff65f2327a697ff7c6f430e6ab-639x360.png", relatedPlugin: "ork-core", tags: ["ai","landscape","tri-terminal"] },
 
@@ -271,8 +271,8 @@ window.ORCHESTKIT_DATA = {
     { id: "HYB-Remember", skill: "remember", command: "/ork:remember", hook: "Teach Claude your patterns", style: "Hybrid-VHS", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 8, folder: "Production/Landscape-16x9/Styles/Hybrid-VHS", category: "styles", primaryColor: "#ec4899", thumbnail: "thumbnails/HYB-Remember.png", relatedPlugin: "ork-memory-graph", tags: ["style","landscape","hybrid-vhs"] },
 
     // === Production / Landscape 16:9 / Styles / SkillPhase ===
-    { id: "ImplementSkillPhaseDemo", skill: "implement", command: "/ork:implement", hook: "Full-power feature implementation", style: "SkillPhase", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 24, folder: "Production/Landscape-16x9/Styles/SkillPhase", category: "styles", primaryColor: "#8b5cf6", thumbnail: "thumbnails/ImplementSkillPhaseDemo.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/b853be1a9e63c3d947c1c9cfa88232e97809d728-639x360.png", relatedPlugin: "ork-workflows", tags: ["style","landscape","skill-phase"] },
-    { id: "ImplementPhases", skill: "implement", command: "/ork:implement", hook: "Full-power feature implementation", style: "PhaseComparison", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Styles/SkillPhase", category: "styles", primaryColor: "#8b5cf6", thumbnail: "thumbnails/ImplementPhases.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/bdf669d421397fecc226b9ac1775ddbe0218fed8-639x360.png", relatedPlugin: "ork-workflows", tags: ["style","landscape","phase-comparison"] },
+    { id: "ImplementSkillPhaseDemo", skill: "implement", command: "/ork:implement", hook: "Full-power feature implementation", style: "SkillPhase", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 24, folder: "Production/Landscape-16x9/Styles/SkillPhase", category: "styles", primaryColor: "#8b5cf6", thumbnail: "thumbnails/ImplementSkillPhaseDemo.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/affeb99dd7463baddf0a77a9f3e96ceac97979fe.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/b853be1a9e63c3d947c1c9cfa88232e97809d728-639x360.png", relatedPlugin: "ork-workflows", tags: ["style","landscape","skill-phase"] },
+    { id: "ImplementPhases", skill: "implement", command: "/ork:implement", hook: "Full-power feature implementation", style: "PhaseComparison", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Styles/SkillPhase", category: "styles", primaryColor: "#8b5cf6", thumbnail: "thumbnails/ImplementPhases.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/434dbef49a412f3b2ec2a57b965a14feec207573.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/bdf669d421397fecc226b9ac1775ddbe0218fed8-639x360.png", relatedPlugin: "ork-workflows", tags: ["style","landscape","phase-comparison"] },
 
     // === Production / Vertical 9:16 / TriTerminalRace ===
     { id: "V-TTR-Implement", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "vertical", width: 1080, height: 1920, fps: 30, durationSeconds: 18, folder: "Production/Vertical-9x16/TriTerminalRace", category: "core", primaryColor: "#8b5cf6", thumbnail: "thumbnails/V-TTR-Implement.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/a3893e2fd400e75e89b14c566571badbe89c0ef9-360x639.png", relatedPlugin: "ork-workflows", tags: ["core","vertical","tri-terminal"] },
@@ -312,14 +312,14 @@ window.ORCHESTKIT_DATA = {
     { id: "SQ-SM-ReviewPR", skill: "review-pr", command: "/ork:review-pr", hook: "Expert PR review in minutes", style: "SplitThenMerge", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Square-1x1/SplitMerge", category: "styles", primaryColor: "#f97316", thumbnail: "thumbnails/SQ-SM-ReviewPR.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/67943b5c868b124daf17c074078ae09516e5cdb3-360x360.png", relatedPlugin: "ork-workflows", tags: ["style","square","split-merge"] },
 
     // === Production / Square 1:1 / Social ===
-    { id: "SpeedrunDemo", skill: "speedrun", command: "", hook: "Full-stack speedrun", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/SpeedrunDemo.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/56f0ff382bbe8ab7d351149b669bfbd39e15a8d2-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
-    { id: "BrainstormingShowcase", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#f59e0b", thumbnail: "thumbnails/BrainstormingShowcase.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/43ab22d956661df0f06f394a989d8f927d822774-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
-    { id: "HooksAsyncDemo", skill: "hooks", command: "", hook: "Async hooks in action", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/HooksAsyncDemo.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/7b5cdeb5fd2a241f816b537149922c8bad45ae12-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
+    { id: "SpeedrunDemo", skill: "speedrun", command: "", hook: "Full-stack speedrun", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/SpeedrunDemo.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/bd84da7bb8acf496ac2fa3690fc694efece66a46.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/56f0ff382bbe8ab7d351149b669bfbd39e15a8d2-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
+    { id: "BrainstormingShowcase", skill: "brainstorming", command: "/ork:brainstorming", hook: "Generate ideas in parallel", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#f59e0b", thumbnail: "thumbnails/BrainstormingShowcase.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/359f2f8d4626a787bd18d3ec569cab46b640526b.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/43ab22d956661df0f06f394a989d8f927d822774-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
+    { id: "HooksAsyncDemo", skill: "hooks", command: "", hook: "Async hooks in action", style: "Social", format: "square", width: 1080, height: 1080, fps: 30, durationSeconds: 15, folder: "Production/Square-1x1/Social", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/HooksAsyncDemo.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/92dd1e5d42352513b8447a69d79f34944ea7220c.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/7b5cdeb5fd2a241f816b537149922c8bad45ae12-360x360.png", relatedPlugin: "ork-core", tags: ["marketing","square","social"] },
 
     // === Production / Marketing ===
     { id: "HeroGif", skill: "hero", command: "", hook: "", style: "Marketing", format: "landscape", width: 1200, height: 700, fps: 15, durationSeconds: 30, folder: "Production/Marketing", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/HeroGif.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/d5676d42906c7812915c562573df4671e96fce3b-400x233.png", relatedPlugin: "ork-core", tags: ["marketing","landscape","hero","gif"] },
-    { id: "MarketplaceDemo", skill: "marketplace", command: "", hook: "", style: "Marketing", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 45, folder: "Production/Marketing", category: "marketing", primaryColor: "#a855f7", thumbnail: "thumbnails/MarketplaceDemo.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/731e9e6617f2c2ba8d523ca1e2359b403984e165-639x360.png", relatedPlugin: "ork-core", tags: ["marketing","landscape"] },
-    { id: "MarketplaceIntro", skill: "marketplace", command: "", hook: "", style: "Marketing", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 30, folder: "Production/Marketing", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/MarketplaceIntro.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/313423138e4d248f6a2c74c58ac99e19d3f50399-639x360.png", relatedPlugin: "ork-core", tags: ["marketing","landscape"] },
+    { id: "MarketplaceDemo", skill: "marketplace", command: "", hook: "", style: "Marketing", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 45, folder: "Production/Marketing", category: "marketing", primaryColor: "#a855f7", thumbnail: "thumbnails/MarketplaceDemo.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/6062454613fa4353ec211450b3f379deeeb55ba4.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/731e9e6617f2c2ba8d523ca1e2359b403984e165-639x360.png", relatedPlugin: "ork-core", tags: ["marketing","landscape"] },
+    { id: "MarketplaceIntro", skill: "marketplace", command: "", hook: "", style: "Marketing", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 30, folder: "Production/Marketing", category: "marketing", primaryColor: "#8b5cf6", thumbnail: "thumbnails/MarketplaceIntro.png", videoCdn: "https://cdn.sanity.io/files/8cv388wg/production/f9fa0f1e774b324d8a75992aed98fc98e934bd12.mp4", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/313423138e4d248f6a2c74c58ac99e19d3f50399-639x360.png", relatedPlugin: "ork-core", tags: ["marketing","landscape"] },
 
     // === Templates ===
     { id: "TPL-TriTerminalRace", skill: "implement", command: "/ork:implement", hook: "Add auth in seconds, not hours", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Templates", category: "templates", primaryColor: "#8b5cf6", thumbnail: "thumbnails/TPL-TriTerminalRace.png", thumbnailCdn: "https://cdn.sanity.io/images/8cv388wg/production/ac596921e6535c7f52c0d6177b50803d5cbebecd-639x360.png", relatedPlugin: "ork-workflows", tags: ["template","landscape"] },

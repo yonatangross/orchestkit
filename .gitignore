@@ -105,6 +105,7 @@ __pycache__/
 .claude/memory/completed-flows.jsonl
 .claude/memory/decisions.jsonl
 .claude/memory/flows/
+.claude/memory/sessions/
 .claude/memory/tool-preferences.json
 .claude/.comm-style-counter
 .claude/hooks/
@@ -121,9 +122,12 @@ docs/playgrounds/.vercel
 .claude/.satisfaction-counter
 .setup-complete
 
+# Node modules (all locations)
+node_modules/
+hooks/node_modules/
+
 # Generated plugin builds (now committed for marketplace distribution)
 # Run `npm run build` before committing to ensure plugins/ is up-to-date
-hooks/node_modules
 .claude-plugins
 viral-posts/01-skills-auto-activate.md
 viral-posts/02-specialized-agents.md

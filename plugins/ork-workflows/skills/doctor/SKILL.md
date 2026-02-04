@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: "[QUALITY] OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
+description: "[QUALITY] OrchestKit doctor for health diagnostics. Use when checking plugin health or troubleshooting issues."
 context: inherit
 version: 3.0.0
 author: OrchestKit

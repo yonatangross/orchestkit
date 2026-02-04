@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "5.7.3",
+  "version": "5.7.4",
   "engine": ">=2.1.27",
   "description": "The Complete AI Development Toolkit - 198 skills, 35 agents, 120 hooks for full-stack development",
   "owner": {
@@ -15,7 +15,7 @@
     {
       "name": "ork-core",
       "description": "Core OrchestKit foundation — essential skills, agents, and hooks. Context engineering, architecture decisions, project structure. Required for all other OrchestKit plugins.",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "ork-memory-graph",
       "description": "Knowledge graph memory — zero-config, always works. Graph-first architecture with remember, recall, and session context loading.",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -37,7 +37,7 @@
     {
       "name": "ork-memory-mem0",
       "description": "Mem0 cloud memory — semantic search, cross-session sync, analytics. Requires MEM0_API_KEY. Depends on ork-memory-graph.",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -48,7 +48,7 @@
     {
       "name": "ork-memory-fabric",
       "description": "Memory orchestration — parallel query dispatch, cross-reference boosting, deduplication across graph and mem0. Depends on ork-memory-graph.",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -59,7 +59,7 @@
     {
       "name": "ork-rag",
       "description": "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -70,7 +70,7 @@
     {
       "name": "ork-langgraph",
       "description": "LangGraph & Agent Orchestration — state, routing, parallel, checkpoints, functional, supervisor, human-in-loop, multi-agent, agent-loops, frameworks, temporal",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -81,7 +81,7 @@
     {
       "name": "ork-llm",
       "description": "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -92,7 +92,7 @@
     {
       "name": "ork-ai-observability",
       "description": "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -103,7 +103,7 @@
     {
       "name": "ork-evaluation",
       "description": "Evaluation patterns — llm-evaluation, golden-dataset-curation, golden-dataset-management, golden-dataset-validation, add-golden",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -114,7 +114,7 @@
     {
       "name": "ork-product",
       "description": "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -125,7 +125,7 @@
     {
       "name": "ork-api",
       "description": "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -136,7 +136,7 @@
     {
       "name": "ork-database",
       "description": "Database patterns — sqlalchemy-2-async, alembic-migrations, database-schema-designer, database-versioning, zero-downtime-migration, connection-pooling",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -147,7 +147,7 @@
     {
       "name": "ork-async",
       "description": "Async & Tasks — asyncio-advanced, background-jobs, celery-advanced, distributed-locks, resilience-patterns",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -158,7 +158,7 @@
     {
       "name": "ork-backend-patterns",
       "description": "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -169,7 +169,7 @@
     {
       "name": "ork-react-core",
       "description": "React Core patterns — react-server-components-framework, form-state-patterns, zustand-patterns, tanstack-query-advanced, react-aria-patterns, type-safety-validation",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -180,7 +180,7 @@
     {
       "name": "ork-ui-design",
       "description": "UI & Design patterns — design-system-starter, shadcn-patterns, radix-primitives, motion-animation-patterns, i18n-date-patterns",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -191,7 +191,7 @@
     {
       "name": "ork-frontend",
       "description": "Frontend Patterns — PWA, view-transitions, scroll-animations, responsive, dashboard, performance, render, lazy-loading, image-optimization, core-web-vitals, vite",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -202,7 +202,7 @@
     {
       "name": "ork-testing",
       "description": "Testing — unit, integration, property-based, e2e, webapp, MSW, VCR, contract, test-data, standards, pytest",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -213,7 +213,7 @@
     {
       "name": "ork-security",
       "description": "Security patterns — owasp-top-10, auth-patterns, input-validation, defense-in-depth, security-scanning, advanced-guardrails",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -224,7 +224,7 @@
     {
       "name": "ork-devops",
       "description": "DevOps & Infrastructure — deployment, monitoring, performance-testing, release-management, github-operations, edge-computing",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -235,7 +235,7 @@
     {
       "name": "ork-git",
       "description": "Git/GitHub patterns — git-workflow, git-recovery-command, create-pr, fix-issue, issue-progress-tracking, stacked-prs",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -246,7 +246,7 @@
     {
       "name": "ork-accessibility",
       "description": "Accessibility patterns — wcag-compliance, a11y-testing, focus-management",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -257,7 +257,7 @@
     {
       "name": "ork-workflows",
       "description": "Workflows — implement, explore, verify, review-pr, code-review-playbook, skill-evolution, feedback, worktree-coordination",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -268,7 +268,7 @@
     {
       "name": "ork-mcp",
       "description": "MCP Integration — mcp-server-building, mcp-advanced-patterns, mcp-security-hardening, agent-browser, browser-content-capture",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -279,7 +279,7 @@
     {
       "name": "ork-video",
       "description": "Video & Demo Production — demo-producer, remotion, manim, terminal-recording, storyboarding, narration, HeyGen avatars, audio mixing",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -290,7 +290,7 @@
     {
       "name": "ork",
       "description": "Complete AI development toolkit with 196 skills covering AI/LLM, backend, frontend, security, and testing patterns. Includes 35 specialized agents and 120 lifecycle hooks.",
-      "version": "5.7.2",
+      "version": "5.7.4",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"

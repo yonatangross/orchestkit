@@ -20,7 +20,10 @@
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
     "test:playgrounds": "bash tests/playgrounds/test-data-freshness.sh && bash tests/playgrounds/test-data-accuracy.sh",
     "test:playgrounds:freshness": "bash tests/playgrounds/test-data-freshness.sh",
-    "test:playgrounds:accuracy": "bash tests/playgrounds/test-data-accuracy.sh"
+    "test:playgrounds:accuracy": "bash tests/playgrounds/test-data-accuracy.sh",
+    "typecheck": "cd src/hooks && npx tsc --noEmit",
+    "verify:imports": "node scripts/verify-imports.js",
+    "prepush": "./bin/git-hooks/pre-push"
   },
   "repository": {
     "type": "git",
