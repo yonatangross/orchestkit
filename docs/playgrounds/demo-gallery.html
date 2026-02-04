@@ -431,45 +431,6 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
-  .render-cmd {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    position: relative;
-    margin-bottom: 16px;
-  }
-  .render-cmd-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .render-cmd code {
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 13px;
-    color: var(--accent2);
-    display: block;
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
-  .render-cmd .copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 4px 10px;
-    background: var(--accent);
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .render-cmd .copy-btn:hover { filter: brightness(1.15); }
-  .render-cmd .copy-btn.copied { background: var(--accent2); }
   .modal-variants-title {
     font-size: 12px;
     text-transform: uppercase;
@@ -479,12 +440,12 @@
   }
   .modal-variants {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .variant-tag {
     font-size: 11px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -492,6 +453,7 @@
     font-family: 'SF Mono', 'Fira Code', monospace;
     cursor: pointer;
     transition: all 0.15s;
+    margin-bottom: 2px;
   }
   .variant-tag:hover { border-color: var(--accent); }
   .variant-tag.current { border-color: var(--accent); color: var(--accent); background: rgba(139,92,246,0.1); }
@@ -748,11 +710,6 @@
           '<div class="meta-item"><div class="meta-label">Folder</div><div class="meta-value" style="font-size:11px">' + comp.folder + '</div></div>' +
           (comp.relatedPlugin ? '<div class="meta-item"><div class="meta-label">Plugin</div><div class="meta-value" style="font-size:12px;color:var(--accent)">' + comp.relatedPlugin + '</div></div>' : '') +
         '</div>' +
-        '<div class="render-cmd">' +
-          '<div class="render-cmd-label">Render Command</div>' +
-          '<code>cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4</code>' +
-          '<button class="copy-btn" onclick="copyCmd(this, \'cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4\')">Copy</button>' +
-        '</div>' +
         '<div id="shareButtonsContainer"></div>' +
         (variants.length > 0 ?
           '<div class="modal-variants-title">Other Variants (' + variants.length + ')</div>' +
@@ -790,14 +747,6 @@
     state.selectedComp = null;
     syncToUrl();
     updateBreadcrumbs();
-  };
-
-  window.copyCmd = function(btn, text) {
-    navigator.clipboard.writeText(text).then(function() {
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
-    });
   };
 
   // Close modal on overlay click
