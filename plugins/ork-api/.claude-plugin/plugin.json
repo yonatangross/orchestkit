@@ -1,6 +1,6 @@
 {
   "name": "ork-api",
-  "version": "5.7.2",
+  "version": "5.7.3",
   "description": "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling",
   "author": {
     "name": "Yonatan Gross",

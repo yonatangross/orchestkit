@@ -1,6 +1,6 @@
 ---
 name: configure
-description: "[CONFIG] OrchestKit configuration wizard. Use when configuring settings, MCP servers, or plugin options."
+description: "[CONFIG] Configure OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences."
 context: inherit
 version: 1.0.0
 author: OrchestKit

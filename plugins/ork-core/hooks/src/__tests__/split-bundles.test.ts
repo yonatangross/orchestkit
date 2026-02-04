@@ -287,7 +287,8 @@ describe('Cross-Bundle Consistency', () => {
     // 160 -> 162: Issue #245 added trackEvent export in session-tracker
     // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
     // 165 -> 163: passive-index-migration removed agent-auto-suggest + agent-orchestrator
-    expect(totalHooks).toBe(163);
+    // 163 -> 162: removed skill-resolver (Claude Code natively injects agent skills)
+    expect(totalHooks).toBe(162);
   });
 });
 

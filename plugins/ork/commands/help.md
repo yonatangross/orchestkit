@@ -158,7 +158,7 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 *Note: 4 deprecated memory skills remain available but redirect to the consolidated skills.*
 
 
-## Related
+## Related Skills
 
 - `/help` - Claude Code built-in help
 - `/config` - Claude Code configuration
