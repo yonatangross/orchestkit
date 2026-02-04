@@ -1,6 +1,6 @@
 {
   "name": "ork-llm",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "LLM Patterns — function-calling, prompt-engineering, streaming, testing, safety, caching, fine-tuning, vision, audio, inference, ollama",
   "dependencies": [
     "ork-core"

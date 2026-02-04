@@ -1,6 +1,6 @@
 {
   "name": "ork-backend-patterns",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "Backend Architecture — clean-architecture, DDD, CQRS, event-sourcing, sagas, aggregates, outbox, idempotency, caching, gRPC",
   "author": {
     "name": "Yonatan Gross",

@@ -1,6 +1,6 @@
 {
   "name": "ork-rag",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "RAG & Retrieval — retrieval, embeddings, contextual, HyDE, reranking, query-decomposition, agentic-rag, multimodal-rag, pgvector-search, semantic-caching",
   "author": {
     "name": "Yonatan Gross",

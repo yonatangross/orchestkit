@@ -1,6 +1,6 @@
 {
   "name": "ork-api",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "API Design — FastAPI, GraphQL (Strawberry), REST patterns, streaming, versioning, rate-limiting, error-handling",
   "dependencies": [
     "ork-core"

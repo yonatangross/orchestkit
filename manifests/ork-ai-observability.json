@@ -1,6 +1,6 @@
 {
   "name": "ork-ai-observability",
-  "version": "5.7.4",
+  "version": "5.7.5",
   "description": "AI Observability — langfuse-observability, cache-cost-tracking, evidence-verification",
   "dependencies": [
     "ork-core"
