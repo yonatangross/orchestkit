@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**196 skills · 35 agents · 120 hooks · 33 plugins**
+**195 skills · 36 agents · 117 hooks · 2 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -89,7 +89,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**ork-lite** (119 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**ork-lite** (125 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
 **ork** (195 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
@@ -158,11 +158,12 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v5.6.0** — Memory system improvements, graph visualization, queue recovery
+**v6.0.0** — Two-tier plugin architecture
 
-- 120 TypeScript hooks (92 global + 28 agent-scoped)
-- Interactive [Playgrounds](https://orchestkit.vercel.app/)
-- Fire-and-forget hook dispatchers
+- **Breaking**: Simplified from 26 plugins to 2 (`ork-lite` and `ork`)
+- `ork-lite` (125 skills) — Universal toolkit, all workflows work out of the box
+- `ork` (195 skills) — Full specialized with Python, React, LLM/RAG patterns
+- All 36 agents and 117 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 
