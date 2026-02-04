@@ -5,8 +5,8 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **193 skills**: Reusable knowledge modules
-- **35 agents**: Specialized AI personas
+- **195 skills**: Reusable knowledge modules
+- **36 agents**: Specialized AI personas
 - **117 hooks**: TypeScript lifecycle automation (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
@@ -17,11 +17,11 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 193 skills
+├── skills/             # 195 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
-├── agents/             # 35 agents
+├── agents/             # 36 agents
 │   └── <agent-name>.md # CC 2.1.6 format with frontmatter
 └── hooks/              # TypeScript hooks
     ├── src/            # Source files
@@ -149,13 +149,13 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-193 skills available. 21 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+195 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
+| Reference | 173 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
@@ -229,7 +229,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Description |
 |--------|--------|-------------|
-| `ork-lite` | 119 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork-lite` | 125 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork` | 195 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
 Both include all 36 agents, 117 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
