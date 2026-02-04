@@ -1,0 +1,20 @@
+# Gitleaks configuration for OrchestKit
+# https://github.com/gitleaks/gitleaks
+
+title = "gitleaks config"
+
+# Allow test API keys in test files
+[[rules]]
+id = "test-api-key-allowlist"
+description = "Allow test API keys in test files"
+regex = '''test-api-key-\d+'''
+allowlist = { regexTarget = "match" }
+
+# Allow generic API key patterns in test files
+[allowlist]
+description = "Allow test mock values"
+paths = [
+  '''.*__tests__.*\.ts$''',
+  '''.*\.test\.ts$''',
+  '''.*\.spec\.ts$''',
+]
