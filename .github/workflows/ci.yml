@@ -459,6 +459,28 @@ jobs:
           bash scripts/ci/run-tests.sh tests/evaluations --verbose
 
   # ============================================================================
+  # STAGE 8b: Playgrounds E2E Tests
+  # ============================================================================
+  playgrounds-tests:
+    name: Playgrounds E2E
+    needs: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+        with:
+          node-version: '22'
+
+      - name: Run playgrounds tests
+        shell: bash
+        run: |
+          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
+          bash scripts/ci/run-tests.sh tests/playgrounds --verbose
+
+  # ============================================================================
   # STAGE 9: Coverage Report
   # ============================================================================
   coverage-report:
@@ -502,7 +524,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, playgrounds-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -522,6 +544,7 @@ jobs:
           echo "Mem0 Tests: ${{ needs.mem0-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
           echo "System Tests: ${{ needs.system-tests.result }}"
+          echo "Playgrounds E2E: ${{ needs.playgrounds-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
           # All security checks must pass (audit + scanning + tests)
@@ -536,7 +559,8 @@ jobs:
              [[ "${{ needs.compliance-tests.result }}" != "success" ]] || \
              [[ "${{ needs.mem0-tests.result }}" != "success" ]] || \
              [[ "${{ needs.agent-skill-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.system-tests.result }}" != "success" ]]; then
+             [[ "${{ needs.system-tests.result }}" != "success" ]] || \
+             [[ "${{ needs.playgrounds-tests.result }}" != "success" ]]; then
             echo "::error::One or more CI stages failed"
             exit 1
           fi

@@ -277,6 +277,116 @@
     font-size: 11px;
     color: var(--text-muted);
   }
+  .preview-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+  .play-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    width: 24px;
+    height: 24px;
+    background: rgba(139,92,246,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: white;
+  }
+
+  /* Composition Modal */
+  .comp-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .comp-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    max-width: 700px;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+  .comp-modal-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.5);
+    border: none;
+    border-radius: 50%;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    z-index: 10;
+  }
+  .comp-modal-media {
+    position: relative;
+    background: var(--bg);
+  }
+  .comp-modal-media img,
+  .comp-modal-media video {
+    width: 100%;
+    display: block;
+  }
+  .comp-play-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    cursor: pointer;
+  }
+  .comp-play-btn {
+    width: 64px;
+    height: 64px;
+    background: rgba(139,92,246,0.9);
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .comp-play-btn:hover { transform: scale(1.1); }
+  .comp-modal-info {
+    padding: 16px 20px;
+  }
+  .comp-modal-info h3 {
+    font-size: 18px;
+    margin-bottom: 4px;
+  }
+  .comp-command {
+    color: var(--accent);
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .comp-meta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .comp-gallery-link {
+    color: var(--accent);
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .comp-gallery-link:hover { text-decoration: underline; }
 
   @media (max-width: 768px) {
     .hub-container { padding: 24px 16px 48px; }
@@ -376,10 +486,13 @@
   }).slice(0, 6);
 
   document.getElementById('previewScroll').innerHTML = previewComps.map(function(comp) {
-    return '<div class="preview-card">' +
+    var thumbnailUrl = comp.thumbnailCdn || comp.thumbnail;
+    var hasVideo = !!comp.videoCdn;
+    return '<div class="preview-card" onclick="openCompModal(\'' + comp.id + '\')" style="cursor:pointer">' +
       '<div class="preview-thumb">' +
-        '<img src="' + comp.thumbnail + '" alt="' + comp.id + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<span>' + comp.id + '</span>\'">' +
+        '<img src="' + thumbnailUrl + '" alt="' + comp.id + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<span>' + comp.id + '</span>\'">' +
         '<span class="format-badge">' + comp.format.toUpperCase() + '</span>' +
+        (hasVideo ? '<span class="play-indicator">&#9654;</span>' : '') +
       '</div>' +
       '<div class="preview-info">' +
         '<div class="name">' + comp.id + '</div>' +
@@ -387,6 +500,68 @@
       '</div>' +
     '</div>';
   }).join('');
+
+  // Composition modal functions
+  window.openCompModal = function(id) {
+    var comp = data.compositions.find(function(c) { return c.id === id; });
+    if (!comp) return;
+
+    var thumbnailUrl = comp.thumbnailCdn || comp.thumbnail;
+    var videoUrl = comp.videoCdn || null;
+
+    var modalHtml =
+      '<div class="comp-modal-overlay" onclick="closeCompModal()">' +
+        '<div class="comp-modal" onclick="event.stopPropagation()">' +
+          '<button class="comp-modal-close" onclick="closeCompModal()">&times;</button>' +
+          '<div class="comp-modal-media">' +
+            '<img id="compModalImg" src="' + thumbnailUrl + '" alt="' + comp.id + '">' +
+            (videoUrl ?
+              '<div class="comp-play-overlay" onclick="playCompVideo()">' +
+                '<button class="comp-play-btn"><svg width="32" height="32" viewBox="0 0 24 24" fill="white"><polygon points="5,3 19,12 5,21"/></svg></button>' +
+              '</div>' +
+              '<video id="compModalVideo" style="display:none" controls poster="' + thumbnailUrl + '">' +
+                '<source src="' + videoUrl + '" type="video/mp4">' +
+              '</video>'
+            : '') +
+          '</div>' +
+          '<div class="comp-modal-info">' +
+            '<h3>' + comp.id + '</h3>' +
+            '<p class="comp-command">' + (comp.command || '') + '</p>' +
+            '<div class="comp-meta">' +
+              '<span>' + comp.format + '</span>' +
+              '<span>' + comp.width + 'x' + comp.height + '</span>' +
+              '<span>' + comp.durationSeconds + 's @ ' + comp.fps + 'fps</span>' +
+              '<span>' + comp.style + '</span>' +
+            '</div>' +
+            '<a href="demo-gallery.html" class="comp-gallery-link">View in Demo Gallery &rarr;</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var container = document.getElementById('compModalContainer');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'compModalContainer';
+      document.body.appendChild(container);
+    }
+    container.innerHTML = modalHtml;
+  };
+
+  window.playCompVideo = function() {
+    var img = document.getElementById('compModalImg');
+    var overlay = document.querySelector('.comp-play-overlay');
+    var video = document.getElementById('compModalVideo');
+    if (img) img.style.display = 'none';
+    if (overlay) overlay.style.display = 'none';
+    if (video) { video.style.display = 'block'; video.play(); }
+  };
+
+  window.closeCompModal = function() {
+    var video = document.getElementById('compModalVideo');
+    if (video) { video.pause(); video.currentTime = 0; }
+    var container = document.getElementById('compModalContainer');
+    if (container) container.innerHTML = '';
+  };
 })();
 </script>
 <script src="nav.js"></script>
