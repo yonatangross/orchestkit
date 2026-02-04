@@ -4,7 +4,7 @@ description: Use when conversation context is too long, hitting token limits, or
 context: fork
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [context, compression, summarization, memory, optimization, 2026]
+tags: [context, compression, summarization, memory, optimization]
 user-invocable: false
 ---
 
@@ -18,7 +18,7 @@ Context compression is essential for long-running agent sessions. The goal is NO
 
 **Key Metric:** Tokens-per-task (total tokens to complete a task), NOT tokens-per-request.
 
-## Overview
+## When to Use
 
 - Long-running conversations approaching context limits
 - Multi-step agent workflows with accumulating history
@@ -201,7 +201,7 @@ For detailed implementation and patterns, see:
 
 ---
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )
 **Key Principle:** Optimize for tokens-per-task, not tokens-per-request
 **Recommended Strategy:** Anchored Iterative Summarization with probe-based evaluation
 

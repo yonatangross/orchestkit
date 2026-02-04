@@ -4,7 +4,7 @@ description: SOLID principles, hexagonal architecture, ports and adapters, and D
 context: fork
 agent: code-quality-reviewer
 version: 1.0.0
-tags: [architecture, solid, hexagonal, ddd, python, fastapi, 2026]
+tags: [architecture, solid, hexagonal, ddd, python, fastapi]
 author: OrchestKit
 user-invocable: false
 hooks:
@@ -19,7 +19,7 @@ hooks:
 
 Build maintainable, testable backends with SOLID principles and hexagonal architecture.
 
-## SOLID Principles (2026 Python)
+## SOLID Principles ( Python)
 
 ### S - Single Responsibility
 

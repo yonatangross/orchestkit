@@ -1,5 +1,5 @@
 ---
-description: "[BUILD] Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 ---
 

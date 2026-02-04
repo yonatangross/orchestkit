@@ -5,7 +5,7 @@ context: fork
 agent: test-generator
 version: 1.1.0
 tags: [accessibility, testing, axe-core, playwright, wcag, a11y, jest-axe]
-allowed-tools: [Read, Write, Bash, Grep, Glob]
+allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---

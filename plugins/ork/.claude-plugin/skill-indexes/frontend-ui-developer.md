@@ -3,12 +3,12 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|react-server-components-framework:{SKILL.md,references/{cache-components.md,client-components.md,component-patterns.md,data-fetching.md,migration-guide.md,nextjs-16-upgrade.md,react-19-patterns.md,routing-patterns.md,server-actions.md,server-components.md,streaming-patterns.md,tanstack-router-patterns.md}}|frontend,react,react-19.2,nextjs-16,server-components,streaming,cache-components,2026
+|react-server-components-framework:{SKILL.md,references/{cache-components.md,client-components.md,component-patterns.md,data-fetching.md,migration-guide.md,nextjs-16-upgrade.md,react-19-patterns.md,routing-patterns.md,server-actions.md,server-components.md,streaming-patterns.md,tanstack-router-patterns.md}}|frontend,react,react-19.2,nextjs-16,server-components,streaming,cache-components
 |design-system-starter:{SKILL.md,references/{component-examples.md,component-patterns.md,design-tokens.md,theming.md}}|design-system,ui,components,design-tokens,accessibility,frontend
-|type-safety-validation:{SKILL.md,references/{prisma-types.md,trpc-setup.md,ty-type-checker-patterns.md,typescript-5-features.md,typescript-advanced.md,zod-patterns.md}}|typescript,zod,trpc,prisma,type-safety,validation,exhaustive-types,branded-types,2026
+|type-safety-validation:{SKILL.md,references/{prisma-types.md,trpc-setup.md,ty-type-checker-patterns.md,typescript-5-features.md,typescript-advanced.md,zod-patterns.md}}|typescript,zod,trpc,prisma,type-safety,validation,exhaustive-types,branded-types
 |unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
-|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents,2026
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents,2026
+|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
+|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |i18n-date-patterns:{SKILL.md,references/{formatting-utilities.md,icu-messageformat.md,trans-component.md}}|i18n,internationalization,dayjs,dates,react-i18next,localization,rtl,useTranslation,useFormatting,ICU,Trans
 |motion-animation-patterns:{SKILL.md,references/{animation-presets.md}}|motion,framer-motion,animation,react,ux,transitions,hover,stagger,skeleton
 |a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
@@ -33,7 +33,7 @@
 |recharts-patterns:{SKILL.md,references/{chart-types.md}}|recharts,charts,data-visualization,react,svg,accessibility,responsive,d3
 |dashboard-patterns:{SKILL.md,references/{widget-composition.md}}|dashboard,widgets,data-grid,real-time,layout,admin,tanstack-table,sse
 |edge-computing-patterns:{SKILL.md,references/{cloudflare-workers.md,runtime-differences.md,vercel-edge.md}}|edge,cloudflare,vercel,deno,serverless,2025
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api,2026
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

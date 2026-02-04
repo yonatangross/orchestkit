@@ -542,6 +542,25 @@
     color: var(--accent);
     font-family: 'SF Mono', 'Fira Code', monospace;
   }
+  .tag-detail-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .tag-detail-doc-link:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent);
+  }
 
   /* Legend */
   .legend {
@@ -639,7 +658,6 @@
     <button class="view-btn active" data-view="grid">Grid</button>
     <button class="view-btn" data-view="treemap">Treemap</button>
     <button class="view-btn" data-view="agents">Agents</button>
-    <button class="view-btn" data-view="graph">Graph</button>
   </div>
 </div>
 
@@ -677,7 +695,8 @@
 // Compatibility shim: map shared data to local variable names
 var PLUGINS = ORCHESTKIT_DATA.plugins.map(function(p) {
   return { name: p.name, desc: p.description, category: p.category, version: p.version,
-    skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands };
+    skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands,
+    skillCount: p.skillCount, commandCount: p.commandCount };
 });
 var AGENTS = ORCHESTKIT_DATA.agents.map(function(a) {
   return { name: a.name, desc: a.description, plugins: a.plugins };
@@ -731,17 +750,8 @@ function getFilteredPlugins() {
 }
 
 function getTotals() {
-  var allSkills = {};
-  var allAgents = {};
-  var totalHooks = 0;
-  var totalCommands = 0;
-  PLUGINS.forEach(function(p) {
-    p.skills.forEach(function(s) { allSkills[s] = true; });
-    p.agents.forEach(function(a) { allAgents[a] = true; });
-    totalHooks += p.hooks;
-    totalCommands += p.commands.length;
-  });
-  return { skills: Object.keys(allSkills).length, agents: Object.keys(allAgents).length, plugins: PLUGINS.length, hooks: totalHooks, commands: totalCommands };
+  // Use pre-calculated totals from data.js (avoids double-counting shared components)
+  return ORCHESTKIT_DATA.totals;
 }
 
 // Render stats
@@ -786,11 +796,13 @@ function renderGrid() {
   el.innerHTML = plugins.map(function(p) {
     var catColor = CAT_COLORS[p.category] || { bg: '#666', label: p.category };
     var expanded = state.expandedCard === p.name;
+    var skillCount = p.skillCount || p.skills.length;
+    var cmdCount = p.commandCount || p.commands.length;
     var hooksHtml = p.hooks ? '<div class="card-metric"><div class="dot" style="background:var(--accent4)"></div><span class="count">' + p.hooks + '</span><span class="label">hooks</span></div>' : '';
-    var cmdsHtml = p.commands.length ? '<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">' + p.commands.length + '</span><span class="label">cmds</span></div>' : '';
-    var skillsSection = p.skills.length ? '<div class="detail-section"><h4>Skills (' + p.skills.length + ')</h4><div class="tag-list">' + p.skills.map(function(s) { return '<span class="tag" onclick="event.stopPropagation();showDetail(\'skill\',\'' + s + '\',this)" style="cursor:pointer">' + s + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-skill-' + p.name + '"></div></div>' : '';
+    var cmdsHtml = cmdCount ? '<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">' + cmdCount + '</span><span class="label">cmds</span></div>' : '';
+    var skillsSection = p.skills.length ? '<div class="detail-section"><h4>Skills (' + skillCount + ' total, showing ' + p.skills.length + ')</h4><div class="tag-list">' + p.skills.map(function(s) { return '<span class="tag" onclick="event.stopPropagation();showDetail(\'skill\',\'' + s + '\',this)" style="cursor:pointer">' + s + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-skill-' + p.name + '"></div></div>' : '';
     var agentsSection = p.agents.length ? '<div class="detail-section"><h4>Agents (' + p.agents.length + ')</h4><div class="tag-list">' + p.agents.map(function(a) { return '<span class="tag agent-tag" onclick="event.stopPropagation();showDetail(\'agent\',\'' + a + '\',this)" style="cursor:pointer">' + a + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-agent-' + p.name + '"></div></div>' : '';
-    var commandsSection = p.commands.length ? '<div class="detail-section"><h4>Commands (' + p.commands.length + ')</h4><div class="tag-list">' + p.commands.map(function(c) { return '<span class="tag command-tag" onclick="event.stopPropagation();showDetail(\'command\',\'' + c + '\',this)" style="cursor:pointer">/ork:' + c + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-command-' + p.name + '"></div></div>' : '';
+    var commandsSection = p.commands.length ? '<div class="detail-section"><h4>Commands (' + cmdCount + ')</h4><div class="tag-list">' + p.commands.map(function(c) { return '<span class="tag command-tag" onclick="event.stopPropagation();showDetail(\'command\',\'' + c + '\',this)" style="cursor:pointer">/ork:' + c + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-command-' + p.name + '"></div></div>' : '';
     return '<div class="plugin-card ' + (expanded ? 'expanded' : '') + '" onclick="toggleCard(\'' + p.name + '\')">' +
         '<div class="card-header">' +
           '<div class="card-name">' + p.name + '</div>' +
@@ -798,7 +810,7 @@ function renderGrid() {
         '</div>' +
         '<div class="card-desc">' + p.desc + '</div>' +
         '<div class="card-metrics">' +
-          '<div class="card-metric"><div class="dot" style="background:var(--accent3)"></div><span class="count">' + p.skills.length + '</span><span class="label">skills</span></div>' +
+          '<div class="card-metric"><div class="dot" style="background:var(--accent3)"></div><span class="count">' + skillCount + '</span><span class="label">skills</span></div>' +
           '<div class="card-metric"><div class="dot" style="background:var(--accent2)"></div><span class="count">' + p.agents.length + '</span><span class="label">agents</span></div>' +
           hooksHtml + cmdsHtml +
         '</div>' +
@@ -819,10 +831,12 @@ function renderTreemap() {
 
   // Sort by total component count
   var sorted = plugins.slice().map(function(p) {
+    var skillCount = p.skillCount || p.skills.length;
     return {
       name: p.name, desc: p.desc, category: p.category, version: p.version,
       skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands,
-      total: p.skills.length + p.agents.length + (p.hooks ? 10 : 0)
+      skillCount: skillCount,
+      total: skillCount + p.agents.length + (p.hooks ? 10 : 0)
     };
   }).sort(function(a, b) { return b.total - a.total; });
 
@@ -898,10 +912,10 @@ function renderTreemap() {
     var cat = CAT_COLORS[c.plugin.category] || { bg: '#666' };
     var showLabel = c.w > 60 && c.h > 40;
     var showCount = c.w > 40 && c.h > 30;
-    var countHtml = showCount ? '<span class="cell-count">' + (c.plugin.skills.length + c.plugin.agents.length) + '</span>' : '';
+    var countHtml = showCount ? '<span class="cell-count">' + (c.plugin.skillCount + c.plugin.agents.length) + '</span>' : '';
     var labelHtml = showLabel ? '<span class="cell-name">' + c.plugin.name.replace('ork-', '') + '</span>' : '';
     return '<div class="treemap-cell" style="left:' + c.x + 'px;top:' + c.y + 'px;width:' + c.w + 'px;height:' + c.h + 'px;background:' + cat.bg + '88;"' +
-      ' onmouseenter="showTooltip(event,\'' + c.plugin.name + '\',\'' + c.plugin.skills.length + ' skills, ' + c.plugin.agents.length + ' agents\')"' +
+      ' onmouseenter="showTooltip(event,\'' + c.plugin.name + '\',\'' + c.plugin.skillCount + ' skills, ' + c.plugin.agents.length + ' agents\')"' +
       ' onmouseleave="hideTooltip()"' +
       ' onclick="setSearch(\'' + c.plugin.name + '\');setView(\'grid\')">' +
       countHtml + labelHtml +
@@ -1138,11 +1152,13 @@ function showDetail(type, name, clickedTag) {
   }
 
   var content = '';
+  var docUrl = '';
 
   if (type === 'skill') {
     var containingPlugins = PLUGINS.filter(function(p) {
       return p.skills.indexOf(name) !== -1;
     }).map(function(p) { return p.name; });
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/skills/' + name + '/SKILL.md';
 
     content = '<div class="tag-detail-header">' +
       '<div class="tag-detail-title"><span class="tag-detail-type skill">Skill</span>' + name + '</div>' +
@@ -1152,12 +1168,14 @@ function showDetail(type, name, clickedTag) {
     '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
       containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
     '</div></div>' +
-    '<div class="tag-detail-row"><span class="tag-detail-label">Usage:</span><span class="tag-detail-value">Auto-injected when relevant</span></div>';
+    '<div class="tag-detail-row"><span class="tag-detail-label">Usage:</span><span class="tag-detail-value">Auto-injected when relevant</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
 
   } else if (type === 'agent') {
     var agent = AGENTS.filter(function(a) { return a.name === name; })[0];
     var desc = agent ? agent.desc : 'Specialized agent for ' + name.replace(/-/g, ' ') + ' tasks.';
     var plugins = agent ? agent.plugins : [];
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/agents/' + name + '.md';
 
     content = '<div class="tag-detail-header">' +
       '<div class="tag-detail-title"><span class="tag-detail-type agent">Agent</span>' + name + '</div>' +
@@ -1167,12 +1185,14 @@ function showDetail(type, name, clickedTag) {
     (plugins.length ? '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
       plugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
     '</div></div>' : '') +
-    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">Task(subagent_type="' + name + '")</span></div>';
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">Task(subagent_type="' + name + '")</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
 
   } else if (type === 'command') {
     var containingPlugins = PLUGINS.filter(function(p) {
       return p.commands.indexOf(name) !== -1;
     }).map(function(p) { return p.name; });
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/skills/' + name + '/SKILL.md';
 
     content = '<div class="tag-detail-header">' +
       '<div class="tag-detail-title"><span class="tag-detail-type command">Command</span>/ork:' + name + '</div>' +
@@ -1182,7 +1202,8 @@ function showDetail(type, name, clickedTag) {
     '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
       containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
     '</div></div>' +
-    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">/ork:' + name + '</span></div>';
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">/ork:' + name + '</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
   }
 
   detailEl.innerHTML = content;
@@ -1215,13 +1236,14 @@ function updatePrompt() {
     var filtered = getFilteredPlugins();
     if (filtered.length === 1) {
       var p = filtered[0];
-      el.textContent = 'claude plugin install ' + p.name + '\n\n# ' + p.name + ' includes:\n# ' + p.skills.length + ' skills: ' + p.skills.join(', ') + '\n# ' + p.agents.length + ' agents: ' + p.agents.join(', ');
+      var skillCount = p.skillCount || p.skills.length;
+      el.textContent = 'claude plugin install ' + p.name + '\n\n# ' + p.name + ' includes:\n# ' + skillCount + ' skills, ' + p.agents.length + ' agents, ' + p.hooks + ' hooks';
     } else {
-      el.textContent = '# ' + filtered.length + ' plugins match "' + state.search + '":\n' + filtered.map(function(p) { return 'claude plugin install ' + p.name + '  # ' + p.skills.length + ' skills, ' + p.agents.length + ' agents'; }).join('\n');
+      el.textContent = '# ' + filtered.length + ' plugins match "' + state.search + '":\n' + filtered.map(function(p) { var sc = p.skillCount || p.skills.length; return 'claude plugin install ' + p.name + '  # ' + sc + ' skills, ' + p.agents.length + ' agents'; }).join('\n');
     }
   } else {
     var otherPlugins = PLUGINS.filter(function(p) { return p.name !== 'ork'; });
-    el.textContent = '# Install the complete OrchestKit toolkit:\nclaude plugin install ork\n\n# Or install domain-specific plugins:\n' + otherPlugins.map(function(p) { return '# claude plugin install ' + p.name + '  (' + p.skills.length + ' skills, ' + p.agents.length + ' agents)'; }).join('\n');
+    el.textContent = '# Install the complete OrchestKit toolkit:\nclaude plugin install ork\n\n# Or install domain-specific plugins:\n' + otherPlugins.map(function(p) { var sc = p.skillCount || p.skills.length; return '# claude plugin install ' + p.name + '  (' + sc + ' skills, ' + p.agents.length + ' agents)'; }).join('\n');
   }
 }
 

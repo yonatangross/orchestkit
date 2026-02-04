@@ -11,58 +11,59 @@ window.ORCHESTKIT_DATA = {
   // Totals for the full ork plugin (superset)
   totals: {
     plugins: 2,
-    skills: 195,
-    agents: 36,
-    hooks: 117,
-    commands: 22,
-    compositions: 14
+    skills: 195,      // Total unique skills (ork has all)
+    agents: 36,       // Shared across both plugins
+    hooks: 117,       // Shared across both plugins
+    commands: 22      // User-invocable skills (shared)
   },
 
   // Navigation pages for index
   pages: [
     { id: "wizard", label: "Setup Wizard", href: "setup-wizard.html", icon: "&#x2728;", description: "Interactive plugin recommendation wizard" },
     { id: "explorer", label: "Marketplace Explorer", href: "marketplace-explorer.html", icon: "&#x1f50d;", description: "Browse all plugins and agents" },
-    { id: "gallery", label: "Demo Gallery", href: "demo-gallery.html", icon: "&#x1f3ac;", description: "Browse demo video compositions" }
+    { id: "gallery", label: "Demo Gallery", href: "demo-gallery.html", icon: "&#x1f3ac;", description: "Browse skill demo videos and compositions" }
   ],
 
   plugins: [
     {
       name: "ork-lite",
-      description: "Universal toolkit — 119 skills, 36 agents, 117 hooks. Language-agnostic, all workflows work out of the box.",
+      description: "Universal toolkit — 119 skills, 36 agents, 117 hooks. Language-agnostic, works for any stack.",
       fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all 36 specialized agents. Language-agnostic — works for any tech stack.",
       category: "development",
       version: "6.0.0",
       skillCount: 119,
       agentCount: 36,
       hooks: 117,
+      commandCount: 22,
       color: "#8b5cf6",
       required: false,
       recommended: true,
-      // Key skills for display (not exhaustive)
-      skills: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "mem0-memory", "memory-fabric", "assess", "assess-complexity", "brainstorming", "doctor", "feedback", "create-pr", "fix-issue", "git-recovery-command", "stacked-prs", "demo-producer", "wcag-compliance", "a11y-testing"],
-      // All 36 agents (same for both plugins)
+      // Sample skills for display (full list has 119)
+      skills: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "mem0-memory", "memory-fabric", "assess", "brainstorming", "doctor", "create-pr", "fix-issue", "demo-producer", "wcag-compliance", "a11y-testing", "clean-architecture", "domain-driven-design", "owasp-top-10"],
+      // All 36 agents (shared with ork)
       agents: ["accessibility-specialist", "ai-safety-auditor", "backend-system-architect", "business-case-builder", "ci-cd-engineer", "code-quality-reviewer", "data-pipeline-engineer", "database-engineer", "debug-investigator", "demo-producer", "deployment-manager", "documentation-specialist", "event-driven-architect", "frontend-ui-developer", "git-operations-engineer", "infrastructure-architect", "llm-integrator", "market-intelligence", "metrics-architect", "monitoring-engineer", "multimodal-specialist", "performance-engineer", "prioritization-analyst", "product-strategist", "prompt-engineer", "python-performance-engineer", "rapid-ui-designer", "release-engineer", "requirements-translator", "security-auditor", "security-layer-auditor", "system-design-reviewer", "test-generator", "ux-researcher", "web-research-analyst", "workflow-architect"],
-      // User-invocable commands (22 total)
-      commands: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "assess", "assess-complexity", "brainstorming", "doctor", "feedback", "create-pr", "fix-issue", "git-recovery-command", "worktree-coordination", "demo-producer", "help", "configure", "add-golden", "skill-evolution"]
+      // User-invocable commands (22 total, shared with ork)
+      commands: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "assess", "assess-complexity", "brainstorming", "doctor", "feedback", "create-pr", "fix-issue", "git-recovery-command", "worktree-coordination", "demo-producer", "help", "configure", "add-golden", "skill-evolution", "competitive-monitoring"]
     },
     {
       name: "ork",
-      description: "Full specialized toolkit — 195 skills, 36 agents, 117 hooks. Includes Python, React, LLM/RAG patterns.",
-      fullDescription: "The complete OrchestKit toolkit. Everything in ork-lite PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, and backend architecture (DDD, CQRS, event sourcing).",
+      description: "Full specialized toolkit — 195 skills, 36 agents, 117 hooks. Adds Python, React, LLM/RAG patterns.",
+      fullDescription: "The complete OrchestKit toolkit. Everything in ork-lite PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
       category: "development",
       version: "6.0.0",
       skillCount: 195,
       agentCount: 36,
       hooks: 117,
+      commandCount: 22,
       color: "#06b6d4",
       required: false,
       recommended: false,
-      // Key skills (includes all of ork-lite plus specialized)
-      skills: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "fastapi-advanced", "sqlalchemy-2-async", "celery-advanced", "pytest-advanced", "asyncio-advanced", "react-server-components-framework", "tanstack-query-advanced", "zustand-patterns", "form-state-patterns", "function-calling", "llm-streaming", "prompt-engineering-suite", "rag-retrieval", "embeddings", "contextual-retrieval", "pgvector-search", "clean-architecture", "domain-driven-design", "cqrs-patterns", "event-sourcing", "saga-patterns"],
-      // All 36 agents (same for both plugins)
+      // Sample skills for display - includes ork-lite + specialized (full list has 195)
+      skills: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "fastapi-advanced", "sqlalchemy-2-async", "celery-advanced", "pytest-advanced", "asyncio-advanced", "react-server-components-framework", "tanstack-query-advanced", "zustand-patterns", "function-calling", "llm-streaming", "prompt-engineering-suite", "rag-retrieval", "embeddings", "contextual-retrieval", "pgvector-search", "langgraph-patterns", "mcp-server-patterns"],
+      // All 36 agents (shared with ork-lite)
       agents: ["accessibility-specialist", "ai-safety-auditor", "backend-system-architect", "business-case-builder", "ci-cd-engineer", "code-quality-reviewer", "data-pipeline-engineer", "database-engineer", "debug-investigator", "demo-producer", "deployment-manager", "documentation-specialist", "event-driven-architect", "frontend-ui-developer", "git-operations-engineer", "infrastructure-architect", "llm-integrator", "market-intelligence", "metrics-architect", "monitoring-engineer", "multimodal-specialist", "performance-engineer", "prioritization-analyst", "product-strategist", "prompt-engineer", "python-performance-engineer", "rapid-ui-designer", "release-engineer", "requirements-translator", "security-auditor", "security-layer-auditor", "system-design-reviewer", "test-generator", "ux-researcher", "web-research-analyst", "workflow-architect"],
-      // User-invocable commands (22 total, same as ork-lite)
-      commands: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "assess", "assess-complexity", "brainstorming", "doctor", "feedback", "create-pr", "fix-issue", "git-recovery-command", "worktree-coordination", "demo-producer", "help", "configure", "add-golden", "skill-evolution"]
+      // User-invocable commands (22 total, shared with ork-lite)
+      commands: ["implement", "explore", "verify", "review-pr", "commit", "remember", "memory", "assess", "assess-complexity", "brainstorming", "doctor", "feedback", "create-pr", "fix-issue", "git-recovery-command", "worktree-coordination", "demo-producer", "help", "configure", "add-golden", "skill-evolution", "competitive-monitoring"]
     }
   ],
 

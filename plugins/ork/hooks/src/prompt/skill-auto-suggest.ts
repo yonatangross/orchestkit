@@ -182,8 +182,8 @@ const KEYWORD_MAPPINGS: Array<[string, string, number]> = [
   ['stacked.*pr', 'stacked-prs', 95],
   ['pr', 'create-pr', 60],
   ['pull.*request', 'create-pr', 75],
-  ['recovery', 'git-recovery-command', 80],
-  ['reflog', 'git-recovery-command', 95],
+  ['recovery', 'git-recovery', 80],
+  ['reflog', 'git-recovery', 95],
   ['milestone', 'github-operations', 80],
   ['issue', 'github-operations', 50],
 

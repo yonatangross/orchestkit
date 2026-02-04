@@ -80,6 +80,7 @@
   }
   .stat-item {
     text-align: center;
+    position: relative;
   }
   .stat-value {
     font-size: 36px;
@@ -93,12 +94,35 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-top: 4px;
+    cursor: default;
+  }
+  .stat-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0.2s;
+    margin-bottom: 8px;
+    z-index: 10;
+  }
+  .stat-item:hover .stat-tooltip {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* Cards grid */
   .cards-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
     margin-bottom: 48px;
   }
@@ -468,14 +492,25 @@
     skills: '#06b6d4',
     agents: '#22c55e',
     hooks: '#f59e0b',
-    commands: '#f97316',
-    compositions: '#ec4899'
+    commands: '#f97316'
   };
-  var statsOrder = ['plugins','skills','agents','hooks','commands','compositions'];
+  var statsLabels = {
+    plugins: 'Plugins',
+    skills: 'Skills',
+    agents: 'Agents',
+    hooks: 'Hooks',
+    commands: 'Slash Commands'
+  };
+  var statsTooltips = {
+    commands: '/ork:commit, /ork:review-pr, /ork:implement, etc.'
+  };
+  var statsOrder = ['plugins','skills','agents','hooks','commands'];
   document.getElementById('statsRow').innerHTML = statsOrder.map(function(key) {
+    var tooltip = statsTooltips[key] ? '<span class="stat-tooltip">' + statsTooltips[key] + '</span>' : '';
     return '<div class="stat-item">' +
+      tooltip +
       '<div class="stat-value" style="color:' + statsColors[key] + '">' + totals[key] + '</div>' +
-      '<div class="stat-label">' + key + '</div>' +
+      '<div class="stat-label">' + statsLabels[key] + '</div>' +
     '</div>';
   }).join('');
 
@@ -486,7 +521,7 @@
     return '<a class="card" href="' + page.href + '">' +
       '<div class="card-icon" style="background:' + cardColors[i] + ';border:1px solid ' + cardBorders[i] + '">' + page.icon + '</div>' +
       '<h3>' + page.label + '</h3>' +
-      '<p>' + (page.id === 'gallery' ? 'Browse ' + totals.compositions + ' demo video compositions' : page.description) + '</p>' +
+      '<p>' + page.description + '</p>' +
       '<div class="card-arrow">Open &rarr;</div>' +
     '</a>';
   }).join('');

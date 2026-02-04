@@ -4,7 +4,7 @@ description: Value Proposition Canvas, Jobs-to-be-Done (JTBD), Build/Buy/Partner
 context: fork
 agent: product-strategist
 version: 1.0.0
-tags: [product, strategy, jtbd, value-proposition, build-buy-partner, 2026]
+tags: [product, strategy, jtbd, value-proposition, build-buy-partner]
 author: OrchestKit
 user-invocable: false
 ---
@@ -262,4 +262,4 @@ def build_buy_partner_decision(
 - [Value Proposition Canvas](references/value-proposition-canvas.md)
 - [JTBD Interview Guide](references/jtbd-interview-guide.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

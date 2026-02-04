@@ -28,13 +28,6 @@ Perform systematic root cause analysis on bugs using scientific method. Trace ex
 - `mcp__sequential-thinking__sequentialthinking` - For complex multi-step reasoning
 - `mcp__memory__*` - For persisting investigation context across sessions
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Reproduce the bug with minimal steps
@@ -223,6 +216,24 @@ def subscribe(self, channel):
 - After: Add to `tasks_completed`, save context
 - On error: Add to `tasks_pending` with blockers
 
+## CC 2.1.30 /debug Command Integration
+
+When a session is stuck or showing errors, the `/debug` command provides session diagnostics:
+
+```bash
+/debug              # Launch CC 2.1.30 debug interface
+```
+
+The debug-investigator agent complements `/debug` by:
+1. Reviewing debug session output for patterns
+2. Applying systematic RCA methodology to session errors
+3. Suggesting `/ork:fix-issue` workflow if applicable
+4. Using root-cause-analysis skill patterns for deep investigation
+
+**Differences:**
+- `/debug` - Real-time diagnostics for current CC session state
+- `debug-investigator` - Systematic RCA for application bugs
+
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
@@ -238,7 +249,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|root-cause-analysis:{SKILL.md,references/{5-whys-workshop.md,fishbone-template.md}}|debugging,rca,5-whys,fishbone,fault-tree,incident,2026
+|root-cause-analysis:{SKILL.md,references/{5-whys-workshop.md,fishbone-template.md}}|debugging,rca,5-whys,fishbone,fault-tree,incident
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |errors:{SKILL.md}|errors,debugging,troubleshooting,patterns
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -6,7 +6,7 @@ context: fork
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-allowedTools: [Bash, Read, mcp__mem0__add_memory, mcp__mem0__search_memories, mcp__mem0__get_memories, mcp__mem0__delete_memory]
+allowedTools: [Bash, Read]
 ---
 
 # Mem0 Memory Management
@@ -423,7 +423,7 @@ All scripts are located in `skills/mem0-memory/scripts/`:
 - `get-users.py` - List all users (analytics)
 - `create-webhook.py` - Setup webhooks for automation
 
-**Note:** MCP integration (mcp__mem0__*) is optional. Scripts provide better control, versioning, and access to all 30+ API methods. The primary memory layer is the knowledge graph (mcp__memory__*); mem0 scripts serve as an optional cloud enhancement.
+**Note:** Mem0 uses CLI scripts via Bash (not MCP). Scripts provide full control, versioning, and access to all 30+ API methods. The primary memory layer is the knowledge graph (`mcp__memory__*`); mem0 CLI scripts serve as an optional cloud enhancement for semantic search across sessions.
 
 ## Related Skills
 

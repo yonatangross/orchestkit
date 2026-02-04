@@ -66,8 +66,8 @@ describe('Dispatcher Registry Wiring', () => {
       // Skill hook
       expect(byName['skill-usage-optimizer']).toBe('Skill');
 
-      // MCP memory hook
-      expect(byName['memory-bridge']).toEqual(['mcp__mem0__add_memory', 'mcp__memory__create_entities']);
+      // MCP memory hook (mem0 uses CLI now, only graph MCP)
+      expect(byName['memory-bridge']).toEqual(['mcp__memory__create_entities']);
 
       // Multi-tool hook
       expect(byName['realtime-sync']).toEqual(['Bash', 'Write', 'Edit', 'Skill', 'Task']);

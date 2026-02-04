@@ -4,7 +4,7 @@ description: User interviews, usability testing, surveys, card sorting, and qual
 context: fork
 agent: ux-researcher
 version: 1.0.0
-tags: [ux, research, interviews, usability, surveys, card-sorting, 2026]
+tags: [ux, research, interviews, usability, surveys, card-sorting]
 author: OrchestKit
 user-invocable: false
 ---
@@ -272,7 +272,7 @@ Team mgmt        10%      20%      70%
 Payment info      5%       0%      95%
 ```
 
-## 2026 Research Trends
+##  Research Trends
 
 - **AI-assisted analysis**: NLP for interview transcription and theme extraction
 - **Unmoderated at scale**: Remote testing platforms enable larger samples
@@ -318,4 +318,4 @@ Payment info      5%       0%      95%
 - [Interview Guide Template](references/interview-guide-template.md)
 - [Survey Question Bank](references/survey-question-bank.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

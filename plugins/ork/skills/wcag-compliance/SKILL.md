@@ -5,7 +5,7 @@ context: fork
 agent: accessibility-specialist
 version: 1.0.0
 tags: [accessibility, wcag, a11y, aria, screen-reader, compliance]
-allowed-tools: [Read, Write, Grep, Glob, Bash]
+allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
 ---

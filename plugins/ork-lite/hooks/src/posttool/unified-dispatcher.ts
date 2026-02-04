@@ -80,8 +80,8 @@ const HOOKS: HookConfig[] = [
   // Skill-specific
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
 
-  // MCP memory-specific
-  { name: 'memory-bridge', fn: memoryBridge, matcher: ['mcp__mem0__add_memory', 'mcp__memory__create_entities'] },
+  // MCP memory-specific (mem0 uses CLI scripts now, not MCP)
+  { name: 'memory-bridge', fn: memoryBridge, matcher: ['mcp__memory__create_entities'] },
 
   // Multi-tool matcher
   { name: 'realtime-sync', fn: realtimeSync, matcher: ['Bash', 'Write', 'Edit', 'Skill', 'Task'] },

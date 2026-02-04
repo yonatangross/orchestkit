@@ -5,7 +5,7 @@ version: 1.0.0
 author: OrchestKit
 context: fork
 agent: llm-integrator
-tags: [mcp, tools, resources, scaling, servers, composition, 2026]
+tags: [mcp, tools, resources, scaling, servers, composition]
 user-invocable: false
 ---
 
@@ -13,7 +13,7 @@ user-invocable: false
 
 Advanced Model Context Protocol patterns for production-grade MCP implementations.
 
-> **FastMCP 2.14.x** (Jan 2026): Enterprise auth, OpenAPI/FastAPI generation, server composition, proxying. Python 3.10-3.13.
+> **FastMCP 2.14.x** (Jan ): Enterprise auth, OpenAPI/FastAPI generation, server composition, proxying. Python 3.10-3.13.
 
 ## Overview
 

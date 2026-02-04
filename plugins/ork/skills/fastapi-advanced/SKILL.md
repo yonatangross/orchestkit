@@ -1,19 +1,19 @@
 ---
 name: fastapi-advanced
-description: FastAPI 2026 advanced patterns including lifespan, dependencies, middleware, and Pydantic settings. Use when configuring FastAPI lifespan events, creating dependency injection, building Starlette middleware, or managing async Python services with uvicorn.
+description: FastAPI  advanced patterns including lifespan, dependencies, middleware, and Pydantic settings. Use when configuring FastAPI lifespan events, creating dependency injection, building Starlette middleware, or managing async Python services with uvicorn.
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [fastapi, python, async, middleware, dependencies, 2026]
+tags: [fastapi, python, async, middleware, dependencies]
 author: OrchestKit
 user-invocable: false
 ---
 
-# FastAPI Advanced Patterns (2026)
+# FastAPI Advanced Patterns ()
 
 Production-ready FastAPI patterns for modern Python backends.
 
-## Lifespan Management (2026)
+## Lifespan Management ()
 
 ### Modern Lifespan Context Manager
 

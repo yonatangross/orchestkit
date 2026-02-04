@@ -1,11 +1,13 @@
 ---
-description: "[GIT] Recovery from git mistakes. Use when you need to undo commits, recover branches, or fix history."
-allowed-tools: [Bash]
+name: git-recovery
+description: "Recovery from git mistakes. Use when you need to undo commits, recover branches, or fix history."
+context: inherit
+version: 1.0.0
+author: OrchestKit
+tags: [git, recovery, undo, reflog, reset]
+user-invocable: true
+allowedTools: [Bash]
 ---
-
-# Auto-generated from skills/git-recovery-command/SKILL.md
-# Source: https://github.com/yonatangross/orchestkit
-
 
 # Git Recovery
 
@@ -40,6 +42,7 @@ git log --oneline -1  # Previous commit is now HEAD
 
 **Safety**: Non-destructive. All changes remain staged.
 
+---
 
 ### Option 2: Undo Last Commit (Discard Changes)
 
@@ -66,6 +69,7 @@ git status  # Should be clean
 
 **Recovery**: If you made a mistake, run `git reset --hard $BACKUP_REF`
 
+---
 
 ### Option 3: Recover Deleted Branch
 
@@ -87,6 +91,7 @@ git branch -v | grep recovered
 
 **Note**: Reflog keeps entries for ~90 days by default.
 
+---
 
 ### Option 4: Reset File to Last Commit
 
@@ -110,6 +115,7 @@ git status path/to/file  # Should show no changes
 git diff path/to/file    # Should be empty
 ```
 
+---
 
 ### Option 5: Undo a Rebase
 
@@ -134,6 +140,7 @@ git status
 
 **Safety**: ORIG_HEAD is overwritten by other operations, use reflog if ORIG_HEAD is stale.
 
+---
 
 ### Option 6: Undo a Merge
 
@@ -156,6 +163,7 @@ git branch -v
 
 **WARNING**: If already pushed, use `git revert -m 1 <merge-commit>` instead to create a new commit that undoes the merge.
 
+---
 
 ### Option 7: Find Lost Commits (Reflog Deep Dive)
 
@@ -180,6 +188,7 @@ git branch recovered-work abc1234
 git cherry-pick abc1234
 ```
 
+---
 
 ### Option 8: Unstage Files (Keep Changes)
 
@@ -201,6 +210,7 @@ git status  # Files should be unstaged but modified
 
 **Safety**: Non-destructive. Changes remain in working directory.
 
+---
 
 ## Interactive Workflow
 

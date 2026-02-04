@@ -5,7 +5,7 @@ context: fork
 agent: frontend-ui-developer
 version: 1.0.0
 author: AI Agent Hub
-tags: [streaming, sse, websocket, real-time, api, 2026]
+tags: [streaming, sse, websocket, real-time, api]
 user-invocable: false
 ---
 
@@ -222,7 +222,7 @@ class ReconnectingEventSource {
 }
 ```
 
-## Python Async Generator Cleanup (2026 Best Practice)
+## Python Async Generator Cleanup ( Best Practice)
 
 **CRITICAL**: Async generators can leak resources if not properly cleaned up. Python 3.10+ provides `aclosing()` from `contextlib` to guarantee cleanup.
 

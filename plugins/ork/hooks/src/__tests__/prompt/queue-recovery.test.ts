@@ -134,7 +134,8 @@ describe('queueRecovery', () => {
     expect(result.continue).toBe(true);
     expect(result.systemMessage).toBeDefined();
     expect(result.systemMessage).toContain('Mem0 Memory Recovery');
-    expect(result.systemMessage).toContain('mcp__mem0__add_memory');
+    expect(result.systemMessage).toContain('add-memory.py');
+    expect(result.systemMessage).toContain('python3');
   });
 
   it('archives stale graph queue instead of processing', () => {

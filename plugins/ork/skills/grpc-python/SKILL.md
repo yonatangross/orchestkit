@@ -4,7 +4,7 @@ description: gRPC with Python using grpcio and protobuf for high-performance mic
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [grpc, protobuf, microservices, rpc, streaming, python, 2026]
+tags: [grpc, protobuf, microservices, rpc, streaming, python]
 author: OrchestKit
 user-invocable: false
 ---

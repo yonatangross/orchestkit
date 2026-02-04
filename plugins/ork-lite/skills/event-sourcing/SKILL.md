@@ -4,8 +4,8 @@ description: Event sourcing patterns for storing state as a sequence of events. 
 context: fork
 agent: event-driven-architect
 version: 2.0.0
-tags: [event-sourcing, cqrs, events, audit-trail, domain-events, 2026]
-allowed-tools:
+tags: [event-sourcing, cqrs, events, audit-trail, domain-events]
+allowedTools:
   - Read
   - Grep
   - Glob

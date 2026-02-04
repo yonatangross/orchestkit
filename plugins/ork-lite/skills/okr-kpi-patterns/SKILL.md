@@ -4,7 +4,7 @@ description: OKR framework, KPI trees, leading/lagging indicators, and success m
 context: fork
 agent: metrics-architect
 version: 1.0.0
-tags: [product, metrics, okr, kpi, goals, measurement, 2026]
+tags: [product, metrics, okr, kpi, goals, measurement]
 author: OrchestKit
 user-invocable: false
 ---
@@ -47,7 +47,7 @@ Objective: Qualitative, inspiring goal
 ### OKR Example
 
 ```markdown
-## Q1 2026 OKRs
+## Q1  OKRs
 
 ### Objective 1: Become the #1 choice for enterprise teams
 
@@ -251,7 +251,7 @@ Metric = Numerator / Denominator
 | No baselines | Establish current state before setting targets |
 | Static goals | Review and adjust quarterly |
 
-## 2026 Best Practices
+##  Best Practices
 
 - **OKRs for goals, KPIs for health**: Use together, not interchangeably
 - **Leading indicator focus**: Key Results should be leading indicators
@@ -270,4 +270,4 @@ Metric = Numerator / Denominator
 - [OKR Workshop Guide](references/okr-workshop-guide.md)
 - [KPI Tree Builder](references/kpi-tree-builder.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

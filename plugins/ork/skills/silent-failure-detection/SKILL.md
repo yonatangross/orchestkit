@@ -5,7 +5,7 @@ context: fork
 agent: monitoring-engineer
 version: 1.0.0
 author: OrchestKit
-tags: [monitoring, alerting, anomaly, silent-failure, observability, agents, 2026]
+tags: [monitoring, alerting, anomaly, silent-failure, observability, agents]
 user-invocable: false
 ---
 

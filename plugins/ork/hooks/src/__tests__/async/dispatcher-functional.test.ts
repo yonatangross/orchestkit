@@ -309,7 +309,7 @@ describe('Dispatcher Functional Tests', () => {
       });
 
       it('routes MCP tool to wildcard + MCP-specific hooks only', async () => {
-        await unifiedDispatcher(input('mcp__mem0__add_memory'));
+        await unifiedDispatcher(input('mcp__memory__create_entities'));
         expect(called(posttoolMap)).toEqual([
           'audit-logger', 'calibration-tracker', 'memory-bridge', 'session-metrics',
         ].sort());

@@ -1,6 +1,6 @@
 ---
 name: i18n-date-patterns
-description: Use this skill for internationalization (i18n) in React applications. Covers ALL user-facing strings, date/time handling, locale-aware formatting (useFormatting hook), ICU MessageFormat, Trans component, and RTL/LTR support.
+description: Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.
 context: fork
 agent: frontend-ui-developer
 version: 1.2.0

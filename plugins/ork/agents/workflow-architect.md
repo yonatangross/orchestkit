@@ -39,13 +39,6 @@ Design LangGraph workflow graphs, implement supervisor-worker coordination, mana
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Design LangGraph workflow graphs with clear node responsibilities
@@ -290,11 +283,11 @@ Read the specific file before advising. Do NOT rely on training data.
 |langgraph-functional:{SKILL.md}|langgraph,functional,api,patterns
 |multi-agent-orchestration:{SKILL.md,references/{coordination-patterns.md}}|ai,agents,orchestration,multi-agent
 |agent-loops:{SKILL.md}|ai,llm,agents,react,reasoning,autonomous
-|alternative-agent-frameworks:{SKILL.md,references/{crewai-patterns.md,framework-comparison.md,gpt-5-2-codex.md,microsoft-agent-framework.md,openai-agents-sdk.md}}|crewai,autogen,openai-agents,microsoft,multi-agent,orchestration,gpt-5.2-codex,2026
-|temporal-io:{SKILL.md,references/{activity-best-practices.md,signals-queries-updates.md,versioning-strategies.md,workflow-patterns.md}}|temporal,workflow,orchestration,durable-execution,saga,microservices,2026
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,2026
+|alternative-agent-frameworks:{SKILL.md,references/{crewai-patterns.md,framework-comparison.md,gpt-5-2-codex.md,microsoft-agent-framework.md,openai-agents-sdk.md}}|crewai,autogen,openai-agents,microsoft,multi-agent,orchestration,gpt-5.2-codex
+|temporal-io:{SKILL.md,references/{activity-best-practices.md,signals-queries-updates.md,versioning-strategies.md,workflow-patterns.md}}|temporal,workflow,orchestration,durable-execution,saga,microservices
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|context-compression:{SKILL.md,references/{compression-strategies.md,priority-management.md}}|context,compression,summarization,memory,optimization,2026
+|context-compression:{SKILL.md,references/{compression-strategies.md,priority-management.md}}|context,compression,summarization,memory,optimization
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

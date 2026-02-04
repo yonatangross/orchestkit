@@ -4,7 +4,7 @@ description: Mock Service Worker (MSW) 2.x for API mocking. Use when testing fro
 context: fork
 agent: test-generator
 version: 2.0.0
-tags: [msw, testing, mocking, frontend, 2026]
+tags: [msw, testing, mocking, frontend]
 author: OrchestKit
 user-invocable: false
 ---

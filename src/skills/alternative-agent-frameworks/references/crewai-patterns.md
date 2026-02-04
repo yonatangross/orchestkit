@@ -4,6 +4,26 @@ CrewAI patterns for role-based multi-agent collaboration with Flows architecture
 
 > **Version**: This document covers CrewAI 1.8.x - 1.9.x (2026). For earlier versions, patterns may differ.
 
+## Table of Contents
+
+- [Flows Architecture (1.8+)](#flows-architecture-18)
+- [MCP Tool Support (1.8+)](#mcp-tool-support-18)
+- [Hierarchical Process](#hierarchical-process)
+- [Agent Configuration (1.8+)](#agent-configuration-18)
+- [Task Configuration (1.8+)](#task-configuration-18)
+- [Async Execution](#async-execution)
+- [Streaming Output](#streaming-output)
+- [Knowledge Sources (1.8+)](#knowledge-sources-18)
+- [Memory Configuration](#memory-configuration)
+- [Custom Tools](#custom-tools)
+- [Decorator-Based Crew Definition](#decorator-based-crew-definition-recommended)
+- [Human-in-the-Loop (Flows)](#human-in-the-loop-flows)
+- [Configuration Summary](#configuration-summary)
+- [Best Practices](#best-practices)
+- [Migration from 0.x](#migration-from-0x)
+
+---
+
 ## Flows Architecture (1.8+)
 
 Flows provide event-driven orchestration with state management. This is the major 1.x feature for complex multi-step workflows.

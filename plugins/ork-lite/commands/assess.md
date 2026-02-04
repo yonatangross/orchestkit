@@ -1,5 +1,5 @@
 ---
-description: "[QUALITY] Assess and rate quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
+description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
 ---
 

@@ -6,10 +6,10 @@ agent: multimodal-specialist
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-tags: [rag, multimodal, image-retrieval, clip, embeddings, vector-search, 2026]
+tags: [rag, multimodal, image-retrieval, clip, embeddings, vector-search]
 ---
 
-# Multimodal RAG (2026)
+# Multimodal RAG ()
 
 Build retrieval-augmented generation systems that handle images, text, and mixed content.
 
@@ -30,7 +30,7 @@ Build retrieval-augmented generation systems that handle images, text, and mixed
 | **Caption-based** | Works with text LLMs | Lossy conversion | Existing text RAG |
 | **Hybrid** | Best accuracy | More complex | Production systems |
 
-## Embedding Models (2026)
+## Embedding Models ()
 
 | Model | Context | Modalities | Best For |
 |-------|---------|------------|----------|
@@ -220,6 +220,45 @@ class MultimodalRAG:
 
         return sorted(seen.values(), key=lambda x: x["score"], reverse=True)[:top_k]
 ```
+
+## Claude Code PDF Handling (CC 2.1.30+)
+
+For large PDFs, use the `pages` parameter to process in batches:
+
+```python
+# Process large PDF in page-range batches for embedding
+async def process_large_pdf_for_rag(pdf_path: str, pages_per_batch: int = 10):
+    """Process large PDF by page ranges before embedding."""
+    import subprocess
+
+    # Get total page count
+    result = subprocess.run(
+        ["pdfinfo", pdf_path],
+        capture_output=True, text=True
+    )
+    total_pages = int([l for l in result.stdout.split('\n')
+                       if 'Pages:' in l][0].split(':')[1].strip())
+
+    chunks = []
+    for start in range(1, total_pages + 1, pages_per_batch):
+        end = min(start + pages_per_batch - 1, total_pages)
+
+        # Read page range (CC 2.1.30 pages parameter)
+        # Read(file_path=pdf_path, pages=f"{start}-{end}")
+
+        # Extract and embed content from this range
+        page_chunks = extract_chunks_from_range(pdf_path, start, end)
+        chunks.extend(page_chunks)
+
+    return chunks
+```
+
+### Limits
+- Max 20 pages per Read request
+- Max 20MB file size
+- Process large documents in batches for embedding
+
+---
 
 ## Multimodal Document Chunking
 

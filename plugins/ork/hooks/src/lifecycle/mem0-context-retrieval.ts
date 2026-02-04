@@ -6,9 +6,10 @@
  *
  * Graph-First Architecture (v2.1):
  * - Knowledge graph (mcp__memory__*) is PRIMARY - always available, zero-config
- * - Mem0 cloud (mcp__mem0__*) is OPTIONAL enhancement for semantic search
+ * - Mem0 cloud uses CLI scripts (not MCP) for semantic search enhancement
+ *   CLI scripts at: ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/
  *
- * Version: 2.1.0 - Graph-first architecture
+ * Version: 2.1.1 - CLI-based mem0
  * Part of Memory Fabric v2.1
  */
 

@@ -40,17 +40,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 - `mcp__context7__*` - Fetch latest prompt engineering documentation
 - `mcp__sequential-thinking__*` - Complex prompt iteration and optimization reasoning
-- `mcp__mem0__search_memories` - Search for previous prompt patterns
-- `mcp__mem0__add_memory` - Store successful prompt patterns
 - `mcp__memory__*` - Knowledge graph for prompt patterns and decisions
-
-## Memory Integration
-
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query about prompt patterns in this domain
-
-Before completing, store successful patterns:
-- `mcp__mem0__add_memory` for effective prompts and optimizations
 
 ## Concrete Objectives
 

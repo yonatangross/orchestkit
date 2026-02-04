@@ -2,7 +2,7 @@
 name: mcp-security-hardening
 description: MCP security patterns for prompt injection defense, tool poisoning prevention, and permission management. Use when securing MCP servers, validating tool descriptions, implementing allowlists.
 version: 1.0.0
-tags: [mcp, security, prompt-injection, tool-poisoning, allowlist, zero-trust, 2026]
+tags: [mcp, security, prompt-injection, tool-poisoning, allowlist, zero-trust]
 context: fork
 agent: security-auditor
 author: OrchestKit

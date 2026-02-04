@@ -24,13 +24,6 @@ Conduct user research, create actionable personas, map user journeys, and valida
 ## MCP Tools
 - `mcp__context7__*` - UX research methodologies and frameworks
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Create actionable user personas with behavioral patterns
@@ -266,8 +259,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|user-research-methods:{SKILL.md,references/{interview-guide-template.md}}|ux,research,interviews,usability,surveys,card-sorting,2026
-|persona-journey-mapping:{SKILL.md,references/{journey-map-workshop.md}}|ux,personas,journey-map,empathy-map,experience,2026
+|user-research-methods:{SKILL.md,references/{interview-guide-template.md}}|ux,research,interviews,usability,surveys,card-sorting
+|persona-journey-mapping:{SKILL.md,references/{journey-map-workshop.md}}|ux,personas,journey-map,empathy-map,experience
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

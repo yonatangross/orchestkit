@@ -5,9 +5,9 @@ context: fork
 agent: web-research-analyst
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [research, browser, webfetch, automation, scraping, 2026]
+tags: [research, browser, webfetch, automation, scraping]
 user-invocable: false
-allowed-tools: Bash, Read, Write, WebFetch
+allowedTools: Bash, Read, Write, WebFetch
 ---
 
 # Web Research Workflow
@@ -207,4 +207,4 @@ This skill is used by:
 
 ---
 
-**Version:** 1.0.0 (February 2026)
+**Version:** 1.0.0 (February )

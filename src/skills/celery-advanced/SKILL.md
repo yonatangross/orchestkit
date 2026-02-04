@@ -4,7 +4,7 @@ description: Advanced Celery patterns including canvas workflows, priority queue
 context: fork
 agent: python-performance-engineer
 version: 1.0.0
-tags: [celery, canvas, workflow, priority-queue, rate-limiting, task-routing, flower, 2026]
+tags: [celery, canvas, workflow, priority-queue, rate-limiting, task-routing, flower]
 author: OrchestKit
 user-invocable: false
 ---

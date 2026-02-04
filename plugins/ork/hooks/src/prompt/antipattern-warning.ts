@@ -172,26 +172,32 @@ function getMem0UserId(scope: string, projectDir: string): string {
 }
 
 /**
- * Build mem0 search hint for the prompt
+ * Build mem0 search hint for the prompt using CLI scripts
  */
 function buildMem0SearchHint(prompt: string, projectDir: string): string {
   const category = detectCategory(prompt);
   const userId = getMem0UserId('best-practices', projectDir);
   const globalUserId = `global:best-practices`;
+  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '${CLAUDE_PLUGIN_ROOT}';
+  const scriptPath = `${pluginRoot}/src/skills/mem0-memory/scripts/crud/search-memories.py`;
+  const querySnippet = prompt.slice(0, 50).replace(/"/g, '\\"');
 
-  return `Before implementing, search Mem0 for relevant patterns (graph memory enabled):
+  return `Before implementing, search Mem0 for relevant patterns:
 
 1. Project anti-patterns (category: ${category}):
-   mcp__mem0__search_memories with:
-   {"query": "${prompt.slice(0, 50)}", "user_id": "${userId}", "filters": {"metadata.outcome": "failed"}}
+   \`\`\`bash
+   python3 ${scriptPath} --query "${querySnippet} failed" --user-id "${userId}" --limit 5
+   \`\`\`
 
 2. Project best practices:
-   mcp__mem0__search_memories with:
-   {"query": "${prompt.slice(0, 50)}", "user_id": "${userId}", "filters": {"metadata.outcome": "success"}}
+   \`\`\`bash
+   python3 ${scriptPath} --query "${querySnippet} success" --user-id "${userId}" --limit 5
+   \`\`\`
 
 3. Cross-project failures:
-   mcp__mem0__search_memories with:
-   {"query": "${prompt.slice(0, 50)}", "user_id": "${globalUserId}", "filters": {"metadata.outcome": "failed"}}`;
+   \`\`\`bash
+   python3 ${scriptPath} --query "${querySnippet} failed" --user-id "${globalUserId}" --limit 5
+   \`\`\``;
 }
 
 /**

@@ -32,17 +32,7 @@ You are an AI Safety Auditor specializing in LLM security assessment. Your missi
 
 - `mcp__sequential-thinking__*` - Complex red-team reasoning and multi-step attack planning
 - `mcp__context7__*` - Fetch latest OWASP/NIST security documentation
-- `mcp__mem0__search_memories` - Search for previous audit findings and patterns
-- `mcp__mem0__add_memory` - Store audit findings for future reference
 - `mcp__memory__*` - Track security decisions and attack patterns in knowledge graph
-
-## Memory Integration
-
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing the audit scope
-
-Before completing, store significant findings:
-- `mcp__mem0__add_memory` for critical vulnerabilities and remediation patterns
 
 ## Concrete Objectives
 

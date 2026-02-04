@@ -4,7 +4,7 @@ description: Database version control and change management patterns. Use when m
 context: fork
 agent: database-engineer
 version: 1.0.0
-tags: [database, versioning, schema, change-management, audit, 2026]
+tags: [database, versioning, schema, change-management, audit]
 author: OrchestKit
 user-invocable: false
 ---
@@ -66,14 +66,14 @@ Option 1: Sequential
 003_add_orders.sql
 
 Option 2: Timestamp
-20260115120000_initial_schema.sql
-20260116143000_add_users.sql
-20260117091500_add_orders.sql
+0115120000_initial_schema.sql
+0116143000_add_users.sql
+0117091500_add_orders.sql
 
 Option 3: Hybrid (Date + Sequence)
-2026_01_15_001_initial_schema.sql
-2026_01_15_002_add_users.sql
-2026_01_16_001_add_orders.sql
+_01_15_001_initial_schema.sql
+_01_15_002_add_users.sql
+_01_16_001_add_orders.sql
 ```
 
 ## Environment Coordination
@@ -200,7 +200,7 @@ FOR EACH ROW EXECUTE FUNCTION versioning(
 
 -- Query at a point in time
 SELECT * FROM products
-WHERE sys_period @> '2026-01-15 10:00:00+00'::timestamptz;
+WHERE sys_period @> '-01-15 10:00:00+00'::timestamptz;
 ```
 
 ### Change Data Capture (CDC)

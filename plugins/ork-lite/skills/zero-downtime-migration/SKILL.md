@@ -4,13 +4,13 @@ description: Safe database schema changes without downtime using expand-contract
 context: fork
 agent: database-engineer
 version: 2.0.0
-tags: [database, migration, zero-downtime, expand-contract, pgroll, 2026]
-allowed-tools: [Read, Write, Bash, Grep, Glob]
+tags: [database, migration, zero-downtime, expand-contract, pgroll]
+allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Zero-Downtime Migration (2026)
+# Zero-Downtime Migration ()
 
 Database migration patterns that ensure continuous service availability during schema changes.
 
@@ -52,7 +52,7 @@ Database migration patterns that ensure continuous service availability during s
 ### pgroll: Automated Expand-Contract
 
 ```bash
-# Install pgroll (2026 recommended tool)
+# Install pgroll ( recommended tool)
 brew install xataio/pgroll/pgroll
 # or
 go install github.com/xataio/pgroll@latest

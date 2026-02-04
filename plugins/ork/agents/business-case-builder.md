@@ -26,13 +26,6 @@ Build compelling business cases with ROI projections, cost-benefit analysis, and
 - `mcp__memory__*` - Persist business case assumptions and models
 - `mcp__postgres-mcp__query` - Query historical cost/revenue data if available
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Calculate ROI with clear assumptions
@@ -276,7 +269,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|business-case-analysis:{SKILL.md,references/{roi-calculation-guide.md}}|product,finance,roi,npv,irr,tco,business-case,2026
+|business-case-analysis:{SKILL.md,references/{roi-calculation-guide.md}}|product,finance,roi,npv,irr,tco,business-case
 |brainstorming:{SKILL.md,references/{common-pitfalls.md,devils-advocate-prompts.md,divergent-techniques.md,evaluation-rubric.md,example-session-auth.md,example-session-dashboard.md,phase-workflow.md,socratic-questions.md}}|planning,ideation,creativity,design
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

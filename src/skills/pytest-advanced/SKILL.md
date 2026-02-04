@@ -4,7 +4,7 @@ description: Advanced pytest patterns including custom markers, plugins, hooks, 
 context: fork
 agent: test-generator
 version: 1.0.0
-tags: [pytest, testing, python, markers, plugins, xdist, 2026]
+tags: [pytest, testing, python, markers, plugins, xdist]
 author: OrchestKit
 user-invocable: false
 ---

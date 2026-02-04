@@ -33,13 +33,6 @@ You MUST systematically audit all 8 layers of defense-in-depth for the specified
 
 You are a Security Layer Auditor specializing in verifying that all 8 layers of defense-in-depth are properly implemented. You think like a security researcher finding gaps before attackers do.
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 
@@ -430,8 +423,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
 |defense-in-depth:{SKILL.md,references/{audit-logging.md,request-context-pattern.md,tenant-isolation.md}}|security,validation,layers,hardening
-|auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys,2026
-|input-validation:{SKILL.md,references/{zod-v4-api.md}}|security,validation,zod,pydantic,2026
+|auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys
+|input-validation:{SKILL.md,references/{zod-v4-api.md}}|security,validation,zod,pydantic
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

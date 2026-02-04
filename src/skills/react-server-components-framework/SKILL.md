@@ -5,7 +5,7 @@ context: fork
 agent: frontend-ui-developer
 version: 1.4.0
 author: AI Agent Hub
-tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components, 2026]
+tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
 user-invocable: false
 ---
 

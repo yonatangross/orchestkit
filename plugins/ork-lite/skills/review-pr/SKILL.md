@@ -1,6 +1,6 @@
 ---
 name: review-pr
-description: "[GIT] PR review with parallel specialized agents. Use when reviewing pull requests or code."
+description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 context: fork
 version: 1.4.0
 author: OrchestKit
@@ -299,18 +299,43 @@ The `pr-status-enricher` hook automatically detects open PRs at session start an
 - `ORCHESTKIT_PR_URL` - PR URL for quick reference
 - `ORCHESTKIT_PR_STATE` - PR state (OPEN, MERGED, CLOSED)
 
-### Optional Slack Notification
+## CC 2.1.27+ Enhancements
 
-After submitting a review, optionally notify the team:
+### Session Resume with PR Context
 
+Sessions are automatically linked when reviewing PRs. Resume later with full context:
+
+```bash
+# Resume with PR context preserved (diff, comments, CI status)
+claude --from-pr 123
+claude --from-pr https://github.com/org/repo/pull/123
 ```
-mcp__slack__post_message({
-  channel: "#dev-reviews",
-  text: "PR #{number} reviewed: {APPROVE|REQUEST_CHANGES} - {summary}"
-})
+
+This preserves:
+- Full PR diff still available
+- Review comments and threads loaded
+- CI/check status fresh
+- Perfect for multi-session deep reviews
+
+### Task Metrics (CC 2.1.30)
+
+Task tool results now include efficiency metrics. After parallel agents complete, report:
+
+```markdown
+## Review Efficiency
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| code-quality-reviewer | 450 | 8 | 12s |
+| security-auditor | 620 | 12 | 18s |
+| test-generator | 380 | 6 | 10s |
+
+**Total:** 1,450 tokens, 26 tool calls
 ```
 
-See `slack-integration` skill for setup.
+Use metrics to:
+- Identify slow or expensive agents
+- Track review efficiency over time
+- Optimize agent prompts based on token usage
 
 ## Conventional Comments
 

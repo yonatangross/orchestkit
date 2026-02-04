@@ -4,7 +4,7 @@ description: Strawberry GraphQL library for Python with FastAPI integration, typ
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [graphql, strawberry, fastapi, dataloader, subscriptions, federation, python, 2026]
+tags: [graphql, strawberry, fastapi, dataloader, subscriptions, federation, python]
 author: OrchestKit
 user-invocable: false
 ---

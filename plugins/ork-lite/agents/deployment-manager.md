@@ -43,13 +43,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__context7__*` - Up-to-date documentation for deployment tools
 - `mcp__github-mcp__*` - GitHub releases and deployments
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Plan and execute zero-downtime deployments

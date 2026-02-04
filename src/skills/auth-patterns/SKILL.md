@@ -4,8 +4,8 @@ description: Authentication and authorization patterns. Use when implementing lo
 context: fork
 agent: security-auditor
 version: 2.0.0
-tags: [security, authentication, oauth, passkeys, 2026]
-allowed-tools:
+tags: [security, authentication, oauth, passkeys]
+allowedTools:
   - Read
   - Grep
   - Glob
@@ -71,7 +71,7 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True    # No JS access
 app.config['SESSION_COOKIE_SAMESITE'] = 'Strict'
 ```
 
-## Token Expiry (2026 Guidelines)
+## Token Expiry ( Guidelines)
 
 | Token Type | Expiry | Storage |
 |------------|--------|---------|

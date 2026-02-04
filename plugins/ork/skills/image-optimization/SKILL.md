@@ -5,7 +5,7 @@ tags: [images, next-image, avif, webp, responsive, lazy-loading, blur-placeholde
 context: fork
 agent: frontend-ui-developer
 version: 1.0.0
-allowed-tools: [Read, Write, Grep, Glob]
+allowedTools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---

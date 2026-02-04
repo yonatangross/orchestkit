@@ -1,11 +1,11 @@
 ---
-name: Webapp Testing
+name: webapp-testing
 description: Use when testing web applications with AI-assisted Playwright. Webapp testing covers autonomous test agents for planning, generating, and self-healing tests.
 context: fork
 agent: test-generator
 version: 1.2.0
 author: OrchestKit AI Agent Hub
-tags: [playwright, testing, e2e, automation, agents, 2026]
+tags: [playwright, testing, e2e, automation, agents]
 user-invocable: false
 ---
 Autonomous end-to-end testing with Playwright's three specialized agents for planning, generating, and self-healing tests automatically.
@@ -109,10 +109,10 @@ See `references/` for detailed agent patterns and commands.
 ## Capability Details
 
 ### playwright-setup
-**Keywords:** playwright, setup, install, configure, mcp
+**Keywords:** playwright, setup, install, configure, agents
 **Solves:**
 - How do I set up Playwright testing?
-- Install Playwright MCP server
+- Install Playwright test agents
 - Configure test environment
 - Initialize Playwright agents with Claude
 

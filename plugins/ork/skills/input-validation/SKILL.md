@@ -4,8 +4,8 @@ description: Input validation and sanitization patterns. Use when validating use
 context: fork
 agent: security-auditor
 version: 2.0.0
-tags: [security, validation, zod, pydantic, 2026]
-allowed-tools:
+tags: [security, validation, zod, pydantic]
+allowedTools:
   - Read
   - Grep
   - Glob

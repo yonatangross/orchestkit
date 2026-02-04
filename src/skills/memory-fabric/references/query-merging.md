@@ -1,17 +1,21 @@
 # Query Merging Algorithm
 
-Detailed algorithm for merging results from mem0 and mcp__memory.
+Detailed algorithm for merging results from mem0 CLI and mcp__memory.
 
-## Parallel Query Execution
+## Sequential Query Execution
 
-Execute both queries simultaneously to minimize latency:
+Execute graph query via MCP, then mem0 via CLI:
 
-```javascript
-// Execute in parallel
-const [mem0Results, graphResults] = await Promise.all([
-  mcp__mem0__search_memories({ query, filters, limit: 10, enable_graph: true }),
-  mcp__memory__search_nodes({ query })
-]);
+```bash
+# 1. Query knowledge graph (MCP)
+mcp__memory__search_nodes({ query })
+
+# 2. Query mem0 cloud (CLI)
+python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py \
+  --query "${query}" \
+  --user-id "project-decisions" \
+  --limit 10 \
+  --enable-graph
 ```
 
 ## Result Normalization

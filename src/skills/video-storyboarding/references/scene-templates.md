@@ -2,6 +2,18 @@
 
 Copy-paste templates for common scene types in tech demo videos.
 
+## Table of Contents
+
+- [Scene Document Schema](#scene-document-schema)
+- [Attention Phase Templates](#attention-phase-templates)
+- [Interest Phase Templates](#interest-phase-templates)
+- [Desire Phase Templates](#desire-phase-templates)
+- [Action Phase Templates](#action-phase-templates)
+- [Specialty Scene Templates](#specialty-scene-templates)
+- [Quick Reference: Scene Duration Guidelines](#quick-reference-scene-duration-guidelines)
+
+---
+
 ## Scene Document Schema
 
 Every scene should follow this structure:

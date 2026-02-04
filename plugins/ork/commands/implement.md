@@ -1,6 +1,6 @@
 ---
-description: "[BUILD] Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
-allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query-docs, mcp__mem0__add-memory, mcp__memory__search_nodes]
+description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
 ---
 
 # Auto-generated from skills/implement/SKILL.md
@@ -128,8 +128,8 @@ WebSearch("TypeScript 5.x strict mode 2026")
 
 ```python
 # PARALLEL - Library docs (launch all in ONE message)
-mcp__context7__query-docs(libraryId="/vercel/next.js", query="app router")
-mcp__context7__query-docs(libraryId="/tiangolo/fastapi", query="dependencies")
+mcp__context7__query_docs(libraryId="/vercel/next.js", query="app router")
+mcp__context7__query_docs(libraryId="/tiangolo/fastapi", query="dependencies")
 ```
 
 
@@ -314,10 +314,13 @@ agent-browser close
 
 ## Phase 9: Documentation
 
-Save implementation decisions to memory MCP for future reference:
+Save implementation decisions to mem0 for future reference:
 
-```python
-mcp__mem0__add-memory(content="Implementation decisions...", userId="project-decisions")
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py \
+  --text "Implementation decisions..." \
+  --user-id "project-decisions" \
+  --metadata '{"scope":"project-decisions","category":"implementation"}'
 ```
 
 
@@ -427,6 +430,52 @@ TaskUpdate(taskId=task_id, status="completed")
 | Test keeps failing | Consider design issue, not just implementation |
 | Scope creep detected | Stop, discuss with user |
 | Blocker found | Create blocking task, switch to parallel work |
+
+
+## CC 2.1.30+ Enhancements
+
+### Task Metrics
+
+Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
+
+```markdown
+## Phase 5 Metrics (Implementation)
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| backend-system-architect #1 | 680 | 15 | 25s |
+| backend-system-architect #2 | 540 | 12 | 20s |
+| frontend-ui-developer #1 | 720 | 18 | 30s |
+
+**Scope Check:** If token_count > 80% of budget, flag scope creep
+```
+
+### Tool Usage Guidance (CC 2.1.31)
+
+Use the right tools for each operation:
+
+| Task | Use | Avoid |
+|------|-----|-------|
+| Find files by pattern | `Glob("**/*.ts")` | `bash find` |
+| Search code | `Grep(pattern="...", glob="*.ts")` | `bash grep` |
+| Read specific file | `Read(file_path="/abs/path")` | `bash cat` |
+| Edit/modify code | `Edit(file_path=...)` | `bash sed/awk` |
+| Parse file contents | `Read` with limit/offset | `bash head/tail` |
+| Git operations | `Bash git ...` | (git needs bash) |
+| Run tests/build | `Bash npm/poetry ...` | (CLIs need bash) |
+
+### Session Resume Hints (CC 2.1.31)
+
+Before ending implementation sessions, capture context:
+
+```bash
+/ork:remember Implementation of {feature}:
+  Completed: phases 1-6
+  Remaining: verification, docs
+  Key decisions: [list]
+  Blockers: [if any]
+```
+
+Resume later with full context preserved.
 
 
 ## Summary

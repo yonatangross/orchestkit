@@ -4,7 +4,7 @@ description: Property-based testing with Hypothesis for discovering edge cases a
 context: fork
 agent: test-generator
 version: 1.0.0
-tags: [hypothesis, property-testing, fuzzing, python, testing, 2026]
+tags: [hypothesis, property-testing, fuzzing, python, testing]
 author: OrchestKit
 user-invocable: false
 ---

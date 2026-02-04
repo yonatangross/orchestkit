@@ -4,7 +4,7 @@ description: User personas, customer journey maps, empathy maps, and experience 
 context: fork
 agent: ux-researcher
 version: 1.0.0
-tags: [ux, personas, journey-map, empathy-map, experience, 2026]
+tags: [ux, personas, journey-map, empathy-map, experience]
 author: OrchestKit
 user-invocable: false
 ---
@@ -338,7 +338,7 @@ These artifacts should evolve:
 - Archive after project completion
 ```
 
-## 2026 Best Practices
+##  Best Practices
 
 - **Data-backed personas**: Connect to analytics, not just qualitative research
 - **Dynamic journeys**: Update based on real user behavior data
@@ -357,4 +357,4 @@ These artifacts should evolve:
 - [Persona Template](references/persona-template.md)
 - [Journey Map Workshop Guide](references/journey-map-workshop.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

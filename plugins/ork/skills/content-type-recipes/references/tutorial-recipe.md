@@ -2,6 +2,19 @@
 
 Detailed production guide for creating 60-120 second educational tutorial videos with step-by-step instruction.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Tutorial Types](#tutorial-types)
+- [Timeline Breakdown](#timeline-breakdown)
+- [Complete Frame Reference](#complete-frame-reference-90-seconds-at-30fps)
+- [Voiceover Guidelines](#voiceover-guidelines)
+- [Visual Accessibility](#visual-accessibility)
+- [Remotion Component Structure](#remotion-component-structure)
+- [Quality Checklist](#quality-checklist)
+
+---
+
 ## Overview
 
 **Duration**: 60-120 seconds

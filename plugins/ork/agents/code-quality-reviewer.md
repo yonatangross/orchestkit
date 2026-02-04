@@ -44,13 +44,6 @@ Review code for bugs, security issues, performance problems, and ensure test cov
 - Screenshots: `agent-browser screenshot <path>` for visual comparison
 - Run `agent-browser --help` for full CLI docs
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Execute automated linting and formatting checks (ruff, eslint, prettier)
@@ -381,13 +374,13 @@ Read the specific file before advising. Do NOT rely on training data.
 |unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
 |integration-testing:{SKILL.md}|testing,integration,api,database
 |evidence-verification:{SKILL.md,references/{evidence-patterns.md}}|quality,verification,testing,evidence,completion
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents,2026
+|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
 |test-standards-enforcer:{SKILL.md,references/{naming-conventions.md}}|testing,quality,enforcement,blocking,aaa-pattern,coverage
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
 |quality-gates:{SKILL.md,references/{blocking-thresholds.md,complexity-scoring.md,gate-patterns.md,llm-quality-validation.md,workflows.md}}|quality,complexity,planning,escalation,blocking
 |biome-linting:{SKILL.md,references/{biome-json-config.md,ci-integration.md,eslint-migration.md,type-aware-rules.md}}|biome,linting,formatting,eslint-migration,ci,code-quality,typescript
-|clean-architecture:{SKILL.md,references/{hexagonal-architecture.md}}|architecture,solid,hexagonal,ddd,python,fastapi,2026
+|clean-architecture:{SKILL.md,references/{hexagonal-architecture.md}}|architecture,solid,hexagonal,ddd,python,fastapi
 |project-structure-enforcer:{SKILL.md,references/{violation-examples.md}}|structure,architecture,enforcement,blocking,imports,organization
 |best-practices:{SKILL.md,references/{proactive-warnings.md}}|best-practices,patterns,anti-patterns,mem0,learning
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -42,15 +42,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__sequential-thinking__*` - Complex alerting rule design and threshold analysis
 - `mcp__memory__*` - Knowledge graph for monitoring patterns and alert decisions
 
-## Memory Integration
-
-At task start, query relevant context:
-- Check for existing monitoring patterns and SLO definitions
-- Review prior alerting decisions and thresholds
-
-Before completing, store patterns:
-- Record successful alert rules and dashboard designs
-
 ## Concrete Objectives
 
 1. Design and implement Prometheus metrics instrumentation

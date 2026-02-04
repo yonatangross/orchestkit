@@ -23,13 +23,6 @@ Transform ambiguous product ideas into clear, actionable requirements with user 
 - `mcp__memory__*` - Track requirements decisions and rationale
 - `mcp__context7__*` - Requirements engineering best practices
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Write clear PRDs with problem/solution/scope
@@ -309,7 +302,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|requirements-engineering:{SKILL.md,references/{user-story-workshop-guide.md}}|product,requirements,user-stories,prd,acceptance-criteria,agile,2026
+|requirements-engineering:{SKILL.md,references/{user-story-workshop-guide.md}}|product,requirements,user-stories,prd,acceptance-criteria,agile
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

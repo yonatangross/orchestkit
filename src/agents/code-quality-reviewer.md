@@ -44,13 +44,6 @@ Review code for bugs, security issues, performance problems, and ensure test cov
 - Screenshots: `agent-browser screenshot <path>` for visual comparison
 - Run `agent-browser --help` for full CLI docs
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Execute automated linting and formatting checks (ruff, eslint, prettier)

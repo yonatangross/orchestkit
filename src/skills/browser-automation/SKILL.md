@@ -5,9 +5,9 @@ context: fork
 agent: test-generator
 version: 3.0.0
 author: OrchestKit AI Agent Hub
-tags: [browser, automation, headless, scraping, vercel, agent-browser, 2026]
+tags: [browser, automation, headless, scraping, vercel, agent-browser]
 user-invocable: false
-allowed-tools: Bash, Read, Write
+allowedTools: Bash, Read, Write
 ---
 
 # Browser Automation with agent-browser

@@ -1,5 +1,5 @@
 ---
-description: "[MEMORY] Store decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
+description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 ---
 

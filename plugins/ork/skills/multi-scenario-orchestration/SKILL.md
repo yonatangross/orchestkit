@@ -1,6 +1,6 @@
 ---
 name: multi-scenario-orchestration
-description: Orchestrate single user-invocable skill across 3 parallel scenarios with synchronized state and progressive difficulty. Use for demos, testing, and progressive validation workflows.
+description: Orchestrates single user-invocable skill across 3 parallel scenarios with synchronized state and progressive difficulty. Use when running multi-scenario demos, comparative testing, or progressive validation workflows.
 tags: [orchestration, parallel, supervisor, state-machine, scenario, testing]
 context: fork
 agent: workflow-architect

@@ -1,6 +1,6 @@
 ---
 name: git-recovery
-description: "[GIT] Recovery from git mistakes. Use when you need to undo commits, recover branches, or fix history."
+description: "Recovery from git mistakes. Use when you need to undo commits, recover branches, or fix history."
 context: inherit
 version: 1.0.0
 author: OrchestKit

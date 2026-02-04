@@ -4,7 +4,7 @@ description: Backend caching patterns with Redis including write-through, write-
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0
-tags: [caching, redis, performance, fastapi, python, 2026]
+tags: [caching, redis, performance, fastapi, python]
 author: OrchestKit
 user-invocable: false
 ---

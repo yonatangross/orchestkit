@@ -1,6 +1,6 @@
 ---
 name: feedback
-description: "[CONFIG] Manage OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
+description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
 context: inherit
 version: 1.2.0
 author: OrchestKit

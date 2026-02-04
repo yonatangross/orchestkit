@@ -1,6 +1,6 @@
 ---
 name: add-golden
-description: "[QUALITY] Add documents to golden dataset with validation. Use when curating test data or saving examples."
+description: "Adds documents to golden dataset with validation. Use when curating test data or saving examples."
 context: fork
 version: 2.0.0
 author: OrchestKit

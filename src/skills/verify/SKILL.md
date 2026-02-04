@@ -1,6 +1,6 @@
 ---
 name: verify
-description: "[BUILD] Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
+description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 context: fork
 version: 3.1.0
 author: OrchestKit

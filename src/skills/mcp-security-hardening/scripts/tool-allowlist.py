@@ -354,7 +354,7 @@ allowed_tools:
     required_permissions:
       - "write:memory"
 
-  - name: "mcp__sequential-thinking__sequentialthinking"
+  - name: "mcp__sequential_thinking__sequential_thinking"
     description_hash: "i9j0k1l2..."
     max_calls_per_minute: 20
     # No expiration = permanent allowlist

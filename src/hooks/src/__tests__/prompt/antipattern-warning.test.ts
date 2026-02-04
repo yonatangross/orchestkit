@@ -293,14 +293,15 @@ describe('prompt/antipattern-warning', () => {
     });
   });
 
-  describe('mem0 search hints', () => {
-    test('includes mem0 search hints for implementation prompts', () => {
+  describe('mem0 CLI search hints', () => {
+    test('includes mem0 CLI search hints for implementation prompts', () => {
       const input = createPromptInput('Implement user authentication');
       const result = antipatternWarning(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('mcp__mem0__search_memories');
+        expect(result.hookSpecificOutput.additionalContext).toContain('search-memories.py');
+        expect(result.hookSpecificOutput.additionalContext).toContain('python3');
       }
     });
 

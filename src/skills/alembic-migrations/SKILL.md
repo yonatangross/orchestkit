@@ -4,13 +4,13 @@ description: Alembic migration patterns for SQLAlchemy 2.0 async. Use when creat
 context: fork
 agent: database-engineer
 version: 2.0.0
-tags: [alembic, migrations, sqlalchemy, database, schema, python, async, 2026]
-allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
+tags: [alembic, migrations, sqlalchemy, database, schema, python, async]
+allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Alembic Migration Patterns (2026)
+# Alembic Migration Patterns ()
 
 Database migration management with Alembic for SQLAlchemy 2.0 async applications.
 
@@ -107,7 +107,7 @@ else:
 
 Revision ID: abc123
 Revises: None
-Create Date: 2026-01-17 10:00:00.000000
+Create Date: -01-17 10:00:00.000000
 """
 from alembic import op
 import sqlalchemy as sa

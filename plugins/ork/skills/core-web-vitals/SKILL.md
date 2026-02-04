@@ -5,7 +5,7 @@ tags: [performance, core-web-vitals, lcp, inp, cls, lighthouse, rum, web-vitals]
 context: fork
 agent: frontend-ui-developer
 version: 1.0.0
-allowed-tools: [Read, Write, Grep, Glob, Bash]
+allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
 ---

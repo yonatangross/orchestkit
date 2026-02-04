@@ -2,7 +2,7 @@
 name: fine-tuning-customization
 description: LLM fine-tuning with LoRA, QLoRA, DPO alignment, and synthetic data generation. Efficient training, preference learning, data creation. Use when customizing models for specific domains.
 version: 1.0.0
-tags: [fine-tuning, lora, qlora, dpo, synthetic-data, rlhf, 2026]
+tags: [fine-tuning, lora, qlora, dpo, synthetic-data, rlhf]
 context: fork
 agent: llm-integrator
 author: OrchestKit
@@ -13,7 +13,7 @@ user-invocable: false
 
 Customize LLMs for specific domains using parameter-efficient fine-tuning and alignment techniques.
 
-> **Unsloth 2026**: 7x longer context RL, FP8 RL on consumer GPUs, rsLoRA support. **TRL**: OpenEnv integration, vLLM server mode, transformers 5.0.0+ compatible.
+> **Unsloth **: 7x longer context RL, FP8 RL on consumer GPUs, rsLoRA support. **TRL**: OpenEnv integration, vLLM server mode, transformers 5.0.0+ compatible.
 
 ## Decision Framework: Fine-Tune or Not?
 
@@ -30,7 +30,7 @@ Customize LLMs for specific domains using parameter-efficient fine-tuning and al
 4. Persona/style must be deeply embedded
 5. You have ~1000+ high-quality examples
 
-## LoRA vs QLoRA (Unsloth 2026)
+## LoRA vs QLoRA (Unsloth )
 
 | Criteria | LoRA | QLoRA |
 |----------|------|-------|

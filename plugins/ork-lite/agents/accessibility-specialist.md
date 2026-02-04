@@ -45,13 +45,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
 - Run `agent-browser --help` for full CLI docs
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Audit existing interfaces for WCAG 2.2 compliance
@@ -256,7 +249,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
 |focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
 |i18n-date-patterns:{SKILL.md,references/{formatting-utilities.md,icu-messageformat.md,trans-component.md}}|i18n,internationalization,dayjs,dates,react-i18next,localization,rtl,useTranslation,useFormatting,ICU,Trans
-|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents,2026
+|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

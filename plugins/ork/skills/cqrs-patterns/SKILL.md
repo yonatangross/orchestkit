@@ -4,7 +4,7 @@ description: CQRS (Command Query Responsibility Segregation) patterns for separa
 context: fork
 agent: event-driven-architect
 version: 1.0.0
-tags: [cqrs, command-query, read-model, write-model, projection, event-sourcing, 2026]
+tags: [cqrs, command-query, read-model, write-model, projection, event-sourcing]
 author: OrchestKit
 user-invocable: false
 ---

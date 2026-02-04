@@ -1,5 +1,5 @@
 ---
-description: "[CONFIG] Manage OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
+description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
 allowed-tools: [Read, Write, Edit, Grep, Glob]
 ---
 

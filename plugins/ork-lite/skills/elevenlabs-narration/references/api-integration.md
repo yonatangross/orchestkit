@@ -2,6 +2,19 @@
 
 Complete API patterns, authentication, and endpoint reference for ElevenLabs TTS integration.
 
+## Table of Contents
+
+- [Authentication](#authentication)
+- [API Endpoints Reference](#api-endpoints-reference)
+- [Models Reference](#models-reference)
+- [Error Handling](#error-handling)
+- [Rate Limiting](#rate-limiting)
+- [WebSocket API (Real-Time)](#websocket-api-real-time)
+- [SDK Usage (Official)](#sdk-usage-official)
+- [Best Practices](#best-practices)
+
+---
+
 ## Authentication
 
 ### API Key Setup

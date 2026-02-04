@@ -4,7 +4,7 @@ description: OWASP Top 10 security vulnerabilities and mitigations. Use when con
 tags: [security, owasp, vulnerabilities, audit]
 context: fork
 agent: security-auditor
-allowed-tools:
+allowedTools:
   - Read
   - Grep
   - Glob

@@ -5,7 +5,7 @@ context: fork
 agent: accessibility-specialist
 version: 1.0.0
 tags: [accessibility, focus, keyboard, a11y, trap]
-allowed-tools: [Read, Write, Edit, Grep, Glob]
+allowedTools: [Read, Write, Edit, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---

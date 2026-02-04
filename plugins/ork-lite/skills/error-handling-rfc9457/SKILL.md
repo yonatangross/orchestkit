@@ -4,7 +4,7 @@ description: RFC 9457 Problem Details for standardized HTTP API error responses.
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [error-handling, rfc9457, problem-details, fastapi, api, 2026]
+tags: [error-handling, rfc9457, problem-details, fastapi, api]
 author: OrchestKit
 user-invocable: false
 ---

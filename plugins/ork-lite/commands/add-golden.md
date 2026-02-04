@@ -1,5 +1,5 @@
 ---
-description: "[QUALITY] Add documents to golden dataset with validation. Use when curating test data or saving examples."
+description: "Adds documents to golden dataset with validation. Use when curating test data or saving examples."
 allowed-tools: [Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 ---
 

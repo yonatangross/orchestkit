@@ -52,10 +52,8 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## Memory Integration
 
 At task start, query relevant context:
-- `mcp__mem0__search_memories` with query: "performance optimizations, bundle analysis, Core Web Vitals fixes"
 
 Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for optimization strategies that worked
 
 ## Concrete Objectives
 

@@ -5,9 +5,9 @@ context: fork
 agent: data-pipeline-engineer
 version: 2.0.0
 author: OrchestKit AI Agent Hub
-tags: [browser, agent-browser, scraping, spa, authentication, 2026]
+tags: [browser, agent-browser, scraping, spa, authentication]
 user-invocable: false
-allowed-tools: Bash, Read, Write
+allowedTools: Bash, Read, Write
 ---
 
 # Browser Content Capture
@@ -22,7 +22,7 @@ This skill enables content extraction from sources that require browser-level ac
 - **Dynamic content** (infinite scroll, lazy loading, client-side routing)
 - **Multi-page site crawls** (documentation trees, tutorial series)
 
-## Overview
+## When to Use
 
 **Use when:**
 - `WebFetch` returns empty or partial content
@@ -260,7 +260,7 @@ User requests content from URL
 
 ---
 
-**Version:** 2.0.0 (January 2026)
+**Version:** 2.0.0 (January )
 **Browser Tool:** agent-browser CLI (replaces Playwright MCP)
 
 ## Capability Details

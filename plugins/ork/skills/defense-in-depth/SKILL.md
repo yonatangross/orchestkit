@@ -5,7 +5,7 @@ tags: [security, validation, layers, hardening]
 context: fork
 agent: security-layer-auditor
 version: 1.0.0
-allowed-tools:
+allowedTools:
   - Read
   - Grep
   - Glob

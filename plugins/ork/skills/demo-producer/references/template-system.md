@@ -2,6 +2,21 @@
 
 Comprehensive guide to the three template systems in demo-producer and how to create configurations for any skill.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [SkillDemoConfig Interface](#skilldemoconfig-interface)
+- [Template: TriTerminalRace](#template-triterminalrace)
+- [Template: ProgressiveZoom](#template-progressivezoom)
+- [Template: SplitThenMerge](#template-splitthenmerge)
+- [Creating a Configuration for Any Skill](#creating-a-configuration-for-any-skill)
+- [Shared Component Library](#shared-component-library)
+- [Best Practices](#best-practices)
+- [Rendering](#rendering)
+- [Related Skills](#related-skills)
+
+---
+
 ## Overview
 
 The demo-producer skill uses a modular template system that separates concerns:

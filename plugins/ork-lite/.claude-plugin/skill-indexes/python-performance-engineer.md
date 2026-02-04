@@ -3,8 +3,8 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|connection-pooling:{SKILL.md,references/{pool-sizing.md}}|connection-pool,asyncpg,aiohttp,database,http,performance,2026
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python,2026
+|connection-pooling:{SKILL.md,references/{pool-sizing.md}}|connection-pool,asyncpg,aiohttp,database,http,performance
+|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
 |performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations

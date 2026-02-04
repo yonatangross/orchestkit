@@ -4,13 +4,13 @@ description: Python asyncio patterns with TaskGroup, structured concurrency, and
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [asyncio, python, concurrency, taskgroup, structured-concurrency, 2026]
-allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
+tags: [asyncio, python, concurrency, taskgroup, structured-concurrency]
+allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Asyncio Advanced Patterns (2026)
+# Asyncio Advanced Patterns ()
 
 Modern Python asyncio patterns using structured concurrency, TaskGroup, and Python 3.11+ features.
 
@@ -144,7 +144,7 @@ async def cancellable_operation(resource_id: str) -> dict:
 
 ## Key Decisions
 
-| Decision | 2026 Recommendation | Rationale |
+| Decision |  Recommendation | Rationale |
 |----------|---------------------|-----------|
 | Task spawning | `TaskGroup` not `gather()` | Structured concurrency, auto-cancellation |
 | Timeouts | `asyncio.timeout()` context manager | Composable, cancels on exit |

@@ -1,6 +1,6 @@
 ---
 name: brainstorming
-description: "[BUILD] Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 tags: [planning, ideation, creativity, design]
 context: fork
 version: 4.2.0

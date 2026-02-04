@@ -4,7 +4,7 @@ description: User stories, acceptance criteria, PRDs, and requirements documenta
 context: fork
 agent: requirements-translator
 version: 1.0.0
-tags: [product, requirements, user-stories, prd, acceptance-criteria, agile, 2026]
+tags: [product, requirements, user-stories, prd, acceptance-criteria, agile]
 author: OrchestKit
 user-invocable: false
 ---
@@ -278,7 +278,7 @@ What the system should do.
 | **Localization** | Support English, Spanish, French |
 | **Compliance** | GDPR and SOC 2 Type II compliant |
 
-## 2026 Best Practices
+##  Best Practices
 
 - **Living documents**: PRDs evolve—link to retrospective notes
 - **AI-assisted**: Use AI to draft initial requirements, human review for accuracy
@@ -302,9 +302,43 @@ What the system should do.
 - `prioritization-frameworks` - Prioritizing the backlog
 - `user-research-methods` - Research that informs requirements
 
+## Claude Code PDF Handling (CC 2.1.30+)
+
+When extracting requirements from large specification documents:
+
+### Reading Large PDFs
+
+Use the `pages` parameter for PDFs >10 pages:
+
+```python
+# Read executive summary and overview (pages 1-10)
+Read(file_path="/path/to/spec.pdf", pages="1-10")
+
+# Read requirements section (pages 25-45)
+Read(file_path="/path/to/spec.pdf", pages="25-45")
+
+# Read appendix with data models (pages 80-90)
+Read(file_path="/path/to/spec.pdf", pages="80-90")
+```
+
+### Recommended Workflow
+
+1. **Initial scan** - Read first 5-10 pages for TOC and structure
+2. **Identify sections** - Note page ranges for requirements, use cases, constraints
+3. **Extract incrementally** - Read relevant sections (max 20 pages per request)
+4. **Cross-reference** - Jump to appendices for data models, glossary
+
+### Limits
+
+- Max 20 pages per Read request
+- Max 20MB file size
+- Large PDFs (>10 pages) return lightweight reference when @ mentioned
+
+---
+
 ## References
 
 - [PRD Template](references/prd-template.md)
 - [User Story Workshop Guide](references/user-story-workshop.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.1.0 (February )

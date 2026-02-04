@@ -113,7 +113,6 @@ export function mem0MemoryInject(input: HookInput): HookResult {
   }
 
   const agentId = `ork:${agentType}`;
-  const projectId = getProjectId();
   const agentUserId = mem0UserId(MEM0_SCOPE_AGENTS);
   const decisionsUserId = mem0UserId(MEM0_SCOPE_DECISIONS);
   const globalUserId = mem0GlobalUserId('best-practices');
@@ -125,79 +124,54 @@ export function mem0MemoryInject(input: HookInput): HookResult {
   // Get related agents
   const relatedAgents = getRelatedAgents(agentType);
 
-  // Build mem0 search JSONs
-  const mem0AgentQuery = JSON.stringify({
-    query: searchQuery,
-    filters: {
-      AND: [{ user_id: agentUserId }, { agent_id: agentId }],
-    },
-    limit: MAX_MEMORIES,
-    enable_graph: true,
-  });
+  // Build memory load instructions using CLI scripts
+  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '${CLAUDE_PLUGIN_ROOT}';
+  const scriptPath = `${pluginRoot}/src/skills/mem0-memory/scripts/crud/search-memories.py`;
 
-  const mem0DecisionsQuery = JSON.stringify({
-    query: `${domainKeywords} decisions`,
-    filters: {
-      AND: [{ user_id: decisionsUserId }],
-    },
-    limit: MAX_MEMORIES,
-    enable_graph: true,
-  });
-
-  const mem0GlobalQuery = JSON.stringify({
-    query: `${domainKeywords} best practices`,
-    filters: {
-      AND: [{ user_id: globalUserId }],
-    },
-    limit: MAX_MEMORIES,
-    enable_graph: true,
-  });
-
-  // Build memory load instructions
   let memoryLoadMsg = `[Mem0 Cloud - Agent Context Load]
 
-Execute these MCP calls to load mem0 context for ${agentType} agent:
+Execute these CLI scripts to load mem0 context for ${agentType} agent:
 
 ## 1. Agent-Specific Patterns (mem0)
-\`\`\`
-mcp__mem0__search_memories
-${mem0AgentQuery}
+\`\`\`bash
+python3 ${scriptPath} \\
+  --query "${searchQuery}" \\
+  --user-id "${agentUserId}" \\
+  --limit ${MAX_MEMORIES} \\
+  --enable-graph
 \`\`\`
 
 ## 2. Project Decisions (mem0)
-\`\`\`
-mcp__mem0__search_memories
-${mem0DecisionsQuery}
+\`\`\`bash
+python3 ${scriptPath} \\
+  --query "${domainKeywords} decisions" \\
+  --user-id "${decisionsUserId}" \\
+  --limit ${MAX_MEMORIES} \\
+  --enable-graph
 \`\`\`
 
 ## 3. Cross-Project Best Practices (mem0)
-\`\`\`
-mcp__mem0__search_memories
-${mem0GlobalQuery}
+\`\`\`bash
+python3 ${scriptPath} \\
+  --query "${domainKeywords} best practices" \\
+  --user-id "${globalUserId}" \\
+  --limit ${MAX_MEMORIES} \\
+  --enable-graph
 \`\`\``;
 
   // Add cross-agent section if related agents exist
   if (relatedAgents.length > 0) {
     const relatedAgentsStr = relatedAgents.join(', ');
-    const agentFilters = [
-      { agent_id: agentId },
-      ...relatedAgents.map((a) => ({ agent_id: `ork:${a}` })),
-    ];
-    const crossAgentQuery = JSON.stringify({
-      query: domainKeywords,
-      filters: {
-        AND: [{ user_id: agentUserId }, { OR: agentFilters }],
-      },
-      limit: MAX_MEMORIES,
-      enable_graph: true,
-    });
 
     memoryLoadMsg += `
 
 ## 4. Cross-Agent Knowledge (from: ${relatedAgentsStr})
-\`\`\`
-mcp__mem0__search_memories
-${crossAgentQuery}
+\`\`\`bash
+python3 ${scriptPath} \\
+  --query "${domainKeywords}" \\
+  --user-id "${agentUserId}" \\
+  --limit ${MAX_MEMORIES} \\
+  --enable-graph
 \`\`\``;
   }
 
@@ -205,14 +179,14 @@ ${crossAgentQuery}
   memoryLoadMsg += `
 
 ## Integration Instructions
-1. Execute the above MCP calls to retrieve mem0 context
+1. Execute the above CLI scripts to retrieve mem0 context
 2. Review memories for patterns, decisions, and constraints
 3. Apply learned patterns to current task
 4. Avoid known anti-patterns (outcome: failed)
 
 Agent ID: ${agentId} | Domain: ${domainKeywords} | Related: ${relatedStr}`;
 
-  const systemMsg = `[Mem0 Cloud] Agent: ${agentType} | ID: ${agentId} | Load mem0 context via MCP calls above | Related: ${relatedStr}`;
+  const systemMsg = `[Mem0 Cloud] Agent: ${agentType} | ID: ${agentId} | Load mem0 context via CLI scripts above | Related: ${relatedStr}`;
 
   logHook('mem0-memory-inject', `Outputting mem0 memory instructions for ${agentType}`);
 

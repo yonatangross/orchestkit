@@ -41,14 +41,6 @@ For multi-step research (3+ pages or complex extraction):
 - `mcp__memory__*` - Persist research findings across sessions
 - `mcp__context7__*` - Documentation and framework references
 
-## Memory Integration
-
-At task start, query relevant context:
-- `mcp__mem0__search_memories` for prior research on same domain/topic
-
-Before completing, store significant findings:
-- `mcp__mem0__add_memory` for competitive insights, pricing data, feature comparisons
-
 ## Browser Automation
 
 ### Decision Tree

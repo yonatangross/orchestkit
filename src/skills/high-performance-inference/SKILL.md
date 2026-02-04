@@ -2,7 +2,7 @@
 name: high-performance-inference
 description: High-performance LLM inference with vLLM, quantization (AWQ, GPTQ, FP8), speculative decoding, and edge deployment. Use when optimizing inference latency, throughput, or memory.
 version: 1.0.0
-tags: [vllm, quantization, inference, performance, edge, speculative, 2026]
+tags: [vllm, quantization, inference, performance, edge, speculative]
 context: fork
 agent: llm-integrator
 author: OrchestKit
@@ -13,7 +13,7 @@ user-invocable: false
 
 Optimize LLM inference for production with vLLM 0.14.x, quantization, and speculative decoding.
 
-> **vLLM 0.14.0** (Jan 2026): PyTorch 2.9.0, CUDA 12.9, AttentionConfig API, Python 3.12+ recommended.
+> **vLLM 0.14.0** (Jan ): PyTorch 2.9.0, CUDA 12.9, AttentionConfig API, Python 3.12+ recommended.
 
 ## Overview
 

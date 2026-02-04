@@ -4,7 +4,7 @@ description: DDD aggregate design patterns for consistency boundaries and invari
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [ddd, aggregate, consistency, invariants, domain-modeling, python, 2026]
+tags: [ddd, aggregate, consistency, invariants, domain-modeling, python]
 author: OrchestKit
 user-invocable: false
 ---

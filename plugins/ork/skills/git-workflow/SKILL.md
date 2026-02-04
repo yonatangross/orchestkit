@@ -165,7 +165,7 @@ Avoid:
 ## Related Skills
 
 - `commit` - Create commits with conventional format and pre-commit validation
-- `git-recovery-command` - Quick recovery from common git mistakes using reflog operations
+- `git-recovery` - Quick recovery from common git mistakes using reflog operations
 - `stacked-prs` - Multi-PR development for large features with dependent PRs
 - `create-pr` - Comprehensive PR creation with proper formatting
 

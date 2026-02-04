@@ -248,8 +248,9 @@ export function agentMemoryStore(input: HookInput): HookResult {
 
   logHook('agent-memory-store', `Extracted ${extractedPatterns.length} patterns from ${agentType} output`);
 
-  // Build suggestion message
-  const systemMsg = `[Pattern Extraction] ${extractedPatterns.length} patterns extracted from ${agentType}. Use mcp__mem0__add_memory with user_id='${decisionsUserId}', agent_id='${agentId}' to persist (graph memory auto-enabled).`;
+  // Build suggestion message using CLI script
+  const scriptPath = '${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py';
+  const systemMsg = `[Pattern Extraction] ${extractedPatterns.length} patterns extracted from ${agentType}. To persist, use CLI: python3 ${scriptPath} --text "..." --user-id '${decisionsUserId}' --metadata '{"agent_id":"${agentId}"}'`;
 
   return {
     continue: true,

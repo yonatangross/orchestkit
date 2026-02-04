@@ -1,6 +1,6 @@
 ---
 name: help
-description: "[META] OrchestKit skill directory. Use when you want to see available skills or need help."
+description: "OrchestKit skill directory. Use when you want to see available skills or need help."
 context: fork
 version: 1.0.0
 author: OrchestKit

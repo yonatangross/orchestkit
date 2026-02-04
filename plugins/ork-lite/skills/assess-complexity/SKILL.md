@@ -1,6 +1,6 @@
 ---
 name: assess-complexity
-description: "[QUALITY] Assess task complexity with codebase metrics. Use when determining if a task needs breakdown."
+description: "Assesses task complexity with codebase metrics. Use when determining if a task needs breakdown."
 context: fork
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, Task, mcp__memory__search_nodes]

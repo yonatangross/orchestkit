@@ -3,12 +3,12 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression,2026
+|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression
 |golden-dataset-curation:{SKILL.md,references/{annotation-patterns.md,selection-criteria.md}}|golden-dataset,curation,quality,multi-agent,langfuse,2025
 |golden-dataset-validation:{SKILL.md,references/{quality-metrics.md,validation-rules.md}}|golden-dataset,validation,integrity,schema,duplicate-detection,2025
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python,2026
-|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python,2026
-|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication,2026
+|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
+|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
+|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
 |devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
 |mem0-memory:{SKILL.md,references/{agent-user-architecture.md,data-structure.md,metadata-filtered-architecture.md,visualization.md}}|memory,mem0,persistence,context
 |memory-fabric:{SKILL.md,references/{entity-extraction.md,query-merging.md}}|memory,orchestration,graph-first,graph,unified-search,deduplication,cross-reference

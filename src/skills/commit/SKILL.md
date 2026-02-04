@@ -1,6 +1,6 @@
 ---
 name: commit
-description: "[GIT] Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
+description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 context: inherit
 version: 1.0.0
 author: OrchestKit

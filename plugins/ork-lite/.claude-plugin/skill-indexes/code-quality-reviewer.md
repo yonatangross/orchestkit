@@ -8,12 +8,12 @@
 |unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
 |integration-testing:{SKILL.md}|testing,integration,api,database
 |evidence-verification:{SKILL.md,references/{evidence-patterns.md}}|quality,verification,testing,evidence,completion
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents,2026
+|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
 |test-standards-enforcer:{SKILL.md,references/{naming-conventions.md}}|testing,quality,enforcement,blocking,aaa-pattern,coverage
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
 |quality-gates:{SKILL.md,references/{blocking-thresholds.md,complexity-scoring.md,gate-patterns.md,llm-quality-validation.md,workflows.md}}|quality,complexity,planning,escalation,blocking
-|clean-architecture:{SKILL.md,references/{hexagonal-architecture.md}}|architecture,solid,hexagonal,ddd,python,fastapi,2026
+|clean-architecture:{SKILL.md,references/{hexagonal-architecture.md}}|architecture,solid,hexagonal,ddd,python,fastapi
 |best-practices:{SKILL.md,references/{proactive-warnings.md}}|best-practices,patterns,anti-patterns,mem0,learning
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

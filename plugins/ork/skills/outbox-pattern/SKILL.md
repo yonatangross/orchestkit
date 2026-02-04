@@ -4,13 +4,13 @@ description: Transactional outbox pattern for reliable event publishing. Use whe
 context: fork
 agent: event-driven-architect
 version: 2.0.0
-tags: [event-driven, outbox, transactions, reliability, microservices, cdc, idempotency, 2026]
-allowed-tools: [Read, Write, Grep, Glob, Bash]
+tags: [event-driven, outbox, transactions, reliability, microservices, cdc, idempotency]
+allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Outbox Pattern (2026)
+# Outbox Pattern ()
 
 Ensure atomic state changes and event publishing by writing both to a database transaction, then publishing asynchronously.
 

@@ -1,6 +1,6 @@
 ---
 name: remember
-description: "[MEMORY] Store decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
+description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 context: none
 version: 3.0.0
 author: OrchestKit

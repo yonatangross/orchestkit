@@ -1,10 +1,10 @@
 ---
 name: worktree-coordination
-description: "[EXPLORE] Coordinate multiple Claude instances across worktrees. Use when managing parallel development."
+description: "Coordinates multiple Claude instances across worktrees. Use when managing parallel development."
 context: none
 version: 1.0.0
 author: OrchestKit
-tags: [coordination, worktree, multi-instance, locking, parallel-development, 2026]
+tags: [coordination, worktree, multi-instance, locking, parallel-development]
 user-invocable: true
 allowedTools: [Read, Write, Bash, Grep, Glob]
 skills: [git-workflow, commit, stacked-prs]
@@ -106,14 +106,14 @@ Located at `.claude/coordination/registry.json`:
       "branch": "feature/user-authentication",
       "task": "Implementing OAuth2",
       "files_locked": ["src/auth/oauth.ts"],
-      "started": "2026-01-08T14:30:00Z",
-      "last_heartbeat": "2026-01-08T14:45:32Z"
+      "started": "-01-08T14:30:00Z",
+      "last_heartbeat": "-01-08T14:45:32Z"
     }
   },
   "file_locks": {
     "src/auth/oauth.ts": {
       "instance_id": "cc-auth-a1b2c3",
-      "acquired_at": "2026-01-08T14:35:00Z",
+      "acquired_at": "-01-08T14:35:00Z",
       "reason": "edit"
     }
   },
@@ -123,7 +123,7 @@ Located at `.claude/coordination/registry.json`:
       "instance_id": "cc-auth-a1b2c3",
       "decision": "Use Passport.js for OAuth",
       "rationale": "Better middleware support",
-      "timestamp": "2026-01-08T14:40:00Z"
+      "timestamp": "-01-08T14:40:00Z"
     }
   ]
 }

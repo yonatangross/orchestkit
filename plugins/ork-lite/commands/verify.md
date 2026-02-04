@@ -1,5 +1,5 @@
 ---
-description: "[BUILD] Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
+description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: create-pr
-description: "[GIT] Create GitHub pull requests with validation. Use when opening PRs or submitting code for review."
+description: "Creates GitHub pull requests with validation. Use when opening PRs or submitting code for review."
 context: fork
 version: 2.3.0
 author: OrchestKit
@@ -199,7 +199,7 @@ echo "PR created: $PR_URL"
 gh pr view --web
 ```
 
-## CC 2.1.27 Enhancements
+## CC 2.1.27+ Enhancements
 
 ### Auto PR Linking
 
@@ -211,6 +211,30 @@ claude --from-pr https://github.com/org/repo/pull/123
 ```
 
 This means PR context (diff, comments, review status) is available when resuming.
+
+### Task Metrics (CC 2.1.30)
+
+Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Report validation efficiency:
+
+```markdown
+## Pre-PR Validation Metrics
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| security-auditor | 520 | 10 | 15s |
+| test-generator | 380 | 6 | 12s |
+| code-quality-reviewer | 450 | 8 | 10s |
+
+**Total:** 1,350 tokens in 37s
+```
+
+### Session Resume Hints (CC 2.1.31)
+
+At session end, Claude shows resume hints. Before ending PR creation sessions:
+
+```bash
+# Store PR context for future sessions
+/ork:remember PR #123 created: [brief description], pending review from [team]
+```
 
 ## Rules
 

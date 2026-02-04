@@ -98,19 +98,21 @@ function generateMem0RecoveryMessage(memories: QueuedMem0Memory[]): string {
     '## Mem0 Memory Recovery',
     '',
     'Orphaned mem0 memories from a previous session were found.',
-    'Execute these MCP calls to persist them:',
+    'Execute these CLI scripts to persist them:',
     '',
   ];
 
+  const scriptPath = '${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py';
+
   let callIndex = 1;
   for (const memory of memories) {
+    const metadataJson = JSON.stringify(memory.metadata).replace(/'/g, "\\'");
     parts.push(`**Memory ${callIndex}:**`);
-    parts.push('```json');
-    parts.push(`mcp__mem0__add_memory({`);
-    parts.push(`  "text": ${JSON.stringify(memory.text)},`);
-    parts.push(`  "user_id": ${JSON.stringify(memory.user_id)},`);
-    parts.push(`  "metadata": ${JSON.stringify(memory.metadata, null, 4).split('\n').map((l, i) => i === 0 ? l : '  ' + l).join('\n')}`);
-    parts.push(`})`);
+    parts.push('```bash');
+    parts.push(`python3 ${scriptPath} \\`);
+    parts.push(`  --text ${JSON.stringify(memory.text)} \\`);
+    parts.push(`  --user-id ${JSON.stringify(memory.user_id)} \\`);
+    parts.push(`  --metadata '${metadataJson}'`);
     parts.push('```');
     parts.push('');
     callIndex++;

@@ -1,17 +1,16 @@
 /**
  * Memory Bridge Hook - Graph-First Memory Sync
- * Triggers on PostToolUse for mcp__mem0__add_memory
+ * Triggers on PostToolUse for mcp__memory__create_entities
  *
  * Graph-First Architecture (v2.1):
- * - Graph is AUTHORITATIVE - always the source of truth
- * - When mem0 is used, ALWAYS sync TO graph (preserve in local storage)
+ * - Graph (mcp__memory__*) is AUTHORITATIVE - always the source of truth
+ * - Mem0 cloud uses CLI scripts (not MCP) for semantic search
  * - When graph is used (default), NO sync needed (already in primary)
  *
- * Sync Direction: Mem0 -> Graph ONLY (one-way)
- * - mcp__mem0__add_memory -> Extract entities, sync to graph
- * - mcp__memory__create_entities -> No action needed (already in primary)
+ * Note: Mem0 MCP tools are deprecated. Use CLI scripts at:
+ * ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/
  *
- * Version: 2.1.1 - CC 2.1.9/2.1.11 compliant, Graph-First Architecture
+ * Version: 2.1.2 - CLI-based mem0, MCP for graph only
  * Part of Memory Fabric v2.1 - Graph-First Architecture
  */
 
@@ -114,84 +113,14 @@ function extractRelationsFromText(text: string, entities: Entity[]): Relation[] 
 }
 
 /**
- * Sync memory from Mem0 to knowledge graph
+ * Sync memory operations (Graph-First Architecture)
+ * Note: Mem0 now uses CLI scripts, so only graph operations trigger this hook
  */
 export function memoryBridge(input: HookInput): HookResult {
   const toolName = input.tool_name || '';
 
   // Only process memory-related tools
   switch (toolName) {
-    case 'mcp__mem0__add_memory': {
-      // Graph-First: Sync mem0 content TO graph (preserve in primary storage)
-      logHook('memory-bridge', 'Processing mcp__mem0__add_memory - syncing to graph (primary)');
-
-      // Get the text that was added
-      const memoryText = getField<string>(input, 'tool_input.text') || '';
-
-      if (!memoryText || memoryText.length < 20) {
-        logHook('memory-bridge', 'Memory text too short, skipping');
-        return outputSilentSuccess();
-      }
-
-      // Check for Memory Fabric Agent
-      const pluginRoot = getPluginRoot();
-      const memoryAgent = `${pluginRoot}/bin/memory-fabric-agent.py`;
-      const hasAgentSdk = existsSync(memoryAgent);
-
-      if (hasAgentSdk) {
-        logHook('memory-bridge', 'Memory Fabric Agent available for bidirectional sync');
-        // Agent SDK would be invoked here for smart entity extraction
-        // For now, fall through to regex extraction
-      }
-
-      // Fallback: Use regex-based extraction
-      const entities = extractEntitiesFromText(memoryText);
-      const entityCount = entities.length;
-
-      if (entityCount === 0) {
-        logHook('memory-bridge', 'No entities extracted');
-        return outputSilentSuccess();
-      }
-
-      // Extract relations
-      const relations = extractRelationsFromText(memoryText, entities);
-      const relationCount = relations.length;
-
-      logHook('memory-bridge', `Extracted ${entityCount} entities and ${relationCount} relations`);
-
-      // Format suggestion message
-      const entityList = entities
-        .slice(0, 5)
-        .map(e => `- ${e.name} (${e.entityType}): ${e.observations[0] || 'observed'}`)
-        .join('\n');
-
-      let msg = `[Memory Bridge] Sync to Graph (primary storage)
-
-Mem0 content should be synced to the knowledge graph for durability.
-Detected ${entityCount} entities to preserve:
-
-${entityList}
-
-Store in graph with mcp__memory__create_entities:
-\`\`\`json
-{"entities": ${JSON.stringify(entities)}}
-\`\`\``;
-
-      if (relationCount > 0) {
-        msg += `
-
-Then call mcp__memory__create_relations with:
-\`\`\`json
-{"relations": ${JSON.stringify(relations)}}
-\`\`\``;
-      }
-
-      return {
-        continue: true,
-        systemMessage: msg,
-      };
-    }
-
     case 'mcp__memory__create_entities':
       // Graph-First: No sync needed when writing to graph (it's already the primary)
       logHook('memory-bridge', 'mcp__memory__create_entities - graph is primary, no sync needed');

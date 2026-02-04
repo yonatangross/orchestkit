@@ -24,9 +24,9 @@ import type { HookInput } from '../../types.js';
 
 function makeInput(overrides: Partial<HookInput> = {}): HookInput {
   return {
-    tool_name: 'mcp__mem0__add_memory',
+    tool_name: 'mcp__memory__create_entities',
     session_id: 'test-session',
-    tool_input: { text: 'We decided to use FastAPI with PostgreSQL for the backend' },
+    tool_input: { entities: [] },
     ...overrides,
   };
 }
@@ -45,28 +45,6 @@ describe('memoryBridge', () => {
     expect(result.suppressOutput).toBe(true);
   });
 
-  it('extracts entities from mem0 add_memory and suggests graph sync', () => {
-    // Act
-    const result = memoryBridge(makeInput());
-
-    // Assert
-    expect(result.continue).toBe(true);
-    expect(result.systemMessage).toBeDefined();
-    expect(result.systemMessage).toContain('Memory Bridge');
-    expect(result.systemMessage).toContain('mcp__memory__create_entities');
-  });
-
-  it('skips memory text shorter than 20 characters', () => {
-    // Act
-    const result = memoryBridge(makeInput({
-      tool_input: { text: 'short' },
-    }));
-
-    // Assert
-    expect(result.continue).toBe(true);
-    expect(result.suppressOutput).toBe(true);
-  });
-
   it('returns silent success for mcp__memory__create_entities (already in primary)', () => {
     // Act
     const result = memoryBridge(makeInput({
@@ -79,25 +57,18 @@ describe('memoryBridge', () => {
     expect(result.suppressOutput).toBe(true);
   });
 
-  it('detects technology entities like FastAPI and PostgreSQL', () => {
+  it('returns silent success for unknown tools', () => {
     // Act
     const result = memoryBridge(makeInput({
-      tool_input: { text: 'We decided to use FastAPI with PostgreSQL for the backend service' },
-    }));
-
-    // Assert
-    expect(result.systemMessage).toContain('Fastapi');
-    expect(result.systemMessage).toContain('Postgresql');
-  });
-
-  it('returns silent success when no entities are extracted', () => {
-    // Act
-    const result = memoryBridge(makeInput({
-      tool_input: { text: 'This is a plain text with no known technology references at all here' },
+      tool_name: 'unknown_tool',
+      tool_input: {},
     }));
 
     // Assert
     expect(result.continue).toBe(true);
     expect(result.suppressOutput).toBe(true);
   });
+
+  // Note: mcp__mem0__add_memory tests removed - mem0 now uses CLI scripts
+  // CLI scripts don't trigger PostToolUse hooks
 });

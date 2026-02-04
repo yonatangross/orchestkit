@@ -5,9 +5,9 @@ context: fork
 agent: market-intelligence
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [competitive-intelligence, monitoring, diff, tracking, pricing, 2026]
+tags: [competitive-intelligence, monitoring, diff, tracking, pricing]
 user-invocable: true
-allowed-tools: Bash, Read, Write, WebFetch
+allowedTools: Bash, Read, Write, WebFetch
 ---
 
 # Competitive Monitoring
@@ -168,18 +168,18 @@ agent-browser eval "JSON.stringify({
 ├── config.json           # Monitored URLs and schedules
 ├── snapshots/
 │   ├── competitor-a/
-│   │   ├── pricing-20260201.txt
-│   │   ├── pricing-20260201.json
-│   │   └── pricing-20260201.png
+│   │   ├── pricing-0201.txt
+│   │   ├── pricing-0201.json
+│   │   └── pricing-0201.png
 │   └── competitor-b/
 │       └── ...
 ├── diffs/
 │   ├── competitor-a/
-│   │   └── pricing-20260201.diff
+│   │   └── pricing-0201.diff
 │   └── competitor-b/
 │       └── ...
 └── reports/
-    └── weekly-20260201.md
+    └── weekly-0201.md
 ```
 
 ## Config File
@@ -212,7 +212,7 @@ agent-browser eval "JSON.stringify({
 ```markdown
 # Competitive Change Report
 
-**Date:** 2026-02-04
+**Date:** -02-04
 **Competitor:** Competitor A
 **URL:** https://competitor-a.com/pricing
 
@@ -246,13 +246,13 @@ Store findings in knowledge graph for persistence:
 ```bash
 # After detecting changes, store in memory
 mcp__memory__add_node(
-  name="Competitor A Price Increase 2026-02",
+  name="Competitor A Price Increase -02",
   type="competitive_intelligence",
   content="Pro tier increased from $29 to $39 (+34%)"
 )
 
 # Query historical changes
-mcp__memory__search_nodes(query="competitor pricing changes 2026")
+mcp__memory__search_nodes(query="competitor pricing changes ")
 ```
 
 ## Automation Ideas
@@ -286,4 +286,4 @@ jobs:
 
 ---
 
-**Version:** 1.0.0 (February 2026)
+**Version:** 1.0.0 (February )

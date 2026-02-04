@@ -153,11 +153,11 @@ describe('mem0MemoryInject', () => {
   });
 
   // -----------------------------------------------------------------------
-  // Output contains mcp__mem0__search_memories instructions
+  // Output contains CLI script instructions
   // -----------------------------------------------------------------------
 
-  describe('mem0 search instructions', () => {
-    test('output includes mcp__mem0__search_memories instruction', () => {
+  describe('mem0 CLI search instructions', () => {
+    test('output includes CLI script path', () => {
       vi.stubEnv('MEM0_API_KEY', 'test-api-key');
 
       const input = makeInput({
@@ -167,7 +167,8 @@ describe('mem0MemoryInject', () => {
       const result = mem0MemoryInject(input);
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
-      expect(ctx).toContain('mcp__mem0__search_memories');
+      expect(ctx).toContain('search-memories.py');
+      expect(ctx).toContain('python3');
     });
 
     test('output includes agent-specific, decisions, and global search sections', () => {
@@ -185,7 +186,7 @@ describe('mem0MemoryInject', () => {
       expect(ctx).toContain('Cross-Project Best Practices');
     });
 
-    test('output includes correct agent ID in filter', () => {
+    test('output includes correct agent ID in footer', () => {
       vi.stubEnv('MEM0_API_KEY', 'test-api-key');
 
       const input = makeInput({
@@ -195,7 +196,7 @@ describe('mem0MemoryInject', () => {
       const result = mem0MemoryInject(input);
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
-      expect(ctx).toContain('"agent_id":"ork:test-generator"');
+      expect(ctx).toContain('Agent ID: ork:test-generator');
     });
 
     test('output includes domain keywords in search query', () => {
@@ -250,7 +251,7 @@ describe('mem0MemoryInject', () => {
         expect(result.hookSpecificOutput).toBeDefined();
         expect(result.hookSpecificOutput!.additionalContext).toContain(agentType);
         expect(result.hookSpecificOutput!.additionalContext).toContain(
-          'mcp__mem0__search_memories',
+          'search-memories.py',
         );
       },
     );
@@ -277,7 +278,7 @@ describe('mem0MemoryInject', () => {
       expect(ctx).toContain('data-pipeline-engineer');
     });
 
-    test('cross-agent section includes OR filter with related agent IDs', () => {
+    test('cross-agent section includes related agent names', () => {
       vi.stubEnv('MEM0_API_KEY', 'test-api-key');
 
       const input = makeInput({
@@ -287,11 +288,11 @@ describe('mem0MemoryInject', () => {
       const result = mem0MemoryInject(input);
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
-      // The cross-agent query should contain OR filters
-      expect(ctx).toContain('"agent_id":"ork:database-engineer"');
-      expect(ctx).toContain('"agent_id":"ork:frontend-ui-developer"');
-      expect(ctx).toContain('"agent_id":"ork:security-auditor"');
-      expect(ctx).toContain('"agent_id":"ork:llm-integrator"');
+      // The cross-agent section lists related agents in header and footer
+      expect(ctx).toContain('Related: database-engineer');
+      expect(ctx).toContain('frontend-ui-developer');
+      expect(ctx).toContain('security-auditor');
+      expect(ctx).toContain('llm-integrator');
     });
 
     test('frontend-ui-developer includes rapid-ui-designer in related agents', () => {
@@ -440,7 +441,7 @@ describe('mem0MemoryInject', () => {
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
       expect(ctx).toContain('Integration Instructions');
-      expect(ctx).toContain('Execute the above MCP calls');
+      expect(ctx).toContain('Execute the above CLI scripts');
       expect(ctx).toContain('Avoid known anti-patterns');
     });
 
@@ -457,7 +458,7 @@ describe('mem0MemoryInject', () => {
       expect(ctx).toContain('[Mem0 Cloud - Agent Context Load]');
     });
 
-    test('search query JSON includes enable_graph true', () => {
+    test('CLI script includes --enable-graph flag', () => {
       vi.stubEnv('MEM0_API_KEY', 'test-api-key');
 
       const input = makeInput({
@@ -467,10 +468,10 @@ describe('mem0MemoryInject', () => {
       const result = mem0MemoryInject(input);
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
-      expect(ctx).toContain('"enable_graph":true');
+      expect(ctx).toContain('--enable-graph');
     });
 
-    test('search query JSON includes limit of 5', () => {
+    test('CLI script includes --limit 5 flag', () => {
       vi.stubEnv('MEM0_API_KEY', 'test-api-key');
 
       const input = makeInput({
@@ -480,7 +481,7 @@ describe('mem0MemoryInject', () => {
       const result = mem0MemoryInject(input);
       const ctx = result.hookSpecificOutput!.additionalContext!;
 
-      expect(ctx).toContain('"limit":5');
+      expect(ctx).toContain('--limit 5');
     });
   });
 

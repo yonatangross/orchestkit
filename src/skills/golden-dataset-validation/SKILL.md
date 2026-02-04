@@ -6,7 +6,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [golden-dataset, validation, integrity, schema, duplicate-detection, 2025]
-allowed-tools:
+allowedTools:
   - Read
   - Grep
   - Glob

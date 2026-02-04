@@ -1,6 +1,6 @@
 ---
 name: assess
-description: "[QUALITY] Assess and rate quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
+description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.1.0
 author: OrchestKit

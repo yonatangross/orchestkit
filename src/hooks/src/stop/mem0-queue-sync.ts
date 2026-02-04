@@ -5,7 +5,7 @@
  * GAP-006: mem0-queue.jsonl processor
  *
  * This hook reads the mem0-queue.jsonl file and outputs a systemMessage
- * prompting Claude to execute the queued mcp__mem0__add_memory operations.
+ * prompting Claude to execute the queued mem0 add-memory operations via CLI scripts.
  *
  * Refactored to use shared queue-processor.ts functions.
  *
@@ -50,7 +50,7 @@ function groupByUserId(memories: QueuedMem0Memory[]): Map<string, QueuedMem0Memo
 // =============================================================================
 
 /**
- * Generate a systemMessage for Claude to execute the mem0 operations
+ * Generate a systemMessage for Claude to execute the mem0 operations via CLI
  */
 function generateSystemMessage(memories: QueuedMem0Memory[]): string {
   if (memories.length === 0) {
@@ -59,29 +59,30 @@ function generateSystemMessage(memories: QueuedMem0Memory[]): string {
 
   // Group by user_id for organized output
   const grouped = groupByUserId(memories);
+  const scriptPath = '${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py';
 
   const parts: string[] = [
     '## Mem0 Cloud Memory Sync',
     '',
     'The following decisions and patterns were captured this session.',
-    'To persist them to mem0 cloud memory, execute these MCP calls:',
+    'To persist them to mem0 cloud memory, execute these CLI scripts:',
     '',
   ];
 
-  // Generate add_memory calls for each memory
+  // Generate add_memory CLI calls for each memory
   let callIndex = 1;
   for (const [userId, userMemories] of grouped) {
     parts.push(`### Scope: ${userId}`);
     parts.push('');
 
     for (const memory of userMemories) {
+      const metadataJson = JSON.stringify(memory.metadata).replace(/'/g, "\\'");
       parts.push(`**Memory ${callIndex}:**`);
-      parts.push('```json');
-      parts.push(`mcp__mem0__add_memory({`);
-      parts.push(`  "text": ${JSON.stringify(memory.text)},`);
-      parts.push(`  "user_id": ${JSON.stringify(memory.user_id)},`);
-      parts.push(`  "metadata": ${JSON.stringify(memory.metadata, null, 4).split('\n').map((l, i) => i === 0 ? l : '  ' + l).join('\n')}`);
-      parts.push(`})`);
+      parts.push('```bash');
+      parts.push(`python3 ${scriptPath} \\`);
+      parts.push(`  --text ${JSON.stringify(memory.text)} \\`);
+      parts.push(`  --user-id ${JSON.stringify(memory.user_id)} \\`);
+      parts.push(`  --metadata '${metadataJson}'`);
       parts.push('```');
       parts.push('');
       callIndex++;

@@ -4,13 +4,13 @@ description: Idempotency patterns for APIs and event handlers. Use when implemen
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [idempotency, deduplication, exactly-once, distributed-systems, api, 2026]
-allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
+tags: [idempotency, deduplication, exactly-once, distributed-systems, api]
+allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Idempotency Patterns (2026)
+# Idempotency Patterns ()
 
 Patterns for ensuring operations can be safely retried without unintended side effects.
 

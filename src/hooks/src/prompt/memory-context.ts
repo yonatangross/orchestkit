@@ -263,12 +263,12 @@ export function memoryContext(input: HookInput): HookResult {
       ' | For relationships: mcp__memory__open_nodes on found entities | Graph traversal available';
   }
 
-  // Add mem0 hint if available
+  // Add mem0 hint if available (using CLI scripts)
   if (isMem0Available && userIdDecisions) {
-    systemMsg += ` | [Enhanced] For semantic search: mcp__mem0__search_memories query="${searchTerms}" user_id="${userIdDecisions}" enable_graph=true`;
+    systemMsg += ` | [Enhanced] For semantic search via CLI: python3 \${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py --query "${searchTerms}" --user-id "${userIdDecisions}" --enable-graph`;
 
     if (!useGlobal) {
-      systemMsg += ' | Cross-project: user_id="global:best-practices"';
+      systemMsg += ' | Cross-project: --user-id "global:best-practices"';
     }
   }
 

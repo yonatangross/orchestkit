@@ -4,7 +4,7 @@ description: Async task processing with Celery, ARQ, and Redis for Python backen
 context: fork
 agent: data-pipeline-engineer
 version: 1.0.0
-tags: [background-jobs, celery, arq, redis, async, python, 2026]
+tags: [background-jobs, celery, arq, redis, async, python]
 author: OrchestKit
 user-invocable: false
 ---

@@ -19,7 +19,7 @@ skills:
   - worktree-coordination
   - commit
   - release-management
-  - git-recovery-command
+  - git-recovery
   - architecture-decision-record
   - issue-progress-tracking
   - task-dependency-patterns
@@ -51,15 +51,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date Git documentation and best practices
-- `mcp__mem0__*` - Store and retrieve branch strategies, merge decisions, and recovery patterns
 - `mcp__sequential-thinking__*` - Complex rebase conflict resolution and recovery planning
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your git operation domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable branch strategies and recovery procedures
 
 ## Concrete Objectives
 1. Create and manage feature branches following naming conventions (feat/, fix/, docs/, refactor/, test/, chore/)
@@ -311,10 +303,10 @@ Read the specific file before advising. Do NOT rely on training data.
 |git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |stacked-prs:{SKILL.md,references/{stack-management.md}}|git,pull-request,stacked,workflow,code-review
-|worktree-coordination:{SKILL.md}|coordination,worktree,multi-instance,locking,parallel-development,2026
+|worktree-coordination:{SKILL.md}|coordination,worktree,multi-instance,locking,parallel-development
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation
-|git-recovery-command:{SKILL.md}|git,recovery,undo,reflog,reset
+|git-recovery:{SKILL.md}|git,recovery,undo,reflog,reset
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |issue-progress-tracking:{SKILL.md,references/{branch-naming.md,gh-api-commands.md}}|github,issues,progress,tracking,automation,commits
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination

@@ -4,7 +4,7 @@ description: API rate limiting with token bucket, sliding window, and Redis dist
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [rate-limiting, redis, token-bucket, fastapi, security, 2026]
+tags: [rate-limiting, redis, token-bucket, fastapi, security]
 author: OrchestKit
 user-invocable: false
 ---

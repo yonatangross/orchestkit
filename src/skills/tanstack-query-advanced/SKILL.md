@@ -5,7 +5,7 @@ tags: [tanstack-query, react-query, caching, infinite-scroll, optimistic-updates
 context: fork
 agent: frontend-ui-developer
 version: 1.0.0
-allowed-tools: [Read, Write, Grep, Glob]
+allowedTools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---

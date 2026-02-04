@@ -40,14 +40,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for gh CLI, semantic versioning
-- `mcp__mem0__*` - Store and recall release patterns, version decisions, milestone history
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing release/versioning task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable release decisions, version bump rationale, milestone patterns
 
 ## Concrete Objectives
 1. Create and manage GitHub releases with semantic versioning

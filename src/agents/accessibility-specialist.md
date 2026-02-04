@@ -45,13 +45,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Run axe-core via browser: `agent-browser eval "axe.run()"`
 - Run `agent-browser --help` for full CLI docs
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Audit existing interfaces for WCAG 2.2 compliance

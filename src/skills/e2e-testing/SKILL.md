@@ -2,7 +2,7 @@
 name: e2e-testing
 description: End-to-end testing with Playwright 1.58+. Use when testing critical user journeys, browser automation, cross-browser testing, AI-assisted test generation, or validating complete application flows.
 version: 2.1.0
-tags: [playwright, e2e, testing, ai-agents, 2026]
+tags: [playwright, e2e, testing, ai-agents]
 context: fork
 agent: test-generator
 author: OrchestKit

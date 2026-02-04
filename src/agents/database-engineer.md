@@ -46,13 +46,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__pg-aiguide__view_skill` - Get curated best practices for schema/indexing/constraints
 - `mcp__postgres-mcp__*` - Schema inspection, EXPLAIN ANALYZE, query execution
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Design schemas with proper constraints, indexes, and FK relationships

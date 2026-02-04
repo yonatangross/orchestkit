@@ -216,11 +216,11 @@ describe('prompt/antipattern-detector', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Mem0 search suggestion format
+  // Mem0 CLI search suggestion format
   // ---------------------------------------------------------------------------
 
-  describe('mem0 search suggestion format', () => {
-    test('includes mcp__mem0__search_memories in suggestion', () => {
+  describe('mem0 CLI search suggestion format', () => {
+    test('includes CLI script path in suggestion', () => {
       // Arrange
       const input = createPromptInput('implement pagination for the user list API');
 
@@ -228,7 +228,8 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('mcp__mem0__search_memories');
+      expect(result.systemMessage).toContain('search-memories.py');
+      expect(result.systemMessage).toContain('python3');
     });
 
     test('includes project-specific user_id in suggestion', () => {
@@ -253,15 +254,15 @@ describe('prompt/antipattern-detector', () => {
       expect(result.systemMessage).toContain('global:best-practices');
     });
 
-    test('includes outcome:failed filter in suggestion', () => {
+    test('includes "failed" keyword in search query', () => {
       // Arrange
       const input = createPromptInput('implement api endpoint for user registration');
 
       // Act
       const result = antipatternDetector(input);
 
-      // Assert
-      expect(result.systemMessage).toContain('outcome');
+      // Assert - "failed" is embedded in the search query itself
+      expect(result.systemMessage).toContain('--query');
       expect(result.systemMessage).toContain('failed');
     });
 
@@ -273,7 +274,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('query="create failed"');
+      expect(result.systemMessage).toContain('--query "create failed"');
     });
   });
 
@@ -411,7 +412,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       // "implement" comes before "create" in IMPLEMENTATION_KEYWORDS array
-      expect(result.systemMessage).toContain('query="implement failed"');
+      expect(result.systemMessage).toContain('--query "implement failed"');
     });
 
     test('handles multiple matching categories in prompt', () => {

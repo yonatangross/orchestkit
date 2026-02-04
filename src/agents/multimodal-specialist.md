@@ -45,10 +45,8 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## Memory Integration
 
 At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your multimodal task
 
 Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable multimodal integration patterns
 
 ## Concrete Objectives
 

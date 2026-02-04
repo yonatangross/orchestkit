@@ -2,7 +2,7 @@
 name: advanced-guardrails
 description: LLM guardrails with NeMo, Guardrails AI, and OpenAI. Input/output rails, hallucination prevention, fact-checking, toxicity detection, red-teaming patterns. Use when building LLM guardrails, safety checks, or red-team workflows.
 version: 1.0.0
-tags: [guardrails, nemo, safety, hallucination, factuality, red-teaming, colang, 2026]
+tags: [guardrails, nemo, safety, hallucination, factuality, red-teaming, colang]
 context: fork
 agent: ai-safety-auditor
 author: OrchestKit
@@ -13,7 +13,7 @@ user-invocable: false
 
 Production LLM safety using NeMo Guardrails, Guardrails AI, and OpenAI moderation with red-teaming validation.
 
-> **NeMo Guardrails 2026**: LangChain 1.x compatible, parallel rails execution, OpenTelemetry tracing. **DeepTeam**: 40+ vulnerabilities, OWASP Top 10 alignment.
+> **NeMo Guardrails **: LangChain 1.x compatible, parallel rails execution, OpenTelemetry tracing. **DeepTeam**: 40+ vulnerabilities, OWASP Top 10 alignment.
 
 ## Overview
 

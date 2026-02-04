@@ -4,13 +4,13 @@ description: Message queue patterns with RabbitMQ, Redis Streams, and Kafka. Use
 context: fork
 agent: event-driven-architect
 version: 2.0.0
-tags: [message-queue, rabbitmq, redis-streams, kafka, faststream, pub-sub, async, event-driven, 2026]
-allowed-tools: [Read, Write, Bash, Grep, Glob]
+tags: [message-queue, rabbitmq, redis-streams, kafka, faststream, pub-sub, async, event-driven]
+allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Message Queue Patterns (2026)
+# Message Queue Patterns ()
 
 Asynchronous communication patterns for distributed systems using RabbitMQ, Redis Streams, Kafka, and FastStream.
 
@@ -25,7 +25,7 @@ Asynchronous communication patterns for distributed systems using RabbitMQ, Redi
 
 ## Quick Reference
 
-### FastStream: Unified API (2026 Recommended)
+### FastStream: Unified API ( Recommended)
 
 ```python
 # pip install faststream[kafka,rabbit,redis]

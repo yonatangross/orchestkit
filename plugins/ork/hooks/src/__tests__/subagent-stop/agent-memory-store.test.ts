@@ -572,7 +572,7 @@ describe('agentMemoryStore', () => {
 
       const result = agentMemoryStore(input);
 
-      expect(result.systemMessage).toContain('mcp__mem0__add_memory');
+      expect(result.systemMessage).toContain('add-memory.py');
       expect(result.systemMessage).toContain('decisions');
     });
 

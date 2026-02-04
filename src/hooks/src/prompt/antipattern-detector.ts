@@ -94,10 +94,15 @@ export function antipatternDetector(input: HookInput): HookResult {
 
   logHook('antipattern-detector', `Suggesting antipattern check for: ${matchedKeyword} (category: ${category})`);
 
-  // Build search suggestion message
+  // Build search suggestion message using CLI script
+  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '${CLAUDE_PLUGIN_ROOT}';
+  const scriptPath = `${pluginRoot}/src/skills/mem0-memory/scripts/crud/search-memories.py`;
+
   const systemMsg = `[Antipattern Check] Before implementing ${matchedKeyword}, check for known failures:
-\`mcp__mem0__search_memories\` with query="${matchedKeyword} failed" and filters={"AND":[{"user_id":"${projectUserId}"},{"metadata.outcome":"failed"}]}
-Or check global: user_id="${globalUserId}"`;
+\`\`\`bash
+python3 ${scriptPath} --query "${matchedKeyword} failed" --user-id "${projectUserId}" --limit 5
+\`\`\`
+Or check global: --user-id "${globalUserId}"`;
 
   return {
     continue: true,

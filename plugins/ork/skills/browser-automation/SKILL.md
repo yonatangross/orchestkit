@@ -1,13 +1,13 @@
 ---
-name: agent-browser
-description: Vercel agent-browser CLI for headless browser automation. 93% less context than Playwright MCP. Snapshot + refs workflow with @e1 @e2 element references. Use when automating browser tasks, web scraping, form automation, or content capture.
+name: browser-automation
+description: Headless browser automation using Vercel's agent-browser CLI. 93% less context than Playwright MCP. Snapshot + refs workflow with element references. Use when automating browser tasks, web scraping, form filling, or content capture.
 context: fork
 agent: test-generator
 version: 3.0.0
 author: OrchestKit AI Agent Hub
-tags: [browser, automation, headless, scraping, vercel, agent-browser, 2026]
+tags: [browser, automation, headless, scraping, vercel, agent-browser]
 user-invocable: false
-allowed-tools: Bash, Read, Write
+allowedTools: Bash, Read, Write
 ---
 
 # Browser Automation with agent-browser

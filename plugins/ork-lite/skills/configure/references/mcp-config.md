@@ -10,8 +10,7 @@ Commands work without them - MCPs just add extra capabilities.
 | **context7** | Up-to-date library docs | Cloud (Upstash) | /implement, /verify, /review-pr |
 | **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
 | **mem0** | Semantic memory | Cloud (mem0.ai) | Session continuity, decisions |
-| **memory** | Simple key-value storage | Local file | Quick notes, preferences |
-| **playwright** | Browser automation | Local | /verify, content capture |
+| **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 
 ## Memory Options: mem0 vs memory
 
@@ -61,11 +60,6 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
       "args": ["-y", "@anthropics/mcp-server-memory"],
       "env": { "MEMORY_FILE": ".claude/memory/memory.json" },
       "disabled": false
-    },
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@anthropics/mcp-server-playwright"],
-      "disabled": true
     }
   }
 }
@@ -79,7 +73,6 @@ Edit `.mcp.json` and set `"disabled": false` for selected MCPs:
 | sequential-thinking | None |
 | mem0 | `MEM0_API_KEY` environment variable |
 | memory | None (creates `.claude/memory/` automatically) |
-| playwright | Installs browsers on first use |
 
 ## Mem0 Setup
 
@@ -102,4 +95,8 @@ OrchestKit hooks integrate with these MCPs:
 Commands still work - MCPs just enhance them:
 - `/implement` works, but without latest library docs (context7)
 - Session continuity works via local files, not semantic search (mem0)
-- Browser testing requires manual setup (playwright)
+
+## Browser Automation
+
+For browser automation and testing, use the `agent-browser` skill instead of an MCP.
+See `/ork:agent-browser` for Vercel's headless browser CLI.

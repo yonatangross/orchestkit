@@ -4,7 +4,7 @@ description: API versioning strategies including URL path, header, and content n
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [api, versioning, rest, fastapi, backward-compatibility, 2026]
+tags: [api, versioning, rest, fastapi, backward-compatibility]
 author: OrchestKit
 user-invocable: false
 ---

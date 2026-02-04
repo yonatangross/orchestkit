@@ -4,7 +4,7 @@ description: Saga patterns for distributed transactions with orchestration and c
 context: fork
 agent: event-driven-architect
 version: 1.0.0
-tags: [saga, distributed-transactions, orchestration, choreography, compensation, microservices, 2026]
+tags: [saga, distributed-transactions, orchestration, choreography, compensation, microservices]
 author: OrchestKit
 user-invocable: false
 ---

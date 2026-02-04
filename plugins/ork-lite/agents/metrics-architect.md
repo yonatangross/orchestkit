@@ -27,13 +27,6 @@ Design measurable success criteria, define OKRs and KPIs, and create instrumenta
 - `mcp__memory__*` - Track metrics definitions and targets over time
 - `mcp__postgres-mcp__query` - Query existing metrics data for baselines
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Define OKRs aligned with business goals
@@ -325,7 +318,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|okr-kpi-patterns:{SKILL.md,references/{okr-workshop-guide.md}}|product,metrics,okr,kpi,goals,measurement,2026
+|okr-kpi-patterns:{SKILL.md,references/{okr-workshop-guide.md}}|product,metrics,okr,kpi,goals,measurement
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
