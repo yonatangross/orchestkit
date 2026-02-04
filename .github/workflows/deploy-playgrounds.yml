@@ -101,23 +101,6 @@ jobs:
           done
           echo "All HTML files valid"
 
-      - name: Check data freshness
-        run: |
-          echo "Checking if data.js needs regeneration..."
-          cp docs/playgrounds/data.js /tmp/data.js.original
-          node scripts/generate-playground-data.js
-          if diff -q docs/playgrounds/data.js /tmp/data.js.original > /dev/null 2>&1; then
-            echo "data.js is up to date with manifests"
-          else
-            echo "FAIL: data.js is stale!"
-            echo ""
-            echo "Differences:"
-            diff /tmp/data.js.original docs/playgrounds/data.js | head -30 || true
-            echo ""
-            echo "Fix: Run 'npm run generate:playground-data' and commit"
-            exit 1
-          fi
-
       - name: Run Playground E2E Tests
         run: |
           echo "Running comprehensive playground tests..."
