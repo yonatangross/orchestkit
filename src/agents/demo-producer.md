@@ -20,8 +20,6 @@ skills:
   - manim-visualizer
   - remotion-composer
   - task-dependency-patterns
-  - memory
-  - remember
 ---
 
 ## Directive
@@ -86,7 +84,7 @@ Use the universal generator:
 # Examples:
 ./skills/demo-producer/scripts/generate.sh skill explore
 ./skills/demo-producer/scripts/generate.sh agent debug-investigator
-./skills/demo-producer/scripts/generate.sh plugin ork-core
+./skills/demo-producer/scripts/generate.sh plugin ork
 ./skills/demo-producer/scripts/generate.sh tutorial "Building a REST API"
 ./skills/demo-producer/scripts/generate.sh cli "npm create vite"
 ```

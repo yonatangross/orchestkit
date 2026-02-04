@@ -225,20 +225,14 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
 | Built plugins | `plugins/<name>/` | Generated, don't edit |
 
-### Memory Plugins (3-tier architecture)
+### Two-Tier Plugin Structure
 
-Memory is split into 3 independent plugins (not a monolith):
+| Plugin | Skills | Description |
+|--------|--------|-------------|
+| `ork-lite` | 119 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork` | 195 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
-| Plugin | Tier | Skills | Requires |
-|--------|------|--------|----------|
-| `ork-memory-graph` | 1 (always works) | remember, memory | Nothing |
-| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory | `MEM0_API_KEY` env var |
-| `ork-memory-fabric` | 3 (orchestrator) | memory-fabric | ork-memory-graph |
-
-- Graph is PRIMARY and always available (zero-config)
-- Mem0 is OPTIONAL cloud enhancement (gated at runtime)
-- Fabric merges results from both with dedup + cross-reference boosting
-- All mem0 hooks early-return silently without `MEM0_API_KEY`
+Both include all 36 agents, 117 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -252,7 +246,7 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 
 ## Version
 
-- **Current**: 5.6.2
+- **Current**: 6.0.0
 - **Claude Code**: >= 2.1.27
 - **Hooks**: 117 entries (89 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 

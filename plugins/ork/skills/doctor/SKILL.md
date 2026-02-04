@@ -16,15 +16,15 @@ skills: [configure]
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:
 
-1. **Installed Plugins** - Detects which ork-* plugins are active
+1. **Installed Plugins** - Detects ork-lite or ork
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
-4. **Hook Health** - Registration, bundles, async patterns (from ork-core)
+4. **Hook Health** - Registration, bundles, async patterns
 5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)
 6. **Schema Compliance** - Validates JSON files against schemas
 7. **Coordination System** - Checks lock health and registry integrity
 8. **Context Budget** - Monitors token usage against budget
-9. **Memory System** - Graph, Mem0, Fabric health (3-tier)
+9. **Memory System** - Graph, Mem0, Fabric health
 10. **Claude Code Version** - Validates CC >= 2.1.16
 
 ## When to Use
@@ -60,24 +60,20 @@ Auto-detects which OrchestKit plugins are installed:
 ```bash
 # Detection logic:
 # - Scans for .claude-plugin/plugin.json in plugin paths
-# - Identifies ork, ork-core, ork-frontend, etc.
+# - Identifies ork-lite or ork
 # - Counts skills/agents per installed plugin
 ```
 
-**Output:**
-```
-Installed Plugins: 3
-- ork-core: 15 skills, 0 agents, 22 hook entries
-- ork-frontend: 18 skills, 2 agents
-- ork-memory-graph: 5 skills, 0 agents
-Combined: 38 skills, 2 agents
-```
-
-**Full ork plugin output:**
+**Output (ork-lite):**
 ```
 Installed Plugins: 1
-- ork: 196 skills, 35 agents (includes all domains)
-- ork-core: hooks dependency (22 entries, 11 bundles)
+- ork-lite: 119 skills, 36 agents, 117 hook entries
+```
+
+**Output (ork full):**
+```
+Installed Plugins: 1
+- ork: 195 skills, 36 agents, 117 hook entries
 ```
 
 ### 1. Skills Validation
@@ -100,7 +96,7 @@ Skills: 186/186 valid
 - Reference skills: 163
 ```
 
-**Output (ork-frontend only):**
+**Output (ork-lite only):**
 ```
 Skills: 18/18 valid
 - User-invocable: 0 commands
@@ -251,7 +247,7 @@ Claude Code: 2.1.25 (OK)
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
-| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: ork + ork-core         |
+| Version: 5.4.0  |  CC: 2.1.25  |  Plugins: ork + ork         |
 +===================================================================+
 | Skills           | 186/186 valid                                  |
 | Agents           | 35/35 valid                                    |
@@ -267,17 +263,17 @@ Claude Code: 2.1.25 (OK)
 +===================================================================+
 ```
 
-**Domain-specific plugins (e.g., ork-frontend + ork-memory-graph):**
+**Domain-specific plugins (e.g., ork-lite + ork-lite):**
 ```
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
 | Version: 5.4.0  |  CC: 2.1.25  |  Plugins: 3 installed            |
 +===================================================================+
-| Installed        | ork-core, ork-frontend, ork-memory-graph       |
+| Installed        | ork, ork-lite, ork-lite       |
 | Skills           | 38/38 valid (combined)                         |
 | Agents           | 2/2 valid                                      |
-| Hooks            | 22/22 entries (via ork-core)                   |
+| Hooks            | 22/22 entries (via ork)                   |
 | Memory           | 1/3 tiers (graph only)                         |
 +===================================================================+
 ```
@@ -294,13 +290,13 @@ Claude Code: 2.1.25 (OK)
   "claudeCode": "2.1.25",
   "status": "healthy",
   "plugins": {
-    "installed": ["ork", "ork-core"],
+    "installed": ["ork", "ork"],
     "count": 2
   },
   "checks": {
     "skills": {"passed": true, "count": 186, "perPlugin": {"ork": 186}},
     "agents": {"passed": true, "count": 35, "perPlugin": {"ork": 35}},
-    "hooks": {"passed": true, "entries": 22, "bundles": 11, "source": "ork-core"},
+    "hooks": {"passed": true, "entries": 22, "bundles": 11, "source": "ork"},
     "memory": {"passed": true, "tiers": 3, "available": ["graph", "mem0", "fabric"]},
     "permissions": {"passed": true, "count": 12},
     "schemas": {"passed": true, "count": 15},

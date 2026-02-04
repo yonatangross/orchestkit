@@ -2,7 +2,6 @@
 name: mem0-memory
 description: Long-term semantic memory across sessions using Mem0. Use when you need to remember, recall, or forget information across sessions, or when referencing what we discussed last time or in a previous session.
 tags: [memory, mem0, persistence, context]
-plugin: ork-memory-mem0
 context: fork
 version: 1.0.0
 author: OrchestKit

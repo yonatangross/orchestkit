@@ -5,11 +5,36 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.0] - 2026-02-04
+
+### Changed
+
+- **Breaking**: Reorganized plugins from 26 granular plugins to 2-tier architecture:
+  - `ork-lite` (119 skills) — Universal toolkit, language-agnostic, all workflows work out of the box
+  - `ork` (195 skills) — Full specialized toolkit with Python, React, LLM/RAG patterns
+- All 36 agents and 117 hooks included in BOTH plugins
+- Deleted 25 domain-specific plugin manifests (ork-accessibility, ork-backend-patterns, ork-memory-*, etc.)
+- Memory plugins (graph, mem0, fabric) now included directly in ork-lite
+- No more dependency issues — every workflow works without additional installs
+
+### Added
+
+- `web-research-analyst` agent for browser automation and competitive intelligence
+- `research` category for agent indexes
+- `competitive-monitoring` skill (22 user-invocable skills total)
+
+### Fixed
+
+- Bash 3.2 compatibility in generate-indexes.sh (macOS default shell)
+- Agent index generation now includes all categories correctly
+
+---
+
 ## [5.7.5] - 2026-02-04
 
 ### Fixed
 
-- TODO: Describe your changes here
+- CI report generation using tsx for ESM compatibility
 
 ---
 

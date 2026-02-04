@@ -57,10 +57,10 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 196 | RAG patterns, FastAPI, React 19, testing, security |
-| **Agents** | 35 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 120 | Pre-commit checks, git protection, quality gates |
-| **Plugins** | 33 | Mix and match: `ork-rag`, `ork-fastapi`, `ork-react` |
+| **Skills** | 195 | RAG patterns, FastAPI, React 19, testing, security |
+| **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
+| **Hooks** | 117 | Pre-commit checks, git protection, quality gates |
+| **Plugins** | 2 | `ork-lite` (universal) or `ork` (full specialized) |
 
 **[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
 
@@ -82,17 +82,16 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 ## Install Options
 
 ```bash
-# Full toolkit (recommended)
-/plugin install ork
+# Universal toolkit (works for any stack)
+/plugin install ork-lite
 
-# Or pick domains
-/plugin install ork-rag        # RAG & retrieval
-/plugin install ork-fastapi    # FastAPI backend
-/plugin install ork-react      # React frontend
-/plugin install ork-testing    # Testing patterns
+# Full toolkit (adds Python, React, LLM/RAG specializations)
+/plugin install ork
 ```
 
-**[Setup Wizard →](https://orchestkit.vercel.app/setup-wizard.html)** helps you pick the right plugins.
+**ork-lite** (119 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+
+**ork** (195 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
