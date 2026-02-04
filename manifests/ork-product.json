@@ -1,6 +1,6 @@
 {
   "name": "ork-product",
-  "version": "5.7.3",
+  "version": "5.7.4",
   "description": "Product Management agents — product-strategist, business-case-builder, prioritization-analyst, market-intelligence",
   "dependencies": [
     "ork-core"
