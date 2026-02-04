@@ -254,7 +254,7 @@ User requests content from URL
 
 ## Related Skills
 
-- `agent-browser` - agent-browser CLI quick start and integration
+- `browser-automation` - agent-browser CLI quick start and integration
 - `webapp-testing` - Playwright test automation patterns
 - `streaming-api-patterns` - Handle SSE progress updates
 

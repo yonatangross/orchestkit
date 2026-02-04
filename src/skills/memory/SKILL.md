@@ -1,12 +1,12 @@
 ---
 name: memory
-description: "[MEMORY] Read-side memory operations: search, load, sync, history, visualize. Use for finding decisions, loading context, or viewing the knowledge graph."
+description: "[MEMORY] Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 context: fork
 version: 2.0.0
 author: OrchestKit
 tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph, mcp__mem0__search_memories, mcp__mem0__get_memories]
+allowedTools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
 ---
 
 # Memory - Read & Access Operations

@@ -71,7 +71,7 @@ AskUserQuestion(
 | `/ork:create-pr` | Create GitHub pull requests with validation | `/ork:create-pr` |
 | `/ork:review-pr` | PR review with parallel specialized agents | `/ork:review-pr 123` |
 | `/ork:fix-issue` | Fix GitHub issues with parallel analysis | `/ork:fix-issue 456` |
-| `/ork:git-recovery-command` | Recovery from git mistakes | `/ork:git-recovery` |
+| `/ork:git-recovery` | Recovery from git mistakes | `/ork:git-recovery` |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: competitive-monitoring
-description: Track competitor page changes over time. Capture snapshots, detect diffs, alert on significant changes. Use for competitive intelligence, pricing monitoring, feature tracking.
+description: Tracks competitor page changes over time. Captures snapshots, detects diffs, alerts on significant changes. Use when monitoring competitive intelligence, pricing changes, or feature tracking.
 context: fork
 agent: market-intelligence
 version: 1.0.0

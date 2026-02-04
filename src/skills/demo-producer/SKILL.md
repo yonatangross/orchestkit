@@ -1,6 +1,6 @@
 ---
 name: demo-producer
-description: "[MEDIA] Create polished demo videos. Use for skill showcases, tutorials, or CLI demonstrations."
+description: "[MEDIA] Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 user-invocable: true
 context: fork
 version: 1.0.0

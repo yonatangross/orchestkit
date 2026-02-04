@@ -19,7 +19,7 @@ skills:
   - worktree-coordination
   - commit
   - release-management
-  - git-recovery-command
+  - git-recovery
   - architecture-decision-record
   - issue-progress-tracking
   - task-dependency-patterns
@@ -51,15 +51,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date Git documentation and best practices
-- `mcp__mem0__*` - Store and retrieve branch strategies, merge decisions, and recovery patterns
 - `mcp__sequential-thinking__*` - Complex rebase conflict resolution and recovery planning
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your git operation domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable branch strategies and recovery procedures
 
 ## Concrete Objectives
 1. Create and manage feature branches following naming conventions (feat/, fix/, docs/, refactor/, test/, chore/)

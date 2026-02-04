@@ -20,7 +20,7 @@
     "memory-fabric",
     "demo-producer",
     "brainstorming",
-    "git-recovery-command",
+    "git-recovery",
     "worktree-coordination",
     "help",
     "configure",
@@ -120,7 +120,7 @@
 
     "task-dependency-patterns",
 
-    "agent-browser",
+    "browser-automation",
     "browser-content-capture",
     "webapp-testing",
     "performance-testing",
