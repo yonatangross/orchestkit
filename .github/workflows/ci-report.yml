@@ -82,7 +82,7 @@ jobs:
           CI_LINT_RESULTS: '{"errors": ${{ steps.lint.outputs.errors || 0 }}, "warnings": ${{ steps.lint.outputs.warnings || 0 }}, "files": 0, "issues": []}'
           CI_SECURITY_RESULTS: '{"critical": ${{ steps.security.outputs.critical || 0 }}, "high": ${{ steps.security.outputs.high || 0 }}, "medium": ${{ steps.security.outputs.medium || 0 }}, "low": ${{ steps.security.outputs.low || 0 }}, "vulnerabilities": []}'
         run: |
-          npx ts-node scripts/generate-ci-report.ts --output ci-report.html
+          npx tsx scripts/generate-ci-report.ts --output ci-report.html
 
       - name: Upload CI Report
         uses: actions/upload-artifact@v4
