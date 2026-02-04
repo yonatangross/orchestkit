@@ -137,6 +137,11 @@
     font-size: 14px;
     opacity: 0.5;
   }
+  #categoryFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .filter-btn {
     padding: 8px 16px;
     background: var(--bg);
@@ -449,107 +454,93 @@
     line-height: 1.4;
   }
 
-  /* Detail Modal */
-  .detail-modal-overlay {
+  /* Inline Detail Expansion */
+  .tag-detail {
     display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 2000;
-    backdrop-filter: blur(4px);
-    align-items: center;
-    justify-content: center;
-  }
-  .detail-modal-overlay.visible { display: flex; }
-  .detail-modal {
-    background: var(--surface);
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--bg);
     border: 1px solid var(--border);
-    border-radius: 12px;
-    width: 90%;
-    max-width: 600px;
-    max-height: 85vh;
-    overflow-y: auto;
-    box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    animation: slideDown 0.2s ease;
   }
-  .detail-modal-header {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
+  .tag-detail.visible { display: block; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tag-detail-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 10px;
   }
-  .detail-modal-title {
-    font-size: 16px;
+  .tag-detail-title {
+    font-size: 14px;
     font-weight: 700;
     display: flex;
     align-items: center;
     gap: 8px;
   }
-  .detail-modal-type {
-    font-size: 10px;
-    padding: 2px 8px;
+  .tag-detail-type {
+    font-size: 9px;
+    padding: 2px 6px;
     border-radius: 4px;
     text-transform: uppercase;
     font-weight: 600;
   }
-  .detail-modal-type.skill { background: rgba(6, 182, 212, 0.15); color: var(--accent3); }
-  .detail-modal-type.agent { background: rgba(34, 197, 94, 0.15); color: var(--accent2); }
-  .detail-modal-type.command { background: rgba(139, 92, 246, 0.15); color: var(--accent); }
-  .detail-modal-close {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+  .tag-detail-type.skill { background: rgba(6, 182, 212, 0.15); color: var(--accent3); }
+  .tag-detail-type.agent { background: rgba(34, 197, 94, 0.15); color: var(--accent2); }
+  .tag-detail-type.command { background: rgba(139, 92, 246, 0.15); color: var(--accent); }
+  .tag-detail-close {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
     border: 1px solid var(--border);
-    background: var(--bg);
+    background: transparent;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
   }
-  .detail-modal-close:hover { border-color: var(--accent7); color: var(--accent7); }
-  .detail-modal-body {
-    padding: 20px;
-  }
-  .detail-modal-desc {
-    font-size: 14px;
+  .tag-detail-close:hover { border-color: var(--accent7); color: var(--accent7); }
+  .tag-detail-desc {
+    font-size: 12px;
     color: var(--text-muted);
-    line-height: 1.6;
-    margin-bottom: 16px;
+    line-height: 1.5;
+    margin-bottom: 10px;
   }
-  .detail-modal-section {
-    margin-bottom: 16px;
-  }
-  .detail-modal-section h4 {
+  .tag-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
     font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 8px;
   }
-  .detail-modal-plugins {
+  .tag-detail-label {
+    color: var(--text-muted);
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+  .tag-detail-value {
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .tag-detail-plugins {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
   }
-  .detail-modal-plugin {
-    font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 6px;
+  .tag-detail-plugin {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
     background: rgba(139, 92, 246, 0.1);
-    border: 1px solid rgba(139, 92, 246, 0.3);
+    border: 1px solid rgba(139, 92, 246, 0.2);
     color: var(--accent);
     font-family: 'SF Mono', 'Fira Code', monospace;
-  }
-  .detail-modal-invoke {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 13px;
-    color: var(--accent2);
   }
 
   /* Legend */
@@ -680,10 +671,6 @@
   <div class="tooltip-desc" id="tooltipDesc"></div>
 </div>
 
-<div class="detail-modal-overlay" id="detailModalOverlay">
-  <div class="detail-modal" id="detailModal"></div>
-</div>
-
 <script src="data.js"></script>
 <script src="nav.js"></script>
 <script>
@@ -801,9 +788,9 @@ function renderGrid() {
     var expanded = state.expandedCard === p.name;
     var hooksHtml = p.hooks ? '<div class="card-metric"><div class="dot" style="background:var(--accent4)"></div><span class="count">' + p.hooks + '</span><span class="label">hooks</span></div>' : '';
     var cmdsHtml = p.commands.length ? '<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">' + p.commands.length + '</span><span class="label">cmds</span></div>' : '';
-    var skillsSection = p.skills.length ? '<div class="detail-section"><h4>Skills (' + p.skills.length + ')</h4><div class="tag-list">' + p.skills.map(function(s) { return '<span class="tag" onclick="event.stopPropagation();showDetail(\'skill\',\'' + s + '\')" style="cursor:pointer">' + s + '</span>'; }).join('') + '</div></div>' : '';
-    var agentsSection = p.agents.length ? '<div class="detail-section"><h4>Agents (' + p.agents.length + ')</h4><div class="tag-list">' + p.agents.map(function(a) { return '<span class="tag agent-tag" onclick="event.stopPropagation();showDetail(\'agent\',\'' + a + '\')" style="cursor:pointer">' + a + '</span>'; }).join('') + '</div></div>' : '';
-    var commandsSection = p.commands.length ? '<div class="detail-section"><h4>Commands (' + p.commands.length + ')</h4><div class="tag-list">' + p.commands.map(function(c) { return '<span class="tag command-tag" onclick="event.stopPropagation();showDetail(\'command\',\'' + c + '\')" style="cursor:pointer">/ork:' + c + '</span>'; }).join('') + '</div></div>' : '';
+    var skillsSection = p.skills.length ? '<div class="detail-section"><h4>Skills (' + p.skills.length + ')</h4><div class="tag-list">' + p.skills.map(function(s) { return '<span class="tag" onclick="event.stopPropagation();showDetail(\'skill\',\'' + s + '\',this)" style="cursor:pointer">' + s + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-skill-' + p.name + '"></div></div>' : '';
+    var agentsSection = p.agents.length ? '<div class="detail-section"><h4>Agents (' + p.agents.length + ')</h4><div class="tag-list">' + p.agents.map(function(a) { return '<span class="tag agent-tag" onclick="event.stopPropagation();showDetail(\'agent\',\'' + a + '\',this)" style="cursor:pointer">' + a + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-agent-' + p.name + '"></div></div>' : '';
+    var commandsSection = p.commands.length ? '<div class="detail-section"><h4>Commands (' + p.commands.length + ')</h4><div class="tag-list">' + p.commands.map(function(c) { return '<span class="tag command-tag" onclick="event.stopPropagation();showDetail(\'command\',\'' + c + '\',this)" style="cursor:pointer">/ork:' + c + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-command-' + p.name + '"></div></div>' : '';
     return '<div class="plugin-card ' + (expanded ? 'expanded' : '') + '" onclick="toggleCard(\'' + p.name + '\')">' +
         '<div class="card-header">' +
           '<div class="card-name">' + p.name + '</div>' +
@@ -1130,105 +1117,87 @@ function hideTooltip() {
   document.getElementById('tooltip').style.display = 'none';
 }
 
-// Detail Modal for skills/agents/commands
-function showDetail(type, name) {
-  var modal = document.getElementById('detailModal');
-  var overlay = document.getElementById('detailModalOverlay');
+// Inline detail expansion for skills/agents/commands
+var currentDetailEl = null;
+
+function showDetail(type, name, clickedTag) {
+  // Find the detail container (sibling of the tag-list)
+  var tagList = clickedTag.parentElement;
+  var detailEl = tagList.nextElementSibling;
+
+  // If clicking same item, toggle off
+  if (currentDetailEl === detailEl && detailEl.classList.contains('visible')) {
+    detailEl.classList.remove('visible');
+    currentDetailEl = null;
+    return;
+  }
+
+  // Close any other open detail
+  if (currentDetailEl && currentDetailEl !== detailEl) {
+    currentDetailEl.classList.remove('visible');
+  }
+
   var content = '';
-  var typeLabel = type.charAt(0).toUpperCase() + type.slice(1);
 
   if (type === 'skill') {
-    // Find which plugins contain this skill
     var containingPlugins = PLUGINS.filter(function(p) {
       return p.skills.indexOf(name) !== -1;
     }).map(function(p) { return p.name; });
 
-    content = '<div class="detail-modal-header">' +
-      '<div class="detail-modal-title">' +
-        '<span class="detail-modal-type skill">Skill</span>' +
-        name +
-      '</div>' +
-      '<button class="detail-modal-close" onclick="closeDetail()">&times;</button>' +
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type skill">Skill</span>' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
     '</div>' +
-    '<div class="detail-modal-body">' +
-      '<div class="detail-modal-desc">This skill provides patterns and guidance for ' + name.replace(/-/g, ' ') + '.</div>' +
-      '<div class="detail-modal-section">' +
-        '<h4>Available In Plugins</h4>' +
-        '<div class="detail-modal-plugins">' +
-          containingPlugins.map(function(p) { return '<span class="detail-modal-plugin">' + p + '</span>'; }).join('') +
-        '</div>' +
-      '</div>' +
-      '<div class="detail-modal-section">' +
-        '<h4>Usage</h4>' +
-        '<div class="detail-modal-invoke">Auto-injected when relevant to your task</div>' +
-      '</div>' +
-    '</div>';
+    '<div class="tag-detail-desc">Patterns and guidance for ' + name.replace(/-/g, ' ') + '.</div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Usage:</span><span class="tag-detail-value">Auto-injected when relevant</span></div>';
+
   } else if (type === 'agent') {
-    // Find agent details
     var agent = AGENTS.filter(function(a) { return a.name === name; })[0];
     var desc = agent ? agent.desc : 'Specialized agent for ' + name.replace(/-/g, ' ') + ' tasks.';
     var plugins = agent ? agent.plugins : [];
 
-    content = '<div class="detail-modal-header">' +
-      '<div class="detail-modal-title">' +
-        '<span class="detail-modal-type agent">Agent</span>' +
-        name +
-      '</div>' +
-      '<button class="detail-modal-close" onclick="closeDetail()">&times;</button>' +
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type agent">Agent</span>' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
     '</div>' +
-    '<div class="detail-modal-body">' +
-      '<div class="detail-modal-desc">' + desc + '</div>' +
-      (plugins.length ? '<div class="detail-modal-section">' +
-        '<h4>Used By Plugins</h4>' +
-        '<div class="detail-modal-plugins">' +
-          plugins.map(function(p) { return '<span class="detail-modal-plugin">' + p + '</span>'; }).join('') +
-        '</div>' +
-      '</div>' : '') +
-      '<div class="detail-modal-section">' +
-        '<h4>How to Invoke</h4>' +
-        '<div class="detail-modal-invoke">Task tool with subagent_type="' + name + '"</div>' +
-      '</div>' +
-    '</div>';
+    '<div class="tag-detail-desc">' + desc + '</div>' +
+    (plugins.length ? '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      plugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' : '') +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">Task(subagent_type="' + name + '")</span></div>';
+
   } else if (type === 'command') {
-    // Find which plugins have this command
     var containingPlugins = PLUGINS.filter(function(p) {
       return p.commands.indexOf(name) !== -1;
     }).map(function(p) { return p.name; });
 
-    content = '<div class="detail-modal-header">' +
-      '<div class="detail-modal-title">' +
-        '<span class="detail-modal-type command">Command</span>' +
-        '/ork:' + name +
-      '</div>' +
-      '<button class="detail-modal-close" onclick="closeDetail()">&times;</button>' +
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type command">Command</span>/ork:' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
     '</div>' +
-    '<div class="detail-modal-body">' +
-      '<div class="detail-modal-desc">User-invocable skill that can be triggered directly.</div>' +
-      '<div class="detail-modal-section">' +
-        '<h4>Available In Plugins</h4>' +
-        '<div class="detail-modal-plugins">' +
-          containingPlugins.map(function(p) { return '<span class="detail-modal-plugin">' + p + '</span>'; }).join('') +
-        '</div>' +
-      '</div>' +
-      '<div class="detail-modal-section">' +
-        '<h4>How to Invoke</h4>' +
-        '<div class="detail-modal-invoke">/ork:' + name + '</div>' +
-      '</div>' +
-    '</div>';
+    '<div class="tag-detail-desc">User-invocable skill triggered directly.</div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">/ork:' + name + '</span></div>';
   }
 
-  modal.innerHTML = content;
-  overlay.classList.add('visible');
+  detailEl.innerHTML = content;
+  detailEl.classList.add('visible');
+  currentDetailEl = detailEl;
 }
 
 function closeDetail() {
-  document.getElementById('detailModalOverlay').classList.remove('visible');
+  if (currentDetailEl) {
+    currentDetailEl.classList.remove('visible');
+    currentDetailEl = null;
+  }
 }
 
-// Close detail modal on overlay click or Escape
-document.getElementById('detailModalOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeDetail();
-});
+// Close detail on Escape
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeDetail();
 });

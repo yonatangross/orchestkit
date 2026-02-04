@@ -2,7 +2,7 @@
 # Playgrounds E2E Tests
 # Validates HTML structure, JavaScript data integrity, and component functionality
 #
-# Test Count: 42
+# Test Count: 50
 # Priority: MEDIUM
 # Purpose: Ensure playgrounds render correctly and data flows properly
 
@@ -604,6 +604,67 @@ test_all_pages_have_breadcrumbs() {
   assert_file_contains "$PLAYGROUNDS_DIR/index.html" 'updateBreadcrumbs()'
   assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" 'updateBreadcrumbs()'
   assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'updateBreadcrumbs()'
+}
+
+# ============================================================================
+# MARKETPLACE INLINE DETAIL TESTS
+# ============================================================================
+
+describe "Marketplace Inline Details"
+
+test_marketplace_has_inline_detail_css() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'tag-detail'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'tag-detail-header'
+}
+
+test_marketplace_skills_are_clickable() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" "showDetail"
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'event.stopPropagation()'
+}
+
+test_marketplace_agents_are_clickable() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" "agent-tag"
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" "cursor:pointer"
+}
+
+test_marketplace_commands_are_clickable() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" "command-tag"
+}
+
+test_marketplace_detail_has_close() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'closeDetail'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'tag-detail-close'
+}
+
+test_marketplace_detail_escape_closes() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" "if (e.key === 'Escape') closeDetail()"
+}
+
+test_marketplace_filter_buttons_have_gap() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" '#categoryFilters'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'gap: 8px'
+}
+
+# ============================================================================
+# DEMO GALLERY UX TESTS
+# ============================================================================
+
+describe "Demo Gallery UX"
+
+test_demo_gallery_no_render_command() {
+  # Render command section should be removed (dev-only feature)
+  if grep -q 'render-cmd' "$PLAYGROUNDS_DIR/demo-gallery.html"; then
+    fail "render-cmd section should be removed from demo-gallery.html"
+  fi
+  if grep -q 'Render Command' "$PLAYGROUNDS_DIR/demo-gallery.html"; then
+    fail "Render Command label should be removed from demo-gallery.html"
+  fi
+}
+
+test_demo_gallery_variant_spacing() {
+  # Variants should have proper gap spacing
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'gap: 8px'
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'margin-bottom: 2px'
 }
 
 # ============================================================================
