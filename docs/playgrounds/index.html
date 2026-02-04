@@ -295,6 +295,17 @@
     font-size: 10px;
     color: white;
   }
+  .no-video-indicator {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    padding: 3px 6px;
+    background: rgba(100,100,100,0.7);
+    border-radius: 4px;
+    font-size: 9px;
+    font-weight: 600;
+    color: #999;
+  }
 
   /* Composition Modal */
   .comp-modal-overlay {
@@ -492,7 +503,7 @@
       '<div class="preview-thumb">' +
         '<img src="' + thumbnailUrl + '" alt="' + comp.id + '" loading="lazy" onerror="this.parentElement.innerHTML=\'<span>' + comp.id + '</span>\'">' +
         '<span class="format-badge">' + comp.format.toUpperCase() + '</span>' +
-        (hasVideo ? '<span class="play-indicator">&#9654;</span>' : '') +
+        (hasVideo ? '<span class="play-indicator" title="Video available">&#9654;</span>' : '<span class="no-video-indicator" title="Thumbnail only">IMG</span>') +
       '</div>' +
       '<div class="preview-info">' +
         '<div class="name">' + comp.id + '</div>' +
