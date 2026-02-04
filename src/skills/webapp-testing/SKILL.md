@@ -109,10 +109,10 @@ See `references/` for detailed agent patterns and commands.
 ## Capability Details
 
 ### playwright-setup
-**Keywords:** playwright, setup, install, configure, mcp
+**Keywords:** playwright, setup, install, configure, agents
 **Solves:**
 - How do I set up Playwright testing?
-- Install Playwright MCP server
+- Install Playwright test agents
 - Configure test environment
 - Initialize Playwright agents with Claude
 

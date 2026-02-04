@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **195 skills**: Reusable knowledge modules
+- **194 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **117 hooks**: TypeScript lifecycle automation (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 195 skills
+├── skills/             # 194 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,13 +149,13 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-195 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+194 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
 | Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 173 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.

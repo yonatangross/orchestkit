@@ -299,19 +299,6 @@ The `pr-status-enricher` hook automatically detects open PRs at session start an
 - `ORCHESTKIT_PR_URL` - PR URL for quick reference
 - `ORCHESTKIT_PR_STATE` - PR state (OPEN, MERGED, CLOSED)
 
-### Optional Slack Notification
-
-After submitting a review, optionally notify the team:
-
-```
-mcp__slack__post_message({
-  channel: "#dev-reviews",
-  text: "PR #{number} reviewed: {APPROVE|REQUEST_CHANGES} - {summary}"
-})
-```
-
-See `slack-integration` skill for setup.
-
 ## Conventional Comments
 
 Use these prefixes for comments:

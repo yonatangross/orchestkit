@@ -199,21 +199,6 @@ echo "PR created: $PR_URL"
 gh pr view --web
 ```
 
-## CC 2.1.20 Enhancements
-
-### Optional Slack Notification
-
-After creating a PR, optionally notify the team:
-
-```
-mcp__slack__post_message({
-  channel: "#dev-prs",
-  text: "New PR: #{number} - {title} | {files} files, +{additions}/-{deletions}"
-})
-```
-
-CC 2.1.20's `/commit-push-pr` flow can be extended with Slack auto-posting. See `slack-integration` skill for setup.
-
 ## CC 2.1.27 Enhancements
 
 ### Auto PR Linking
@@ -244,7 +229,6 @@ Only use Task agents for:
 ## Related Skills
 - commit: Create commits before PRs
 - review-pr: Review PRs after creation
-- slack-integration: Team notifications for PR events
 ## References
 
 - [PR Template](assets/pr-template.md)

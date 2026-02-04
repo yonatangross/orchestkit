@@ -31,8 +31,7 @@ Everything enabled - full AI-assisted development.
   "mcps": {
     "context7": false,
     "sequential_thinking": false,
-    "memory": false,
-    "playwright": false
+    "memory": false
   }
 }
 ```
@@ -48,7 +47,7 @@ All skills, no agents (spawn manually).
   "agents": { "product": false, "technical": false },
   "hooks": { "safety": true, "productivity": true, "quality_gates": true, "team_coordination": true, "notifications": false },
   "commands": { "enabled": true },
-  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
 }
 ```
 
@@ -80,7 +79,7 @@ Essential skills only, minimal overhead.
     "enabled": true,
     "disabled": ["add-golden", "implement", "fix-issue", "review-pr", "run-tests", "create-pr"]
   },
-  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
 }
 ```
 
@@ -109,6 +108,6 @@ Just safety guardrails, no skills or agents.
     "notifications": false
   },
   "commands": { "enabled": false },
-  "mcps": { "context7": false, "sequential_thinking": false, "memory": false, "playwright": false }
+  "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
 }
 ```
