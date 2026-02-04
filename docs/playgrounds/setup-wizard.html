@@ -816,21 +816,22 @@
 <script src="data.js"></script>
 <script src="nav.js"></script>
 <script>
-// Compatibility shim: convert shared data array to map format expected by wizard
+// Two-tier plugin system (v6.0.0)
+// ork-lite: Universal toolkit - works for any stack
+// ork: Full specialized toolkit - adds Python, React, LLM/RAG patterns
+
 var PLUGINS = {};
 ORCHESTKIT_DATA.plugins.forEach(function(p) {
   PLUGINS[p.name] = {
     desc: p.description,
     fullDesc: p.fullDescription,
-    skills: p.skills.length,
-    agents: p.agents.length,
+    skills: p.skillCount,  // numeric count for display
+    agents: p.agentCount,  // numeric count for display
     hooks: p.hooks,
     category: p.category,
     color: p.color,
     required: p.required || false,
-    skillList: p.skills,
-    agentList: p.agents,
-    commands: p.commands,
+    recommended: p.recommended || false,
   };
 });
 
@@ -870,74 +871,54 @@ var state = {
   expandedPlugin: null,
 };
 
-// Recommendation engine
+// Two-tier recommendation engine (v6.0.0)
+// ork-lite: Universal - always recommended
+// ork: Full - recommended for specialized Python/React/LLM work
 function getRecommendations() {
   var rec = {}; // name -> { priority: 'required'|'recommended'|'optional', reason }
 
-  // Always include core + workflows
-  rec['ork-core'] = { priority: 'required', reason: 'Foundation - always required' };
-  rec['ork-workflows'] = { priority: 'required', reason: 'Essential workflow commands' };
-
-  // Language / Focus based
   var lang = state.lang;
   var focus = state.focus;
+  var needsSpecialized = false;
+  var specializedReasons = [];
 
-  if (focus === 'backend' || focus === 'fullstack') {
-    rec['ork-backend-patterns'] = { priority: 'recommended', reason: 'Backend architecture patterns' };
-    rec['ork-api'] = { priority: 'recommended', reason: 'API design patterns' };
-    rec['ork-database'] = { priority: 'recommended', reason: 'Database patterns' };
-    if (lang === 'python' || lang === 'both') {
-      rec['ork-async'] = { priority: 'recommended', reason: 'Python async patterns' };
+  // Check if user needs specialized patterns (ork vs ork-lite)
+  if (lang === 'python' || lang === 'both') {
+    needsSpecialized = true;
+    specializedReasons.push('Python (FastAPI, SQLAlchemy, Celery)');
+  }
+  if (focus === 'ai') {
+    needsSpecialized = true;
+    specializedReasons.push('LLM/RAG patterns');
+  }
+  if (focus === 'frontend' || focus === 'fullstack') {
+    if (lang === 'node' || lang === 'both') {
+      needsSpecialized = true;
+      specializedReasons.push('React (RSC, TanStack, Zustand)');
     }
   }
 
-  if (focus === 'frontend' || focus === 'fullstack') {
-    rec['ork-react-core'] = { priority: 'recommended', reason: 'React core patterns' };
-    rec['ork-ui-design'] = { priority: 'recommended', reason: 'UI/UX design patterns' };
-    rec['ork-frontend'] = { priority: 'recommended', reason: 'Frontend optimization' };
-  }
-
-  if (focus === 'ai') {
-    rec['ork-llm'] = { priority: 'recommended', reason: 'LLM integration patterns' };
-    rec['ork-rag'] = { priority: 'recommended', reason: 'RAG retrieval patterns' };
-    rec['ork-langgraph'] = { priority: 'recommended', reason: 'Agent orchestration' };
-    rec['ork-ai-observability'] = { priority: 'optional', reason: 'LLM monitoring' };
-    rec['ork-evaluation'] = { priority: 'optional', reason: 'LLM evaluation' };
-  }
-
-  if (focus === 'fullstack' && (lang === 'python' || lang === 'both')) {
-    rec['ork-async'] = { priority: 'optional', reason: 'Async patterns for backend' };
-  }
-
-  // Feature toggles
-  if (state.features.memory) {
-    rec['ork-memory-graph'] = { priority: 'recommended', reason: 'Knowledge graph memory' };
-    rec['ork-memory-mem0'] = { priority: 'optional', reason: 'Cloud memory (needs MEM0_API_KEY)' };
-    rec['ork-memory-fabric'] = { priority: 'optional', reason: 'Memory orchestration layer' };
-  }
-  if (state.features.testing) {
-    rec['ork-testing'] = { priority: 'recommended', reason: 'Testing patterns' };
-  }
-  if (state.features.security) {
-    rec['ork-security'] = { priority: 'recommended', reason: 'Security patterns' };
-  }
-  if (state.features.devops) {
-    rec['ork-devops'] = { priority: 'recommended', reason: 'DevOps & CI/CD' };
-  }
-  if (state.features.git) {
-    rec['ork-git'] = { priority: 'recommended', reason: 'Git workflow patterns' };
-  }
-  if (state.features.video) {
-    rec['ork-video'] = { priority: 'recommended', reason: 'Video production' };
-  }
-  if (state.features.mcp) {
-    rec['ork-mcp'] = { priority: 'recommended', reason: 'MCP integration' };
-  }
-  if (state.features.a11y) {
-    rec['ork-accessibility'] = { priority: 'recommended', reason: 'Accessibility patterns' };
-  }
-  if (state.features.product) {
-    rec['ork-product'] = { priority: 'recommended', reason: 'Product management agents' };
+  // Two-tier decision
+  if (needsSpecialized) {
+    // Recommend full ork plugin for specialized work
+    rec['ork'] = {
+      priority: 'recommended',
+      reason: 'Full toolkit: ' + specializedReasons.join(', ')
+    };
+    rec['ork-lite'] = {
+      priority: 'optional',
+      reason: 'Universal toolkit (subset of ork)'
+    };
+  } else {
+    // ork-lite is sufficient for general work
+    rec['ork-lite'] = {
+      priority: 'recommended',
+      reason: 'Universal toolkit — all workflows, agents, hooks'
+    };
+    rec['ork'] = {
+      priority: 'optional',
+      reason: 'Full toolkit — adds Python, React, LLM/RAG patterns'
+    };
   }
 
   return rec;
@@ -1055,46 +1036,31 @@ function updateAll() {
   var recs = getRecommendations();
   var recKeys = Object.keys(recs);
 
-  // Calculate totals
-  var totalSkills = 0, totalAgents = 0, totalHooks = 0, totalPlugins = 0;
-  recKeys.forEach(function(name) {
-    var p = PLUGINS[name];
-    if (p) {
-      totalSkills += p.skills;
-      totalAgents += p.agents;
-      totalHooks += p.hooks;
-      totalPlugins++;
-    }
-  });
+  // For two-tier system, show the recommended plugin's stats
+  var recommendedPlugin = recKeys.find(function(name) { return recs[name].priority === 'recommended'; });
+  var p = PLUGINS[recommendedPlugin];
+  var totalSkills = p ? p.skills : 0;
+  var totalAgents = p ? p.agents : 0;
+  var totalHooks = p ? p.hooks : 0;
 
   // Results header
-  var required = recKeys.filter(function(name) { return recs[name].priority === 'required'; }).length;
   var recommended = recKeys.filter(function(name) { return recs[name].priority === 'recommended'; }).length;
   var optional = recKeys.filter(function(name) { return recs[name].priority === 'optional'; }).length;
 
   document.getElementById('resultsTitle').textContent = 'Your OrchestKit Setup';
-  document.getElementById('resultsSubtitle').textContent = required + ' required + ' + recommended + ' recommended + ' + optional + ' optional plugins';
+  document.getElementById('resultsSubtitle').textContent = recommended + ' recommended + ' + optional + ' optional (pick one)';
 
   document.getElementById('resultsStats').innerHTML =
-    '<div class="rstat"><div class="rstat-val" style="color:var(--accent)">' + totalPlugins + '</div><div class="rstat-label">Plugins</div></div>' +
     '<div class="rstat"><div class="rstat-val" style="color:var(--accent3)">' + totalSkills + '</div><div class="rstat-label">Skills</div></div>' +
-    '<div class="rstat"><div class="rstat-val" style="color:var(--accent2)">' + totalAgents + '</div><div class="rstat-label">Agents</div></div>';
+    '<div class="rstat"><div class="rstat-val" style="color:var(--accent2)">' + totalAgents + '</div><div class="rstat-label">Agents</div></div>' +
+    '<div class="rstat"><div class="rstat-val" style="color:var(--accent4)">' + totalHooks + '</div><div class="rstat-label">Hooks</div></div>';
 
-  // Summary bar
-  var catCounts = {};
-  recKeys.forEach(function(name) {
-    var p = PLUGINS[name];
-    if (p) {
-      catCounts[p.category] = (catCounts[p.category] || 0) + p.skills + p.agents;
-    }
-  });
-  var catCountKeys = Object.keys(catCounts);
-  var totalComponents = catCountKeys.reduce(function(s, k) { return s + catCounts[k]; }, 0) || 1;
-  var catColors = { development: '#8b5cf6', ai: '#06b6d4', backend: '#f59e0b', frontend: '#ec4899', testing: '#22c55e', security: '#ef4444', devops: '#f97316', product: '#a855f7', accessibility: '#14b8a6', data: '#6366f1' };
-  var catEntries = catCountKeys.map(function(cat) { return { cat: cat, count: catCounts[cat] }; });
-  catEntries.sort(function(a, b) { return b.count - a.count; });
-  document.getElementById('summaryBar').innerHTML = catEntries.map(function(entry) {
-    return '<div class="summary-segment" style="width:' + ((entry.count/totalComponents)*100) + '%;background:' + (catColors[entry.cat] || '#666') + '"></div>';
+  // Summary bar - show categories from agent data
+  var categories = ORCHESTKIT_DATA.categories;
+  var catKeys = Object.keys(categories);
+  var totalCats = catKeys.length;
+  document.getElementById('summaryBar').innerHTML = catKeys.map(function(cat) {
+    return '<div class="summary-segment" style="width:' + (100/totalCats) + '%;background:' + categories[cat].color + '" title="' + categories[cat].label + '"></div>';
   }).join('');
 
   // Plugin list
@@ -1112,14 +1078,33 @@ function updateAll() {
     var tagClass = rec.priority === 'required' ? 'req' : rec.priority === 'recommended' ? 'rec' : 'opt';
     var tagLabel = rec.priority === 'required' ? 'REQUIRED' : rec.priority === 'recommended' ? 'RECOMMENDED' : 'OPTIONAL';
     var isExpanded = state.expandedPlugin === name;
-    var cmds = p.commands || [];
     var skillsHtml = p.skills ? '<span class="pi-count"><span class="n">' + p.skills + '</span> <span class="l">skills</span></span>' : '';
     var agentsHtml = p.agents ? '<span class="pi-count"><span class="n">' + p.agents + '</span> <span class="l">agents</span></span>' : '';
     var hooksHtml = p.hooks ? '<span class="pi-count"><span class="n">' + p.hooks + '</span> <span class="l">hooks</span></span>' : '';
-    var cmdsSection = cmds.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Commands <span class="badge" style="background:rgba(139,92,246,0.2);color:var(--accent)">' + cmds.length + '</span></div><div class="pi-tags">' + cmds.map(function(c) { return '<span class="pi-skill-tag cmd">' + c + '</span>'; }).join('') + '</div></div>' : '';
-    var skillsSection = p.skillList && p.skillList.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Skills <span class="badge" style="background:rgba(6,182,212,0.2);color:var(--accent3)">' + p.skillList.length + '</span></div><div class="pi-tags">' + p.skillList.map(function(s) { return '<span class="pi-skill-tag">' + s + '</span>'; }).join('') + '</div></div>' : '';
-    var agentsSection = p.agentList && p.agentList.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Agents <span class="badge" style="background:rgba(34,197,94,0.2);color:var(--accent2)">' + p.agentList.length + '</span></div><div class="pi-tags">' + p.agentList.map(function(a) { return '<span class="pi-agent-tag">' + a + '</span>'; }).join('') + '</div></div>' : '';
-    var hooksSection = p.hooks ? '<div class="pi-detail-section"><div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">' + p.hooks + '</span></div><div style="font-size:12px;color:var(--text-muted)">' + ORCHESTKIT_DATA.totals.hooks + ' lifecycle hooks across 11 split bundles (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div></div>' : '';
+
+    // Build skills summary for expanded view
+    var skillsSummary = ORCHESTKIT_DATA.skillsSummary[name];
+    var skillsSectionHtml = '';
+    if (skillsSummary) {
+      var summaryParts = [];
+      if (skillsSummary.includesAllOrkLite) {
+        summaryParts.push('<div style="font-size:12px;color:var(--accent2);margin-bottom:8px">Includes everything from ork-lite plus:</div>');
+      }
+      Object.keys(skillsSummary).forEach(function(cat) {
+        if (cat === 'includesAllOrkLite') return;
+        var skills = skillsSummary[cat];
+        if (Array.isArray(skills) && skills.length) {
+          summaryParts.push('<div style="margin-bottom:8px"><span style="font-size:11px;color:var(--text-muted);text-transform:uppercase">' + cat + '</span><div class="pi-tags" style="margin-top:4px">' + skills.map(function(s) { return '<span class="pi-skill-tag">' + s + '</span>'; }).join('') + '</div></div>');
+        }
+      });
+      if (summaryParts.length) {
+        skillsSectionHtml = '<div class="pi-detail-section"><div class="pi-detail-label">Key Skills <span class="badge" style="background:rgba(6,182,212,0.2);color:var(--accent3)">' + p.skills + ' total</span></div>' + summaryParts.join('') + '</div>';
+      }
+    }
+
+    var hooksSection = p.hooks ? '<div class="pi-detail-section"><div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">' + p.hooks + '</span></div><div style="font-size:12px;color:var(--text-muted)">Lifecycle automation across 11 split bundles (89 global + 28 agent/skill-scoped)</div></div>' : '';
+    var agentsSection = '<div class="pi-detail-section"><div class="pi-detail-label">Agents <span class="badge" style="background:rgba(34,197,94,0.2);color:var(--accent2)">' + p.agents + '</span></div><div style="font-size:12px;color:var(--text-muted)">36 specialized agents for backend, frontend, security, devops, AI, testing, product, and more</div></div>';
+
     return '<div class="plugin-item ' + rec.priority + ' ' + (isExpanded ? 'expanded' : '') + '" style="animation-delay:' + (i * 0.05) + 's" onclick="togglePlugin(\'' + name + '\')">' +
         '<div class="pi-row">' +
           '<div class="pi-badge" style="background:' + p.color + '"></div>' +
@@ -1133,7 +1118,7 @@ function updateAll() {
         '</div>' +
         '<div class="pi-detail">' +
           '<div class="pi-full-desc">' + (p.fullDesc || p.desc) + '</div>' +
-          cmdsSection + skillsSection + agentsSection + hooksSection +
+          skillsSectionHtml + agentsSection + hooksSection +
         '</div>' +
       '</div>';
   }).join('');
@@ -1145,7 +1130,6 @@ function updateAll() {
 function updatePrompt(recs) {
   var parts = [];
   var recKeys = Object.keys(recs);
-  var requiredList = recKeys.filter(function(name) { return recs[name].priority === 'required'; });
   var recommendedList = recKeys.filter(function(name) { return recs[name].priority === 'recommended'; });
   var optionalList = recKeys.filter(function(name) { return recs[name].priority === 'optional'; });
 
@@ -1159,32 +1143,38 @@ function updatePrompt(recs) {
   if (langLabel) labels.push(langLabel);
   if (focusLabel) labels.push(focusLabel);
   if (labels.length) {
-    parts.push('# OrchestKit setup for ' + labels.join(' ') + ' development');
+    parts.push('# OrchestKit v6.0.0 — ' + labels.join(' ') + ' development');
   } else {
-    parts.push('# OrchestKit setup');
+    parts.push('# OrchestKit v6.0.0 — Universal AI Development Toolkit');
   }
   parts.push('');
+  parts.push('# Two-tier plugin system: pick ONE plugin');
+  parts.push('');
 
-  if (requiredList.length) {
-    parts.push('# Required (always install)');
-    requiredList.forEach(function(name) { parts.push('claude plugin install ' + name); });
-    parts.push('');
-  }
   if (recommendedList.length) {
-    parts.push('# Recommended for your stack');
-    recommendedList.forEach(function(name) { parts.push('claude plugin install ' + name + '  # ' + recs[name].reason); });
-    parts.push('');
-  }
-  if (optionalList.length) {
-    parts.push('# Optional enhancements');
-    optionalList.forEach(function(name) { parts.push('# claude plugin install ' + name + '  # ' + recs[name].reason); });
+    var recommended = recommendedList[0];
+    var p = PLUGINS[recommended];
+    parts.push('# Recommended for your stack:');
+    parts.push('claude plugin install ' + recommended);
+    parts.push('# ' + p.skills + ' skills, ' + p.agents + ' agents, ' + p.hooks + ' hooks');
     parts.push('');
   }
 
-  // Totals
-  var ts = 0, ta = 0;
-  recKeys.forEach(function(name) { var p = PLUGINS[name]; if (p) { ts += p.skills; ta += p.agents; } });
-  parts.push('# Total: ' + recKeys.length + ' plugins, ' + ts + ' skills, ' + ta + ' agents');
+  if (optionalList.length) {
+    parts.push('# Alternative:');
+    optionalList.forEach(function(name) {
+      var p = PLUGINS[name];
+      parts.push('# claude plugin install ' + name + '  (' + p.skills + ' skills)');
+    });
+    parts.push('');
+  }
+
+  // Explanation of two-tier system
+  parts.push('# ork-lite: Universal toolkit, language-agnostic');
+  parts.push('# ork: Full toolkit with Python, React, LLM/RAG patterns');
+  parts.push('#');
+  parts.push('# Both include all 36 agents and 117 hooks.');
+  parts.push('# ork includes everything in ork-lite plus specialized skills.');
 
   document.getElementById('promptOutput').textContent = parts.join('\n');
 }

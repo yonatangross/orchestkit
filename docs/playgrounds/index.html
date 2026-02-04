@@ -491,22 +491,22 @@
     '</a>';
   }).join('');
 
-  // Category bars
-  var catSkills = {};
-  data.plugins.forEach(function(p) {
-    if (!catSkills[p.category]) catSkills[p.category] = 0;
-    catSkills[p.category] += p.skills.length;
+  // Category bars - count agents per category
+  var catAgents = {};
+  data.agents.forEach(function(a) {
+    if (!catAgents[a.category]) catAgents[a.category] = 0;
+    catAgents[a.category] += 1;
   });
-  var maxSkills = Math.max.apply(null, Object.values(catSkills));
-  var sortedCats = Object.entries(catSkills).sort(function(a, b) { return b[1] - a[1]; });
+  var maxAgents = Math.max.apply(null, Object.values(catAgents));
+  var sortedCats = Object.entries(catAgents).sort(function(a, b) { return b[1] - a[1]; });
 
   document.getElementById('categoryBars').innerHTML = sortedCats.map(function(entry) {
     var cat = entry[0], count = entry[1];
     var catData = data.categories[cat] || { color: '#666', label: cat };
-    var pct = Math.max((count / maxSkills) * 100, 5);
+    var pct = Math.max((count / maxAgents) * 100, 10);
     return '<div class="cat-row">' +
       '<div class="cat-label" style="color:' + catData.color + '">' + catData.label + '</div>' +
-      '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:' + pct + '%;background:' + catData.color + '">' + count + '</div></div>' +
+      '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:' + pct + '%;background:' + catData.color + '">' + count + ' agents</div></div>' +
       '<div class="cat-count">' + count + '</div>' +
     '</div>';
   }).join('');

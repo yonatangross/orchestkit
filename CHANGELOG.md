@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Bash 3.2 compatibility in generate-indexes.sh (macOS default shell)
 - Agent index generation now includes all categories correctly
+- Playgrounds updated for two-tier plugin system (setup-wizard, data.js, index.html)
 
 ---
 
