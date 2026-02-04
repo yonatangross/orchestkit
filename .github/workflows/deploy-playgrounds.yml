@@ -3,13 +3,11 @@ name: Deploy Playgrounds
 on:
   push:
     branches: [main]
-    paths:
-      - 'docs/playgrounds/**'
-      - 'manifests/**'
-      - 'src/agents/**'
+    # No paths filter - always deploy on main merge for production
   pull_request:
     branches: [main]
     paths:
+      # Paths filter only for PR previews to avoid unnecessary preview builds
       - 'docs/playgrounds/**'
       - 'manifests/**'
       - 'src/agents/**'

@@ -634,6 +634,8 @@
 </head>
 <body>
 
+<nav class="ork-breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
 <div class="layout">
   <div class="controls-panel">
     <!-- Welcome Screen (Step 0) -->
@@ -812,6 +814,7 @@
 </div>
 
 <script src="data.js"></script>
+<script src="nav.js"></script>
 <script>
 // Compatibility shim: convert shared data array to map format expected by wizard
 var PLUGINS = {};
@@ -831,8 +834,25 @@ ORCHESTKIT_DATA.plugins.forEach(function(p) {
   };
 });
 
+// Initialize from URL parameters
+var urlParams = window.orkUrl ? window.orkUrl.getParams() : {};
+
+// Sync state to URL
+function syncToUrl() {
+  if (!window.orkUrl) return;
+  var params = {};
+  if (state.preset) params.preset = state.preset;
+  window.orkUrl.setParams(params);
+}
+
+// Update breadcrumbs
+function updateBreadcrumbs() {
+  if (!window.orkBreadcrumbs) return;
+  window.orkBreadcrumbs.render('breadcrumbs', 'setup-wizard.html', null);
+}
+
 // State
-const state = {
+var state = {
   lang: null,
   focus: null,
   features: {
@@ -852,71 +872,72 @@ const state = {
 
 // Recommendation engine
 function getRecommendations() {
-  const rec = new Map(); // name -> { priority: 'required'|'recommended'|'optional', reason }
+  var rec = {}; // name -> { priority: 'required'|'recommended'|'optional', reason }
 
   // Always include core + workflows
-  rec.set('ork-core', { priority: 'required', reason: 'Foundation - always required' });
-  rec.set('ork-workflows', { priority: 'required', reason: 'Essential workflow commands' });
+  rec['ork-core'] = { priority: 'required', reason: 'Foundation - always required' };
+  rec['ork-workflows'] = { priority: 'required', reason: 'Essential workflow commands' };
 
   // Language / Focus based
-  const { lang, focus } = state;
+  var lang = state.lang;
+  var focus = state.focus;
 
   if (focus === 'backend' || focus === 'fullstack') {
-    rec.set('ork-backend-patterns', { priority: 'recommended', reason: 'Backend architecture patterns' });
-    rec.set('ork-api', { priority: 'recommended', reason: 'API design patterns' });
-    rec.set('ork-database', { priority: 'recommended', reason: 'Database patterns' });
+    rec['ork-backend-patterns'] = { priority: 'recommended', reason: 'Backend architecture patterns' };
+    rec['ork-api'] = { priority: 'recommended', reason: 'API design patterns' };
+    rec['ork-database'] = { priority: 'recommended', reason: 'Database patterns' };
     if (lang === 'python' || lang === 'both') {
-      rec.set('ork-async', { priority: 'recommended', reason: 'Python async patterns' });
+      rec['ork-async'] = { priority: 'recommended', reason: 'Python async patterns' };
     }
   }
 
   if (focus === 'frontend' || focus === 'fullstack') {
-    rec.set('ork-react-core', { priority: 'recommended', reason: 'React core patterns' });
-    rec.set('ork-ui-design', { priority: 'recommended', reason: 'UI/UX design patterns' });
-    rec.set('ork-frontend', { priority: 'recommended', reason: 'Frontend optimization' });
+    rec['ork-react-core'] = { priority: 'recommended', reason: 'React core patterns' };
+    rec['ork-ui-design'] = { priority: 'recommended', reason: 'UI/UX design patterns' };
+    rec['ork-frontend'] = { priority: 'recommended', reason: 'Frontend optimization' };
   }
 
   if (focus === 'ai') {
-    rec.set('ork-llm', { priority: 'recommended', reason: 'LLM integration patterns' });
-    rec.set('ork-rag', { priority: 'recommended', reason: 'RAG retrieval patterns' });
-    rec.set('ork-langgraph', { priority: 'recommended', reason: 'Agent orchestration' });
-    rec.set('ork-ai-observability', { priority: 'optional', reason: 'LLM monitoring' });
-    rec.set('ork-evaluation', { priority: 'optional', reason: 'LLM evaluation' });
+    rec['ork-llm'] = { priority: 'recommended', reason: 'LLM integration patterns' };
+    rec['ork-rag'] = { priority: 'recommended', reason: 'RAG retrieval patterns' };
+    rec['ork-langgraph'] = { priority: 'recommended', reason: 'Agent orchestration' };
+    rec['ork-ai-observability'] = { priority: 'optional', reason: 'LLM monitoring' };
+    rec['ork-evaluation'] = { priority: 'optional', reason: 'LLM evaluation' };
   }
 
   if (focus === 'fullstack' && (lang === 'python' || lang === 'both')) {
-    rec.set('ork-async', { priority: 'optional', reason: 'Async patterns for backend' });
+    rec['ork-async'] = { priority: 'optional', reason: 'Async patterns for backend' };
   }
 
   // Feature toggles
   if (state.features.memory) {
-    rec.set('ork-memory-graph', { priority: 'recommended', reason: 'Knowledge graph memory' });
-    rec.set('ork-memory-mem0', { priority: 'optional', reason: 'Cloud memory (needs MEM0_API_KEY)' });
-    rec.set('ork-memory-fabric', { priority: 'optional', reason: 'Memory orchestration layer' });
+    rec['ork-memory-graph'] = { priority: 'recommended', reason: 'Knowledge graph memory' };
+    rec['ork-memory-mem0'] = { priority: 'optional', reason: 'Cloud memory (needs MEM0_API_KEY)' };
+    rec['ork-memory-fabric'] = { priority: 'optional', reason: 'Memory orchestration layer' };
   }
   if (state.features.testing) {
-    rec.set('ork-testing', { priority: 'recommended', reason: 'Testing patterns' });
+    rec['ork-testing'] = { priority: 'recommended', reason: 'Testing patterns' };
   }
   if (state.features.security) {
-    rec.set('ork-security', { priority: 'recommended', reason: 'Security patterns' });
+    rec['ork-security'] = { priority: 'recommended', reason: 'Security patterns' };
   }
   if (state.features.devops) {
-    rec.set('ork-devops', { priority: 'recommended', reason: 'DevOps & CI/CD' });
+    rec['ork-devops'] = { priority: 'recommended', reason: 'DevOps & CI/CD' };
   }
   if (state.features.git) {
-    rec.set('ork-git', { priority: 'recommended', reason: 'Git workflow patterns' });
+    rec['ork-git'] = { priority: 'recommended', reason: 'Git workflow patterns' };
   }
   if (state.features.video) {
-    rec.set('ork-video', { priority: 'recommended', reason: 'Video production' });
+    rec['ork-video'] = { priority: 'recommended', reason: 'Video production' };
   }
   if (state.features.mcp) {
-    rec.set('ork-mcp', { priority: 'recommended', reason: 'MCP integration' });
+    rec['ork-mcp'] = { priority: 'recommended', reason: 'MCP integration' };
   }
   if (state.features.a11y) {
-    rec.set('ork-accessibility', { priority: 'recommended', reason: 'Accessibility patterns' });
+    rec['ork-accessibility'] = { priority: 'recommended', reason: 'Accessibility patterns' };
   }
   if (state.features.product) {
-    rec.set('ork-product', { priority: 'recommended', reason: 'Product management agents' });
+    rec['ork-product'] = { priority: 'recommended', reason: 'Product management agents' };
   }
 
   return rec;
@@ -948,7 +969,7 @@ function applyPreset(name) {
   // Reset
   state.lang = null;
   state.focus = null;
-  Object.keys(state.features).forEach(k => state.features[k] = false);
+  Object.keys(state.features).forEach(function(k) { state.features[k] = false; });
 
   switch (name) {
     case 'minimal':
@@ -983,40 +1004,61 @@ function applyPreset(name) {
     case 'everything':
       state.lang = 'both';
       state.focus = 'fullstack';
-      Object.keys(state.features).forEach(k => state.features[k] = true);
+      Object.keys(state.features).forEach(function(k) { state.features[k] = true; });
       break;
   }
   state.preset = name;
   updateAll();
+  syncToUrl();
 }
 
 // Render
 function updateAll() {
   // Update button states
-  document.querySelectorAll('.option-btn').forEach(btn => {
-    const group = btn.dataset.group;
-    const value = btn.dataset.value;
-    btn.classList.toggle('selected', state[group] === value);
-  });
+  var optionBtns = document.querySelectorAll('.option-btn');
+  for (var i = 0; i < optionBtns.length; i++) {
+    var btn = optionBtns[i];
+    var group = btn.dataset.group;
+    var value = btn.dataset.value;
+    if (state[group] === value) {
+      btn.classList.add('selected');
+    } else {
+      btn.classList.remove('selected');
+    }
+  }
 
   // Update toggle states
-  const toggleMap = ['memory','testing','security','devops','git','video','mcp','a11y','product'];
-  document.querySelectorAll('.toggle-row').forEach((row, i) => {
-    row.classList.toggle('on', state.features[toggleMap[i]]);
-  });
+  var toggleMap = ['memory','testing','security','devops','git','video','mcp','a11y','product'];
+  var toggleRows = document.querySelectorAll('.toggle-row');
+  for (var i = 0; i < toggleRows.length; i++) {
+    var row = toggleRows[i];
+    if (state.features[toggleMap[i]]) {
+      row.classList.add('on');
+    } else {
+      row.classList.remove('on');
+    }
+  }
 
   // Update presets
-  document.querySelectorAll('.preset-btn').forEach(btn => {
-    btn.classList.toggle('active', state.preset === btn.textContent.toLowerCase().replace('-', '').replace(' ', ''));
-  });
+  var presetBtns = document.querySelectorAll('.preset-btn');
+  for (var i = 0; i < presetBtns.length; i++) {
+    var btn = presetBtns[i];
+    var presetName = btn.textContent.toLowerCase().replace('-', '').replace(' ', '');
+    if (state.preset === presetName) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  }
 
   // Get recommendations
-  const recs = getRecommendations();
+  var recs = getRecommendations();
+  var recKeys = Object.keys(recs);
 
   // Calculate totals
-  let totalSkills = 0, totalAgents = 0, totalHooks = 0, totalPlugins = 0;
-  recs.forEach((rec, name) => {
-    const p = PLUGINS[name];
+  var totalSkills = 0, totalAgents = 0, totalHooks = 0, totalPlugins = 0;
+  recKeys.forEach(function(name) {
+    var p = PLUGINS[name];
     if (p) {
       totalSkills += p.skills;
       totalAgents += p.agents;
@@ -1026,87 +1068,74 @@ function updateAll() {
   });
 
   // Results header
-  const required = [...recs].filter(([,r]) => r.priority === 'required').length;
-  const recommended = [...recs].filter(([,r]) => r.priority === 'recommended').length;
-  const optional = [...recs].filter(([,r]) => r.priority === 'optional').length;
+  var required = recKeys.filter(function(name) { return recs[name].priority === 'required'; }).length;
+  var recommended = recKeys.filter(function(name) { return recs[name].priority === 'recommended'; }).length;
+  var optional = recKeys.filter(function(name) { return recs[name].priority === 'optional'; }).length;
 
-  document.getElementById('resultsTitle').textContent = `Your OrchestKit Setup`;
-  document.getElementById('resultsSubtitle').textContent = `${required} required + ${recommended} recommended + ${optional} optional plugins`;
+  document.getElementById('resultsTitle').textContent = 'Your OrchestKit Setup';
+  document.getElementById('resultsSubtitle').textContent = required + ' required + ' + recommended + ' recommended + ' + optional + ' optional plugins';
 
-  document.getElementById('resultsStats').innerHTML = `
-    <div class="rstat"><div class="rstat-val" style="color:var(--accent)">${totalPlugins}</div><div class="rstat-label">Plugins</div></div>
-    <div class="rstat"><div class="rstat-val" style="color:var(--accent3)">${totalSkills}</div><div class="rstat-label">Skills</div></div>
-    <div class="rstat"><div class="rstat-val" style="color:var(--accent2)">${totalAgents}</div><div class="rstat-label">Agents</div></div>
-  `;
+  document.getElementById('resultsStats').innerHTML =
+    '<div class="rstat"><div class="rstat-val" style="color:var(--accent)">' + totalPlugins + '</div><div class="rstat-label">Plugins</div></div>' +
+    '<div class="rstat"><div class="rstat-val" style="color:var(--accent3)">' + totalSkills + '</div><div class="rstat-label">Skills</div></div>' +
+    '<div class="rstat"><div class="rstat-val" style="color:var(--accent2)">' + totalAgents + '</div><div class="rstat-label">Agents</div></div>';
 
   // Summary bar
-  const catCounts = {};
-  recs.forEach((rec, name) => {
-    const p = PLUGINS[name];
+  var catCounts = {};
+  recKeys.forEach(function(name) {
+    var p = PLUGINS[name];
     if (p) {
       catCounts[p.category] = (catCounts[p.category] || 0) + p.skills + p.agents;
     }
   });
-  const totalComponents = Object.values(catCounts).reduce((s, v) => s + v, 0) || 1;
-  const catColors = { development: '#8b5cf6', ai: '#06b6d4', backend: '#f59e0b', frontend: '#ec4899', testing: '#22c55e', security: '#ef4444', devops: '#f97316', product: '#a855f7', accessibility: '#14b8a6', data: '#6366f1' };
-  document.getElementById('summaryBar').innerHTML = Object.entries(catCounts)
-    .sort((a, b) => b[1] - a[1])
-    .map(([cat, count]) => `<div class="summary-segment" style="width:${(count/totalComponents)*100}%;background:${catColors[cat] || '#666'}"></div>`)
-    .join('');
+  var catCountKeys = Object.keys(catCounts);
+  var totalComponents = catCountKeys.reduce(function(s, k) { return s + catCounts[k]; }, 0) || 1;
+  var catColors = { development: '#8b5cf6', ai: '#06b6d4', backend: '#f59e0b', frontend: '#ec4899', testing: '#22c55e', security: '#ef4444', devops: '#f97316', product: '#a855f7', accessibility: '#14b8a6', data: '#6366f1' };
+  var catEntries = catCountKeys.map(function(cat) { return { cat: cat, count: catCounts[cat] }; });
+  catEntries.sort(function(a, b) { return b.count - a.count; });
+  document.getElementById('summaryBar').innerHTML = catEntries.map(function(entry) {
+    return '<div class="summary-segment" style="width:' + ((entry.count/totalComponents)*100) + '%;background:' + (catColors[entry.cat] || '#666') + '"></div>';
+  }).join('');
 
   // Plugin list
-  const sorted = [...recs].sort((a, b) => {
-    const pri = { required: 0, recommended: 1, optional: 2 };
-    return pri[a[1].priority] - pri[b[1].priority];
+  var recEntries = recKeys.map(function(name) { return { name: name, rec: recs[name] }; });
+  var pri = { required: 0, recommended: 1, optional: 2 };
+  recEntries.sort(function(a, b) {
+    return pri[a.rec.priority] - pri[b.rec.priority];
   });
 
-  document.getElementById('pluginList').innerHTML = sorted.map(([name, rec], i) => {
-    const p = PLUGINS[name];
+  document.getElementById('pluginList').innerHTML = recEntries.map(function(entry, i) {
+    var name = entry.name;
+    var rec = entry.rec;
+    var p = PLUGINS[name];
     if (!p) return '';
-    const tagClass = rec.priority === 'required' ? 'req' : rec.priority === 'recommended' ? 'rec' : 'opt';
-    const tagLabel = rec.priority === 'required' ? 'REQUIRED' : rec.priority === 'recommended' ? 'RECOMMENDED' : 'OPTIONAL';
-    const isExpanded = state.expandedPlugin === name;
-    const cmds = p.commands || [];
-    return `
-      <div class="plugin-item ${rec.priority} ${isExpanded ? 'expanded' : ''}" style="animation-delay:${i * 0.05}s" onclick="togglePlugin('${name}')">
-        <div class="pi-row">
-          <div class="pi-badge" style="background:${p.color}"></div>
-          <div class="pi-info">
-            <div class="pi-name">${name}</div>
-            <div class="pi-desc">${rec.reason}</div>
-          </div>
-          <div class="pi-counts">
-            ${p.skills ? `<span class="pi-count"><span class="n">${p.skills}</span> <span class="l">skills</span></span>` : ''}
-            ${p.agents ? `<span class="pi-count"><span class="n">${p.agents}</span> <span class="l">agents</span></span>` : ''}
-            ${p.hooks ? `<span class="pi-count"><span class="n">${p.hooks}</span> <span class="l">hooks</span></span>` : ''}
-          </div>
-          <span class="pi-tag ${tagClass}">${tagLabel}</span>
-          <span class="pi-chevron">\u25B6</span>
-        </div>
-        <div class="pi-detail">
-          <div class="pi-full-desc">${p.fullDesc || p.desc}</div>
-          ${cmds.length ? `
-          <div class="pi-detail-section">
-            <div class="pi-detail-label">Commands <span class="badge" style="background:rgba(139,92,246,0.2);color:var(--accent)">${cmds.length}</span></div>
-            <div class="pi-tags">${cmds.map(c => `<span class="pi-skill-tag cmd">${c}</span>`).join('')}</div>
-          </div>` : ''}
-          ${p.skillList && p.skillList.length ? `
-          <div class="pi-detail-section">
-            <div class="pi-detail-label">Skills <span class="badge" style="background:rgba(6,182,212,0.2);color:var(--accent3)">${p.skillList.length}</span></div>
-            <div class="pi-tags">${p.skillList.map(s => `<span class="pi-skill-tag">${s}</span>`).join('')}</div>
-          </div>` : ''}
-          ${p.agentList && p.agentList.length ? `
-          <div class="pi-detail-section">
-            <div class="pi-detail-label">Agents <span class="badge" style="background:rgba(34,197,94,0.2);color:var(--accent2)">${p.agentList.length}</span></div>
-            <div class="pi-tags">${p.agentList.map(a => `<span class="pi-agent-tag">${a}</span>`).join('')}</div>
-          </div>` : ''}
-          ${p.hooks ? `
-          <div class="pi-detail-section">
-            <div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">${p.hooks}</span></div>
-            <div style="font-size:12px;color:var(--text-muted)">' + ORCHESTKIT_DATA.totals.hooks + ' lifecycle hooks across 11 split bundles (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div>
-          </div>` : ''}
-        </div>
-      </div>`;
+    var tagClass = rec.priority === 'required' ? 'req' : rec.priority === 'recommended' ? 'rec' : 'opt';
+    var tagLabel = rec.priority === 'required' ? 'REQUIRED' : rec.priority === 'recommended' ? 'RECOMMENDED' : 'OPTIONAL';
+    var isExpanded = state.expandedPlugin === name;
+    var cmds = p.commands || [];
+    var skillsHtml = p.skills ? '<span class="pi-count"><span class="n">' + p.skills + '</span> <span class="l">skills</span></span>' : '';
+    var agentsHtml = p.agents ? '<span class="pi-count"><span class="n">' + p.agents + '</span> <span class="l">agents</span></span>' : '';
+    var hooksHtml = p.hooks ? '<span class="pi-count"><span class="n">' + p.hooks + '</span> <span class="l">hooks</span></span>' : '';
+    var cmdsSection = cmds.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Commands <span class="badge" style="background:rgba(139,92,246,0.2);color:var(--accent)">' + cmds.length + '</span></div><div class="pi-tags">' + cmds.map(function(c) { return '<span class="pi-skill-tag cmd">' + c + '</span>'; }).join('') + '</div></div>' : '';
+    var skillsSection = p.skillList && p.skillList.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Skills <span class="badge" style="background:rgba(6,182,212,0.2);color:var(--accent3)">' + p.skillList.length + '</span></div><div class="pi-tags">' + p.skillList.map(function(s) { return '<span class="pi-skill-tag">' + s + '</span>'; }).join('') + '</div></div>' : '';
+    var agentsSection = p.agentList && p.agentList.length ? '<div class="pi-detail-section"><div class="pi-detail-label">Agents <span class="badge" style="background:rgba(34,197,94,0.2);color:var(--accent2)">' + p.agentList.length + '</span></div><div class="pi-tags">' + p.agentList.map(function(a) { return '<span class="pi-agent-tag">' + a + '</span>'; }).join('') + '</div></div>' : '';
+    var hooksSection = p.hooks ? '<div class="pi-detail-section"><div class="pi-detail-label">Hooks <span class="badge" style="background:rgba(245,158,11,0.2);color:var(--accent4)">' + p.hooks + '</span></div><div style="font-size:12px;color:var(--text-muted)">' + ORCHESTKIT_DATA.totals.hooks + ' lifecycle hooks across 11 split bundles (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)</div></div>' : '';
+    return '<div class="plugin-item ' + rec.priority + ' ' + (isExpanded ? 'expanded' : '') + '" style="animation-delay:' + (i * 0.05) + 's" onclick="togglePlugin(\'' + name + '\')">' +
+        '<div class="pi-row">' +
+          '<div class="pi-badge" style="background:' + p.color + '"></div>' +
+          '<div class="pi-info">' +
+            '<div class="pi-name">' + name + '</div>' +
+            '<div class="pi-desc">' + rec.reason + '</div>' +
+          '</div>' +
+          '<div class="pi-counts">' + skillsHtml + agentsHtml + hooksHtml + '</div>' +
+          '<span class="pi-tag ' + tagClass + '">' + tagLabel + '</span>' +
+          '<span class="pi-chevron">\u25B6</span>' +
+        '</div>' +
+        '<div class="pi-detail">' +
+          '<div class="pi-full-desc">' + (p.fullDesc || p.desc) + '</div>' +
+          cmdsSection + skillsSection + agentsSection + hooksSection +
+        '</div>' +
+      '</div>';
   }).join('');
 
   // Prompt output
@@ -1114,76 +1143,82 @@ function updateAll() {
 }
 
 function updatePrompt(recs) {
-  const parts = [];
-  const required = [...recs].filter(([,r]) => r.priority === 'required');
-  const recommended = [...recs].filter(([,r]) => r.priority === 'recommended');
-  const optional = [...recs].filter(([,r]) => r.priority === 'optional');
+  var parts = [];
+  var recKeys = Object.keys(recs);
+  var requiredList = recKeys.filter(function(name) { return recs[name].priority === 'required'; });
+  var recommendedList = recKeys.filter(function(name) { return recs[name].priority === 'recommended'; });
+  var optionalList = recKeys.filter(function(name) { return recs[name].priority === 'optional'; });
 
   // Build description
-  const focusLabel = { backend: 'backend', frontend: 'frontend', fullstack: 'full-stack', ai: 'AI/LLM' }[state.focus] || '';
-  const langLabel = { python: 'Python', node: 'TypeScript/Node', both: 'Python + TypeScript' }[state.lang] || '';
+  var focusLabels = { backend: 'backend', frontend: 'frontend', fullstack: 'full-stack', ai: 'AI/LLM' };
+  var langLabels = { python: 'Python', node: 'TypeScript/Node', both: 'Python + TypeScript' };
+  var focusLabel = focusLabels[state.focus] || '';
+  var langLabel = langLabels[state.lang] || '';
 
-  if (focusLabel || langLabel) {
-    parts.push(`# OrchestKit setup for ${[langLabel, focusLabel].filter(Boolean).join(' ')} development`);
+  var labels = [];
+  if (langLabel) labels.push(langLabel);
+  if (focusLabel) labels.push(focusLabel);
+  if (labels.length) {
+    parts.push('# OrchestKit setup for ' + labels.join(' ') + ' development');
   } else {
-    parts.push(`# OrchestKit setup`);
+    parts.push('# OrchestKit setup');
   }
   parts.push('');
 
-  if (required.length) {
+  if (requiredList.length) {
     parts.push('# Required (always install)');
-    required.forEach(([name]) => parts.push(`claude plugin install ${name}`));
+    requiredList.forEach(function(name) { parts.push('claude plugin install ' + name); });
     parts.push('');
   }
-  if (recommended.length) {
+  if (recommendedList.length) {
     parts.push('# Recommended for your stack');
-    recommended.forEach(([name, rec]) => parts.push(`claude plugin install ${name}  # ${rec.reason}`));
+    recommendedList.forEach(function(name) { parts.push('claude plugin install ' + name + '  # ' + recs[name].reason); });
     parts.push('');
   }
-  if (optional.length) {
+  if (optionalList.length) {
     parts.push('# Optional enhancements');
-    optional.forEach(([name, rec]) => parts.push(`# claude plugin install ${name}  # ${rec.reason}`));
+    optionalList.forEach(function(name) { parts.push('# claude plugin install ' + name + '  # ' + recs[name].reason); });
     parts.push('');
   }
 
   // Totals
-  let ts = 0, ta = 0;
-  recs.forEach((_, name) => { const p = PLUGINS[name]; if (p) { ts += p.skills; ta += p.agents; } });
-  parts.push(`# Total: ${recs.size} plugins, ${ts} skills, ${ta} agents`);
+  var ts = 0, ta = 0;
+  recKeys.forEach(function(name) { var p = PLUGINS[name]; if (p) { ts += p.skills; ta += p.agents; } });
+  parts.push('# Total: ' + recKeys.length + ' plugins, ' + ts + ' skills, ' + ta + ' agents');
 
   document.getElementById('promptOutput').textContent = parts.join('\n');
 }
 
 function copyPrompt() {
-  const text = document.getElementById('promptOutput').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyBtn');
+  var text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('copyBtn');
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
+    setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
   });
 }
 
 // Populate welcome screen with dynamic data
 function initWelcomeScreen() {
-  const totals = ORCHESTKIT_DATA.totals;
-  const featuresEl = document.getElementById('welcomeFeatures');
+  var totals = ORCHESTKIT_DATA.totals;
+  var featuresEl = document.getElementById('welcomeFeatures');
 
-  const features = [
+  var features = [
     { icon: '&#x1f4da;', color: 'var(--accent)', count: totals.skills, label: 'Skills', desc: 'Reusable knowledge modules for every stack' },
     { icon: '&#x1f916;', color: 'var(--accent2)', count: totals.agents, label: 'Agents', desc: 'Specialized AI personas for different tasks' },
     { icon: '&#x26a1;', color: 'var(--accent4)', count: totals.hooks, label: 'Hooks', desc: 'Automated quality gates & lifecycle automation' },
   ];
 
-  featuresEl.innerHTML = features.map(f => `
-    <div class="welcome-feature">
-      <span class="feature-icon" style="background:${f.color}">${f.icon}</span>
-      <div class="feature-text">
-        <strong>${f.count} ${f.label}</strong>
-        <span>${f.desc}</span>
-      </div>
-    </div>
-  `).join('');
+  featuresEl.innerHTML = features.map(function(f) {
+    return '<div class="welcome-feature">' +
+      '<span class="feature-icon" style="background:' + f.color + '">' + f.icon + '</span>' +
+      '<div class="feature-text">' +
+        '<strong>' + f.count + ' ' + f.label + '</strong>' +
+        '<span>' + f.desc + '</span>' +
+      '</div>' +
+    '</div>';
+  }).join('');
 }
 
 // Welcome screen functions
@@ -1201,8 +1236,8 @@ function skipToPresets() {
 
 // Progress bar
 function updateProgress() {
-  let progress = 0;
-  let currentStep = 1;
+  var progress = 0;
+  var currentStep = 1;
 
   if (state.lang) {
     progress += 33;
@@ -1220,19 +1255,21 @@ function updateProgress() {
   document.getElementById('progressFill').style.width = progress + '%';
 
   // Update step indicators
-  document.querySelectorAll('.progress-step').forEach((step, i) => {
-    const stepNum = i + 1;
+  var progressSteps = document.querySelectorAll('.progress-step');
+  for (var i = 0; i < progressSteps.length; i++) {
+    var step = progressSteps[i];
+    var stepNum = i + 1;
     step.classList.remove('active', 'completed');
     if (stepNum < currentStep || (stepNum === 3 && progress === 100)) {
       step.classList.add('completed');
     } else if (stepNum === currentStep) {
       step.classList.add('active');
     }
-  });
+  }
 }
 
 // Override updateAll to also update progress
-const originalUpdateAll = updateAll;
+var originalUpdateAll = updateAll;
 updateAll = function() {
   originalUpdateAll();
   if (document.getElementById('wizardContent').style.display !== 'none') {
@@ -1242,8 +1279,18 @@ updateAll = function() {
 
 // Init
 initWelcomeScreen();
+updateBreadcrumbs();
 updateAll();
+
+// Auto-apply preset from URL ?preset= parameter
+if (urlParams.preset) {
+  var validPresets = ['minimal', 'backend', 'frontend', 'fullstack', 'ai', 'everything'];
+  if (validPresets.indexOf(urlParams.preset) !== -1) {
+    // Skip welcome screen and apply preset
+    startWizard();
+    applyPreset(urlParams.preset);
+  }
+}
 </script>
-<script src="nav.js"></script>
 </body>
 </html>

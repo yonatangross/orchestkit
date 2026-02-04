@@ -2,7 +2,7 @@
 # Playgrounds E2E Tests
 # Validates HTML structure, JavaScript data integrity, and component functionality
 #
-# Test Count: 15
+# Test Count: 42
 # Priority: MEDIUM
 # Purpose: Ensure playgrounds render correctly and data flows properly
 
@@ -469,6 +469,170 @@ test_all_html_files_have_navigation() {
   # Verify nav.js exists
   assert_file_exists "$PLAYGROUNDS_DIR/nav.js"
   assert_file_exists "$PLAYGROUNDS_DIR/nav.css"
+}
+
+# ============================================================================
+# URL UTILITIES TESTS (orkUrl)
+# ============================================================================
+
+describe "URL Utilities (orkUrl)"
+
+test_orkurl_getparams_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'getParams:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'decodeURIComponent'
+}
+
+test_orkurl_setparams_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'setParams:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'replaceState'
+}
+
+test_orkurl_getcompurl_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'getCompUrl:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'encodeURIComponent'
+}
+
+test_orkurl_excludes_default_values() {
+  # setParams should exclude 'all', empty, and null values
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "!== 'all'"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "!== ''"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "!== null"
+}
+
+# ============================================================================
+# BREADCRUMB UTILITIES TESTS (orkBreadcrumbs)
+# ============================================================================
+
+describe "Breadcrumb Utilities (orkBreadcrumbs)"
+
+test_orkbreadcrumbs_hierarchy_defined() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'orkBreadcrumbs'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'hierarchy'
+}
+
+test_orkbreadcrumbs_has_all_pages() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "'index.html'"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "'demo-gallery.html'"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "'marketplace-explorer.html'"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "'setup-wizard.html'"
+}
+
+test_orkbreadcrumbs_build_function_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'build:'
+}
+
+test_orkbreadcrumbs_render_function_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'render:'
+}
+
+test_orkbreadcrumbs_has_aria_current() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'aria-current'
+}
+
+# ============================================================================
+# SHARE UTILITIES TESTS (orkShare)
+# ============================================================================
+
+describe "Share Utilities (orkShare)"
+
+test_orkshare_twitter_function_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'twitter:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'twitter.com/intent/tweet'
+}
+
+test_orkshare_linkedin_function_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'linkedin:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'linkedin.com/sharing'
+}
+
+test_orkshare_copyurl_with_fallback() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'copyUrl:'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'navigator.clipboard'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'execCommand'
+}
+
+test_orkshare_getcompshareretext_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'getCompShareText:'
+}
+
+test_orkshare_renderbuttons_exists() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'renderButtons:'
+}
+
+test_orkshare_has_aria_labels() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'aria-label'
+}
+
+# ============================================================================
+# DEEP LINKING TESTS
+# ============================================================================
+
+describe "Deep Linking"
+
+test_demo_gallery_reads_url_params() {
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'orkUrl.getParams()'
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'urlParams.comp'
+}
+
+test_demo_gallery_auto_opens_modal() {
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'if (urlParams.comp)'
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'openModal(urlParams.comp)'
+}
+
+test_index_reads_url_params() {
+  assert_file_contains "$PLAYGROUNDS_DIR/index.html" 'orkUrl.getParams()'
+}
+
+test_setup_wizard_applies_preset_from_url() {
+  assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" 'urlParams.preset'
+  assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" 'applyPreset(urlParams.preset)'
+}
+
+test_marketplace_reads_view_param() {
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'urlParams.view'
+}
+
+test_all_pages_have_synctourl() {
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'syncToUrl()'
+  assert_file_contains "$PLAYGROUNDS_DIR/index.html" 'syncToUrl()'
+  assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" 'syncToUrl()'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'syncToUrl()'
+}
+
+test_all_pages_have_breadcrumbs() {
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" 'updateBreadcrumbs()'
+  assert_file_contains "$PLAYGROUNDS_DIR/index.html" 'updateBreadcrumbs()'
+  assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" 'updateBreadcrumbs()'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" 'updateBreadcrumbs()'
+}
+
+# ============================================================================
+# ACCESSIBILITY TESTS
+# ============================================================================
+
+describe "Accessibility"
+
+test_nav_has_aria_label() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "aria-label"
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" "role"
+}
+
+test_breadcrumbs_container_is_nav() {
+  # All pages should use nav element for breadcrumbs
+  assert_file_contains "$PLAYGROUNDS_DIR/demo-gallery.html" '<nav class="ork-breadcrumbs"'
+  assert_file_contains "$PLAYGROUNDS_DIR/index.html" '<nav class="ork-breadcrumbs"'
+  assert_file_contains "$PLAYGROUNDS_DIR/setup-wizard.html" '<nav class="ork-breadcrumbs"'
+  assert_file_contains "$PLAYGROUNDS_DIR/marketplace-explorer.html" '<nav class="ork-breadcrumbs"'
+}
+
+test_share_buttons_have_aria_labels() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'aria-label="Share on Twitter"'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'aria-label="Share on LinkedIn"'
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.js" 'aria-label="Copy link'
+}
+
+test_focus_visible_styles_exist() {
+  assert_file_contains "$PLAYGROUNDS_DIR/nav.css" ':focus-visible'
 }
 
 # ============================================================================

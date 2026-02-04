@@ -411,6 +411,8 @@
 </head>
 <body>
 
+<nav class="ork-breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
 <div class="hub-container">
   <div class="hero">
     <div class="hero-logo">ork</div>
@@ -437,10 +439,28 @@
 </div>
 
 <script src="data.js"></script>
+<script src="nav.js"></script>
 <script>
 (function() {
   var data = window.ORCHESTKIT_DATA;
   var totals = data.totals;
+  var urlParams = window.orkUrl ? window.orkUrl.getParams() : {};
+  var currentComp = null;
+
+  // Update breadcrumbs
+  function updateBreadcrumbs() {
+    if (!window.orkBreadcrumbs) return;
+    var activeItem = currentComp ? currentComp.id : null;
+    window.orkBreadcrumbs.render('breadcrumbs', 'index.html', activeItem);
+  }
+
+  // Sync URL
+  function syncToUrl() {
+    if (!window.orkUrl) return;
+    var params = {};
+    if (currentComp) params.comp = currentComp.id;
+    window.orkUrl.setParams(params);
+  }
 
   // Stats row
   var statsColors = {
@@ -516,9 +536,11 @@
   window.openCompModal = function(id) {
     var comp = data.compositions.find(function(c) { return c.id === id; });
     if (!comp) return;
+    currentComp = comp;
 
     var thumbnailUrl = comp.thumbnailCdn || comp.thumbnail;
     var videoUrl = comp.videoCdn || null;
+    var shareUrl = window.orkUrl ? window.orkUrl.getCompUrl(comp.id, 'index.html') : window.location.href;
 
     var modalHtml =
       '<div class="comp-modal-overlay" onclick="closeCompModal()">' +
@@ -544,7 +566,8 @@
               '<span>' + comp.durationSeconds + 's @ ' + comp.fps + 'fps</span>' +
               '<span>' + comp.style + '</span>' +
             '</div>' +
-            '<a href="demo-gallery.html" class="comp-gallery-link">View in Demo Gallery &rarr;</a>' +
+            '<div id="hubShareButtonsContainer"></div>' +
+            '<a href="demo-gallery.html?comp=' + encodeURIComponent(comp.id) + '" class="comp-gallery-link">View in Demo Gallery &rarr;</a>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -556,6 +579,14 @@
       document.body.appendChild(container);
     }
     container.innerHTML = modalHtml;
+
+    // Render share buttons
+    if (window.orkShare) {
+      window.orkShare.renderButtons('hubShareButtonsContainer', comp, shareUrl);
+    }
+
+    syncToUrl();
+    updateBreadcrumbs();
   };
 
   window.playCompVideo = function() {
@@ -572,9 +603,22 @@
     if (video) { video.pause(); video.currentTime = 0; }
     var container = document.getElementById('compModalContainer');
     if (container) container.innerHTML = '';
+    currentComp = null;
+    syncToUrl();
+    updateBreadcrumbs();
   };
+
+  // Initialize breadcrumbs
+  updateBreadcrumbs();
+
+  // Auto-open modal from URL ?comp= parameter
+  if (urlParams.comp) {
+    var compToOpen = data.compositions.find(function(c) { return c.id === urlParams.comp; });
+    if (compToOpen) {
+      window.openCompModal(urlParams.comp);
+    }
+  }
 })();
 </script>
-<script src="nav.js"></script>
 </body>
 </html>

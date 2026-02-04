@@ -151,3 +151,120 @@ body.ork-nav-enabled {
     display: none;
   }
 }
+
+/* ─── Breadcrumbs ─────────────────────────────────────────────────────────── */
+.ork-breadcrumbs {
+  position: sticky;
+  top: 48px;
+  z-index: 99;
+  background: #161b22;
+  border-bottom: 1px solid #30363d;
+  padding: 10px 24px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.ork-bc-item {
+  color: #8b949e;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.ork-bc-item:hover {
+  color: #e6edf3;
+}
+
+.ork-bc-sep {
+  color: #484f58;
+  margin: 0 10px;
+  font-size: 14px;
+}
+
+.ork-bc-active {
+  color: #e6edf3;
+  font-weight: 600;
+}
+
+/* ─── Share Buttons ───────────────────────────────────────────────────────── */
+.ork-share-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.ork-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #30363d;
+  background: #21262d;
+  color: #e6edf3;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.ork-share-btn:hover {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.ork-share-icon {
+  font-size: 14px;
+}
+
+.ork-share-twitter:hover {
+  border-color: #1da1f2;
+  background: rgba(29, 161, 242, 0.1);
+}
+
+.ork-share-linkedin:hover {
+  border-color: #0a66c2;
+  background: rgba(10, 102, 194, 0.1);
+}
+
+.ork-share-linkedin .ork-share-icon {
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.ork-share-copy:hover {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.1);
+}
+
+/* Focus-visible styles for accessibility */
+.ork-bc-item:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+.ork-share-btn:focus-visible {
+  outline: 2px solid #8b5cf6;
+  outline-offset: 2px;
+}
+
+@media (max-width: 768px) {
+  .ork-breadcrumbs {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  .ork-bc-sep {
+    margin: 0 6px;
+  }
+  .ork-share-bar {
+    flex-direction: column;
+  }
+  .ork-share-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
