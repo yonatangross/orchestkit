@@ -105,6 +105,8 @@ jobs:
           echo "low=${low:-0}" >> $GITHUB_OUTPUT
 
       - name: Generate CI Report
+        id: report
+        continue-on-error: true
         env:
           CI_BUILD_STATUS: ${{ steps.build.outputs.status }}
           CI_COMMIT_SHA: ${{ github.sha }}
