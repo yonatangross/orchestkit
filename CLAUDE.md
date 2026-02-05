@@ -229,7 +229,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Description |
 |--------|--------|-------------|
-| `ork-lite` | 125 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `orkl` | 125 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork` | 195 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
 Both include all 36 agents, 117 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).

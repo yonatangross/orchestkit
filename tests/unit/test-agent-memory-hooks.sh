@@ -414,36 +414,36 @@ it "bundle contains mem0-memory-inject" test_bundle_contains_mem0_inject
 
 describe "Plugin Architecture: Two-Tier System"
 
-test_ork_lite_plugin_exists() {
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-lite/.claude-plugin/plugin.json"
+test_orkl_plugin_exists() {
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/.claude-plugin/plugin.json"
 }
 
 test_ork_plugin_exists() {
     assert_file_exists "$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 }
 
-test_memory_skills_in_ork_lite() {
-    # Memory skills should be in ork-lite (universal toolkit)
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-lite/skills/remember/SKILL.md"
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-lite/skills/memory/SKILL.md"
+test_memory_skills_in_orkl() {
+    # Memory skills should be in orkl (universal toolkit)
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/remember/SKILL.md"
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/memory/SKILL.md"
 }
 
 test_old_memory_plugins_gone() {
-    # Old separate memory plugins should be deleted (merged into ork-lite)
+    # Old separate memory plugins should be deleted (merged into orkl)
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-graph" ]]; then
-        fail "Old ork-memory-graph plugin should be deleted (merged into ork-lite)"
+        fail "Old ork-memory-graph plugin should be deleted (merged into orkl)"
     fi
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-mem0" ]]; then
-        fail "Old ork-memory-mem0 plugin should be deleted (merged into ork-lite)"
+        fail "Old ork-memory-mem0 plugin should be deleted (merged into orkl)"
     fi
     if [[ -d "$PROJECT_ROOT/plugins/ork-memory-fabric" ]]; then
-        fail "Old ork-memory-fabric plugin should be deleted (merged into ork-lite)"
+        fail "Old ork-memory-fabric plugin should be deleted (merged into orkl)"
     fi
 }
 
-it "ork-lite plugin exists" test_ork_lite_plugin_exists
+it "orkl plugin exists" test_orkl_plugin_exists
 it "ork plugin exists" test_ork_plugin_exists
-it "memory skills in ork-lite" test_memory_skills_in_ork_lite
+it "memory skills in orkl" test_memory_skills_in_orkl
 it "old memory plugins are gone" test_old_memory_plugins_gone
 
 # ============================================================================

@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Breaking**: Reorganized plugins from 26 granular plugins to 2-tier architecture:
-  - `ork-lite` (119 skills) — Universal toolkit, language-agnostic, all workflows work out of the box
+  - `orkl` (119 skills) — Universal toolkit, language-agnostic, all workflows work out of the box
   - `ork` (195 skills) — Full specialized toolkit with Python, React, LLM/RAG patterns
+- Renamed `ork-lite` to `orkl` for shorter prefix
 - All 36 agents and 117 hooks included in BOTH plugins
 - Deleted 25 domain-specific plugin manifests (ork-accessibility, ork-backend-patterns, ork-memory-*, etc.)
-- Memory plugins (graph, mem0, fabric) now included directly in ork-lite
+- Memory plugins (graph, mem0, fabric) now included directly in orkl
 - No more dependency issues — every workflow works without additional installs
 
 ### Added

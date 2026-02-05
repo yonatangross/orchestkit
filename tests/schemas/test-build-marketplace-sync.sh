@@ -279,8 +279,8 @@ cat > "$TMPDIR5/manifests/ork.json" <<'EOF'
 {"name": "ork", "version": "5.4.0", "description": "main"}
 EOF
 
-cat > "$TMPDIR5/manifests/ork-lite.json" <<'EOF'
-{"name": "ork-lite", "version": "6.0.0", "description": "universal"}
+cat > "$TMPDIR5/manifests/orkl.json" <<'EOF'
+{"name": "orkl", "version": "6.0.0", "description": "universal"}
 EOF
 
 cat > "$TMPDIR5/marketplace.json" <<'EOF'
@@ -288,7 +288,7 @@ cat > "$TMPDIR5/marketplace.json" <<'EOF'
   "name": "orchestkit",
   "version": "6.0.0",
   "plugins": [
-    {"name": "ork-lite", "version": "5.9.0", "description": "universal", "source": "./plugins/ork-lite", "category": "dev"},
+    {"name": "orkl", "version": "5.9.0", "description": "universal", "source": "./plugins/orkl", "category": "dev"},
     {"name": "ork", "version": "5.9.0", "description": "full", "source": "./plugins/ork", "category": "dev"}
   ]
 }
@@ -297,9 +297,9 @@ EOF
 SYNC_RESULT=$(run_sync "$TMPDIR5/manifests" "$TMPDIR5/marketplace.json")
 assert_eq "1" "$SYNC_RESULT" "Sync count is 1 for 1 mismatched plugin"
 
-V1=$(jq -r '.plugins[] | select(.name == "ork-lite") | .version' "$TMPDIR5/marketplace.json")
+V1=$(jq -r '.plugins[] | select(.name == "orkl") | .version' "$TMPDIR5/marketplace.json")
 
-assert_eq "6.0.0" "$V1" "ork-lite plugin synced to 6.0.0"
+assert_eq "6.0.0" "$V1" "orkl plugin synced to 6.0.0"
 
 rm -rf "$TMPDIR5"
 echo ""
@@ -594,7 +594,7 @@ mkdir -p "$TMPDIR14/manifests"
 
 # Generate 2 manifests (matching OrchestKit v6.0.0 two-tier system)
 PLUGIN_NAMES=(
-    "ork-lite" "ork"
+    "orkl" "ork"
 )
 
 # Create marketplace with 2 plugins at version 5.9.0
@@ -618,9 +618,9 @@ SYNC_RESULT=$(run_sync "$TMPDIR14/manifests" "$TMPDIR14/marketplace.json")
 assert_eq "2" "$SYNC_RESULT" "Sync count is 2 for 2 mismatched plugins"
 
 # Verify plugins were updated
-V_LITE=$(jq -r '.plugins[] | select(.name == "ork-lite") | .version' "$TMPDIR14/marketplace.json")
+V_LITE=$(jq -r '.plugins[] | select(.name == "orkl") | .version' "$TMPDIR14/marketplace.json")
 V_ORK=$(jq -r '.plugins[] | select(.name == "ork") | .version' "$TMPDIR14/marketplace.json")
-assert_eq "6.0.0" "$V_LITE" "ork-lite synced to 6.0.0"
+assert_eq "6.0.0" "$V_LITE" "orkl synced to 6.0.0"
 assert_eq "6.0.0" "$V_ORK" "ork synced to 6.0.0"
 
 # Verify no .tmp files left behind

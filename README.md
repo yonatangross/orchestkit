@@ -60,7 +60,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 | **Skills** | 195 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
 | **Hooks** | 117 | Pre-commit checks, git protection, quality gates |
-| **Plugins** | 2 | `ork-lite` (universal) or `ork` (full specialized) |
+| **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
 
 **[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
 
@@ -83,13 +83,13 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 ```bash
 # Universal toolkit (works for any stack)
-/plugin install ork-lite
+/plugin install orkl
 
 # Full toolkit (adds Python, React, LLM/RAG specializations)
 /plugin install ork
 ```
 
-**ork-lite** (125 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**orkl** (125 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
 **ork** (194 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
@@ -160,8 +160,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 **v6.0.0** — Two-tier plugin architecture
 
-- **Breaking**: Simplified from 26 plugins to 2 (`ork-lite` and `ork`)
-- `ork-lite` (125 skills) — Universal toolkit, all workflows work out of the box
+- **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
+- `orkl` (125 skills) — Universal toolkit, all workflows work out of the box
 - `ork` (194 skills) — Full specialized with Python, React, LLM/RAG patterns
 - All 36 agents and 117 hooks included in both plugins
 

@@ -3,7 +3,7 @@
 # Playground Data Accuracy Test (Two-Tier System)
 # ============================================================================
 # Verifies that docs/playgrounds/data.js has valid structure and
-# accurate counts for the two-tier plugin system (ork-lite, ork).
+# accurate counts for the two-tier plugin system (orkl, ork).
 # ============================================================================
 
 set -euo pipefail
@@ -32,16 +32,16 @@ fi
 
 echo "▶ Checking two-tier plugin structure..."
 
-# Check for ork-lite (JS object syntax: name: "ork-lite")
-if grep -q 'name: "ork-lite"' "$DATA_JS"; then
-    echo -e "  ${GREEN}✓${NC} ork-lite plugin present"
+# Check for orkl (JS object syntax: name: "orkl")
+if grep -q 'name: "orkl"' "$DATA_JS"; then
+    echo -e "  ${GREEN}✓${NC} orkl plugin present"
 else
-    echo -e "  ${RED}✗${NC} ork-lite plugin missing"
+    echo -e "  ${RED}✗${NC} orkl plugin missing"
     ((ERRORS++)) || true
 fi
 
-# Check for ork (note: must match exactly "ork", not "ork-lite" etc.)
-if grep -E 'name: "ork"[,}]' "$DATA_JS" | grep -v "ork-lite" > /dev/null; then
+# Check for ork (note: must match exactly "ork", not "orkl" etc.)
+if grep -E 'name: "ork"[,}]' "$DATA_JS" | grep -v "orkl" > /dev/null; then
     echo -e "  ${GREEN}✓${NC} ork plugin present"
 else
     echo -e "  ${RED}✗${NC} ork plugin missing"

@@ -817,7 +817,7 @@
 <script src="nav.js"></script>
 <script>
 // Two-tier plugin system (v6.0.0)
-// ork-lite: Universal toolkit - works for any stack
+// orkl: Universal toolkit - works for any stack
 // ork: Full specialized toolkit - adds Python, React, LLM/RAG patterns
 
 var PLUGINS = {};
@@ -872,7 +872,7 @@ var state = {
 };
 
 // Two-tier recommendation engine (v6.0.0)
-// ork-lite: Universal - always recommended
+// orkl: Universal - always recommended
 // ork: Full - recommended for specialized Python/React/LLM work
 function getRecommendations() {
   var rec = {}; // name -> { priority: 'required'|'recommended'|'optional', reason }
@@ -882,7 +882,7 @@ function getRecommendations() {
   var needsSpecialized = false;
   var specializedReasons = [];
 
-  // Check if user needs specialized patterns (ork vs ork-lite)
+  // Check if user needs specialized patterns (ork vs orkl)
   if (lang === 'python' || lang === 'both') {
     needsSpecialized = true;
     specializedReasons.push('Python (FastAPI, SQLAlchemy, Celery)');
@@ -905,13 +905,13 @@ function getRecommendations() {
       priority: 'recommended',
       reason: 'Full toolkit: ' + specializedReasons.join(', ')
     };
-    rec['ork-lite'] = {
+    rec['orkl'] = {
       priority: 'optional',
       reason: 'Universal toolkit (subset of ork)'
     };
   } else {
-    // ork-lite is sufficient for general work
-    rec['ork-lite'] = {
+    // orkl is sufficient for general work
+    rec['orkl'] = {
       priority: 'recommended',
       reason: 'Universal toolkit — all workflows, agents, hooks'
     };
@@ -1088,7 +1088,7 @@ function updateAll() {
     if (skillsSummary) {
       var summaryParts = [];
       if (skillsSummary.includesAllOrkLite) {
-        summaryParts.push('<div style="font-size:12px;color:var(--accent2);margin-bottom:8px">Includes everything from ork-lite plus:</div>');
+        summaryParts.push('<div style="font-size:12px;color:var(--accent2);margin-bottom:8px">Includes everything from orkl plus:</div>');
       }
       Object.keys(skillsSummary).forEach(function(cat) {
         if (cat === 'includesAllOrkLite') return;
@@ -1170,11 +1170,11 @@ function updatePrompt(recs) {
   }
 
   // Explanation of two-tier system
-  parts.push('# ork-lite: Universal toolkit, language-agnostic');
+  parts.push('# orkl: Universal toolkit, language-agnostic');
   parts.push('# ork: Full toolkit with Python, React, LLM/RAG patterns');
   parts.push('#');
   parts.push('# Both include all 36 agents and 117 hooks.');
-  parts.push('# ork includes everything in ork-lite plus specialized skills.');
+  parts.push('# ork includes everything in orkl plus specialized skills.');
 
   document.getElementById('promptOutput').textContent = parts.join('\n');
 }
