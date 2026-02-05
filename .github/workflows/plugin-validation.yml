@@ -1,4 +1,4 @@
-name: Plugin Validation
+name: Validate: Plugins
 
 on:
   push:
@@ -20,7 +20,7 @@ jobs:
   # STAGE 0: Build once, share artifacts
   # ============================================================================
   build:
-    name: Build Plugins
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

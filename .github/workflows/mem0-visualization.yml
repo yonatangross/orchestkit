@@ -1,4 +1,4 @@
-name: Mem0 Visualization
+name: Visualize: Memory
 
 on:
   schedule:

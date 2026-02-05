@@ -1,4 +1,4 @@
-name: Version & Changelog Check
+name: Validate: Version
 
 on:
   pull_request:
@@ -140,10 +140,10 @@ jobs:
             });
 
             const botComment = comments.data.find(c =>
-              c.user.type === 'Bot' && c.body.includes('Version & Changelog Check')
+              c.user.type === 'Bot' && c.body.includes('Validate: Version')
             );
 
-            const body = `## Version & Changelog Check Failed
+            const body = `## Validate: Version Failed
 
             ${issues.join('\n')}
 

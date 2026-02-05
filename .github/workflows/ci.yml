@@ -1,4 +1,4 @@
-name: CI
+name: Tests & Security
 
 on:
   push:
@@ -20,11 +20,11 @@ env:
 
 jobs:
   # ============================================================================
-  # STAGE 0: Build Plugins + Artifacts (< 1m)
+  # STAGE 0: Build + Artifacts (< 1m)
   # Single build, shared via artifacts to avoid rebuilding
   # ============================================================================
   build-plugins:
-    name: Build Plugins
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -95,13 +95,11 @@ jobs:
           node-version: '22'
 
       - name: Audit root dependencies
-        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=critical
 
       - name: Audit hooks dependencies
         working-directory: src/hooks
-        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=critical
 
   # ============================================================================
   # STAGE 1c: Secret Scanning
@@ -194,14 +192,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   security-tests:
-    name: Security Tests (${{ matrix.os }})
-    needs: lint
-    runs-on: ${{ matrix.os }}
+    name: Security Tests
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: true  # Stop immediately on security failure
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -268,14 +262,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   performance-tests:
-    name: Performance Tests (${{ matrix.os }})
-    needs: [unit-tests, security-tests]
-    runs-on: ${{ matrix.os }}
+    name: Performance Tests
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -302,14 +292,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   compliance-tests:
-    name: Compliance Tests (${{ matrix.os }})
-    needs: lint
-    runs-on: ${{ matrix.os }}
+    name: Compliance Tests
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -336,14 +322,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   mem0-tests:
-    name: Mem0 Integration (${{ matrix.os }})
-    needs: lint
-    runs-on: ${{ matrix.os }}
+    name: Mem0 Integration
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -372,14 +354,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   agent-skill-tests:
-    name: Agents & Skills (${{ matrix.os }})
-    needs: lint
-    runs-on: ${{ matrix.os }}
+    name: Agents & Skills
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -418,14 +396,10 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   system-tests:
-    name: System Tests (${{ matrix.os }})
-    needs: lint
-    runs-on: ${{ matrix.os }}
+    name: System Tests
+    needs: [build-plugins]
+    runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -463,16 +437,23 @@ jobs:
   # ============================================================================
   playgrounds-tests:
     name: Playgrounds E2E
-    needs: lint
+    needs: [lint, build-plugins]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
+      - name: Download built plugins
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
-          node-version: '22'
+          name: built-plugins
+          path: plugins/
+
+      - name: Setup environment
+        uses: ./.github/actions/setup
+        with:
+          build-plugins: 'false'
+          run-ci-setup: 'false'
 
       - name: Run playgrounds tests
         shell: bash
@@ -547,20 +528,28 @@ jobs:
           echo "Playgrounds E2E: ${{ needs.playgrounds-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
-          # All security checks must pass (audit + scanning + tests)
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs.security-audit.result }}" != "success" ]] || \
-             [[ "${{ needs.secret-scanning.result }}" != "success" ]] || \
-             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.hook-typescript-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.security-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.performance-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.compliance-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.mem0-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.agent-skill-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.system-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.playgrounds-tests.result }}" != "success" ]]; then
+          # Fail only on explicit failures (skipped jobs are OK - they use path filters)
+          FAILED=0
+          for result in \
+            "${{ needs.lint.result }}" \
+            "${{ needs.security-audit.result }}" \
+            "${{ needs.secret-scanning.result }}" \
+            "${{ needs.unit-tests.result }}" \
+            "${{ needs.hook-typescript-tests.result }}" \
+            "${{ needs.security-tests.result }}" \
+            "${{ needs.integration-tests.result }}" \
+            "${{ needs.performance-tests.result }}" \
+            "${{ needs.compliance-tests.result }}" \
+            "${{ needs.mem0-tests.result }}" \
+            "${{ needs.agent-skill-tests.result }}" \
+            "${{ needs.system-tests.result }}" \
+            "${{ needs.playgrounds-tests.result }}"; do
+            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+              FAILED=1
+            fi
+          done
+
+          if [[ "$FAILED" == "1" ]]; then
             echo "::error::One or more CI stages failed"
             exit 1
           fi
