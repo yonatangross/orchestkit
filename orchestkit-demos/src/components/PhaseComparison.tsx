@@ -442,10 +442,6 @@ export const PhaseComparison: React.FC<PhaseComparisonProps> = ({
 
   // Calculate current phase based on frame
   const phaseSceneFrame = Math.max(0, frame - hookDuration);
-  const currentPhaseIndex = Math.min(
-    Math.floor(phaseSceneFrame / phaseDuration),
-    phases.length - 1
-  );
 
   // Phase completion status
   const getPhaseStatus = (index: number) => {

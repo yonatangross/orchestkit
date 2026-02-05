@@ -16,7 +16,7 @@ window.ORCHESTKIT_DATA = {
       "plugins": 2,
       "skills": 197,
       "agents": 36,
-      "hooks": 111,
+      "hooks": 112,
       "commands": 22,
       "compositions": 14
   },
@@ -31,13 +31,13 @@ window.ORCHESTKIT_DATA = {
   plugins: [
       {
           "name": "orkl",
-          "description": "Universal toolkit — 107 skills, 36 agents, 111 hooks. Language-agnostic, works for any stack.",
+          "description": "Universal toolkit — 107 skills, 36 agents, 112 hooks. Language-agnostic, works for any stack.",
           "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
           "category": "development",
-          "version": "6.0.0",
+          "version": "6.0.1",
           "skillCount": 107,
           "agentCount": 36,
-          "hooks": 111,
+          "hooks": 112,
           "commandCount": 22,
           "color": "#8b5cf6",
           "required": false,
@@ -129,13 +129,13 @@ window.ORCHESTKIT_DATA = {
       },
       {
           "name": "ork",
-          "description": "Full specialized toolkit — 197 skills, 36 agents, 111 hooks. Adds Python, React, LLM/RAG patterns.",
+          "description": "Full specialized toolkit — 197 skills, 36 agents, 112 hooks. Adds Python, React, LLM/RAG patterns.",
           "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
           "category": "development",
-          "version": "6.0.0",
+          "version": "6.0.1",
           "skillCount": 197,
           "agentCount": 36,
-          "hooks": 111,
+          "hooks": 112,
           "commandCount": 22,
           "color": "#06b6d4",
           "required": false,
@@ -1186,7 +1186,6 @@ window.ORCHESTKIT_DATA = {
           "version-entry.json"
         ],
         "scripts": [
-          "__pycache__",
           "diversity-checker.py"
         ]
       },
@@ -1226,7 +1225,6 @@ window.ORCHESTKIT_DATA = {
           "red-teaming.md"
         ],
         "scripts": [
-          "__pycache__",
           "create-guardrails-config.md",
           "nemo-config.yaml",
           "rails-pipeline.py"
@@ -1302,7 +1300,6 @@ window.ORCHESTKIT_DATA = {
           "self-rag.md"
         ],
         "scripts": [
-          "__pycache__",
           "crag-workflow.py",
           "self-rag-graph.py"
         ],
@@ -1344,7 +1341,6 @@ window.ORCHESTKIT_DATA = {
           "invariant-enforcement.md"
         ],
         "scripts": [
-          "__pycache__",
           "aggregate-root-template.py"
         ],
         "checklists": [
@@ -1392,7 +1388,6 @@ window.ORCHESTKIT_DATA = {
           "alembic-advanced.md"
         ],
         "scripts": [
-          "__pycache__",
           "create-migration.md",
           "detect-model-changes.py",
           "migration-template.py"
@@ -1438,7 +1433,6 @@ window.ORCHESTKIT_DATA = {
           "openai-agents-sdk.md"
         ],
         "scripts": [
-          "__pycache__",
           "crewai-crew.py",
           "openai-multi-agent.py"
         ],
@@ -1525,7 +1519,6 @@ window.ORCHESTKIT_DATA = {
           "versioning-strategies.md"
         ],
         "scripts": [
-          "__pycache__",
           "fastapi-versioned-router.py"
         ],
         "checklists": [
@@ -1565,7 +1558,6 @@ window.ORCHESTKIT_DATA = {
           "adr-template.md"
         ],
         "scripts": [
-          "__pycache__",
           "adr-frontmatter.yaml",
           "adr-manager.py",
           "create-adr.md",
@@ -1756,7 +1748,6 @@ window.ORCHESTKIT_DATA = {
           "taskgroup-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "async-service-template.py"
         ],
         "checklists": [
@@ -1875,7 +1866,6 @@ window.ORCHESTKIT_DATA = {
           "oauth-2.1-passkeys.md"
         ],
         "scripts": [
-          "__pycache__",
           "auth-middleware-template.py"
         ],
         "checklists": [
@@ -1952,7 +1942,6 @@ window.ORCHESTKIT_DATA = {
           "task-queue-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "arq-worker-template.py"
         ],
         "checklists": [
@@ -2293,7 +2282,6 @@ window.ORCHESTKIT_DATA = {
           "cache-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "redis-cache-service.py"
         ],
         "checklists": [
@@ -2374,7 +2362,6 @@ window.ORCHESTKIT_DATA = {
           "rate-limiting-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "canvas-workflow-template.py",
           "celery-config-template.py",
           "priority-task-template.py"
@@ -2416,7 +2403,6 @@ window.ORCHESTKIT_DATA = {
           "hexagonal-architecture.md"
         ],
         "scripts": [
-          "__pycache__",
           "domain-entity-template.py"
         ],
         "checklists": [
@@ -2458,7 +2444,6 @@ window.ORCHESTKIT_DATA = {
           "review-feedback-template.md"
         ],
         "scripts": [
-          "__pycache__",
           "fetch-pr-data.sh",
           "review-pr.md",
           "run-pr-checks.py"
@@ -2535,9 +2520,7 @@ window.ORCHESTKIT_DATA = {
       ],
       "skills": [],
       "agent": "market-intelligence",
-      "structure": {
-        "references": []
-      },
+      "structure": {},
       "content": "# Competitive Monitoring\n\nTrack competitor websites for changes in pricing, features, positioning, and content.\n\n## Quick Start\n\n```bash\n# Capture initial snapshot\n/ork:competitive-monitoring capture https://competitor.com/pricing\n\n# Check for changes (compares to last snapshot)\n/ork:competitive-monitoring diff https://competitor.com/pricing\n\n# View change history\n/ork:competitive-monitoring history competitor.com\n```\n\n## Core Concepts\n\n### Snapshot\nA point-in-time capture of a webpage including:\n- **Text content** - Main body text\n- **Structured data** - Pricing tiers, feature lists, etc.\n- **Screenshot** - Visual state\n- **Metadata** - Timestamp, URL, capture method\n\n### Diff\nComparison between two snapshots showing:\n- **Added content** - New text, features, prices\n- **Removed content** - Deleted sections\n- **Changed content** - Modified values\n- **Visual changes** - Layout/design shifts\n\n### Change Classification\n\n| Severity | Examples | Action |\n|----------|----------|--------|\n| **Critical** | Price increase/decrease, major feature change | Immediate alert |\n| **High** | New feature added, feature removed | Review required |\n| **Medium** | Copy changes, positioning shift | Note for analysis |\n| **Low** | Typos, minor styling | Log only |\n\n## Workflow\n\n### Step 1: Initial Capture\n\n```bash\n# Create snapshots directory\nmkdir -p .competitive-intel/snapshots\n\n# Capture competitor pricing page\nagent-browser open https://competitor.com/pricing\nagent-browser wait --load networkidle\n\n# Save text content\nagent-browser get text body > .competitive-intel/snapshots/competitor-pricing-$(date +%Y%m%d).txt\n\n# Save screenshot\nagent-browser screenshot .competitive-intel/snapshots/competitor-pricing-$(date +%Y%m%d).png\n\n# Extract structured pricing data\nagent-browser eval \"JSON.stringify(\n  Array.from(document.querySelectorAll('.pricing-tier')).map(tier => ({\n    name: tier.querySelector('h3')?.innerText,\n    price: tier.querySelector('.price')?.innerText,\n    features: Array.from(tier.querySelectorAll('li')).map(li => li.innerText)\n  }))\n)\" > .competitive-intel/snapshots/competitor-pricing-$(date +%Y%m%d).json\n\nagent-browser close\n```\n\n### Step 2: Diff Detection\n\n```bash\n# Get latest two snapshots\nLATEST=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.txt | head -1)\nPREVIOUS=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.txt | head -2 | tail -1)\n\n# Text diff\ndiff -u \"$PREVIOUS\" \"$LATEST\" > .competitive-intel/diffs/competitor-pricing-$(date +%Y%m%d).diff\n\n# Check if significant changes\nif [ -s \".competitive-intel/diffs/competitor-pricing-$(date +%Y%m%d).diff\" ]; then\n  echo \"Changes detected!\"\n  cat \".competitive-intel/diffs/competitor-pricing-$(date +%Y%m%d).diff\"\nfi\n```\n\n### Step 3: Structured Comparison\n\n```bash\n# Compare JSON pricing data\nLATEST_JSON=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.json | head -1)\nPREVIOUS_JSON=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.json | head -2 | tail -1)\n\n# Use jq to com",
       "contentTruncated": true,
       "plugins": [
@@ -2613,7 +2596,6 @@ window.ORCHESTKIT_DATA = {
           "pool-sizing.md"
         ],
         "scripts": [
-          "__pycache__",
           "pool-setup-template.py"
         ],
         "checklists": [
@@ -2790,7 +2772,6 @@ window.ORCHESTKIT_DATA = {
           "provider-verification.md"
         ],
         "scripts": [
-          "__pycache__",
           "consumer-test-template.py",
           "provider-verification-template.py"
         ],
@@ -2882,7 +2863,6 @@ window.ORCHESTKIT_DATA = {
           "query-handlers.md"
         ],
         "scripts": [
-          "__pycache__",
           "command-bus-template.py",
           "projection-template.py",
           "query-handler-template.py"
@@ -3129,7 +3109,7 @@ window.ORCHESTKIT_DATA = {
           "generate.sh"
         ]
       },
-      "content": "# Demo Producer\n\nUniversal demo video creation for any content type.\n\n## Quick Start\n\n```bash\n/demo-producer                    # Interactive mode - asks what to create\n/demo-producer skill explore      # Create demo for a skill\n/demo-producer plugin ork     # Create demo for a plugin\n/demo-producer tutorial \"Building a REST API\"  # Custom tutorial\n```\n\n## Supported Content Types\n\n| Type | Source | Example |\n|------|--------|---------|\n| `skill` | skills/{name}/SKILL.md | `/demo-producer skill commit` |\n| `agent` | agents/{name}.md | `/demo-producer agent debug-investigator` |\n| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork` |\n| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork` |\n| `tutorial` | Custom description | `/demo-producer tutorial \"Git workflow\"` |\n| `cli` | Any CLI tool | `/demo-producer cli \"npm create vite\"` |\n| `code` | Code walkthrough | `/demo-producer code src/api/auth.ts` |\n\n## Interactive Flow\n\nWhen invoked without arguments, asks:\n\n### Question 1: Content Type\n```\nWhat type of demo do you want to create?\n\n○ Skill - OrchestKit skill showcase\n○ Agent - AI agent demonstration\n○ Plugin - Plugin installation/features\n○ Tutorial - Custom coding tutorial\n○ CLI Tool - Command-line tool demo\n○ Code Walkthrough - Explain existing code\n```\n\n### Question 2: Format\n```\nWhat format(s) do you need?\n\n☑ Horizontal (16:9) - YouTube, Twitter\n☑ Vertical (9:16) - TikTok, Reels, Shorts\n☐ Square (1:1) - Instagram, LinkedIn\n```\n\n### Question 3: Style\n```\nWhat style fits your content?\n\n○ Quick Demo (6-10s) - Fast showcase, single feature\n○ Standard Demo (15-25s) - Full workflow, multiple steps\n○ Tutorial (30-60s) - Detailed explanation, code examples\n○ Cinematic (60s+) - Story-driven, high polish\n```\n\n### Question 4: Audio\n```\nAudio preferences?\n\n○ Music Only - Subtle ambient background\n○ Music + SFX - Background + success sounds\n○ Silent - No audio\n```\n\n## Pipeline Architecture\n\n```\n┌──────────────────────────────────────────────────────────────────┐\n│                     Demo Producer Pipeline                        │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │   Content   │───▶│   Content    │───▶│   Script Generator  │  │\n│  │   Detector  │    │   Analyzer   │    │   (per type)        │  │\n│  └─────────────┘    └──────────────┘    └──────────┬──────────┘  │\n│                                                     │             │\n│                                                     ▼             │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │  Remotion   │◀───│    VHS       │◀───│   Terminal Script   │  │\n│  │  Composer   │    │   Recorder   │    │   (.sh + .tape)     │  │\n│  └──────┬──────┘    └──────────────┘    └─────────────────────┘  │\n│         │                                                         │\n│ ",
+      "content": "# Demo Producer\n\nUniversal demo video creation for any content type.\n\n## Quick Start\n\n```bash\n/demo-producer                    # Interactive mode - asks what to create\n/demo-producer skill explore      # Create demo for a skill\n/demo-producer plugin ork     # Create demo for a plugin\n/demo-producer tutorial \"Building a REST API\"  # Custom tutorial\n```\n\n## Supported Content Types\n\n| Type | Source | Example |\n|------|--------|---------|\n| `skill` | skills/{name}/SKILL.md | `/demo-producer skill commit` |\n| `agent` | agents/{name}.md | `/demo-producer agent debug-investigator` |\n| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork` |\n| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork` |\n| `tutorial` | Custom description | `/demo-producer tutorial \"Git workflow\"` |\n| `cli` | Any CLI tool | `/demo-producer cli \"npm create vite\"` |\n| `code` | Code walkthrough | `/demo-producer code src/api/auth.ts` |\n\n## Interactive Flow\n\nWhen invoked without arguments, asks:\n\n### Question 1: Content Type\n```\nWhat type of demo do you want to create?\n\n○ Skill - OrchestKit skill showcase\n○ Agent - AI agent demonstration\n○ Plugin - Plugin installation/features\n○ Tutorial - Custom coding tutorial\n○ CLI Tool - Command-line tool demo\n○ Code Walkthrough - Explain existing code\n```\n\n### Question 2: Format\n```\nWhat format(s) do you need?\n\n☑ Horizontal (16:9) - YouTube, Twitter\n☑ Vertical (9:16) - TikTok, Reels, Shorts\n☐ Square (1:1) - Instagram, LinkedIn\n```\n\n### Question 3: Style\n```\nWhat style fits your content?\n\n○ Quick Demo (6-10s) - Fast showcase, single feature\n○ Standard Demo (15-25s) - Full workflow, multiple steps\n○ Tutorial (30-60s) - Detailed explanation, code examples\n○ Cinematic (60s+) - Story-driven, high polish\n○ Scrapbook (15-35s) - Warm paper, fast cuts, social proof collage (Anthropic style)\n```\n\n### Question 4: Audio\n```\nAudio preferences?\n\n○ Music Only - Subtle ambient background\n○ Music + SFX - Background + success sounds\n○ Silent - No audio\n```\n\n## Pipeline Architecture\n\n```\n┌──────────────────────────────────────────────────────────────────┐\n│                     Demo Producer Pipeline                        │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │   Content   │───▶│   Content    │───▶│   Script Generator  │  │\n│  │   Detector  │    │   Analyzer   │    │   (per type)        │  │\n│  └─────────────┘    └──────────────┘    └──────────┬──────────┘  │\n│                                                     │             │\n│                                                     ▼             │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │  Remotion   │◀───│    VHS       │◀───│   Terminal Script   │  │\n│  │  Composer   │    │   Recorder   │    │   (.sh + .tape)     │  │\n│  └──────┬──────┘    └──────────────┘    └─────────────",
       "contentTruncated": true,
       "plugins": [
         "ork",
@@ -3265,7 +3245,6 @@ window.ORCHESTKIT_DATA = {
           "redlock-algorithm.md"
         ],
         "scripts": [
-          "__pycache__",
           "distributed-lock-template.py"
         ],
         "checklists": [
@@ -3319,7 +3298,7 @@ window.ORCHESTKIT_DATA = {
           "skills-validation.md"
         ]
       },
-      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 119 skills, 36 agents, 117 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 195 skills, 36 agents, 117 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
+      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 119 skills, 36 agents, 118 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 195 skills, 36 agents, 118 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
       "contentTruncated": true,
       "plugins": [
         "ork",
@@ -3353,7 +3332,6 @@ window.ORCHESTKIT_DATA = {
           "repositories.md"
         ],
         "scripts": [
-          "__pycache__",
           "entity-template.py",
           "repository-template.py",
           "value-object-template.py"
@@ -3546,7 +3524,6 @@ window.ORCHESTKIT_DATA = {
           "chunking-strategies.md"
         ],
         "scripts": [
-          "__pycache__",
           "embedding-pipeline.py"
         ],
         "checklists": [
@@ -3585,7 +3562,6 @@ window.ORCHESTKIT_DATA = {
           "rfc9457-spec.md"
         ],
         "scripts": [
-          "__pycache__",
           "problem-detail-exceptions.py"
         ],
         "checklists": [
@@ -3661,7 +3637,6 @@ window.ORCHESTKIT_DATA = {
           "event-store-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "event-store-template.py"
         ],
         "checklists": [
@@ -3804,7 +3779,6 @@ window.ORCHESTKIT_DATA = {
           "fastapi-app-template.py"
         ],
         "scripts": [
-          "__pycache__",
           "create-fastapi-app.md"
         ],
         "checklists": [
@@ -3886,7 +3860,6 @@ window.ORCHESTKIT_DATA = {
           "when-to-finetune.md"
         ],
         "scripts": [
-          "__pycache__",
           "create-lora-config.md",
           "dpo-training.py",
           "lora-config.yaml"
@@ -4079,7 +4052,6 @@ window.ORCHESTKIT_DATA = {
           "tool-schema.md"
         ],
         "scripts": [
-          "__pycache__",
           "function-def.py"
         ],
         "checklists": [
@@ -4280,7 +4252,6 @@ window.ORCHESTKIT_DATA = {
           "versioning.md"
         ],
         "scripts": [
-          "__pycache__",
           "backup-golden-dataset.md",
           "backup-script.py"
         ],
@@ -4363,7 +4334,6 @@ window.ORCHESTKIT_DATA = {
           "streaming-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "grpc-client-template.py",
           "grpc-server-template.py",
           "proto-service-template.proto"
@@ -4464,7 +4434,6 @@ window.ORCHESTKIT_DATA = {
           "vllm-deployment.md"
         ],
         "scripts": [
-          "__pycache__",
           "quantization-config.py",
           "vllm-server.py"
         ],
@@ -4612,7 +4581,6 @@ window.ORCHESTKIT_DATA = {
           "stripe-pattern.md"
         ],
         "scripts": [
-          "__pycache__",
           "idempotency-middleware-template.py"
         ],
         "checklists": [
@@ -4805,7 +4773,6 @@ window.ORCHESTKIT_DATA = {
       "agent": "test-generator",
       "structure": {
         "scripts": [
-          "__pycache__",
           "create-integration-test.md",
           "pytest-integration.py",
           "test-plan-template.md"
@@ -4885,7 +4852,6 @@ window.ORCHESTKIT_DATA = {
           "tracing-setup.md"
         ],
         "scripts": [
-          "__pycache__",
           "callback-handler.py",
           "observe-decorator.py"
         ],
@@ -5037,7 +5003,6 @@ window.ORCHESTKIT_DATA = {
           "map-reduce.md"
         ],
         "scripts": [
-          "__pycache__",
           "parallel-agent-fanout.py"
         ],
         "checklists": [
@@ -5077,7 +5042,6 @@ window.ORCHESTKIT_DATA = {
           "semantic-routing.md"
         ],
         "scripts": [
-          "__pycache__",
           "semantic-router.py"
         ],
         "checklists": [
@@ -5222,7 +5186,6 @@ window.ORCHESTKIT_DATA = {
           "round-robin.md"
         ],
         "scripts": [
-          "__pycache__",
           "content-analysis-graph.py",
           "supervisor-workflow.py"
         ],
@@ -5334,7 +5297,6 @@ window.ORCHESTKIT_DATA = {
           "evaluation-metrics.md"
         ],
         "scripts": [
-          "__pycache__",
           "evaluator-template.py"
         ],
         "checklists": [
@@ -5377,7 +5339,6 @@ window.ORCHESTKIT_DATA = {
           "prompt-audit.md"
         ],
         "scripts": [
-          "__pycache__",
           "prompt_builder.py",
           "safe_llm_call.py"
         ],
@@ -5451,7 +5412,6 @@ window.ORCHESTKIT_DATA = {
           "deepeval-ragas-api.md"
         ],
         "scripts": [
-          "__pycache__",
           "llm-test-template.py"
         ],
         "checklists": [
@@ -5491,7 +5451,6 @@ window.ORCHESTKIT_DATA = {
         ],
         "scripts": [
           "__init__.py",
-          "__pycache__",
           "agent_spawning.py",
           "base.py",
           "generate.py",
@@ -5578,7 +5537,6 @@ window.ORCHESTKIT_DATA = {
           "tool-composition.md"
         ],
         "scripts": [
-          "__pycache__",
           "mcp-server-template.py"
         ],
         "checklists": [
@@ -5620,7 +5578,6 @@ window.ORCHESTKIT_DATA = {
           "tool-poisoning-attacks.md"
         ],
         "scripts": [
-          "__pycache__",
           "session-security.py",
           "tool-allowlist.py"
         ],
@@ -5699,7 +5656,6 @@ window.ORCHESTKIT_DATA = {
           "visualization.md"
         ],
         "scripts": [
-          "__pycache__",
           "batch",
           "create",
           "crud",
@@ -5881,7 +5837,6 @@ window.ORCHESTKIT_DATA = {
           "rabbitmq-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "queue-consumer-template.py"
         ],
         "checklists": [
@@ -6286,7 +6241,6 @@ window.ORCHESTKIT_DATA = {
           "model-selection.md"
         ],
         "scripts": [
-          "__pycache__",
           "ollama-provider-template.py"
         ]
       },
@@ -6331,7 +6285,6 @@ window.ORCHESTKIT_DATA = {
           "outbox-delivery-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "outbox-publisher-template.py"
         ],
         "checklists": [
@@ -6538,7 +6491,6 @@ window.ORCHESTKIT_DATA = {
           "metadata-filtering.md"
         ],
         "scripts": [
-          "__pycache__",
           "chunk-repository.py",
           "search-service.py"
         ],
@@ -6720,7 +6672,6 @@ window.ORCHESTKIT_DATA = {
       "agent": "llm-integrator",
       "structure": {
         "scripts": [
-          "__pycache__",
           "prompt-cache-wrapper.py"
         ]
       },
@@ -6760,7 +6711,6 @@ window.ORCHESTKIT_DATA = {
           "prompt-versioning.md"
         ],
         "scripts": [
-          "__pycache__",
           "cot-template.py",
           "few-shot-template.py",
           "jinja2-prompts.py"
@@ -6801,7 +6751,6 @@ window.ORCHESTKIT_DATA = {
           "strategies-guide.md"
         ],
         "scripts": [
-          "__pycache__",
           "hypothesis-conftest.py"
         ],
         "checklists": [
@@ -6875,7 +6824,6 @@ window.ORCHESTKIT_DATA = {
           "xdist-parallel.md"
         ],
         "scripts": [
-          "__pycache__",
           "conftest-template.py"
         ],
         "checklists": [
@@ -6917,7 +6865,6 @@ window.ORCHESTKIT_DATA = {
           "workflows.md"
         ],
         "scripts": [
-          "__pycache__",
           "analyze-codebase.sh",
           "assess-complexity.md",
           "complexity-assessment.md",
@@ -7070,7 +7017,6 @@ window.ORCHESTKIT_DATA = {
           "token-bucket-algorithm.md"
         ],
         "scripts": [
-          "__pycache__",
           "redis-rate-limiter.py"
         ],
         "checklists": [
@@ -7243,7 +7189,6 @@ window.ORCHESTKIT_DATA = {
           "semver.md"
         ],
         "scripts": [
-          "__pycache__",
           "create-release.md",
           "release-scripts.sh",
           "version-manager.py"
@@ -7519,7 +7464,6 @@ window.ORCHESTKIT_DATA = {
           "retry-strategies.md"
         ],
         "scripts": [
-          "__pycache__",
           "bulkhead.py",
           "circuit-breaker.py",
           "llm-fallback-chain.py",
@@ -7725,7 +7669,6 @@ window.ORCHESTKIT_DATA = {
           "state-machine-saga.md"
         ],
         "scripts": [
-          "__pycache__",
           "event-router-template.py",
           "saga-orchestrator-template.py",
           "saga-step-template.py"
@@ -7878,7 +7821,6 @@ window.ORCHESTKIT_DATA = {
           "cache-strategies.md"
         ],
         "scripts": [
-          "__pycache__",
           "redis-cache.py",
           "semantic-cache-service.py"
         ]
@@ -8071,7 +8013,6 @@ window.ORCHESTKIT_DATA = {
           "fastapi-integration.md"
         ],
         "scripts": [
-          "__pycache__",
           "repository-template.py"
         ],
         "checklists": [
@@ -8152,7 +8093,6 @@ window.ORCHESTKIT_DATA = {
           "subscription-setup.md"
         ],
         "scripts": [
-          "__pycache__",
           "dataloader-template.py",
           "strawberry-fastapi-template.py",
           "strawberry-schema-template.py",
@@ -8320,7 +8260,6 @@ window.ORCHESTKIT_DATA = {
           "status-workflow.md"
         ],
         "scripts": [
-          "__pycache__",
           "task-tree-visualizer.py"
         ],
         "checklists": [
@@ -8385,7 +8324,6 @@ window.ORCHESTKIT_DATA = {
           "workflow-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "saga-workflow-template.py",
           "scheduled-workflow-template.py",
           "temporal-worker-template.py"
@@ -8431,7 +8369,7 @@ window.ORCHESTKIT_DATA = {
           "vhs-tape-format.md"
         ]
       },
-      "content": "# Terminal Demo Generator\n\nTwo approaches for terminal demo recordings:\n\n| Method | Best For | Authenticity |\n|--------|----------|--------------|\n| **asciinema** | Real CC sessions, actual output | ⭐⭐⭐⭐⭐ |\n| **VHS scripts** | Controlled demos, reproducible | ⭐⭐⭐ |\n\n## Quick Start\n\n### Real Session (Recommended)\n```bash\n# Record actual Claude Code session\nasciinema rec --cols 120 --rows 35 -i 2 demo.cast\n\n# Convert to MP4 via VHS\nvhs << 'EOF'\nOutput demo.mp4\nSet Width 1400\nSet Height 800\nSource demo.cast\nEOF\n```\n\n### Scripted Demo\n```bash\n# Generate script via demo-producer\n./skills/demo-producer/scripts/generate.sh skill verify\n\n# Record with VHS\nvhs orchestkit-demos/tapes/sim-verify.tape\n```\n\n## Recording Methods\n\n### 1. Asciinema (Real Sessions)\n\nRecord actual Claude Code usage:\n\n```bash\n# Start recording\nasciinema rec \\\n  --cols 120 \\\n  --rows 35 \\\n  --idle-time-limit 2 \\\n  session.cast\n\n# Inside recording:\nclaude\n> /verify\n# ... real Claude output ...\n> exit\n```\n\nSee `references/asciinema-recording.md` for editing and conversion.\n\n### 2. VHS Scripts (Controlled)\n\nPre-scripted terminal simulations:\n\n```tape\nOutput demo.mp4\nSet Shell \"bash\"\nSet FontFamily \"Menlo\"\nSet FontSize 16\nSet Width 1400\nSet Height 800\nSet Theme \"Dracula\"\nSet Framerate 30\n\nType \"./demo-script.sh\"\nEnter\nSleep 15s\n```\n\n## Claude Code CLI Patterns\n\n### Status Bar (CC 2.1.16+)\n```\n[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m\n✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞\n>> bypass permissions on (shift+Tab to cycle)\n```\n\n### Task Management\n```\n◆ TaskCreate #1 \"Analyze codebase\"\n◆ TaskCreate #2 \"Security scan\"\n◆ TaskCreate #3 \"Generate report\" blockedBy: #1, #2\n◆ TaskUpdate: #1, #2 → in_progress (PARALLEL)\n✓ Task #1 completed\n✓ Task #2 completed\n◆ Task #3 unblocked (2/2 resolved)\n```\n\n### Agent Spawning\n```\n⚡ Spawning 6 parallel agents via Task tool\n  ▸ code-reviewer spawned\n  ▸ security-auditor spawned\n  ▸ test-generator spawned\n```\n\n## Color Codes\n\n```bash\nP=\"\\033[35m\"  # Purple - skills, agents\nC=\"\\033[36m\"  # Cyan - info, tasks\nG=\"\\033[32m\"  # Green - success\nY=\"\\033[33m\"  # Yellow - warnings, progress\nR=\"\\033[31m\"  # Red - errors\nD=\"\\033[90m\"  # Gray - dim/secondary\nB=\"\\033[1m\"   # Bold\nN=\"\\033[0m\"   # Reset\n```\n\n## Pipeline Integration\n\nTerminal recordings feed into the full demo pipeline:\n\n```\nterminal-demo-generator     →  demo-producer  →  remotion-composer\n(asciinema/VHS recording)      (orchestration)    (final composition)\n                                    ↓\n                            manim-visualizer\n                            (animations)\n```\n\n## Related Skills\n\n- `demo-producer`: Full pipeline orchestration that uses terminal recordings\n- `remotion-composer`: Combines terminal recordings with animations\n- `manim-visualizer`: Animated diagrams that complement terminal demos\n- `video-pacing`: Timing patterns for terminal output display\n\n## References\n\n- `references/asciinema-recording.md` - Real session recording\n- See `demo-producer` for full pipe",
+      "content": "# Terminal Demo Generator\n\nTwo approaches for terminal demo recordings:\n\n| Method | Best For | Authenticity |\n|--------|----------|--------------|\n| **asciinema** | Real CC sessions, actual output | ⭐⭐⭐⭐⭐ |\n| **VHS scripts** | Controlled demos, reproducible | ⭐⭐⭐ |\n\n## Quick Start\n\n### Real Session (Recommended)\n```bash\n# Record actual Claude Code session\nasciinema rec --cols 120 --rows 35 -i 2 demo.cast\n\n# Convert to MP4 via VHS\nvhs << 'EOF'\nOutput demo.mp4\nSet Width 1400\nSet Height 800\nSource demo.cast\nEOF\n```\n\n### Scripted Demo\n```bash\n# Generate script via demo-producer\n./skills/demo-producer/scripts/generate.sh skill verify\n\n# Record with VHS\nvhs orchestkit-demos/tapes/sim-verify.tape\n```\n\n## Recording Methods\n\n### 1. Asciinema (Real Sessions)\n\nRecord actual Claude Code usage:\n\n```bash\n# Start recording\nasciinema rec \\\n  --cols 120 \\\n  --rows 35 \\\n  --idle-time-limit 2 \\\n  session.cast\n\n# Inside recording:\nclaude\n> /verify\n# ... real Claude output ...\n> exit\n```\n\nSee `references/asciinema-recording.md` for editing and conversion.\n\n### 2. VHS Scripts (Controlled)\n\nPre-scripted terminal simulations:\n\n```tape\nOutput demo.mp4\nSet Shell \"bash\"\nSet FontFamily \"Menlo\"\nSet FontSize 16\nSet Width 1400\nSet Height 800\nSet Theme \"Dracula\"\nSet Framerate 30\n\nType \"./demo-script.sh\"\nEnter\nSleep 15s\n```\n\n## Claude Code CLI Patterns\n\n### Status Bar (CC 2.1.16+)\n```\n[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m\n✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞\n>> bypass permissions on (shift+Tab to cycle)\n```\n\n### Task Management\n```\n◆ TaskCreate #1 \"Analyze codebase\"\n◆ TaskCreate #2 \"Security scan\"\n◆ TaskCreate #3 \"Generate report\" blockedBy: #1, #2\n◆ TaskUpdate: #1, #2 → in_progress (PARALLEL)\n✓ Task #1 completed\n✓ Task #2 completed\n◆ Task #3 unblocked (2/2 resolved)\n```\n\n### Agent Spawning\n```\n⚡ Spawning 6 parallel agents via Task tool\n  ▸ code-reviewer spawned\n  ▸ security-auditor spawned\n  ▸ test-generator spawned\n```\n\n## Color Codes\n\n```bash\nP=\"\\033[35m\"  # Purple - skills, agents\nC=\"\\033[36m\"  # Cyan - info, tasks\nG=\"\\033[32m\"  # Green - success\nY=\"\\033[33m\"  # Yellow - warnings, progress\nR=\"\\033[31m\"  # Red - errors\nD=\"\\033[90m\"  # Gray - dim/secondary\nB=\"\\033[1m\"   # Bold\nN=\"\\033[0m\"   # Reset\n```\n\n## Pipeline Integration\n\nTerminal recordings feed into the full demo pipeline:\n\n```\nterminal-demo-generator     →  demo-producer  →  remotion-composer\n(asciinema/VHS recording)      (orchestration)    (final composition)\n                                    ↓\n                            manim-visualizer\n                            (animations)\n```\n\n## Related Skills\n\n- `demo-producer`: Full pipeline orchestration that uses terminal recordings\n- `remotion-composer`: Combines terminal recordings with animations\n- `manim-visualizer`: Animated diagrams that complement terminal demos\n- `video-pacing`: Timing patterns for terminal output display\n\n## References\n\n- `references/asciinema-recording.md` - Real session recording\n- See `demo-producer` for full pipe",
       "contentTruncated": true,
       "plugins": [
         "ork",
@@ -8462,7 +8400,6 @@ window.ORCHESTKIT_DATA = {
           "factory-patterns.md"
         ],
         "scripts": [
-          "__pycache__",
           "factory-boy.py"
         ],
         "checklists": [
@@ -8613,7 +8550,6 @@ window.ORCHESTKIT_DATA = {
           "aaa-pattern.md"
         ],
         "scripts": [
-          "__pycache__",
           "create-test-case.md",
           "create-test-fixture.md",
           "pytest-fixture.py",
@@ -8690,7 +8626,6 @@ window.ORCHESTKIT_DATA = {
       "agent": "test-generator",
       "structure": {
         "scripts": [
-          "__pycache__",
           "vcr-cassette.py"
         ],
         "checklists": [
@@ -8903,7 +8838,7 @@ window.ORCHESTKIT_DATA = {
           "implementation.md"
         ]
       },
-      "content": "# Vision Language Models ()\n\nIntegrate vision capabilities from leading multimodal models for image understanding, document analysis, and visual reasoning.\n\n## Overview\n\n- Image captioning and description generation\n- Visual question answering (VQA)\n- Document/chart/diagram analysis with OCR\n- Multi-image comparison and reasoning\n- Bounding box detection and region analysis\n- Video frame analysis\n\n## Model Comparison (January )\n\n| Model | Context | Strengths | Vision Input |\n|-------|---------|-----------|--------------|\n| **GPT-5.2** | 128K | Best general reasoning, multimodal | Up to 10 images |\n| **Claude Opus 4.5** | 200K | Best coding, sustained agent tasks | Up to 100 images |\n| **Gemini 2.5 Pro** | 1M+ | Longest context, video analysis | 3,600 images max |\n| **Gemini 3 Pro** | 1M | Deep Think, 100% AIME 2025 | Enhanced segmentation |\n| **Grok 4** | 2M | Real-time X integration, DeepSearch | Images + upcoming video |\n\n## Image Input Methods\n\n### Base64 Encoding (All Providers)\n\n```python\nimport base64\nimport mimetypes\n\ndef encode_image_base64(image_path: str) -> tuple[str, str]:\n    \"\"\"Encode local image to base64 with MIME type.\"\"\"\n    mime_type, _ = mimetypes.guess_type(image_path)\n    mime_type = mime_type or \"image/png\"\n\n    with open(image_path, \"rb\") as f:\n        base64_data = base64.standard_b64encode(f.read()).decode(\"utf-8\")\n\n    return base64_data, mime_type\n```\n\n### OpenAI GPT-5/4o Vision\n\n```python\nfrom openai import OpenAI\n\nclient = OpenAI()\n\ndef analyze_image_openai(image_path: str, prompt: str) -> str:\n    \"\"\"Analyze image using GPT-5 or GPT-4o.\"\"\"\n    base64_data, mime_type = encode_image_base64(image_path)\n\n    response = client.chat.completions.create(\n        model=\"gpt-5.2\",  # or \"gpt-4.1\" for cost optimization\n        messages=[{\n            \"role\": \"user\",\n            \"content\": [\n                {\"type\": \"text\", \"text\": prompt},\n                {\"type\": \"image_url\", \"image_url\": {\n                    \"url\": f\"data:{mime_type};base64,{base64_data}\",\n                    \"detail\": \"high\"  # low, high, or auto\n                }}\n            ]\n        }],\n        max_tokens=4096  # Required for vision\n    )\n    return response.choices[0].message.content\n```\n\n### Claude 4.5 Vision (Anthropic)\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\ndef analyze_image_claude(image_path: str, prompt: str) -> str:\n    \"\"\"Analyze image using Claude Opus 4.5 or Sonnet 4.5.\"\"\"\n    base64_data, media_type = encode_image_base64(image_path)\n\n    response = client.messages.create(\n        model=\"claude-opus-4-5-20251101\",  # or claude-sonnet-4-5\n        max_tokens=4096,\n        messages=[{\n            \"role\": \"user\",\n            \"content\": [\n                {\n                    \"type\": \"image\",\n                    \"source\": {\n                        \"type\": \"base64\",\n                        \"media_type\": media_type,\n                        \"data\": base64_data\n                    }\n                },\n                {\"type\": \"te",
+      "content": "# Vision Language Models ()\n\nIntegrate vision capabilities from leading multimodal models for image understanding, document analysis, and visual reasoning.\n\n## Overview\n\n- Image captioning and description generation\n- Visual question answering (VQA)\n- Document/chart/diagram analysis with OCR\n- Multi-image comparison and reasoning\n- Bounding box detection and region analysis\n- Video frame analysis\n\n## Model Comparison (January )\n\n| Model | Context | Strengths | Vision Input |\n|-------|---------|-----------|--------------|\n| **GPT-5.2** | 128K | Best general reasoning, multimodal | Up to 10 images |\n| **Claude Opus 4.6** | 1M | Best coding, sustained agent tasks, adaptive thinking | Up to 100 images |\n| **Gemini 2.5 Pro** | 1M+ | Longest context, video analysis | 3,600 images max |\n| **Gemini 3 Pro** | 1M | Deep Think, 100% AIME 2025 | Enhanced segmentation |\n| **Grok 4** | 2M | Real-time X integration, DeepSearch | Images + upcoming video |\n\n## Image Input Methods\n\n### Base64 Encoding (All Providers)\n\n```python\nimport base64\nimport mimetypes\n\ndef encode_image_base64(image_path: str) -> tuple[str, str]:\n    \"\"\"Encode local image to base64 with MIME type.\"\"\"\n    mime_type, _ = mimetypes.guess_type(image_path)\n    mime_type = mime_type or \"image/png\"\n\n    with open(image_path, \"rb\") as f:\n        base64_data = base64.standard_b64encode(f.read()).decode(\"utf-8\")\n\n    return base64_data, mime_type\n```\n\n### OpenAI GPT-5/4o Vision\n\n```python\nfrom openai import OpenAI\n\nclient = OpenAI()\n\ndef analyze_image_openai(image_path: str, prompt: str) -> str:\n    \"\"\"Analyze image using GPT-5 or GPT-4o.\"\"\"\n    base64_data, mime_type = encode_image_base64(image_path)\n\n    response = client.chat.completions.create(\n        model=\"gpt-5.2\",  # or \"gpt-4.1\" for cost optimization\n        messages=[{\n            \"role\": \"user\",\n            \"content\": [\n                {\"type\": \"text\", \"text\": prompt},\n                {\"type\": \"image_url\", \"image_url\": {\n                    \"url\": f\"data:{mime_type};base64,{base64_data}\",\n                    \"detail\": \"high\"  # low, high, or auto\n                }}\n            ]\n        }],\n        max_tokens=4096  # Required for vision\n    )\n    return response.choices[0].message.content\n```\n\n### Claude 4.5 Vision (Anthropic)\n\n```python\nimport anthropic\n\nclient = anthropic.Anthropic()\n\ndef analyze_image_claude(image_path: str, prompt: str) -> str:\n    \"\"\"Analyze image using Claude Opus 4.6 or Sonnet 4.5.\"\"\"\n    base64_data, media_type = encode_image_base64(image_path)\n\n    response = client.messages.create(\n        model=\"claude-opus-4-6\",  # or claude-sonnet-4-5\n        max_tokens=4096,\n        messages=[{\n            \"role\": \"user\",\n            \"content\": [\n                {\n                    \"type\": \"image\",\n                    \"source\": {\n                        \"type\": \"base64\",\n                        \"media_type\": media_type,\n                        \"data\": base64_data\n                    }\n                },\n                {\"ty",
       "contentTruncated": true,
       "plugins": [
         "ork"
@@ -9028,9 +8963,7 @@ window.ORCHESTKIT_DATA = {
       ],
       "skills": [],
       "agent": "web-research-analyst",
-      "structure": {
-        "references": []
-      },
+      "structure": {},
       "content": "# Web Research Workflow\n\nUnified approach for web content research that automatically selects the right tool for each situation.\n\n## Quick Decision Tree\n\n```\nURL to research\n     │\n     ▼\n┌─────────────────┐\n│ Try WebFetch    │ ← Fast, no browser overhead\n│ (first choice)  │\n└─────────────────┘\n     │\nContent OK? ──Yes──► Parse and return\n     │\n     No (empty/partial/JS-required)\n     │\n     ▼\n┌─────────────────────┐\n│ Use agent-browser   │\n└─────────────────────┘\n     │\n├─ SPA (react/vue/angular) ──► wait --load networkidle\n├─ Login required ──► auth flow + state save\n├─ Dynamic content ──► wait --text \"Expected\"\n└─ Multi-page ──► crawl pattern\n```\n\n## When to Use What\n\n| Scenario | Tool | Why |\n|----------|------|-----|\n| Static HTML page | WebFetch | Fast, no browser needed |\n| Public API docs | WebFetch | Usually server-rendered |\n| GitHub README | WebFetch | Static content |\n| React/Vue/Angular app | agent-browser | Needs JS execution |\n| Interactive pricing page | agent-browser | Dynamic content |\n| Login-protected content | agent-browser | Needs session state |\n| Swagger UI | agent-browser | Client-rendered |\n| Documentation with sidebar nav | agent-browser | Client-side routing |\n\n## Pattern 1: Auto-Fallback\n\nTry WebFetch first, fall back to browser if needed:\n\n```bash\n# Step 1: Try WebFetch\nWebFetch(url=\"https://example.com\", prompt=\"Extract main content\")\n\n# If result is empty, partial, or contains \"Loading...\" indicators:\n# Step 2: Fall back to browser\nagent-browser open https://example.com\nagent-browser wait --load networkidle\nagent-browser get text body\n```\n\n### Detection Heuristics\n\nContent likely needs browser if WebFetch returns:\n- Empty or very short content (< 500 chars)\n- Contains `<noscript>` tags\n- Contains \"Loading...\", \"Please wait\", \"JavaScript required\"\n- Contains only `<div id=\"root\"></div>` or `<div id=\"app\"></div>`\n- Returns 403/401 (may need auth)\n\n## Pattern 2: SPA Detection\n\nKnown patterns that always need browser:\n\n```bash\n# URL patterns suggesting SPA\napp.* | dashboard.* | portal.* | console.*\n\n# Framework indicators in initial HTML\n\"__NEXT_DATA__\"     → Next.js (may work with WebFetch)\n\"window.__NUXT__\"   → Nuxt.js (may work with WebFetch)\n\"ng-app\"            → Angular (needs browser)\n\"data-reactroot\"    → React (needs browser)\n\"data-v-\"           → Vue (needs browser)\n```\n\n## Pattern 3: Authentication Flow\n\nFor login-protected content:\n\n```bash\n# 1. Navigate to login\nagent-browser open https://app.example.com/login\nagent-browser snapshot -i\n\n# 2. Fill credentials (use refs from snapshot)\nagent-browser fill @e1 \"$EMAIL\"\nagent-browser fill @e2 \"$PASSWORD\"\nagent-browser click @e3  # Submit button\n\n# 3. Wait for redirect\nagent-browser wait --url \"**/dashboard\"\n\n# 4. Save session for reuse\nagent-browser state save /tmp/session-example.json\n\n# 5. Later: restore session\nagent-browser state load /tmp/session-example.json\nagent-browser open https://app.example.com/protected-page\n```\n\n## Pattern 4: Multi-Page Research\n\nF",
       "contentTruncated": true,
       "plugins": [
@@ -9152,7 +9085,6 @@ window.ORCHESTKIT_DATA = {
           "pgroll-guide.md"
         ],
         "scripts": [
-          "__pycache__",
           "expand-contract-template.py"
         ],
         "checklists": [

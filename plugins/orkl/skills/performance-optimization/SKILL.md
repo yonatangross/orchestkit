@@ -217,7 +217,7 @@ py-spy record --pid $(pgrep -f uvicorn) --output profile.svg
 
 ## Extended Thinking Triggers
 
-Use Opus 4.5 extended thinking for:
+Use Opus 4.6 adaptive thinking for:
 - **Complex debugging** - Multiple potential causes
 - **Architecture decisions** - Caching strategy selection
 - **Trade-off analysis** - Memory vs CPU vs latency

@@ -228,7 +228,7 @@ charts/app/
 
 ## Extended Thinking Triggers
 
-Use Opus 4.5 extended thinking for:
+Use Opus 4.6 adaptive thinking for:
 - **Architecture decisions** - Kubernetes vs serverless, multi-region setup
 - **Migration planning** - Moving between cloud providers
 - **Incident response** - Complex deployment failures

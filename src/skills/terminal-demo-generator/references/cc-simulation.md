@@ -3,14 +3,14 @@
 ## Status Bar Format (CC 2.1.16+)
 
 ```bash
-[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m
+[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m
 ✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞
 >> bypass permissions on (shift+Tab to cycle)
 ```
 
 ### Components
 
-1. **Model indicator**: `[Opus 4.5]`
+1. **Model indicator**: `[Opus 4.6]`
 2. **Context bar**: `████████░░ 42%`
 3. **Working directory**: `~/project`
 4. **Git branch**: `git:(main)`

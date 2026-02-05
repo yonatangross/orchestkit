@@ -49,9 +49,9 @@ import {
 
 /**
  * Maximum context length in characters.
- * Targets ~200 tokens (rough estimate: ~4 chars per token).
+ * Targets ~300 tokens (rough estimate: ~4 chars per token).
  */
-const MAX_CONTEXT_CHARS = 800;
+const MAX_CONTEXT_CHARS = 1200;
 
 /**
  * Number of top skills to include in context.

@@ -27,7 +27,7 @@ Integrate vision capabilities from leading multimodal models for image understan
 | Model | Context | Strengths | Vision Input |
 |-------|---------|-----------|--------------|
 | **GPT-5.2** | 128K | Best general reasoning, multimodal | Up to 10 images |
-| **Claude Opus 4.5** | 200K | Best coding, sustained agent tasks | Up to 100 images |
+| **Claude Opus 4.6** | 1M | Best coding, sustained agent tasks, adaptive thinking | Up to 100 images |
 | **Gemini 2.5 Pro** | 1M+ | Longest context, video analysis | 3,600 images max |
 | **Gemini 3 Pro** | 1M | Deep Think, 100% AIME 2025 | Enhanced segmentation |
 | **Grok 4** | 2M | Real-time X integration, DeepSearch | Images + upcoming video |
@@ -87,11 +87,11 @@ import anthropic
 client = anthropic.Anthropic()
 
 def analyze_image_claude(image_path: str, prompt: str) -> str:
-    """Analyze image using Claude Opus 4.5 or Sonnet 4.5."""
+    """Analyze image using Claude Opus 4.6 or Sonnet 4.5."""
     base64_data, media_type = encode_image_base64(image_path)
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",  # or claude-sonnet-4-5
+        model="claude-opus-4-6",  # or claude-sonnet-4-5
         max_tokens=4096,
         messages=[{
             "role": "user",
@@ -189,7 +189,7 @@ async def compare_images(images: list[str], prompt: str) -> str:
     content.append({"type": "text", "text": prompt})
 
     response = client.messages.create(
-        model="claude-opus-4-5-20251101",
+        model="claude-opus-4-6",
         max_tokens=8192,
         messages=[{"role": "user", "content": content}]
     )
@@ -253,7 +253,7 @@ response = client.chat.completions.create(
 
 | Decision | Recommendation |
 |----------|----------------|
-| High accuracy | Claude Opus 4.5 or GPT-5 |
+| High accuracy | Claude Opus 4.6 or GPT-5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M tokens) |
 | Real-time/X data | Grok 4 with DeepSearch |

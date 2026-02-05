@@ -210,6 +210,7 @@ import { sessionContextLoader } from './lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
+import { prefillGuard } from './lifecycle/prefill-guard.js';
 
 import type { HookFn } from './types.js';
 
@@ -403,6 +404,7 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
+  'lifecycle/prefill-guard': prefillGuard,
 };
 
 /**

@@ -53,6 +53,15 @@ function isSqlite3Available(): boolean {
 }
 
 /**
+ * Detect the current Claude model dynamically.
+ * Resolution: CLAUDE_MODEL env var → sonnet fallback (always available).
+ * Never hardcode a dated model ID — let the runtime decide.
+ */
+function detectModel(): string {
+  return process.env.CLAUDE_MODEL || 'sonnet';
+}
+
+/**
  * Generate unique instance ID
  */
 function generateInstanceId(projectDir: string): string {
@@ -121,7 +130,7 @@ function createInstanceIdentity(projectDir: string, instanceId: string): Instanc
     branch,
     capabilities,
     agent_type: null,
-    model: 'claude-opus-4-5-20251101',
+    model: detectModel(),
     priority: 1,
     created_at: now,
     status: 'active',

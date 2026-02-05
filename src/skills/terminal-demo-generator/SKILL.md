@@ -88,7 +88,7 @@ Sleep 15s
 
 ### Status Bar (CC 2.1.16+)
 ```
-[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m
+[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m
 ✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞
 >> bypass permissions on (shift+Tab to cycle)
 ```

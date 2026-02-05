@@ -44,7 +44,7 @@ src/
 │       ├── assets/            # Optional: Templates and copyable files
 │       └── checklists/        # Optional: Implementation checklists
 ├── agents/               # 36 specialized AI personas
-└── hooks/                # 117 TypeScript hooks in 11 split bundles
+└── hooks/                # 118 TypeScript hooks in 11 split bundles
 
 manifests/                # Plugin definitions (2 JSON files)
 ├── orkl.json         # Universal toolkit (107 skills)

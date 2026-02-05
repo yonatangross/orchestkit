@@ -148,7 +148,7 @@ PROVIDERS = {
         "models": {
             "fast": "claude-haiku-3-5-20241022",
             "balanced": "claude-sonnet-4-5-20251101",
-            "powerful": "claude-opus-4-5-20251101"
+            "powerful": "claude-opus-4-6"
         },
         "supports_caching": True,
         "supports_streaming": True

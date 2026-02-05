@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**197 skills · 36 agents · 117 hooks · 2 plugins**
+**197 skills · 36 agents · 118 hooks · 2 plugins**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.32-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -138,7 +138,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.27**. Check with `claude --version`.
+Requires **≥2.1.32**. Check with `claude --version`.
 </details>
 
 ---
@@ -163,7 +163,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
 - `orkl` (107 skills) — Universal toolkit, all workflows work out of the box
 - `ork` (197 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 117 hooks included in both plugins
+- All 36 agents and 118 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 

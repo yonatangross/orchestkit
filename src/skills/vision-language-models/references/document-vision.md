@@ -7,7 +7,7 @@ Patterns for analyzing PDFs, charts, diagrams, and scanned documents using visio
 | Document Type | Best Model | Why |
 |--------------|------------|-----|
 | Long PDFs (50+ pages) | Gemini 2.5 Pro | 1M+ context window |
-| Complex charts | Claude Opus 4.5 | Best visual reasoning |
+| Complex charts | Claude Opus 4.6 | Best visual reasoning |
 | Forms/tables | GPT-5 | Structured extraction |
 | Scanned documents | Any with high detail | OCR quality similar |
 
@@ -40,7 +40,7 @@ async def analyze_pdf(
 
         # Analyze with Claude
         response = client.messages.create(
-            model="claude-opus-4-5-20251124",
+            model="claude-opus-4-6",
             max_tokens=4096,
             messages=[{
                 "role": "user",

@@ -73,6 +73,14 @@ Set Padding 35
 - Hook: 3s, CTA: 5s
 - Best for: Product launches, keynotes
 
+### Scrapbook (15-35s)
+- Warm paper texture, NOT dark
+- Fast cuts (100-200ms transitions)
+- Social proof cards + terminal captures
+- Serif typography, collage framing
+- Hook: 3s, CTA: 3s
+- Best for: Product showcases, brand videos, social media
+
 ## Duration Calculation
 
 ```
@@ -87,14 +95,14 @@ where:
 
 ### Content Duration by Type
 
-| Type | Quick | Standard | Tutorial |
-|------|-------|----------|----------|
-| Skill | 5s | 12s | 25s |
-| Agent | 6s | 15s | 30s |
-| Plugin | 8s | 18s | 35s |
-| Tutorial | N/A | N/A | 30-60s |
-| CLI | 4s | 10s | 20s |
-| Code | 6s | 15s | 40s |
+| Type | Quick | Standard | Tutorial | Scrapbook |
+|------|-------|----------|----------|-----------|
+| Skill | 5s | 12s | 25s | 20s |
+| Agent | 6s | 15s | 30s | 25s |
+| Plugin | 8s | 18s | 35s | 30s |
+| Tutorial | N/A | N/A | 30-60s | N/A |
+| CLI | 4s | 10s | 20s | 15s |
+| Code | 6s | 15s | 40s | N/A |
 
 ## Remotion Composition Settings
 
