@@ -5,8 +5,8 @@ context: fork
 agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [golden-dataset, backup, data-protection, testing, regression, 2026]
-allowed-tools:
+tags: [golden-dataset, backup, data-protection, testing, regression]
+allowedTools:
   - Read
   - Grep
   - Glob

@@ -183,11 +183,12 @@ test_mem0_inject_has_domain_mapping() {
     fail "mem0-memory-inject.ts should have AGENT_DOMAINS mapping"
 }
 
-test_mem0_inject_uses_mem0_mcp() {
-    if grep -qiE "mcp__mem0__search_memories" "$TS_MEM0_INJECT" 2>/dev/null; then
+test_mem0_inject_uses_mem0_cli() {
+    # mem0 now uses CLI scripts instead of MCP (architecture change in v5.x)
+    if grep -qiE "search-memories\.py|mem0-memory.*scripts" "$TS_MEM0_INJECT" 2>/dev/null; then
         return 0
     fi
-    fail "mem0-memory-inject.ts should reference mcp__mem0__search_memories"
+    fail "mem0-memory-inject.ts should reference CLI scripts (search-memories.py)"
 }
 
 test_mem0_inject_has_cross_agent_federation() {
@@ -205,7 +206,7 @@ test_mem0_inject_has_global_best_practices() {
 }
 
 it "has AGENT_DOMAINS mapping" test_mem0_inject_has_domain_mapping
-it "uses mem0 MCP (mcp__mem0__search_memories)" test_mem0_inject_uses_mem0_mcp
+it "uses mem0 CLI scripts (search-memories.py)" test_mem0_inject_uses_mem0_cli
 it "has cross-agent federation" test_mem0_inject_has_cross_agent_federation
 it "queries global best practices" test_mem0_inject_has_global_best_practices
 
@@ -408,40 +409,42 @@ it "bundle contains graph-memory-inject" test_bundle_contains_graph_inject
 it "bundle contains mem0-memory-inject" test_bundle_contains_mem0_inject
 
 # ============================================================================
-# PLUGIN SEPARATION TESTS
+# PLUGIN TESTS (Two-Tier Architecture v6.0.0)
 # ============================================================================
 
-describe "Plugin Separation: 3-Plugin Architecture"
+describe "Plugin Architecture: Two-Tier System"
 
-test_memory_graph_plugin_exists() {
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-memory-graph/.claude-plugin/plugin.json"
+test_orkl_plugin_exists() {
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/.claude-plugin/plugin.json"
 }
 
-test_memory_mem0_plugin_exists() {
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-memory-mem0/.claude-plugin/plugin.json"
+test_ork_plugin_exists() {
+    assert_file_exists "$PROJECT_ROOT/plugins/ork/.claude-plugin/plugin.json"
 }
 
-test_memory_fabric_plugin_exists() {
-    assert_file_exists "$PROJECT_ROOT/plugins/ork-memory-fabric/.claude-plugin/plugin.json"
+test_memory_skills_in_orkl() {
+    # Memory skills should be in orkl (universal toolkit)
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/remember/SKILL.md"
+    assert_file_exists "$PROJECT_ROOT/plugins/orkl/skills/memory/SKILL.md"
 }
 
-test_old_memory_plugin_gone() {
-    if [[ -d "$PROJECT_ROOT/plugins/ork-memory" ]]; then
-        fail "Old ork-memory plugin should be deleted (replaced by 3 separate plugins)"
+test_old_memory_plugins_gone() {
+    # Old separate memory plugins should be deleted (merged into orkl)
+    if [[ -d "$PROJECT_ROOT/plugins/ork-memory-graph" ]]; then
+        fail "Old ork-memory-graph plugin should be deleted (merged into orkl)"
+    fi
+    if [[ -d "$PROJECT_ROOT/plugins/ork-memory-mem0" ]]; then
+        fail "Old ork-memory-mem0 plugin should be deleted (merged into orkl)"
+    fi
+    if [[ -d "$PROJECT_ROOT/plugins/ork-memory-fabric" ]]; then
+        fail "Old ork-memory-fabric plugin should be deleted (merged into orkl)"
     fi
 }
 
-test_old_memory_manifest_gone() {
-    if [[ -f "$PROJECT_ROOT/manifests/ork-memory.json" ]]; then
-        fail "Old ork-memory.json manifest should be deleted"
-    fi
-}
-
-it "ork-memory-graph plugin exists" test_memory_graph_plugin_exists
-it "ork-memory-mem0 plugin exists" test_memory_mem0_plugin_exists
-it "ork-memory-fabric plugin exists" test_memory_fabric_plugin_exists
-it "old ork-memory plugin is gone" test_old_memory_plugin_gone
-it "old ork-memory.json manifest is gone" test_old_memory_manifest_gone
+it "orkl plugin exists" test_orkl_plugin_exists
+it "ork plugin exists" test_ork_plugin_exists
+it "memory skills in orkl" test_memory_skills_in_orkl
+it "old memory plugins are gone" test_old_memory_plugins_gone
 
 # ============================================================================
 # MEM0 PRE-COMPACTION SYNC GATING TEST

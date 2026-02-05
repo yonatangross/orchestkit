@@ -4,7 +4,7 @@ description: 5 Whys, Fishbone diagrams, Fault Tree Analysis, and systematic debu
 context: fork
 agent: debug-investigator
 version: 1.0.0
-tags: [debugging, rca, 5-whys, fishbone, fault-tree, incident, 2026]
+tags: [debugging, rca, 5-whys, fishbone, fault-tree, incident]
 author: OrchestKit
 user-invocable: false
 ---
@@ -366,7 +366,7 @@ Reconstruct sequence of events to identify causation.
 - [Links to logs, graphs, related tickets]
 ```
 
-## 2026 Best Practices
+##  Best Practices
 
 - **Blameless postmortems**: Focus on systems, not individuals
 - **Automated correlation**: Use AI to correlate signals across systems
@@ -385,4 +385,4 @@ Reconstruct sequence of events to identify causation.
 - [5 Whys Workshop Guide](references/5-whys-workshop.md)
 - [Fishbone Template](references/fishbone-template.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

@@ -4,7 +4,7 @@ description: Testing patterns for LLM-based applications. Use when testing AI/ML
 context: fork
 agent: test-generator
 version: 2.0.0
-tags: [testing, llm, ai, deepeval, ragas, 2026]
+tags: [testing, llm, ai, deepeval, ragas]
 author: OrchestKit
 user-invocable: false
 ---
@@ -67,7 +67,7 @@ async def test_respects_timeout():
             await slow_llm_call()
 ```
 
-## Quality Metrics (2026)
+## Quality Metrics ()
 
 | Metric | Threshold | Purpose |
 |--------|-----------|---------|

@@ -5,7 +5,7 @@ context: fork
 agent: accessibility-specialist
 version: 1.0.0
 tags: [accessibility, react, aria, a11y, react-aria, wcag, hooks, adobe]
-allowed-tools: [Read, Write, Grep, Glob, Bash]
+allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
 ---

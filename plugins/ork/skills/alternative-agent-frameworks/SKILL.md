@@ -2,7 +2,7 @@
 name: alternative-agent-frameworks
 description: Multi-agent frameworks beyond LangGraph. CrewAI crews, Microsoft Agent Framework, OpenAI Agents SDK, GPT-5.2-Codex. Use when building multi-agent systems, choosing frameworks.
 version: 1.1.0
-tags: [crewai, autogen, openai-agents, microsoft, multi-agent, orchestration, gpt-5.2-codex, 2026]
+tags: [crewai, autogen, openai-agents, microsoft, multi-agent, orchestration, gpt-5.2-codex]
 context: fork
 agent: workflow-architect
 author: OrchestKit
@@ -15,7 +15,7 @@ Multi-agent frameworks beyond LangGraph for specialized use cases.
 
 ## Framework Comparison
 
-| Framework | Best For | Key Features | 2026 Status |
+| Framework | Best For | Key Features |  Status |
 |-----------|----------|--------------|-------------|
 | LangGraph 1.0.6 | Complex stateful workflows | Persistence, streaming, human-in-loop | Production |
 | CrewAI 1.8.x | Role-based collaboration | Flows, hierarchical crews, a2a, HITL | Production |
@@ -123,7 +123,7 @@ async def run_workflow(task: str):
     return result.final_output
 ```
 
-## Microsoft Agent Framework (2026)
+## Microsoft Agent Framework ()
 
 ```python
 from autogen_agentchat.agents import AssistantAgent

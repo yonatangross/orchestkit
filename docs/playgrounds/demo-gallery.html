@@ -431,45 +431,6 @@
     font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
-  .render-cmd {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px 14px;
-    position: relative;
-    margin-bottom: 16px;
-  }
-  .render-cmd-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .render-cmd code {
-    font-family: 'SF Mono', 'Fira Code', monospace;
-    font-size: 13px;
-    color: var(--accent2);
-    display: block;
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
-  .render-cmd .copy-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 4px 10px;
-    background: var(--accent);
-    border: none;
-    border-radius: 5px;
-    color: white;
-    font-size: 11px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .render-cmd .copy-btn:hover { filter: brightness(1.15); }
-  .render-cmd .copy-btn.copied { background: var(--accent2); }
   .modal-variants-title {
     font-size: 12px;
     text-transform: uppercase;
@@ -479,12 +440,12 @@
   }
   .modal-variants {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     flex-wrap: wrap;
   }
   .variant-tag {
     font-size: 11px;
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
     background: var(--bg);
     border: 1px solid var(--border);
@@ -492,6 +453,7 @@
     font-family: 'SF Mono', 'Fira Code', monospace;
     cursor: pointer;
     transition: all 0.15s;
+    margin-bottom: 2px;
   }
   .variant-tag:hover { border-color: var(--accent); }
   .variant-tag.current { border-color: var(--accent); color: var(--accent); background: rgba(139,92,246,0.1); }
@@ -515,6 +477,8 @@
 </style>
 </head>
 <body>
+
+<nav class="ork-breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
 
 <div class="gallery-header">
   <div class="gallery-header-top">
@@ -552,18 +516,46 @@
 </div>
 
 <script src="data.js"></script>
+<script src="nav.js"></script>
 <script>
 (function() {
   var data = window.ORCHESTKIT_DATA;
   var allComps = data.compositions.filter(function(c) { return c.folder !== 'Experiments'; });
 
+  // Initialize state from URL parameters
+  var urlParams = window.orkUrl ? window.orkUrl.getParams() : {};
   var state = {
-    search: '',
-    format: 'all',
-    style: 'all',
-    folder: 'all',
+    search: urlParams.search || '',
+    format: urlParams.format || 'all',
+    style: urlParams.style || 'all',
+    folder: urlParams.folder || 'all',
     selectedComp: null,
   };
+
+  // Set initial search input value
+  if (state.search) {
+    var searchEl = document.getElementById('searchInput');
+    if (searchEl) searchEl.value = state.search;
+  }
+
+  // Sync state to URL
+  function syncToUrl() {
+    if (!window.orkUrl) return;
+    var params = {};
+    if (state.search) params.search = state.search;
+    if (state.format !== 'all') params.format = state.format;
+    if (state.style !== 'all') params.style = state.style;
+    if (state.folder !== 'all') params.folder = state.folder;
+    if (state.selectedComp) params.comp = state.selectedComp.id;
+    window.orkUrl.setParams(params);
+  }
+
+  // Update breadcrumbs
+  function updateBreadcrumbs() {
+    if (!window.orkBreadcrumbs) return;
+    var activeItem = state.selectedComp ? state.selectedComp.id : null;
+    window.orkBreadcrumbs.render('breadcrumbs', 'demo-gallery.html', activeItem);
+  }
 
   // Derived data
   var formats = ['all'];
@@ -687,6 +679,7 @@
 
     var thumbnailUrl = comp.thumbnailCdn || comp.thumbnail;
     var videoUrl = comp.videoCdn || null;
+    var shareUrl = window.orkUrl ? window.orkUrl.getCompUrl(comp.id, 'demo-gallery.html') : window.location.href;
 
     var modal = document.getElementById('modal');
     modal.innerHTML =
@@ -717,11 +710,7 @@
           '<div class="meta-item"><div class="meta-label">Folder</div><div class="meta-value" style="font-size:11px">' + comp.folder + '</div></div>' +
           (comp.relatedPlugin ? '<div class="meta-item"><div class="meta-label">Plugin</div><div class="meta-value" style="font-size:12px;color:var(--accent)">' + comp.relatedPlugin + '</div></div>' : '') +
         '</div>' +
-        '<div class="render-cmd">' +
-          '<div class="render-cmd-label">Render Command</div>' +
-          '<code>cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4</code>' +
-          '<button class="copy-btn" onclick="copyCmd(this, \'cd orchestkit-demos && ./scripts/render.sh ' + comp.id + ' mp4\')">Copy</button>' +
-        '</div>' +
+        '<div id="shareButtonsContainer"></div>' +
         (variants.length > 0 ?
           '<div class="modal-variants-title">Other Variants (' + variants.length + ')</div>' +
           '<div class="modal-variants">' +
@@ -732,7 +721,14 @@
         : '') +
       '</div>';
 
+    // Render share buttons
+    if (window.orkShare) {
+      window.orkShare.renderButtons('shareButtonsContainer', comp, shareUrl);
+    }
+
     document.getElementById('modalOverlay').classList.add('visible');
+    syncToUrl();
+    updateBreadcrumbs();
   };
 
   window.playVideo = function() {
@@ -749,14 +745,8 @@
     if (v) { v.pause(); v.currentTime = 0; }
     document.getElementById('modalOverlay').classList.remove('visible');
     state.selectedComp = null;
-  };
-
-  window.copyCmd = function(btn, text) {
-    navigator.clipboard.writeText(text).then(function() {
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(function() { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1500);
-    });
+    syncToUrl();
+    updateBreadcrumbs();
   };
 
   // Close modal on overlay click
@@ -771,23 +761,34 @@
   window.setFilter = function(key, value) {
     state[key] = value;
     renderAll();
+    syncToUrl();
   };
 
   // Search
   document.getElementById('searchInput').addEventListener('input', function(e) {
     state.search = e.target.value;
     renderAll();
+    syncToUrl();
   });
 
   function renderAll() {
     renderStats();
     renderFilters();
     renderGrid();
+    updateBreadcrumbs();
   }
 
+  // Initialize
   renderAll();
+
+  // Auto-open modal from URL ?comp= parameter
+  if (urlParams.comp) {
+    var compToOpen = data.compositions.find(function(c) { return c.id === urlParams.comp; });
+    if (compToOpen) {
+      window.openModal(urlParams.comp);
+    }
+  }
 })();
 </script>
-<script src="nav.js"></script>
 </body>
 </html>

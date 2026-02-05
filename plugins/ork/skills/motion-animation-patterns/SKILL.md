@@ -1,6 +1,6 @@
 ---
 name: motion-animation-patterns
-description: Use this skill for implementing Motion (Framer Motion) animations in React applications. Covers animation presets, page transitions, modal animations, list stagger effects, hover interactions, skeleton loaders, and RTL-aware animation patterns.
+description: Implements Motion (Framer Motion) animations in React applications. Covers animation presets, page transitions, modals, stagger effects, and skeleton loaders. Use when adding animations, transitions, or interactive hover effects.
 context: fork
 agent: rapid-ui-designer
 version: 1.0.0

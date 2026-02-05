@@ -1,25 +1,20 @@
 ---
-
-# Evidence Verification
 name: evidence-verification
-description: Use when completing tasks, code reviews, or deployments to verify work with evidence. Collects test results, build outputs, coverage metrics, and exit codes to prove work is complete.
+description: Collects and verifies evidence before marking tasks complete. Use when completing tasks, code reviews, or deployments to prove work with test results, build outputs, coverage metrics, and exit codes.
 version: 2.0.0
 author: OrchestKit AI Agent Hub
 tags: [quality, verification, testing, evidence, completion]
 context: fork
 agent: code-quality-reviewer
-allowed-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash  # For running tests and capturing evidence
-This skill teaches agents how to collect and verify evidence before marking tasks complete. Inspired by production-grade development practices, it ensures all claims are backed by executable proof: test results, coverage metrics, build success, and deployment verification.
-
-**Key Principle:** Show, don't tell. No task is complete without verifiable evidence.
+allowedTools: [Read, Grep, Glob, Bash]
 user-invocable: false
 ---
 
 # Evidence Verification
+
+Ensures all claims are backed by executable proof: test results, coverage metrics, build success, and deployment verification.
+
+**Key Principle:** Show, don't tell. No task is complete without verifiable evidence.
 
 ## Overview
 

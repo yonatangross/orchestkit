@@ -5,7 +5,7 @@ context: fork
 agent: metrics-architect
 version: 1.0.0
 author: OrchestKit
-tags: [drift, monitoring, quality, statistical, psi, langfuse, evidently, 2026]
+tags: [drift, monitoring, quality, statistical, psi, langfuse, evidently]
 user-invocable: false
 ---
 

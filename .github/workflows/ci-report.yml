@@ -1,0 +1,211 @@
+name: CI Report
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run build
+        id: build
+        continue-on-error: true
+        run: |
+          if npm run build 2>&1 | tee build.log; then
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run tests with coverage
+        id: tests
+        continue-on-error: true
+        run: |
+          # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
+          cd src/hooks
+          npm ci
+          npm run test:coverage 2>&1 | tee ../../test.log || true
+
+          # Copy coverage to root for report generator
+          if [ -f coverage/coverage-summary.json ]; then
+            cp coverage/coverage-summary.json ../../coverage-summary.json
+          fi
+          cd ../..
+
+          # Run other tests
+          npm test 2>&1 | tee -a test.log || true
+
+          # Extract test counts (vitest format)
+          passed=$(grep -oP '\d+(?=\s*passed)' test.log | tail -1 || echo "0")
+          failed=$(grep -oP '\d+(?=\s*failed)' test.log | tail -1 || echo "0")
+          skipped=$(grep -oP '\d+(?=\s*skipped)' test.log | tail -1 || echo "0")
+          echo "passed=${passed:-0}" >> $GITHUB_OUTPUT
+          echo "failed=${failed:-0}" >> $GITHUB_OUTPUT
+          echo "skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+
+          # Extract coverage from summary
+          if [ -f coverage-summary.json ]; then
+            lines=$(jq '.total.lines.pct // 0' coverage-summary.json)
+            functions=$(jq '.total.functions.pct // 0' coverage-summary.json)
+            branches=$(jq '.total.branches.pct // 0' coverage-summary.json)
+            statements=$(jq '.total.statements.pct // 0' coverage-summary.json)
+            echo "coverage_lines=${lines}" >> $GITHUB_OUTPUT
+            echo "coverage_functions=${functions}" >> $GITHUB_OUTPUT
+            echo "coverage_branches=${branches}" >> $GITHUB_OUTPUT
+            echo "coverage_statements=${statements}" >> $GITHUB_OUTPUT
+          else
+            echo "coverage_lines=0" >> $GITHUB_OUTPUT
+            echo "coverage_functions=0" >> $GITHUB_OUTPUT
+            echo "coverage_branches=0" >> $GITHUB_OUTPUT
+            echo "coverage_statements=0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Run linting
+        id: lint
+        continue-on-error: true
+        run: |
+          npm run lint 2>&1 | tee lint.log || true
+          errors=$(grep -c "error" lint.log || echo "0")
+          warnings=$(grep -c "warning" lint.log || echo "0")
+          echo "errors=${errors:-0}" >> $GITHUB_OUTPUT
+          echo "warnings=${warnings:-0}" >> $GITHUB_OUTPUT
+
+      - name: Run security scan
+        id: security
+        continue-on-error: true
+        run: |
+          npm audit --json > audit.json 2>/dev/null || true
+          critical=$(jq '.metadata.vulnerabilities.critical // 0' audit.json)
+          high=$(jq '.metadata.vulnerabilities.high // 0' audit.json)
+          medium=$(jq '.metadata.vulnerabilities.moderate // 0' audit.json)
+          low=$(jq '.metadata.vulnerabilities.low // 0' audit.json)
+          echo "critical=${critical:-0}" >> $GITHUB_OUTPUT
+          echo "high=${high:-0}" >> $GITHUB_OUTPUT
+          echo "medium=${medium:-0}" >> $GITHUB_OUTPUT
+          echo "low=${low:-0}" >> $GITHUB_OUTPUT
+
+      - name: Generate CI Report
+        id: report
+        continue-on-error: true
+        env:
+          CI_BUILD_STATUS: ${{ steps.build.outputs.status }}
+          CI_COMMIT_SHA: ${{ github.sha }}
+          CI_BRANCH: ${{ github.ref_name }}
+          CI_PR_NUMBER: ${{ github.event.pull_request.number }}
+          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": ${{ steps.tests.outputs.passed || 0 }}, "failures": []}'
+          CI_LINT_RESULTS: '{"errors": ${{ steps.lint.outputs.errors || 0 }}, "warnings": ${{ steps.lint.outputs.warnings || 0 }}, "files": 0, "issues": []}'
+          CI_SECURITY_RESULTS: '{"critical": ${{ steps.security.outputs.critical || 0 }}, "high": ${{ steps.security.outputs.high || 0 }}, "medium": ${{ steps.security.outputs.medium || 0 }}, "low": ${{ steps.security.outputs.low || 0 }}, "vulnerabilities": []}'
+          CI_COVERAGE: '{"lines": ${{ steps.tests.outputs.coverage_lines || 0 }}, "functions": ${{ steps.tests.outputs.coverage_functions || 0 }}, "branches": ${{ steps.tests.outputs.coverage_branches || 0 }}, "statements": ${{ steps.tests.outputs.coverage_statements || 0 }}}'
+        run: |
+          npx tsx scripts/generate-ci-report.ts --output ci-report.html
+
+      - name: Upload CI Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-report
+          path: |
+            ci-report.html
+            ci-report.json
+          retention-days: 30
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync('ci-report.json', 'utf8'));
+
+            const statusEmoji = report.overallStatus === 'success' ? '✅' :
+                               report.overallStatus === 'warning' ? '⚠️' : '❌';
+
+            const grade = report.score >= 90 ? 'A' :
+                         report.score >= 80 ? 'B' :
+                         report.score >= 70 ? 'C' :
+                         report.score >= 60 ? 'D' : 'F';
+
+            const coverageEmoji = report.coverage.current >= 80 ? '✅' : report.coverage.current >= 60 ? '⚠️' : '❌';
+            const coverageDetail = report.coverage.lines > 0
+              ? `\n\n<details>\n<summary>📊 Coverage Details</summary>\n\n| Metric | Coverage |\n|--------|----------|\n| Lines | ${report.coverage.lines?.toFixed(1) || 0}% |\n| Functions | ${report.coverage.functions?.toFixed(1) || 0}% |\n| Branches | ${report.coverage.branches?.toFixed(1) || 0}% |\n| Statements | ${report.coverage.statements?.toFixed(1) || 0}% |\n\n</details>`
+              : '';
+
+            const body = `## ${statusEmoji} CI Assessment Report
+
+            **Score:** ${report.score}/100 (Grade ${grade})
+            **Status:** ${report.overallStatus.toUpperCase()}
+
+            | Check | Result |
+            |-------|--------|
+            | Build | ${report.build.status === 'success' ? '✅ Passed' : '❌ Failed'} |
+            | Tests | ${report.tests.failed > 0 ? '❌' : '✅'} ${report.tests.passed}/${report.tests.total} passed |
+            | Lint | ${report.lint.errors > 0 ? '❌' : report.lint.warnings > 0 ? '⚠️' : '✅'} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
+            | Security | ${report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅'} ${report.security.critical} critical, ${report.security.high} high |
+            | Coverage | ${coverageEmoji} ${report.coverage.current.toFixed(1)}% avg |
+            ${coverageDetail}
+
+            📊 [View full report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+
+            ---
+            *Generated by OrchestKit CI Report • vitest + @vitest/coverage-v8*`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('CI Assessment Report')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: body
+              });
+            }
+
+      - name: Job Summary
+        run: |
+          cat ci-report.json | jq -r '
+            "## CI Assessment Report\n\n" +
+            "**Score:** \(.score)/100\n" +
+            "**Status:** \(.overallStatus | ascii_upcase)\n\n" +
+            "| Check | Result |\n" +
+            "|-------|--------|\n" +
+            "| Build | \(.build.status) |\n" +
+            "| Tests | \(.tests.passed)/\(.tests.total) passed |\n" +
+            "| Lint | \(.lint.errors) errors, \(.lint.warnings) warnings |\n" +
+            "| Security | \(.security.critical) critical, \(.security.high) high |\n" +
+            "| Coverage | \(.coverage.current)% |"
+          ' >> $GITHUB_STEP_SUMMARY

@@ -6,10 +6,10 @@ agent: multimodal-specialist
 version: 1.1.0
 author: OrchestKit
 user-invocable: false
-tags: [audio, multimodal, gemini-live, grok-voice, whisper, tts, speech, voice-agent, 2026]
+tags: [audio, multimodal, gemini-live, grok-voice, whisper, tts, speech, voice-agent]
 ---
 
-# Audio Language Models (2026)
+# Audio Language Models ()
 
 Build real-time voice agents and audio processing using the latest native speech-to-speech models.
 
@@ -22,7 +22,7 @@ Build real-time voice agents and audio processing using the latest native speech
 - Text-to-speech generation
 - Voice-to-voice translation
 
-## Model Comparison (January 2026)
+## Model Comparison (January )
 
 ### Real-Time Voice (Speech-to-Speech)
 
@@ -304,10 +304,10 @@ async def choose_realtime_provider(
     if requirements.get("lowest_cost"):
         return "grok"  # $0.05/min (half of OpenAI)
 
-    return "gemini"  # Best overall for 2026
+    return "gemini"  # Best overall for 
 ```
 
-## API Pricing (January 2026)
+## API Pricing (January )
 
 | Provider | Type | Price | Notes |
 |----------|------|-------|-------|

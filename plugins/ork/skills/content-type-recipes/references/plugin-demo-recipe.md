@@ -2,6 +2,20 @@
 
 Detailed production guide for creating 10-15 second plugin installation demonstration videos showcasing quick impact and transformation.
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Timeline Breakdown](#timeline-breakdown)
+- [Complete Frame Reference](#complete-frame-reference)
+- [Visual Effects Library](#visual-effects-library)
+- [Remotion Component Structure](#remotion-component-structure)
+- [Audio Design](#audio-design)
+- [Variations](#variations)
+- [Marketplace Optimization](#marketplace-optimization)
+- [Quality Checklist](#quality-checklist)
+
+---
+
 ## Overview
 
 **Duration**: 10-15 seconds

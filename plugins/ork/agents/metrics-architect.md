@@ -27,13 +27,6 @@ Design measurable success criteria, define OKRs and KPIs, and create instrumenta
 - `mcp__memory__*` - Track metrics definitions and targets over time
 - `mcp__postgres-mcp__query` - Query existing metrics data for baselines
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Define OKRs aligned with business goals
@@ -325,8 +318,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|okr-kpi-patterns:{SKILL.md,references/{okr-workshop-guide.md}}|product,metrics,okr,kpi,goals,measurement,2026
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,2026
+|okr-kpi-patterns:{SKILL.md,references/{okr-workshop-guide.md}}|product,metrics,okr,kpi,goals,measurement
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |cache-cost-tracking:{SKILL.md}|llm,cost,caching,langfuse,observability
 |performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress

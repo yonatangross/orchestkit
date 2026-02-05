@@ -2,7 +2,7 @@
 name: prompt-engineering-suite
 description: Comprehensive prompt engineering with Chain-of-Thought, few-shot learning, prompt versioning, and optimization. Use when designing prompts, improving accuracy, managing prompt lifecycle.
 version: 1.0.0
-tags: [prompts, cot, few-shot, versioning, optimization, langfuse, dspy, 2026]
+tags: [prompts, cot, few-shot, versioning, optimization, langfuse, dspy]
 context: fork
 agent: prompt-engineer
 author: OrchestKit
@@ -82,7 +82,7 @@ final_prompt = ChatPromptTemplate.from_messages([
 
 ```python
 from langfuse import Langfuse
-# Note: Langfuse SDK v3 is OTEL-native (acquired by ClickHouse Jan 2026)
+# Note: Langfuse SDK v3 is OTEL-native (acquired by ClickHouse Jan )
 
 langfuse = Langfuse()
 
@@ -174,7 +174,7 @@ response = llm.complete("Solve: 15% of 240. Think step by step.")
 | [references/prompt-optimization.md](references/prompt-optimization.md) | DSPy, automatic tuning, evaluation |
 | [scripts/cot-template.py](scripts/cot-template.py) | Full Chain-of-Thought implementation |
 | [scripts/few-shot-template.py](scripts/few-shot-template.py) | Few-shot with dynamic example selection |
-| [scripts/jinja2-prompts.py](scripts/jinja2-prompts.py) | Jinja2 templates (2026): async, caching, LLM filters, Anthropic format |
+| [scripts/jinja2-prompts.py](scripts/jinja2-prompts.py) | Jinja2 templates (): async, caching, LLM filters, Anthropic format |
 
 ## Related Skills
 

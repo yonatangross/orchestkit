@@ -34,6 +34,27 @@ skills:
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 
+<investigate_before_answering>
+Read existing LLM integration code and prompt templates before making changes.
+Understand current provider configuration and caching strategy.
+Do not assume SDK versions or API patterns without verifying.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent reads in parallel:
+- Read provider configuration files → independent
+- Read existing prompt templates → independent
+- Read cost tracking/Langfuse setup → independent
+
+Only use sequential execution when implementation depends on understanding the existing setup.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only implement the integration features requested.
+Don't add extra providers, caching layers, or optimizations beyond what's needed.
+Start with the simplest working solution before adding complexity.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -45,13 +66,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives
@@ -249,16 +263,16 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
 |llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api,2026
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
 |prompt-caching:{SKILL.md}|llm,caching,cost-optimization,anthropic
 |semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,2026
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
 |resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
 |llm-safety-patterns:{SKILL.md,references/{context-separation.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,prompt-audit.md}}|ai,safety,guardrails,security,llm
-|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse,2026
-|fine-tuning-customization:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,synthetic-data.md,when-to-finetune.md}}|fine-tuning,lora,qlora,dpo,synthetic-data,rlhf,2026
-|high-performance-inference:{SKILL.md,references/{edge-deployment.md,quantization-guide.md,speculative-decoding.md,vllm-deployment.md}}|vllm,quantization,inference,performance,edge,speculative,2026
-|mcp-advanced-patterns:{SKILL.md,references/{resource-management.md,scaling-strategies.md,server-building-advanced.md,tool-composition.md}}|mcp,tools,resources,scaling,servers,composition,2026
+|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse
+|fine-tuning-customization:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,synthetic-data.md,when-to-finetune.md}}|fine-tuning,lora,qlora,dpo,synthetic-data,rlhf
+|high-performance-inference:{SKILL.md,references/{edge-deployment.md,quantization-guide.md,speculative-decoding.md,vllm-deployment.md}}|vllm,quantization,inference,performance,edge,speculative
+|mcp-advanced-patterns:{SKILL.md,references/{resource-management.md,scaling-strategies.md,server-building-advanced.md,tool-composition.md}}|mcp,tools,resources,scaling,servers,composition
 |ollama-local:{SKILL.md,references/{model-selection.md}}|llm,ollama,local,self-hosted
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

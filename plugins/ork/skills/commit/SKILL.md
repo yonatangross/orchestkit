@@ -1,13 +1,13 @@
 ---
 name: commit
-description: "[GIT] Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
+description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
 context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 allowedTools: [Bash]
-skills: [git-recovery-command]
+skills: [git-recovery]
 ---
 
 # Smart Commit

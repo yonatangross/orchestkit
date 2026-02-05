@@ -27,13 +27,6 @@ Score and rank product opportunities using quantitative frameworks, analyze trad
 - `mcp__memory__*` - Track prioritization decisions over time
 - `mcp__postgres-mcp__query` - Query historical feature data if available
 
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
-
 
 ## Concrete Objectives
 1. Score features using RICE (Reach, Impact, Confidence, Effort)

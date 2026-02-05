@@ -4,7 +4,7 @@ description: Automated security scanning for dependencies and code. Use when run
 tags: [security, scanning, vulnerabilities, audit]
 context: fork
 agent: security-auditor
-allowed-tools:
+allowedTools:
   - Read
   - Grep
   - Glob

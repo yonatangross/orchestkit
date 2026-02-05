@@ -5,8 +5,8 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **193 skills**: Reusable knowledge modules
-- **35 agents**: Specialized AI personas
+- **194 skills**: Reusable knowledge modules
+- **36 agents**: Specialized AI personas
 - **117 hooks**: TypeScript lifecycle automation (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
@@ -17,11 +17,11 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 193 skills
+├── skills/             # 194 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
-├── agents/             # 35 agents
+├── agents/             # 36 agents
 │   └── <agent-name>.md # CC 2.1.6 format with frontmatter
 └── hooks/              # TypeScript hooks
     ├── src/            # Source files
@@ -149,12 +149,12 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-193 skills available. 21 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+194 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
+| Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
 | Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
@@ -225,20 +225,14 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
 | Built plugins | `plugins/<name>/` | Generated, don't edit |
 
-### Memory Plugins (3-tier architecture)
+### Two-Tier Plugin Structure
 
-Memory is split into 3 independent plugins (not a monolith):
+| Plugin | Skills | Description |
+|--------|--------|-------------|
+| `orkl` | 125 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork` | 195 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
-| Plugin | Tier | Skills | Requires |
-|--------|------|--------|----------|
-| `ork-memory-graph` | 1 (always works) | remember, memory | Nothing |
-| `ork-memory-mem0` | 2 (opt-in cloud) | mem0-memory | `MEM0_API_KEY` env var |
-| `ork-memory-fabric` | 3 (orchestrator) | memory-fabric | ork-memory-graph |
-
-- Graph is PRIMARY and always available (zero-config)
-- Mem0 is OPTIONAL cloud enhancement (gated at runtime)
-- Fabric merges results from both with dedup + cross-reference boosting
-- All mem0 hooks early-return silently without `MEM0_API_KEY`
+Both include all 36 agents, 117 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -252,7 +246,7 @@ MEM0_API_KEY          # Optional: enables mem0 cloud memory
 
 ## Version
 
-- **Current**: 5.6.2
+- **Current**: 6.0.0
 - **Claude Code**: >= 2.1.27
 - **Hooks**: 117 entries (89 global + 28 agent/skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 

@@ -5,7 +5,7 @@ context: fork
 agent: metrics-architect
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [langfuse, llm, observability, tracing, evaluation, prompts, 2026]
+tags: [langfuse, llm, observability, tracing, evaluation, prompts]
 user-invocable: false
 ---
 

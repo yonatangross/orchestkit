@@ -6,7 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [best-practices, patterns, anti-patterns, mem0, learning]
 user-invocable: false
-allowedTools: [Read, mcp__mem0__search_memories]
+allowedTools: [Read, Bash]
 ---
 
 # Best Practices - View Your Pattern Library
@@ -34,19 +34,13 @@ Display your aggregated best practices library, showing successful patterns and 
 
 ### 1. Query mem0 for Best Practices
 
-Use `mcp__mem0__search_memories` with:
+Use the mem0 CLI script:
 
-```json
-{
-  "query": "patterns outcomes",
-  "filters": {
-    "OR": [
-      { "metadata.outcome": "success" },
-      { "metadata.outcome": "failed" }
-    ]
-  },
-  "limit": 100
-}
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py \
+  --query "patterns outcomes" \
+  --user-id "project-decisions" \
+  --limit 100
 ```
 
 ### 2. Aggregate Results

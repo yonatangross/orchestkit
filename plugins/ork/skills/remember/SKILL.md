@@ -1,13 +1,12 @@
 ---
 name: remember
-description: "[MEMORY] Store decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
+description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
 context: none
 version: 3.0.0
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
-plugin: ork-memory-graph
 ---
 
 # Remember - Store Decisions and Patterns

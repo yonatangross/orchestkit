@@ -361,8 +361,9 @@ test_release_management_skill_exists() {
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
-test_git_recovery_command_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/src/skills/git-recovery-command"
+test_git_recovery_skill_exists() {
+    # Renamed from git-recovery-command to git-recovery in v6.0.0
+    local skill_dir="$PROJECT_ROOT/src/skills/git-recovery"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 

@@ -5,7 +5,7 @@ context: fork
 agent: monitoring-engineer
 version: 1.0.0
 author: OrchestKit
-tags: [pii, masking, privacy, security, langfuse, presidio, gdpr, 2026]
+tags: [pii, masking, privacy, security, langfuse, presidio, gdpr]
 user-invocable: false
 ---
 

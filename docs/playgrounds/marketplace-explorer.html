@@ -137,6 +137,11 @@
     font-size: 14px;
     opacity: 0.5;
   }
+  #categoryFilters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
   .filter-btn {
     padding: 8px 16px;
     background: var(--bg);
@@ -449,6 +454,114 @@
     line-height: 1.4;
   }
 
+  /* Inline Detail Expansion */
+  .tag-detail {
+    display: none;
+    margin-top: 10px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    animation: slideDown 0.2s ease;
+  }
+  .tag-detail.visible { display: block; }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .tag-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .tag-detail-title {
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tag-detail-type {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+  .tag-detail-type.skill { background: rgba(6, 182, 212, 0.15); color: var(--accent3); }
+  .tag-detail-type.agent { background: rgba(34, 197, 94, 0.15); color: var(--accent2); }
+  .tag-detail-type.command { background: rgba(139, 92, 246, 0.15); color: var(--accent); }
+  .tag-detail-close {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tag-detail-close:hover { border-color: var(--accent7); color: var(--accent7); }
+  .tag-detail-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .tag-detail-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 6px;
+    font-size: 11px;
+  }
+  .tag-detail-label {
+    color: var(--text-muted);
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+  .tag-detail-value {
+    color: var(--text);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .tag-detail-plugins {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tag-detail-plugin {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: var(--accent);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  .tag-detail-doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 6px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .tag-detail-doc-link:hover {
+    background: rgba(139, 92, 246, 0.2);
+    border-color: var(--accent);
+  }
+
   /* Legend */
   .legend {
     display: flex;
@@ -524,6 +637,8 @@
 </head>
 <body>
 
+<nav class="ork-breadcrumbs" id="breadcrumbs" aria-label="Breadcrumb"></nav>
+
 <div class="header">
   <div class="header-top">
     <div class="logo">
@@ -543,7 +658,6 @@
     <button class="view-btn active" data-view="grid">Grid</button>
     <button class="view-btn" data-view="treemap">Treemap</button>
     <button class="view-btn" data-view="agents">Agents</button>
-    <button class="view-btn" data-view="graph">Graph</button>
   </div>
 </div>
 
@@ -576,11 +690,13 @@
 </div>
 
 <script src="data.js"></script>
+<script src="nav.js"></script>
 <script>
 // Compatibility shim: map shared data to local variable names
 var PLUGINS = ORCHESTKIT_DATA.plugins.map(function(p) {
   return { name: p.name, desc: p.description, category: p.category, version: p.version,
-    skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands };
+    skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands,
+    skillCount: p.skillCount, commandCount: p.commandCount };
 });
 var AGENTS = ORCHESTKIT_DATA.agents.map(function(a) {
   return { name: a.name, desc: a.description, plugins: a.plugins };
@@ -590,132 +706,156 @@ Object.keys(ORCHESTKIT_DATA.categories).forEach(function(k) {
   CAT_COLORS[k] = { bg: ORCHESTKIT_DATA.categories[k].color, label: ORCHESTKIT_DATA.categories[k].label };
 });
 
+// Initialize from URL parameters
+var urlParams = window.orkUrl ? window.orkUrl.getParams() : {};
+
 // State
-const state = {
-  search: '',
-  category: 'all',
-  view: 'grid',
+var state = {
+  search: urlParams.search || '',
+  category: urlParams.category || 'all',
+  view: urlParams.view || 'grid',
   expandedCard: null,
   selectedPlugins: new Set(),
 };
 
+// Sync state to URL
+function syncToUrl() {
+  if (!window.orkUrl) return;
+  var params = {};
+  if (state.search) params.search = state.search;
+  if (state.category !== 'all') params.category = state.category;
+  if (state.view !== 'grid') params.view = state.view;
+  window.orkUrl.setParams(params);
+}
+
+// Update breadcrumbs
+function updateBreadcrumbs() {
+  if (!window.orkBreadcrumbs) return;
+  window.orkBreadcrumbs.render('breadcrumbs', 'marketplace-explorer.html', null);
+}
+
 // Computed
 function getFilteredPlugins() {
-  return PLUGINS.filter(p => {
+  return PLUGINS.filter(function(p) {
     if (state.category !== 'all' && p.category !== state.category) return false;
     if (state.search) {
-      const q = state.search.toLowerCase();
-      return p.name.toLowerCase().includes(q) ||
-             p.desc.toLowerCase().includes(q) ||
-             p.skills.some(s => s.toLowerCase().includes(q)) ||
-             p.agents.some(a => a.toLowerCase().includes(q));
+      var q = state.search.toLowerCase();
+      return p.name.toLowerCase().indexOf(q) !== -1 ||
+             p.desc.toLowerCase().indexOf(q) !== -1 ||
+             p.skills.some(function(s) { return s.toLowerCase().indexOf(q) !== -1; }) ||
+             p.agents.some(function(a) { return a.toLowerCase().indexOf(q) !== -1; });
     }
     return true;
   });
 }
 
 function getTotals() {
-  const allSkills = new Set();
-  const allAgents = new Set();
-  let totalHooks = 0;
-  let totalCommands = 0;
-  PLUGINS.forEach(p => {
-    p.skills.forEach(s => allSkills.add(s));
-    p.agents.forEach(a => allAgents.add(a));
-    totalHooks += p.hooks;
-    totalCommands += p.commands.length;
-  });
-  return { skills: allSkills.size, agents: allAgents.size, plugins: PLUGINS.length, hooks: totalHooks, commands: totalCommands };
+  // Use pre-calculated totals from data.js (avoids double-counting shared components)
+  return ORCHESTKIT_DATA.totals;
 }
 
 // Render stats
 function renderStats() {
-  const t = getTotals();
-  document.getElementById('statsBar').innerHTML = `
-    <div class="stat"><span class="stat-value" style="color:var(--accent)">${t.plugins}</span><span class="stat-label">Plugins</span></div>
-    <div class="stat"><span class="stat-value" style="color:var(--accent3)">${t.skills}</span><span class="stat-label">Skills</span></div>
-    <div class="stat"><span class="stat-value" style="color:var(--accent2)">${t.agents}</span><span class="stat-label">Agents</span></div>
-    <div class="stat"><span class="stat-value" style="color:var(--accent4)">${t.hooks}</span><span class="stat-label">Hooks</span></div>
-    <div class="stat"><span class="stat-value" style="color:var(--accent5)">${t.commands}</span><span class="stat-label">Commands</span></div>
-  `;
+  var t = getTotals();
+  document.getElementById('statsBar').innerHTML =
+    '<div class="stat"><span class="stat-value" style="color:var(--accent)">' + t.plugins + '</span><span class="stat-label">Plugins</span></div>' +
+    '<div class="stat"><span class="stat-value" style="color:var(--accent3)">' + t.skills + '</span><span class="stat-label">Skills</span></div>' +
+    '<div class="stat"><span class="stat-value" style="color:var(--accent2)">' + t.agents + '</span><span class="stat-label">Agents</span></div>' +
+    '<div class="stat"><span class="stat-value" style="color:var(--accent4)">' + t.hooks + '</span><span class="stat-label">Hooks</span></div>' +
+    '<div class="stat"><span class="stat-value" style="color:var(--accent5)">' + t.commands + '</span><span class="stat-label">Commands</span></div>';
 }
 
 // Render filters
 function renderFilters() {
-  const cats = [...new Set(PLUGINS.map(p => p.category))];
-  const el = document.getElementById('categoryFilters');
-  el.innerHTML = `<button class="filter-btn ${state.category === 'all' ? 'active' : ''}" onclick="setCategory('all')">All</button>` +
-    cats.map(c => `<button class="filter-btn ${state.category === c ? 'active' : ''}" onclick="setCategory('${c}')">${CAT_COLORS[c]?.label || c}</button>`).join('');
+  var catMap = {};
+  PLUGINS.forEach(function(p) { catMap[p.category] = true; });
+  var cats = Object.keys(catMap);
+  var el = document.getElementById('categoryFilters');
+  el.innerHTML = '<button class="filter-btn ' + (state.category === 'all' ? 'active' : '') + '" onclick="setCategory(\'all\')">All</button>' +
+    cats.map(function(c) {
+      var catInfo = CAT_COLORS[c];
+      var label = catInfo ? catInfo.label : c;
+      return '<button class="filter-btn ' + (state.category === c ? 'active' : '') + '" onclick="setCategory(\'' + c + '\')">' + label + '</button>';
+    }).join('');
 }
 
 // Render legend
 function renderLegend() {
-  const el = document.getElementById('legend');
-  el.innerHTML = Object.entries(CAT_COLORS).map(([k, v]) =>
-    `<div class="legend-item"><div class="legend-dot" style="background:${v.bg}"></div>${v.label}</div>`
-  ).join('');
+  var el = document.getElementById('legend');
+  var keys = Object.keys(CAT_COLORS);
+  el.innerHTML = keys.map(function(k) {
+    var v = CAT_COLORS[k];
+    return '<div class="legend-item"><div class="legend-dot" style="background:' + v.bg + '"></div>' + v.label + '</div>';
+  }).join('');
 }
 
 // Grid view
 function renderGrid() {
-  const plugins = getFilteredPlugins();
-  const el = document.getElementById('gridView');
-  el.innerHTML = plugins.map(p => {
-    const catColor = CAT_COLORS[p.category] || { bg: '#666', label: p.category };
-    const expanded = state.expandedCard === p.name;
-    return `
-      <div class="plugin-card ${expanded ? 'expanded' : ''}" onclick="toggleCard('${p.name}')">
-        <div class="card-header">
-          <div class="card-name">${p.name}</div>
-          <span class="card-category cat-${p.category}">${catColor.label}</span>
-        </div>
-        <div class="card-desc">${p.desc}</div>
-        <div class="card-metrics">
-          <div class="card-metric"><div class="dot" style="background:var(--accent3)"></div><span class="count">${p.skills.length}</span><span class="label">skills</span></div>
-          <div class="card-metric"><div class="dot" style="background:var(--accent2)"></div><span class="count">${p.agents.length}</span><span class="label">agents</span></div>
-          ${p.hooks ? `<div class="card-metric"><div class="dot" style="background:var(--accent4)"></div><span class="count">${p.hooks}</span><span class="label">hooks</span></div>` : ''}
-          ${p.commands.length ? `<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">${p.commands.length}</span><span class="label">cmds</span></div>` : ''}
-        </div>
-        <div class="card-details">
-          ${p.skills.length ? `<div class="detail-section"><h4>Skills (${p.skills.length})</h4><div class="tag-list">${p.skills.map(s => `<span class="tag">${s}</span>`).join('')}</div></div>` : ''}
-          ${p.agents.length ? `<div class="detail-section"><h4>Agents (${p.agents.length})</h4><div class="tag-list">${p.agents.map(a => `<span class="tag agent-tag">${a}</span>`).join('')}</div></div>` : ''}
-          ${p.commands.length ? `<div class="detail-section"><h4>Commands (${p.commands.length})</h4><div class="tag-list">${p.commands.map(c => `<span class="tag command-tag">/ork:${c}</span>`).join('')}</div></div>` : ''}
-        </div>
-      </div>
-    `;
+  var plugins = getFilteredPlugins();
+  var el = document.getElementById('gridView');
+  el.innerHTML = plugins.map(function(p) {
+    var catColor = CAT_COLORS[p.category] || { bg: '#666', label: p.category };
+    var expanded = state.expandedCard === p.name;
+    var skillCount = p.skillCount || p.skills.length;
+    var cmdCount = p.commandCount || p.commands.length;
+    var hooksHtml = p.hooks ? '<div class="card-metric"><div class="dot" style="background:var(--accent4)"></div><span class="count">' + p.hooks + '</span><span class="label">hooks</span></div>' : '';
+    var cmdsHtml = cmdCount ? '<div class="card-metric"><div class="dot" style="background:var(--accent5)"></div><span class="count">' + cmdCount + '</span><span class="label">cmds</span></div>' : '';
+    var skillsSection = p.skills.length ? '<div class="detail-section"><h4>Skills (' + skillCount + ' total, showing ' + p.skills.length + ')</h4><div class="tag-list">' + p.skills.map(function(s) { return '<span class="tag" onclick="event.stopPropagation();showDetail(\'skill\',\'' + s + '\',this)" style="cursor:pointer">' + s + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-skill-' + p.name + '"></div></div>' : '';
+    var agentsSection = p.agents.length ? '<div class="detail-section"><h4>Agents (' + p.agents.length + ')</h4><div class="tag-list">' + p.agents.map(function(a) { return '<span class="tag agent-tag" onclick="event.stopPropagation();showDetail(\'agent\',\'' + a + '\',this)" style="cursor:pointer">' + a + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-agent-' + p.name + '"></div></div>' : '';
+    var commandsSection = p.commands.length ? '<div class="detail-section"><h4>Commands (' + cmdCount + ')</h4><div class="tag-list">' + p.commands.map(function(c) { return '<span class="tag command-tag" onclick="event.stopPropagation();showDetail(\'command\',\'' + c + '\',this)" style="cursor:pointer">/ork:' + c + '</span>'; }).join('') + '</div><div class="tag-detail" id="detail-command-' + p.name + '"></div></div>' : '';
+    return '<div class="plugin-card ' + (expanded ? 'expanded' : '') + '" onclick="toggleCard(\'' + p.name + '\')">' +
+        '<div class="card-header">' +
+          '<div class="card-name">' + p.name + '</div>' +
+          '<span class="card-category cat-' + p.category + '">' + catColor.label + '</span>' +
+        '</div>' +
+        '<div class="card-desc">' + p.desc + '</div>' +
+        '<div class="card-metrics">' +
+          '<div class="card-metric"><div class="dot" style="background:var(--accent3)"></div><span class="count">' + skillCount + '</span><span class="label">skills</span></div>' +
+          '<div class="card-metric"><div class="dot" style="background:var(--accent2)"></div><span class="count">' + p.agents.length + '</span><span class="label">agents</span></div>' +
+          hooksHtml + cmdsHtml +
+        '</div>' +
+        '<div class="card-details">' +
+          skillsSection + agentsSection + commandsSection +
+        '</div>' +
+      '</div>';
   }).join('');
 }
 
 // Treemap view
 function renderTreemap() {
-  const plugins = getFilteredPlugins();
-  const container = document.getElementById('treemapContainer');
-  const W = container.clientWidth;
-  const H = container.clientHeight;
+  var plugins = getFilteredPlugins();
+  var container = document.getElementById('treemapContainer');
+  var W = container.clientWidth;
+  var H = container.clientHeight;
   if (!W || !H) return;
 
   // Sort by total component count
-  const sorted = [...plugins].map(p => ({
-    ...p,
-    total: p.skills.length + p.agents.length + (p.hooks ? 10 : 0)
-  })).sort((a, b) => b.total - a.total);
+  var sorted = plugins.slice().map(function(p) {
+    var skillCount = p.skillCount || p.skills.length;
+    return {
+      name: p.name, desc: p.desc, category: p.category, version: p.version,
+      skills: p.skills, agents: p.agents, hooks: p.hooks, commands: p.commands,
+      skillCount: skillCount,
+      total: skillCount + p.agents.length + (p.hooks ? 10 : 0)
+    };
+  }).sort(function(a, b) { return b.total - a.total; });
 
-  const totalArea = sorted.reduce((s, p) => s + p.total, 0);
+  var totalArea = sorted.reduce(function(s, p) { return s + p.total; }, 0);
 
   // Simple squarified treemap
-  const cells = [];
-  let x = 0, y = 0, w = W, h = H;
-  let remaining = [...sorted];
+  var cells = [];
+  var x = 0, y = 0, w = W, h = H;
+  var remaining = sorted.slice();
 
   function layoutRow(row, rowTotal, isVertical, rx, ry, rw, rh) {
-    let offset = 0;
-    const dimMain = isVertical ? rh : rw;
-    const dimCross = isVertical ? rw : rh;
-    const crossSize = (rowTotal / totalArea) * (isVertical ? W : H);
+    var offset = 0;
+    var dimMain = isVertical ? rh : rw;
+    var dimCross = isVertical ? rw : rh;
+    var crossSize = (rowTotal / totalArea) * (isVertical ? W : H);
 
-    row.forEach(item => {
-      const frac = item.total / rowTotal;
-      const mainSize = frac * dimMain;
+    row.forEach(function(item) {
+      var frac = item.total / rowTotal;
+      var mainSize = frac * dimMain;
       cells.push({
         x: isVertical ? rx : rx + offset,
         y: isVertical ? ry + offset : ry,
@@ -730,28 +870,29 @@ function renderTreemap() {
   }
 
   // Simple strip layout
-  let cx = 0, cy = 0, cw = W, ch = H;
-  let isVertical = cw >= ch;
+  var cx = 0, cy = 0, cw = W, ch = H;
+  var isVertical = cw >= ch;
 
   while (remaining.length > 0) {
-    const row = [remaining.shift()];
-    let rowTotal = row[0].total;
+    var row = [remaining.shift()];
+    var rowTotal = row[0].total;
 
     while (remaining.length > 0) {
-      const candidate = remaining[0];
-      const newTotal = rowTotal + candidate.total;
+      var candidate = remaining[0];
+      var newTotal = rowTotal + candidate.total;
       // Check aspect ratio improvement
-      const dimMain = isVertical ? ch : cw;
-      const dimCross = isVertical ? cw : ch;
-      const crossCurrent = (rowTotal / totalArea) * (isVertical ? W : H);
-      const crossNew = (newTotal / totalArea) * (isVertical ? W : H);
+      var dimMain = isVertical ? ch : cw;
+      var dimCross = isVertical ? cw : ch;
+      var crossCurrent = (rowTotal / totalArea) * (isVertical ? W : H);
+      var crossNew = (newTotal / totalArea) * (isVertical ? W : H);
 
-      const worstCurrent = Math.max(...row.map(r => {
-        const mainSize = (r.total / rowTotal) * dimMain;
+      var worstCurrent = Math.max.apply(null, row.map(function(r) {
+        var mainSize = (r.total / rowTotal) * dimMain;
         return Math.max(mainSize / crossCurrent, crossCurrent / mainSize);
       }));
-      const worstNew = Math.max(...[...row, candidate].map(r => {
-        const mainSize = (r.total / newTotal) * dimMain;
+      var rowWithCandidate = row.concat([candidate]);
+      var worstNew = Math.max.apply(null, rowWithCandidate.map(function(r) {
+        var mainSize = (r.total / newTotal) * dimMain;
         return Math.max(mainSize / crossNew, crossNew / mainSize);
       }));
 
@@ -761,78 +902,79 @@ function renderTreemap() {
       } else break;
     }
 
-    const crossSize = layoutRow(row, rowTotal, isVertical, cx, cy, cw, ch);
+    var crossSize = layoutRow(row, rowTotal, isVertical, cx, cy, cw, ch);
     if (isVertical) { cx += crossSize; cw -= crossSize; }
     else { cy += crossSize; ch -= crossSize; }
     isVertical = cw >= ch;
   }
 
-  container.innerHTML = cells.map(c => {
-    const cat = CAT_COLORS[c.plugin.category] || { bg: '#666' };
-    const showLabel = c.w > 60 && c.h > 40;
-    const showCount = c.w > 40 && c.h > 30;
-    return `<div class="treemap-cell" style="left:${c.x}px;top:${c.y}px;width:${c.w}px;height:${c.h}px;background:${cat.bg}88;"
-      onmouseenter="showTooltip(event,'${c.plugin.name}','${c.plugin.skills.length} skills, ${c.plugin.agents.length} agents')"
-      onmouseleave="hideTooltip()"
-      onclick="setSearch('${c.plugin.name}');setView('grid')">
-      ${showCount ? `<span class="cell-count">${c.plugin.skills.length + c.plugin.agents.length}</span>` : ''}
-      ${showLabel ? `<span class="cell-name">${c.plugin.name.replace('ork-', '')}</span>` : ''}
-    </div>`;
+  container.innerHTML = cells.map(function(c) {
+    var cat = CAT_COLORS[c.plugin.category] || { bg: '#666' };
+    var showLabel = c.w > 60 && c.h > 40;
+    var showCount = c.w > 40 && c.h > 30;
+    var countHtml = showCount ? '<span class="cell-count">' + (c.plugin.skillCount + c.plugin.agents.length) + '</span>' : '';
+    var labelHtml = showLabel ? '<span class="cell-name">' + c.plugin.name.replace('ork-', '') + '</span>' : '';
+    return '<div class="treemap-cell" style="left:' + c.x + 'px;top:' + c.y + 'px;width:' + c.w + 'px;height:' + c.h + 'px;background:' + cat.bg + '88;"' +
+      ' onmouseenter="showTooltip(event,\'' + c.plugin.name + '\',\'' + c.plugin.skillCount + ' skills, ' + c.plugin.agents.length + ' agents\')"' +
+      ' onmouseleave="hideTooltip()"' +
+      ' onclick="setSearch(\'' + c.plugin.name + '\');setView(\'grid\')">' +
+      countHtml + labelHtml +
+    '</div>';
   }).join('');
 }
 
 // Agents view
 function renderAgents() {
-  const q = state.search.toLowerCase();
-  const filtered = AGENTS.filter(a => {
+  var q = state.search.toLowerCase();
+  var filtered = AGENTS.filter(function(a) {
     if (state.category !== 'all') {
-      return a.plugins.some(p => {
-        const plugin = PLUGINS.find(pl => pl.name === p);
+      return a.plugins.some(function(p) {
+        var plugin = PLUGINS.filter(function(pl) { return pl.name === p; })[0];
         return plugin && plugin.category === state.category;
       });
     }
     if (q) {
-      return a.name.includes(q) || a.desc.toLowerCase().includes(q) || a.plugins.some(p => p.includes(q));
+      return a.name.indexOf(q) !== -1 || a.desc.toLowerCase().indexOf(q) !== -1 || a.plugins.some(function(p) { return p.indexOf(q) !== -1; });
     }
     return true;
   });
 
-  document.getElementById('agentsGrid').innerHTML = filtered.map(a => `
-    <div class="agent-card">
-      <div class="agent-name">${a.name}</div>
-      <div class="agent-desc">${a.desc}</div>
-      <div class="agent-plugins">
-        ${a.plugins.map(p => `<span class="agent-plugin-tag">${p}</span>`).join('')}
-      </div>
-    </div>
-  `).join('');
+  document.getElementById('agentsGrid').innerHTML = filtered.map(function(a) {
+    var pluginTags = a.plugins.map(function(p) { return '<span class="agent-plugin-tag">' + p + '</span>'; }).join('');
+    return '<div class="agent-card">' +
+      '<div class="agent-name">' + a.name + '</div>' +
+      '<div class="agent-desc">' + a.desc + '</div>' +
+      '<div class="agent-plugins">' + pluginTags + '</div>' +
+    '</div>';
+  }).join('');
 }
 
 // Graph view - force-directed
 function renderGraph() {
-  const canvas = document.getElementById('graphCanvas');
-  const ctx = canvas.getContext('2d');
-  const rect = canvas.parentElement.getBoundingClientRect();
+  var canvas = document.getElementById('graphCanvas');
+  var ctx = canvas.getContext('2d');
+  var rect = canvas.parentElement.getBoundingClientRect();
   canvas.width = rect.width * 2;
   canvas.height = rect.height * 2;
   canvas.style.width = rect.width + 'px';
   canvas.style.height = rect.height + 'px';
   ctx.scale(2, 2);
 
-  const W = rect.width;
-  const H = rect.height;
-  const centerX = W / 2;
-  const centerY = H / 2;
+  var W = rect.width;
+  var H = rect.height;
+  var centerX = W / 2;
+  var centerY = H / 2;
 
   // Build nodes
-  const nodes = [];
-  const edges = [];
+  var nodes = [];
+  var edges = [];
 
   // Plugin nodes
-  const filteredPlugins = getFilteredPlugins();
-  filteredPlugins.forEach((p, i) => {
-    const angle = (i / filteredPlugins.length) * Math.PI * 2 - Math.PI / 2;
-    const radius = Math.min(W, H) * 0.35;
+  var filteredPlugins = getFilteredPlugins();
+  filteredPlugins.forEach(function(p, i) {
+    var angle = (i / filteredPlugins.length) * Math.PI * 2 - Math.PI / 2;
+    var radius = Math.min(W, H) * 0.35;
+    var catInfo = CAT_COLORS[p.category];
     nodes.push({
       id: p.name,
       type: 'plugin',
@@ -840,26 +982,28 @@ function renderGraph() {
       y: centerY + Math.sin(angle) * radius,
       vx: 0, vy: 0,
       size: 6 + Math.sqrt(p.skills.length + p.agents.length) * 2.5,
-      color: CAT_COLORS[p.category]?.bg || '#666',
+      color: catInfo ? catInfo.bg : '#666',
       label: p.name.replace('ork-', ''),
       data: p,
     });
   });
 
   // Shared agent edges
-  const agentPluginMap = {};
-  filteredPlugins.forEach(p => {
-    p.agents.forEach(a => {
+  var agentPluginMap = {};
+  filteredPlugins.forEach(function(p) {
+    p.agents.forEach(function(a) {
       if (!agentPluginMap[a]) agentPluginMap[a] = [];
       agentPluginMap[a].push(p.name);
     });
   });
 
-  Object.entries(agentPluginMap).forEach(([agent, pluginNames]) => {
+  var agentKeys = Object.keys(agentPluginMap);
+  agentKeys.forEach(function(agent) {
+    var pluginNames = agentPluginMap[agent];
     if (pluginNames.length > 1) {
-      for (let i = 0; i < pluginNames.length; i++) {
-        for (let j = i + 1; j < pluginNames.length; j++) {
-          edges.push({ from: pluginNames[i], to: pluginNames[j], agent });
+      for (var i = 0; i < pluginNames.length; i++) {
+        for (var j = i + 1; j < pluginNames.length; j++) {
+          edges.push({ from: pluginNames[i], to: pluginNames[j], agent: agent });
         }
       }
     }
@@ -867,16 +1011,16 @@ function renderGraph() {
 
   // Simple force simulation
   function simulate() {
-    for (let iter = 0; iter < 100; iter++) {
+    for (var iter = 0; iter < 100; iter++) {
       // Repulsion
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = i + 1; j < nodes.length; j++) {
-          const dx = nodes[j].x - nodes[i].x;
-          const dy = nodes[j].y - nodes[i].y;
-          const dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
-          const force = 2000 / (dist * dist);
-          const fx = (dx / dist) * force;
-          const fy = (dy / dist) * force;
+      for (var i = 0; i < nodes.length; i++) {
+        for (var j = i + 1; j < nodes.length; j++) {
+          var dx = nodes[j].x - nodes[i].x;
+          var dy = nodes[j].y - nodes[i].y;
+          var dist = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
+          var force = 2000 / (dist * dist);
+          var fx = (dx / dist) * force;
+          var fy = (dy / dist) * force;
           nodes[i].vx -= fx;
           nodes[i].vy -= fy;
           nodes[j].vx += fx;
@@ -885,16 +1029,16 @@ function renderGraph() {
       }
 
       // Attraction (edges)
-      edges.forEach(e => {
-        const a = nodes.find(n => n.id === e.from);
-        const b = nodes.find(n => n.id === e.to);
+      edges.forEach(function(e) {
+        var a = nodes.filter(function(n) { return n.id === e.from; })[0];
+        var b = nodes.filter(function(n) { return n.id === e.to; })[0];
         if (!a || !b) return;
-        const dx = b.x - a.x;
-        const dy = b.y - a.y;
-        const dist = Math.sqrt(dx * dx + dy * dy);
-        const force = (dist - 120) * 0.01;
-        const fx = (dx / dist) * force;
-        const fy = (dy / dist) * force;
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var force = (dist - 120) * 0.01;
+        var fx = (dx / dist) * force;
+        var fy = (dy / dist) * force;
         a.vx += fx;
         a.vy += fy;
         b.vx -= fx;
@@ -902,7 +1046,7 @@ function renderGraph() {
       });
 
       // Center gravity
-      nodes.forEach(n => {
+      nodes.forEach(function(n) {
         n.vx += (centerX - n.x) * 0.003;
         n.vy += (centerY - n.y) * 0.003;
         n.x += n.vx * 0.3;
@@ -922,9 +1066,9 @@ function renderGraph() {
   ctx.clearRect(0, 0, W, H);
 
   // Edges
-  edges.forEach(e => {
-    const a = nodes.find(n => n.id === e.from);
-    const b = nodes.find(n => n.id === e.to);
+  edges.forEach(function(e) {
+    var a = nodes.filter(function(n) { return n.id === e.from; })[0];
+    var b = nodes.filter(function(n) { return n.id === e.to; })[0];
     if (!a || !b) return;
     ctx.beginPath();
     ctx.moveTo(a.x, a.y);
@@ -933,8 +1077,8 @@ function renderGraph() {
     ctx.lineWidth = 1.5;
     ctx.stroke();
     // Agent label on edge
-    const mx = (a.x + b.x) / 2;
-    const my = (a.y + b.y) / 2;
+    var mx = (a.x + b.x) / 2;
+    var my = (a.y + b.y) / 2;
     ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
     ctx.font = '9px system-ui';
     ctx.textAlign = 'center';
@@ -942,9 +1086,9 @@ function renderGraph() {
   });
 
   // Nodes
-  nodes.forEach(n => {
+  nodes.forEach(function(n) {
     // Glow
-    const gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.size * 2);
+    var gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.size * 2);
     gradient.addColorStop(0, n.color + '40');
     gradient.addColorStop(1, 'transparent');
     ctx.fillStyle = gradient;
@@ -976,7 +1120,7 @@ function renderGraph() {
 
 // Tooltip
 function showTooltip(e, name, desc) {
-  const tt = document.getElementById('tooltip');
+  var tt = document.getElementById('tooltip');
   document.getElementById('tooltipName').textContent = name;
   document.getElementById('tooltipDesc').textContent = desc;
   tt.style.display = 'block';
@@ -987,33 +1131,129 @@ function hideTooltip() {
   document.getElementById('tooltip').style.display = 'none';
 }
 
+// Inline detail expansion for skills/agents/commands
+var currentDetailEl = null;
+
+function showDetail(type, name, clickedTag) {
+  // Find the detail container (sibling of the tag-list)
+  var tagList = clickedTag.parentElement;
+  var detailEl = tagList.nextElementSibling;
+
+  // If clicking same item, toggle off
+  if (currentDetailEl === detailEl && detailEl.classList.contains('visible')) {
+    detailEl.classList.remove('visible');
+    currentDetailEl = null;
+    return;
+  }
+
+  // Close any other open detail
+  if (currentDetailEl && currentDetailEl !== detailEl) {
+    currentDetailEl.classList.remove('visible');
+  }
+
+  var content = '';
+  var docUrl = '';
+
+  if (type === 'skill') {
+    var containingPlugins = PLUGINS.filter(function(p) {
+      return p.skills.indexOf(name) !== -1;
+    }).map(function(p) { return p.name; });
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/skills/' + name + '/SKILL.md';
+
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type skill">Skill</span>' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
+    '</div>' +
+    '<div class="tag-detail-desc">Patterns and guidance for ' + name.replace(/-/g, ' ') + '.</div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Usage:</span><span class="tag-detail-value">Auto-injected when relevant</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
+
+  } else if (type === 'agent') {
+    var agent = AGENTS.filter(function(a) { return a.name === name; })[0];
+    var desc = agent ? agent.desc : 'Specialized agent for ' + name.replace(/-/g, ' ') + ' tasks.';
+    var plugins = agent ? agent.plugins : [];
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/agents/' + name + '.md';
+
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type agent">Agent</span>' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
+    '</div>' +
+    '<div class="tag-detail-desc">' + desc + '</div>' +
+    (plugins.length ? '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      plugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' : '') +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">Task(subagent_type="' + name + '")</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
+
+  } else if (type === 'command') {
+    var containingPlugins = PLUGINS.filter(function(p) {
+      return p.commands.indexOf(name) !== -1;
+    }).map(function(p) { return p.name; });
+    docUrl = 'https://github.com/yonatangross/orchestkit/blob/main/src/skills/' + name + '/SKILL.md';
+
+    content = '<div class="tag-detail-header">' +
+      '<div class="tag-detail-title"><span class="tag-detail-type command">Command</span>/ork:' + name + '</div>' +
+      '<button class="tag-detail-close" onclick="event.stopPropagation();closeDetail()">&times;</button>' +
+    '</div>' +
+    '<div class="tag-detail-desc">User-invocable skill triggered directly.</div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Plugins:</span><div class="tag-detail-plugins">' +
+      containingPlugins.map(function(p) { return '<span class="tag-detail-plugin">' + p + '</span>'; }).join('') +
+    '</div></div>' +
+    '<div class="tag-detail-row"><span class="tag-detail-label">Invoke:</span><span class="tag-detail-value">/ork:' + name + '</span></div>' +
+    '<a class="tag-detail-doc-link" href="' + docUrl + '" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">View Documentation &rarr;</a>';
+  }
+
+  detailEl.innerHTML = content;
+  detailEl.classList.add('visible');
+  currentDetailEl = detailEl;
+}
+
+function closeDetail() {
+  if (currentDetailEl) {
+    currentDetailEl.classList.remove('visible');
+    currentDetailEl = null;
+  }
+}
+
+// Close detail on Escape
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeDetail();
+});
+
 // Prompt output
 function updatePrompt() {
-  const el = document.getElementById('promptOutput');
+  var el = document.getElementById('promptOutput');
   if (state.category !== 'all') {
-    const plugins = PLUGINS.filter(p => p.category === state.category);
-    const names = plugins.map(p => p.name);
-    el.textContent = `# Install ${CAT_COLORS[state.category]?.label || state.category} plugins:\n${names.map(n => `claude plugin install ${n}`).join('\n')}`;
+    var plugins = PLUGINS.filter(function(p) { return p.category === state.category; });
+    var names = plugins.map(function(p) { return p.name; });
+    var catInfo = CAT_COLORS[state.category];
+    var catLabel = catInfo ? catInfo.label : state.category;
+    el.textContent = '# Install ' + catLabel + ' plugins:\n' + names.map(function(n) { return 'claude plugin install ' + n; }).join('\n');
   } else if (state.search) {
-    const filtered = getFilteredPlugins();
+    var filtered = getFilteredPlugins();
     if (filtered.length === 1) {
-      const p = filtered[0];
-      el.textContent = `claude plugin install ${p.name}\n\n# ${p.name} includes:\n# ${p.skills.length} skills: ${p.skills.join(', ')}\n# ${p.agents.length} agents: ${p.agents.join(', ')}`;
+      var p = filtered[0];
+      var skillCount = p.skillCount || p.skills.length;
+      el.textContent = 'claude plugin install ' + p.name + '\n\n# ' + p.name + ' includes:\n# ' + skillCount + ' skills, ' + p.agents.length + ' agents, ' + p.hooks + ' hooks';
     } else {
-      el.textContent = `# ${filtered.length} plugins match "${state.search}":\n${filtered.map(p => `claude plugin install ${p.name}  # ${p.skills.length} skills, ${p.agents.length} agents`).join('\n')}`;
+      el.textContent = '# ' + filtered.length + ' plugins match "' + state.search + '":\n' + filtered.map(function(p) { var sc = p.skillCount || p.skills.length; return 'claude plugin install ' + p.name + '  # ' + sc + ' skills, ' + p.agents.length + ' agents'; }).join('\n');
     }
   } else {
-    el.textContent = `# Install the complete OrchestKit toolkit:\nclaude plugin install ork\n\n# Or install domain-specific plugins:\n${PLUGINS.filter(p => p.name !== 'ork').map(p => `# claude plugin install ${p.name}  (${p.skills.length} skills, ${p.agents.length} agents)`).join('\n')}`;
+    var otherPlugins = PLUGINS.filter(function(p) { return p.name !== 'ork'; });
+    el.textContent = '# Install the complete OrchestKit toolkit:\nclaude plugin install ork\n\n# Or install domain-specific plugins:\n' + otherPlugins.map(function(p) { var sc = p.skillCount || p.skills.length; return '# claude plugin install ' + p.name + '  (' + sc + ' skills, ' + p.agents.length + ' agents)'; }).join('\n');
   }
 }
 
 function copyPrompt() {
-  const text = document.getElementById('promptOutput').textContent;
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById('copyBtn');
+  var text = document.getElementById('promptOutput').textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    var btn = document.getElementById('copyBtn');
     btn.textContent = 'Copied!';
     btn.classList.add('copied');
-    setTimeout(() => {
+    setTimeout(function() {
       btn.textContent = 'Copy';
       btn.classList.remove('copied');
     }, 1500);
@@ -1024,15 +1264,17 @@ function copyPrompt() {
 function setCategory(cat) {
   state.category = cat;
   renderAll();
+  syncToUrl();
 }
 function setSearch(q) {
   state.search = q;
   document.getElementById('searchInput').value = q;
   renderAll();
+  syncToUrl();
 }
 function setView(v) {
   state.view = v;
-  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+  document.querySelectorAll('.view-btn').forEach(function(b) { b.classList.toggle('active', b.dataset.view === v); });
   document.getElementById('gridView').style.display = v === 'grid' ? 'grid' : 'none';
   document.getElementById('treemapView').style.display = v === 'treemap' ? 'block' : 'none';
   document.getElementById('agentsView').style.display = v === 'agents' ? 'block' : 'none';
@@ -1040,6 +1282,7 @@ function setView(v) {
   if (v === 'treemap') setTimeout(renderTreemap, 50);
   if (v === 'graph') setTimeout(renderGraph, 50);
   if (v === 'agents') renderAgents();
+  syncToUrl();
 }
 function toggleCard(name) {
   state.expandedCard = state.expandedCard === name ? null : name;
@@ -1058,22 +1301,29 @@ function renderAll() {
 }
 
 // Events
-document.getElementById('searchInput').addEventListener('input', e => {
+document.getElementById('searchInput').addEventListener('input', function(e) {
   state.search = e.target.value;
   renderAll();
+  syncToUrl();
 });
-document.querySelectorAll('.view-btn').forEach(b => {
-  b.addEventListener('click', () => setView(b.dataset.view));
-});
-window.addEventListener('resize', () => {
+var viewBtns = document.querySelectorAll('.view-btn');
+for (var i = 0; i < viewBtns.length; i++) {
+  (function(b) {
+    b.addEventListener('click', function() { setView(b.dataset.view); });
+  })(viewBtns[i]);
+}
+window.addEventListener('resize', function() {
   if (state.view === 'treemap') renderTreemap();
   if (state.view === 'graph') renderGraph();
 });
 
 // Init
+if (state.search) {
+  document.getElementById('searchInput').value = state.search;
+}
+updateBreadcrumbs();
 renderAll();
-setView('grid');
+setView(state.view);
 </script>
-<script src="nav.js"></script>
 </body>
 </html>

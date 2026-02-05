@@ -40,17 +40,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 - `mcp__context7__*` - Fetch latest prompt engineering documentation
 - `mcp__sequential-thinking__*` - Complex prompt iteration and optimization reasoning
-- `mcp__mem0__search_memories` - Search for previous prompt patterns
-- `mcp__mem0__add_memory` - Store successful prompt patterns
 - `mcp__memory__*` - Knowledge graph for prompt patterns and decisions
-
-## Memory Integration
-
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query about prompt patterns in this domain
-
-Before completing, store successful patterns:
-- `mcp__mem0__add_memory` for effective prompts and optimizations
 
 ## Concrete Objectives
 
@@ -325,10 +315,10 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|prompt-engineering-suite:{SKILL.md,references/{chain-of-thought.md,few-shot-patterns.md,prompt-optimization.md,prompt-versioning.md}}|prompts,cot,few-shot,versioning,optimization,langfuse,dspy,2026
-|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse,2026
+|prompt-engineering-suite:{SKILL.md,references/{chain-of-thought.md,few-shot-patterns.md,prompt-optimization.md,prompt-versioning.md}}|prompts,cot,few-shot,versioning,optimization,langfuse,dspy
+|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|context-engineering:{SKILL.md,references/{attention-mechanics.md,context-layers.md}}|context,attention,optimization,llm,performance,2026
+|context-engineering:{SKILL.md,references/{attention-mechanics.md,context-layers.md}}|context,attention,optimization,llm,performance
 |function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
 |llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination

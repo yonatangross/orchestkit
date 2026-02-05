@@ -16,8 +16,17 @@ Analyze errors captured from Claude Code sessions to identify patterns and get a
 ## Quick Start
 
 ```bash
-/errors
+/errors              # Batch analysis of historical error patterns
+/debug               # CC 2.1.30 real-time debug for current session
 ```
+
+### When to Use Which
+
+| Command | Purpose | Scope |
+|---------|---------|-------|
+| `/errors` | Batch analysis of error patterns (last 24h/7d) | Historical patterns |
+| `/debug` | Real-time debug of current session state | Current session |
+| `/ork:fix-issue` | Full RCA workflow for specific bug | Single issue |
 
 ## Quick Analysis
 
@@ -35,7 +44,7 @@ python .claude/scripts/analyze_errors.py --report
 ## What Gets Captured
 
 The error collector hook captures:
-- Tool name (Bash, mcp__postgres-mcp__query, etc.)
+- Tool name (Bash, mcp__memory__search_nodes, etc.)
 - Error message (first 500 chars)
 - Tool input (command/query that failed)
 - Timestamp and session ID

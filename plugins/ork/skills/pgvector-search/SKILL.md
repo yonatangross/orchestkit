@@ -5,7 +5,7 @@ context: fork
 agent: database-engineer
 version: 1.2.0
 author: OrchestKit AI Agent Hub
-tags: [pgvector-0.8, hybrid-search, bm25, rrf, semantic-search, retrieval, 2026]
+tags: [pgvector-0.8, hybrid-search, bm25, rrf, semantic-search, retrieval]
 user-invocable: false
 ---
 

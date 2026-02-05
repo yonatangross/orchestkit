@@ -1,13 +1,3 @@
 {
-  "locks": [
-    {
-      "lock_id": "lock-1769290906853-oh5z4eok",
-      "file_path": "CHANGELOG.md",
-      "lock_type": "exclusive_write",
-      "instance_id": "fallback-32133",
-      "acquired_at": "2026-01-24T21:41:46.853Z",
-      "expires_at": "2026-01-24T21:42:46.853Z",
-      "reason": "Modifying via Edit"
-    }
-  ]
+  "locks": []
 }

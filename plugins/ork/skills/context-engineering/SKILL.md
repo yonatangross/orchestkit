@@ -4,7 +4,7 @@ description: Use when designing agent system prompts, optimizing RAG retrieval, 
 context: fork
 version: 1.0.0
 author: OrchestKit AI Agent Hub
-tags: [context, attention, optimization, llm, performance, 2026]
+tags: [context, attention, optimization, llm, performance]
 user-invocable: false
 ---
 
@@ -18,7 +18,7 @@ Context engineering goes beyond prompt engineering. While prompts focus on *what
 
 **Key Insight:** Context windows are constrained not by raw token capacity but by attention mechanics. As context grows, models experience degradation.
 
-## Overview
+## When to Use
 
 - Designing agent system prompts
 - Optimizing RAG retrieval pipelines
@@ -409,7 +409,7 @@ cat /tmp/claude-mcp-defer-state-${CLAUDE_SESSION_ID}.json
 
 ---
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )
 **Based on:** Context Engineering research, BrowseComp evaluation findings
 **Key Metric:** 80% of agent performance variance explained by token usage
 

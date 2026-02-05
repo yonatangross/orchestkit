@@ -2,7 +2,7 @@
 name: agentic-rag-patterns
 description: Advanced RAG with Self-RAG, Corrective-RAG, and knowledge graphs. Use when building agentic RAG pipelines, adaptive retrieval, or query rewriting.
 version: 1.0.0
-tags: [rag, self-rag, crag, knowledge-graph, langgraph, agentic, 2026]
+tags: [rag, self-rag, crag, knowledge-graph, langgraph, agentic]
 context: fork
 agent: data-pipeline-engineer
 author: OrchestKit
@@ -13,7 +13,7 @@ user-invocable: false
 
 Build self-correcting retrieval systems with LLM-driven decision making.
 
-> **LangGraph 1.0.6** (Jan 2026): langgraph-checkpoint 4.0.0, compile-time checkpointer validation, namespace sanitization.
+> **LangGraph 1.0.6** (Jan ): langgraph-checkpoint 4.0.0, compile-time checkpointer validation, namespace sanitization.
 
 ## Architecture Overview
 

@@ -1,0 +1,18 @@
+# Gitleaks configuration for OrchestKit
+# https://github.com/gitleaks/gitleaks
+
+title = "gitleaks config"
+
+# Global allowlist - ignore test files completely
+[allowlist]
+description = "Ignore test files containing mock credentials"
+paths = [
+  '''.*__tests__.*''',
+  '''.*\.test\.ts$''',
+  '''.*\.spec\.ts$''',
+  '''.*test-.*\.sh$''',
+]
+regexTarget = "match"
+regexes = [
+  '''test-api-key-\d+''',
+]

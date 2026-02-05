@@ -1,5 +1,5 @@
 ---
-name: ASCII Visualizer
+name: ascii-visualizer
 description: Use when visualizing architecture, data flows, or system diagrams in text. Creates ASCII visualizer diagrams for plans, workflows, and structures.
 version: 1.0.0
 context: inherit

@@ -4,13 +4,13 @@ description: SQLAlchemy 2.0 async patterns with AsyncSession, async_sessionmaker
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [sqlalchemy, async, database, orm, fastapi, python, 2026]
-allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
+tags: [sqlalchemy, async, database, orm, fastapi, python]
+allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# SQLAlchemy 2.0 Async Patterns (2026)
+# SQLAlchemy 2.0 Async Patterns ()
 
 Modern async database patterns with SQLAlchemy 2.0, AsyncSession, and FastAPI integration.
 
@@ -148,7 +148,7 @@ async def get_users_with_orders(db: AsyncSession, limit: int = 100) -> list[User
     return list(result.scalars().all())
 ```
 
-### Bulk Operations (2026 Optimized)
+### Bulk Operations ( Optimized)
 
 ```python
 async def bulk_insert_users(db: AsyncSession, users_data: list[dict]) -> int:
@@ -257,7 +257,7 @@ async def get_data_from_multiple_users(user_ids: list[UUID]) -> list[dict]:
 
 ## Key Decisions
 
-| Decision | 2026 Recommendation | Rationale |
+| Decision |  Recommendation | Rationale |
 |----------|---------------------|-----------|
 | Session scope | One AsyncSession per task/request | SQLAlchemy docs: "AsyncSession per task" |
 | Scoped sessions | **Avoid** for async | Maintainers discourage for async code |

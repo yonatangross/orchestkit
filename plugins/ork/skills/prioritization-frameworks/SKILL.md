@@ -4,7 +4,7 @@ description: RICE, ICE, WSJF, MoSCoW and other prioritization frameworks for pro
 context: fork
 agent: prioritization-analyst
 version: 1.0.0
-tags: [product, prioritization, rice, ice, wsjf, moscow, backlog, 2026]
+tags: [product, prioritization, rice, ice, wsjf, moscow, backlog]
 author: OrchestKit
 user-invocable: false
 ---
@@ -265,4 +265,4 @@ Answer options: Like it, Expect it, Neutral, Can tolerate, Dislike
 - [RICE Deep Dive](references/rice-deep-dive.md)
 - [WSJF Calculator](references/wsjf-calculator.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

@@ -35,6 +35,27 @@ hooks:
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.
 
+<investigate_before_answering>
+Read the code being reviewed before providing feedback. Do not speculate about
+implementation details you haven't inspected. Ground all findings in actual code evidence.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+Run independent quality checks in parallel:
+- `Bash npm run lint` - linting (independent)
+- `Bash npm run typecheck` - type checking (independent)
+- `Bash npm run test` - tests (independent)
+- `Bash npm audit` - security scan (independent)
+
+Spawn all four in ONE message. This cuts review time by 60%.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Focus on actual issues, not hypothetical improvements.
+Prioritize blockers (security, correctness) over style preferences.
+Don't flag code that works correctly just because it could be "cleaner".
+</avoid_overengineering>
+
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
 - `mcp__sequential-thinking__*` - Complex security vulnerability analysis
@@ -43,13 +64,6 @@ Review code for bugs, security issues, performance problems, and ensure test cov
 - Use `agent-browser` CLI via Bash for visual regression testing verification
 - Screenshots: `agent-browser screenshot <path>` for visual comparison
 - Run `agent-browser --help` for full CLI docs
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives
@@ -135,7 +149,7 @@ Return structured review report:
 - Check actual coverage metrics
 
 ## Evidence Collection (v3.5.0)
-**MANDATORY**: Record evidence before approval
+Record evidence before approval
 - Capture exit codes (0 = pass)
 - Record in context.quality_evidence (linter, type_checker, tests)
 - Use skills/evidence-verification/templates/ for guidance
@@ -143,7 +157,7 @@ Return structured review report:
 - Include evidence summary in role-comm-review.md
 
 ## Security Scanning (v3.5.0)
-**MANDATORY**: Auto-trigger security scans
+Auto-trigger security scans
 - Run npm audit (JS/TS) or pip-audit (Python)
 - Capture vulnerability counts (critical, high, moderate, low)
 - Record in context.quality_evidence.security_scan
@@ -166,7 +180,7 @@ Return structured review report:
 4. Stop: At task boundaries
 
 ## Technology Requirements
-**CRITICAL**: Ensure ALL code uses TypeScript (.ts/.tsx files). Flag any JavaScript files as errors.
+Ensure code uses TypeScript (.ts/.tsx files). Flag JavaScript files as warnings.
 - Verify TypeScript strict mode enabled
 - Check for proper type definitions (no 'any' types)
 - Ensure tsconfig.json exists and is properly configured

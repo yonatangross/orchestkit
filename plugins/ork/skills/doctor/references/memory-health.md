@@ -8,9 +8,9 @@ OrchestKit uses a 3-tier memory architecture. Doctor validates all tiers with au
 
 | Tier | Plugin | Status | Check |
 |------|--------|--------|-------|
-| 1. Graph | ork-memory-graph | Always available | Directory + JSONL integrity |
-| 2. Mem0 | ork-memory-mem0 | Optional (needs API key) | API key + queue depth |
-| 3. Fabric | ork-memory-fabric | Orchestrates tiers 1+2 | Both tiers available |
+| 1. Graph | orkl | Always available | Directory + JSONL integrity |
+| 2. Mem0 | ork | Optional (needs API key) | API key + queue depth |
+| 3. Fabric | orkl | Orchestrates tiers 1+2 | Both tiers available |
 
 ## Automated Health Check
 

@@ -6,10 +6,10 @@ agent: multimodal-specialist
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
-tags: [vision, multimodal, image, gpt-5, claude-4, gemini, grok, vlm, 2026]
+tags: [vision, multimodal, image, gpt-5, claude-4, gemini, grok, vlm]
 ---
 
-# Vision Language Models (2026)
+# Vision Language Models ()
 
 Integrate vision capabilities from leading multimodal models for image understanding, document analysis, and visual reasoning.
 
@@ -22,7 +22,7 @@ Integrate vision capabilities from leading multimodal models for image understan
 - Bounding box detection and region analysis
 - Video frame analysis
 
-## Model Comparison (January 2026)
+## Model Comparison (January )
 
 | Model | Context | Strengths | Vision Input |
 |-------|---------|-----------|--------------|
@@ -240,7 +240,7 @@ response = client.chat.completions.create(
 )
 ```
 
-## Image Size Limits (2026)
+## Image Size Limits ()
 
 | Provider | Max Size | Max Images | Notes |
 |----------|----------|------------|-------|
@@ -303,6 +303,47 @@ response = client.chat.completions.create(
 - Extract text from documents and charts
 - Analyze diagrams and flowcharts
 - Process forms and tables with structure
+
+## Claude Code PDF Handling (CC 2.1.30+)
+
+### Read Tool Pages Parameter
+
+For large PDFs (>10 pages), use the `pages` parameter to read specific ranges:
+
+```python
+# Read first 5 pages of a large PDF
+Read(file_path="/path/to/document.pdf", pages="1-5")
+
+# Read specific page
+Read(file_path="/path/to/document.pdf", pages="10")
+
+# Read range in middle
+Read(file_path="/path/to/document.pdf", pages="15-25")
+```
+
+### Large PDF Strategy
+
+For documents >100 pages, process incrementally:
+
+```python
+# 1. Initial scan - read first pages for structure
+Read(file_path=pdf_path, pages="1-5")
+
+# 2. Identify key sections from TOC/headers
+# 3. Read relevant sections
+Read(file_path=pdf_path, pages="45-55")  # e.g., "Implementation" section
+
+# 4. Process remaining sections as needed
+Read(file_path=pdf_path, pages="80-90")  # e.g., "Appendix" section
+```
+
+### Limits
+
+| Constraint | Value |
+|------------|-------|
+| Max pages per request | 20 |
+| Max file size | 20MB |
+| Large PDF threshold | >10 pages (returns lightweight reference if @ mentioned) |
 
 ### multi-image-analysis
 **Keywords:** compare images, multiple images, image comparison, batch

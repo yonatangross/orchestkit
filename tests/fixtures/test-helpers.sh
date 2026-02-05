@@ -602,6 +602,7 @@ uppercase() {
 
 # Count tokens in a file using tiktoken (accurate) or fallback to chars/4
 # Usage: estimate_tokens "$filepath"
+# Note: Normalizes CRLF to LF to ensure consistent counts across Windows/Unix
 estimate_tokens() {
   local filepath="$1"
   if [[ ! -f "$filepath" ]]; then
@@ -609,6 +610,7 @@ estimate_tokens() {
     return
   fi
   # Try tiktoken (Python) - most accurate for Claude
+  # Normalizes line endings to LF before counting
   if command -v python3 &>/dev/null; then
     local result
     result=$(python3 -c "
@@ -616,8 +618,10 @@ import sys
 try:
     import tiktoken
     enc = tiktoken.get_encoding('cl100k_base')
-    with open(sys.argv[1], 'r', encoding='utf-8', errors='ignore') as f:
-        print(len(enc.encode(f.read())))
+    with open(sys.argv[1], 'r', encoding='utf-8', errors='ignore', newline=None) as f:
+        # newline=None normalizes CRLF/CR to LF
+        content = f.read()
+        print(len(enc.encode(content)))
 except:
     sys.exit(1)
 " "$filepath" 2>/dev/null)
@@ -627,7 +631,8 @@ except:
     fi
   fi
   # Fallback: chars/4 approximation
-  local chars=$(wc -c < "$filepath" | tr -d ' ')
+  # Use tr to strip CR characters for consistent cross-platform counts
+  local chars=$(tr -d '\r' < "$filepath" | wc -c | tr -d ' ')
   echo $((chars / 4))
 }
 

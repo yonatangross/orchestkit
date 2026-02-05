@@ -1,13 +1,12 @@
 ---
 name: memory
-description: "[MEMORY] Read-side memory operations: search, load, sync, history, visualize. Use for finding decisions, loading context, or viewing the knowledge graph."
+description: "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 context: fork
 version: 2.0.0
 author: OrchestKit
 tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph, mcp__mem0__search_memories, mcp__mem0__get_memories]
-plugin: ork-memory-graph
+allowedTools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
 ---
 
 # Memory - Read & Access Operations
@@ -277,6 +276,53 @@ Format output appropriate to the operation.
 ## Related Skills
 
 - `remember` - Store decisions and patterns (write-side)
+
+---
+
+## CC 2.1.31 Session Resume Hints
+
+At session end, Claude shows resume hints. To maximize resume effectiveness:
+
+### Capture Context Before Ending
+
+```bash
+# Store key decisions and context
+/ork:remember Key decisions for next session:
+  - Decision 1: [brief]
+  - Decision 2: [brief]
+  - Next steps: [what remains]
+
+# Sync to mem0 if configured
+/ork:memory sync
+```
+
+### Resume Patterns
+
+```bash
+# For PR work: Use --from-pr (CC 2.1.27)
+/ork:create-pr
+# Later: claude --from-pr 123
+
+# For issue fixing: Use memory load
+/ork:fix-issue 456
+# Later: /ork:memory load   # Reloads investigation context
+
+# For implementation: Use memory search
+/ork:implement user-auth
+# Later: /ork:memory search "user-auth implementation"
+```
+
+### Best Practice
+
+Always store investigation findings before session end:
+
+```bash
+/ork:remember Session summary for {task}:
+  Completed: [what was done]
+  Findings: [key discoveries]
+  Next steps: [what remains]
+  Blockers: [if any]
+```
 
 ---
 

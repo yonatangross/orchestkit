@@ -34,6 +34,27 @@ skills:
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 
+<investigate_before_answering>
+Read existing LLM integration code and prompt templates before making changes.
+Understand current provider configuration and caching strategy.
+Do not assume SDK versions or API patterns without verifying.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent reads in parallel:
+- Read provider configuration files → independent
+- Read existing prompt templates → independent
+- Read cost tracking/Langfuse setup → independent
+
+Only use sequential execution when implementation depends on understanding the existing setup.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only implement the integration features requested.
+Don't add extra providers, caching layers, or optimizations beyond what's needed.
+Start with the simplest working solution before adding complexity.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -45,13 +66,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives

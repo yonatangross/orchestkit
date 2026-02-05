@@ -14,7 +14,8 @@
 #   Called automatically by build-plugins.sh    # As build phase
 # ============================================================================
 
-set -euo pipefail
+set -uo pipefail
+# Note: removed -e to allow script to continue on errors during skill index generation
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -130,23 +131,26 @@ get_agent_category() {
     fi
 }
 
-# Category display order and labels
-declare -A CATEGORY_LABELS=(
-    ["backend"]="Backend & Data"
-    ["frontend"]="Frontend & UI"
-    ["security"]="Security"
-    ["devops"]="DevOps & Infrastructure"
-    ["llm"]="LLM & AI"
-    ["testing"]="Testing & Quality"
-    ["product"]="Product & Strategy"
-    ["docs"]="Documentation"
-    ["data"]="Data Pipelines"
-    ["git"]="Git Operations"
-    ["design"]="Design & Architecture"
-    ["other"]="Other"
-)
+# Category display order and labels (bash 3.2 compatible - no associative arrays)
+get_category_label() {
+    case "$1" in
+        backend)  echo "Backend & Data" ;;
+        frontend) echo "Frontend & UI" ;;
+        security) echo "Security" ;;
+        devops)   echo "DevOps & Infrastructure" ;;
+        llm)      echo "LLM & AI" ;;
+        testing)  echo "Testing & Quality" ;;
+        product)  echo "Product & Strategy" ;;
+        docs)     echo "Documentation" ;;
+        data)     echo "Data Pipelines" ;;
+        git)      echo "Git Operations" ;;
+        design)   echo "Design & Architecture" ;;
+        research) echo "Research & Analysis" ;;
+        *)        echo "Other" ;;
+    esac
+}
 
-CATEGORY_ORDER=("backend" "frontend" "security" "devops" "llm" "testing" "product" "data" "git" "design" "docs" "other")
+CATEGORY_ORDER="backend frontend security devops llm testing product data git design research docs other"
 
 # ============================================================================
 # Extract skill tags from SKILL.md frontmatter
@@ -227,9 +231,9 @@ generate_agent_index() {
         echo "|Do NOT rely on training data — consult agent expertise first."
         echo "|"
 
-        for category in "${CATEGORY_ORDER[@]}"; do
+        for category in $CATEGORY_ORDER; do
             if [[ -f "$tmp_dir/$category" ]]; then
-                echo "|# ${CATEGORY_LABELS[$category]}"
+                echo "|# $(get_category_label "$category")"
                 sort "$tmp_dir/$category"
             fi
         done
@@ -270,17 +274,20 @@ generate_skill_indexes() {
         local agent_skills=()
 
         while IFS= read -r line; do
-            if [[ "$line" =~ ^skills: ]]; then
+            if echo "$line" | grep -q "^skills:"; then
                 in_skills=true
                 continue
             fi
             if $in_skills; then
-                if [[ "$line" =~ ^[[:space:]]*-[[:space:]]+(.*) ]]; then
-                    local skill_name="${BASH_REMATCH[1]}"
-                    # Trim whitespace
-                    skill_name=$(echo "$skill_name" | sed 's/^[[:space:]]*//' | sed 's/[[:space:]]*$//')
-                    agent_skills+=("$skill_name")
-                elif [[ ! "$line" =~ ^[[:space:]] ]]; then
+                # Check if line is a skill entry (starts with whitespace and dash)
+                if echo "$line" | grep -qE "^[[:space:]]*-[[:space:]]"; then
+                    # Extract skill name using sed (bash 3.2 compatible)
+                    local skill_name
+                    skill_name=$(echo "$line" | sed 's/^[[:space:]]*-[[:space:]]*//' | sed 's/[[:space:]]*$//')
+                    if [ -n "$skill_name" ]; then
+                        agent_skills+=("$skill_name")
+                    fi
+                elif ! echo "$line" | grep -qE "^[[:space:]]"; then
                     # End of skills block (new top-level key)
                     in_skills=false
                 fi

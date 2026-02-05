@@ -4,7 +4,7 @@ description: Temporal.io workflow orchestration for durable, fault-tolerant dist
 context: fork
 agent: workflow-architect
 version: 1.0.0
-tags: [temporal, workflow, orchestration, durable-execution, saga, microservices, 2026]
+tags: [temporal, workflow, orchestration, durable-execution, saga, microservices]
 author: OrchestKit
 user-invocable: false
 ---

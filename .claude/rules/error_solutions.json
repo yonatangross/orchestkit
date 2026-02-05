@@ -36,11 +36,11 @@
     },
     "git_conflict": {
       "description": "Git merge/rebase conflicts",
-      "related_skills": ["git-recovery-command", "git-workflow", "stacked-prs"]
+      "related_skills": ["git-recovery", "git-workflow", "stacked-prs"]
     },
     "git_state": {
       "description": "Git state/branch errors",
-      "related_skills": ["git-workflow", "git-recovery-command"]
+      "related_skills": ["git-workflow", "git-recovery"]
     },
     "git_protection": {
       "description": "Git branch protection errors",

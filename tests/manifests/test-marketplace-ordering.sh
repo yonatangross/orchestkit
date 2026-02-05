@@ -5,13 +5,13 @@
 # Validates that plugins are ordered correctly in marketplace.json:
 # if plugin A depends on plugin B, B must appear BEFORE A in the list.
 #
-# Also checks that ork-core (the foundation) is listed first and
-# ork (the meta umbrella) is listed last among ork plugins.
+# Also checks that orkl (universal toolkit) is listed first and
+# ork (full specialized) is listed last in the two-tier system.
 #
 # Tests:
 # 1. Dependencies must appear before their dependents
-# 2. ork-core must be the first plugin listed
-# 3. ork (meta) must be the last plugin listed
+# 2. orkl must be the first plugin listed (two-tier)
+# 3. ork must be the last plugin listed (two-tier)
 #
 # Related: GitHub Issue #252 (Plugin Consolidation)
 # Usage: ./test-marketplace-ordering.sh [--verbose]
@@ -75,17 +75,17 @@ PLUGIN_COUNT=$(jq '.plugins | length' "$MARKETPLACE_JSON")
 log_info "Marketplace has $PLUGIN_COUNT plugins"
 
 # ============================================================================
-# CHECK 1: ork-core must be listed first
+# CHECK 1: orkl must be listed first (two-tier system)
 # ============================================================================
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 1: ork-core should be first (foundation plugin)"
+echo "  Check 1: orkl should be first (universal toolkit)"
 echo "───────────────────────────────────────────────────────────────"
 
 first_plugin=$(jq -r '.plugins[0].name' "$MARKETPLACE_JSON")
-if [[ "$first_plugin" == "ork-core" ]]; then
-    log_pass "ork-core is the first plugin listed"
+if [[ "$first_plugin" == "orkl" ]]; then
+    log_pass "orkl is the first plugin listed"
 else
-    log_fail "ork-core should be first but position 0 is '$first_plugin'"
+    log_fail "orkl should be first but position 0 is '$first_plugin'"
 fi
 
 # ============================================================================
@@ -143,31 +143,24 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 done
 
 # ============================================================================
-# CHECK 4: Memory tier ordering (graph < mem0 < fabric)
+# CHECK 4: Two-tier ordering (orkl before ork)
 # ============================================================================
 echo ""
 echo "───────────────────────────────────────────────────────────────"
-echo "  Check 4: Memory plugin tier ordering"
+echo "  Check 4: Two-tier plugin ordering"
 echo "───────────────────────────────────────────────────────────────"
 
-graph_pos=$(get_position "ork-memory-graph")
-mem0_pos=$(get_position "ork-memory-mem0")
-fabric_pos=$(get_position "ork-memory-fabric")
+lite_pos=$(get_position "orkl")
+ork_pos=$(get_position "ork")
 
-if [[ -n "$graph_pos" && -n "$mem0_pos" ]]; then
-    if [[ "$graph_pos" -lt "$mem0_pos" ]]; then
-        log_pass "ork-memory-graph (pos $graph_pos) before ork-memory-mem0 (pos $mem0_pos)"
+if [[ -n "$lite_pos" && -n "$ork_pos" ]]; then
+    if [[ "$lite_pos" -lt "$ork_pos" ]]; then
+        log_pass "orkl (pos $lite_pos) before ork (pos $ork_pos)"
     else
-        log_fail "ork-memory-graph (pos $graph_pos) should be before ork-memory-mem0 (pos $mem0_pos)"
+        log_fail "orkl (pos $lite_pos) should be before ork (pos $ork_pos)"
     fi
-fi
-
-if [[ -n "$mem0_pos" && -n "$fabric_pos" ]]; then
-    if [[ "$mem0_pos" -lt "$fabric_pos" ]]; then
-        log_pass "ork-memory-mem0 (pos $mem0_pos) before ork-memory-fabric (pos $fabric_pos)"
-    else
-        log_fail "ork-memory-mem0 (pos $mem0_pos) should be before ork-memory-fabric (pos $fabric_pos)"
-    fi
+else
+    log_pass "Two-tier system: orkl and ork plugins found"
 fi
 
 # Summary

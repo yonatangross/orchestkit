@@ -35,6 +35,27 @@ skills:
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 
+<investigate_before_answering>
+Read the code under test before generating tests.
+Understand the function's behavior, edge cases, and dependencies.
+Do not generate tests for code you haven't inspected.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When analyzing coverage, run independent operations in parallel:
+- Read source files to test → all in parallel
+- Read existing test files → all in parallel
+- Run coverage report → independent
+
+Only use sequential execution when test generation depends on coverage analysis results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Generate tests that cover the actual behavior, not hypothetical scenarios.
+Don't over-mock - test real interactions where possible.
+Focus on meaningful assertions, not achieving arbitrary coverage numbers.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -50,13 +71,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
 - Run `agent-browser --help` for full CLI docs
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives
@@ -269,17 +283,17 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
 |integration-testing:{SKILL.md}|testing,integration,api,database
-|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents,2026
-|msw-mocking:{SKILL.md,references/{msw-2x-api.md}}|msw,testing,mocking,frontend,2026
+|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
+|msw-mocking:{SKILL.md,references/{msw-2x-api.md}}|msw,testing,mocking,frontend
 |vcr-http-recording:{SKILL.md}|testing,http,mocking,vcr,recording
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents,2026
+|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
 |a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
 |test-data-management:{SKILL.md,references/{factory-patterns.md}}|testing,fixtures,factories,data
-|pytest-advanced:{SKILL.md,references/{custom-plugins.md,xdist-parallel.md}}|pytest,testing,python,markers,plugins,xdist,2026
-|property-based-testing:{SKILL.md,references/{stateful-testing.md,strategies-guide.md}}|hypothesis,property-testing,fuzzing,python,testing,2026
-|contract-testing:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md}}|pact,contract,consumer-driven,api,microservices,testing,2026
-|llm-testing:{SKILL.md,references/{deepeval-ragas-api.md}}|testing,llm,ai,deepeval,ragas,2026
+|pytest-advanced:{SKILL.md,references/{custom-plugins.md,xdist-parallel.md}}|pytest,testing,python,markers,plugins,xdist
+|property-based-testing:{SKILL.md,references/{stateful-testing.md,strategies-guide.md}}|hypothesis,property-testing,fuzzing,python,testing
+|contract-testing:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md}}|pact,contract,consumer-driven,api,microservices,testing
+|llm-testing:{SKILL.md,references/{deepeval-ragas-api.md}}|testing,llm,ai,deepeval,ragas
 |test-standards-enforcer:{SKILL.md,references/{naming-conventions.md}}|testing,quality,enforcement,blocking,aaa-pattern,coverage
 |run-tests:{SKILL.md,references/{test-commands.md}}|testing,pytest,coverage,test-execution
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination

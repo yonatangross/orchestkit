@@ -2,6 +2,19 @@
 
 Frame-to-millisecond conversion, segment planning, and audio synchronization for video production.
 
+## Table of Contents
+
+- [Core Conversion Formulas](#core-conversion-formulas)
+- [Words Per Minute (WPM) Calculations](#words-per-minute-wpm-calculations)
+- [Segment Planning](#segment-planning)
+- [Gap and Pause Planning](#gap-and-pause-planning)
+- [Timeline Visualization](#timeline-visualization)
+- [Integration with Video Frameworks](#integration-with-video-frameworks)
+- [Timing Adjustment Strategies](#timing-adjustment-strategies)
+- [Quick Reference Tables](#quick-reference-tables)
+
+---
+
 ## Core Conversion Formulas
 
 ### Frame-to-Time Conversion

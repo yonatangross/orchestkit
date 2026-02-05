@@ -4,7 +4,7 @@ description: ROI, NPV, IRR, payback period, and total cost of ownership analysis
 context: fork
 agent: business-case-builder
 version: 1.0.0
-tags: [product, finance, roi, npv, irr, tco, business-case, 2026]
+tags: [product, finance, roi, npv, irr, tco, business-case]
 author: OrchestKit
 user-invocable: false
 ---
@@ -94,7 +94,7 @@ irr = calculate_irr([-500_000, 200_000, 200_000, 200_000, 200_000, 200_000])
 - IRR > hurdle rate (cost of capital): Accept
 - IRR < hurdle rate: Reject
 
-**Typical Hurdle Rates (2026):**
+**Typical Hurdle Rates ():**
 - Conservative enterprise: 10-12%
 - Growth company: 15-20%
 - Startup: 25-40%
@@ -114,7 +114,7 @@ Annual savings: $200,000
 Payback = $500,000 / $200,000 = 2.5 years
 ```
 
-**Typical Expectations (2026):**
+**Typical Expectations ():**
 - SaaS investments: 6-12 months
 - Enterprise platforms: 12-24 months
 - Infrastructure: 24-36 months
@@ -254,7 +254,7 @@ Test how results change with different assumptions.
 | Sunk cost fallacy | Evaluate future costs/benefits only |
 | Confirmation bias | Have skeptic review the case |
 
-## 2026 Trends
+##  Trends
 
 - **AI cost integration**: Factor in AI/ML infrastructure costs and benefits
 - **Carbon accounting**: Include sustainability metrics in TCO
@@ -272,4 +272,4 @@ Test how results change with different assumptions.
 - [NPV Calculator](references/npv-calculator.md)
 - [SaaS Business Case Template](references/saas-business-case-template.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

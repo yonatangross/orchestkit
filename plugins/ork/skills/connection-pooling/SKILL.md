@@ -4,13 +4,13 @@ description: Database and HTTP connection pooling patterns for Python async appl
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [connection-pool, asyncpg, aiohttp, database, http, performance, 2026]
-allowed-tools: [Read, Write, Edit, Bash, Grep, Glob]
+tags: [connection-pool, asyncpg, aiohttp, database, http, performance]
+allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
 ---
 
-# Connection Pooling Patterns (2026)
+# Connection Pooling Patterns ()
 
 Database and HTTP connection pooling for high-performance async Python applications.
 

@@ -4,7 +4,7 @@ description: Distributed locking patterns with Redis and PostgreSQL for coordina
 context: fork
 agent: backend-system-architect
 version: 1.0.0
-tags: [distributed, locks, redis, postgresql, concurrency, coordination, 2026]
+tags: [distributed, locks, redis, postgresql, concurrency, coordination]
 author: OrchestKit
 user-invocable: false
 ---

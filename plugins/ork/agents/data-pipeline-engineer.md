@@ -38,6 +38,27 @@ skills:
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
 
+<investigate_before_answering>
+Read existing embedding configuration and chunking strategies before making changes.
+Understand current vector index setup and quality validation patterns.
+Do not assume embedding dimensions or providers without checking configuration.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When processing data, run independent operations in parallel:
+- Read source documents → independent
+- Check existing embedding config → independent
+- Query current index status → independent
+
+Only use sequential execution when embedding generation depends on chunking results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only implement the chunking/embedding strategy needed for the task.
+Don't add extra validation, caching, or optimization beyond requirements.
+Simple chunking with good boundaries beats complex over-engineered strategies.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -49,13 +70,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 - `mcp__postgres-mcp__*` - Vector index operations and data queries
 - `mcp__context7__*` - Documentation for embedding providers (Voyage AI, OpenAI)
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives
@@ -208,15 +222,15 @@ Read the specific file before advising. Do NOT rely on training data.
 |query-decomposition:{SKILL.md}|rag,retrieval,query,decomposition
 |reranking-patterns:{SKILL.md}|rag,retrieval,reranking,relevance
 |contextual-retrieval:{SKILL.md}|rag,retrieval,anthropic,bm25,vector-search
-|agentic-rag-patterns:{SKILL.md,references/{adaptive-retrieval.md,corrective-rag.md,knowledge-graph-rag.md,self-rag.md}}|rag,self-rag,crag,knowledge-graph,langgraph,agentic,2026
-|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval,2026
-|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression,2026
+|agentic-rag-patterns:{SKILL.md,references/{adaptive-retrieval.md,corrective-rag.md,knowledge-graph-rag.md,self-rag.md}}|rag,self-rag,crag,knowledge-graph,langgraph,agentic
+|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval
+|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression
 |golden-dataset-curation:{SKILL.md,references/{annotation-patterns.md,selection-criteria.md}}|golden-dataset,curation,quality,multi-agent,langfuse,2025
 |golden-dataset-validation:{SKILL.md,references/{quality-metrics.md,validation-rules.md}}|golden-dataset,validation,integrity,schema,duplicate-detection,2025
 |semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python,2026
-|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python,2026
-|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication,2026
+|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
+|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
+|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
 |devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
 |mem0-memory:{SKILL.md,references/{agent-user-architecture.md,data-structure.md,metadata-filtered-architecture.md,visualization.md}}|memory,mem0,persistence,context
 |memory-fabric:{SKILL.md,references/{entity-extraction.md,query-merging.md}}|memory,orchestration,graph-first,graph,unified-search,deduplication,cross-reference

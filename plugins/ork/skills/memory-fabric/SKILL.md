@@ -5,9 +5,8 @@ context: inherit
 version: 2.1.0
 author: OrchestKit
 tags: [memory, orchestration, graph-first, graph, unified-search, deduplication, cross-reference]
-plugin: ork-memory-fabric
 user-invocable: false
-allowedTools: [Read, Bash, mcp__memory__search_nodes, mcp__mem0__search_memories]
+allowedTools: [Read, Bash, mcp__memory__search_nodes]
 ---
 
 # Memory Fabric - Graph-First Orchestration

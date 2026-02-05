@@ -4,7 +4,7 @@ description: LLM output evaluation and quality assessment. Use when implementing
 context: fork
 agent: llm-integrator
 version: 2.0.0
-tags: [evaluation, llm, quality, ragas, langfuse, 2026]
+tags: [evaluation, llm, quality, ragas, langfuse]
 author: OrchestKit
 user-invocable: false
 ---
@@ -48,7 +48,7 @@ async def detect_hallucination(context: str, output: str) -> dict:
     return {"has_hallucinations": bool, "unsupported_claims": []}
 ```
 
-## RAGAS Metrics (2026)
+## RAGAS Metrics ()
 
 | Metric | Use Case | Threshold |
 |--------|----------|-----------|

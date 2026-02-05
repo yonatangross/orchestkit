@@ -36,28 +36,28 @@
         }
       ]
     },
-    "agent-browser": {
+    "browser-automation": {
       "template_count": 3,
       "files": [
         {
-          "path": "skills/agent-browser/templates/authenticated-session.sh",
-          "relative_path": "skills/agent-browser/templates/authenticated-session.sh",
+          "path": "skills/browser-automation/templates/authenticated-session.sh",
+          "relative_path": "skills/browser-automation/templates/authenticated-session.sh",
           "name": "authenticated-session.sh",
           "type": "sh",
           "size_bytes": 5582,
           "category": "shell"
         },
         {
-          "path": "skills/agent-browser/templates/capture-workflow.sh",
-          "relative_path": "skills/agent-browser/templates/capture-workflow.sh",
+          "path": "skills/browser-automation/templates/capture-workflow.sh",
+          "relative_path": "skills/browser-automation/templates/capture-workflow.sh",
           "name": "capture-workflow.sh",
           "type": "sh",
           "size_bytes": 1148,
           "category": "shell"
         },
         {
-          "path": "skills/agent-browser/templates/form-automation.sh",
-          "relative_path": "skills/agent-browser/templates/form-automation.sh",
+          "path": "skills/browser-automation/templates/form-automation.sh",
+          "relative_path": "skills/browser-automation/templates/form-automation.sh",
           "name": "form-automation.sh",
           "type": "sh",
           "size_bytes": 5208,
@@ -2054,9 +2054,9 @@
       "skills/zero-downtime-migration/templates/expand-contract-template.py"
     ],
     "shell": [
-      "skills/agent-browser/templates/authenticated-session.sh",
-      "skills/agent-browser/templates/capture-workflow.sh",
-      "skills/agent-browser/templates/form-automation.sh",
+      "skills/browser-automation/templates/authenticated-session.sh",
+      "skills/browser-automation/templates/capture-workflow.sh",
+      "skills/browser-automation/templates/form-automation.sh",
       "skills/browser-content-capture/templates/auth-capture.sh",
       "skills/browser-content-capture/templates/capture-workflow.sh",
       "skills/browser-content-capture/templates/multi-page-crawl.sh",

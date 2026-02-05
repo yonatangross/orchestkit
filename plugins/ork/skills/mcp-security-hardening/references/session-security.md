@@ -1,5 +1,17 @@
 # Session Security for MCP
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Secure Session ID Generation](#secure-session-id-generation)
+- [Session Lifecycle Management](#session-lifecycle-management)
+- [Authorization Verification](#authorization-verification)
+- [Context Isolation](#context-isolation)
+- [Rate Limiting Implementation](#rate-limiting-implementation)
+- [Testing Session Security](#testing-session-security)
+
+---
+
 ## Overview
 
 MCP sessions must be secured against hijacking, replay attacks, and unauthorized access. This reference covers secure session ID generation, authorization patterns, context isolation, and rate limiting.

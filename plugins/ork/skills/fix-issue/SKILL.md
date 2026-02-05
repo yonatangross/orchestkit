@@ -1,12 +1,12 @@
 ---
 name: fix-issue
-description: "[GIT] Fix GitHub issues with parallel analysis. Use when fixing bugs or resolving issues."
+description: "Fixes GitHub issues with parallel analysis. Use when fixing bugs or resolving issues."
 context: fork
 version: 2.1.0
 author: OrchestKit
 tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
-allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get-library-docs]
+allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, debug-investigator, memory, remember]
 ---
 
@@ -307,6 +307,63 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [description]"
 
 ---
 
+## CC 2.1.27+ Enhancements
+
+### Session Resume with PR Context
+
+When you create a PR for the fix, the session is automatically linked:
+
+```bash
+# Later: Resume with full PR context
+claude --from-pr 789
+```
+
+### Task Metrics (CC 2.1.30)
+
+Track RCA efficiency across the 5 parallel agents:
+
+```markdown
+## Phase 4 Metrics (Root Cause Analysis)
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| debug-investigator #1 | 520 | 12 | 18s |
+| debug-investigator #2 | 480 | 10 | 15s |
+| backend-system-architect | 390 | 8 | 12s |
+
+**Root cause found in:** 45s total
+```
+
+### Tool Guidance (CC 2.1.31)
+
+When investigating root cause:
+
+| Task | Use | Avoid |
+|------|-----|-------|
+| Read logs/files | `Read(file_path=...)` | `bash cat` |
+| Search for errors | `Grep(pattern="ERROR")` | `bash grep` |
+| Find affected files | `Glob(pattern="**/*.py")` | `bash find` |
+| Check git history | `Bash git log/diff` | (git needs bash) |
+
+### Session Resume Hints (CC 2.1.31)
+
+Before ending fix sessions, capture investigation context:
+
+```bash
+/ork:remember Issue #$ARGUMENTS RCA findings:
+  Root cause: [one line]
+  Confirmed by: [key evidence]
+  Fix status: [implemented/pending]
+  Prevention: [recommendation]
+```
+
+Resume later:
+```bash
+claude                              # Shows resume hint
+/ork:memory search "issue $ARGUMENTS"  # Loads your findings
+```
+
+---
+
 ## Related Skills
 
 - `commit` - Commit issue fixes
@@ -316,4 +373,4 @@ gh pr create --base dev --title "fix(#$ARGUMENTS): [description]"
 
 ---
 
-**Version:** 2.0.0 (January 2026)
+**Version:** 2.1.0 (February 2026)

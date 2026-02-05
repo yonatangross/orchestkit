@@ -1,6 +1,6 @@
 ---
 name: demo-producer
-description: "[MEDIA] Create polished demo videos. Use for skill showcases, tutorials, or CLI demonstrations."
+description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 user-invocable: true
 context: fork
 version: 1.0.0
@@ -17,7 +17,7 @@ Universal demo video creation for any content type.
 ```bash
 /demo-producer                    # Interactive mode - asks what to create
 /demo-producer skill explore      # Create demo for a skill
-/demo-producer plugin ork-rag     # Create demo for a plugin
+/demo-producer plugin ork     # Create demo for a plugin
 /demo-producer tutorial "Building a REST API"  # Custom tutorial
 ```
 
@@ -27,8 +27,8 @@ Universal demo video creation for any content type.
 |------|--------|---------|
 | `skill` | skills/{name}/SKILL.md | `/demo-producer skill commit` |
 | `agent` | agents/{name}.md | `/demo-producer agent debug-investigator` |
-| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork-core` |
-| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork-rag` |
+| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork` |
+| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork` |
 | `tutorial` | Custom description | `/demo-producer tutorial "Git workflow"` |
 | `cli` | Any CLI tool | `/demo-producer cli "npm create vite"` |
 | `code` | Code walkthrough | `/demo-producer code src/api/auth.ts` |

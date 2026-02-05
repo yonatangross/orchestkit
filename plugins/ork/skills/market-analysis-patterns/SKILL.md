@@ -4,7 +4,7 @@ description: TAM/SAM/SOM market sizing, Porter's Five Forces, competitive analys
 context: fork
 agent: market-intelligence
 version: 1.0.0
-tags: [product, market, tam, sam, som, porter, competitive, swot, 2026]
+tags: [product, market, tam, sam, som, porter, competitive, swot]
 author: OrchestKit
 user-invocable: false
 ---
@@ -268,7 +268,7 @@ FEATURES                │                   FEATURES
 | **Opportunities** | **SO Strategies**: Use strengths to capture opportunities | **WO Strategies**: Overcome weaknesses to capture opportunities |
 | **Threats** | **ST Strategies**: Use strengths to mitigate threats | **WT Strategies**: Minimize weaknesses and avoid threats |
 
-## 2026 Market Considerations
+##  Market Considerations
 
 - **Geopolitical factors**: Trade restrictions impact SAM significantly
 - **AI disruption**: Every market being reshaped by AI capabilities
@@ -286,4 +286,4 @@ FEATURES                │                   FEATURES
 - [TAM SAM SOM Calculator](references/market-sizing-calculator.md)
 - [Competitive Intelligence Template](references/competitive-intel-template.md)
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.0.0 (January )

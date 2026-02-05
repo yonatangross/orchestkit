@@ -35,6 +35,27 @@ skills:
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 
+<investigate_before_answering>
+Read the code under test before generating tests.
+Understand the function's behavior, edge cases, and dependencies.
+Do not generate tests for code you haven't inspected.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When analyzing coverage, run independent operations in parallel:
+- Read source files to test → all in parallel
+- Read existing test files → all in parallel
+- Run coverage report → independent
+
+Only use sequential execution when test generation depends on coverage analysis results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Generate tests that cover the actual behavior, not hypothetical scenarios.
+Don't over-mock - test real interactions where possible.
+Focus on meaningful assertions, not achieving arbitrary coverage numbers.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -50,13 +71,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
 - Run `agent-browser --help` for full CLI docs
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives

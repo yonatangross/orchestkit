@@ -42,15 +42,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__sequential-thinking__*` - Complex alerting rule design and threshold analysis
 - `mcp__memory__*` - Knowledge graph for monitoring patterns and alert decisions
 
-## Memory Integration
-
-At task start, query relevant context:
-- Check for existing monitoring patterns and SLO definitions
-- Review prior alerting decisions and thresholds
-
-Before completing, store patterns:
-- Record successful alert rules and dashboard designs
-
 ## Concrete Objectives
 
 1. Design and implement Prometheus metrics instrumentation
@@ -374,7 +365,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,2026
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
 |core-web-vitals:{SKILL.md,references/{rum-setup.md}}|performance,core-web-vitals,lcp,inp,cls,lighthouse,rum,web-vitals
 |performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination

@@ -1,5 +1,20 @@
 # React 19 Component Patterns
 
+## Table of Contents
+
+- [Overview](#overview)
+- [React.FC Removal](#1-reactfc-removal)
+- [forwardRef Removal](#2-forwardref-removal)
+- [New React 19 Hooks](#3-new-react-19-hooks)
+- [Testing React 19 Components](#4-testing-react-19-components)
+- [Migration Checklist](#5-migration-checklist)
+- [use() Hook for Suspense-Native Data Fetching](#6-use-hook-for-suspense-native-data-fetching)
+- [useOptimistic with useTransition](#7-useoptimistic-with-usetransition-async-pattern)
+- [Testing React 19 Hooks](#8-testing-react-19-hooks)
+- [ESLint Rules](#9-eslint-rules)
+
+---
+
 ## Overview
 
 React 19 introduces breaking changes to component declaration patterns. This reference provides migration guidance and best practices for 2025+ React development.

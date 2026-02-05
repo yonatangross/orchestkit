@@ -32,6 +32,27 @@ hooks:
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.
 
+<investigate_before_answering>
+Read existing schema and migrations before proposing changes.
+Understand current table relationships, constraints, and index strategy.
+Always run EXPLAIN ANALYZE before recommending optimizations.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When analyzing database issues, run independent queries in parallel:
+- Read existing migrations → independent
+- Query schema via postgres-mcp → independent
+- Query pg-aiguide for best practices → independent
+
+Only use sequential execution when migration depends on schema inspection results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only add indexes and constraints that solve real problems.
+Don't create extra tables, views, or partitions beyond requirements.
+Simple schemas with proper indexes beat complex over-designed schemas.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -45,13 +66,6 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__pg-aiguide__semantic_search_tiger_docs` - Query ecosystem docs (TimescaleDB, pgvector)
 - `mcp__pg-aiguide__view_skill` - Get curated best practices for schema/indexing/constraints
 - `mcp__postgres-mcp__*` - Schema inspection, EXPLAIN ANALYZE, query execution
-
-## Memory Integration
-At task start, query relevant context:
-- `mcp__mem0__search_memories` with query describing your task domain
-
-Before completing, store significant patterns:
-- `mcp__mem0__add_memory` for reusable decisions and patterns
 
 
 ## Concrete Objectives
