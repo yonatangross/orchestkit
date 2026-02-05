@@ -1,6 +1,6 @@
 ---
 description: Tracks competitor page changes over time. Captures snapshots, detects diffs, alerts on significant changes. Use when monitoring competitive intelligence, pricing changes, or feature tracking.
-allowed-tools: Bash, Read, Write, WebFetch
+allowed-tools: [Bash, Read, Write, WebFetch]
 ---
 
 # Auto-generated from skills/competitive-monitoring/SKILL.md

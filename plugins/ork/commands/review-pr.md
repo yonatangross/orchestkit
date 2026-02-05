@@ -89,6 +89,31 @@ Identify:
 - Lines added/removed
 - Affected domains (frontend, backend, AI)
 
+## Tool Guidance
+
+Use the right tools for PR review operations:
+
+| Task | Use | Avoid |
+|------|-----|-------|
+| Fetch PR diff | `Bash: gh pr diff` | Reading all changed files individually |
+| List changed files | `Bash: gh pr diff --name-only` | `bash find` |
+| Search for patterns | `Grep(pattern="...", path="src/")` | `bash grep` |
+| Read file content | `Read(file_path="...")` | `bash cat` |
+| Check CI status | `Bash: gh pr checks` | Polling APIs |
+
+## Parallel Execution Strategy
+
+<use_parallel_tool_calls>
+When gathering PR context, run independent operations in parallel:
+- `gh pr view` (PR metadata) - independent
+- `gh pr diff` (changed files) - independent
+- `gh pr checks` (CI status) - independent
+
+Spawn all three in ONE message. This cuts context-gathering time by 60%.
+
+For agent-based review (Phase 3), all 6 agents are independent - launch them together.
+</use_parallel_tool_calls>
+
 ## Phase 2: Skills Auto-Loading (CC 2.1.6)
 
 **CC 2.1.6 auto-discovers skills** - no manual loading needed!

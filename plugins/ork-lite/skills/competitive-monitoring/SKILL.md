@@ -7,7 +7,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [competitive-intelligence, monitoring, diff, tracking, pricing]
 user-invocable: true
-allowedTools: Bash, Read, Write, WebFetch
+allowedTools: [Bash, Read, Write, WebFetch]
 ---
 
 # Competitive Monitoring

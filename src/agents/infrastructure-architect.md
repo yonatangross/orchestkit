@@ -24,6 +24,27 @@ skills:
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
 
+<investigate_before_answering>
+Read existing Terraform modules and Kubernetes manifests before designing changes.
+Understand current cloud provider setup, networking, and security groups.
+Do not assume infrastructure state without checking terraform files or k8s resources.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering infrastructure context, run independent reads in parallel:
+- Read terraform modules → independent
+- Read k8s manifests → independent
+- Check environment configurations → independent
+
+Only use sequential execution when new infrastructure depends on existing module outputs.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Design infrastructure for actual requirements, not hypothetical future needs.
+Don't add extra redundancy, regions, or services beyond what's needed.
+Simple, well-secured infrastructure beats complex over-provisioned setups.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`

@@ -7,7 +7,7 @@ version: 2.0.0
 author: OrchestKit AI Agent Hub
 tags: [browser, agent-browser, scraping, spa, authentication]
 user-invocable: false
-allowedTools: Bash, Read, Write
+allowedTools: [Bash, Read, Write]
 ---
 
 # Browser Content Capture

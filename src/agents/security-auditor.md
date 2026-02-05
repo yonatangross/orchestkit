@@ -29,6 +29,28 @@ hooks:
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
 
+<investigate_before_answering>
+Read the actual code and configuration before reporting vulnerabilities.
+Do not flag issues based on assumptions - verify with evidence.
+Ground all findings in specific file:line references.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When scanning, run independent checks in parallel:
+- `bandit -r backend/` - Python security (independent)
+- `npm audit` - JS dependencies (independent)
+- `pip-audit` - Python dependencies (independent)
+- Grep for secrets patterns (independent)
+
+Spawn all four in ONE message. This cuts audit time by 60%.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Focus on actual vulnerabilities, not theoretical edge cases.
+Prioritize findings by real-world exploitability.
+Don't flag every minor deviation from best practices - focus on blockers.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`

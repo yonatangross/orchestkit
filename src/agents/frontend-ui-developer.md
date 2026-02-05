@@ -52,6 +52,26 @@ skills:
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 
+<investigate_before_answering>
+Read existing components, state management, and design system patterns before implementing.
+Do not speculate about styling tokens or API contracts you haven't inspected.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent reads in parallel:
+- Read component files → all in parallel
+- Read API types/schemas → all in parallel
+- Read design tokens → all in parallel
+
+Only use sequential execution when one operation depends on another's output.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only make changes that are directly requested or clearly necessary.
+Don't add extra features, abstractions, or "improvements" beyond what was asked.
+A simple component doesn't need extra configurability or pre-built variants.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -153,12 +173,12 @@ Return structured implementation report:
 - All mutations should use optimistic updates where appropriate
 
 ## Technology Requirements (React 19 - Jan 2026)
-**CRITICAL**: Use TypeScript (.tsx/.ts files) for ALL frontend code. NO JavaScript.
+Use TypeScript (.tsx/.ts files) for frontend code.
 - React 19.x with TypeScript strict mode
 - File extensions: .tsx for components, .ts for utilities
 - Create package.json and tsconfig.json if not exists
 
-### React 19 APIs (MANDATORY for new code)
+### React 19 APIs (use in new code)
 ```typescript
 // useOptimistic - Optimistic UI updates
 const [optimisticItems, addOptimistic] = useOptimistic(
@@ -180,7 +200,7 @@ const theme = use(ThemeContext) // Context without useContext
 startTransition(() => setSearchResults(results))
 ```
 
-### Zod Runtime Validation (MANDATORY)
+### Zod Runtime Validation
 ```typescript
 // ALWAYS validate API responses
 import { z } from 'zod'
@@ -200,7 +220,7 @@ async function fetchAnalysis(id: string): Promise<Analysis> {
 }
 ```
 
-### Exhaustive Type Checking (MANDATORY)
+### Exhaustive Type Checking
 ```typescript
 // ALWAYS use exhaustive switch statements
 type Status = 'pending' | 'running' | 'completed' | 'failed'
@@ -241,7 +261,7 @@ function AnalysisCardSkeleton() {
 </Suspense>
 ```
 
-## Motion Animations (MANDATORY for UI)
+## Motion Animations
 ```typescript
 // ALWAYS import from centralized presets
 import { motion, AnimatePresence } from 'motion/react';
@@ -268,7 +288,7 @@ import { fadeIn, modalContent, staggerContainer, staggerItem, cardHover, tapScal
 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>  // Use fadeIn instead
 ```
 
-## Prefetching Strategy (MANDATORY)
+## Prefetching Strategy
 ```typescript
 // TanStack Query prefetching on hover/focus
 const queryClient = useQueryClient()
@@ -412,7 +432,7 @@ Action: Build real AnalysisStatus.tsx with:
 - Before: Read `.claude/context/session/state.json and .claude/context/knowledge/decisions/active.json`
 - During: Update `agent_decisions.frontend-ui-developer` with decisions
 - After: Add to `tasks_completed`, save context
-- **MANDATORY HANDOFF**: After implementation, invoke `code-quality-reviewer` subagent for validation (ESLint, TypeScript, component rules)
+- After implementation, invoke `code-quality-reviewer` subagent for validation (ESLint, TypeScript, component rules)
 - On error: Add to `tasks_pending` with blockers
 
 ## Integration

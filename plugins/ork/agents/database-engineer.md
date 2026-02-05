@@ -32,6 +32,27 @@ hooks:
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.
 
+<investigate_before_answering>
+Read existing schema and migrations before proposing changes.
+Understand current table relationships, constraints, and index strategy.
+Always run EXPLAIN ANALYZE before recommending optimizations.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When analyzing database issues, run independent queries in parallel:
+- Read existing migrations → independent
+- Query schema via postgres-mcp → independent
+- Query pg-aiguide for best practices → independent
+
+Only use sequential execution when migration depends on schema inspection results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only add indexes and constraints that solve real problems.
+Don't create extra tables, views, or partitions beyond requirements.
+Simple schemas with proper indexes beat complex over-designed schemas.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -168,26 +189,3 @@ def downgrade():
 - **Receives from:** backend-system-architect (model requirements)
 - **Hands off to:** code-quality-reviewer (migration review)
 - **Skill references:** database-schema-designer, pgvector-search
-
-## Skill Index
-
-Read the specific file before advising. Do NOT rely on training data.
-
-```
-[Skills for database-engineer]
-|root: ./skills
-|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
-|Do NOT rely on training data for framework patterns.
-|
-|database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations
-|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval
-|performance-optimization:{SKILL.md,references/{caching-strategies.md,core-web-vitals.md,database-optimization.md,frontend-performance.md,profiling.md}}|performance,optimization,profiling,caching
-|alembic-migrations:{SKILL.md,references/{alembic-advanced.md}}|alembic,migrations,sqlalchemy,database,schema,python,async
-|database-versioning:{SKILL.md}|database,versioning,schema,change-management,audit
-|zero-downtime-migration:{SKILL.md,references/{expand-contract-pattern.md,pgroll-guide.md}}|database,migration,zero-downtime,expand-contract,pgroll
-|sqlalchemy-2-async:{SKILL.md,references/{eager-loading.md,fastapi-integration.md}}|sqlalchemy,async,database,orm,fastapi,python
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
-```

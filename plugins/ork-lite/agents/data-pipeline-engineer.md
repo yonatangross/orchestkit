@@ -38,6 +38,27 @@ skills:
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
 
+<investigate_before_answering>
+Read existing embedding configuration and chunking strategies before making changes.
+Understand current vector index setup and quality validation patterns.
+Do not assume embedding dimensions or providers without checking configuration.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When processing data, run independent operations in parallel:
+- Read source documents → independent
+- Check existing embedding config → independent
+- Query current index status → independent
+
+Only use sequential execution when embedding generation depends on chunking results.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only implement the chunking/embedding strategy needed for the task.
+Don't add extra validation, caching, or optimization beyond requirements.
+Simple chunking with good boundaries beats complex over-engineered strategies.
+</avoid_overengineering>
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -184,27 +205,3 @@ Task: "Regenerate embeddings for the golden dataset"
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
 - **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
-
-## Skill Index
-
-Read the specific file before advising. Do NOT rely on training data.
-
-```
-[Skills for data-pipeline-engineer]
-|root: ./skills
-|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
-|Do NOT rely on training data for framework patterns.
-|
-|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression
-|golden-dataset-curation:{SKILL.md,references/{annotation-patterns.md,selection-criteria.md}}|golden-dataset,curation,quality,multi-agent,langfuse,2025
-|golden-dataset-validation:{SKILL.md,references/{quality-metrics.md,validation-rules.md}}|golden-dataset,validation,integrity,schema,duplicate-detection,2025
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
-|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
-|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
-|devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
-|mem0-memory:{SKILL.md,references/{agent-user-architecture.md,data-structure.md,metadata-filtered-architecture.md,visualization.md}}|memory,mem0,persistence,context
-|memory-fabric:{SKILL.md,references/{entity-extraction.md,query-merging.md}}|memory,orchestration,graph-first,graph,unified-search,deduplication,cross-reference
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
-```

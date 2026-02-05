@@ -7,7 +7,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [research, browser, webfetch, automation, scraping]
 user-invocable: false
-allowedTools: Bash, Read, Write, WebFetch
+allowedTools: [Bash, Read, Write, WebFetch]
 ---
 
 # Web Research Workflow
