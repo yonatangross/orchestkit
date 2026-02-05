@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.2] - 2026-02-06
+
+### Fixed
+
+- **#324**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()` — reads `CLAUDE_MODEL` env var with sonnet fallback
+- **#325**: Add prefill-guard SessionStart hook that warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+
+### Changed
+
+- CI workflow renames for clarity (Tests & Security, Build, Deploy, Validate: Plugins, etc.)
+- CI pipeline parallelism: 6 test stages now run immediately after build instead of waiting for lint
+- CI summary job: accept "skipped" results (check for failure/cancelled instead of != success)
+- npm audit: blocks on critical vulnerabilities (removed continue-on-error)
+- Playgrounds tests: use shared build artifact
+- Hook count: 117 → 118 (90 global + 22 agent + 6 skill-scoped)
+
+---
+
+
 ## [6.0.1] - 2026-02-05
 
 ### Changed

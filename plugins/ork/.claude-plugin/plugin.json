@@ -1,6 +1,6 @@
 {
   "name": "ork",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "Full OrchestKit toolkit — 197 skills, 36 agents, 118 hooks. Complete AI development powerhouse for Python/React with LLM/RAG patterns, LangGraph, and MCP.",
   "author": {
     "name": "Yonatan Gross",
@@ -10,6 +10,14 @@
   "homepage": "https://github.com/yonatangross/orchestkit",
   "repository": "https://github.com/yonatangross/orchestkit",
   "license": "MIT",
-  "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
-  ,"skills": "./skills/"
+  "keywords": [
+    "ai-development",
+    "langgraph",
+    "fastapi",
+    "react",
+    "typescript",
+    "python",
+    "multi-agent"
+  ],
+  "skills": "./skills/"
 }
