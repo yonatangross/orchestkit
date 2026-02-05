@@ -192,10 +192,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   security-tests:
-    name: Security Tests
+    name: Security Tests (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -262,10 +266,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   performance-tests:
-    name: Performance Tests
+    name: Performance Tests (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -292,10 +300,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   compliance-tests:
-    name: Compliance Tests
+    name: Compliance Tests (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -322,10 +334,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   mem0-tests:
-    name: Mem0 Integration
+    name: Mem0 Integration (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -354,10 +370,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   agent-skill-tests:
-    name: Agents & Skills
+    name: Agents & Skills (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
@@ -396,10 +416,14 @@ jobs:
   # Uses dynamic test discovery
   # ============================================================================
   system-tests:
-    name: System Tests
+    name: System Tests (${{ matrix.os }})
     needs: [build-plugins]
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
