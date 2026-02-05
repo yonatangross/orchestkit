@@ -11,10 +11,11 @@ window.ORCHESTKIT_DATA = {
   // Totals for the full ork plugin (superset)
   totals: {
     plugins: 2,
-    skills: 195,      // Total unique skills (ork has all)
+    skills: 194,      // Total unique skills (ork has all)
     agents: 36,       // Shared across both plugins
     hooks: 117,       // Shared across both plugins
-    commands: 22      // User-invocable skills (shared)
+    commands: 22,     // User-invocable skills (shared)
+    compositions: 14  // Demo compositions for gallery
   },
 
   // Navigation pages for index
