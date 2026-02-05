@@ -1,6 +1,6 @@
 {
   "name": "orkl",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For Python/React/LLM specializations, use full 'ork' plugin.",
   "skills": [
     "explore",
@@ -27,7 +27,6 @@
     "skill-evolution",
     "add-golden",
     "multi-scenario-orchestration",
-
     "api-design-framework",
     "clean-architecture",
     "domain-driven-design",
@@ -44,12 +43,10 @@
     "database-schema-designer",
     "database-versioning",
     "zero-downtime-migration",
-
     "owasp-top-10",
     "auth-patterns",
     "defense-in-depth",
     "security-scanning",
-
     "unit-testing",
     "integration-testing",
     "e2e-testing",
@@ -59,12 +56,10 @@
     "golden-dataset-curation",
     "golden-dataset-management",
     "golden-dataset-validation",
-
     "a11y-testing",
     "wcag-compliance",
     "focus-management",
     "responsive-patterns",
-
     "git-workflow",
     "stacked-prs",
     "github-operations",
@@ -72,7 +67,6 @@
     "issue-progress-tracking",
     "devops-deployment",
     "monorepo-context",
-
     "terminal-demo-generator",
     "remotion-composer",
     "manim-visualizer",
@@ -87,14 +81,12 @@
     "ascii-visualizer",
     "audio-mixing-patterns",
     "music-sfx-selection",
-
     "code-review-playbook",
     "quality-gates",
     "observability-monitoring",
     "architecture-decision-record",
     "performance-optimization",
     "best-practices",
-
     "product-strategy-frameworks",
     "business-case-analysis",
     "market-analysis-patterns",
@@ -105,9 +97,7 @@
     "user-research-methods",
     "root-cause-analysis",
     "system-design-interrogation",
-
     "task-dependency-patterns",
-
     "browser-automation",
     "browser-content-capture",
     "webapp-testing",

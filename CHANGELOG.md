@@ -5,6 +5,26 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.1] - 2026-02-05
+
+### Changed
+
+- **orkl manifest**: Removed 12 language-specific skills to keep orkl truly universal (107 → from 119 skills)
+  - Removed: run-tests, background-jobs, connection-pooling, caching-strategies, rate-limiting, api-versioning, error-handling-rfc9457, input-validation, property-based-testing, i18n-date-patterns, image-optimization, type-safety-validation
+
+### Added
+
+- **LangGraph skills**: Added Quick Start sections, 6 cross-links (up from 3), and evaluation test cases
+- **New skills**: langgraph-streaming, langgraph-subgraphs, langgraph-tools
+- **Progressive disclosure**: Refactored mcp-server-building and database-versioning into main SKILL.md + references/
+
+### Fixed
+
+- Documentation count sync: README.md, CLAUDE.md, CONTRIBUTING.md now show correct counts (197 skills, 36 agents, 117 hooks)
+
+---
+
+
 ## [6.0.0] - 2026-02-04
 
 ### Changed
