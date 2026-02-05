@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**194 skills · 36 agents · 117 hooks · 2 plugins**
+**197 skills · 36 agents · 117 hooks · 2 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -57,7 +57,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 195 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 197 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
 | **Hooks** | 117 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
@@ -89,9 +89,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (125 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**orkl** (107 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
-**ork** (194 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (197 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -161,8 +161,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **v6.0.0** — Two-tier plugin architecture
 
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
-- `orkl` (125 skills) — Universal toolkit, all workflows work out of the box
-- `ork` (194 skills) — Full specialized with Python, React, LLM/RAG patterns
+- `orkl` (107 skills) — Universal toolkit, all workflows work out of the box
+- `ork` (197 skills) — Full specialized with Python, React, LLM/RAG patterns
 - All 36 agents and 117 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)

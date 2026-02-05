@@ -58,6 +58,53 @@ def router(state):
 workflow.add_conditional_edges("router", router)
 ```
 
+## Complete Send API Example (2026 Pattern)
+
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.constants import Send
+from typing import TypedDict, Annotated
+from operator import add
+
+class OverallState(TypedDict):
+    subjects: list[str]
+    jokes: Annotated[list[str], add]  # Accumulates from parallel branches
+
+class JokeState(TypedDict):
+    subject: str
+
+def generate_topics(state: OverallState) -> dict:
+    """Initial node: create list of subjects."""
+    return {"subjects": ["cats", "dogs", "programming", "coffee"]}
+
+def continue_to_jokes(state: OverallState) -> list[Send]:
+    """Fan-out: create parallel branch for each subject."""
+    return [
+        Send("generate_joke", {"subject": s})
+        for s in state["subjects"]
+    ]
+
+def generate_joke(state: JokeState) -> dict:
+    """Worker: process one subject, return to accumulator."""
+    joke = llm.invoke(f"Tell a short joke about {state['subject']}")
+    return {"jokes": [f"{state['subject']}: {joke.content}"]}
+
+# Build graph
+builder = StateGraph(OverallState)
+builder.add_node("generate_topics", generate_topics)
+builder.add_node("generate_joke", generate_joke)
+
+builder.add_edge(START, "generate_topics")
+builder.add_conditional_edges("generate_topics", continue_to_jokes)
+builder.add_edge("generate_joke", END)  # All branches converge automatically
+
+graph = builder.compile()
+
+# Invoke
+result = graph.invoke({"subjects": [], "jokes": []})
+# result["jokes"] contains all 4 jokes
+```
+
 ## Parallel Agent Analysis
 
 ```python
@@ -82,31 +129,45 @@ async def run_parallel_agents(state: AnalysisState):
     return {"findings": findings}
 ```
 
-## Map-Reduce Pattern
+## Map-Reduce Pattern (True Parallel)
 
 ```python
-def map_node(state):
-    """Map: Process each item independently."""
-    items = state["items"]
-    results = []
+import asyncio
 
-    for item in items:
-        result = process_item(item)
-        results.append(result)
+async def parallel_map(items: list, process_fn) -> list:
+    """Map: Process all items concurrently."""
+    tasks = [asyncio.create_task(process_fn(item)) for item in items]
+    return await asyncio.gather(*tasks, return_exceptions=True)
 
-    return {"mapped_results": results}
-
-def reduce_node(state):
+def reduce_results(results: list) -> dict:
     """Reduce: Combine all results."""
-    results = state["mapped_results"]
+    successes = [r for r in results if not isinstance(r, Exception)]
+    failures = [r for r in results if isinstance(r, Exception)]
 
-    summary = {
+    return {
         "total": len(results),
-        "passed": sum(1 for r in results if r["passed"]),
-        "failed": sum(1 for r in results if not r["passed"])
+        "passed": len(successes),
+        "failed": len(failures),
+        "results": successes,
+        "errors": [str(e) for e in failures]
     }
 
+async def map_reduce_node(state: State) -> dict:
+    """Combined map-reduce in single node."""
+    results = await parallel_map(state["items"], process_item_async)
+    summary = reduce_results(results)
     return {"summary": summary}
+
+# Alternative: Using Send API for true parallelism in graph
+def fan_out_to_mappers(state: State) -> list[Send]:
+    """Fan-out pattern for parallel map."""
+    return [
+        Send("mapper", {"item": item, "index": i})
+        for i, item in enumerate(state["items"])
+    ]
+
+# All mappers write to accumulating state key
+# Reducer runs after all mappers complete (automatic fan-in)
 ```
 
 ## Error Isolation
@@ -164,11 +225,18 @@ async def parallel_with_timeout(agents: list, content: str, timeout: int = 30):
 - Sequential where parallel possible
 - Forgetting to wait for all branches
 
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
+
 ## Related Skills
 
-- `langgraph-state` - Accumulating state
-- `multi-agent-orchestration` - Coordination patterns
-- `langgraph-supervisor` - Supervised parallel execution
+- `langgraph-state` - Accumulating state with `Annotated[list, add]` reducer
+- `langgraph-supervisor` - Supervisor dispatching to parallel workers
+- `langgraph-subgraphs` - Parallel subgraph execution
+- `langgraph-streaming` - Stream progress from parallel branches
+- `langgraph-checkpoints` - Checkpoint parallel execution for recovery
+- `multi-agent-orchestration` - Higher-level coordination patterns
 
 ## Capability Details
 

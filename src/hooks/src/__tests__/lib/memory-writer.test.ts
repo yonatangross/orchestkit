@@ -18,6 +18,7 @@ import {
   storeDecision,
   queueGraphOperation,
   isMem0Configured,
+  isCCNativeMemoryAvailable,
   type DecisionRecord,
   type QueuedGraphOperation,
   type GraphEntity,
@@ -35,8 +36,14 @@ vi.mock('node:fs', async () => {
     existsSync: vi.fn(() => true),
     appendFileSync: vi.fn(),
     mkdirSync: vi.fn(),
+    readFileSync: vi.fn(() => ''),
+    writeFileSync: vi.fn(),
   };
 });
+
+vi.mock('node:os', () => ({
+  homedir: vi.fn(() => '/Users/testuser'),
+}));
 
 vi.mock('../../lib/common.js', () => ({
   getProjectDir: vi.fn(() => '/test/project'),
@@ -722,6 +729,25 @@ describe('queueGraphOperation', () => {
     expect(result).toBe(true);
     expect(mockAppendFileSync).toHaveBeenCalled();
   });
+
+  it('should return false when write fails', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.appendFileSync).mockImplementation(() => {
+      throw new Error('Disk full');
+    });
+
+    const operation: QueuedGraphOperation = {
+      type: 'create_entities',
+      payload: {
+        entities: [{ name: 'Test', entityType: 'Technology', observations: [] }],
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    const result = queueGraphOperation(operation);
+
+    expect(result).toBe(false);
+  });
 });
 
 // =============================================================================
@@ -882,5 +908,397 @@ describe('integration scenarios', () => {
     // MENTIONS for problem-solution type
     expect(hasRelation(operations, decision.id, 'N+1-problem', 'MENTIONS')).toBe(true);
     expect(hasRelation(operations, decision.id, 'DataLoader', 'MENTIONS')).toBe(true);
+  });
+});
+
+// =============================================================================
+// CC Native Memory Tests (v2.1.30+ auto-injection)
+// =============================================================================
+
+describe('isCCNativeMemoryAvailable', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should return true when CC project directory exists', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+
+    expect(isCCNativeMemoryAvailable()).toBe(true);
+  });
+
+  it('should return false when CC project directory does not exist', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(false);
+
+    expect(isCCNativeMemoryAvailable()).toBe(false);
+  });
+
+  it('should return false when an error occurs', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockImplementation(() => {
+      throw new Error('Permission denied');
+    });
+
+    expect(isCCNativeMemoryAvailable()).toBe(false);
+  });
+});
+
+describe('storeDecision with CC native memory', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should store high-confidence decisions to CC native memory', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('## Recent Project Decisions\n\n');
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.85, // High confidence
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Should have stored to CC native
+    expect(result.cc_native).toBe(true);
+    expect(fs.writeFileSync).toHaveBeenCalled();
+  });
+
+  it('should skip CC native memory for low-confidence decisions', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.5, // Low confidence
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Should NOT have stored to CC native (confidence too low)
+    expect(result.cc_native).toBe(false);
+  });
+
+  it('should include all storage backends in result', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('');
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Check all storage backends are represented
+    expect(result).toHaveProperty('local');
+    expect(result).toHaveProperty('graph_queued');
+    expect(result).toHaveProperty('mem0_queued');
+    expect(result).toHaveProperty('cc_native');
+  });
+
+  it('should truncate old decisions when exceeding 50 entries', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+
+    // Create existing content with 50+ decision entries
+    const existingDecisions = Array.from({ length: 55 }, (_, i) =>
+      `- **[Decision]** Decision ${i + 1}`
+    ).join('\n');
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      `## Recent Project Decisions\n\n${existingDecisions}\n`
+    );
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    expect(result.cc_native).toBe(true);
+    // Should have written (with truncation)
+    expect(fs.writeFileSync).toHaveBeenCalled();
+  });
+
+  it('should handle write errors gracefully', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('');
+    // appendFileSync works (local storage)
+    vi.mocked(fs.appendFileSync).mockImplementation(() => {});
+    // writeFileSync fails (CC native)
+    vi.mocked(fs.writeFileSync).mockImplementation(() => {
+      throw new Error('Permission denied');
+    });
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Should fail gracefully for CC native
+    expect(result.cc_native).toBe(false);
+    // Local uses appendFileSync, should work
+    expect(result.local).toBe(true);
+  });
+
+  it('should skip duplicate decisions', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+
+    const decisionText = 'Use PostgreSQL for the database';
+    vi.mocked(fs.readFileSync).mockReturnValue(
+      `## Recent Project Decisions\n\n- **[Decision]** ${decisionText}\n`
+    );
+
+    const decision = createMockDecision({
+      content: {
+        what: decisionText, // Same decision text
+      },
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Should return true (already exists)
+    expect(result.cc_native).toBe(true);
+  });
+
+  it('should create memory directory if it does not exist', async () => {
+    const fs = await import('node:fs');
+    // Parent exists, but memory subdir doesn't
+    vi.mocked(fs.existsSync).mockImplementation((path) => {
+      const pathStr = String(path);
+      if (pathStr.includes('/memory/MEMORY.md')) return false;
+      if (pathStr.includes('/memory')) return false;
+      return true; // Parent project dir exists
+    });
+    vi.mocked(fs.readFileSync).mockImplementation(() => {
+      throw new Error('ENOENT: no such file');
+    });
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    await storeDecision(decision);
+
+    // Should have called mkdirSync to create directory
+    expect(fs.mkdirSync).toHaveBeenCalled();
+  });
+
+  it('should format decisions with rationale correctly', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('## Recent Project Decisions\n\n');
+
+    let writtenContent = '';
+    vi.mocked(fs.writeFileSync).mockImplementation((_, content) => {
+      writtenContent = content as string;
+    });
+
+    const decision = createMockDecision({
+      content: {
+        what: 'Use PostgreSQL',
+        why: 'Strong ACID compliance',
+      },
+      entities: ['PostgreSQL', 'database'],
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    await storeDecision(decision);
+
+    // Check content format
+    expect(writtenContent).toContain('**[Decision]** Use PostgreSQL');
+    expect(writtenContent).toContain('_(because: Strong ACID compliance)_');
+    expect(writtenContent).toContain('`PostgreSQL`');
+    expect(writtenContent).toContain('`database`');
+  });
+
+  it('should format preferences differently from decisions', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('## Recent Project Decisions\n\n');
+
+    let writtenContent = '';
+    vi.mocked(fs.writeFileSync).mockImplementation((_, content) => {
+      writtenContent = content as string;
+    });
+
+    const decision = createMockDecision({
+      type: 'preference',
+      content: {
+        what: 'Prefer strict TypeScript',
+      },
+      entities: ['TypeScript'],
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'language',
+      },
+    });
+
+    await storeDecision(decision);
+
+    // Check preference type indicator
+    expect(writtenContent).toContain('**[Preference]** Prefer strict TypeScript');
+  });
+
+  it('should format patterns with Pattern indicator', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('## Recent Project Decisions\n\n');
+
+    let writtenContent = '';
+    vi.mocked(fs.writeFileSync).mockImplementation((_, content) => {
+      writtenContent = content as string;
+    });
+
+    const decision = createMockDecision({
+      type: 'pattern',
+      content: {
+        what: 'Use repository pattern for data access',
+      },
+      entities: ['repository-pattern'],
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'architecture',
+      },
+    });
+
+    await storeDecision(decision);
+
+    // Check pattern type indicator
+    expect(writtenContent).toContain('**[Pattern]** Use repository pattern');
+  });
+
+  it('should skip CC native when not available', async () => {
+    const fs = await import('node:fs');
+    // Simulate CC native not available (user's ~/.claude/projects/{id} doesn't exist)
+    // isCCNativeMemoryAvailable checks dirname of memory dir, which is ~/.claude/projects/{id}
+    vi.mocked(fs.existsSync).mockImplementation((path) => {
+      const pathStr = String(path);
+      // Return false for ~/.claude/projects/* paths (CC hasn't created the project dir)
+      // These paths contain /Users/testuser/.claude/projects/ (from mocked homedir)
+      if (pathStr.includes('/testuser/.claude/projects/')) {
+        return false;
+      }
+      // Local .claude/memory in project dir should exist
+      return true;
+    });
+
+    const decision = createMockDecision({
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'database',
+      },
+    });
+
+    const result = await storeDecision(decision);
+
+    // Should skip CC native
+    expect(result.cc_native).toBe(false);
+    // Local storage uses appendFileSync, which we mock
+    expect(result.local).toBe(true);
+  });
+
+  it('should handle decisions without entities', async () => {
+    const fs = await import('node:fs');
+    vi.mocked(fs.existsSync).mockReturnValue(true);
+    vi.mocked(fs.readFileSync).mockReturnValue('## Recent Project Decisions\n\n');
+
+    let writtenContent = '';
+    vi.mocked(fs.writeFileSync).mockImplementation((_, content) => {
+      writtenContent = content as string;
+    });
+
+    const decision = createMockDecision({
+      content: {
+        what: 'Use simple architecture',
+      },
+      entities: [], // No entities
+      metadata: {
+        session_id: 'sess-123',
+        timestamp: new Date().toISOString(),
+        confidence: 0.9,
+        source: 'user_prompt',
+        project: 'test-project',
+        category: 'architecture',
+      },
+    });
+
+    await storeDecision(decision);
+
+    // Should not have entity tags line
+    expect(writtenContent).toContain('**[Decision]** Use simple architecture');
+    expect(writtenContent).not.toContain('``'); // No empty backticks
   });
 });

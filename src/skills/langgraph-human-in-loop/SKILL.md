@@ -30,6 +30,31 @@ result = app.invoke({"topic": "AI"}, config=config)
 # Workflow pauses here
 ```
 
+## Dynamic interrupt() Function (2026 Best Practice)
+
+Modern approach using `interrupt()` within node logic:
+
+```python
+from langgraph.types import interrupt, Command
+
+def approval_node(state: State):
+    """Dynamic interrupt based on conditions."""
+    # Only interrupt for high-risk actions
+    if state["risk_level"] == "high":
+        response = interrupt({
+            "question": "High-risk action detected. Approve?",
+            "action": state["proposed_action"],
+            "risk_level": state["risk_level"],
+            "details": state["action_details"]
+        })
+
+        if not response.get("approved"):
+            return {"status": "rejected", "action": None}
+
+    # Low risk or approved - proceed
+    return {"status": "approved", "action": state["proposed_action"]}
+```
+
 ## Resume After Approval
 
 ```python
@@ -44,6 +69,29 @@ app.update_state(config, state.values)
 
 # Step 3: Resume workflow
 result = app.invoke(None, config=config)  # Continues to publish
+```
+
+## Command(resume=) Pattern (2026 Best Practice)
+
+```python
+from langgraph.types import Command
+
+config = {"configurable": {"thread_id": "workflow-123"}}
+
+# Initial invoke - stops at interrupt
+result = graph.invoke(initial_state, config)
+
+# Check for interrupt
+if "__interrupt__" in result:
+    interrupt_info = result["__interrupt__"][0].value
+    print(f"Action: {interrupt_info['action']}")
+    print(f"Question: {interrupt_info['question']}")
+
+    # Get user decision
+    user_response = {"approved": True, "feedback": "Looks good"}
+
+    # Resume with Command
+    final = graph.invoke(Command(resume=user_response), config)
 ```
 
 ## Approval Gate Node
@@ -71,35 +119,55 @@ app = workflow.compile(interrupt_before=["approval_gate"])
 ## Feedback Loop Pattern
 
 ```python
-import uuid_utils  # pip install uuid-utils (UUID v7 for Python < 3.14)
+import uuid
 
 async def run_with_feedback(initial_state: dict):
     """Run until human approves."""
-    config = {"configurable": {"thread_id": str(uuid_utils.uuid7())}}
+    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
 
     while True:
         # Run until interrupt
         result = app.invoke(initial_state, config=config)
 
-        # Get current state
-        state = app.get_state(config)
+        # Check for interrupt
+        if "__interrupt__" not in result:
+            return result  # Completed without interrupt
 
-        # Present to human
-        print(f"Output: {state.values['output']}")
+        interrupt_info = result["__interrupt__"][0].value
+        print(f"Output: {interrupt_info.get('output', 'N/A')}")
         feedback = input("Approve? (yes/no/feedback): ")
 
         if feedback.lower() == "yes":
-            state.values["approved"] = True
-            app.update_state(config, state.values)
-            return app.invoke(None, config=config)
+            return app.invoke(Command(resume={"approved": True}), config=config)
         elif feedback.lower() == "no":
             return {"status": "rejected"}
         else:
             # Incorporate feedback and retry
-            state.values["feedback"] = feedback
-            state.values["retry_count"] = state.values.get("retry_count", 0) + 1
-            app.update_state(config, state.values)
-            initial_state = None  # Resume from checkpoint
+            initial_state = None
+            result = app.invoke(
+                Command(resume={"approved": False, "feedback": feedback}),
+                config=config
+            )
+```
+
+## Input Validation Loop
+
+```python
+from langgraph.types import interrupt
+
+def get_valid_age(state: State):
+    """Repeatedly prompt until valid input."""
+    prompt = "What is your age?"
+
+    while True:
+        answer = interrupt(prompt)
+
+        # Validate
+        if isinstance(answer, int) and 0 < answer < 150:
+            return {"age": answer}
+
+        # Invalid - update prompt and continue
+        prompt = f"'{answer}' is not valid. Please enter a number between 1 and 150."
 ```
 
 ## API Integration
@@ -162,18 +230,41 @@ result = app.invoke(None, config=config)
 | Notification | Email/Slack when paused |
 | Fallback | Auto-reject after timeout |
 
+## Critical Rules
+
+**DO:**
+- Place side effects AFTER interrupt calls
+- Make pre-interrupt side effects idempotent (upsert vs create)
+- Keep interrupt call order consistent across executions
+- Pass simple, JSON-serializable values to interrupt()
+
+**DON'T:**
+- Wrap interrupt in bare try/except (catches the interrupt exception)
+- Conditionally skip interrupt calls (breaks determinism)
+- Pass functions or class instances to interrupt()
+- Create non-idempotent records before interrupts (duplicates on resume)
+
 ## Common Mistakes
 
 - No timeout (workflows hang forever)
 - No notification (humans don't know to review)
 - Losing checkpoint (can't resume)
 - No reject path (only approve works)
+- Wrapping interrupt() in try/except (breaks the mechanism)
+- Non-deterministic interrupt call order (breaks resumption)
+
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
 
 ## Related Skills
 
-- `langgraph-checkpoints` - State persistence
-- `langgraph-routing` - Routing after approval
-- `api-design-framework` - Review API design
+- `langgraph-checkpoints` - Persist state across human review pauses
+- `langgraph-routing` - Route based on approval/rejection decisions
+- `langgraph-tools` - Add approval gates before dangerous tool execution
+- `langgraph-supervisor` - Human approval in supervisor routing
+- `langgraph-streaming` - Stream status while waiting for human input
+- `api-design-framework` - Design review API endpoints
 
 ## Capability Details
 

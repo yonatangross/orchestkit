@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **194 skills**: Reusable knowledge modules
+- **197 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **117 hooks**: TypeScript lifecycle automation (89 global + 28 agent/skill-scoped, 6 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 194 skills
+├── skills/             # 197 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -149,20 +149,20 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-194 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+197 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
 | Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 172 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Reference | 175 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
 - `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
 
 ### Agents
-35 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
+36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
 117 hook entries (89 global + 28 agent/skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
@@ -229,8 +229,8 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Description |
 |--------|--------|-------------|
-| `orkl` | 125 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
-| `ork` | 195 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
+| `orkl` | 107 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork` | 197 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
 Both include all 36 agents, 117 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
@@ -241,6 +241,19 @@ CLAUDE_PLUGIN_ROOT    # Plugin installation directory
 CLAUDE_SESSION_ID     # Current session UUID
 MEM0_API_KEY          # Optional: enables mem0 cloud memory
 ```
+
+### Memory Architecture (CC 2.1.30+ Integration)
+
+OrchestKit bridges to Claude Code's native auto memory:
+
+| Tier | Storage | Behavior |
+|------|---------|----------|
+| **1. Graph** | MCP `mcp__memory__*` | Primary, zero-config, always available |
+| **2. Local** | `.claude/memory/*.jsonl` | Backup, session persistence |
+| **3. Mem0** | Cloud (optional) | Semantic search, cross-session |
+| **4. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | Auto-injected into system prompt |
+
+High-confidence decisions (≥0.7) are automatically written to CC native MEMORY.md, ensuring they persist even without OrchestKit installed.
 
 ---
 

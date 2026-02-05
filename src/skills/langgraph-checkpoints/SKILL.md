@@ -191,31 +191,89 @@ workflow.add_node("agent", agent_with_memory)
 └─────────────────────────────────────────────────────────────┘
 ```
 
+## Graph Migrations (2026 Feature)
+
+LangGraph handles topology changes automatically:
+
+```python
+# Safe changes (handled automatically):
+# - Adding new nodes
+# - Removing nodes
+# - Renaming nodes
+# - Adding state keys
+# - Removing state keys
+
+# Works for both active and completed threads
+# Limitation: Cannot remove node if thread is interrupted at that node
+```
+
+## Checkpoint Cleanup Strategies
+
+```python
+from datetime import datetime, timedelta
+
+# Option 1: TTL-based cleanup (configure at DB level)
+# CREATE INDEX idx_checkpoints_created ON checkpoints(created_at);
+# DELETE FROM checkpoints WHERE created_at < NOW() - INTERVAL '30 days';
+
+# Option 2: Manual cleanup
+async def cleanup_old_checkpoints(db, days: int = 30):
+    """Remove checkpoints older than N days."""
+    cutoff = datetime.now() - timedelta(days=days)
+    await db.execute(
+        "DELETE FROM langgraph_checkpoints WHERE created_at < $1",
+        cutoff
+    )
+
+# Option 3: Per-thread cleanup
+async def cleanup_thread(db, thread_id: str, keep_latest: int = 10):
+    """Keep only latest N checkpoints per thread."""
+    await db.execute("""
+        DELETE FROM langgraph_checkpoints
+        WHERE thread_id = $1
+        AND id NOT IN (
+            SELECT id FROM langgraph_checkpoints
+            WHERE thread_id = $1
+            ORDER BY created_at DESC
+            LIMIT $2
+        )
+    """, thread_id, keep_latest)
+```
+
 ## Key Decisions
 
 | Decision | Recommendation |
 |----------|----------------|
 | Development | MemorySaver (fast, no setup) |
 | Production | PostgresSaver (shared, durable) |
-| save_every | 1 for expensive nodes, 5 for cheap |
 | Thread ID | Use deterministic ID (workflow_id) |
 | **Short-term memory** | **Checkpointer (thread-scoped)** |
 | **Long-term memory** | **Store (cross-thread, namespaced)** |
+| Cleanup | TTL-based or keep-latest-N per thread |
+| Migrations | Automatic for topology changes |
 
 ## Common Mistakes
 
 - No checkpointer in production (lose progress)
 - Random thread IDs (can't resume)
 - Not handling missing checkpoints
-- Saving too frequently (overhead)
 - **Using only checkpointer for user preferences (lost across threads)**
 - **Not using namespaces in Store (data collisions)**
+- Not cleaning up old checkpoints (database bloat)
+- Removing nodes while threads are interrupted at them
+
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
 
 ## Related Skills
 
-- `langgraph-state` - State design for checkpointing
-- `langgraph-human-in-loop` - Interrupt patterns
-- `database-schema-designer` - PostgreSQL setup
+- `langgraph-state` - State schemas that persist well with checkpointing
+- `langgraph-human-in-loop` - Interrupt patterns that leverage checkpoints
+- `langgraph-supervisor` - Checkpoint supervisor progress for fault tolerance
+- `langgraph-streaming` - Stream checkpoint updates to clients
+- `langgraph-functional` - Functional API with automatic checkpointing
+- `database-schema-designer` - PostgreSQL checkpoint table setup
 
 ## Capability Details
 

@@ -20,6 +20,9 @@ skills:
   - langgraph-checkpoints
   - langgraph-human-in-loop
   - langgraph-functional
+  - langgraph-streaming
+  - langgraph-subgraphs
+  - langgraph-tools
   - multi-agent-orchestration
   - agent-loops
   - alternative-agent-frameworks
@@ -32,28 +35,23 @@ skills:
   - memory
 ---
 ## Directive
-Design LangGraph workflow graphs, implement supervisor-worker coordination, manage state with checkpointing, and orchestrate RAG pipelines for production AI systems.
+Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.
 
-<investigate_before_answering>
-Read existing workflow code and state schemas before designing new workflows.
-Understand current checkpointing configuration and node patterns.
-Do not speculate about state structure you haven't inspected.
-</investigate_before_answering>
+**Before designing:**
+- Read existing workflow code and state schemas
+- Understand current checkpointing configuration and node patterns
+- Do not speculate about state structure you haven't inspected
 
-<use_parallel_tool_calls>
-When gathering context, run independent reads in parallel:
-- Read existing workflow definitions → independent
-- Read state schema files → independent
-- Read node implementations → independent
+**Tool usage:**
+- Run independent reads in parallel (workflow definitions, state schemas, node implementations)
+- Use sequential execution only when understanding existing patterns is required
 
-Only use sequential execution when workflow design depends on understanding existing patterns.
-</use_parallel_tool_calls>
-
-<avoid_overengineering>
-Design the minimum workflow complexity needed for the task.
-Don't add extra nodes, parallel branches, or checkpointing beyond requirements.
-Simple linear workflows are fine when the use case is simple.
-</avoid_overengineering>
+**Design principles:**
+- Use minimum complexity needed for the task
+- Prefer Command API when updating state and routing together
+- Use `add_edge(START, node)` not `set_entry_point()` (deprecated)
+- Simple linear workflows are fine for simple use cases
+- Add streaming modes for user-facing workflows
 
 ## MCP Tools
 - `mcp__sequential-thinking__sequentialthinking` - Complex workflow reasoning
@@ -76,11 +74,12 @@ Return structured workflow design:
   "workflow": {
     "name": "content_analysis_v2",
     "type": "supervisor_worker",
-    "version": "2.0.0"
+    "version": "2.0.0",
+    "langgraph_version": "1.0.7"
   },
   "graph": {
     "nodes": [
-      {"name": "supervisor", "type": "router", "model": "haiku"},
+      {"name": "supervisor", "type": "router", "model": "haiku", "uses_command": true},
       {"name": "scraper", "type": "worker", "model": null},
       {"name": "analyzer", "type": "worker", "model": "sonnet"},
       {"name": "synthesizer", "type": "worker", "model": "sonnet"}
@@ -92,26 +91,29 @@ Return structured workflow design:
       {"from": "analyzer", "to": "synthesizer"},
       {"from": "synthesizer", "to": "END"}
     ],
-    "conditional_routes": 2
+    "uses_subgraphs": false
   },
   "state_schema": {
     "name": "AnalysisState",
     "type": "TypedDict",
     "fields": ["url", "content", "findings", "summary"],
-    "reducers": {"findings": "add"}
+    "reducers": {"findings": "add"},
+    "context_schema": {"llm_provider": "anthropic", "temperature": 0.7}
   },
   "checkpointing": {
     "backend": "postgres",
-    "table": "workflow_checkpoints",
+    "store_enabled": true,
     "retention_days": 7
+  },
+  "streaming": {
+    "modes": ["updates", "custom"],
+    "custom_events": ["progress", "agent_complete"]
   },
   "parallelization": {
     "enabled": true,
     "max_parallel": 4,
     "fan_out_node": "specialist_router"
-  },
-  "estimated_latency_ms": 12000,
-  "estimated_cost_per_run": "$0.08"
+  }
 }
 ```
 
@@ -142,12 +144,24 @@ Return structured workflow design:
 
 ## Workflow Patterns
 
-### 1. Supervisor-Worker (OrchestKit Default)
+### 1. Supervisor-Worker with Command API (2026 Pattern)
 ```python
 from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from typing import Literal
 
 def create_analysis_workflow():
     graph = StateGraph(AnalysisState)
+
+    # Supervisor uses Command for state update + routing
+    def supervisor_node(state: AnalysisState) -> Command[Literal["scraper", "analyzer", "synthesizer", END]]:
+        if state["needs_content"]:
+            return Command(update={"current": "scraper"}, goto="scraper")
+        elif state["needs_analysis"]:
+            return Command(update={"current": "analyzer"}, goto="analyzer")
+        elif state["needs_synthesis"]:
+            return Command(update={"current": "synthesizer"}, goto="synthesizer")
+        return Command(update={"status": "complete"}, goto=END)
 
     # Add nodes
     graph.add_node("supervisor", supervisor_node)
@@ -155,19 +169,7 @@ def create_analysis_workflow():
     graph.add_node("analyzer", analyzer_node)
     graph.add_node("synthesizer", synthesizer_node)
 
-    # Routing from supervisor
-    graph.add_conditional_edges(
-        "supervisor",
-        route_to_worker,
-        {
-            "scrape": "scraper",
-            "analyze": "analyzer",
-            "synthesize": "synthesizer",
-            "complete": END
-        }
-    )
-
-    # Workers return to supervisor
+    # Workers return to supervisor (Command handles outbound routing)
     graph.add_edge("scraper", "supervisor")
     graph.add_edge("analyzer", "supervisor")
     graph.add_edge("synthesizer", "supervisor")

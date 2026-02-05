@@ -13,10 +13,55 @@ user-invocable: false
 
 Coordinate multiple specialized agents with a central supervisor.
 
+## Overview
+
+- Building central coordinator agents that dispatch to workers
+- Implementing round-robin or priority-based task routing
+- Tracking agent completion and workflow progress
+- Using Command API for combined state update + routing
+
+## Quick Start
+
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from typing import Literal, TypedDict
+
+class WorkflowState(TypedDict):
+    input: str
+    results: list[str]
+    agents_completed: list[str]
+
+def supervisor(state) -> Command[Literal["worker_a", "worker_b", END]]:
+    if "worker_a" not in state["agents_completed"]:
+        return Command(goto="worker_a")
+    elif "worker_b" not in state["agents_completed"]:
+        return Command(goto="worker_b")
+    return Command(goto=END)
+
+def worker_a(state):
+    return {"results": ["A done"], "agents_completed": ["worker_a"]}
+
+def worker_b(state):
+    return {"results": ["B done"], "agents_completed": ["worker_b"]}
+
+# Build graph
+graph = StateGraph(WorkflowState)
+graph.add_node("supervisor", supervisor)
+graph.add_node("worker_a", worker_a)
+graph.add_node("worker_b", worker_b)
+graph.add_edge(START, "supervisor")
+graph.add_edge("worker_a", "supervisor")
+graph.add_edge("worker_b", "supervisor")
+
+app = graph.compile()
+result = app.invoke({"input": "task", "results": [], "agents_completed": []})
+```
+
 ## Basic Supervisor
 
 ```python
-from langgraph.graph import StateGraph, END
+from langgraph.graph import StateGraph, START, END
 
 def supervisor(state: WorkflowState) -> WorkflowState:
     """Route to next worker based on state."""
@@ -55,9 +100,53 @@ workflow.add_conditional_edges(
 workflow.add_edge("analyzer", "supervisor")
 workflow.add_edge("validator", "supervisor")
 
-workflow.set_entry_point("supervisor")
+workflow.add_edge(START, "supervisor")  # Use START, not set_entry_point()
 app = workflow.compile()
 ```
+
+## Command API (2026 Best Practice)
+
+Use Command when you need to update state AND route in the same node:
+
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from typing import Literal
+
+def supervisor_with_command(state: WorkflowState) -> Command[Literal["analyzer", "validator", END]]:
+    """Use Command for combined state update + routing."""
+    if state["needs_analysis"]:
+        return Command(
+            update={"current_agent": "analyzer", "routing_reason": "needs analysis"},
+            goto="analyzer"
+        )
+    elif state["needs_validation"]:
+        return Command(
+            update={"current_agent": "validator", "routing_reason": "needs validation"},
+            goto="validator"
+        )
+    return Command(
+        update={"status": "complete"},
+        goto=END
+    )
+
+# Build graph with Command
+workflow = StateGraph(WorkflowState)
+workflow.add_node("supervisor", supervisor_with_command)
+workflow.add_node("analyzer", analyzer)
+workflow.add_node("validator", validator)
+
+# No conditional edges needed - Command handles routing
+workflow.add_edge(START, "supervisor")
+workflow.add_edge("analyzer", "supervisor")
+workflow.add_edge("validator", "supervisor")
+
+app = workflow.compile()
+```
+
+**When to use Command vs Conditional Edges:**
+- **Command**: When updating state AND routing together
+- **Conditional edges**: When routing only (no state updates needed)
 
 ## Round-Robin Supervisor
 
@@ -176,6 +265,8 @@ def agent_node_factory(agent_name: str):
 | Max agents | 3-8 specialists (avoid overhead) |
 | Failure handling | Skip failed agent, continue with others |
 | Coordination | Centralized supervisor (simpler debugging) |
+| Command vs Conditional | Use Command when updating state + routing together |
+| Entry point | Use `add_edge(START, node)` not `set_entry_point()` |
 
 ## Common Mistakes
 
@@ -183,12 +274,21 @@ def agent_node_factory(agent_name: str):
 - Forgetting worker → supervisor edge
 - Missing END condition
 - Heavy supervisor logic (should be lightweight)
+- Using `set_entry_point()` (deprecated, use `add_edge(START, ...)`)
+- Using conditional edges when Command would be cleaner
+
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
 
 ## Related Skills
 
-- `langgraph-routing` - Conditional edges
-- `multi-agent-orchestration` - Fan-out patterns
-- `langgraph-state` - State for agent tracking
+- `langgraph-routing` - Conditional edge patterns for dynamic routing
+- `langgraph-parallel` - Fan-out/fan-in for parallel worker execution
+- `langgraph-state` - State schemas with completion tracking
+- `langgraph-checkpoints` - Persist supervisor progress for fault tolerance
+- `langgraph-streaming` - Real-time progress updates during workflow
+- `langgraph-human-in-loop` - Add human approval gates to supervisor decisions
 
 ## Capability Details
 
