@@ -7,19 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.2] - 2026-02-06
 
-### Fixed
+### Added
 
-- **#324**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()` — reads `CLAUDE_MODEL` env var with sonnet fallback
-- **#325**: Add prefill-guard SessionStart hook that warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+- **#328 (P1-C)**: `complexity: low|medium|high` field added to all 197 skill frontmatters for Opus 4.6 adaptive thinking alignment
+- **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
+- **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+- Batch script `scripts/add-complexity.mjs` for applying complexity classifications
 
 ### Changed
 
-- CI workflow renames for clarity (Tests & Security, Build, Deploy, Validate: Plugins, etc.)
-- CI pipeline parallelism: 6 test stages now run immediately after build instead of waiting for lint
-- CI summary job: accept "skipped" results (check for failure/cancelled instead of != success)
-- npm audit: blocks on critical vulnerabilities (removed continue-on-error)
-- Playgrounds tests: use shared build artifact
-- Hook count: 117 → 118 (90 global + 22 agent + 6 skill-scoped)
+- **#330 (P2-A)**: 13 agents migrated from `mcp__sequential-thinking` to Opus 4.6 native adaptive thinking
+- **#329 (P1-D)**: TOKEN_BUDGETS now scale dynamically with `CLAUDE_MAX_CONTEXT` (2% of context window per CC 2.1.32)
+- **#332 (P2-C)**: Enhanced `pre-compact-saver` v2.0 — preserves decision logs, memory tier snapshots, compaction frequency analytics
+- **#324 (P0-A)**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()`
+- **#326 (P1-A)**: Memory context tier limits expanded (1200→3000 chars memory, 800→1200 chars profile)
+- **#327 (P1-B)**: CC minimum version updated to >= 2.1.32 across CLAUDE.md, README, hooks README, marketplace
+- MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
+- CI workflow renames for clarity and pipeline parallelism
+- Hook count: 117 → 119 (91 global + 22 agent + 6 skill-scoped)
 
 ---
 
