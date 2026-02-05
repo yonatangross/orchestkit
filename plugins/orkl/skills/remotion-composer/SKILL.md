@@ -6,6 +6,7 @@ version: 2.0.0
 author: OrchestKit
 tags: [remotion, video, composition, marketing, demo, animation, data-viz, charts]
 user-invocable: false
+complexity: medium
 ---
 
 # Remotion Composer

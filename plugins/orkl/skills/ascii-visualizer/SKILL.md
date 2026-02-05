@@ -6,6 +6,7 @@ context: inherit
 tags: [ascii, visualization, diagrams, architecture, 2025]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # ASCII Visualizer Skill

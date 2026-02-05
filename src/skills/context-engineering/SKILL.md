@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [context, attention, optimization, llm, performance]
 user-invocable: false
+complexity: medium
 ---
 
 # Context Engineering
@@ -231,6 +232,18 @@ def calculate_budget(model: str, task_type: str) -> dict:
     alloc = ALLOCATIONS[task_type]
     return {k: int(v * available) for k, v in alloc.items()}
 ```
+
+### CC 2.1.32 Skill Budget Scaling
+
+CC 2.1.32+ automatically scales the skill character budget to **2% of the context window**:
+
+| Context Window | Skill Budget (2%) | OrchestKit Skills |
+|---------------|--------------------|-------------------|
+| 200K tokens | ~4,000 tokens | Standard (1200 token skill-injection budget) |
+| 500K tokens | ~10,000 tokens | 3x more room for skill descriptions |
+| 1M tokens (beta) | ~20,000 tokens | 5x skill budget, richer auto-suggest |
+
+OrchestKit's token budgets auto-scale proportionally via `CLAUDE_MAX_CONTEXT` env var.
 
 ### Compression Triggers
 

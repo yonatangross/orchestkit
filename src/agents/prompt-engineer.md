@@ -39,7 +39,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 
 - `mcp__context7__*` - Fetch latest prompt engineering documentation
-- `mcp__sequential-thinking__*` - Complex prompt iteration and optimization reasoning
+- **Opus 4.6 adaptive thinking** — Complex prompt iteration and optimization reasoning (native, no MCP tool needed)
 - `mcp__memory__*` - Knowledge graph for prompt patterns and decisions
 
 ## Concrete Objectives

@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [configuration, setup, wizard, customization]
 user-invocable: true
 allowedTools: [Bash, Read, Grep, Glob]
+complexity: low
 ---
 
 # OrchestKit Configuration

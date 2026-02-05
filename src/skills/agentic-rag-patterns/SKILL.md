@@ -7,6 +7,7 @@ context: fork
 agent: data-pipeline-engineer
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 
 # Agentic RAG Patterns

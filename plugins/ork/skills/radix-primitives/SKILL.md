@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 tags: [radix, ui, primitives, accessibility, dialog, popover, dropdown, aschild, a11y]
 user-invocable: false
+complexity: low
 ---
 
 # Radix Primitives

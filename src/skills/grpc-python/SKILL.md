@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [grpc, protobuf, microservices, rpc, streaming, python]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # gRPC Python Patterns

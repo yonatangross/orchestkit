@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, requirements, user-stories, prd, acceptance-criteria, agile]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Requirements Engineering

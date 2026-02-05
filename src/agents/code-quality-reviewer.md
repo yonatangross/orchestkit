@@ -58,7 +58,7 @@ Don't flag code that works correctly just because it could be "cleaner".
 
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
-- `mcp__sequential-thinking__*` - Complex security vulnerability analysis
+- **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis (native, no MCP tool needed)
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for visual regression testing verification

@@ -10,6 +10,7 @@ agents: [backend-system-architect, code-quality-reviewer, llm-integrator]
 keywords: [observability, monitoring, logging, metrics, tracing, alerts, Prometheus, OpenTelemetry]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Observability & Monitoring Skill

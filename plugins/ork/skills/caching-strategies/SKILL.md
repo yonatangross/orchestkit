@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [caching, redis, performance, fastapi, python]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Backend Caching Strategies

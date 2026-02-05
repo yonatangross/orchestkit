@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [saga, distributed-transactions, orchestration, choreography, compensation, microservices]
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 
 # Saga Patterns for Distributed Transactions

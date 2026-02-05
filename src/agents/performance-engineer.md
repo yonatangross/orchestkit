@@ -40,7 +40,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
-- `mcp__sequential-thinking__*` - Complex optimization decision trees
+- **Opus 4.6 adaptive thinking** — Complex optimization decision trees (native, no MCP tool needed)
 
 ## Browser Automation
 

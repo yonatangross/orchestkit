@@ -8,6 +8,7 @@ author: OrchestKit AI Agent Hub
 tags: [browser, agent-browser, scraping, spa, authentication]
 user-invocable: false
 allowedTools: [Bash, Read, Write]
+complexity: low
 ---
 
 # Browser Content Capture

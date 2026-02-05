@@ -13,6 +13,7 @@ allowedTools:
   - Edit
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Input Validation

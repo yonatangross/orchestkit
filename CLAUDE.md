@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **197 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **118 hooks**: TypeScript lifecycle automation (90 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
+- **119 hooks**: TypeScript lifecycle automation (91 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -92,6 +92,7 @@ name: my-skill
 description: Brief description of what this skill provides
 tags: [keyword1, keyword2]
 user-invocable: true  # If callable via /ork:my-skill
+complexity: medium    # low|medium|high — for adaptive thinking alignment
 ---
 
 # My Skill
@@ -160,12 +161,15 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
 - `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
+- `complexity: low|medium|high` — Adaptive thinking alignment for Opus 4.6
+
+**Skill Budget (CC 2.1.32+):** Platform scales skill character budget to 2% of context window. Token budgets auto-scale: 200K context → ~1200 tokens, 1M context → ~6000 tokens for skill injection.
 
 ### Agents
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-118 hook entries (90 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+119 hook entries (91 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -232,7 +236,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | `orkl` | 107 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork` | 197 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
-Both include all 36 agents, 118 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
+Both include all 36 agents, 119 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -261,6 +265,6 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 - **Current**: 6.0.0
 - **Claude Code**: >= 2.1.32
-- **Hooks**: 118 entries (90 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
+- **Hooks**: 118 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

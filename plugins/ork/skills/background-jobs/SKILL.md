@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [background-jobs, celery, arq, redis, async, python]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Background Job Patterns

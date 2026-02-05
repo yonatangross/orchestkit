@@ -8,6 +8,7 @@ tags: [issue, bug-fix, github, debugging, rca, prevention]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Task, TaskCreate, TaskUpdate, Grep, Glob, mcp__memory__search_nodes, mcp__context7__get_library_docs]
 skills: [commit, explore, verify, debug-investigator, memory, remember]
+complexity: medium
 ---
 
 # Fix Issue

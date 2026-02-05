@@ -11,6 +11,7 @@ tags:
   - planning
   - complexity
   - assessment
+complexity: medium
 ---
 
 # Assess Complexity

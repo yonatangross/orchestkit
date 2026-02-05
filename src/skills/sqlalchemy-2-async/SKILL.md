@@ -8,6 +8,7 @@ tags: [sqlalchemy, async, database, orm, fastapi, python]
 allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # SQLAlchemy 2.0 Async Patterns ()

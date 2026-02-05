@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [cqrs, command-query, read-model, write-model, projection, event-sourcing]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # CQRS Patterns

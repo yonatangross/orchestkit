@@ -46,15 +46,32 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
 // Budget Thresholds
 // -----------------------------------------------------------------------------
 
-/** Per-category token budgets */
-export const TOKEN_BUDGETS: Record<string, number> = {
-  'skill-injection': 1200,
-  'memory-inject': 800,
-  'decision-capture': 500,  // Decision/preference detection and injection
-  'suggestions': 400,
-  'monitoring': 200,
-  'total': 2600,  // Updated to include decision-capture
-};
+/**
+ * Per-category token budgets.
+ *
+ * CC 2.1.32+ scales skill budget to 2% of context window:
+ *   200K context → ~4000 tokens for skills
+ *   1M context   → ~20000 tokens for skills
+ *
+ * We scale our internal budgets proportionally based on CLAUDE_MAX_CONTEXT.
+ * Default (200K) preserves backward-compatible values.
+ */
+function getScaledBudgets(): Record<string, number> {
+  const contextWindow = parseInt(process.env.CLAUDE_MAX_CONTEXT || '200000', 10);
+  const scale = contextWindow / 200000; // 1.0x at 200K, 5.0x at 1M
+
+  return {
+    'skill-injection': Math.round(1200 * scale),
+    'memory-inject': Math.round(800 * scale),
+    'decision-capture': Math.round(500 * scale),
+    'suggestions': Math.round(400 * scale),
+    'monitoring': Math.round(200 * scale),
+    'total': Math.round(2600 * scale),
+  };
+}
+
+/** Per-category token budgets (scaled by context window) */
+export const TOKEN_BUDGETS: Record<string, number> = getScaledBudgets();
 
 /** Throttle thresholds by priority (% of total budget) */
 const THROTTLE_AT: Record<HookPriority, number> = {

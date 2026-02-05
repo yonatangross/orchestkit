@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [ddd, aggregate, consistency, invariants, domain-modeling, python]
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 
 # Aggregate Design Patterns

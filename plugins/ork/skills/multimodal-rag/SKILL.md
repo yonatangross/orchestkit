@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 tags: [rag, multimodal, image-retrieval, clip, embeddings, vector-search]
+complexity: medium
 ---
 
 # Multimodal RAG ()

@@ -8,6 +8,7 @@ tags: [message-queue, rabbitmq, redis-streams, kafka, faststream, pub-sub, async
 allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Message Queue Patterns ()

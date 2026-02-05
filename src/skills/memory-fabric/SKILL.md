@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [memory, orchestration, graph-first, graph, unified-search, deduplication, cross-reference]
 user-invocable: false
 allowedTools: [Read, Bash, mcp__memory__search_nodes]
+complexity: high
 ---
 
 # Memory Fabric - Graph-First Orchestration

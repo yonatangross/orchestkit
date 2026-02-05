@@ -7,6 +7,7 @@ version: 1.0.0
 author: AI Agent Hub
 tags: [streaming, sse, websocket, real-time, api]
 user-invocable: false
+complexity: medium
 ---
 
 # Streaming API Patterns

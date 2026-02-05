@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
+complexity: low
 ---
 
 # Remember - Store Decisions and Patterns

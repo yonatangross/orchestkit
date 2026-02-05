@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [ddd, domain-modeling, entities, value-objects, bounded-contexts, python]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Domain-Driven Design Tactical Patterns

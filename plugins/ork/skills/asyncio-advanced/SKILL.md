@@ -8,6 +8,7 @@ tags: [asyncio, python, concurrency, taskgroup, structured-concurrency]
 allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Asyncio Advanced Patterns ()

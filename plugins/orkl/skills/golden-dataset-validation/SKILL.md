@@ -11,6 +11,7 @@ allowedTools:
   - Grep
   - Glob
 user-invocable: false
+complexity: medium
 ---
 
 # Golden Dataset Validation

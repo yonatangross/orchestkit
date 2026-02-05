@@ -7,6 +7,7 @@ agent: llm-integrator
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Ollama Local Inference

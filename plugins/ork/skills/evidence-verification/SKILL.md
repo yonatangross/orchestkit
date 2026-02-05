@@ -8,6 +8,7 @@ context: fork
 agent: code-quality-reviewer
 allowedTools: [Read, Grep, Glob, Bash]
 user-invocable: false
+complexity: low
 ---
 
 # Evidence Verification

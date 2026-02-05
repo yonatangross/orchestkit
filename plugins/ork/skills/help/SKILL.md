@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
 allowedTools: [AskUserQuestion]
+complexity: low
 ---
 
 # OrchestKit Skill Directory

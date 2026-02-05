@@ -7,6 +7,7 @@ context: fork
 agent: prompt-engineer
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Prompt Engineering Suite

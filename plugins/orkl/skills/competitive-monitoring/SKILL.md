@@ -8,6 +8,7 @@ author: OrchestKit AI Agent Hub
 tags: [competitive-intelligence, monitoring, diff, tracking, pricing]
 user-invocable: true
 allowedTools: [Bash, Read, Write, WebFetch]
+complexity: medium
 ---
 
 # Competitive Monitoring

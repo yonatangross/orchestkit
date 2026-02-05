@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [fastapi, python, async, middleware, dependencies]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # FastAPI Advanced Patterns ()

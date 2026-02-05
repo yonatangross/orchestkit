@@ -7,6 +7,7 @@ tags: [architecture, documentation, decision-making, backend]
 context: fork
 agent: backend-system-architect
 user-invocable: false
+complexity: medium
 ---
 
 # Architecture Decision Records

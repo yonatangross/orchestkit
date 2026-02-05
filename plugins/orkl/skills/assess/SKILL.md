@@ -9,6 +9,7 @@ user-invocable: true
 allowedTools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, assess-complexity, quality-gates, architecture-decision-record, memory]
 argument-hint: [code-path-or-topic]
+complexity: low
 ---
 
 # Assess

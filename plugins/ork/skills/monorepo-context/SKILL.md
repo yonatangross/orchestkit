@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [monorepo, multi-directory, context, workspace, add-dir]
 user-invocable: false
+complexity: medium
 ---
 
 # Monorepo Context Patterns

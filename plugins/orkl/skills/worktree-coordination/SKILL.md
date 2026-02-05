@@ -8,6 +8,7 @@ tags: [coordination, worktree, multi-instance, locking, parallel-development]
 user-invocable: true
 allowedTools: [Read, Write, Bash, Grep, Glob]
 skills: [git-workflow, commit, stacked-prs]
+complexity: low
 ---
 
 # Worktree Coordination Skill

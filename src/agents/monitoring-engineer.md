@@ -39,7 +39,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 
 - `mcp__context7__*` - Fetch latest Prometheus, Grafana, OpenTelemetry documentation
-- `mcp__sequential-thinking__*` - Complex alerting rule design and threshold analysis
+- **Opus 4.6 adaptive thinking** — Complex alerting rule design and threshold analysis (native, no MCP tool needed)
 - `mcp__memory__*` - Knowledge graph for monitoring patterns and alert decisions
 
 ## Concrete Objectives

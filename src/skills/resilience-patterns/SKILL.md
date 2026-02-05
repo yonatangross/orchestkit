@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [resilience, circuit-breaker, bulkhead, retry, fault-tolerance]
 user-invocable: false
+complexity: medium
 ---
 
 # Resilience Patterns Skill

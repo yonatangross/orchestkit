@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [debugging, rca, 5-whys, fishbone, fault-tree, incident]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Root Cause Analysis

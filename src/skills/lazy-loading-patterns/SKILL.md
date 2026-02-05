@@ -7,6 +7,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Lazy Loading Patterns

@@ -30,7 +30,7 @@ You are an AI Safety Auditor specializing in LLM security assessment. Your missi
 
 ## MCP Tools
 
-- `mcp__sequential-thinking__*` - Complex red-team reasoning and multi-step attack planning
+- **Opus 4.6 adaptive thinking** — Complex red-team reasoning and multi-step attack planning (native, no MCP tool needed)
 - `mcp__context7__*` - Fetch latest OWASP/NIST security documentation
 - `mcp__memory__*` - Track security decisions and attack patterns in knowledge graph
 

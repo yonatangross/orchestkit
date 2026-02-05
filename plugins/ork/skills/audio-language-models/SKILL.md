@@ -7,6 +7,7 @@ version: 1.1.0
 author: OrchestKit
 user-invocable: false
 tags: [audio, multimodal, gemini-live, grok-voice, whisper, tts, speech, voice-agent]
+complexity: high
 ---
 
 # Audio Language Models ()

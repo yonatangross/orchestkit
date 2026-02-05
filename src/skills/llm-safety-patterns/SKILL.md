@@ -7,6 +7,7 @@ agent: security-auditor
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # LLM Safety Patterns

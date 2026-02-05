@@ -7,6 +7,7 @@ version: 2.0.0
 tags: [testing, llm, ai, deepeval, ragas]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # LLM Testing Patterns

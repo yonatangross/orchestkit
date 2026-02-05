@@ -7,6 +7,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # HyDE (Hypothetical Document Embeddings)

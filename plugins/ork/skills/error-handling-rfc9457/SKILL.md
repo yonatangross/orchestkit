@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [error-handling, rfc9457, problem-details, fastapi, api]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # RFC 9457 Problem Details

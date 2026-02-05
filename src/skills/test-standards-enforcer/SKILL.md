@@ -11,6 +11,7 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/test-location-validator"
+complexity: medium
 ---
 Enforce 2026 testing best practices with **BLOCKING** validation.
 

@@ -7,6 +7,7 @@ version: 1.2.0
 author: OrchestKit AI Agent Hub
 tags: [playwright, testing, e2e, automation, agents]
 user-invocable: false
+complexity: medium
 ---
 Autonomous end-to-end testing with Playwright's three specialized agents for planning, generating, and self-healing tests automatically.
 

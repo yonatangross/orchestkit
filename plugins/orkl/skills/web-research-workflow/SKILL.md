@@ -8,6 +8,7 @@ author: OrchestKit AI Agent Hub
 tags: [research, browser, webfetch, automation, scraping]
 user-invocable: false
 allowedTools: [Bash, Read, Write, WebFetch]
+complexity: low
 ---
 
 # Web Research Workflow

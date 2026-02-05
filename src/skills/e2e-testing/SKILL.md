@@ -7,6 +7,7 @@ context: fork
 agent: test-generator
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # E2E Testing with Playwright 1.58+

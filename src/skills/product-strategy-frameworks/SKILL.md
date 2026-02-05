@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, strategy, jtbd, value-proposition, build-buy-partner]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Product Strategy Frameworks

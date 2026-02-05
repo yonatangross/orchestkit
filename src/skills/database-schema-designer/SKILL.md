@@ -7,6 +7,7 @@ tags: [database, schema-design, sql, nosql, performance, migrations]
 context: fork
 agent: database-engineer
 user-invocable: false
+complexity: medium
 ---
 
 # Database Schema Designer

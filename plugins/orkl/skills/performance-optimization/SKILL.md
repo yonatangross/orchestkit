@@ -9,6 +9,7 @@ agents: [backend-system-architect, frontend-ui-developer, code-quality-reviewer]
 keywords: [performance, optimization, speed, latency, throughput, caching, profiling, bundle, Core Web Vitals, react-19, virtualization, code-splitting, tree-shaking]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Performance Optimization Skill

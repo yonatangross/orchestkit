@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [distributed, locks, redis, postgresql, concurrency, coordination]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Distributed Locks

@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, metrics, okr, kpi, goals, measurement]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # OKR & KPI Patterns

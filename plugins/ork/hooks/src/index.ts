@@ -109,13 +109,14 @@ import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (6)
+// SubagentStart hooks (7)
 import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
 import { mem0MemoryInject } from './subagent-start/mem0-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
 import { taskLinker } from './subagent-start/task-linker.js';
+import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
 // SubagentStop hooks (11)
 import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
@@ -279,13 +280,14 @@ export const hooks: Record<string, HookFn> = {
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (6)
+  // SubagentStart hooks (7)
   'subagent-start/graph-memory-inject': graphMemoryInject,
   'subagent-start/mem0-memory-inject': mem0MemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/task-linker': taskLinker,
+  'subagent-start/model-cost-advisor': modelCostAdvisor,
 
   // SubagentStop hooks (11)
   'subagent-stop/agent-memory-store': agentMemoryStore,

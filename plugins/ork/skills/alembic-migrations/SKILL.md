@@ -8,6 +8,7 @@ tags: [alembic, migrations, sqlalchemy, database, schema, python, async]
 allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Alembic Migration Patterns ()

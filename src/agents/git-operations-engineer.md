@@ -51,7 +51,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date Git documentation and best practices
-- `mcp__sequential-thinking__*` - Complex rebase conflict resolution and recovery planning
+- **Opus 4.6 adaptive thinking** — Complex rebase conflict resolution and recovery planning (native, no MCP tool needed)
 
 ## Concrete Objectives
 1. Create and manage feature branches following naming conventions (feat/, fix/, docs/, refactor/, test/, chore/)

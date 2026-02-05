@@ -54,7 +54,7 @@ Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination w
 - Add streaming modes for user-facing workflows
 
 ## MCP Tools
-- `mcp__sequential-thinking__sequentialthinking` - Complex workflow reasoning
+- **Opus 4.6 adaptive thinking** — Complex workflow reasoning (native, no MCP tool needed)
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 

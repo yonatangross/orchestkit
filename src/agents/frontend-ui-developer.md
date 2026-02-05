@@ -82,7 +82,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
-- `mcp__sequential-thinking__*` - Complex state management decisions
+- **Opus 4.6 adaptive thinking** — Complex state management decisions (native, no MCP tool needed)
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation

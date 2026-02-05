@@ -7,6 +7,7 @@ version: 1.1.0
 author: AI Agent Hub
 tags: [typescript, zod, trpc, prisma, type-safety, validation, exhaustive-types, branded-types]
 user-invocable: false
+complexity: medium
 ---
 
 # Type Safety & Validation

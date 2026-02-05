@@ -8,6 +8,7 @@ tags: [code-review, pull-request, quality, security, testing]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [code-review-playbook, security-scanning, type-safety-validation, memory]
+complexity: medium
 ---
 
 # Review PR

@@ -46,7 +46,7 @@ Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
 
 ## MCP Tools
-- `mcp__sequential-thinking__sequentialthinking` - For complex multi-step reasoning
+- **Opus 4.6 adaptive thinking** — Complex multi-step reasoning (native, no MCP tool needed)
 - `mcp__memory__*` - For persisting investigation context across sessions
 
 

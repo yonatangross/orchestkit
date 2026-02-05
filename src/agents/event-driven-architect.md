@@ -40,7 +40,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for Kafka, RabbitMQ
-- `mcp__sequential-thinking__*` - Complex architectural decisions
+- **Opus 4.6 adaptive thinking** — Complex architectural decisions (native, no MCP tool needed)
 
 
 ## Concrete Objectives

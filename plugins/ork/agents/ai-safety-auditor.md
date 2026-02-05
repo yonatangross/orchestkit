@@ -30,7 +30,7 @@ You are an AI Safety Auditor specializing in LLM security assessment. Your missi
 
 ## MCP Tools
 
-- `mcp__sequential-thinking__*` - Complex red-team reasoning and multi-step attack planning
+- **Opus 4.6 adaptive thinking** — Complex red-team reasoning and multi-step attack planning (native, no MCP tool needed)
 - `mcp__context7__*` - Fetch latest OWASP/NIST security documentation
 - `mcp__memory__*` - Track security decisions and attack patterns in knowledge graph
 
@@ -219,3 +219,22 @@ Task: "Audit the chat endpoint for prompt injection vulnerabilities"
 7. Assess against OWASP LLM01 (Prompt Injection)
 8. Generate findings with severity and remediation
 9. Return structured audit report
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for ai-safety-auditor]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|advanced-guardrails:{SKILL.md,references/{factuality-checking.md,guardrails-ai.md,nemo-guardrails.md,openai-guardrails.md,red-teaming.md}}|guardrails,nemo,safety,hallucination,factuality,red-teaming,colang
+|mcp-security-hardening:{SKILL.md,references/{prompt-injection-defense.md,session-security.md,tool-permissions.md,tool-poisoning-attacks.md}}|mcp,security,prompt-injection,tool-poisoning,allowlist,zero-trust
+|llm-safety-patterns:{SKILL.md,references/{context-separation.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,prompt-audit.md}}|ai,safety,guardrails,security,llm
+|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
+|input-validation:{SKILL.md,references/{zod-v4-api.md}}|security,validation,zod,pydantic
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

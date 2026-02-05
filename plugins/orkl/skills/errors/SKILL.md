@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
 allowedTools: [Read, Bash, Grep]
+complexity: low
 ---
 
 # Error Pattern Analysis

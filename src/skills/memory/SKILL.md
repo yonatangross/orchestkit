@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [memory, graph, session, context, sync, visualization, history, search]
 user-invocable: true
 allowedTools: [Read, Grep, Glob, Bash, AskUserQuestion, mcp__memory__search_nodes, mcp__memory__read_graph]
+complexity: low
 ---
 
 # Memory - Read & Access Operations

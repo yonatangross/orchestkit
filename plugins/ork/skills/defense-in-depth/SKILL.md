@@ -11,6 +11,7 @@ allowedTools:
   - Glob
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Defense in Depth for AI Systems

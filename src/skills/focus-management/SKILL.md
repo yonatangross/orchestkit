@@ -8,6 +8,7 @@ tags: [accessibility, focus, keyboard, a11y, trap]
 allowedTools: [Read, Write, Edit, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Focus Management

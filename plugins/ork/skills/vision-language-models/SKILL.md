@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 tags: [vision, multimodal, image, gpt-5, claude-4, gemini, grok, vlm]
+complexity: high
 ---
 
 # Vision Language Models ()

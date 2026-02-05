@@ -8,6 +8,7 @@ tags: [accessibility, testing, axe-core, playwright, wcag, a11y, jest-axe]
 allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Accessibility Testing

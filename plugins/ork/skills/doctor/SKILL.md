@@ -8,6 +8,7 @@ tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents
 user-invocable: true
 allowedTools: [Bash, Read, Grep, Glob]
 skills: [configure]
+complexity: low
 ---
 
 # OrchestKit Health Diagnostics
