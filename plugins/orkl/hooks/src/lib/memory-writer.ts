@@ -24,8 +24,9 @@
  * CC 2.1.16 Compliant
  */
 
-import { existsSync, appendFileSync, mkdirSync } from 'node:fs';
+import { existsSync, appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
+import { homedir } from 'node:os';
 import { getProjectDir, logHook } from './common.js';
 import {
   getIdentityContext,
@@ -497,6 +498,141 @@ function queueForMem0(decision: DecisionRecord): boolean {
 }
 
 // =============================================================================
+// CC NATIVE MEMORY (v2.1.30+ auto-injection)
+// =============================================================================
+
+/**
+ * Get path to Claude Code's native auto memory directory
+ * CC auto-injects ~/.claude/projects/<project-path>/memory/MEMORY.md into system prompt
+ *
+ * Project path format: absolute path with / replaced by -
+ * Example: /Users/foo/myproject → -Users-foo-myproject
+ */
+function getCCNativeMemoryDir(): string {
+  const projectDir = getProjectDir();
+  // Convert absolute path to CC's project ID format
+  const projectId = projectDir.replace(/\//g, '-');
+  return join(homedir(), '.claude', 'projects', projectId, 'memory');
+}
+
+/**
+ * Get path to CC native MEMORY.md
+ */
+function getCCNativeMemoryPath(): string {
+  return join(getCCNativeMemoryDir(), 'MEMORY.md');
+}
+
+/**
+ * Check if CC native memory is available (directory exists or can be created)
+ */
+export function isCCNativeMemoryAvailable(): boolean {
+  try {
+    const dir = getCCNativeMemoryDir();
+    // Check if parent project dir exists (CC must have created it)
+    const projectDir = dirname(dir);
+    return existsSync(projectDir);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Format a decision for CC native MEMORY.md
+ * Uses concise, human-readable format since it's injected into system prompt
+ */
+function formatDecisionForMemory(decision: DecisionRecord): string {
+  const lines: string[] = [];
+
+  // Type indicator
+  const typeIcon = decision.type === 'decision' ? '[Decision]' :
+                   decision.type === 'preference' ? '[Preference]' :
+                   decision.type === 'pattern' ? '[Pattern]' :
+                   '[Note]';
+
+  // Main content
+  lines.push(`- **${typeIcon}** ${decision.content.what}`);
+
+  // Rationale if present
+  if (decision.content.why) {
+    lines.push(`  _(because: ${decision.content.why})_`);
+  }
+
+  // Entities as tags
+  if (decision.entities.length > 0) {
+    lines.push(`  ${decision.entities.map(e => `\`${e}\``).join(', ')}`);
+  }
+
+  return lines.join('\n');
+}
+
+/**
+ * Store decision to CC native MEMORY.md
+ * Appends to existing content, creating file if needed
+ */
+function storeToCCNativeMemory(decision: DecisionRecord): boolean {
+  if (!isCCNativeMemoryAvailable()) {
+    return false;
+  }
+
+  try {
+    const memoryPath = getCCNativeMemoryPath();
+    const dir = dirname(memoryPath);
+
+    // Ensure directory exists
+    if (!existsSync(dir)) {
+      mkdirSync(dir, { recursive: true });
+    }
+
+    // Read existing content
+    let existingContent = '';
+    if (existsSync(memoryPath)) {
+      existingContent = readFileSync(memoryPath, 'utf-8');
+    }
+
+    // Check if header exists, add if not
+    const header = '## Recent Project Decisions\n\n';
+    if (!existingContent.includes('## Recent Project Decisions')) {
+      existingContent = header + existingContent;
+    }
+
+    // Format new decision
+    const formattedDecision = formatDecisionForMemory(decision);
+
+    // Check for duplicates (avoid re-adding same decision)
+    if (existingContent.includes(decision.content.what.slice(0, 50))) {
+      logHook('memory-writer', 'Skipping duplicate in CC native memory', 'debug');
+      return true; // Already exists
+    }
+
+    // Insert after header (keep most recent at top)
+    const headerEnd = existingContent.indexOf(header) + header.length;
+    const newContent =
+      existingContent.slice(0, headerEnd) +
+      formattedDecision + '\n' +
+      existingContent.slice(headerEnd);
+
+    // Limit to ~50 entries to keep system prompt small (CC injects entire file)
+    const lines = newContent.split('\n');
+    const decisionLines = lines.filter(l => l.startsWith('- **['));
+    if (decisionLines.length > 50) {
+      // Truncate oldest entries
+      const truncateIndex = newContent.lastIndexOf('- **[', newContent.length - 1);
+      const trimmedContent = newContent.slice(0, truncateIndex) +
+        '\n_...older decisions archived..._\n';
+      writeFileSync(memoryPath, trimmedContent);
+    } else {
+      writeFileSync(memoryPath, newContent);
+    }
+
+    logHook('memory-writer', `Stored to CC native memory: ${memoryPath}`, 'debug');
+    return true;
+  } catch (err) {
+    logHook('memory-writer', `Failed to write CC native memory: ${err}`, 'warn');
+    return false;
+  }
+}
+
+// =============================================================================
 // MAIN STORAGE FUNCTION
 // =============================================================================
 
@@ -510,11 +646,13 @@ export async function storeDecision(decision: DecisionRecord): Promise<{
   local: boolean;
   graph_queued: boolean;
   mem0_queued: boolean;
+  cc_native: boolean;
 }> {
   const result = {
     local: false,
     graph_queued: false,
     mem0_queued: false,
+    cc_native: false,
   };
 
   // 1. Store to local JSON (always, primary backup)
@@ -535,11 +673,18 @@ export async function storeDecision(decision: DecisionRecord): Promise<{
     result.mem0_queued = queueForMem0(decision);
   }
 
+  // 4. Store to CC native memory (v2.1.30+ auto-injection)
+  // Only store high-confidence decisions and preferences to keep system prompt concise
+  if (decision.metadata.confidence >= 0.7 && isCCNativeMemoryAvailable()) {
+    result.cc_native = storeToCCNativeMemory(decision);
+  }
+
   // Log result
   const backends = [
     result.local ? 'local' : null,
     result.graph_queued ? 'graph' : null,
     result.mem0_queued ? 'mem0' : null,
+    result.cc_native ? 'cc-native' : null,
   ].filter(Boolean);
 
   if (backends.length > 0) {

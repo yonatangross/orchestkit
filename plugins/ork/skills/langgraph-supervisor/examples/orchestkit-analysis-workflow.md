@@ -1,8 +1,12 @@
 # OrchestKit Content Analysis Workflow
 
+> **Note:** This is a **reference architecture** demonstrating production LangGraph patterns.
+> The code examples are illustrative templates, not deployed code in this repository.
+> Use these patterns as blueprints for building your own workflows.
+
 ## Overview
 
-OrchestKit's content analysis workflow is a production LangGraph pipeline that coordinates 8 specialist agents to analyze technical content (URLs, documents, repositories).
+This reference architecture shows a production LangGraph pipeline that coordinates 8 specialist agents to analyze technical content (URLs, documents, repositories).
 
 **Architecture:**
 ```
@@ -23,10 +27,12 @@ User Content
 
 ---
 
-## File Structure
+## Recommended File Structure
+
+This is the suggested project structure for implementing this architecture:
 
 ```
-backend/
+your_project/
 ├── app/
 │   ├── workflows/
 │   │   ├── content_analysis_workflow.py     # Main workflow
@@ -608,8 +614,19 @@ def agent_with_compression(state):
 
 ---
 
+## Implementation Notes
+
+This reference architecture demonstrates:
+- Supervisor-worker pattern with round-robin routing
+- Quality gates with G-Eval scoring
+- PostgreSQL checkpointing for fault tolerance
+- Langfuse observability integration
+- Prompt caching for cost optimization
+
+To implement this architecture in your project, adapt the code templates above to your specific requirements.
+
 ## References
 
-- OrchestKit Backend: `backend/app/workflows/`
 - LangGraph Docs: [Multi-Agent Systems](https://langchain-ai.github.io/langgraph/tutorials/multi_agent/)
 - Langfuse Docs: [LangGraph Integration](https://langfuse.com/docs/integrations/langgraph)
+- OrchestKit Skills: `langgraph-supervisor`, `langgraph-checkpoints`, `langfuse-observability`

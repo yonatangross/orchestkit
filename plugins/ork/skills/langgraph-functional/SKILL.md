@@ -383,12 +383,18 @@ def workflow(input: str) -> str:
     return transform_data(data).result()
 ```
 
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
+
 ## Related Skills
 
 - `langgraph-state` - State management patterns for complex workflow data
 - `langgraph-routing` - Conditional routing and branching decisions
 - `langgraph-parallel` - Advanced parallel execution and fan-out patterns
 - `langgraph-checkpoints` - Persistence and recovery for long-running workflows
+- `langgraph-human-in-loop` - Human approval with Functional API
+- `langgraph-subgraphs` - Compose functional workflows as subgraphs
 
 ## Key Decisions
 

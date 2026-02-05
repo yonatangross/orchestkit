@@ -124,6 +124,89 @@ def node(state: WorkflowState) -> WorkflowState:
     }
 ```
 
+## Context Schema (2026 Pattern)
+
+Pass runtime configuration without polluting state:
+
+```python
+from dataclasses import dataclass
+from langgraph.graph import StateGraph
+
+@dataclass
+class ContextSchema:
+    """Runtime configuration, not persisted in state."""
+    llm_provider: str = "anthropic"
+    temperature: float = 0.7
+    max_retries: int = 3
+    debug_mode: bool = False
+
+# Create graph with context schema
+graph = StateGraph(WorkflowState, context_schema=ContextSchema)
+
+# Access context in nodes
+def my_node(state: WorkflowState, context: ContextSchema):
+    if context.llm_provider == "anthropic":
+        response = call_claude(state["input"], context.temperature)
+    else:
+        response = call_openai(state["input"], context.temperature)
+
+    if context.debug_mode:
+        logger.debug(f"Response: {response}")
+
+    return {"output": response}
+
+# Invoke with context
+graph.invoke(
+    {"input": "Hello"},
+    context={"llm_provider": "openai", "temperature": 0.5}
+)
+```
+
+## Node Caching (2026 Pattern)
+
+Cache expensive node results with TTL:
+
+```python
+from langgraph.cache.memory import InMemoryCache
+from langgraph.types import CachePolicy
+
+# Add node with cache policy
+builder.add_node(
+    "embed_content",
+    embed_content_node,
+    cache_policy=CachePolicy(ttl=300)  # Cache for 5 minutes
+)
+
+builder.add_node(
+    "llm_call",
+    llm_node,
+    cache_policy=CachePolicy(ttl=60)  # Cache for 1 minute
+)
+
+# Compile with cache
+graph = builder.compile(cache=InMemoryCache())
+```
+
+## RemainingSteps (Proactive Recursion Handling)
+
+Check remaining steps to wrap up gracefully:
+
+```python
+from langgraph.types import RemainingSteps
+
+def agent_node(state: WorkflowState, remaining: RemainingSteps):
+    """Proactively handle recursion limit."""
+    if remaining.steps < 5:
+        # Running low on steps, wrap up
+        return {
+            "action": "summarize_and_exit",
+            "reason": f"Only {remaining.steps} steps remaining"
+        }
+
+    # Continue normal processing
+    return {"action": "continue"}
+```
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -133,6 +216,9 @@ def node(state: WorkflowState) -> WorkflowState:
 | Accumulators | Always use `Annotated[list, add]` for multi-agent |
 | Nesting | Keep state flat (easier debugging) |
 | Immutability | Return new state, don't mutate |
+| Runtime config | Use `context_schema` for non-persistent config |
+| Expensive ops | Use `CachePolicy` to cache node results |
+| Recursion | Use `RemainingSteps` for proactive handling |
 
 **2026 Guidance**: Use TypedDict inside the graph (lightweight, no runtime overhead). Use Pydantic at boundaries (inputs/outputs, user-facing data) for validation.
 
@@ -142,12 +228,21 @@ def node(state: WorkflowState) -> WorkflowState:
 - Mutating state in place (breaks checkpointing)
 - Deeply nested state (hard to debug)
 - No type hints (lose IDE support)
+- Putting runtime config in state (use context_schema instead)
+- Not caching expensive operations (repeated embedding calls)
+
+## Evaluations
+
+See [references/evaluations.md](references/evaluations.md) for test cases.
 
 ## Related Skills
 
-- `langgraph-routing` - Using state for routing decisions
-- `langgraph-checkpoints` - State persistence
-- `type-safety-validation` - Pydantic patterns
+- `langgraph-routing` - Using state fields for routing decisions
+- `langgraph-checkpoints` - Persist state for fault tolerance
+- `langgraph-parallel` - Accumulating state from parallel nodes
+- `langgraph-supervisor` - State tracking for agent completion
+- `langgraph-functional` - State in Functional API patterns
+- `type-safety-validation` - Pydantic model patterns
 
 ## Capability Details
 

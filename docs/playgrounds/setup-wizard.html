@@ -414,8 +414,138 @@
     background: var(--bg);
     color: var(--text);
     transition: all 0.15s;
+    cursor: pointer;
   }
-  .pi-skill-tag:hover { border-color: var(--accent3); background: rgba(6, 182, 212, 0.08); }
+  .pi-skill-tag:hover { border-color: var(--accent3); background: rgba(6, 182, 212, 0.08); transform: translateY(-1px); }
+  .pi-skill-tag:active { transform: translateY(0); }
+
+  /* Skill Detail Modal */
+  .skill-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .skill-modal-overlay.visible { display: flex; }
+  .skill-modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: modalIn 0.2s ease-out;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .skill-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+  }
+  .skill-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 16px;
+  }
+  .skill-modal-badge {
+    font-size: 9px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+  }
+  .skill-modal-badge.invocable {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+  }
+  .skill-modal-badge.version {
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+  }
+  .skill-modal-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .skill-modal-close:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--accent7); color: var(--accent7); }
+  .skill-modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    max-height: calc(80vh - 60px);
+  }
+  .skill-modal-desc {
+    color: var(--text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .skill-modal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+  .skill-modal-tag {
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.2);
+    color: #c4b5fd;
+    font-family: 'SF Mono', monospace;
+  }
+  .skill-modal-section {
+    margin-bottom: 16px;
+  }
+  .skill-modal-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .skill-modal-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: rgba(139, 92, 246, 0.1);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 8px;
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .skill-modal-link:hover { background: rgba(139, 92, 246, 0.2); border-color: var(--accent); }
   .pi-skill-tag.cmd { border-color: rgba(139, 92, 246, 0.3); color: var(--accent); }
   .pi-skill-tag.cmd::before { content: '/ork:'; color: var(--text-muted); }
   .pi-agent-tag {
