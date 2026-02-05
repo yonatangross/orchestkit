@@ -16,7 +16,7 @@ tools:
 skills:
   - web-research-workflow
   - browser-content-capture
-  - agent-browser
+  - browser-automation
   - competitive-monitoring
   - market-analysis-patterns
   - rag-retrieval

@@ -183,11 +183,12 @@ test_mem0_inject_has_domain_mapping() {
     fail "mem0-memory-inject.ts should have AGENT_DOMAINS mapping"
 }
 
-test_mem0_inject_uses_mem0_mcp() {
-    if grep -qiE "mcp__mem0__search_memories" "$TS_MEM0_INJECT" 2>/dev/null; then
+test_mem0_inject_uses_mem0_cli() {
+    # mem0 now uses CLI scripts instead of MCP (architecture change in v5.x)
+    if grep -qiE "search-memories\.py|mem0-memory.*scripts" "$TS_MEM0_INJECT" 2>/dev/null; then
         return 0
     fi
-    fail "mem0-memory-inject.ts should reference mcp__mem0__search_memories"
+    fail "mem0-memory-inject.ts should reference CLI scripts (search-memories.py)"
 }
 
 test_mem0_inject_has_cross_agent_federation() {
@@ -205,7 +206,7 @@ test_mem0_inject_has_global_best_practices() {
 }
 
 it "has AGENT_DOMAINS mapping" test_mem0_inject_has_domain_mapping
-it "uses mem0 MCP (mcp__mem0__search_memories)" test_mem0_inject_uses_mem0_mcp
+it "uses mem0 CLI scripts (search-memories.py)" test_mem0_inject_uses_mem0_cli
 it "has cross-agent federation" test_mem0_inject_has_cross_agent_federation
 it "queries global best practices" test_mem0_inject_has_global_best_practices
 

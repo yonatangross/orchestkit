@@ -16,7 +16,7 @@ tools:
 skills:
   - web-research-workflow
   - browser-content-capture
-  - agent-browser
+  - browser-automation
   - competitive-monitoring
   - market-analysis-patterns
   - rag-retrieval
@@ -290,6 +290,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |web-research-workflow:{SKILL.md}|research,browser,webfetch,automation,scraping
 |browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
+|browser-automation:{SKILL.md}|browser,automation,headless,scraping,vercel,agent-browser
 |competitive-monitoring:{SKILL.md}|competitive-intelligence,monitoring,diff,tracking,pricing
 |market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot
 |rag-retrieval:{SKILL.md,references/{advanced-rag.md}}|rag,retrieval,llm,context,grounding

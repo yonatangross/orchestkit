@@ -133,75 +133,20 @@ mcp__context7__query_docs(libraryId="/tiangolo/fastapi", query="dependencies")
 ```
 
 
-## Phase 2: Micro-Planning Per Task (NEW)
+## Phase 2: Micro-Planning Per Task
 
 **Goal:** Create detailed mini-plans for each task BEFORE implementation.
 
-### Micro-Plan Template
+For each task, create scope boundaries, file list, and acceptance criteria.
 
-For each task from Phase 1, create a micro-plan:
-
-```markdown
-## Micro-Plan: [Task Name]
-
-### Scope (What's IN)
-- [ ] Specific change 1
-- [ ] Specific change 2
-- [ ] Test for change 1
-- [ ] Test for change 2
-
-### Out of Scope (What's NOT in this task)
-- Feature X (separate task)
-- Optimization Y (future task)
-
-### Files to Touch
-| File | Change Type | Description |
-|------|-------------|-------------|
-| path/file.py | CREATE | New service class |
-| path/test.py | CREATE | Tests for service |
-| path/api.py | MODIFY | Add endpoint |
-
-### Acceptance Criteria
-- [ ] Tests pass
-- [ ] Lint clean
-- [ ] Types valid
-- [ ] Manually verified
-
-### Estimated Time
-[X] minutes / hours
-```
+See [Micro-Planning Guide](references/micro-planning-guide.md) for template.
 
 
-## Phase 3: Git Worktree Isolation (Optional but Recommended)
+## Phase 3: Git Worktree Isolation (Optional)
 
-**Goal:** Isolate feature work in a dedicated worktree to avoid polluting main workspace.
+**Goal:** Isolate feature work in a dedicated worktree for large features (5+ files).
 
-### When to Use Worktrees
-
-| Scenario | Use Worktree? |
-|----------|---------------|
-| Large feature (5+ files) | YES |
-| Experimental/risky changes | YES |
-| Quick bug fix (1-2 files) | No |
-| Hotfix to production | YES |
-| Parallel feature development | YES |
-
-### Worktree Setup
-
-```bash
-# Create feature worktree
-git worktree add ../project-feature-name feature/feature-name
-
-# Navigate to worktree
-cd ../project-feature-name
-
-# Work in isolation...
-
-# When done, merge and cleanup
-git checkout main
-git merge feature/feature-name
-git worktree remove ../project-feature-name
-```
+See [Worktree Workflow](references/worktree-workflow.md) for setup and cleanup commands.
 
 
 ## Phase 4: Parallel Architecture Design (5 Agents)
@@ -241,63 +186,20 @@ Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY 
 | security-auditor | Security audit |
 
 
-## Phase 7: Scope Creep Detector (NEW)
+## Phase 7: Scope Creep Detection
 
-**Goal:** Compare implementation against original scope to catch unplanned additions.
+**Goal:** Compare implementation against original scope (0-10 score).
 
-### Scope Creep Check Process
-
-```python
-Task(
-  subagent_type="workflow-architect",
-  prompt="""SCOPE CREEP DETECTION for: $ARGUMENTS
-
-  Compare implementation against original micro-plans:
-
-  1. PLANNED vs ACTUAL FILES
-     - Files that were planned
-     - Files actually modified
-     - Unplanned file changes?
-
-  2. PLANNED vs ACTUAL FEATURES
-     - Features in original scope
-     - Features actually implemented
-     - Unplanned features added?
-
-  3. SCOPE CREEP INDICATORS
-     - "While I'm here..." changes
-     - Premature optimization
-     - Goldplating (unnecessary polish)
-     - Refactoring outside scope
-
-  4. IMPACT ASSESSMENT
-     - Time spent on unplanned work
-     - Risk introduced by unplanned changes
-     - Testing gaps from scope expansion
-
-  Output:
-  {
-    "planned_files": N,
-    "actual_files": M,
-    "unplanned_changes": ["file - change type - justification needed"],
-    "scope_creep_score": 0-10 (0=perfect, 10=major creep),
-    "recommendations": ["action"]
-  }
-
-  SUMMARY: End with: "SCOPE: [score]/10 creep - [N] unplanned changes - [key issue]"
-  """,
-  run_in_background=True
-)
-```
-
-### Scope Creep Response
+Launch `workflow-architect` to compare planned vs actual files/features.
 
 | Score | Level | Action |
 |-------|-------|--------|
 | 0-2 | Minimal | Proceed to reflection |
-| 3-5 | Moderate | Document unplanned changes, justify or revert |
-| 6-8 | Significant | Review with user, potentially split into separate PR |
-| 9-10 | Major | Stop, reassess, likely need to split work |
+| 3-5 | Moderate | Document and justify unplanned changes |
+| 6-8 | Significant | Review with user, potentially split PR |
+| 9-10 | Major | Stop and reassess |
+
+See [Scope Creep Detection](references/scope-creep-detection.md) for agent prompt.
 
 
 ## Phase 8: E2E Verification
@@ -324,81 +226,18 @@ python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py 
 ```
 
 
-## Phase 10: Post-Implementation Reflection (NEW)
+## Phase 10: Post-Implementation Reflection
 
 **Goal:** Capture lessons learned while context is fresh.
 
-### Reflection Questions
+Launch `workflow-architect` to evaluate:
+- What went well / what to improve
+- Estimation accuracy (actual vs planned)
+- Reusable patterns to extract
+- Technical debt created
+- Knowledge gaps discovered
 
-After implementation is complete and verified, answer these questions:
-
-```python
-Task(
-  subagent_type="workflow-architect",
-  prompt="""POST-IMPLEMENTATION REFLECTION for: $ARGUMENTS
-
-  Reflect on the implementation process:
-
-  1. WHAT WENT WELL
-     - Approaches that worked smoothly
-     - Good decisions made
-     - Time-saving patterns used
-
-  2. WHAT COULD BE IMPROVED
-     - Pain points encountered
-     - Decisions that had to be revised
-     - Time sinks
-
-  3. ESTIMATION ACCURACY
-     - Original estimate: [X]
-     - Actual time: [Y]
-     - Variance reason: [why]
-
-  4. REUSABLE PATTERNS
-     - Patterns worth extracting to skills
-     - Code worth making into utilities
-     - Documentation worth adding
-
-  5. TECHNICAL DEBT
-     - Shortcuts taken (with justification)
-     - TODOs left behind
-     - Known limitations
-
-  6. KNOWLEDGE GAPS DISCOVERED
-     - Things we didn't know at start
-     - Research needed mid-implementation
-     - Skills/tools to learn for future
-
-  Output:
-  {
-    "went_well": ["item"],
-    "improvements": ["item"],
-    "estimate_accuracy": "X%",
-    "reusable_patterns": ["pattern - where to use"],
-    "tech_debt": ["debt - priority - plan"],
-    "knowledge_gaps": ["gap - how filled"]
-  }
-
-  SUMMARY: End with: "REFLECTION: [estimate accuracy]% accuracy - [key lesson]"
-  """,
-  run_in_background=True
-)
-```
-
-### Persist Lessons Learned
-
-```python
-# Store in memory for future implementations
-mcp__memory__create_entities(entities=[{
-  "name": "{feature}-lessons-learned",
-  "entityType": "Reflection",
-  "observations": [
-    "Lesson 1: ...",
-    "Lesson 2: ...",
-    "Pattern to reuse: ..."
-  ]
-}])
-```
+Store lessons in memory for future implementations.
 
 
 ## Continuous Feedback Loop (NEW)
