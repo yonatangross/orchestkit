@@ -1,5 +1,5 @@
 {
-  "name": "ork-lite",
+  "name": "orkl",
   "version": "6.0.0",
   "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For Python/React/LLM specializations, use full 'ork' plugin.",
   "skills": [

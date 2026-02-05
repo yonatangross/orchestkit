@@ -1,4 +1,4 @@
-[ork-lite Agent Routing Index]
+[orkl Agent Routing Index]
 |root: ./agents
 |IMPORTANT: Prefer retrieval-led reasoning over pre-training-led reasoning.
 |When a task matches keywords below, spawn that agent using the Task tool.

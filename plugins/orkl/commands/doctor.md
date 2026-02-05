@@ -13,7 +13,7 @@ allowed-tools: [Bash, Read, Grep, Glob]
 
 The `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:
 
-1. **Installed Plugins** - Detects ork-lite or ork
+1. **Installed Plugins** - Detects orkl or ork
 2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)
 3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)
 4. **Hook Health** - Registration, bundles, async patterns
@@ -57,14 +57,14 @@ Auto-detects which OrchestKit plugins are installed:
 ```bash
 # Detection logic:
 # - Scans for .claude-plugin/plugin.json in plugin paths
-# - Identifies ork-lite or ork
+# - Identifies orkl or ork
 # - Counts skills/agents per installed plugin
 ```
 
-**Output (ork-lite):**
+**Output (orkl):**
 ```
 Installed Plugins: 1
-- ork-lite: 119 skills, 36 agents, 117 hook entries
+- orkl: 119 skills, 36 agents, 117 hook entries
 ```
 
 **Output (ork full):**
@@ -93,7 +93,7 @@ Skills: 186/186 valid
 - Reference skills: 163
 ```
 
-**Output (ork-lite only):**
+**Output (orkl only):**
 ```
 Skills: 18/18 valid
 - User-invocable: 0 commands
@@ -260,14 +260,14 @@ Claude Code: 2.1.25 (OK)
 +===================================================================+
 ```
 
-**Domain-specific plugins (e.g., ork-lite + ork-lite):**
+**Domain-specific plugins (e.g., orkl + orkl):**
 ```
 +===================================================================+
 |                    OrchestKit Health Report                        |
 +===================================================================+
 | Version: 5.4.0  |  CC: 2.1.25  |  Plugins: 3 installed            |
 +===================================================================+
-| Installed        | ork, ork-lite, ork-lite       |
+| Installed        | ork, orkl, orkl       |
 | Skills           | 38/38 valid (combined)                         |
 | Agents           | 2/2 valid                                      |
 | Hooks            | 22/22 entries (via ork)                   |

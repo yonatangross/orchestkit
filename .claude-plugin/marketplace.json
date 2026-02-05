@@ -13,7 +13,7 @@
   },
   "plugins": [
     {
-      "name": "ork-lite",
+      "name": "orkl",
       "description": "Universal toolkit — 119 skills, 36 agents, 117 hooks. All workflows, architecture, security, product, accessibility, video. Works for any stack.",
       "version": "6.0.0",
       "author": {
@@ -21,11 +21,11 @@
         "email": "yonatan2gross@gmail.com"
       },
       "category": "development",
-      "source": "./plugins/ork-lite"
+      "source": "./plugins/orkl"
     },
     {
       "name": "ork",
-      "description": "Full specialized toolkit — 195 skills, 36 agents, 117 hooks. Everything in ork-lite plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
+      "description": "Full specialized toolkit — 195 skills, 36 agents, 117 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
       "version": "6.0.0",
       "author": {
         "name": "Yonatan Gross",
