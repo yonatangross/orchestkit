@@ -592,12 +592,12 @@ Team "security-audit-{timestamp}":
 **Goal:** Build team lifecycle hooks.
 
 **Deliverables:**
-- [ ] `src/hooks/src/team/team-member-start.ts` — link teammates to tasks
-- [ ] `src/hooks/src/team/team-member-complete.ts` — handle completion + synthesis trigger
-- [ ] `src/hooks/src/team/team-size-gate.ts` — enforce team limits
-- [ ] `src/hooks/src/team/team-quality-gate.ts` — aggregate evidence validation
-- [ ] Register in `hooks.json`, rebuild bundles
-- [ ] Tests for all new hooks
+- [x] `src/hooks/src/posttool/task/team-member-start.ts` — link teammates to tasks (PostToolUse[Task])
+- [x] `src/hooks/src/teammate-idle/team-synthesis-trigger.ts` — detect all-idle + suggest synthesis (TeammateIdle)
+- [x] `src/hooks/src/pretool/task/team-size-gate.ts` — enforce team limits (PreToolUse[Task])
+- [x] `src/hooks/src/teammate-idle/team-quality-gate.ts` — aggregate quality signals (TeammateIdle)
+- [x] Register in `hooks.json`, rebuild bundles (94 global, 122 total)
+- [x] Tests for all new hooks (36 tests across 4 files)
 
 ### Phase 3: Full-Stack Pipeline (P3-A.3)
 

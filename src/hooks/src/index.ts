@@ -71,6 +71,9 @@ import { writeHeaders } from './pretool/input-mod/write-headers.js';
 // PreTool/Skill hooks
 import { skillTracker } from './pretool/skill/skill-tracker.js';
 
+// PreTool/Task hooks — Agent Teams
+import { teamSizeGate } from './pretool/task/team-size-gate.js';
+
 // Skill hooks (24)
 import { backendFileNaming } from './skill/backend-file-naming.js';
 import { decisionProcessor } from './skill/decision-processor.js';
@@ -190,6 +193,9 @@ import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
 // PostTool/Write-Edit hooks (1)
 import { fileLockRelease } from './posttool/write-edit/file-lock-release.js';
 
+// PostTool/Task hooks — Agent Teams
+import { teamMemberStart } from './posttool/task/team-member-start.js';
+
 // Lifecycle hooks (17) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
 import { coordinationCleanup } from './lifecycle/coordination-cleanup.js';
@@ -209,6 +215,8 @@ import { prefillGuard } from './lifecycle/prefill-guard.js';
 
 // TeammateIdle hooks (CC 2.1.33)
 import { progressReporter } from './teammate-idle/progress-reporter.js';
+import { teamSynthesisTrigger } from './teammate-idle/team-synthesis-trigger.js';
+import { teamQualityGate } from './teammate-idle/team-quality-gate.js';
 
 // TaskCompleted hooks (CC 2.1.33)
 import { completionTracker } from './task-completed/completion-tracker.js';
@@ -266,6 +274,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
+
+  // PreTool/Task hooks (1) — Agent Teams
+  'pretool/task/team-size-gate': teamSizeGate,
 
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
@@ -386,6 +397,9 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Write-Edit hooks (1)
   'posttool/write-edit/file-lock-release': fileLockRelease,
 
+  // PostTool/Task hooks (1) — Agent Teams
+  'posttool/task/team-member-start': teamMemberStart,
+
   // Lifecycle hooks (15) - SessionStart/SessionEnd
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
   'lifecycle/coordination-cleanup': coordinationCleanup,
@@ -405,6 +419,8 @@ export const hooks: Record<string, HookFn> = {
 
   // TeammateIdle hooks (CC 2.1.33)
   'teammate-idle/progress-reporter': progressReporter,
+  'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
+  'teammate-idle/team-quality-gate': teamQualityGate,
 
   // TaskCompleted hooks (CC 2.1.33)
   'task-completed/completion-tracker': completionTracker,

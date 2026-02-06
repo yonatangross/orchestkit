@@ -294,7 +294,8 @@ describe('Cross-Bundle Consistency', () => {
     // 164 -> 166: added progress-reporter (TeammateIdle) and completion-tracker (TaskCompleted)
     // 166 -> 164: removed sequential-thinking-auto (Opus 4.6 native adaptive thinking)
     // 164 -> 161: #361/#362 removed release-lock-on-commit, instance-heartbeat, coordination-heartbeat
-    expect(totalHooks).toBe(161);
+    // 161 -> 165: Agent Teams Phase 2 — team-size-gate, team-member-start, team-synthesis-trigger, team-quality-gate
+    expect(totalHooks).toBe(165);
   });
 });
 

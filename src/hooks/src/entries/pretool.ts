@@ -51,6 +51,9 @@ import { writeHeaders } from '../pretool/input-mod/write-headers.js';
 // PreTool/Skill hooks (1)
 import { skillTracker } from '../pretool/skill/skill-tracker.js';
 
+// PreTool/Task hooks (1) — Agent Teams
+import { teamSizeGate } from '../pretool/task/team-size-gate.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -96,6 +99,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
+
+  // PreTool/Task hooks (1) — Agent Teams
+  'pretool/task/team-size-gate': teamSizeGate,
 };
 
 export function getHook(name: string): HookFn | undefined {

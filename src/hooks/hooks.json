@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 90 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 94 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -139,6 +139,10 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs agent/deployment-safety-check"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/team-size-gate"
           }
         ]
       }
@@ -192,6 +196,15 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/redact-secrets"
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/task/team-member-start"
           }
         ]
       }
@@ -457,6 +470,14 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/progress-reporter"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-synthesis-trigger"
+          },
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs teammate-idle/team-quality-gate"
           }
         ]
       }

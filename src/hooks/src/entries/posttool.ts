@@ -40,6 +40,9 @@ import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js'
 // PostTool/Write-Edit hooks (1)
 import { fileLockRelease } from '../posttool/write-edit/file-lock-release.js';
 
+// PostTool/Task hooks (1) — Agent Teams
+import { teamMemberStart } from '../posttool/task/team-member-start.js';
+
 // PostTool/Failure hooks (1)
 import { failureHandler } from '../posttool/failure-handler.js';
 
@@ -83,6 +86,9 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool/Write-Edit hooks (1)
   'posttool/write-edit/file-lock-release': fileLockRelease,
+
+  // PostTool/Task hooks (1) — Agent Teams
+  'posttool/task/team-member-start': teamMemberStart,
 
   // PostTool/Failure hooks (1)
   'posttool/failure-handler': failureHandler,
