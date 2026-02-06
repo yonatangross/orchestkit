@@ -38,7 +38,7 @@ Determine the assessment scope before scanning. Ask the user:
 > What type of upgrade are you assessing?
 > 1. **Full platform** - Model + CC version + OrchestKit (comprehensive)
 > 2. **Model only** - Switching Claude model (e.g., Sonnet 4.5 to Opus 4.6)
-> 3. **CC version only** - Claude Code version bump (e.g., 2.1.25 to 2.1.32)
+> 3. **CC version only** - Claude Code version bump (e.g., 2.1.32 to 2.1.33)
 > 4. **OrchestKit only** - Plugin version upgrade (e.g., 5.x to 6.x)
 
 Record the scope and target versions. If the user does not specify target versions, research the latest available in Phase 2.
@@ -47,6 +47,22 @@ Record the scope and target versions. If the user does not specify target versio
 ### Phase 1: Detection
 
 **Tools:** `Bash`, `Read`, `Grep`, `Glob`
+
+#### Precondition Checks
+
+Before scanning, verify the environment is assessable:
+
+```bash
+# Verify we're in an OrchestKit project
+[ -f CLAUDE.md ] || { echo "ERROR: No CLAUDE.md found — not an OrchestKit project"; exit 1; }
+[ -d src/skills ] || { echo "ERROR: No src/skills/ directory"; exit 1; }
+[ -d src/agents ] || { echo "ERROR: No src/agents/ directory"; exit 1; }
+[ -f src/hooks/hooks.json ] || { echo "WARNING: No hooks.json — hook assessment will be skipped"; }
+```
+
+If any required directory is missing, abort with a clear error. If optional components (hooks) are missing, continue with reduced scope and note it in the report.
+
+#### Environment Detection
 
 Detect the current environment state:
 
@@ -72,7 +88,7 @@ ls src/agents/ | wc -l
 
 **Output:** Environment snapshot including:
 - Current model ID (e.g., `claude-sonnet-4-5`)
-- Current CC version (e.g., `2.1.25`)
+- Current CC version (e.g., `2.1.33`)
 - Current OrchestKit version (e.g., `6.0.0`)
 - Hook count and bundle count
 - Skill count and agent count
@@ -173,12 +189,79 @@ Rate readiness 0-10 across 6 dimensions using the scoring rubric from `platform-
 overall_score = sum(dimension_score * weight for each dimension)
 ```
 
+#### Per-Dimension Scoring Thresholds
+
+Score each dimension 0-10 based on Phase 3 findings:
+
+**Model Compatibility (weight: 0.25)**
+- 10: No hardcoded model IDs, no capability assumptions
+- 8: Documentation-only model references (non-functional)
+- 6: 1-3 hardcoded model IDs in functional code
+- 4: Output token limits or context window hardcoded
+- 2: Model-specific API patterns (e.g., prefilling for Claude, function calling format)
+- 0: Core logic depends on model-specific behavior
+
+**Hook Compatibility (weight: 0.20)**
+- 10: All hooks use current event types and async patterns
+- 8: Minor deprecation warnings, no functional impact
+- 6: 1-3 hooks use deprecated event types
+- 4: Hook input/output schema changed
+- 2: Hook lifecycle order changed
+- 0: Hook system replaced or fundamentally restructured
+
+**Skill Coverage (weight: 0.15)**
+- 10: All skills use current frontmatter format, no stale references
+- 8: Minor version references outdated in skill content
+- 6: 1-5 skills reference deprecated features or removed capabilities
+- 4: Skill frontmatter schema changed (new required fields)
+- 2: Skill loading mechanism changed
+- 0: Skill format incompatible
+
+**Agent Readiness (weight: 0.15)**
+- 10: All agents use valid model aliases, tools, and frontmatter
+- 8: 1-2 agents reference removed tools or deprecated fields
+- 6: Agent model field values changed meaning
+- 4: Agent frontmatter schema requires migration
+- 2: Agent tool availability significantly changed
+- 0: Agent system incompatible
+
+**Memory Architecture (weight: 0.10)**
+- 10: Memory tiers unchanged, storage format stable
+- 8: New optional memory tier available
+- 6: Memory storage format changed (migration available)
+- 4: Memory tier behavior changed (e.g., scope semantics)
+- 2: Memory migration required with data transformation
+- 0: Memory system replaced
+
+**CI/CD Pipeline (weight: 0.15)**
+- 10: All tests pass, build system unchanged
+- 8: Minor test assertion updates needed
+- 6: Test framework or runner version update needed
+- 4: Build configuration changes required
+- 2: CI pipeline restructure needed
+- 0: Build system incompatible
+
 
 ### Phase 5: Recommendations
 
 **Tools:** Assessment analysis
 
-Generate prioritized action items based on Phase 3 findings and Phase 4 scores:
+Generate prioritized action items based on Phase 3 findings and Phase 4 scores.
+
+#### Priority Assignment Algorithm
+
+Map dimension scores to priority levels:
+
+```
+For each finding from Phase 3:
+  dimension_score = Phase 4 score for the finding's dimension
+
+  if dimension_score <= 2:  priority = "P0"  # Blocker
+  if dimension_score <= 4:  priority = "P1"  # Critical
+  if dimension_score <= 6:  priority = "P2"  # Important
+  if dimension_score <= 8:  priority = "P3"  # Nice-to-Have
+  if dimension_score > 8:   # No action needed
+```
 
 #### Priority Levels
 
@@ -188,6 +271,14 @@ Generate prioritized action items based on Phase 3 findings and Phase 4 scores:
 | **P1 - Critical** | Score 3-4; degraded functionality post-upgrade | Same sprint |
 | **P2 - Important** | Score 5-6; works but suboptimal | Next sprint |
 | **P3 - Nice-to-Have** | Score 7-8; minor improvements available | Backlog |
+
+#### Effort Estimation
+
+```
+effort = "low"     # Single file, < 5 lines changed
+effort = "medium"  # 2-5 files, or schema migration
+effort = "high"    # 6+ files, or architectural change
+```
 
 #### Recommendation Format
 
@@ -213,15 +304,15 @@ The assessment produces a structured JSON report:
   "environment": {
     "current": {
       "model": "claude-sonnet-4-5",
-      "ccVersion": "2.1.25",
+      "ccVersion": "2.1.32",
       "orkVersion": "6.0.0",
-      "hooks": 118,
-      "skills": 197,
+      "hooks": 121,
+      "skills": 199,
       "agents": 36
     },
     "target": {
       "model": "claude-opus-4-6",
-      "ccVersion": "2.1.32",
+      "ccVersion": "2.1.33",
       "orkVersion": "6.1.0"
     }
   },

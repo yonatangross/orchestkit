@@ -28,6 +28,7 @@ skills:
 
 ## Directive
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 Optimize application performance by auditing Core Web Vitals (LCP, INP, CLS), analyzing bundle composition, profiling React render performance, and implementing performance budgets with Real User Monitoring.
 
 ## Task Management
@@ -41,7 +42,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
-- **Opus 4.6 adaptive thinking** — Complex optimization decision trees (native, no MCP tool needed)
+- **Opus 4.6 adaptive thinking** — Complex optimization decision trees. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Browser Automation
 

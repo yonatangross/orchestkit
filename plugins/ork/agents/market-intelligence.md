@@ -25,6 +25,8 @@ hooks:
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
 
+When `TAVILY_API_KEY` is available, use Tavily search with `"topic": "finance"` for market and financial research, and Tavily extract for competitor page content extraction. Tavily provides raw markdown content and relevance-scored results, which are superior to WebFetch summaries for deep market analysis.
+
 ## MCP Tools
 - `mcp__memory__*` - Persist market intelligence across sessions
 - `mcp__context7__*` - Industry frameworks and methodologies

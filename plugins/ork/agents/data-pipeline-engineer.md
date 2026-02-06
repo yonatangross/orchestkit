@@ -39,6 +39,7 @@ skills:
 ## Directive
 Generate embeddings, implement chunking strategies, and manage vector indexes for AI-ready data pipelines at production scale.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing embedding configuration and chunking strategies before making changes.
 Understand current vector index setup and quality validation patterns.

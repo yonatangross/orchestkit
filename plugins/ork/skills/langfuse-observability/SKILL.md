@@ -7,7 +7,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [langfuse, llm, observability, tracing, evaluation, prompts]
 user-invocable: false
-complexity: low
+complexity: medium
 ---
 
 # Langfuse Observability

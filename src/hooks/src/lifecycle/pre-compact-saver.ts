@@ -12,6 +12,7 @@
  */
 
 import { writeFileSync, existsSync, readFileSync, mkdirSync, appendFileSync, readdirSync } from 'node:fs';
+import { execSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook, getLogDir, getSessionId, getProjectDir } from '../lib/common.js';
@@ -123,6 +124,46 @@ function calculateAvgInterval(history: Array<{ timestamp: string }>): number {
   return Math.round(intervals.reduce((a, b) => a + b, 0) / intervals.length);
 }
 
+/**
+ * Get files recently modified in the working tree (likely being actively edited)
+ */
+function getRecentlyEditedFiles(): string[] {
+  try {
+    const output = execSync('git diff --name-only HEAD 2>/dev/null', {
+      encoding: 'utf8',
+      timeout: 3000,
+      cwd: getProjectDir(),
+    });
+    return output.trim().split('\n').filter(Boolean).slice(0, 20);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Get in-progress tasks from task completions log (tasks started but not completed)
+ */
+function getInProgressTasks(): string[] {
+  const logFile = join(getProjectDir(), '.claude', 'logs', 'task-completions.jsonl');
+  if (!existsSync(logFile)) return [];
+
+  try {
+    const content = readFileSync(logFile, 'utf8');
+    const lines = content.trim().split('\n').filter(Boolean);
+    // Get recent task subjects (last 5 completed tasks give context)
+    return lines.slice(-5).map(line => {
+      try {
+        const entry = JSON.parse(line);
+        return `${entry.task_subject} [${entry.task_status}]`;
+      } catch {
+        return '';
+      }
+    }).filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
 export function preCompactSaver(_input: HookInput): HookResult {
   try {
     const stateFile = getSessionStateFile();
@@ -149,7 +190,9 @@ export function preCompactSaver(_input: HookInput): HookResult {
 
     // Preserve rich context for post-compaction recovery
     state.preservedContext = {
-      branch: process.env.ORCHESTKIT_BRANCH || undefined,
+      branch: process.env.ORCHESTKIT_BRANCH || process.env.GIT_BRANCH || undefined,
+      activeFiles: getRecentlyEditedFiles(),
+      activeTasks: getInProgressTasks(),
       sessionNotes: `Compaction #${state.compactionCount} at ${now}`,
       decisionLog: decisions,
       memoryTierSnapshot: {

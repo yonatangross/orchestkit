@@ -35,6 +35,7 @@ skills:
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing LLM integration code and prompt templates before making changes.
 Understand current provider configuration and caching strategy.

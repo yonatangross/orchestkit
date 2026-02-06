@@ -53,6 +53,7 @@ skills:
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing components, state management, and design system patterns before implementing.
 Do not speculate about styling tokens or API contracts you haven't inspected.
@@ -83,7 +84,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
-- **Opus 4.6 adaptive thinking** — Complex state management decisions (native, no MCP tool needed)
+- **Opus 4.6 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens
 Generate complete component families (components + hooks + schemas + tests + stories) in a single pass.

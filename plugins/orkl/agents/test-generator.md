@@ -5,7 +5,7 @@ category: testing
 model: inherit
 context: fork
 color: green
-memory: local
+memory: project
 tools:
   - Bash
   - Read
@@ -36,6 +36,7 @@ skills:
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read the code under test before generating tests.
 Understand the function's behavior, edge cases, and dependencies.

@@ -30,6 +30,7 @@ hooks:
 ## Directive
 Scan codebase for security vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance. Return actionable findings only.
 
+Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 <investigate_before_answering>
 Read the actual code and configuration before reporting vulnerabilities.
 Do not flag issues based on assumptions - verify with evidence.

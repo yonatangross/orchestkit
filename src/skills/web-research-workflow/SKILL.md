@@ -1,11 +1,11 @@
 ---
 name: web-research-workflow
-description: Unified decision tree for web research. Auto-selects WebFetch vs agent-browser based on target site characteristics. Use when researching web content, scraping, or capturing documentation.
+description: Unified decision tree for web research. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Use when researching web content, scraping, extracting raw markdown, or capturing documentation.
 context: fork
 agent: web-research-analyst
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit AI Agent Hub
-tags: [research, browser, webfetch, automation, scraping]
+tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction]
 user-invocable: false
 allowedTools: [Bash, Read, Write, WebFetch]
 complexity: low
@@ -22,17 +22,34 @@ URL to research
      │
      ▼
 ┌─────────────────┐
-│ Try WebFetch    │ ← Fast, no browser overhead
-│ (first choice)  │
+│ 1. Try WebFetch │ ← Fast, free, no overhead
+│    (always try) │
 └─────────────────┘
      │
 Content OK? ──Yes──► Parse and return
      │
-     No (empty/partial/JS-required)
+     No (empty/partial/<500 chars)
+     │
+     ▼
+┌───────────────────────┐
+│ 2. TAVILY_API_KEY set?│
+└───────────────────────┘
+     │          │
+    Yes         No ──► Skip to step 3
+     │
+     ▼
+┌───────────────────────────┐
+│ Tavily extract/search     │ ← Raw markdown, batch URLs
+│ (curl, no browser needed) │
+└───────────────────────────┘
+     │
+Content OK? ──Yes──► Parse and return
+     │
+     No (JS-rendered/auth-required)
      │
      ▼
 ┌─────────────────────┐
-│ Use agent-browser   │
+│ 3. Use agent-browser │ ← Full browser, last resort
 └─────────────────────┘
      │
 ├─ SPA (react/vue/angular) ──► wait --load networkidle
@@ -41,6 +58,113 @@ Content OK? ──Yes──► Parse and return
 └─ Multi-page ──► crawl pattern
 ```
 
+## Tavily Enhanced Research
+
+When `TAVILY_API_KEY` is set, Tavily provides a powerful middle tier between WebFetch and agent-browser. It returns raw markdown content, supports batch URL extraction, and offers semantic search with relevance scoring.
+
+**When to use Tavily over WebFetch:**
+- WebFetch returned <500 chars (likely incomplete)
+- You need raw markdown content (not Haiku-summarized)
+- Batch extracting content from multiple URLs
+- Semantic search with relevance scoring
+- Site discovery/crawling (map API)
+
+**When to skip Tavily and go to agent-browser:**
+- Content requires JavaScript rendering (SPAs)
+- Authentication/login is required
+- Interactive elements need clicking
+- Content is behind CAPTCHAs
+
+### Tavily Search (Semantic Web Search)
+
+Returns relevance-scored results with raw markdown content:
+
+```bash
+curl -s -X POST 'https://api.tavily.com/search' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "query": "your search query",
+    "search_depth": "advanced",
+    "max_results": 5,
+    "include_raw_content": "markdown"
+  }' | python3 -m json.tool
+```
+
+Options:
+- `search_depth`: `"basic"` (fast) or `"advanced"` (thorough, 2x cost)
+- `topic`: `"general"` (default) or `"news"` or `"finance"`
+- `include_domains`: `["example.com"]` — restrict to specific sites
+- `exclude_domains`: `["reddit.com"]` — filter out sites
+- `days`: `3` — limit to recent results (news/finance)
+- `include_raw_content`: `"markdown"` — get full page content
+
+### Tavily Extract (Batch URL Content)
+
+Extract raw content from up to 20 URLs at once:
+
+```bash
+curl -s -X POST 'https://api.tavily.com/extract' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "urls": [
+      "https://docs.example.com/guide",
+      "https://competitor.com/pricing"
+    ]
+  }' | python3 -m json.tool
+```
+
+Returns markdown content for each URL. Use when you have specific URLs and need full content.
+
+### Tavily Map (Site Discovery)
+
+Discover all URLs on a site before extracting:
+
+```bash
+curl -s -X POST 'https://api.tavily.com/map' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "url": "https://docs.example.com",
+    "max_depth": 2,
+    "limit": 50
+  }' | python3 -m json.tool
+```
+
+Useful for documentation sites and competitor sitemaps. Combine with extract for full crawl.
+
+### Escalation Heuristic
+
+```bash
+# Auto-escalate from WebFetch to Tavily
+CONTENT=$(WebFetch url="$URL" prompt="Extract main content")
+CHAR_COUNT=${#CONTENT}
+
+if [ "$CHAR_COUNT" -lt 500 ] && [ -n "$TAVILY_API_KEY" ]; then
+  # WebFetch returned thin content — try Tavily extract
+  RESULT=$(curl -s -X POST 'https://api.tavily.com/extract' \
+    -H 'Content-Type: application/json' \
+    -H "Authorization: Bearer $TAVILY_API_KEY" \
+    -d "{\"urls\":[\"$URL\"]}")
+  # Parse result...
+fi
+```
+
+### Cost Awareness
+
+| API | Cost | Notes |
+|-----|------|-------|
+| Tavily Search | 1 credit/search | `advanced` depth = 2 credits |
+| Tavily Extract | 1 credit/5 URLs | Batch up to 20 URLs |
+| Tavily Map | 1 credit/10 pages | Good for site discovery |
+| WebFetch | Free | Always try first |
+| agent-browser | Free (compute) | Slowest, most capable |
+
+### Graceful Degradation
+
+If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to the original 2-tier (WebFetch → agent-browser). No configuration needed — agents check for the env var before attempting Tavily calls.
+
 ## When to Use What
 
 | Scenario | Tool | Why |
@@ -48,6 +172,10 @@ Content OK? ──Yes──► Parse and return
 | Static HTML page | WebFetch | Fast, no browser needed |
 | Public API docs | WebFetch | Usually server-rendered |
 | GitHub README | WebFetch | Static content |
+| Batch URL extraction (2-20 URLs) | Tavily Extract | Parallel, raw markdown |
+| Semantic search with content | Tavily Search | Relevance-scored results |
+| Site crawl/discovery | Tavily Map | Finds all URLs on a domain |
+| Competitor page deep content | Tavily Extract | Full markdown, not summarized |
 | React/Vue/Angular app | agent-browser | Needs JS execution |
 | Interactive pricing page | agent-browser | Dynamic content |
 | Login-protected content | agent-browser | Needs session state |
@@ -184,12 +312,15 @@ agent-browser get text body > /tmp/cache/example-com.txt
 
 | Issue | Solution |
 |-------|----------|
-| Empty content from WebFetch | Use agent-browser with networkidle wait |
+| Empty content from WebFetch | Try Tavily extract, then agent-browser |
+| WebFetch returns <500 chars | Escalate to Tavily extract if API key set |
 | Partial content | Use `wait --text "Expected"` for specific content |
-| 403 Forbidden | May need authentication flow |
+| Need batch URL extraction | Tavily extract (up to 20 URLs at once) |
+| 403 Forbidden | May need authentication flow (agent-browser) |
 | CAPTCHA | Manual intervention required |
 | Rate limited | Add delays, reduce request frequency |
 | Content in iframe | Use `agent-browser frame @e1` then extract |
+| No TAVILY_API_KEY | Skip Tavily tier, use WebFetch → agent-browser |
 
 ## Integration with Agents
 
@@ -208,4 +339,4 @@ This skill is used by:
 
 ---
 
-**Version:** 1.0.0 (February )
+**Version:** 1.1.0 (February 2026)

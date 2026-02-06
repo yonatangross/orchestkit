@@ -25,6 +25,7 @@ skills:
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing Terraform modules and Kubernetes manifests before designing changes.
 Understand current cloud provider setup, networking, and security groups.
@@ -56,7 +57,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS
-- **Opus 4.6 adaptive thinking** — Complex architecture decisions (native, no MCP tool needed)
+- **Opus 4.6 adaptive thinking** — Complex architecture decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 
 ## Concrete Objectives

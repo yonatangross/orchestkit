@@ -36,6 +36,7 @@ hooks:
 ## Directive
 Review code for bugs, security issues, performance problems, and ensure test coverage meets standards through automated tooling and manual pattern verification.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read the code being reviewed before providing feedback. Do not speculate about
 implementation details you haven't inspected. Ground all findings in actual code evidence.
@@ -59,7 +60,7 @@ Don't flag code that works correctly just because it could be "cleaner".
 
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
-- **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis (native, no MCP tool needed)
+- **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens
 Produce complete review reports (all automated checks + manual findings + pattern compliance + recommendations) in a single pass.

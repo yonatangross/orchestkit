@@ -1,11 +1,11 @@
 ---
 name: competitive-monitoring
-description: Tracks competitor page changes over time. Captures snapshots, detects diffs, alerts on significant changes. Use when monitoring competitive intelligence, pricing changes, or feature tracking.
+description: Tracks competitor page changes over time. Captures snapshots, detects diffs, alerts on significant changes. Supports Tavily site discovery for URL enumeration. Use when monitoring competitive intelligence, pricing changes, or feature tracking.
 context: fork
 agent: market-intelligence
-version: 1.0.0
+version: 1.1.0
 author: OrchestKit AI Agent Hub
-tags: [competitive-intelligence, monitoring, diff, tracking, pricing]
+tags: [competitive-intelligence, monitoring, diff, tracking, pricing, tavily]
 user-invocable: true
 allowedTools: [Bash, Read, Write, WebFetch]
 complexity: medium
@@ -52,6 +52,45 @@ Comparison between two snapshots showing:
 | **High** | New feature added, feature removed | Review required |
 | **Medium** | Copy changes, positioning shift | Note for analysis |
 | **Low** | Typos, minor styling | Log only |
+
+## Site Discovery with Tavily (Optional Pre-Step)
+
+When `TAVILY_API_KEY` is available, use Tavily's map API to discover all pages on a competitor's site before setting up monitoring. This replaces manual URL enumeration.
+
+```bash
+# Step 0: Discover competitor site URLs
+curl -s -X POST 'https://api.tavily.com/map' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "url": "https://competitor.com",
+    "max_depth": 2,
+    "limit": 50
+  }' | python3 -c "
+import json, sys
+data = json.load(sys.stdin)
+for url in data.get('urls', []):
+    print(url)
+" > .competitive-intel/discovered-urls.txt
+
+# Filter for pages worth monitoring (pricing, features, changelog)
+grep -E '(pricing|features|changelog|release|blog)' \
+  .competitive-intel/discovered-urls.txt \
+  > .competitive-intel/monitor-targets.txt
+
+# Batch extract content from discovered URLs
+URLS=$(cat .competitive-intel/monitor-targets.txt | head -20 | python3 -c "
+import json, sys
+print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))
+")
+
+curl -s -X POST 'https://api.tavily.com/extract' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d "{\"urls\": $URLS}" | python3 -m json.tool
+```
+
+**Cost**: ~1 credit per 10 pages mapped, 1 credit per 5 URLs extracted. Skip this step if `TAVILY_API_KEY` is not set — proceed directly to browser-based capture below.
 
 ## Workflow
 
@@ -287,4 +326,4 @@ jobs:
 
 ---
 
-**Version:** 1.0.0 (February )
+**Version:** 1.1.0 (February 2026)

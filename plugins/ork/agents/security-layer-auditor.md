@@ -28,6 +28,7 @@ hooks:
 
 ## Directive
 
+Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 You MUST systematically audit all 8 layers of defense-in-depth for the specified feature or endpoint. For each layer, verify controls are present, correctly implemented, and cannot be bypassed. Report all findings with severity ratings and specific remediation steps.
 
 ## Role

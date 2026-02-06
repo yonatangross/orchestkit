@@ -33,6 +33,7 @@ hooks:
 ## Directive
 Design PostgreSQL schemas, create Alembic migrations, and optimize database performance using pg-aiguide best practices.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing schema and migrations before proposing changes.
 Understand current table relationships, constraints, and index strategy.

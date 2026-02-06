@@ -71,7 +71,7 @@ Break expectations immediately:
 "POV: Your AI writes your tests for you"
 [Show test generation in real-time]
 
-"This AI has 179 skills and nobody knows about it"
+"This AI has 199 skills and nobody knows about it"
 [Quick montage of skill invocations]
 
 "Stop. You're prompting wrong."

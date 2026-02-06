@@ -80,8 +80,8 @@ All memories include:
 ### Color Scheme
 
 Following 2026 best practices:
-- **Agents** (Blue #3B82F6): All 35 specialized AI agent personas
-- **Skills** (Green #10B981): All 182 skills
+- **Agents** (Blue #3B82F6): All 36 specialized AI agent personas
+- **Skills** (Green #10B981): All 199 skills
 - **Technologies** (Orange #F59E0B): Core technologies
 - **Categories** (Purple #8B5CF6): Skill categories
 - **Architecture** (Red #EF4444): Architecture decisions

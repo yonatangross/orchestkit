@@ -244,6 +244,8 @@ CLAUDE_PROJECT_DIR    # User's project directory
 CLAUDE_PLUGIN_ROOT    # Plugin installation directory
 CLAUDE_SESSION_ID     # Current session UUID
 MEM0_API_KEY          # Optional: enables mem0 cloud memory
+TAVILY_API_KEY        # Optional: enables Tavily search/extract/map (middle tier in web research)
+BRIGHTDATA_API_TOKEN  # Optional: enables BrightData web scraping MCP
 ```
 
 ### Memory Architecture (CC 2.1.30+ Integration)

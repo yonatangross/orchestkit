@@ -52,6 +52,7 @@ skills:
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read and understand existing API structure, models, and patterns before proposing changes.
 Do not speculate about code you have not inspected. If the user references a specific file,
@@ -85,7 +86,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic
 - `mcp__postgres-mcp__*` - Database schema inspection and query testing
-- **Opus 4.6 adaptive thinking** — Complex architectural decisions (native, no MCP tool needed)
+- **Opus 4.6 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens
 Generate complete API implementations (routes + models + schemas + tests) in a single pass.
