@@ -5,6 +5,7 @@ category: frontend
 model: inherit
 context: fork
 color: blue
+memory: project
 tools:
   - Bash
   - Read

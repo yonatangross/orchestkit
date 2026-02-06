@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: violet
+memory: project
 tools:
   - Read
   - WebSearch

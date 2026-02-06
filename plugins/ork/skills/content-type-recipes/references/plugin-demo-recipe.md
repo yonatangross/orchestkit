@@ -339,7 +339,7 @@ const enhancedTerminal = {
   statusBar: {
     visible: true,
     position: 'bottom',
-    content: 'OrchestKit v6.0.0 • 199 skills • 36 agents • 119 hooks',
+    content: 'OrchestKit v6.0.2 • 199 skills • 36 agents • 120 hooks',
     animation: 'slide-up',
     delay: 1200,
   },
@@ -524,7 +524,7 @@ const endCard = {
 | 270 | 0:09.00 | Terminal upgrade | Enhanced prompt | — |
 | 300 | 0:10.00 | Stats overlay | Numbers appear | stat_1 |
 | 303 | 0:10.10 | Second stat | 36 agents | stat_2 |
-| 306 | 0:10.20 | Third stat | 119 hooks | stat_3 |
+| 306 | 0:10.20 | Third stat | 120 hooks | stat_3 |
 | 390 | 0:13.00 | CTA | Install button | — |
 | 450 | 0:15.00 | End | Fade out | — |
 

@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: magenta
+memory: project
 tools:
   - Bash
   - Read

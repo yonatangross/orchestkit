@@ -23,6 +23,8 @@ Maximum utilization of parallel subagent execution for feature implementation wi
 /implement dashboard analytics
 ```
 
+> **Opus 4.6**: Parallel agents leverage native adaptive thinking and 128K output for comprehensive implementations. Token budgets scale dynamically with context window.
+
 ---
 
 ## STEP 0: Verify User Intent with AskUserQuestion

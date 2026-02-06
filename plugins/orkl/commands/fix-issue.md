@@ -18,6 +18,8 @@ Systematic issue resolution with hypothesis-based root cause analysis, similar i
 /fix-issue 456
 ```
 
+> **Opus 4.6**: Root cause analysis uses native adaptive thinking. Dynamic token budgets scale with context window for thorough investigation.
+
 
 ## STEP 0: Verify User Intent with AskUserQuestion
 

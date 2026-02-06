@@ -64,13 +64,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 109 skills, 36 agents, 121 hook entries
+- orkl: 109 skills, 36 agents, 120 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 199 skills, 36 agents, 121 hook entries
+- ork: 199 skills, 36 agents, 120 hook entries
 ```
 
 ### 1. Skills Validation

@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: pink
+memory: project
 tools:
   - Write
   - Read

@@ -5,6 +5,7 @@ category: research
 model: inherit
 context: fork
 color: cyan
+memory: project
 tools:
   - Bash
   - Read

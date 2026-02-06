@@ -23,6 +23,8 @@ Comprehensive verification using parallel specialized agents with nuanced gradin
 /verify --scope=backend database migrations
 ```
 
+> **Opus 4.6**: Agents use native adaptive thinking (no MCP sequential-thinking needed). Extended 128K output supports comprehensive verification reports.
+
 ---
 
 ## STEP 0: Verify User Intent with AskUserQuestion

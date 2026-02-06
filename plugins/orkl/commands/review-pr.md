@@ -18,6 +18,8 @@ Deep code review using 6-7 parallel specialized agents.
 /review-pr feature-branch
 ```
 
+> **Opus 4.6**: Parallel agents use native adaptive thinking for deeper analysis. Complexity-aware routing matches agent model to review difficulty.
+
 
 ## STEP 0: Verify User Intent with AskUserQuestion
 

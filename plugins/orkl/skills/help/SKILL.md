@@ -166,9 +166,8 @@ Just describe your task naturally and OrchestKit will recommend the appropriate 
 | EXPLORE | 2 | Code exploration |
 | MEDIA | 1 | Content creation |
 | META | 1 | This help skill |
-| **Total** | **21** | |
-
-*Note: 4 deprecated memory skills remain available but redirect to the consolidated skills.*
+| UPGRADE | 1 | Platform upgrade assessment |
+| **Total** | **23** | |
 
 ---
 
