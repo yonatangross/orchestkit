@@ -5,6 +5,7 @@ category: design
 model: sonnet
 context: fork
 color: magenta
+memory: local
 tools:
   - Read
   - Write

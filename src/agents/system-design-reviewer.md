@@ -5,6 +5,7 @@ category: design
 model: opus
 context: inherit
 color: cyan
+memory: project
 tools:
   - Read
   - Grep

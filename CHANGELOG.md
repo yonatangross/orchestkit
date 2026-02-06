@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **#333 (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
 - **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
 - **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
-- **#346 (P1-E)**: Agent `memory` frontmatter — 17 agents with `project` scope, 5 with `local` scope (CC 2.1.33)
+- **#346 (P1-E)**: Agent `memory` frontmatter — all 36 agents (31 `project` scope, 5 `local` scope) (CC 2.1.33)
 - **#347 (P1-F)**: New `TeammateIdle` and `TaskCompleted` hook events with progress-reporter and completion-tracker handlers (CC 2.1.33)
 - Batch script `scripts/add-complexity.mjs` for applying complexity classifications
 
@@ -37,7 +37,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
 - CI workflow renames for clarity and pipeline parallelism
 - Skill count: 197 → 199 (added upgrade-assessment, platform-upgrade-knowledge)
-- Hook count: 117 → 121 (93 global + 22 agent + 6 skill-scoped)
+- Hook count: 117 → 120 (92 global + 22 agent + 6 skill-scoped)
+- Opus 4.6 callouts added to top 5 user-invocable skills (verify, review-pr, fix-issue, implement, explore)
+- Agent `memory` frontmatter expanded from 22 to all 36 agents
+
+### Removed
+
+- Deprecated `sequential-thinking-auto` pretool hook (Opus 4.6 native adaptive thinking replaces MCP sequential-thinking)
 
 ---
 

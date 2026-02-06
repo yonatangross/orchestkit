@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: magenta
+memory: project
 tools:
   - Read
   - Grep

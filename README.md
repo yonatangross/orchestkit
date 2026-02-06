@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**199 skills · 36 agents · 121 hooks · 2 plugins**
+**199 skills · 36 agents · 120 hooks · 2 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.33-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -163,7 +163,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
 - `orkl` (109 skills) — Universal toolkit, all workflows work out of the box
 - `ork` (199 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 121 hooks included in both plugins
+- All 36 agents and 120 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 

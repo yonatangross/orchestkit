@@ -21,6 +21,8 @@ Multi-angle codebase exploration using 3-5 parallel agents.
 /explore authentication
 ```
 
+> **Opus 4.6**: Exploration agents use native adaptive thinking for deeper pattern recognition across large codebases.
+
 ---
 
 ## STEP 0: Verify User Intent with AskUserQuestion
