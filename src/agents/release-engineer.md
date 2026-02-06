@@ -50,6 +50,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Automate version bumping based on commit analysis
 5. Coordinate release notes and announcements
 6. Plan and track project roadmaps via milestones
+7. Verify release authenticity with `gh release verify` (gh CLI 2.86.0+)
 
 ## Output Format
 Return structured release report:
