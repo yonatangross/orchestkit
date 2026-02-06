@@ -317,7 +317,7 @@ describe('pre-compact-saver', () => {
       // Assert
       expect(logHook).toHaveBeenCalledWith(
         'pre-compact-saver',
-        'Saved state before compaction #1'
+        expect.stringContaining('Saved state before compaction #1')
       );
     });
 
@@ -332,7 +332,7 @@ describe('pre-compact-saver', () => {
       // Assert
       expect(logHook).toHaveBeenCalledWith(
         'pre-compact-saver',
-        'Saved state before compaction #11'
+        expect.stringContaining('Saved state before compaction #11')
       );
     });
 

@@ -288,7 +288,8 @@ describe('Cross-Bundle Consistency', () => {
     // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
     // 165 -> 163: passive-index-migration removed agent-auto-suggest + agent-orchestrator
     // 163 -> 162: removed skill-resolver (Claude Code natively injects agent skills)
-    expect(totalHooks).toBe(162);
+    // 162 -> 164: added prefill-guard (SessionStart) and model-cost-advisor (SubagentStart)
+    expect(totalHooks).toBe(164);
   });
 });
 

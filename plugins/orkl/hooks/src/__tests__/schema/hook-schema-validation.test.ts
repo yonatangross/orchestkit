@@ -324,7 +324,9 @@ describe('Hook Schema Validation', () => {
     test.each(hooks.map(h => [h.name, h]))('%s returns valid HookResult', async (_, hook) => {
       try {
         const module = await import(hook.path);
-        const hookFn = module.default || module[Object.keys(module)[0]];
+        // Prefer camelCase of hook name (e.g. session-cleanup → sessionCleanup)
+        const camelName = hook.name.replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase());
+        const hookFn = module.default || module[camelName] || module[Object.keys(module)[0]];
 
         if (typeof hookFn !== 'function') {
           // Some hooks may export objects or have different structures

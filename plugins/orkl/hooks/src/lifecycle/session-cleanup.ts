@@ -155,7 +155,7 @@ function cleanupRotatedLogs(logDir: string): void {
  * - [Request interrupted by user...] → preserved as-is
  */
 export function sanitizeFirstPrompt(raw: string): string {
-  if (!raw || raw === 'No prompt') return raw;
+  if (!raw || typeof raw !== 'string' || raw === 'No prompt') return (raw as string) || '';
 
   let cleaned = raw;
 

@@ -66,6 +66,20 @@ AskUserQuestion(
 
 ---
 
+## Opus 4.6: 128K Output Token Advantage
+
+With 128K output tokens (2x previous 64K), agents can generate **complete artifacts in fewer passes**:
+
+| Artifact | Before (64K) | After (128K) |
+|----------|-------------|--------------|
+| Full API + models | 2 passes | 1 pass |
+| Component + tests | 2 passes | 1 pass |
+| Complete feature (API + UI + tests) | 4-6 passes | 2-3 passes |
+
+**Guidance for agents:** Generate complete, working code in a single pass whenever possible. Don't split implementations across multiple responses unless the scope genuinely exceeds 128K tokens. Prefer one comprehensive response over multiple incremental ones.
+
+---
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**

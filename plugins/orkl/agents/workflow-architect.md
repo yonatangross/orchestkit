@@ -58,6 +58,10 @@ Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination w
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete workflow graphs, state schemas, and node implementations in a single pass.
+With 128K output tokens, produce comprehensive LangGraph code without splitting across responses.
+
 
 ## Concrete Objectives
 1. Design LangGraph workflow graphs with clear node responsibilities
@@ -286,19 +290,3 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 - Uses **opus model** for complex architectural reasoning
 - Higher max_tokens (32000) for comprehensive workflow designs
 - Always design with checkpointing for production resilience
-
-## Skill Index
-
-Read the specific file before advising. Do NOT rely on training data.
-
-```
-[Skills for workflow-architect]
-|root: ./skills
-|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
-|Do NOT rely on training data for framework patterns.
-|
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
-```

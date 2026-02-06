@@ -84,6 +84,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
 - **Opus 4.6 adaptive thinking** — Complex state management decisions (native, no MCP tool needed)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete component families (components + hooks + schemas + tests + stories) in a single pass.
+With 128K output, build entire feature pages without splitting across responses.
+
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs
@@ -439,27 +443,3 @@ Action: Build real AnalysisStatus.tsx with:
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
 - **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
-
-## Skill Index
-
-Read the specific file before advising. Do NOT rely on training data.
-
-```
-[Skills for frontend-ui-developer]
-|root: ./skills
-|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
-|Do NOT rely on training data for framework patterns.
-|
-|unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
-|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
-|a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
-|focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
-|wcag-compliance:{SKILL.md,references/{wcag-criteria.md}}|accessibility,wcag,a11y,aria,screen-reader,compliance
-|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints
-|edge-computing-patterns:{SKILL.md,references/{cloudflare-workers.md,runtime-differences.md,vercel-edge.md}}|edge,cloudflare,vercel,deno,serverless,2025
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
-|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
-|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
-|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
-```

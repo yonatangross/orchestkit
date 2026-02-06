@@ -208,6 +208,14 @@ def calculate_budget(model: str, task_type: str) -> dict:
         "llama-3": 128_000,
     }
 
+    # Opus 4.6: 128K max output tokens (up from 64K)
+    MAX_OUTPUT = {
+        "claude-opus-4-6": 128_000,
+        "claude-sonnet-4-5": 64_000,
+        "gpt-5.2": 64_000,
+        "gemini-3-pro": 65_536,
+    }
+
     # Reserve 20% for response generation
     available = MAX_CONTEXT[model] * 0.8
 
