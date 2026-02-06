@@ -74,7 +74,7 @@ Installed Plugins: 1
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 199 skills, 36 agents, 119 hook entries
+- ork: 200 skills, 36 agents, 119 hook entries
 ```
 
 ### 1. Skills Validation
@@ -93,7 +93,7 @@ Validates skills in installed plugins (count varies by installation):
 **Output (full ork):**
 ```
 Skills: 186/186 valid
-- User-invocable: 23 commands
+- User-invocable: 24 commands
 - Reference skills: 163
 ```
 

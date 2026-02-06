@@ -24,6 +24,7 @@ const mockReaddirSync = vi.fn().mockReturnValue([]);
 const mockStatSync = vi.fn().mockReturnValue({ mtimeMs: Date.now() });
 const mockUnlinkSync = vi.fn();
 const mockRmSync = vi.fn();
+const mockRenameSync = vi.fn();
 
 vi.mock('node:fs', () => ({
   existsSync: (...args: unknown[]) => mockExistsSync(...args),
@@ -34,6 +35,7 @@ vi.mock('node:fs', () => ({
   statSync: (...args: unknown[]) => mockStatSync(...args),
   unlinkSync: (...args: unknown[]) => mockUnlinkSync(...args),
   rmSync: (...args: unknown[]) => mockRmSync(...args),
+  renameSync: (...args: unknown[]) => mockRenameSync(...args),
 }));
 
 // Mock child_process

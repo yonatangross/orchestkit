@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**199 skills · 36 agents · 119 hooks · 2 plugins**
+**200 skills · 36 agents · 119 hooks · 2 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.33-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -57,7 +57,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 199 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 200 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
 | **Hooks** | 119 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
@@ -91,7 +91,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 **orkl** (109 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
-**ork** (199 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (200 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -162,7 +162,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
 - `orkl` (109 skills) — Universal toolkit, all workflows work out of the box
-- `ork` (199 skills) — Full specialized with Python, React, LLM/RAG patterns
+- `ork` (200 skills) — Full specialized with Python, React, LLM/RAG patterns
 - All 36 agents and 119 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
