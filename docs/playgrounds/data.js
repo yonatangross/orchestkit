@@ -14,10 +14,10 @@ window.ORCHESTKIT_DATA = {
   // Totals for the full ork plugin (superset) - AUTO-GENERATED
   totals: {
       "plugins": 2,
-      "skills": 199,
+      "skills": 200,
       "agents": 36,
       "hooks": 119,
-      "commands": 23,
+      "commands": 24,
       "compositions": 14
   },
 
@@ -38,7 +38,7 @@ window.ORCHESTKIT_DATA = {
           "skillCount": 109,
           "agentCount": 36,
           "hooks": 119,
-          "commandCount": 23,
+          "commandCount": 24,
           "color": "#8b5cf6",
           "required": false,
           "recommended": true,
@@ -106,6 +106,7 @@ window.ORCHESTKIT_DATA = {
               "add-golden",
               "assess",
               "assess-complexity",
+              "audit-full",
               "brainstorming",
               "commit",
               "competitive-monitoring",
@@ -130,14 +131,14 @@ window.ORCHESTKIT_DATA = {
       },
       {
           "name": "ork",
-          "description": "Full specialized toolkit — 199 skills, 36 agents, 119 hooks. Adds Python, React, LLM/RAG patterns.",
+          "description": "Full specialized toolkit — 200 skills, 36 agents, 119 hooks. Adds Python, React, LLM/RAG patterns.",
           "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
           "category": "development",
           "version": "6.0.2",
-          "skillCount": 199,
+          "skillCount": 200,
           "agentCount": 36,
           "hooks": 119,
-          "commandCount": 23,
+          "commandCount": 24,
           "color": "#06b6d4",
           "required": false,
           "recommended": false,
@@ -159,13 +160,13 @@ window.ORCHESTKIT_DATA = {
               "asyncio-advanced",
               "audio-language-models",
               "audio-mixing-patterns",
+              "audit-full",
               "auth-patterns",
               "backend-architecture-enforcer",
               "background-jobs",
               "best-practices",
               "biome-linting",
-              "brainstorming",
-              "browser-automation"
+              "brainstorming"
           ],
           "agents": [
               "accessibility-specialist",
@@ -209,6 +210,7 @@ window.ORCHESTKIT_DATA = {
               "add-golden",
               "assess",
               "assess-complexity",
+              "audit-full",
               "brainstorming",
               "commit",
               "competitive-monitoring",
@@ -786,13 +788,13 @@ window.ORCHESTKIT_DATA = {
           ],
           "backend": [
               "api-versioning",
+              "audit-full",
               "backend-architecture-enforcer",
               "caching-strategies",
               "error-handling-rfc9457",
               "fastapi-advanced",
               "grpc-python",
-              "langgraph-functional",
-              "project-structure-enforcer"
+              "langgraph-functional"
           ]
       }
   },
@@ -1837,6 +1839,66 @@ window.ORCHESTKIT_DATA = {
       "plugins": [
         "ork",
         "orkl"
+      ],
+      "relatedAgents": []
+    },
+    "audit-full": {
+      "name": "audit-full",
+      "description": "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis.",
+      "version": "1.0.0",
+      "author": "OrchestKit",
+      "tags": [
+        "security",
+        "architecture",
+        "audit",
+        "dependencies",
+        "1m-context",
+        "cross-file"
+      ],
+      "userInvocable": true,
+      "context": "fork",
+      "allowedTools": [
+        "AskUserQuestion",
+        "Read",
+        "Grep",
+        "Glob",
+        "Bash",
+        "Task",
+        "TaskCreate",
+        "TaskUpdate",
+        "TaskList",
+        "mcp__memory__search_nodes"
+      ],
+      "skills": [
+        "security-scanning",
+        "defense-in-depth",
+        "owasp-top-10",
+        "clean-architecture",
+        "quality-gates"
+      ],
+      "agent": null,
+      "structure": {
+        "references": [
+          "architecture-review-guide.md",
+          "dependency-audit-guide.md",
+          "security-audit-guide.md",
+          "token-estimation.md"
+        ],
+        "assets": [
+          "audit-report-template.md",
+          "severity-matrix.md"
+        ],
+        "scripts": [
+          "estimate-tokens.sh"
+        ],
+        "checklists": [
+          "audit-completion.md"
+        ]
+      },
+      "content": "# Full-Codebase Audit\n\nSingle-pass whole-project analysis leveraging Opus 4.6's extended context window. Loads entire codebases (~50K LOC) into context for cross-file vulnerability detection, architecture review, and dependency analysis.\n\n## Quick Start\n\n```bash\n/audit-full                          # Full audit (all modes)\n/audit-full security                 # Security-focused audit\n/audit-full architecture             # Architecture review\n/audit-full dependencies             # Dependency audit\n```\n\n> **Opus 4.6**: Uses `complexity: max` for extended thinking across entire codebases. 1M context (beta, Tier 4+) enables cross-file reasoning that chunked approaches miss.\n\n---\n\n## STEP 0: Verify User Intent with AskUserQuestion\n\n**BEFORE creating tasks**, clarify audit scope:\n\n```python\nAskUserQuestion(\n  questions=[\n    {\n      \"question\": \"What type of audit do you want to run?\",\n      \"header\": \"Audit mode\",\n      \"options\": [\n        {\"label\": \"Full audit (Recommended)\", \"description\": \"Security + architecture + dependencies in one pass\"},\n        {\"label\": \"Security audit\", \"description\": \"Cross-file vulnerability analysis, data flow tracing, OWASP mapping\"},\n        {\"label\": \"Architecture review\", \"description\": \"Pattern consistency, coupling analysis, dependency violations\"},\n        {\"label\": \"Dependency audit\", \"description\": \"License compliance, CVE checking, version currency\"}\n      ],\n      \"multiSelect\": false\n    },\n    {\n      \"question\": \"What should be audited?\",\n      \"header\": \"Scope\",\n      \"options\": [\n        {\"label\": \"Entire codebase\", \"description\": \"Load all source files into context\"},\n        {\"label\": \"Specific directory\", \"description\": \"Focus on a subdirectory (e.g., src/api/)\"},\n        {\"label\": \"Changed files only\", \"description\": \"Audit only files changed vs main branch\"}\n      ],\n      \"multiSelect\": false\n    }\n  ]\n)\n```\n\n**Based on answers, adjust workflow:**\n- **Full audit**: All 3 domains, maximum context usage\n- **Security only**: Focus token budget on source + config files\n- **Architecture only**: Focus on module boundaries, imports, interfaces\n- **Dependency only**: Focus on lock files, manifests, import maps\n- **Changed files only**: Use `git diff --name-only main...HEAD` to scope\n\n---\n\n## CRITICAL: Task Management is MANDATORY\n\n```python\nTaskCreate(\n  subject=\"Full-codebase audit\",\n  description=\"Single-pass audit using extended context\",\n  activeForm=\"Running full-codebase audit\"\n)\n\n# Phase subtasks\nTaskCreate(subject=\"Estimate token budget and plan loading\", activeForm=\"Estimating token budget\")\nTaskCreate(subject=\"Load codebase into context\", activeForm=\"Loading codebase\")\nTaskCreate(subject=\"Run audit analysis\", activeForm=\"Analyzing codebase\")\nTaskCreate(subject=\"Generate audit report\", activeForm=\"Generating report\")\n```\n\n---\n\n## STEP 1: Estimate Token Budget\n\nBefore loading files, estimate whether the codebase fits in context.\n\n### Run Token Estimation\n\n```bash\n# Use the estimation script\nbash ${",
+      "contentTruncated": true,
+      "plugins": [
+        "ork"
       ],
       "relatedAgents": []
     },
@@ -3301,7 +3363,7 @@ window.ORCHESTKIT_DATA = {
           "skills-validation.md"
         ]
       },
-      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 109 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 199 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
+      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 109 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 200 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 24 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
       "contentTruncated": true,
       "plugins": [
         "ork",
