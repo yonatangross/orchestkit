@@ -76,6 +76,30 @@ Each axis can be upgraded independently, but interactions between them must be v
 | Code execution | Claude Opus 4 | Sandbox environment |
 | MCP (Model Context Protocol) | Claude Sonnet 4 | Via Claude Code / Desktop |
 | Files API | Claude Opus 4.6 | Direct file attachment |
+| Data residency (`inference_geo`) | Claude Opus 4.6 | `"global"` or `"us"` for enterprise compliance |
+
+### Data Residency Controls (Enterprise)
+
+Opus 4.6 supports the `inference_geo` parameter for data residency:
+
+```json
+{
+  "model": "claude-opus-4-6-20260115",
+  "inference_geo": "us",
+  "messages": [...]
+}
+```
+
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `"global"` | Default. Routes to nearest available region | Standard deployments |
+| `"us"` | Restricts inference to US data centers | HIPAA, FedRAMP, enterprise compliance |
+
+**Enterprise considerations:**
+- Set `inference_geo` at the API client level, not per-request, for consistency
+- Combine with Anthropic's SOC 2 Type II and data processing agreements
+- Does not affect prompt caching behavior (cache is region-local)
+- Latency may increase slightly with `"us"` for non-US users
 
 ### Model ID Mapping
 
@@ -107,6 +131,8 @@ When upgrading models, these are the common transitions:
 | 2.1.25 | + Fire-and-forget async dispatchers |
 | 2.1.30 | + Memory auto-write to MEMORY.md |
 | 2.1.32 | + Skill budget scaling (2% of context), prompt hooks |
+| 2.1.33 | + TeammateIdle, TaskCompleted hooks, Agent Teams, agent memory frontmatter |
+| 2.1.34 | Stability release, no breaking changes from 2.1.33 |
 
 ### Skill Format Changes
 
