@@ -255,17 +255,9 @@ describe('Error Path Coverage', () => {
     });
 
     describe('unlinkSync errors', () => {
-      test('cleanup-instance handles missing lock files', async () => {
-        mockExistsSync.mockReturnValue(true);
-        mockUnlinkSync.mockImplementation(() => {
-          throw new Error('ENOENT: no such file or directory');
-        });
-
-        const { cleanupInstance } = await import('../../stop/cleanup-instance.js');
-        const input = createHookInput({ tool_name: 'Stop' });
-        const result = cleanupInstance(input);
-
-        expectGracefulDegradation(result);
+      // cleanup-instance removed in Issue #362 (absorbed by multi-instance-cleanup)
+      test('placeholder — original hook removed', () => {
+        expect(true).toBe(true);
       });
     });
   });

@@ -295,7 +295,8 @@ describe('Cross-Bundle Consistency', () => {
     // 166 -> 164: removed sequential-thinking-auto (Opus 4.6 native adaptive thinking)
     // 164 -> 161: #361/#362 removed release-lock-on-commit, instance-heartbeat, coordination-heartbeat
     // 161 -> 165: Agent Teams Phase 2 — team-size-gate, team-member-start, team-synthesis-trigger, team-quality-gate
-    expect(totalHooks).toBe(165);
+    // 165 -> 163: removed multi-instance-init + cleanup-instance (absorbed by unified-dispatcher)
+    expect(totalHooks).toBe(163);
   });
 });
 

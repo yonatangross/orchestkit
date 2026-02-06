@@ -11,6 +11,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from 'node:fs';
+import { writeFile, rename, mkdir } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 
 // -----------------------------------------------------------------------------
@@ -76,6 +77,21 @@ export function saveLocks(locksPath: string, data: LockDatabase): void {
   const tmpPath = `${locksPath}.${process.pid}.tmp`;
   writeFileSync(tmpPath, JSON.stringify(data, null, 2));
   renameSync(tmpPath, locksPath);
+}
+
+/**
+ * Save locks database atomically using async fs/promises.
+ * Non-blocking alternative to saveLocks() for stop/cleanup hooks.
+ * Issue #361: Added for async cleanup paths.
+ */
+export async function saveLocksAsync(locksPath: string, data: LockDatabase): Promise<void> {
+  const dir = dirname(locksPath);
+  if (!existsSync(dir)) {
+    await mkdir(dir, { recursive: true });
+  }
+  const tmpPath = `${locksPath}.${process.pid}.tmp`;
+  await writeFile(tmpPath, JSON.stringify(data, null, 2));
+  await rename(tmpPath, locksPath);
 }
 
 /**

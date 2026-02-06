@@ -1109,10 +1109,15 @@ describe('lifecycle/coordination-init', () => {
     const originalSkip = process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
     const originalInstanceId = process.env.CLAUDE_INSTANCE_ID;
     const originalSessionId = process.env.CLAUDE_SESSION_ID;
+    const originalAgentTeams = process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
+    const originalTeamName = process.env.CLAUDE_CODE_TEAM_NAME;
     process.env.CLAUDE_MULTI_INSTANCE = '1';
     process.env.CLAUDE_SESSION_ID = 'test-session-unique-id';
     delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
     delete process.env.CLAUDE_INSTANCE_ID;
+    // Ensure Agent Teams is not active so coordinationInit runs its full path
+    delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
+    delete process.env.CLAUDE_CODE_TEAM_NAME;
 
     const input = createHookInput({
       project_dir: '/Users/yonatangross/coding/projects/orchestkit',
@@ -1142,6 +1147,16 @@ describe('lifecycle/coordination-init', () => {
       process.env.CLAUDE_SESSION_ID = originalSessionId;
     } else {
       delete process.env.CLAUDE_SESSION_ID;
+    }
+    if (originalAgentTeams !== undefined) {
+      process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = originalAgentTeams;
+    } else {
+      delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
+    }
+    if (originalTeamName !== undefined) {
+      process.env.CLAUDE_CODE_TEAM_NAME = originalTeamName;
+    } else {
+      delete process.env.CLAUDE_CODE_TEAM_NAME;
     }
   });
 

@@ -279,7 +279,6 @@ const hookTestCases: HookTestCase[] = [
 
   // Stop hooks
   { name: 'multi-instance-cleanup', path: '../../stop/multi-instance-cleanup.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
-  { name: 'cleanup-instance', path: '../../stop/cleanup-instance.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'task-completion-check', path: '../../stop/task-completion-check.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'context-compressor', path: '../../stop/context-compressor.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'mem0-pre-compaction-sync', path: '../../stop/mem0-pre-compaction-sync.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },

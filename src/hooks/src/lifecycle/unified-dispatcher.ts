@@ -27,7 +27,6 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { mem0ContextRetrieval } from './mem0-context-retrieval.js';
 import { mem0AnalyticsTracker } from './mem0-analytics-tracker.js';
 import { patternSyncPull } from './pattern-sync-pull.js';
-import { multiInstanceInit } from './multi-instance-init.js';
 import { sessionEnvSetup } from './session-env-setup.js';
 import { sessionTracking } from './session-tracking.js';
 import { memoryMetricsCollector } from './memory-metrics-collector.js';
@@ -55,7 +54,6 @@ const HOOKS: HookConfig[] = [
   { name: 'mem0-context-retrieval', fn: mem0ContextRetrieval },
   { name: 'mem0-analytics-tracker', fn: mem0AnalyticsTracker },
   { name: 'pattern-sync-pull', fn: patternSyncPull },
-  { name: 'multi-instance-init', fn: multiInstanceInit },
   { name: 'session-env-setup', fn: sessionEnvSetup },
   { name: 'session-tracking', fn: sessionTracking },
   { name: 'memory-metrics-collector', fn: memoryMetricsCollector },

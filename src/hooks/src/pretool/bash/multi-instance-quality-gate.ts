@@ -12,6 +12,7 @@ import {
   logPermissionFeedback,
   getProjectDir,
 } from '../../lib/common.js';
+import { isAgentTeamsActive } from '../../lib/agent-teams.js';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -45,6 +46,11 @@ function getQualityGateStatus(projectDir: string): Record<string, boolean> {
  * Enforce quality gates before merge/deploy in multi-instance mode
  */
 export function multiInstanceQualityGate(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active
+  if (isAgentTeamsActive()) {
+    return outputSilentSuccess();
+  }
+
   const command = input.tool_input.command || '';
   const projectDir = getProjectDir();
 

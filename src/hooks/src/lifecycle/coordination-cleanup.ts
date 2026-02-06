@@ -8,6 +8,7 @@ import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from '
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { isAgentTeamsActive } from '../lib/agent-teams.js';
+import { getLocksFilePath, loadLocks, saveLocks } from '../lib/file-lock.js';
 
 interface HeartbeatFile {
   status: string;
@@ -75,6 +76,25 @@ function unregisterInstance(projectDir: string, instanceId: string): void {
 }
 
 /**
+ * Release locks from locks.json for this instance
+ * Issue #361: Unified lock cleanup via shared file-lock utilities
+ */
+function releaseJsonLocks(projectDir: string, instanceId: string): void {
+  try {
+    const locksPath = getLocksFilePath(projectDir);
+    const db = loadLocks(locksPath);
+    const before = db.locks.length;
+    db.locks = db.locks.filter(l => l.instance_id !== instanceId);
+    if (db.locks.length < before) {
+      saveLocks(locksPath, db);
+      logHook('coordination-cleanup', `Released ${before - db.locks.length} JSON locks`);
+    }
+  } catch {
+    // Best-effort cleanup
+  }
+}
+
+/**
  * Remove instance environment file
  */
 function cleanupInstanceEnv(projectDir: string): void {
@@ -111,6 +131,9 @@ export function coordinationCleanup(input: HookInput): HookResult {
 
     // Unregister instance (releases all locks)
     unregisterInstance(projectDir, instanceId);
+
+    // Release locks from locks.json (Issue #361: unified lock cleanup)
+    releaseJsonLocks(projectDir, instanceId);
   }
 
   // Clean up instance env file

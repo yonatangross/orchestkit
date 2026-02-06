@@ -132,6 +132,7 @@ When upgrading models, these are the common transitions:
 | 2.1.30 | + Memory auto-write to MEMORY.md |
 | 2.1.32 | + Skill budget scaling (2% of context), prompt hooks |
 | 2.1.33 | + TeammateIdle, TaskCompleted hooks, Agent Teams, agent memory frontmatter |
+| 2.1.34 | Stability release, no breaking changes from 2.1.33 |
 
 ### Skill Format Changes
 

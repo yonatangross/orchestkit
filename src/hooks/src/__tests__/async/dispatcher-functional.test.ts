@@ -27,9 +27,9 @@ const mocks = vi.hoisted(() => {
     skillEditTracker: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
-    // lifecycle (6) - Issue #362: removed instanceHeartbeat
+    // lifecycle (5) - Issue #362: removed instanceHeartbeat, multiInstanceInit
     mem0ContextRetrieval: fn(), mem0AnalyticsTracker: fn(), patternSyncPull: fn(),
-    multiInstanceInit: fn(), sessionEnvSetup: fn(),
+    sessionEnvSetup: fn(),
     memoryMetricsCollector: fn(),
     // stop (4)
     autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
@@ -73,7 +73,6 @@ vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLear
 vi.mock('../../lifecycle/mem0-context-retrieval.js', () => ({ mem0ContextRetrieval: mocks.mem0ContextRetrieval }));
 vi.mock('../../lifecycle/mem0-analytics-tracker.js', () => ({ mem0AnalyticsTracker: mocks.mem0AnalyticsTracker }));
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
-vi.mock('../../lifecycle/multi-instance-init.js', () => ({ multiInstanceInit: mocks.multiInstanceInit }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
 vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
 
@@ -165,7 +164,6 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'mem0-context-retrieval': mocks.mem0ContextRetrieval,
   'mem0-analytics-tracker': mocks.mem0AnalyticsTracker,
   'pattern-sync-pull': mocks.patternSyncPull,
-  'multi-instance-init': mocks.multiInstanceInit,
   'session-env-setup': mocks.sessionEnvSetup,
   'memory-metrics-collector': mocks.memoryMetricsCollector,
 };
@@ -431,13 +429,13 @@ describe('Dispatcher Functional Tests', () => {
     });
 
     it('logs failure summary on error', async () => {
-      mocks.multiInstanceInit.mockImplementationOnce(() => { throw new Error('timeout'); });
+      mocks.patternSyncPull.mockImplementationOnce(() => { throw new Error('timeout'); });
 
       await unifiedSessionStartDispatcher(input());
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/7 hooks failed'),
+        expect.stringContaining('1/6 hooks failed'),
       );
     });
 

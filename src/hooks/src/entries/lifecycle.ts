@@ -17,7 +17,6 @@ import { coordinationInit } from '../lifecycle/coordination-init.js';
 import { mem0AnalyticsTracker } from '../lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from '../lifecycle/mem0-context-retrieval.js';
 import { mem0WebhookSetup } from '../lifecycle/mem0-webhook-setup.js';
-import { multiInstanceInit } from '../lifecycle/multi-instance-init.js';
 import { patternSyncPull } from '../lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from '../lifecycle/pattern-sync-push.js';
 import { prStatusEnricher } from '../lifecycle/pr-status-enricher.js';
@@ -51,7 +50,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,
   'lifecycle/mem0-webhook-setup': mem0WebhookSetup,
-  'lifecycle/multi-instance-init': multiInstanceInit,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/pr-status-enricher': prStatusEnricher,

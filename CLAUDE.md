@@ -267,7 +267,7 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 ## Version
 
 - **Current**: 6.0.2
-- **Claude Code**: >= 2.1.33
+- **Claude Code**: >= 2.1.34
 - **Hooks**: 122 entries (94 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

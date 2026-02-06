@@ -12,10 +12,9 @@ export * from '../lib/common.js';
 // Re-export calibration engine for stop hooks
 export * from '../lib/calibration-engine.js';
 
-// Stop hooks (12)
+// Stop hooks (11)
 import { autoRememberContinuity } from '../stop/auto-remember-continuity.js';
 import { autoSaveContext } from '../stop/auto-save-context.js';
-import { cleanupInstance } from '../stop/cleanup-instance.js';
 import { contextCompressor } from '../stop/context-compressor.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
@@ -40,7 +39,6 @@ import type { HookFn } from '../types.js';
 export const hooks: Record<string, HookFn> = {
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
-  'stop/cleanup-instance': cleanupInstance,
   'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,

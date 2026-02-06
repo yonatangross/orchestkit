@@ -51,9 +51,6 @@ vi.mock('../../stop/mem0-pre-compaction-sync.js', () => ({
 vi.mock('../../stop/multi-instance-cleanup.js', () => ({
   multiInstanceCleanup: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../stop/cleanup-instance.js', () => ({
-  cleanupInstance: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));

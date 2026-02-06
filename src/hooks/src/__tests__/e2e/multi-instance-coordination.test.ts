@@ -57,7 +57,6 @@ vi.mock('../../lib/common.js', async () => {
 // Import multi-instance hooks
 import { multiInstanceLock } from '../../pretool/write-edit/multi-instance-lock.js';
 import { fileLockRelease } from '../../posttool/write-edit/file-lock-release.js';
-import { multiInstanceInit } from '../../lifecycle/multi-instance-init.js';
 import { multiInstanceCleanup } from '../../stop/multi-instance-cleanup.js';
 
 /**
@@ -272,36 +271,6 @@ describe('Multi-Instance Coordination E2E', () => {
     });
   });
 
-  describe('Session Initialization', () => {
-    test('should initialize multi-instance coordination on session start', async () => {
-      const input = createLifecycleInput('new-session');
-      const result = await Promise.resolve(multiInstanceInit(input));
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('should skip initialization when multi-instance is disabled', async () => {
-      delete process.env.CLAUDE_MULTI_INSTANCE;
-
-      const input = createLifecycleInput('new-session');
-      const result = await Promise.resolve(multiInstanceInit(input));
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('should create lock directory if missing', async () => {
-      mockExistsSync.mockImplementation((path: string) => {
-        return !path.includes('.locks') && !path.includes('coordination');
-      });
-
-      const input = createLifecycleInput('new-session');
-      await Promise.resolve(multiInstanceInit(input));
-
-      // Should attempt to create lock directory
-    });
-  });
-
   describe('Session Cleanup', () => {
     test('should clean up session locks on stop', async () => {
       mockExistsSync.mockReturnValue(true);
@@ -480,13 +449,8 @@ describe('Multi-Instance Coordination E2E', () => {
   });
 
   describe('Full Lifecycle Flow', () => {
-    test('init → lock → write → release → cleanup lifecycle', async () => {
-      // 1. Session initialization
-      const initInput = createLifecycleInput('session-lifecycle');
-      const initResult = await Promise.resolve(multiInstanceInit(initInput));
-      expect(initResult.continue).toBe(true);
-
-      // 2. Acquire lock
+    test('lock → write → release → cleanup lifecycle', async () => {
+      // 1. Acquire lock
       mockExistsSync.mockImplementation(createExistsSyncMock({ 'locks.json': false }));
       mockReadFileSync.mockReturnValue(JSON.stringify({ locks: [] }));
       const lockInput = createWriteInput('/test/project/src/file.ts', 'session-lifecycle');
@@ -584,7 +548,6 @@ describe('Multi-Instance Coordination E2E', () => {
       const hooks = [
         { fn: multiInstanceLock, input: createWriteInput('/test/project/src/file.ts') },
         { fn: fileLockRelease, input: createWriteInput('/test/project/src/file.ts') },
-        { fn: multiInstanceInit, input: createLifecycleInput() },
         { fn: multiInstanceCleanup, input: createLifecycleInput() },
       ];
 

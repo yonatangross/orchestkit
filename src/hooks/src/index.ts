@@ -135,10 +135,9 @@ import { retryHandler } from './subagent-stop/retry-handler.js';
 import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
-// Stop hooks (12)
+// Stop hooks (11)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
-import { cleanupInstance } from './stop/cleanup-instance.js';
 import { contextCompressor } from './stop/context-compressor.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
@@ -203,7 +202,6 @@ import { coordinationInit } from './lifecycle/coordination-init.js';
 import { mem0AnalyticsTracker } from './lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from './lifecycle/mem0-context-retrieval.js';
 import { mem0WebhookSetup } from './lifecycle/mem0-webhook-setup.js';
-import { multiInstanceInit } from './lifecycle/multi-instance-init.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
@@ -338,10 +336,9 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
 
-  // Stop hooks (12)
+  // Stop hooks (11)
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
-  'stop/cleanup-instance': cleanupInstance,
   'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
@@ -407,7 +404,6 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,
   'lifecycle/mem0-webhook-setup': mem0WebhookSetup,
-  'lifecycle/multi-instance-init': multiInstanceInit,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,

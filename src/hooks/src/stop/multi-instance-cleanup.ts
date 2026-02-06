@@ -8,6 +8,8 @@ import { existsSync, readFileSync, unlinkSync, rmdirSync, readdirSync, rmSync } 
 import { execSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
+import { getLocksFilePath, loadLocks, saveLocks } from '../lib/file-lock.js';
 
 /** Validate instanceId to prevent SQL injection via string interpolation */
 const SAFE_ID_PATTERN = /^[a-zA-Z0-9_\-.:]+$/;
@@ -133,6 +135,25 @@ function broadcastShutdown(dbPath: string, instanceId: string): void {
 }
 
 /**
+ * Release locks from locks.json for this instance
+ * Issue #361: Unified lock cleanup via shared file-lock utilities
+ */
+function releaseJsonLocks(projectDir: string, instanceId: string): void {
+  try {
+    const locksPath = getLocksFilePath(projectDir);
+    const db = loadLocks(locksPath);
+    const before = db.locks.length;
+    db.locks = db.locks.filter(l => l.instance_id !== instanceId);
+    if (db.locks.length < before) {
+      saveLocks(locksPath, db);
+      logHook('multi-instance-cleanup', `Released ${before - db.locks.length} JSON locks`);
+    }
+  } catch {
+    // Best-effort cleanup — don't block session exit
+  }
+}
+
+/**
  * Cleanup instance-specific files
  */
 function cleanupInstanceFiles(instanceDir: string): void {
@@ -156,6 +177,12 @@ function cleanupInstanceFiles(instanceDir: string): void {
  * Multi-instance cleanup hook
  */
 export function multiInstanceCleanup(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active
+  if (isAgentTeamsActive()) {
+    logHook('multi-instance-cleanup', 'Agent Teams active, yielding to CC native cleanup');
+    return outputSilentSuccess();
+  }
+
   const projectDir = input.project_dir || getProjectDir();
   const instanceDir = `${projectDir}/.instance`;
   const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
@@ -203,6 +230,9 @@ export function multiInstanceCleanup(input: HookInput): HookResult {
 
   // Update status
   updateInstanceStatus(dbPath, instanceId);
+
+  // Release locks from locks.json (Issue #361: unified lock cleanup)
+  releaseJsonLocks(projectDir, instanceId);
 
   // Cleanup files
   cleanupInstanceFiles(instanceDir);

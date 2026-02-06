@@ -82,7 +82,6 @@ describe('Dispatcher Registry Wiring', () => {
         'mem0-context-retrieval',
         'mem0-analytics-tracker',
         'pattern-sync-pull',
-        'multi-instance-init',
         'session-env-setup',
         'session-tracking',
         'memory-metrics-collector',
@@ -109,7 +108,6 @@ describe('Dispatcher Registry Wiring', () => {
         'mem0-pre-compaction-sync',
         // Instance management hooks
         'multi-instance-cleanup',
-        'cleanup-instance',
         'task-completion-check',
         // Analysis hooks
         'context-compressor',
@@ -199,7 +197,7 @@ describe('Dispatcher Registry Wiring', () => {
   });
 
   describe('Cross-dispatcher consistency', () => {
-    it('total consolidated hook count is 61', () => {
+    it('total consolidated hook count is 59', () => {
       const total =
         posttoolHooks().length +
         lifecycleHooks().length +
@@ -208,8 +206,8 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 16, lifecycle: 7, stop: 29, subagent-stop: 4, notification: 2, setup: 3
-      expect(total).toBe(61);
+      // posttool: 16, lifecycle: 6, stop: 28, subagent-stop: 4, notification: 2, setup: 3
+      expect(total).toBe(59);
     });
   });
 });
