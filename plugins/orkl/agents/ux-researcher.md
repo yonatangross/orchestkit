@@ -12,6 +12,10 @@ tools:
   - WebSearch
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - user-research-methods
   - persona-journey-mapping

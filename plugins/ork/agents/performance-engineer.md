@@ -13,6 +13,10 @@ tools:
   - Bash
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - core-web-vitals
   - lazy-loading-patterns

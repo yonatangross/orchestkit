@@ -11,6 +11,10 @@ tools:
   - Read
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - owasp-top-10
   - security-scanning

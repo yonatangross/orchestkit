@@ -14,6 +14,10 @@ tools:
   - Grep
   - Glob
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - function-calling
   - llm-streaming

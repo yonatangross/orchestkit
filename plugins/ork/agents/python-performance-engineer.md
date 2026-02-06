@@ -16,6 +16,11 @@ tools:
   - Glob
   - Task(test-generator)
   - Task(database-engineer)
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - asyncio-advanced
   - connection-pooling

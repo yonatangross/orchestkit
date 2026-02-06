@@ -11,6 +11,10 @@ tools:
   - Read
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - root-cause-analysis
   - observability-monitoring

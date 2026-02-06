@@ -14,6 +14,10 @@ tools:
   - Bash
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - react-server-components-framework
   - design-system-starter

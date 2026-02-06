@@ -14,6 +14,11 @@ tools:
   - Bash
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - api-design-framework
   - api-versioning

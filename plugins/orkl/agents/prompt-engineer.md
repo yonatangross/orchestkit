@@ -13,6 +13,10 @@ tools:
   - Edit
   - WebFetch
   - WebSearch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - prompt-engineering-suite
   - llm-evaluation

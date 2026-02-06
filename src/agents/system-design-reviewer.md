@@ -11,6 +11,7 @@ tools:
   - Grep
   - Glob
   - Bash
+  - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate

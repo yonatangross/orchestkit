@@ -15,6 +15,10 @@ tools:
   - Grep
   - WebFetch
   - WebSearch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - observability-monitoring
   - langfuse-observability

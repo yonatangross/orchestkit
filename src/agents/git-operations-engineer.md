@@ -13,6 +13,10 @@ tools:
   - Edit
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - git-workflow
   - github-operations

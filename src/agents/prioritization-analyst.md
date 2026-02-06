@@ -11,6 +11,10 @@ tools:
   - Grep
   - Glob
   - Bash
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - prioritization-frameworks
   - github-operations

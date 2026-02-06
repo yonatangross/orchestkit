@@ -15,6 +15,10 @@ tools:
   - Glob
   - WebFetch
   - WebSearch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - advanced-guardrails
   - mcp-security-hardening

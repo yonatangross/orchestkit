@@ -13,6 +13,10 @@ tools:
   - Grep
   - Glob
   - Bash
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - business-case-analysis
   - brainstorming

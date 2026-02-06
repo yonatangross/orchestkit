@@ -14,6 +14,10 @@ tools:
   - Grep
   - Glob
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - vision-language-models
   - audio-language-models
