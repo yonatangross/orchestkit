@@ -8,7 +8,7 @@ tags: [upgrade, assessment, platform, compatibility, migration]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Grep, Glob, Task, WebSearch, WebFetch]
 skills: [platform-upgrade-knowledge, explore, verify, remember, memory]
-complexity: high
+complexity: max
 ---
 
 # Upgrade Assessment

@@ -92,7 +92,7 @@ name: my-skill
 description: Brief description of what this skill provides
 tags: [keyword1, keyword2]
 user-invocable: true  # If callable via /ork:my-skill
-complexity: medium    # low|medium|high — for adaptive thinking alignment
+complexity: medium    # low|medium|high|max — for adaptive thinking alignment
 ---
 
 # My Skill
@@ -161,7 +161,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
 - `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
-- `complexity: low|medium|high` — Adaptive thinking alignment for Opus 4.6
+- `complexity: low|medium|high|max` — Adaptive thinking alignment for Opus 4.6
 
 **Skill Budget (CC 2.1.33+):** Platform scales skill character budget to 2% of context window. Token budgets auto-scale: 200K context → ~1200 tokens, 1M context → ~6000 tokens for skill injection.
 

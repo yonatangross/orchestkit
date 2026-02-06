@@ -7,14 +7,14 @@ context: fork
 agent: data-pipeline-engineer
 author: OrchestKit
 user-invocable: false
-complexity: high
+complexity: max
 ---
 
 # Agentic RAG Patterns
 
 Build self-correcting retrieval systems with LLM-driven decision making.
 
-> **LangGraph 1.0.6** (Jan ): langgraph-checkpoint 4.0.0, compile-time checkpointer validation, namespace sanitization.
+> **LangGraph 1.0.6** (Jan 2026): langgraph-checkpoint 4.0.0, compile-time checkpointer validation, namespace sanitization.
 
 ## Architecture Overview
 

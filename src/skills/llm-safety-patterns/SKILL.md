@@ -273,6 +273,7 @@ backend/app/services/
 - `rag-retrieval` - RAG pipeline patterns requiring tenant-scoped retrieval
 - `llm-evaluation` - Output quality assessment including hallucination detection
 - `security-scanning` - Automated security scanning for LLM integrations
+- `defense-in-depth` - 8-layer security architecture including Tavily prompt injection firewall at Layer 2
 
 ## Key Decisions
 

@@ -1,11 +1,12 @@
 /**
  * Prefill Breaking Change Guard — SessionStart Hook
  * Opus 4.6 removed support for response prefilling (prefilled assistant
- * messages return 400 errors). This hook scans for prefilling patterns
- * in skill content and warns users proactively at session start.
+ * messages return 400 errors) and deprecated `output_format` in favor of
+ * `output_config.format`. This hook scans for both patterns in skill
+ * content and warns users proactively at session start.
  *
- * Addresses: Issue #325
- * Version: 1.0.0
+ * Addresses: Issue #325, #357
+ * Version: 1.1.0
  */
 
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
@@ -22,11 +23,28 @@ const PREFILL_PATTERNS = [
   /role.*assistant.*content.*(?!$)/i,
 ];
 
+/** Patterns that indicate deprecated output_format API parameter usage */
+const OUTPUT_FORMAT_PATTERNS = [
+  /["']output_format["']\s*:/,                    // JSON key "output_format":
+  /output_format\s*=\s*["']/,                     // Python kwarg output_format="..."
+  /\boutput_format\b.*\b(json|text|xml)\b/i,      // output_format with format value
+];
+
 /**
  * Scan a file's content for prefilling patterns
  */
 function hasPrefillPatterns(content: string): boolean {
   return PREFILL_PATTERNS.some(pattern => pattern.test(content));
+}
+
+/**
+ * Scan a file's content for deprecated output_format patterns.
+ * Excludes third-party API params (ElevenLabs, etc.) and Python function args.
+ */
+function hasOutputFormatPatterns(content: string): boolean {
+  // Skip files that are clearly about third-party APIs
+  if (/elevenlabs|mp3_\d+/i.test(content)) return false;
+  return OUTPUT_FORMAT_PATTERNS.some(pattern => pattern.test(content));
 }
 
 /**
@@ -49,7 +67,7 @@ function scanSkillsForPrefill(pluginRoot: string): string[] {
 
       try {
         const content = readFileSync(skillPath, 'utf-8');
-        if (hasPrefillPatterns(content)) {
+        if (hasPrefillPatterns(content) || hasOutputFormatPatterns(content)) {
           matches.push(dir);
         }
       } catch {
@@ -92,8 +110,8 @@ export function prefillGuard(_input: HookInput): HookResult {
   logHook('prefill-guard', `Found prefilling patterns in ${affectedSkills.length} skills: ${affectedSkills.join(', ')}`, 'warn');
 
   return outputWarning(
-    `Opus 4.6 breaking change: ${affectedSkills.length} skill(s) reference response prefilling which is no longer supported. ` +
+    `Opus 4.6 deprecation: ${affectedSkills.length} skill(s) reference deprecated patterns (prefilled assistant messages or output_format parameter). ` +
     `Affected: ${affectedSkills.slice(0, 5).join(', ')}${affectedSkills.length > 5 ? '...' : ''}. ` +
-    `Migration: use structured outputs or system prompt instructions instead of prefilled assistant messages.`
+    `Migration: use structured outputs instead of prefilling; use output_config.format instead of output_format.`
   );
 }
