@@ -5,6 +5,7 @@ category: backend
 model: opus
 context: fork
 color: yellow
+memory: project
 tools:
   - Read
   - Edit

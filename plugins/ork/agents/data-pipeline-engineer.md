@@ -5,6 +5,7 @@ category: data
 model: inherit
 context: fork
 color: green
+memory: project
 tools:
   - Bash
   - Read

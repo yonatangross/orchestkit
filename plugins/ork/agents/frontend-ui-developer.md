@@ -5,6 +5,7 @@ category: frontend
 model: inherit
 context: fork
 color: purple
+memory: project
 tools:
   - Read
   - Edit

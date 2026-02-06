@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: orange
+memory: project
 tools:
   - Bash
   - Read
@@ -67,6 +68,9 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete LLM integrations (provider setup + streaming endpoint + function calling + prompt templates + tests) in a single pass.
+With 128K output, build entire provider integration without splitting across responses.
 
 ## Concrete Objectives
 1. Integrate LLM provider APIs (OpenAI, Anthropic, Ollama)

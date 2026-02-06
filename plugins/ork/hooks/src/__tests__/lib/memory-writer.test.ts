@@ -1241,7 +1241,8 @@ describe('storeDecision with CC native memory', () => {
     // Simulate CC native not available (user's ~/.claude/projects/{id} doesn't exist)
     // isCCNativeMemoryAvailable checks dirname of memory dir, which is ~/.claude/projects/{id}
     vi.mocked(fs.existsSync).mockImplementation((path) => {
-      const pathStr = String(path);
+      // Normalize to forward slashes for cross-platform matching (Windows uses backslashes)
+      const pathStr = String(path).replace(/\\/g, '/');
       // Return false for ~/.claude/projects/* paths (CC hasn't created the project dir)
       // These paths contain /Users/testuser/.claude/projects/ (from mocked homedir)
       if (pathStr.includes('/testuser/.claude/projects/')) {

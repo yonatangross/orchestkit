@@ -241,8 +241,8 @@ All scripts are located in `skills/mem0-memory/scripts/`:
 ### Memory Creation Scripts
 - `create-category-memories.py` - Create memories for all 18 categories
 - `create-technology-memories.py` - Create memories for 24+ technologies
-- `create-all-agent-memories.py` - Create memories for all 35 agents
-- `create-all-skill-memories.py` - Create memories for all 182 skills
+- `create-all-agent-memories.py` - Create memories for all 36 agents
+- `create-all-skill-memories.py` - Create memories for all 199 skills
 - `create-deep-relationships.py` - Create comprehensive relationships
 
 ### Maintenance Scripts

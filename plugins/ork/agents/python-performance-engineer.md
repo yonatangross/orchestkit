@@ -5,6 +5,7 @@ category: backend
 model: opus
 context: fork
 color: orange
+memory: project
 tools:
   - Read
   - Edit
@@ -13,7 +14,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task
+  - Task(test-generator)
+  - Task(database-engineer)
 skills:
   - asyncio-advanced
   - connection-pooling

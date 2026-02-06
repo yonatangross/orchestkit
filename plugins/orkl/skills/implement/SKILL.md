@@ -188,18 +188,17 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY line.
 
-## Phase 5: Parallel Implementation (8 Agents)
+## Phase 5: Parallel Implementation (5 Agents)
 
-| Agent | Task |
-|-------|------|
-| backend-system-architect #1 | API endpoints |
-| backend-system-architect #2 | Database layer |
-| frontend-ui-developer #1 | UI components |
-| frontend-ui-developer #2 | State & API hooks |
-| llm-integrator | AI integration |
-| rapid-ui-designer | Styling |
-| test-generator #1 | Test suite |
-| prioritization-analyst | Progress tracking |
+With 128K output tokens, each agent produces **complete artifacts in a single pass** — no need to split backend into API + DB or frontend into components + state.
+
+| Agent | Task | 128K Advantage |
+|-------|------|----------------|
+| backend-system-architect | Complete backend: API + service layer + DB models | Was 2 agents, now 1 |
+| frontend-ui-developer | Complete frontend: components + state + API hooks + styling | Was 3 agents (incl. rapid-ui-designer), now 1 |
+| llm-integrator | AI integration (if needed) | Unchanged |
+| test-generator | Complete test suite: unit + integration + fixtures | Was split, now single pass |
+| rapid-ui-designer | Design system specs + tokens (if new design) | Optional, skip if existing design |
 
 ## Phase 6: Integration & Validation (4 Agents)
 
@@ -350,7 +349,7 @@ Resume later with full context preserved.
 
 ## Summary
 
-**Total Parallel Agents: 17 across 4 phases**
+**Total Parallel Agents: 14 across 3 phases (was 17 with 64K output)**
 
 **Tools Used:**
 - context7 MCP (library documentation)

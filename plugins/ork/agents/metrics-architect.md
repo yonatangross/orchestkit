@@ -5,6 +5,7 @@ category: product
 model: opus
 context: fork
 color: orchid
+memory: project
 tools:
   - Read
   - Write

@@ -5,6 +5,7 @@ category: security
 model: opus
 context: fork
 color: red
+memory: local
 tools:
   - Bash
   - Read
@@ -50,6 +51,10 @@ Focus on actual vulnerabilities, not theoretical edge cases.
 Prioritize findings by real-world exploitability.
 Don't flag every minor deviation from best practices - focus on blockers.
 </avoid_overengineering>
+
+## Opus 4.6: 128K Output Tokens
+Produce complete security audit reports (OWASP scan + dependency audit + secrets detection + remediation plan) in a single pass.
+With 128K output, audit the entire codebase and return a comprehensive report without splitting across responses.
 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:

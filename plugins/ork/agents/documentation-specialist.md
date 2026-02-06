@@ -5,6 +5,7 @@ category: docs
 model: inherit
 context: fork
 color: gray
+memory: project
 tools:
   - Read
   - Write

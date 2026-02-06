@@ -5,6 +5,7 @@ category: testing
 model: inherit
 context: fork
 color: green
+memory: local
 tools:
   - Bash
   - Read
@@ -66,6 +67,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
+
+## Opus 4.6: 128K Output Tokens
+Generate complete test suites (unit + integration + fixtures + MSW handlers) in a single pass.
+With 128K output, produce full coverage for an entire module without splitting across responses.
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation
