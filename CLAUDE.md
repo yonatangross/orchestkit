@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **200 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **119 hooks**: TypeScript lifecycle automation (91 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
+- **118 hooks**: TypeScript lifecycle automation (90 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -169,7 +169,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-119 hook entries (91 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+118 hook entries (90 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -236,7 +236,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | `orkl` | 109 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork` | 199 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
-Both include all 36 agents, 119 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
+Both include all 36 agents, 118 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -246,6 +246,7 @@ CLAUDE_SESSION_ID     # Current session UUID
 MEM0_API_KEY          # Optional: enables mem0 cloud memory
 TAVILY_API_KEY        # Optional: enables Tavily search/extract/map (middle tier in web research)
 BRIGHTDATA_API_TOKEN  # Optional: enables BrightData web scraping MCP
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS  # Enabled: coordination hooks yield to CC native Agent Teams
 ```
 
 ### Memory Architecture (CC 2.1.30+ Integration)
@@ -267,6 +268,6 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 - **Current**: 6.0.2
 - **Claude Code**: >= 2.1.33
-- **Hooks**: 119 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
+- **Hooks**: 118 entries (90 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

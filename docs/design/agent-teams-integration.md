@@ -581,7 +581,7 @@ Team "security-audit-{timestamp}":
 ```
 
 **Deliverables:**
-- [ ] Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in dev
+- [x] Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in dev (`.claude/settings.json` → `env`)
 - [ ] Create `src/skills/implement/references/agent-teams-security-audit.md` with team prompt template
 - [ ] Test: team forms, members communicate, results synthesize
 - [ ] Measure: token cost vs 3x Task tool spawns

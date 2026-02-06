@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, getEnvFile, outputSilentSuccess } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 interface SessionState {
   current_task?: {
@@ -110,6 +111,12 @@ function initHeartbeat(projectDir: string, instanceId: string, taskDesc: string,
  * Coordination initialization hook
  */
 export function coordinationInit(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active
+  if (isAgentTeamsActive()) {
+    logHook('coordination-init', 'Agent Teams active, yielding to CC native registration');
+    return outputSilentSuccess();
+  }
+
   // Self-guard: Only run when multi-instance mode is enabled
   if (!isMultiInstanceEnabled()) {
     logHook('coordination-init', 'Multi-instance not enabled, skipping');

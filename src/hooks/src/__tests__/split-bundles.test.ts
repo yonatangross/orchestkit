@@ -293,7 +293,8 @@ describe('Cross-Bundle Consistency', () => {
     // 162 -> 164: added prefill-guard (SessionStart) and model-cost-advisor (SubagentStart)
     // 164 -> 166: added progress-reporter (TeammateIdle) and completion-tracker (TaskCompleted)
     // 166 -> 164: removed sequential-thinking-auto (Opus 4.6 native adaptive thinking)
-    expect(totalHooks).toBe(164);
+    // 164 -> 161: #361/#362 removed release-lock-on-commit, instance-heartbeat, coordination-heartbeat
+    expect(totalHooks).toBe(161);
   });
 });
 

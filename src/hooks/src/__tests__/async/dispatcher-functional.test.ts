@@ -20,16 +20,16 @@ const mocks = vi.hoisted(() => {
   const fn = () => vi.fn(() => s);
   return {
     logHook: vi.fn(),
-    // posttool (17) - Issue #243: now includes userTracking, solutionDetector, toolPreferenceLearner
+    // posttool (16) - Issue #361/#362: removed coordinationHeartbeat
     sessionMetrics: fn(), auditLogger: fn(), calibrationTracker: fn(),
     patternExtractor: fn(), issueProgressCommenter: fn(), issueSubtaskUpdater: fn(),
     mem0WebhookHandler: fn(), codeStyleLearner: fn(), namingConventionLearner: fn(),
-    skillEditTracker: fn(), coordinationHeartbeat: fn(), skillUsageOptimizer: fn(),
+    skillEditTracker: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
-    // lifecycle (7)
+    // lifecycle (6) - Issue #362: removed instanceHeartbeat
     mem0ContextRetrieval: fn(), mem0AnalyticsTracker: fn(), patternSyncPull: fn(),
-    multiInstanceInit: fn(), instanceHeartbeat: fn(), sessionEnvSetup: fn(),
+    multiInstanceInit: fn(), sessionEnvSetup: fn(),
     memoryMetricsCollector: fn(),
     // stop (4)
     autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
@@ -62,7 +62,6 @@ vi.mock('../../posttool/mem0-webhook-handler.js', () => ({ mem0WebhookHandler: m
 vi.mock('../../posttool/write/code-style-learner.js', () => ({ codeStyleLearner: mocks.codeStyleLearner }));
 vi.mock('../../posttool/write/naming-convention-learner.js', () => ({ namingConventionLearner: mocks.namingConventionLearner }));
 vi.mock('../../posttool/skill-edit-tracker.js', () => ({ skillEditTracker: mocks.skillEditTracker }));
-vi.mock('../../posttool/coordination-heartbeat.js', () => ({ coordinationHeartbeat: mocks.coordinationHeartbeat }));
 vi.mock('../../posttool/skill/skill-usage-optimizer.js', () => ({ skillUsageOptimizer: mocks.skillUsageOptimizer }));
 vi.mock('../../posttool/memory-bridge.js', () => ({ memoryBridge: mocks.memoryBridge }));
 vi.mock('../../posttool/realtime-sync.js', () => ({ realtimeSync: mocks.realtimeSync }));
@@ -75,7 +74,6 @@ vi.mock('../../lifecycle/mem0-context-retrieval.js', () => ({ mem0ContextRetriev
 vi.mock('../../lifecycle/mem0-analytics-tracker.js', () => ({ mem0AnalyticsTracker: mocks.mem0AnalyticsTracker }));
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
 vi.mock('../../lifecycle/multi-instance-init.js', () => ({ multiInstanceInit: mocks.multiInstanceInit }));
-vi.mock('../../lifecycle/instance-heartbeat.js', () => ({ instanceHeartbeat: mocks.instanceHeartbeat }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
 vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
 
@@ -119,7 +117,6 @@ import { sessionMetrics } from '../../posttool/session-metrics.js';
 import { auditLogger } from '../../posttool/audit-logger.js';
 import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
 import { codeStyleLearner } from '../../posttool/write/code-style-learner.js';
-import { coordinationHeartbeat } from '../../posttool/coordination-heartbeat.js';
 import { memoryBridge } from '../../posttool/memory-bridge.js';
 import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js';
 import { autoSaveContext } from '../../stop/auto-save-context.js';
@@ -159,7 +156,6 @@ const posttoolMap: Record<string, ReturnType<typeof vi.fn>> = {
   'code-style-learner': mocks.codeStyleLearner,
   'naming-convention-learner': mocks.namingConventionLearner,
   'skill-edit-tracker': mocks.skillEditTracker,
-  'coordination-heartbeat': mocks.coordinationHeartbeat,
   'skill-usage-optimizer': mocks.skillUsageOptimizer,
   'memory-bridge': mocks.memoryBridge,
   'realtime-sync': mocks.realtimeSync,
@@ -170,7 +166,6 @@ const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
   'mem0-analytics-tracker': mocks.mem0AnalyticsTracker,
   'pattern-sync-pull': mocks.patternSyncPull,
   'multi-instance-init': mocks.multiInstanceInit,
-  'instance-heartbeat': mocks.instanceHeartbeat,
   'session-env-setup': mocks.sessionEnvSetup,
   'memory-metrics-collector': mocks.memoryMetricsCollector,
 };
@@ -222,7 +217,6 @@ describe('Dispatcher Functional Tests', () => {
       expect(vi.isMockFunction(auditLogger)).toBe(true);
       expect(vi.isMockFunction(patternExtractor)).toBe(true);
       expect(vi.isMockFunction(codeStyleLearner)).toBe(true);
-      expect(vi.isMockFunction(coordinationHeartbeat)).toBe(true);
       expect(vi.isMockFunction(memoryBridge)).toBe(true);
       expect(vi.isMockFunction(mem0ContextRetrieval)).toBe(true);
       expect(vi.isMockFunction(autoSaveContext)).toBe(true);
@@ -250,7 +244,7 @@ describe('Dispatcher Functional Tests', () => {
         expect(mocks.namingConventionLearner).not.toHaveBeenCalled();
         expect(mocks.skillEditTracker).not.toHaveBeenCalled();
         // Task/Skill/MCP hooks must NOT fire for Bash
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
         expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
         expect(mocks.memoryBridge).not.toHaveBeenCalled();
       });
@@ -265,7 +259,7 @@ describe('Dispatcher Functional Tests', () => {
         // Bash hooks must NOT fire for Write
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
         expect(mocks.issueProgressCommenter).not.toHaveBeenCalled();
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
         expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
       });
 
@@ -279,13 +273,13 @@ describe('Dispatcher Functional Tests', () => {
         // Bash hooks must NOT fire for Edit
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
         expect(mocks.mem0WebhookHandler).not.toHaveBeenCalled();
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
       });
 
-      it('routes Task to wildcard + Task + multi-tool hooks', async () => {
+      it('routes Task to wildcard + multi-tool hooks', async () => {
         await unifiedDispatcher(input('Task'));
         expect(called(posttoolMap)).toEqual([
-          'audit-logger', 'calibration-tracker', 'coordination-heartbeat',
+          'audit-logger', 'calibration-tracker',
           'realtime-sync', 'session-metrics',
         ].sort());
         // Bash and Write/Edit hooks must NOT fire for Task
@@ -304,7 +298,7 @@ describe('Dispatcher Functional Tests', () => {
         // Bash and Write/Edit hooks must NOT fire for Skill
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
         expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
         expect(mocks.memoryBridge).not.toHaveBeenCalled();
       });
 
@@ -316,7 +310,7 @@ describe('Dispatcher Functional Tests', () => {
         // No Bash, Write/Edit, Task, Skill, or multi-tool hooks
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
         expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
         expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
         expect(mocks.realtimeSync).not.toHaveBeenCalled();
       });
@@ -329,7 +323,7 @@ describe('Dispatcher Functional Tests', () => {
         // No specific-tool hooks should fire for Read
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
         expect(mocks.codeStyleLearner).not.toHaveBeenCalled();
-        expect(mocks.coordinationHeartbeat).not.toHaveBeenCalled();
+
         expect(mocks.skillUsageOptimizer).not.toHaveBeenCalled();
         expect(mocks.memoryBridge).not.toHaveBeenCalled();
         expect(mocks.realtimeSync).not.toHaveBeenCalled();
@@ -437,13 +431,13 @@ describe('Dispatcher Functional Tests', () => {
     });
 
     it('logs failure summary on error', async () => {
-      mocks.instanceHeartbeat.mockImplementationOnce(() => { throw new Error('timeout'); });
+      mocks.multiInstanceInit.mockImplementationOnce(() => { throw new Error('timeout'); });
 
       await unifiedSessionStartDispatcher(input());
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/8 hooks failed'),
+        expect.stringContaining('1/7 hooks failed'),
       );
     });
 

@@ -106,6 +106,8 @@ let originalEnv: {
   CLAUDE_MULTI_INSTANCE?: string;
   ORCHESTKIT_SKIP_SLOW_HOOKS?: string;
   CLAUDE_PROJECT_DIR?: string;
+  CLAUDE_CODE_TEAM_NAME?: string;
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS?: string;
 };
 
 beforeEach(() => {
@@ -120,7 +122,13 @@ beforeEach(() => {
     CLAUDE_MULTI_INSTANCE: process.env.CLAUDE_MULTI_INSTANCE,
     ORCHESTKIT_SKIP_SLOW_HOOKS: process.env.ORCHESTKIT_SKIP_SLOW_HOOKS,
     CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
+    CLAUDE_CODE_TEAM_NAME: process.env.CLAUDE_CODE_TEAM_NAME,
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS,
   };
+
+  // Ensure Agent Teams env vars are cleared
+  delete process.env.CLAUDE_CODE_TEAM_NAME;
+  delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
 
   // Create test directory
   mkdirSync(TEST_PROJECT_DIR, { recursive: true });
@@ -209,6 +217,36 @@ describe('multi-instance-init', () => {
       const result = multiInstanceInit(input);
 
       // Assert
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips when CLAUDE_CODE_TEAM_NAME is set (Agent Teams active)', () => {
+      // Arrange
+      process.env.CLAUDE_MULTI_INSTANCE = '1';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+      process.env.CLAUDE_CODE_TEAM_NAME = 'my-team';
+      const input = createHookInput();
+
+      // Act
+      const result = multiInstanceInit(input);
+
+      // Assert — yields to CC native lifecycle
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1', () => {
+      // Arrange
+      process.env.CLAUDE_MULTI_INSTANCE = '1';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+      process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = '1';
+      const input = createHookInput();
+
+      // Act
+      const result = multiInstanceInit(input);
+
+      // Assert — yields to CC native lifecycle
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });

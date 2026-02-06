@@ -90,7 +90,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 119 hooks (all TypeScript, 6 async via fire-and-forget)
+**Total:** 118 hooks (all TypeScript, 6 async via fire-and-forget)
 ```
 
 ---

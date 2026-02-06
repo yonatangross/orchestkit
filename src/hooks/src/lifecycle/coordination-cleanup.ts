@@ -7,6 +7,7 @@
 import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 interface HeartbeatFile {
   status: string;
@@ -93,6 +94,12 @@ function cleanupInstanceEnv(projectDir: string): void {
  * Coordination cleanup hook
  */
 export function coordinationCleanup(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active
+  if (isAgentTeamsActive()) {
+    logHook('coordination-cleanup', 'Agent Teams active, yielding to CC native cleanup');
+    return outputSilentSuccess();
+  }
+
   logHook('coordination-cleanup', 'Starting coordination cleanup');
 
   const projectDir = input.project_dir || getProjectDir();

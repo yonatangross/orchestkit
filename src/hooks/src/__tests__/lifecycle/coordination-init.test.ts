@@ -54,6 +54,8 @@ let originalEnv: {
   CLAUDE_SESSION_ID?: string;
   CLAUDE_INSTANCE_ID?: string;
   CLAUDE_SUBAGENT_ROLE?: string;
+  CLAUDE_CODE_TEAM_NAME?: string;
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS?: string;
 };
 
 beforeEach(() => {
@@ -64,7 +66,13 @@ beforeEach(() => {
     CLAUDE_SESSION_ID: process.env.CLAUDE_SESSION_ID,
     CLAUDE_INSTANCE_ID: process.env.CLAUDE_INSTANCE_ID,
     CLAUDE_SUBAGENT_ROLE: process.env.CLAUDE_SUBAGENT_ROLE,
+    CLAUDE_CODE_TEAM_NAME: process.env.CLAUDE_CODE_TEAM_NAME,
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS,
   };
+
+  // Ensure Agent Teams env vars are cleared
+  delete process.env.CLAUDE_CODE_TEAM_NAME;
+  delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
 
   // Create test directory
   mkdirSync(TEST_PROJECT_DIR, { recursive: true });
@@ -131,6 +139,36 @@ describe('coordination-init', () => {
       const result = coordinationInit(input);
 
       // Assert
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips when CLAUDE_CODE_TEAM_NAME is set (Agent Teams active)', () => {
+      // Arrange
+      process.env.CLAUDE_MULTI_INSTANCE = '1';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+      process.env.CLAUDE_CODE_TEAM_NAME = 'my-team';
+      const input = createHookInput();
+
+      // Act
+      const result = coordinationInit(input);
+
+      // Assert — yields to CC native registration
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1', () => {
+      // Arrange
+      process.env.CLAUDE_MULTI_INSTANCE = '1';
+      delete process.env.ORCHESTKIT_SKIP_SLOW_HOOKS;
+      process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = '1';
+      const input = createHookInput();
+
+      // Act
+      const result = coordinationInit(input);
+
+      // Assert — yields to CC native registration
       expect(result.continue).toBe(true);
       expect(result.suppressOutput).toBe(true);
     });

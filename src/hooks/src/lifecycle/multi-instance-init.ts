@@ -10,6 +10,7 @@ import { basename } from 'node:path';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 interface InstanceIdentity {
   instance_id: string;
@@ -179,8 +180,7 @@ function initDatabase(projectDir: string): boolean {
 }
 
 /**
- * Start heartbeat process (note: in TypeScript, we can't easily start background processes)
- * Instead, heartbeat is handled by the instance-heartbeat hook
+ * Start heartbeat marker (writes PID file for coordination system)
  */
 function startHeartbeat(projectDir: string, instanceId: string): void {
   // Write PID file to indicate heartbeat should be active
@@ -193,6 +193,12 @@ function startHeartbeat(projectDir: string, instanceId: string): void {
  * Multi-instance init hook
  */
 export function multiInstanceInit(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active
+  if (isAgentTeamsActive()) {
+    logHook('multi-instance-init', 'Agent Teams active, yielding to CC native lifecycle');
+    return outputSilentSuccess();
+  }
+
   // Self-guard: Only run when multi-instance mode is enabled
   if (!isMultiInstanceEnabled()) {
     return outputSilentSuccess();

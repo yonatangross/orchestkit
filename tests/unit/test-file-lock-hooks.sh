@@ -8,7 +8,6 @@
 # 3. hooks/pretool/Write/file-lock-check.sh
 # 4. hooks/pretool/Edit/file-lock-check.sh
 # 5. hooks/posttool/write-edit/file-lock-release.sh
-# 6. hooks/posttool/Write/release-lock-on-commit.sh
 #
 # Usage: ./test-file-lock-hooks.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -683,67 +682,6 @@ test_lock_release_skips_coordination_files() {
 
     # Should skip coordination files
     assert_exit_code 0 "$exit_code"
-}
-
-# ============================================================================
-# TEST SUITE: POSTTOOL WRITE RELEASE-LOCK-ON-COMMIT
-# ============================================================================
-
-describe "PostToolUse Write/release-lock-on-commit.sh Tests"
-
-test_release_on_commit_hook_exists() {
-    local hook_path="$PROJECT_ROOT/src/hooks/posttool/Write/release-lock-on-commit.sh"
-    if [[ -f "$hook_path" ]]; then
-        assert_file_exists "$hook_path"
-    else
-        skip "Release on commit hook not found"
-    fi
-}
-
-test_release_on_commit_exits_cleanly() {
-    local hook_path="$PROJECT_ROOT/src/hooks/posttool/Write/release-lock-on-commit.sh"
-
-    if [[ ! -f "$hook_path" ]]; then
-        skip "Release on commit hook not found"
-    fi
-
-    local output
-    local exit_code
-    output=$(bash "$hook_path" 2>&1) && exit_code=0 || exit_code=$?
-
-    # Should exit 0 (no action needed currently)
-    assert_exit_code 0 "$exit_code"
-}
-
-test_release_on_commit_sources_coordination_lib() {
-    local hook_path="$PROJECT_ROOT/src/hooks/posttool/Write/release-lock-on-commit.sh"
-
-    if [[ ! -f "$hook_path" ]]; then
-        skip "Release on commit hook not found"
-    fi
-
-    # Since v5.1.0, hooks delegate to TypeScript
-    if grep -q "run-hook.mjs" "$hook_path" 2>/dev/null; then
-        # TypeScript hooks import coordination module internally
-        # Verify the TS source exists and has coordination logic
-        local ts_source="$PROJECT_ROOT/src/hooks/src/posttool/write/release-lock-on-commit.ts"
-        if [[ -f "$ts_source" ]]; then
-            if grep -qiE "coordination|release|lock" "$ts_source" 2>/dev/null; then
-                return 0
-            fi
-        fi
-        # TypeScript handles this internally - pass
-        return 0
-    fi
-
-    # Legacy bash hook - should source coordination library
-    local hook_content
-    hook_content=$(cat "$hook_path")
-
-    if echo "$hook_content" | grep -q "coordination.sh"; then
-        return 0
-    fi
-    fail "Hook should source coordination library"
 }
 
 # ============================================================================

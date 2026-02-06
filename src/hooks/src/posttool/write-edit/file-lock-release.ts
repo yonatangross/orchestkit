@@ -3,42 +3,20 @@
  * CC 2.1.7 Compliant: Self-contained hook with stdin reading and self-guard
  * Hook: PostToolUse (Write|Edit)
  *
- * FIX: Now releases from locks.json (matching multi-instance-lock.ts acquisition)
+ * Issue #361: Uses shared file-lock utilities from lib/file-lock.ts
+ * Now uses atomic writes (temp+rename) via shared saveLocks.
  */
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, getField, getProjectDir, logHook } from '../../lib/common.js';
 import { getOrGenerateSessionId } from '../../lib/session-id-generator.js';
-import { join } from 'node:path';
-
-interface FileLock {
-  lock_id: string;
-  file_path: string;
-  lock_type: string;
-  instance_id: string;
-  acquired_at: string;
-  expires_at: string;
-  reason?: string;
-}
-
-interface LockDatabase {
-  locks: FileLock[];
-}
-
-/**
- * Get locks file path
- */
-function getLocksFilePath(projectDir: string): string {
-  return join(projectDir, '.claude', 'coordination', 'locks.json');
-}
-
-/**
- * Check if coordination is enabled
- */
-function isCoordinationEnabled(projectDir: string): boolean {
-  return existsSync(join(projectDir, '.claude', 'coordination'));
-}
+import {
+  getLocksFilePath,
+  isCoordinationEnabled,
+  loadLocks,
+  saveLocks,
+  cleanExpiredLocks,
+} from '../../lib/file-lock.js';
 
 /**
  * Get current instance ID using unified session ID resolution.
@@ -52,35 +30,6 @@ function isCoordinationEnabled(projectDir: string): boolean {
  */
 function getInstanceId(): string {
   return getOrGenerateSessionId();
-}
-
-/**
- * Load locks database
- */
-function loadLocks(locksPath: string): LockDatabase {
-  try {
-    if (existsSync(locksPath)) {
-      return JSON.parse(readFileSync(locksPath, 'utf8'));
-    }
-  } catch {
-    // Ignore parse errors
-  }
-  return { locks: [] };
-}
-
-/**
- * Save locks database
- */
-function saveLocks(locksPath: string, data: LockDatabase): void {
-  writeFileSync(locksPath, JSON.stringify(data, null, 2));
-}
-
-/**
- * Clean expired locks
- */
-function cleanExpiredLocks(locks: FileLock[]): FileLock[] {
-  const now = new Date().toISOString();
-  return locks.filter(l => l.expires_at > now);
 }
 
 /**

@@ -117,6 +117,10 @@ function createExistsSyncMock(overrides: Record<string, boolean> = {}) {
     if (path.includes('.instance/id.json') || path.includes('.instance\\id.json')) {
       return true;
     }
+    // Coordination directory exists (required for isCoordinationEnabled)
+    if (path.endsWith('.claude/coordination') || path.endsWith('.claude\\coordination')) {
+      return true;
+    }
     // Locks file exists by default for reading
     if (path.includes('locks.json')) {
       return true;

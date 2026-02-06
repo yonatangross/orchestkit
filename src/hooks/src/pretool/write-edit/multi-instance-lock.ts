@@ -2,6 +2,8 @@
  * Multi-Instance File Lock Hook
  * Acquires file locks before Write/Edit operations to prevent conflicts
  * CC 2.1.7 Compliant: Self-contained hook with proper block format
+ *
+ * Issue #361: Uses shared file-lock utilities from lib/file-lock.ts
  */
 
 import type { HookInput, HookResult } from "../../types.js";
@@ -13,30 +15,15 @@ import {
   getProjectDir,
 } from "../../lib/common.js";
 import { getOrGenerateSessionId } from "../../lib/session-id-generator.js";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
-import { join, dirname } from "node:path";
 import { guardWriteEdit } from "../../lib/guards.js";
-
-interface FileLock {
-  lock_id: string;
-  file_path: string;
-  lock_type: string;
-  instance_id: string;
-  acquired_at: string;
-  expires_at: string;
-  reason?: string;
-}
-
-interface LockDatabase {
-  locks: FileLock[];
-}
-
-/**
- * Get locks file path
- */
-function getLocksFilePath(projectDir: string): string {
-  return join(projectDir, ".claude", "coordination", "locks.json");
-}
+import type { FileLock } from "../../lib/file-lock.js";
+import {
+  getLocksFilePath,
+  isCoordinationEnabled,
+  loadLocks,
+  saveLocks,
+  cleanExpiredLocks,
+} from "../../lib/file-lock.js";
 
 /**
  * Generate unique lock ID
@@ -65,43 +52,6 @@ function getInstanceId(): string {
 function calculateExpiry(): string {
   const expiry = new Date(Date.now() + 300 * 1000);
   return expiry.toISOString();
-}
-
-/**
- * Load locks database
- */
-function loadLocks(locksPath: string): LockDatabase {
-  try {
-    if (existsSync(locksPath)) {
-      const data = JSON.parse(readFileSync(locksPath, "utf8"));
-      return { locks: Array.isArray(data.locks) ? data.locks : [] };
-    }
-  } catch {
-    // Ignore parse errors or read errors
-  }
-  return { locks: [] };
-}
-
-/**
- * Save locks database atomically (write to temp, then rename).
- * Prevents TOCTOU race conditions when multiple instances write concurrently.
- */
-function saveLocks(locksPath: string, data: LockDatabase): void {
-  const dir = dirname(locksPath);
-  if (!existsSync(dir)) {
-    mkdirSync(dir, { recursive: true });
-  }
-  const tmpPath = `${locksPath}.${process.pid}.tmp`;
-  writeFileSync(tmpPath, JSON.stringify(data, null, 2));
-  renameSync(tmpPath, locksPath);
-}
-
-/**
- * Clean expired locks and return active ones
- */
-function cleanExpiredLocks(data: LockDatabase): FileLock[] {
-  const now = new Date().toISOString();
-  return data.locks.filter((l) => l.expires_at > now);
 }
 
 /**
@@ -143,7 +93,7 @@ function checkDirectoryLock(
  * Acquire or refresh a file lock
  */
 function acquireLock(
-  data: LockDatabase,
+  data: { locks: FileLock[] },
   filePath: string,
   instanceId: string,
   reason: string
@@ -165,13 +115,6 @@ function acquireLock(
     expires_at: calculateExpiry(),
     reason,
   });
-}
-
-/**
- * Check if coordination is enabled (directory exists)
- */
-function isCoordinationEnabled(projectDir: string): boolean {
-  return existsSync(join(projectDir, ".claude", "coordination"));
 }
 
 /**
@@ -214,7 +157,7 @@ export function multiInstanceLock(input: HookInput): HookResult {
   // Load locks and clean expired ones FIRST
   const data = loadLocks(locksPath);
   const originalCount = data.locks.length;
-  data.locks = cleanExpiredLocks(data);
+  data.locks = cleanExpiredLocks(data.locks);
 
   // Log if we cleaned any
   if (data.locks.length < originalCount) {

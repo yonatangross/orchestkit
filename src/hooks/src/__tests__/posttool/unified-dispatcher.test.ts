@@ -13,7 +13,6 @@ vi.mock('../../posttool/bash/pattern-extractor.js', () => ({ patternExtractor: v
 vi.mock('../../posttool/write/code-style-learner.js', () => ({ codeStyleLearner: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/write/naming-convention-learner.js', () => ({ namingConventionLearner: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/skill-edit-tracker.js', () => ({ skillEditTracker: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
-vi.mock('../../posttool/coordination-heartbeat.js', () => ({ coordinationHeartbeat: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/skill/skill-usage-optimizer.js', () => ({ skillUsageOptimizer: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/memory-bridge.js', () => ({ memoryBridge: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/realtime-sync.js', () => ({ realtimeSync: vi.fn(() => ({ continue: true, suppressOutput: true })) }));

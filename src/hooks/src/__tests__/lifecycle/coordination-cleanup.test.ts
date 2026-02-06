@@ -87,6 +87,8 @@ function createCoordinationDb(): void {
 let originalEnv: {
   CLAUDE_PROJECT_DIR?: string;
   CLAUDE_SESSION_ID?: string;
+  CLAUDE_CODE_TEAM_NAME?: string;
+  CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS?: string;
 };
 
 beforeEach(() => {
@@ -102,7 +104,13 @@ beforeEach(() => {
   originalEnv = {
     CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
     CLAUDE_SESSION_ID: process.env.CLAUDE_SESSION_ID,
+    CLAUDE_CODE_TEAM_NAME: process.env.CLAUDE_CODE_TEAM_NAME,
+    CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS,
   };
+
+  // Ensure Agent Teams env vars are cleared
+  delete process.env.CLAUDE_CODE_TEAM_NAME;
+  delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
@@ -136,6 +144,38 @@ afterEach(() => {
 // =============================================================================
 
 describe('coordination-cleanup', () => {
+  describe('Agent Teams guard', () => {
+    test('skips when CLAUDE_CODE_TEAM_NAME is set (Agent Teams active)', () => {
+      // Arrange
+      process.env.CLAUDE_CODE_TEAM_NAME = 'my-team';
+      createInstanceEnv(TEST_INSTANCE_ID);
+      createHeartbeatFile(TEST_INSTANCE_ID);
+      const input = createHookInput();
+
+      // Act
+      const result = coordinationCleanup(input);
+
+      // Assert — yields to CC native cleanup
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+
+    test('skips when CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1', () => {
+      // Arrange
+      process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = '1';
+      createInstanceEnv(TEST_INSTANCE_ID);
+      createHeartbeatFile(TEST_INSTANCE_ID);
+      const input = createHookInput();
+
+      // Act
+      const result = coordinationCleanup(input);
+
+      // Assert — yields to CC native cleanup
+      expect(result.continue).toBe(true);
+      expect(result.suppressOutput).toBe(true);
+    });
+  });
+
   describe('basic cleanup behavior', () => {
     test('returns silent success when no instance env exists', () => {
       // Arrange
