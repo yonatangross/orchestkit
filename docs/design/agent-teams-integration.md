@@ -582,10 +582,10 @@ Team "security-audit-{timestamp}":
 
 **Deliverables:**
 - [x] Enable `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` in dev (`.claude/settings.json` → `env`)
-- [ ] Create `src/skills/implement/references/agent-teams-security-audit.md` with team prompt template
-- [ ] Test: team forms, members communicate, results synthesize
-- [ ] Measure: token cost vs 3x Task tool spawns
-- [ ] Validate: PreToolUse hooks fire for each teammate
+- [x] Create `src/skills/implement/references/agent-teams-security-audit.md` with team prompt template
+- [x] Test: team forms, members communicate, results synthesize (2026-02-06: 3-agent audit of src/hooks/)
+- [ ] Measure: token cost vs 3x Task tool spawns (audit report saved to docs/audits/)
+- [x] Validate: PreToolUse hooks fire for each teammate (confirmed: all hooks active per-teammate)
 
 ### Phase 2: Hooks (P3-A.2)
 
