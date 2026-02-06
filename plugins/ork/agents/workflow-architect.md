@@ -13,6 +13,11 @@ tools:
   - Edit
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - langgraph-supervisor
   - langgraph-routing

@@ -11,6 +11,11 @@ tools:
   - Bash
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - code-review-playbook
   - owasp-top-10

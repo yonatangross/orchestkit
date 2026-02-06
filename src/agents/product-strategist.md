@@ -14,6 +14,11 @@ tools:
   - Grep
   - Glob
   - Bash
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - product-strategy-frameworks
   - market-analysis-patterns

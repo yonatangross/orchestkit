@@ -15,6 +15,11 @@ tools:
   - Glob
   - Task(frontend-ui-developer)
   - Task(rapid-ui-designer)
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
   - AskUserQuestion
 skills:
   - demo-producer
