@@ -55,34 +55,50 @@ Comparison between two snapshots showing:
 
 ## Site Discovery with Tavily (Optional Pre-Step)
 
-When `TAVILY_API_KEY` is available, use Tavily's map API to discover all pages on a competitor's site before setting up monitoring. This replaces manual URL enumeration.
+When `TAVILY_API_KEY` is available, use Tavily's crawl API to discover and extract all key pages on a competitor's site in one call. This replaces the manual map→extract two-step workflow.
+
+### Option A: Crawl (Recommended — Single Call)
 
 ```bash
-# Step 0: Discover competitor site URLs
-curl -s -X POST 'https://api.tavily.com/map' \
+# Crawl competitor site — discovers URLs and extracts content in one step
+curl -s -X POST 'https://api.tavily.com/crawl' \
   -H 'Content-Type: application/json' \
   -H "Authorization: Bearer $TAVILY_API_KEY" \
   -d '{
     "url": "https://competitor.com",
     "max_depth": 2,
-    "limit": 50
+    "limit": 50,
+    "include_raw_content": "markdown",
+    "include_paths": ["/pricing*", "/features*", "/changelog*", "/blog*"]
   }' | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
-for url in data.get('urls', []):
-    print(url)
+for page in data.get('results', []):
+    fname = page['url'].replace('https://', '').replace('/', '_')
+    with open(f'.competitive-intel/snapshots/{fname}.md', 'w') as f:
+        f.write(page.get('raw_content', page.get('content', '')))
+    print(f'Captured: {page[\"url\"]}')
+"
+```
+
+### Option B: Map + Extract (Granular Control)
+
+Use when you need to filter URLs before extracting:
+
+```bash
+# Step 1: Discover URLs
+curl -s -X POST 'https://api.tavily.com/map' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{"url": "https://competitor.com", "max_depth": 2, "limit": 50}' \
+  | python3 -c "
+import json, sys
+for url in json.load(sys.stdin).get('urls', []): print(url)
 " > .competitive-intel/discovered-urls.txt
 
-# Filter for pages worth monitoring (pricing, features, changelog)
-grep -E '(pricing|features|changelog|release|blog)' \
-  .competitive-intel/discovered-urls.txt \
-  > .competitive-intel/monitor-targets.txt
-
-# Batch extract content from discovered URLs
-URLS=$(cat .competitive-intel/monitor-targets.txt | head -20 | python3 -c "
-import json, sys
-print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))
-")
+# Step 2: Filter and batch extract
+URLS=$(grep -E '(pricing|features|changelog)' .competitive-intel/discovered-urls.txt \
+  | head -20 | python3 -c "import json,sys; print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))")
 
 curl -s -X POST 'https://api.tavily.com/extract' \
   -H 'Content-Type: application/json' \
@@ -90,7 +106,7 @@ curl -s -X POST 'https://api.tavily.com/extract' \
   -d "{\"urls\": $URLS}" | python3 -m json.tool
 ```
 
-**Cost**: ~1 credit per 10 pages mapped, 1 credit per 5 URLs extracted. Skip this step if `TAVILY_API_KEY` is not set — proceed directly to browser-based capture below.
+**Cost**: Crawl ~1 credit/5 pages. Map+Extract ~1 credit/10 mapped + 1 credit/5 extracted. Skip if `TAVILY_API_KEY` unset — proceed directly to browser-based capture below.
 
 ## Workflow
 
@@ -252,7 +268,7 @@ agent-browser eval "JSON.stringify({
 ```markdown
 # Competitive Change Report
 
-**Date:** -02-04
+**Date:** 2026-02-04
 **Competitor:** Competitor A
 **URL:** https://competitor-a.com/pricing
 

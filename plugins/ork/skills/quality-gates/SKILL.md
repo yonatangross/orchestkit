@@ -7,7 +7,7 @@ version: 1.1.0
 author: OrchestKit AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking]
 user-invocable: false
-complexity: high
+complexity: max
 ---
 
 # Quality Gates

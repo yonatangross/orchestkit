@@ -7,7 +7,7 @@ author: OrchestKit
 tags: [upgrade, assessment, compatibility, platform, migration]
 user-invocable: false
 agent: deployment-manager
-complexity: high
+complexity: max
 ---
 
 # Platform Upgrade Knowledge
@@ -150,6 +150,8 @@ When upgrading models, these are the common transitions:
 | Context window assumption | WARNING | `grep "200000\|200_000"` | Update to new window size |
 | Output token assumption | WARNING | `grep "max_tokens.*4096\|8192"` | Update to new output limit |
 | Removed capability reliance | CRITICAL | Capability-specific code | Conditional feature check |
+| Deprecated `output_format` | WARNING | `grep "output_format"` | Migrate to `output_config.format` |
+| Removed response prefilling | CRITICAL | `grep -i "prefill"` | Use structured outputs or system prompt |
 | Pricing assumption | INFO | Cost estimation code | Update pricing tables |
 
 #### CC Version Upgrades

@@ -3,7 +3,7 @@ name: web-research-workflow
 description: Unified decision tree for web research. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Use when researching web content, scraping, extracting raw markdown, or capturing documentation.
 context: fork
 agent: web-research-analyst
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit AI Agent Hub
 tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction]
 user-invocable: false
@@ -39,8 +39,8 @@ Content OK? ──Yes──► Parse and return
      │
      ▼
 ┌───────────────────────────┐
-│ Tavily extract/search     │ ← Raw markdown, batch URLs
-│ (curl, no browser needed) │
+│ Tavily search/extract/    │ ← Raw markdown, batch URLs
+│ crawl/research            │
 └───────────────────────────┘
      │
 Content OK? ──Yes──► Parse and return
@@ -134,6 +134,55 @@ curl -s -X POST 'https://api.tavily.com/map' \
 
 Useful for documentation sites and competitor sitemaps. Combine with extract for full crawl.
 
+### Tavily Crawl (Multi-Page Content Extraction)
+
+Crawl an entire site and extract content from all discovered pages in one call. Replaces the manual map→extract two-step workflow:
+
+```bash
+curl -s -X POST 'https://api.tavily.com/crawl' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "url": "https://docs.example.com",
+    "max_depth": 2,
+    "limit": 50,
+    "include_raw_content": "markdown"
+  }' | python3 -m json.tool
+```
+
+Options:
+- `max_depth`: `2` — how many link-hops from the seed URL
+- `limit`: `50` — max pages to crawl
+- `include_raw_content`: `"markdown"` — get full page content (not just snippets)
+- `exclude_paths`: `["/blog/*"]` — skip certain URL patterns
+- `include_paths`: `["/docs/*"]` — restrict to certain URL patterns
+
+**When to use Crawl vs Map+Extract:**
+- Use **Crawl** when you want content from an entire site section (docs, changelog, pricing)
+- Use **Map** when you only need URL discovery without content
+- Use **Extract** when you already have specific URLs
+
+### Tavily Research (Deep Research — Beta)
+
+Multi-step research agent that searches, reads, and synthesizes across multiple sources. Returns a comprehensive report with citations:
+
+```bash
+curl -s -X POST 'https://api.tavily.com/research' \
+  -H 'Content-Type: application/json' \
+  -H "Authorization: Bearer $TAVILY_API_KEY" \
+  -d '{
+    "query": "comparison of vector databases for RAG in 2026",
+    "max_results": 10,
+    "report_type": "research_report"
+  }' | python3 -m json.tool
+```
+
+Options:
+- `report_type`: `"research_report"` (default) | `"outline_report"` | `"detailed_report"`
+- `max_results`: number of sources to analyze (more = deeper but slower)
+
+**Note:** The `/research` endpoint is in beta. Falls back gracefully to `/search` + `/extract` if unavailable. Best for deep competitive analysis, market research, and technical comparisons.
+
 ### Escalation Heuristic
 
 ```bash
@@ -158,6 +207,8 @@ fi
 | Tavily Search | 1 credit/search | `advanced` depth = 2 credits |
 | Tavily Extract | 1 credit/5 URLs | Batch up to 20 URLs |
 | Tavily Map | 1 credit/10 pages | Good for site discovery |
+| Tavily Crawl | 1 credit/5 pages | Full site extraction in one call |
+| Tavily Research | 5 credits/query | Deep multi-source synthesis (beta) |
 | WebFetch | Free | Always try first |
 | agent-browser | Free (compute) | Slowest, most capable |
 
@@ -174,8 +225,10 @@ If `TAVILY_API_KEY` is not set, the 3-tier tree collapses to the original 2-tier
 | GitHub README | WebFetch | Static content |
 | Batch URL extraction (2-20 URLs) | Tavily Extract | Parallel, raw markdown |
 | Semantic search with content | Tavily Search | Relevance-scored results |
-| Site crawl/discovery | Tavily Map | Finds all URLs on a domain |
+| Site crawl/discovery (URLs only) | Tavily Map | Finds all URLs on a domain |
+| Full site content extraction | Tavily Crawl | Crawl + extract in one call |
 | Competitor page deep content | Tavily Extract | Full markdown, not summarized |
+| Deep multi-source research | Tavily Research | Synthesized report with citations (beta) |
 | React/Vue/Angular app | agent-browser | Needs JS execution |
 | Interactive pricing page | agent-browser | Dynamic content |
 | Login-protected content | agent-browser | Needs session state |
@@ -322,6 +375,57 @@ agent-browser get text body > /tmp/cache/example-com.txt
 | Content in iframe | Use `agent-browser frame @e1` then extract |
 | No TAVILY_API_KEY | Skip Tavily tier, use WebFetch → agent-browser |
 
+## BrightData PRO_MODE (Optional Cloud Scraping)
+
+When `BRIGHTDATA_API_TOKEN` is set and the BrightData MCP server is configured, PRO_MODE provides specialized tool groups for cloud-based scraping without running a local browser.
+
+### Tool Groups
+
+| Group | Use Case |
+|-------|----------|
+| `ecommerce` | Product pages, pricing, reviews (Amazon, Shopify, etc.) |
+| `social` | Social media profiles, posts, metrics |
+| `finance` | Financial data, stock quotes, SEC filings |
+| `business` | Company info, job listings, reviews |
+| `research` | Academic papers, patents, datasets |
+| `browser` | General-purpose cloud browser (JS rendering) |
+
+### Configuration
+
+Set `GROUPS` or `TOOLS` env vars to control which tools are available:
+
+```bash
+# Enable specific groups
+GROUPS=ecommerce,business npx @anthropic-ai/mcp brightdata
+
+# Or enable specific tools
+TOOLS=scraping_browser,web_data_amazon npx @anthropic-ai/mcp brightdata
+```
+
+### Alternative: @brightdata/browserai-mcp
+
+For serverless/cloud environments where `agent-browser` is unavailable:
+
+```bash
+npx @brightdata/browserai-mcp
+```
+
+Provides the same browsing capabilities but runs in BrightData's cloud infrastructure. Use when:
+- No local browser available (CI/CD, serverless)
+- Need residential proxies for geo-restricted content
+- High-volume scraping that would trigger rate limits locally
+
+### Decision Tree: BrightData vs agent-browser
+
+| Scenario | Recommended |
+|----------|-------------|
+| Local dev, occasional scraping | agent-browser |
+| CI/CD pipeline, no browser | BrightData browserai-mcp |
+| E-commerce price monitoring | BrightData PRO_MODE (ecommerce) |
+| Geo-restricted content | BrightData (residential proxies) |
+| High-volume parallel scraping | BrightData (cloud infrastructure) |
+| Login-protected, custom flows | agent-browser (full control) |
+
 ## Integration with Agents
 
 This skill is used by:
@@ -339,4 +443,4 @@ This skill is used by:
 
 ---
 
-**Version:** 1.1.0 (February 2026)
+**Version:** 1.2.0 (February 2026)
