@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: purple
+memory: project
 tools:
   - Read
   - Write

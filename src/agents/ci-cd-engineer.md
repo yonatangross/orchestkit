@@ -5,6 +5,7 @@ category: devops
 model: inherit
 context: fork
 color: orange
+memory: project
 tools:
   - Bash
   - Read

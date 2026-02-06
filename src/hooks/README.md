@@ -90,7 +90,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 167 hooks (all TypeScript, 6 async via fire-and-forget)
+**Total:** 121 hooks (all TypeScript, 6 async via fire-and-forget)
 ```
 
 ---
@@ -990,6 +990,6 @@ const bundleMap = {
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** 152 TypeScript hooks (6 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.32
+**Claude Code Requirement:** >= 2.1.33
 
 See the async hooks section above for detailed async hook patterns.

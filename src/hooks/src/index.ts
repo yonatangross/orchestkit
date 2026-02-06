@@ -213,6 +213,12 @@ import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
 import { prefillGuard } from './lifecycle/prefill-guard.js';
 
+// TeammateIdle hooks (CC 2.1.33)
+import { progressReporter } from './teammate-idle/progress-reporter.js';
+
+// TaskCompleted hooks (CC 2.1.33)
+import { completionTracker } from './task-completed/completion-tracker.js';
+
 import type { HookFn } from './types.js';
 
 /**
@@ -407,6 +413,12 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
   'lifecycle/prefill-guard': prefillGuard,
+
+  // TeammateIdle hooks (CC 2.1.33)
+  'teammate-idle/progress-reporter': progressReporter,
+
+  // TaskCompleted hooks (CC 2.1.33)
+  'task-completed/completion-tracker': completionTracker,
 };
 
 /**

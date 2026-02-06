@@ -5,6 +5,7 @@ category: security
 model: opus
 context: fork
 color: red
+memory: local
 tools:
   - Read
   - Write

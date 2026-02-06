@@ -19,7 +19,9 @@ export type HookEvent =
   | 'SubagentStop'
   | 'Setup'
   | 'Notification'
-  | 'PreCompact';
+  | 'PreCompact'
+  | 'TeammateIdle'
+  | 'TaskCompleted';
 
 /**
  * Hook input envelope from Claude Code (sent via stdin as JSON)
@@ -65,6 +67,22 @@ export interface HookInput {
   duration_ms?: number;
   /** Tool result — string from most hooks, object from Skill PostToolUse */
   tool_result?: string | { is_error?: boolean; content?: string };
+
+  // TeammateIdle specific fields (CC 2.1.33)
+  /** Teammate agent ID */
+  teammate_id?: string;
+  /** Teammate agent type */
+  teammate_type?: string;
+  /** How long the teammate has been idle (ms) */
+  idle_duration_ms?: number;
+
+  // TaskCompleted specific fields (CC 2.1.33)
+  /** Completed task ID */
+  task_id?: string;
+  /** Task subject */
+  task_subject?: string;
+  /** Task result status */
+  task_status?: string;
 
   // Notification specific fields
   /** Notification message */

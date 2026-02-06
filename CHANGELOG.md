@@ -15,20 +15,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **#333 (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
 - **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
 - **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+- **#346 (P1-E)**: Agent `memory` frontmatter — 17 agents with `project` scope, 5 with `local` scope (CC 2.1.33)
+- **#347 (P1-F)**: New `TeammateIdle` and `TaskCompleted` hook events with progress-reporter and completion-tracker handlers (CC 2.1.33)
 - Batch script `scripts/add-complexity.mjs` for applying complexity classifications
 
 ### Changed
 
+- **#348 (P2-G)**: `Task(agent_type)` restrictions on python-performance-engineer and demo-producer (CC 2.1.33)
+- **#349 (P1-G)**: CC minimum version bumped to >= 2.1.33 (from 2.1.32) for agent memory and new hook events
 - **#330 (P2-A)**: 13 agents migrated from `mcp__sequential-thinking` to Opus 4.6 native adaptive thinking
 - **#329 (P1-D)**: TOKEN_BUDGETS now scale dynamically with `CLAUDE_MAX_CONTEXT` (2% of context window per CC 2.1.32)
 - **#332 (P2-C)**: Enhanced `pre-compact-saver` v2.0 — preserves decision logs, memory tier snapshots, compaction frequency analytics
 - **#324 (P0-A)**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()`
 - **#326 (P1-A)**: Memory context tier limits expanded (1200→3000 chars memory, 800→1200 chars profile)
-- **#327 (P1-B)**: CC minimum version updated to >= 2.1.32 across CLAUDE.md, README, hooks README, marketplace
+- **#327 (P1-B)**: CC minimum version updated to >= 2.1.33 across CLAUDE.md, README, hooks README, marketplace
 - MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
 - CI workflow renames for clarity and pipeline parallelism
 - Skill count: 197 → 199 (added upgrade-assessment, platform-upgrade-knowledge)
-- Hook count: 117 → 119 (91 global + 22 agent + 6 skill-scoped)
+- Hook count: 117 → 121 (93 global + 22 agent + 6 skill-scoped)
 
 ---
 

@@ -5,6 +5,7 @@ category: devops
 model: opus
 context: fork
 color: cyan
+memory: project
 tools:
   - Bash
   - Read

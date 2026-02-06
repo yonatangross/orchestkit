@@ -643,7 +643,7 @@ function generate() {
 
   // Generate full data.js
   const dataJsContent = generateDataJs({
-    version: "6.0.0",
+    version: "6.0.2",
     totals,
     plugins,
     agents,

@@ -5,6 +5,7 @@ category: testing
 model: inherit
 context: inherit
 color: green
+memory: project
 tools:
   - Read
   - Bash
@@ -59,6 +60,10 @@ Don't flag code that works correctly just because it could be "cleaner".
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
 - **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis (native, no MCP tool needed)
+
+## Opus 4.6: 128K Output Tokens
+Produce complete review reports (all automated checks + manual findings + pattern compliance + recommendations) in a single pass.
+No need to split review across multiple responses — deliver the full audit in one comprehensive output.
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for visual regression testing verification

@@ -12,7 +12,8 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task
+  - Task(frontend-ui-developer)
+  - Task(rapid-ui-designer)
   - AskUserQuestion
 skills:
   - demo-producer

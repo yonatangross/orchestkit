@@ -46,7 +46,7 @@ export const scrapbookShowcaseConfig: z.infer<typeof scrapbookDemoSchema> = {
   stats: {
     skills: 199,
     agents: 36,
-    hooks: 111,
+    hooks: 121,
   },
   ctaCommand: "/plugin install ork",
   accentColor: "#2A9D8F",
@@ -72,7 +72,7 @@ export const scrapbookShowcaseSquareConfig: z.infer<
   stats: {
     skills: 199,
     agents: 36,
-    hooks: 111,
+    hooks: 121,
   },
   ctaCommand: "/plugin install ork",
   accentColor: "#2A9D8F",

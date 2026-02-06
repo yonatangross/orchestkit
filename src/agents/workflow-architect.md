@@ -5,6 +5,7 @@ category: llm
 model: opus
 context: fork
 color: blue
+memory: project
 tools:
   - Bash
   - Read

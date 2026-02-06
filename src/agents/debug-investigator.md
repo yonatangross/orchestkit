@@ -5,6 +5,7 @@ category: testing
 model: inherit
 context: inherit
 color: orange
+memory: local
 tools:
   - Bash
   - Read

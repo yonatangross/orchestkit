@@ -8,12 +8,12 @@
 export const ORCHESTKIT_STATS = {
   skills: 199,
   agents: 36,
-  hooks: 119,
-  ccVersion: "CC 2.1.32+",
+  hooks: 121,
+  ccVersion: "CC 2.1.33+",
   // Uppercase aliases for backward compatibility
   SKILLS: 199,
   AGENTS: 36,
-  HOOKS: 119,
+  HOOKS: 121,
 } as const;
 
 /**

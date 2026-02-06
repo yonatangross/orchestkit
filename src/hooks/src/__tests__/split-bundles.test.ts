@@ -108,7 +108,9 @@ describe('Split Bundle Entry Points', () => {
     test('hooks registry contains lifecycle hooks', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
-      expect(hookNames.every(name => name.startsWith('lifecycle/'))).toBe(true);
+      // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/'];
+      expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
     test('all hooks are functions', () => {
@@ -289,7 +291,8 @@ describe('Cross-Bundle Consistency', () => {
     // 165 -> 163: passive-index-migration removed agent-auto-suggest + agent-orchestrator
     // 163 -> 162: removed skill-resolver (Claude Code natively injects agent skills)
     // 162 -> 164: added prefill-guard (SessionStart) and model-cost-advisor (SubagentStart)
-    expect(totalHooks).toBe(164);
+    // 164 -> 166: added progress-reporter (TeammateIdle) and completion-tracker (TaskCompleted)
+    expect(totalHooks).toBe(166);
   });
 });
 

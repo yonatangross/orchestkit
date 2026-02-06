@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**199 skills · 36 agents · 119 hooks · 2 plugins**
+**199 skills · 36 agents · 121 hooks · 2 plugins**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.32-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.33-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -89,7 +89,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (107 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**orkl** (109 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
 **ork** (199 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
@@ -138,7 +138,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.32**. Check with `claude --version`.
+Requires **≥2.1.33**. Check with `claude --version`.
 </details>
 
 ---
@@ -161,9 +161,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **v6.0.0** — Two-tier plugin architecture
 
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
-- `orkl` (107 skills) — Universal toolkit, all workflows work out of the box
+- `orkl` (109 skills) — Universal toolkit, all workflows work out of the box
 - `ork` (199 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 119 hooks included in both plugins
+- All 36 agents and 121 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 

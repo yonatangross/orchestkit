@@ -5,6 +5,7 @@ category: backend
 model: inherit
 context: fork
 color: green
+memory: project
 tools:
   - Bash
   - Read
@@ -60,6 +61,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 3. Use `addBlockedBy` for dependencies between steps
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
+
+## Opus 4.6: 128K Output Tokens
+Generate complete migration suites (schema design + Alembic migrations + index optimization + rollback) in a single pass.
+With 128K output, design and produce all migrations for a feature without splitting across responses.
 
 ## MCP Tools (Primary)
 - `mcp__pg-aiguide__semantic_search_postgres_docs` - Query PostgreSQL manual

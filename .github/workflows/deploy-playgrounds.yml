@@ -131,6 +131,21 @@ jobs:
       - name: Pull Vercel environment
         run: vercel pull --yes --environment=${{ steps.env.outputs.is_prod == 'true' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }} --cwd docs/playgrounds
 
+      - name: Force static site settings
+        run: |
+          # Override any auto-detected framework (e.g. FastAPI from Python files in repo)
+          # Playgrounds is a static HTML/JS/CSS site — no build step needed
+          PROJECT_JSON="docs/playgrounds/.vercel/project.json"
+          node -e "
+            const fs = require('fs');
+            const p = JSON.parse(fs.readFileSync('$PROJECT_JSON', 'utf8'));
+            p.settings = p.settings || {};
+            p.settings.framework = null;
+            p.settings.buildCommand = '';
+            p.settings.outputDirectory = '.';
+            fs.writeFileSync('$PROJECT_JSON', JSON.stringify(p));
+          "
+
       - name: Build project
         run: vercel build ${{ steps.env.outputs.is_prod == 'true' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }} --cwd docs/playgrounds
 
