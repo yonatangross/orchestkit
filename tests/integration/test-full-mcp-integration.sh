@@ -32,7 +32,7 @@ describe "MCP Integration: Hook Structure"
 
 test_all_mcp_hooks_exist() {
     # Phase 4: Check TypeScript source files
-    local expected_hooks=("context7-tracker.ts" "memory-validator.ts" "sequential-thinking-auto.ts")
+    local expected_hooks=("context7-tracker.ts" "memory-validator.ts")
 
     for hook in "${expected_hooks[@]}"; do
         [[ -f "$MCP_TS_DIR/$hook" ]] || return 1
@@ -45,13 +45,12 @@ test_all_mcp_hooks_executable() {
     [[ -f "$HOOK_RUNNER" && -x "$HOOK_RUNNER" ]] || return 1
     [[ -f "$MCP_TS_DIR/context7-tracker.ts" ]] || return 1
     [[ -f "$MCP_TS_DIR/memory-validator.ts" ]] || return 1
-    [[ -f "$MCP_TS_DIR/sequential-thinking-auto.ts" ]] || return 1
     return 0
 }
 
 test_all_mcp_hooks_source_common() {
     # Phase 4: TypeScript hooks import from lib/common.ts
-    local hooks=("context7-tracker.ts" "memory-validator.ts" "sequential-thinking-auto.ts")
+    local hooks=("context7-tracker.ts" "memory-validator.ts")
 
     for hook in "${hooks[@]}"; do
         if [[ -f "$MCP_TS_DIR/$hook" ]]; then
@@ -126,14 +125,8 @@ test_memory_returns_valid_json() {
 }
 
 test_sequential_thinking_returns_valid_json() {
-    # Phase 4: Use TypeScript hook via run-hook.mjs
-    [[ ! -f "$MCP_TS_DIR/sequential-thinking-auto.ts" ]] && skip "sequential-thinking-auto.ts not found"
-
-    local input='{"tool_name":"mcp__sequential-thinking__sequentialthinking","tool_input":{"thought":"test","thoughtNumber":1,"totalThoughts":1,"nextThoughtNeeded":false},"session_id":"test-123"}'
-    local result=$(run_hook "pretool/mcp/sequential-thinking-auto" "$input")
-    local json_line=$(echo "$result" | grep -E '^\{.*\}$' | tail -1)
-
-    echo "$json_line" | jq -e . >/dev/null 2>&1
+    # Removed: sequential-thinking-auto was deleted (Opus 4.6 native adaptive thinking)
+    skip "sequential-thinking-auto removed in v6.0.2"
 }
 
 # ============================================================================

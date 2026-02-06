@@ -30,9 +30,8 @@ import { issueDocsRequirement } from '../pretool/bash/issue-docs-requirement.js'
 import { multiInstanceQualityGate } from '../pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 
-// PreTool/Write-Edit hooks (3)
+// PreTool/Write-Edit hooks (2)
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
-import { fileLockCheck } from '../pretool/write-edit/file-lock-check.js';
 import { multiInstanceLock } from '../pretool/write-edit/multi-instance-lock.js';
 
 // PreTool/Write hooks (4)
@@ -77,9 +76,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
 
-  // PreTool/Write-Edit hooks (3)
+  // PreTool/Write-Edit hooks (2)
   'pretool/write-edit/file-guard': fileGuard,
-  'pretool/write-edit/file-lock-check': fileLockCheck,
   'pretool/write-edit/multi-instance-lock': multiInstanceLock,
 
   // PreTool/Write hooks (4)

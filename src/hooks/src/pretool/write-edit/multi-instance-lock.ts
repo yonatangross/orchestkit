@@ -60,10 +60,10 @@ function getInstanceId(): string {
 }
 
 /**
- * Calculate lock expiry (60 seconds from now)
+ * Calculate lock expiry (5 minutes from now)
  */
 function calculateExpiry(): string {
-  const expiry = new Date(Date.now() + 60 * 1000);
+  const expiry = new Date(Date.now() + 300 * 1000);
   return expiry.toISOString();
 }
 
@@ -73,10 +73,11 @@ function calculateExpiry(): string {
 function loadLocks(locksPath: string): LockDatabase {
   try {
     if (existsSync(locksPath)) {
-      return JSON.parse(readFileSync(locksPath, "utf8"));
+      const data = JSON.parse(readFileSync(locksPath, "utf8"));
+      return { locks: Array.isArray(data.locks) ? data.locks : [] };
     }
   } catch {
-    // Ignore
+    // Ignore parse errors or read errors
   }
   return { locks: [] };
 }
@@ -164,6 +165,13 @@ function acquireLock(
 }
 
 /**
+ * Check if coordination is enabled (directory exists)
+ */
+function isCoordinationEnabled(projectDir: string): boolean {
+  return existsSync(join(projectDir, ".claude", "coordination"));
+}
+
+/**
  * Multi-instance file lock acquisition
  */
 export function multiInstanceLock(input: HookInput): HookResult {
@@ -179,15 +187,19 @@ export function multiInstanceLock(input: HookInput): HookResult {
     return outputSilentSuccess();
   }
 
-  // Get locks file path
-  const locksPath = getLocksFilePath(projectDir);
-
-  // Check if instance identity exists
-  const instanceDir = join(projectDir, ".instance");
-  if (!existsSync(join(instanceDir, "id.json"))) {
-    logHook("multi-instance-lock", "No instance identity, passing through");
+  // Check if coordination is enabled
+  if (!isCoordinationEnabled(projectDir)) {
+    logHook("multi-instance-lock", "Coordination not enabled, passing through");
     return outputSilentSuccess();
   }
+
+  // Skip lock check for coordination directory itself
+  if (filePath.includes(".claude/coordination")) {
+    return outputSilentSuccess();
+  }
+
+  // Get locks file path
+  const locksPath = getLocksFilePath(projectDir);
 
   // Normalize path
   const normalizedPath = filePath.startsWith(projectDir)
@@ -200,7 +212,7 @@ export function multiInstanceLock(input: HookInput): HookResult {
   const data = loadLocks(locksPath);
   const originalCount = data.locks.length;
   data.locks = cleanExpiredLocks(data);
-  
+
   // Log if we cleaned any
   if (data.locks.length < originalCount) {
     logHook("multi-instance-lock", `Cleaned ${originalCount - data.locks.length} expired locks`);
@@ -211,7 +223,7 @@ export function multiInstanceLock(input: HookInput): HookResult {
   if (dirLock) {
     // Save cleaned locks even if we deny
     saveLocks(locksPath, data);
-    
+
     logPermissionFeedback(
       "deny",
       `Directory ${dirLock.file_path} locked by ${dirLock.instance_id}`,
@@ -221,7 +233,12 @@ export function multiInstanceLock(input: HookInput): HookResult {
 
     return outputDeny(
       `Directory ${dirLock.file_path} is locked by another Claude instance (${dirLock.instance_id}).
-Wait for lock release.`
+
+Lock acquired at: ${dirLock.acquired_at}
+Expires at: ${dirLock.expires_at}
+
+You may want to wait or check the work registry:
+.claude/coordination/work-registry.json`
     );
   }
 
@@ -230,7 +247,7 @@ Wait for lock release.`
   if (fileLock) {
     // Save cleaned locks even if we deny
     saveLocks(locksPath, data);
-    
+
     logPermissionFeedback(
       "deny",
       `File ${normalizedPath} locked by ${fileLock.instance_id}`,
@@ -239,8 +256,13 @@ Wait for lock release.`
     logHook("multi-instance-lock", `BLOCKED: ${normalizedPath} locked by ${fileLock.instance_id}`);
 
     return outputDeny(
-      `File ${normalizedPath} is locked by another Claude instance (${fileLock.instance_id}).
-Wait for lock release.`
+      `File ${normalizedPath} is locked by instance ${fileLock.instance_id}.
+
+Lock acquired at: ${fileLock.acquired_at}
+Expires at: ${fileLock.expires_at}
+
+You may want to wait or check the work registry:
+.claude/coordination/work-registry.json`
     );
   }
 

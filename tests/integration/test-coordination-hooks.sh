@@ -146,46 +146,6 @@ test_coordination_cleanup() {
     fi
 }
 
-# Test file-lock-check hook (TypeScript)
-test_file_lock_check() {
-    log_section "Test: file-lock-check (TypeScript)"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-
-    local input='{"tool_input":{"file_path":"/tmp/test-lock-file.txt","content":"test"},"session_id":"test-123"}'
-    local output
-    output=$(run_hook "pretool/write-edit/file-lock-check" "$input")
-
-    if [[ -z "$output" ]]; then
-        log_fail "Empty output"
-        return
-    fi
-
-    # Extract JSON from output
-    local json_line
-    json_line=$(echo "$output" | grep -E '^\{.*\}$' | tail -1)
-
-    if [[ -z "$json_line" ]]; then
-        log_fail "No JSON found in output: $output"
-        return
-    fi
-
-    if echo "$json_line" | jq . >/dev/null 2>&1; then
-        log_pass "Valid JSON output"
-    else
-        log_fail "Invalid JSON: $json_line"
-        return
-    fi
-
-    local continue_val=""
-    continue_val=$(echo "$json_line" | jq '.continue' 2>/dev/null) || continue_val=""
-    if [[ "$continue_val" == "true" ]] || [[ "$continue_val" == "false" ]]; then
-        log_pass "'continue' field is boolean"
-    else
-        log_fail "'continue' is not boolean: $continue_val"
-    fi
-}
-
 # Test file-lock-release hook (TypeScript)
 test_file_lock_release() {
     log_section "Test: file-lock-release (TypeScript)"
@@ -277,13 +237,11 @@ test_hooks_without_coordination() {
         "lifecycle/coordination-init"
         "lifecycle/coordination-cleanup"
         "posttool/coordination-heartbeat"
-        "pretool/write-edit/file-lock-check"
     )
     local inputs=(
         '{"session_id":"test-123"}'
         '{"session_id":"test-123"}'
         '{"tool_input":{"command":"ls"},"session_id":"test-123"}'
-        '{"tool_input":{"file_path":"/tmp/test.txt"},"session_id":"test-123"}'
     )
 
     for i in "${!handlers[@]}"; do
@@ -322,7 +280,7 @@ test_hooks_malformed_input() {
     # TypeScript hooks should handle malformed JSON gracefully
     local input='not-valid-json'
     local output
-    output=$(run_hook "pretool/write-edit/file-lock-check" "$input")
+    output=$(run_hook "pretool/write-edit/multi-instance-lock" "$input")
 
     # Extract JSON from output (TypeScript hook should return error JSON)
     local json_line
@@ -348,7 +306,6 @@ main() {
 
     test_coordination_init
     test_coordination_cleanup
-    test_file_lock_check
     test_file_lock_release
     test_coordination_heartbeat
     test_hooks_without_coordination

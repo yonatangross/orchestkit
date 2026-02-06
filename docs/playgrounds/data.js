@@ -16,7 +16,7 @@ window.ORCHESTKIT_DATA = {
       "plugins": 2,
       "skills": 199,
       "agents": 36,
-      "hooks": 120,
+      "hooks": 119,
       "commands": 23,
       "compositions": 14
   },
@@ -31,13 +31,13 @@ window.ORCHESTKIT_DATA = {
   plugins: [
       {
           "name": "orkl",
-          "description": "Universal toolkit — 109 skills, 36 agents, 120 hooks. Language-agnostic, works for any stack.",
+          "description": "Universal toolkit — 109 skills, 36 agents, 119 hooks. Language-agnostic, works for any stack.",
           "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
           "category": "development",
           "version": "6.0.2",
           "skillCount": 109,
           "agentCount": 36,
-          "hooks": 120,
+          "hooks": 119,
           "commandCount": 23,
           "color": "#8b5cf6",
           "required": false,
@@ -130,13 +130,13 @@ window.ORCHESTKIT_DATA = {
       },
       {
           "name": "ork",
-          "description": "Full specialized toolkit — 199 skills, 36 agents, 120 hooks. Adds Python, React, LLM/RAG patterns.",
+          "description": "Full specialized toolkit — 199 skills, 36 agents, 119 hooks. Adds Python, React, LLM/RAG patterns.",
           "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
           "category": "development",
           "version": "6.0.2",
           "skillCount": 199,
           "agentCount": 36,
-          "hooks": 120,
+          "hooks": 119,
           "commandCount": 23,
           "color": "#06b6d4",
           "required": false,
@@ -3301,7 +3301,7 @@ window.ORCHESTKIT_DATA = {
           "skills-validation.md"
         ]
       },
-      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 109 skills, 36 agents, 120 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 199 skills, 36 agents, 120 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
+      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 109 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 199 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
       "contentTruncated": true,
       "plugins": [
         "ork",

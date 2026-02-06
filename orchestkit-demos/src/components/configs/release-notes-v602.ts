@@ -27,7 +27,7 @@ export const releaseNotesV602Config: z.infer<typeof releaseNotesSchema> = {
       category: "changed",
       title: "Agent Memory",
       description:
-        "17 agents with project-scoped memory, 5 with local scope. CC 2.1.33.",
+        "31 agents with project-scoped memory, 5 with local scope. CC 2.1.33.",
     },
     {
       category: "added",
@@ -43,7 +43,7 @@ export const releaseNotesV602Config: z.infer<typeof releaseNotesSchema> = {
     },
   ],
   statsBefore: { skills: 197, agents: 36, hooks: 117 },
-  statsAfter: { skills: 199, agents: 36, hooks: 121 },
+  statsAfter: { skills: 199, agents: 36, hooks: 119 },
   ctaCommand: "/plugin install ork@latest",
   accentColor: "#2A9D8F",
 };
@@ -68,11 +68,11 @@ export const releaseNotesV602SquareConfig: z.infer<
     {
       category: "changed",
       title: "Agent Memory",
-      description: "22 agents with persistent memory scoping. CC 2.1.33.",
+      description: "31 agents with project-scoped memory, 5 with local scope. CC 2.1.33.",
     },
   ],
   statsBefore: { skills: 197, agents: 36, hooks: 117 },
-  statsAfter: { skills: 199, agents: 36, hooks: 121 },
+  statsAfter: { skills: 199, agents: 36, hooks: 119 },
   ctaCommand: "/plugin install ork@latest",
   accentColor: "#2A9D8F",
 };

@@ -292,7 +292,8 @@ describe('Cross-Bundle Consistency', () => {
     // 163 -> 162: removed skill-resolver (Claude Code natively injects agent skills)
     // 162 -> 164: added prefill-guard (SessionStart) and model-cost-advisor (SubagentStart)
     // 164 -> 166: added progress-reporter (TeammateIdle) and completion-tracker (TaskCompleted)
-    expect(totalHooks).toBe(166);
+    // 166 -> 164: removed sequential-thinking-auto (Opus 4.6 native adaptive thinking)
+    expect(totalHooks).toBe(164);
   });
 });
 

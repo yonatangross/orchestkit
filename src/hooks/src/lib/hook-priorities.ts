@@ -27,14 +27,11 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
   'permission/auto-approve-safe-bash': 'P0',
   'permission/auto-approve-project-writes': 'P0',
 
-  // P1: Core skill/memory injection
-  'prompt/skill-resolver': 'P1',
+  // P1: Core memory injection
   'subagent-start/graph-memory-inject': 'P1',
 
   // P2: Supplementary context
   'subagent-start/mem0-memory-inject': 'P2',
-  'prompt/agent-auto-suggest': 'P2',
-  'prompt/agent-orchestrator': 'P2',
 
   // P3: Monitoring and analytics
   'posttool/context-budget-monitor': 'P3',

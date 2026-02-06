@@ -202,7 +202,7 @@ describe('E2E: Priority Throttling', () => {
     trackTokenUsage('filler', 'skill-injection', 5000);
 
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(false);
-    expect(shouldThrottle('prompt/skill-resolver')).toBe(false);
+    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });
 
   test('enabling throttling via config file works', () => {
@@ -222,22 +222,22 @@ describe('E2E: Priority Throttling', () => {
     trackTokenUsage('fill', 'skill-injection', 1200); // 46% < 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(false); // P3
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2
-    expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1
+    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1
 
     // Phase 2: above 50% - P3 throttled
     trackTokenUsage('fill', 'skill-injection', 200); // total 1400 = 54% > 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(true); // P3 throttled
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2 OK
-    expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1 OK
+    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1 OK
 
     // Phase 3: above 70% - P2 throttled too
     trackTokenUsage('fill', 'skill-injection', 500); // total 1900 = 73% > 70%
     expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(true); // P2 throttled
-    expect(shouldThrottle('prompt/skill-resolver')).toBe(false); // P1 OK
+    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1 OK
 
     // Phase 4: above 90% - P1 throttled
     trackTokenUsage('fill', 'skill-injection', 500); // total 2400 = 92% > 90%
-    expect(shouldThrottle('prompt/skill-resolver')).toBe(true); // P1 throttled
+    expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(true); // P1 throttled
 
     // P0 NEVER throttled
     expect(shouldThrottle('pretool/bash/dangerous-command-blocker')).toBe(false);

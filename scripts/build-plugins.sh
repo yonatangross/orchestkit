@@ -203,7 +203,19 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 
     # Copy hooks (excluding node_modules)
     if [[ "$HOOKS_MODE" == "all" ]]; then
-        rsync -a --exclude='node_modules' "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
+        rsync -a \
+            --exclude='node_modules' \
+            --exclude='.claude' \
+            --exclude='coverage' \
+            --exclude='src' \
+            --exclude='logs' \
+            --exclude='.instance' \
+            --exclude='__tests__' \
+            --exclude='TEST_REPORT.md' \
+            --exclude='IMPROVEMENT-PLAN.md' \
+            --exclude='.gitignore' \
+            --exclude='package-lock.json' \
+            "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
     fi
 
     # Copy shared resources if they exist

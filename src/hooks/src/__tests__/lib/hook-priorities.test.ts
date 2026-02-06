@@ -43,13 +43,11 @@ describe('hook-priorities', () => {
     });
 
     test('returns P1 for core injection hooks', () => {
-      expect(getHookPriority('prompt/skill-resolver')).toBe('P1');
       expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
     });
 
     test('returns P2 for supplementary hooks', () => {
       expect(getHookPriority('subagent-start/mem0-memory-inject')).toBe('P2');
-      expect(getHookPriority('prompt/agent-auto-suggest')).toBe('P2');
     });
 
     test('returns P3 for monitoring hooks', () => {
@@ -86,7 +84,7 @@ describe('hook-priorities', () => {
   describe('shouldThrottle', () => {
     test('returns false when throttling is disabled', () => {
       // No config file = disabled
-      expect(shouldThrottle('prompt/skill-resolver')).toBe(false);
+      expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
     });
 
     test('never throttles P0 hooks even when enabled', () => {

@@ -227,7 +227,6 @@ main() {
         "src/hooks/src/stop/cleanup-instance.sh"
         "src/hooks/src/lifecycle/coordination-init.sh"
         "src/hooks/src/lifecycle/coordination-cleanup.sh"
-        "src/hooks/src/pretool/write-edit/file-lock-check.sh"
     )
 
     log_section "Test 1: EXIT Trap Presence"

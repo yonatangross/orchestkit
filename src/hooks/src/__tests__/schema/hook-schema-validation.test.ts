@@ -269,7 +269,7 @@ const hookTestCases: HookTestCase[] = [
 
   // Prompt hooks
   { name: 'context-injector', path: '../../prompt/context-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
-  { name: 'skill-resolver', path: '../../prompt/skill-resolver.js', createInput: () => createPromptInput('/ork:test'), category: 'prompt' },
+  // skill-resolver removed in v6.0.2 (CC natively injects agent skills)
   { name: 'antipattern-warning', path: '../../prompt/antipattern-warning.js', createInput: () => createPromptInput('fix the bug'), category: 'prompt' },
 
   // Lifecycle hooks
