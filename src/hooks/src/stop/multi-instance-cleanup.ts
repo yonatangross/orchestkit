@@ -9,6 +9,13 @@ import { execSync, spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
+/** Validate instanceId to prevent SQL injection via string interpolation */
+const SAFE_ID_PATTERN = /^[a-zA-Z0-9_\-.:]+$/;
+
+function validateInstanceId(id: unknown): id is string {
+  return typeof id === 'string' && SAFE_ID_PATTERN.test(id) && id.length < 256;
+}
+
 /**
  * Execute SQLite command
  */
@@ -25,9 +32,10 @@ function runSqlite(dbPath: string, sql: string): void {
 }
 
 /**
- * Check if table exists
+ * Check if table exists (tableName validated for defense-in-depth)
  */
 function hasTable(dbPath: string, tableName: string): boolean {
+  if (!SAFE_ID_PATTERN.test(tableName)) return false;
   try {
     const result = execSync(
       `sqlite3 "${dbPath}" "SELECT count(*) FROM sqlite_master WHERE type='table' AND name='${tableName}';"`,
@@ -169,6 +177,10 @@ export function multiInstanceCleanup(input: HookInput): HookResult {
   let instanceId: string;
   try {
     const idData = JSON.parse(readFileSync(idFile, 'utf-8'));
+    if (!validateInstanceId(idData.instance_id)) {
+      logHook('multi-instance-cleanup', `Invalid instance ID format: ${String(idData.instance_id).slice(0, 50)}`);
+      return outputSilentSuccess();
+    }
     instanceId = idData.instance_id;
   } catch {
     logHook('multi-instance-cleanup', 'Failed to read instance ID');

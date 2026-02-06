@@ -37,6 +37,7 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(() => false),
   readFileSync: vi.fn(() => '{"locks":[]}'),
   writeFileSync: vi.fn(),
+  renameSync: vi.fn(),
   mkdirSync: vi.fn(),
 }));
 
@@ -48,7 +49,7 @@ vi.mock('node:path', () => ({
 import { multiInstanceLock } from '../../pretool/write-edit/multi-instance-lock.js';
 import type { HookInput } from '../../types.js';
 import { guardWriteEdit } from '../../lib/guards.js';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, renameSync } from 'node:fs';
 
 function createWriteInput(filePath: string, toolName = 'Write'): HookInput {
   return {
@@ -420,6 +421,28 @@ describe('multi-instance-lock', () => {
       const result = multiInstanceLock(input);
 
       expect(result.continue).toBe(true);
+    });
+  });
+
+  describe('Atomic writes (SEC-003 fix)', () => {
+    it('writes to temp file then renames for atomicity', () => {
+      enableCoordination(true);
+      vi.mocked(readFileSync).mockReturnValue(JSON.stringify({ locks: [] }));
+
+      const input = createWriteInput('/test/project/src/app.ts');
+      multiInstanceLock(input);
+
+      // Should write to a .tmp file first
+      const writeCalls = vi.mocked(writeFileSync).mock.calls;
+      expect(writeCalls.length).toBeGreaterThan(0);
+      const tmpPath = writeCalls[0][0] as string;
+      expect(tmpPath).toMatch(/\.tmp$/);
+
+      // Then rename to the actual locks.json path
+      const renameCalls = vi.mocked(renameSync).mock.calls;
+      expect(renameCalls.length).toBeGreaterThan(0);
+      expect(renameCalls[0][0]).toBe(tmpPath);
+      expect(String(renameCalls[0][1])).toContain('locks.json');
     });
   });
 });

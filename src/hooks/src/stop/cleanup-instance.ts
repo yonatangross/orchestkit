@@ -11,6 +11,13 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 
+/** Validate instanceId to prevent SQL injection via string interpolation */
+const SAFE_ID_PATTERN = /^[a-zA-Z0-9_\-.:]+$/;
+
+function validateInstanceId(id: unknown): id is string {
+  return typeof id === 'string' && SAFE_ID_PATTERN.test(id) && id.length < 256;
+}
+
 /**
  * Get instance ID from identity file
  */
@@ -21,7 +28,12 @@ function getInstanceId(projectDir: string): string | null {
       return null;
     }
     const content = JSON.parse(readFileSync(idFile, 'utf-8'));
-    return content.instance_id || null;
+    const id = content.instance_id || null;
+    if (id && !validateInstanceId(id)) {
+      logHook('cleanup-instance', `Invalid instance ID format: ${String(id).slice(0, 50)}`);
+      return null;
+    }
+    return id;
   } catch {
     return null;
   }

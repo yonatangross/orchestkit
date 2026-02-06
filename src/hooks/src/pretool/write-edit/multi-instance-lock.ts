@@ -13,7 +13,7 @@ import {
   getProjectDir,
 } from "../../lib/common.js";
 import { getOrGenerateSessionId } from "../../lib/session-id-generator.js";
-import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, renameSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { guardWriteEdit } from "../../lib/guards.js";
 
@@ -83,14 +83,17 @@ function loadLocks(locksPath: string): LockDatabase {
 }
 
 /**
- * Save locks database
+ * Save locks database atomically (write to temp, then rename).
+ * Prevents TOCTOU race conditions when multiple instances write concurrently.
  */
 function saveLocks(locksPath: string, data: LockDatabase): void {
   const dir = dirname(locksPath);
   if (!existsSync(dir)) {
     mkdirSync(dir, { recursive: true });
   }
-  writeFileSync(locksPath, JSON.stringify(data, null, 2));
+  const tmpPath = `${locksPath}.${process.pid}.tmp`;
+  writeFileSync(tmpPath, JSON.stringify(data, null, 2));
+  renameSync(tmpPath, locksPath);
 }
 
 /**

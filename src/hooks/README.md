@@ -445,6 +445,12 @@ All stop hooks run in a single detached background process:
 
 **Heavy Analysis (1):** full-test-suite
 
+### Security Hardening
+
+**SEC-001 — SQL Injection Prevention:** `multi-instance-cleanup` and `cleanup-instance` validate instance IDs with `/^[a-zA-Z0-9_\-.:]+$/` before shell-exec SQLite interpolation. Invalid IDs are rejected with silent success.
+
+**SEC-003 — Atomic File Writes:** `multi-instance-lock` writes lock data to a temp file (`locks.json.<pid>.tmp`) then uses `renameSync` for atomic replacement, preventing TOCTOU race conditions when multiple instances write concurrently.
+
 ### Background Worker Features
 
 - **5-minute timeout** - Self-terminates to prevent hangs
