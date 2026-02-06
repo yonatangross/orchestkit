@@ -510,8 +510,8 @@ function queueForMem0(decision: DecisionRecord): boolean {
  */
 function getCCNativeMemoryDir(): string {
   const projectDir = getProjectDir();
-  // Convert absolute path to CC's project ID format
-  const projectId = projectDir.replace(/\//g, '-');
+  // Convert absolute path to CC's project ID format (replace both / and \ for Windows)
+  const projectId = projectDir.replace(/[\\/]/g, '-');
   return join(homedir(), '.claude', 'projects', projectId, 'memory');
 }
 

@@ -8,7 +8,7 @@
 #   3. Skill frontmatter — command:.*run-hook lines between --- markers
 #
 # Output format (eval-friendly):
-#   GLOBAL=91 AGENT=22 SKILL=6 TOTAL=119
+#   GLOBAL=93 AGENT=22 SKILL=6 TOTAL=121
 #
 # Usage:
 #   eval "$(./bin/count-hooks.sh)"

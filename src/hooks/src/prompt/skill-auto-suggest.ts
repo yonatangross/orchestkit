@@ -266,42 +266,60 @@ export function findMatchingSkills(prompt: string): SkillMatch[] {
   return matches;
 }
 
+interface SkillMetadata {
+  description: string;
+  complexity: 'low' | 'medium' | 'high' | '';
+}
+
 /**
- * Get skill description from SKILL.md frontmatter
+ * Get skill metadata (description + complexity) from SKILL.md frontmatter
  */
-function getSkillDescription(skillName: string, skillsDir: string): string {
+function getSkillMetadata(skillName: string, skillsDir: string): SkillMetadata {
   const skillFile = join(skillsDir, skillName, 'SKILL.md');
 
   if (!existsSync(skillFile)) {
-    return '';
+    return { description: '', complexity: '' };
   }
 
   try {
     const content = readFileSync(skillFile, 'utf8');
 
-    // Extract description from YAML frontmatter
+    // Extract fields from YAML frontmatter
     const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (frontmatterMatch) {
       const frontmatter = frontmatterMatch[1];
       const descriptionMatch = frontmatter.match(/^description:\s*(.+)$/m);
-      if (descriptionMatch) {
-        return descriptionMatch[1].trim();
-      }
+      const complexityMatch = frontmatter.match(/^complexity:\s*(low|medium|high)$/m);
+      return {
+        description: descriptionMatch ? descriptionMatch[1].trim() : '',
+        complexity: (complexityMatch ? complexityMatch[1].trim() : '') as SkillMetadata['complexity'],
+      };
     }
   } catch {
     // Ignore
   }
 
-  return '';
+  return { description: '', complexity: '' };
 }
 
+// Adaptive thinking guidance based on skill complexity
+const COMPLEXITY_HINTS: Record<string, string> = {
+  high: 'Use extended thinking for thorough analysis',
+  medium: 'Balance depth and speed in your approach',
+  low: 'Quick execution — straightforward task',
+};
+
 /**
- * Build suggestion message for Claude
+ * Build suggestion message for Claude with complexity-aware thinking hints
  */
 function buildSuggestionMessage(matches: SkillMatch[], skillsDir: string): string {
   if (matches.length === 0) {
     return '';
   }
+
+  // Determine highest complexity among matched skills
+  let maxComplexity: 'low' | 'medium' | 'high' = 'low';
+  const complexityOrder = { low: 0, medium: 1, high: 2 };
 
   let message = `## Relevant Skills Detected
 
@@ -311,13 +329,22 @@ Based on your prompt, the following skills may be helpful:
 
   for (const { skill, confidence } of matches) {
     if (confidence >= MIN_CONFIDENCE) {
-      const description = getSkillDescription(skill, skillsDir);
+      const { description, complexity } = getSkillMetadata(skill, skillsDir);
+      if (complexity && complexityOrder[complexity] > complexityOrder[maxComplexity]) {
+        maxComplexity = complexity;
+      }
+      const complexityTag = complexity ? ` [${complexity}]` : '';
       if (description) {
-        message += `- **${skill}** (${confidence}% match): ${description}\n`;
+        message += `- **${skill}**${complexityTag} (${confidence}% match): ${description}\n`;
       } else {
-        message += `- **${skill}** (${confidence}% match)\n`;
+        message += `- **${skill}**${complexityTag} (${confidence}% match)\n`;
       }
     }
+  }
+
+  // Add adaptive thinking hint based on highest complexity
+  if (maxComplexity !== 'low') {
+    message += `\n**Adaptive thinking:** ${COMPLEXITY_HINTS[maxComplexity]}\n`;
   }
 
   message += `

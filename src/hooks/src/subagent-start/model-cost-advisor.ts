@@ -13,10 +13,10 @@
  * Version: 1.0.0
  */
 
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, existsSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, outputWarning, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputWarning, logHook, getProjectDir, getPluginRoot } from '../lib/common.js';
 
 // Agent model assignments from agent definitions
 const OPUS_AGENTS = new Set([
@@ -53,16 +53,75 @@ interface ModelAdvice {
 }
 
 /**
- * Detect task complexity from description and agent type
+ * Read complexity from agent's skill frontmatter fields.
+ * Returns the highest complexity among the agent's skills.
+ */
+function getAgentSkillComplexity(agentType: string): 'low' | 'medium' | 'high' | null {
+  const pluginRoot = getPluginRoot();
+  if (!pluginRoot) return null;
+
+  const agentFile = join(pluginRoot, 'agents', `${agentType}.md`);
+  if (!existsSync(agentFile)) return null;
+
+  try {
+    const content = readFileSync(agentFile, 'utf8');
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return null;
+
+    // Extract skills list from agent frontmatter
+    const skillsMatch = fmMatch[1].match(/^skills:\s*\n((?:\s+-\s+.+\n)*)/m);
+    if (!skillsMatch) return null;
+
+    const skills = skillsMatch[1].match(/^\s+-\s+(.+)$/gm)?.map(s => s.trim().replace(/^-\s+/, '')) || [];
+    if (skills.length === 0) return null;
+
+    // Sample up to 5 skills to check complexity (performance: don't read all 30+)
+    const complexityOrder = { low: 0, medium: 1, high: 2 };
+    let maxComplexity: 'low' | 'medium' | 'high' = 'low';
+
+    const sampled = skills.slice(0, 5);
+    for (const skill of sampled) {
+      const skillFile = join(pluginRoot, 'skills', skill, 'SKILL.md');
+      if (!existsSync(skillFile)) continue;
+
+      const skillContent = readFileSync(skillFile, 'utf8');
+      const skillFm = skillContent.match(/^---\n([\s\S]*?)\n---/);
+      if (!skillFm) continue;
+
+      const cMatch = skillFm[1].match(/^complexity:\s*(low|medium|high)$/m);
+      if (cMatch) {
+        const c = cMatch[1] as 'low' | 'medium' | 'high';
+        if (complexityOrder[c] > complexityOrder[maxComplexity]) {
+          maxComplexity = c;
+        }
+      }
+    }
+
+    return maxComplexity;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Detect task complexity from description, agent type, and skill frontmatter.
+ * Priority: skill frontmatter > keyword heuristics > agent type defaults.
  */
 function analyzeComplexity(agentType: string, description: string): 'low' | 'medium' | 'high' {
-  // Check high-complexity signals
+  // 1. Check skill frontmatter complexity (most accurate)
+  const skillComplexity = getAgentSkillComplexity(agentType);
+  if (skillComplexity === 'high') return 'high';
+
+  // 2. Check high-complexity keyword signals
   const highMatches = HIGH_COMPLEXITY_SIGNALS.filter(p => p.test(description)).length;
   if (highMatches >= 2 || OPUS_AGENTS.has(agentType)) return 'high';
 
-  // Check low-complexity signals
+  // 3. Check low-complexity keyword signals
   const lowMatches = LOW_COMPLEXITY_SIGNALS.filter(p => p.test(description)).length;
   if (lowMatches >= 2) return 'low';
+
+  // 4. Fall back to skill complexity if available
+  if (skillComplexity) return skillComplexity;
 
   return 'medium';
 }

@@ -59,7 +59,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|-------|----------|
 | **Skills** | 199 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 119 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 121 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
 
 **[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**

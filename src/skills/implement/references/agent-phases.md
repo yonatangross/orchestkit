@@ -1,33 +1,60 @@
 # Agent Phases Reference
 
-## Phase 3: Architecture Design (5 Agents)
+## 128K Output Token Strategy
+
+With Opus 4.6's 128K output tokens, each agent produces **complete artifacts in a single pass**. This reduces implementation from 17 agents across 4 phases to **14 agents across 3 phases**.
+
+| Metric | Before (64K) | After (128K) |
+|--------|-------------|--------------|
+| Phase 4 agents | 5 | 5 (unchanged) |
+| Phase 5 agents | 8 | 5 |
+| Phase 6 agents | 4 | 4 (unchanged) |
+| **Total agents** | **17** | **14** |
+| Full API + models | 2 passes | 1 pass |
+| Component + tests | 2 passes | 1 pass |
+| Complete feature | 4-6 passes | 2-3 passes |
+
+**Key principle:** Prefer one comprehensive response over multiple incremental ones. Only split when scope genuinely exceeds 128K tokens.
+
+---
+
+## Phase 4: Architecture Design (5 Agents)
+
+All 5 agents launch in ONE message with `run_in_background=true`.
 
 ### Agent 1: Workflow Architect
 ```python
 Task(
   subagent_type="workflow-architect",
-  prompt="""ARCHITECTURE PLANNING
+  prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
 
   Feature: $ARGUMENTS
 
-  Design comprehensive implementation plan:
+  Produce a COMPLETE implementation roadmap in one response:
+
   1. COMPONENT BREAKDOWN
-     - Frontend components needed
-     - Backend services/endpoints
-     - Database schema changes
-     - AI/ML integrations
+     - Frontend components needed (with file paths)
+     - Backend services/endpoints (with route paths)
+     - Database schema changes (with table/column names)
+     - AI/ML integrations (if any)
 
   2. DEPENDENCY GRAPH
      - What must be built first?
      - What can be parallelized?
-     - Integration points
+     - Integration points between frontend/backend
 
   3. RISK ASSESSMENT
-     - Technical challenges
-     - Performance concerns
-     - Security considerations
+     - Technical challenges with mitigations
+     - Performance concerns with benchmarks
+     - Security considerations with OWASP mapping
 
-  Output: Detailed implementation roadmap with task dependencies.""",
+  4. TASK BREAKDOWN
+     - Concrete tasks for each agent
+     - Estimated tool calls per task
+     - Acceptance criteria per task
+
+  Output: Complete implementation roadmap with task dependencies.
+  Use full 128K output capacity — don't truncate or summarize.""",
   run_in_background=true
 )
 ```
@@ -36,19 +63,22 @@ Task(
 ```python
 Task(
   subagent_type="backend-system-architect",
-  prompt="""BACKEND ARCHITECTURE
+  prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
 
   Feature: $ARGUMENTS
   Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
 
-  Design:
-  1. API endpoints (REST conventions)
-  2. Service layer structure
-  3. Database schema/migrations
-  4. Error handling patterns
-  5. Testing strategy (unit + integration)
+  Produce ALL of the following in one response:
+  1. API endpoint design (routes, methods, status codes, rate limits)
+  2. Pydantic v2 request/response schemas with Field constraints
+  3. SQLAlchemy 2.0 async model definitions with relationships
+  4. Service layer patterns (repository + unit of work)
+  5. Error handling (RFC 9457 Problem Details)
+  6. Database migration strategy (tables, indexes, constraints)
+  7. Testing strategy (unit + integration test outline)
 
-  Output: Backend implementation spec with file paths.""",
+  Include file paths for every artifact.
+  Output: Complete backend implementation spec ready for coding.""",
   run_in_background=true
 )
 ```
@@ -57,19 +87,23 @@ Task(
 ```python
 Task(
   subagent_type="frontend-ui-developer",
-  prompt="""FRONTEND ARCHITECTURE
+  prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
 
   Feature: $ARGUMENTS
   Standards: React 19, TypeScript strict, Zod, TanStack Query
 
-  Design:
-  1. Component hierarchy
-  2. State management approach
-  3. API integration (hooks)
-  4. Form handling with Zod
-  5. Error boundaries
+  Produce ALL of the following in one response:
+  1. Component hierarchy with file paths
+  2. Zod schemas for ALL API responses
+  3. State management approach (Zustand slices or React 19 hooks)
+  4. TanStack Query configuration (keys, stale time, prefetching)
+  5. Form handling with React Hook Form + Zod
+  6. Loading states (skeleton components, not spinners)
+  7. Error boundaries and fallback UI
+  8. Accessibility requirements (WCAG 2.1 AA)
 
-  Output: Frontend implementation spec with component tree.""",
+  Include Tailwind class specifications for key components.
+  Output: Complete frontend implementation spec ready for coding.""",
   run_in_background=true
 )
 ```
@@ -78,18 +112,21 @@ Task(
 ```python
 Task(
   subagent_type="llm-integrator",
-  prompt="""AI/ML INTEGRATION ANALYSIS
+  prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
 
   Feature: $ARGUMENTS
 
-  Evaluate AI integration needs:
-  1. Does this feature need LLM?
-  2. Embedding/RAG requirements?
-  3. LangGraph workflow needed?
-  4. Caching strategy for LLM calls
-  5. Cost optimization
+  Evaluate and design AI integration in one response:
+  1. Does this feature need LLM? (justify yes/no)
+  2. Provider selection (Anthropic/OpenAI/Ollama) with rationale
+  3. Prompt template design (versioned, with Langfuse tracking)
+  4. Function calling / tool definitions (if needed)
+  5. Streaming strategy (SSE endpoint design)
+  6. Caching strategy (prompt caching + semantic caching)
+  7. Cost estimation (tokens per request, monthly projection)
+  8. Fallback chain configuration
 
-  Output: AI integration spec or "No AI needed" with justification.""",
+  Output: Complete AI integration spec or "No AI needed" with justification.""",
   run_in_background=true
 )
 ```
@@ -98,63 +135,205 @@ Task(
 ```python
 Task(
   subagent_type="ux-researcher",
-  prompt="""UX ANALYSIS
+  prompt="""UX ANALYSIS — SINGLE PASS
 
   Feature: $ARGUMENTS
 
-  Analyze user experience:
-  1. User journey mapping
-  2. Accessibility requirements (WCAG 2.1)
-  3. Loading states and feedback
-  4. Error messaging
-  5. Mobile responsiveness
+  Produce complete UX research in one response:
+  1. Primary persona with behavioral patterns
+  2. User journey map with friction points and opportunities
+  3. Accessibility requirements (WCAG 2.1 AA specific checks)
+  4. Loading state strategy (skeleton vs progressive)
+  5. Error messaging guidelines
+  6. Mobile responsiveness breakpoints
+  7. Success metrics (measurable KPIs)
+  8. User stories with acceptance criteria
 
-  Output: UX requirements document.""",
+  Output: Complete UX requirements document.""",
   run_in_background=true
 )
 ```
 
-## Phase 4: Implementation (8 Agents)
+---
 
-### Agent 1-2: Backend Implementation
-- API endpoints in `backend/app/api/v1/`
-- Pydantic models in `backend/app/models/`
-- Service layer in `backend/app/services/`
-- Database models in `backend/app/db/models/`
-- Repository pattern in `backend/app/db/repositories/`
-- Alembic migrations in `backend/alembic/versions/`
+## Phase 5: Implementation (5 Agents)
 
-### Agent 3-4: Frontend Implementation
-- Components in `frontend/src/features/[feature]/`
-- API hooks in `frontend/src/features/[feature]/api/`
-- Zod schemas for validation
-- TanStack Query integration
+**128K consolidation:** Backend is 1 agent (was 2), frontend is 1 agent (was 3 incl. styling). Each produces complete working code in a single pass.
 
-### Agent 5: AI Integration
-- LangGraph workflows
-- Prompt templates
-- Streaming support
-- Caching implementation
+All 5 agents launch in ONE message with `run_in_background=true`.
 
-### Agent 6: Styling
-- TailwindCSS styling
-- Responsive breakpoints
-- Dark mode support
-- Design tokens
+### Agent 1: Backend — Complete Implementation
+```python
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
 
-### Agent 7: Test Suite
-- Unit tests for all new functions
-- Integration tests for API endpoints
-- Component tests for React
-- Target: 80% coverage minimum
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 backend spec]
 
-### Agent 8: Progress Tracking
-- Monitor all implementation agents
-- Track task completion
-- Identify blockers
-- Update TodoWrite
+  Generate ALL backend code in ONE response:
 
-## Phase 5: Integration (4 Agents)
+  1. API ROUTES (backend/app/api/v1/routes/)
+     - All endpoints with full implementation
+     - Dependency injection
+     - Rate limiting decorators
+
+  2. SCHEMAS (backend/app/schemas/)
+     - Pydantic v2 request/response models
+     - Field constraints and validators
+
+  3. MODELS (backend/app/db/models/)
+     - SQLAlchemy 2.0 async models
+     - Relationships, constraints, indexes
+
+  4. SERVICES (backend/app/services/)
+     - Business logic with repository pattern
+     - Error handling (RFC 9457)
+
+  5. TESTS (backend/tests/)
+     - Unit tests for services
+     - Integration tests for endpoints
+     - Fixtures and factories
+
+  Write REAL code to disk using Write/Edit tools.
+  Every file must be complete and runnable.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 2: Frontend — Complete Implementation
+```python
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 frontend spec]
+
+  Generate ALL frontend code in ONE response:
+
+  1. COMPONENTS (frontend/src/features/[feature]/components/)
+     - React 19 components with TypeScript strict
+     - useOptimistic for mutations
+     - Skeleton loading states
+     - Motion animation presets from @/lib/animations
+
+  2. API LAYER (frontend/src/features/[feature]/api/)
+     - Zod schemas for all API responses
+     - TanStack Query hooks with prefetching
+     - MSW handlers for testing
+
+  3. STATE (frontend/src/features/[feature]/store/)
+     - Zustand slices or React 19 state hooks
+     - Optimistic update reducers
+
+  4. STYLING
+     - Tailwind classes using @theme tokens
+     - Responsive breakpoints (mobile-first)
+     - Dark mode variants
+     - All component states (hover, focus, disabled, loading)
+
+  5. TESTS (frontend/src/features/[feature]/__tests__/)
+     - Component tests with MSW
+     - Hook tests
+     - Zod schema tests
+
+  Write REAL code to disk. Every file must be complete.
+  Include styling inline — no separate styling agent needed.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 3: AI Integration (if needed)
+```python
+Task(
+  subagent_type="llm-integrator",
+  prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 AI spec]
+
+  Generate ALL AI integration code in ONE response:
+
+  1. Provider setup and configuration
+  2. Prompt templates (versioned)
+  3. Function calling / tool definitions
+  4. Streaming SSE endpoint
+  5. Prompt caching configuration
+  6. Fallback chain implementation
+  7. Langfuse tracing integration
+  8. Tests with VCR.py cassettes
+
+  Write REAL code to disk. Skip if AI spec says "No AI needed".""",
+  run_in_background=true
+)
+```
+
+### Agent 4: Test Suite — Complete Coverage
+```python
+Task(
+  subagent_type="test-generator",
+  prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+
+  Generate ALL tests in ONE response:
+
+  1. UNIT TESTS
+     - Python: pytest with factories (not raw dicts)
+     - TypeScript: Vitest with meaningful assertions
+     - Cover edge cases: empty input, errors, timeouts, rate limits
+
+  2. INTEGRATION TESTS
+     - API endpoint tests with TestClient
+     - Database tests with fixtures
+     - VCR.py cassettes for external HTTP calls
+
+  3. FIXTURES & FACTORIES
+     - conftest.py with shared fixtures
+     - Factory classes for test data
+     - MSW handlers for frontend API mocking
+
+  4. COVERAGE ANALYSIS
+     - Run: poetry run pytest --cov=app --cov-report=term-missing
+     - Run: npm test -- --coverage
+     - Target: 80% minimum
+
+  Write REAL test files to disk.
+  Run tests after writing to verify they pass.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 5: Design System (optional — skip if existing design)
+```python
+Task(
+  subagent_type="rapid-ui-designer",
+  prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+
+  Produce complete design specs in ONE response:
+
+  1. Color tokens (@theme directive) for new components
+  2. Component specifications with all states
+  3. Responsive breakpoint strategy
+  4. Accessibility contrast ratios
+  5. Motion animation preset mapping
+  6. Tailwind class definitions for every component variant
+
+  Output: Design specification document.
+  Skip if feature uses existing design system without new components.""",
+  run_in_background=true
+)
+```
+
+---
+
+## Phase 6: Integration & Validation (4 Agents)
 
 ### Validation Commands
 
@@ -172,6 +351,79 @@ npm run typecheck
 npm run lint
 npm run build
 npm test -- --coverage
+```
+
+### Agent 1: Backend Integration
+```python
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND INTEGRATION VERIFICATION
+
+  Verify all backend code works together:
+  1. Run alembic migrations (dry-run)
+  2. Run ruff/mypy type checking
+  3. Run full test suite with coverage
+  4. Verify API endpoints respond correctly
+  5. Fix any integration issues found
+
+  This is verification, not new implementation.""",
+  run_in_background=true
+)
+```
+
+### Agent 2: Frontend Integration
+```python
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND INTEGRATION VERIFICATION
+
+  Verify all frontend code works together:
+  1. Run TypeScript type checking (tsc --noEmit)
+  2. Run linting (biome/eslint)
+  3. Run build (vite build)
+  4. Run test suite with coverage
+  5. Fix any integration issues found
+
+  This is verification, not new implementation.""",
+  run_in_background=true
+)
+```
+
+### Agent 3: Code Quality Review
+```python
+Task(
+  subagent_type="code-quality-reviewer",
+  prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
+
+  Review ALL new code in one comprehensive report:
+  1. Run all automated checks (lint, type, test, audit)
+  2. Verify React 19 patterns (useOptimistic, Zod, assertNever)
+  3. Check security (OWASP, secrets, input validation)
+  4. Verify test coverage meets 80% threshold
+  5. Check architectural compliance
+
+  Produce structured review with APPROVE/REJECT decision.""",
+  run_in_background=true
+)
+```
+
+### Agent 4: Security Audit
+```python
+Task(
+  subagent_type="security-auditor",
+  prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
+
+  Audit ALL new code in one comprehensive report:
+  1. Run bandit/semgrep on Python code
+  2. Run npm audit on JavaScript dependencies
+  3. Run pip-audit on Python dependencies
+  4. Grep for secrets (API keys, passwords, tokens)
+  5. OWASP Top 10 verification
+  6. Input validation coverage
+
+  Produce structured security report with severity ratings.""",
+  run_in_background=true
+)
 ```
 
 ### Security Checks
