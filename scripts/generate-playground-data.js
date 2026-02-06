@@ -264,7 +264,25 @@ function countHooks(agentsData) {
     }
   }
 
-  return { global: globalCount, scoped: scopedCount, total: globalCount + scopedCount };
+  // Count skill-scoped hooks (command:.*run-hook in SKILL.md frontmatter)
+  let skillScopedCount = 0;
+  const skillsDir = path.join(PROJECT_ROOT, 'src', 'skills');
+  if (fs.existsSync(skillsDir)) {
+    for (const skillName of fs.readdirSync(skillsDir)) {
+      const skillMd = path.join(skillsDir, skillName, 'SKILL.md');
+      if (fs.existsSync(skillMd)) {
+        const content = fs.readFileSync(skillMd, 'utf-8');
+        const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+        if (fmMatch) {
+          const fm = fmMatch[1];
+          const hookMatches = fm.match(/command:.*run-hook/g);
+          if (hookMatches) skillScopedCount += hookMatches.length;
+        }
+      }
+    }
+  }
+
+  return { global: globalCount, scoped: scopedCount + skillScopedCount, total: globalCount + scopedCount + skillScopedCount };
 }
 
 /**
