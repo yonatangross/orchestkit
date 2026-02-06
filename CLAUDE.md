@@ -163,7 +163,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 - `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
 - `complexity: low|medium|high` — Adaptive thinking alignment for Opus 4.6
 
-**Skill Budget (CC 2.1.32+):** Platform scales skill character budget to 2% of context window. Token budgets auto-scale: 200K context → ~1200 tokens, 1M context → ~6000 tokens for skill injection.
+**Skill Budget (CC 2.1.33+):** Platform scales skill character budget to 2% of context window. Token budgets auto-scale: 200K context → ~1200 tokens, 1M context → ~6000 tokens for skill injection.
 
 ### Agents
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
