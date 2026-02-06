@@ -160,7 +160,7 @@ npm run test:security
 ```bash
 # Full test suite + manual verification of all 22 user-invocable skills
 # Run on CI pipeline with target configuration
-# Verify all 118 hook entries register without errors
+# Verify all 122 hook entries register without errors
 # Test all 36 agents spawn correctly
 ```
 

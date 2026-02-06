@@ -8,7 +8,7 @@ export function GET() {
   const lines = [
     "# OrchestKit",
     "",
-    "> AI development toolkit for Claude Code — 199 skills, 36 agents, 119 hooks",
+    "> AI development toolkit for Claude Code — 200 skills, 36 agents, 122 hooks",
     "",
     "## Docs",
     "",

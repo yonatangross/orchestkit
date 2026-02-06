@@ -1,5 +1,5 @@
 ---
-title: "119 Hooks: What Fires When"
+title: "122 Hooks: What Fires When"
 description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
 ---
 
@@ -31,12 +31,12 @@ type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Global hooks** | 91 | Fire on every matching event regardless of agent |
+| **Global hooks** | 94 | Fire on every matching event regardless of agent |
 | **Agent-scoped hooks** | 22 | Fire only when a specific agent is active |
 | **Skill-scoped hooks** | 6 | Fire only during specific skill operations |
-| **Total** | **119** | Registered in `hooks.json`, compiled into 11 split bundles |
+| **Total** | **122** | Registered in `hooks.json`, compiled into 11 split bundles |
 
-All 119 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+All 122 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
 
 ## Hook Events: The Full Timeline
 
@@ -162,7 +162,7 @@ The largest group: hooks fire based on the tool matcher.
 
 ## Architecture: Split Bundles
 
-OrchestKit does not load all 119 hooks into memory for every event. Instead, esbuild compiles hooks into **11 event-specific bundles** plus 1 unified bundle for CLI tools.
+OrchestKit does not load all 122 hooks into memory for every event. Instead, esbuild compiles hooks into **11 event-specific bundles** plus 1 unified bundle for CLI tools.
 
 | Bundle | Size | Hooks | Loaded When |
 |--------|------|-------|-------------|

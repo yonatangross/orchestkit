@@ -189,7 +189,7 @@ const timing = calculatePhaseTiming({
 
 3. CRAFT HOOK
    └─▶ What stops the scroll?
-       └─▶ Example: "199 skills, one command"
+       └─▶ Example: "200 skills, one command"
 
 4. MAP AIDA PHASES
    └─▶ Allocate time to each phase

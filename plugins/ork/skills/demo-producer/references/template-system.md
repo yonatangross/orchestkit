@@ -564,7 +564,7 @@ const rightPanelX = interpolate(mergeProgress, [0, 1], [960, 0]);
 ┌──────────────────────────────────────────────┐
 │        TITLE STAMP (0-3s)                    │
 │    "OrchestKit"                              │
-│    199 skills. 36 agents. One plugin.        │
+│    200 skills. 36 agents. One plugin.        │
 ├──────────────────────────────────────────────┤
 │    SOCIAL PROOF CARDS (3-7.5s)               │
 │    ┌─────────┐  ┌─────────┐  ┌─────────┐   │

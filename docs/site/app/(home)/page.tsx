@@ -8,7 +8,7 @@ const PRIMITIVES = [
     letter: "S",
     title: "Skills",
     count: COUNTS.skills,
-    desc: "Reusable knowledge modules — auth patterns, migrations, API design. 23 commands + 176 auto-injected references.",
+    desc: "Reusable knowledge modules — auth patterns, migrations, API design. 24 commands + 176 auto-injected references.",
     href: "/docs/reference/skills",
   },
   {
