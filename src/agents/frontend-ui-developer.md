@@ -84,6 +84,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
 - **Opus 4.6 adaptive thinking** — Complex state management decisions (native, no MCP tool needed)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete component families (components + hooks + schemas + tests + stories) in a single pass.
+With 128K output, build entire feature pages without splitting across responses.
+
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
 - Snapshot + Refs workflow: `agent-browser snapshot -i` then interact with `@e1`, `@e2` refs

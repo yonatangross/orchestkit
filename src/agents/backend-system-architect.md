@@ -86,6 +86,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__postgres-mcp__*` - Database schema inspection and query testing
 - **Opus 4.6 adaptive thinking** — Complex architectural decisions (native, no MCP tool needed)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete API implementations (routes + models + schemas + tests) in a single pass.
+Prefer comprehensive single-response output over multiple incremental generations.
+
 
 ## Concrete Objectives
 1. Design RESTful API endpoints following OpenAPI 3.1 specifications

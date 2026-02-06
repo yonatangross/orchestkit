@@ -32,16 +32,16 @@ fi
 
 echo "▶ Checking two-tier plugin structure..."
 
-# Check for orkl (JS object syntax: name: "orkl")
-if grep -q 'name: "orkl"' "$DATA_JS"; then
+# Check for orkl (supports both JS object `name: "orkl"` and JSON `"name": "orkl"`)
+if grep -qE '"?name"?\s*:\s*"orkl"' "$DATA_JS"; then
     echo -e "  ${GREEN}✓${NC} orkl plugin present"
 else
     echo -e "  ${RED}✗${NC} orkl plugin missing"
     ((ERRORS++)) || true
 fi
 
-# Check for ork (note: must match exactly "ork", not "orkl" etc.)
-if grep -E 'name: "ork"[,}]' "$DATA_JS" | grep -v "orkl" > /dev/null; then
+# Check for ork (must match exactly "ork", not "orkl" etc.)
+if grep -E '"?name"?\s*:\s*"ork"[,}]' "$DATA_JS" | grep -v "orkl" > /dev/null; then
     echo -e "  ${GREEN}✓${NC} ork plugin present"
 else
     echo -e "  ${RED}✗${NC} ork plugin missing"
@@ -50,7 +50,7 @@ fi
 
 # Check that old plugins are NOT present
 for old_plugin in "ork-memory-graph" "ork-memory-mem0" "ork-memory-fabric" "ork-frontend" "ork-backend"; do
-    if grep -q "name: \"$old_plugin\"" "$DATA_JS"; then
+    if grep -qE "\"?name\"?\s*:\s*\"$old_plugin\"" "$DATA_JS"; then
         echo -e "  ${RED}✗${NC} Old plugin $old_plugin should be removed"
         ((ERRORS++)) || true
     fi
@@ -68,7 +68,7 @@ else
 fi
 
 # Check version is 6.x
-if grep -q 'version: "6\.' "$DATA_JS"; then
+if grep -qE '"?version"?\s*:\s*"6\.' "$DATA_JS"; then
     echo -e "  ${GREEN}✓${NC} version 6.x present"
 else
     echo -e "  ${YELLOW}⊘${NC} version not 6.x (may need update)"

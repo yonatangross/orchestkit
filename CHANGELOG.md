@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **#328 (P1-C)**: `complexity: low|medium|high` field added to all 197 skill frontmatters for Opus 4.6 adaptive thinking alignment
+- **#337 (P2-E)**: New `upgrade-assessment` user-invocable skill — 6-phase readiness evaluation with structured JSON scoring across 6 dimensions
+- **#338 (P2-F)**: New `platform-upgrade-knowledge` reference skill with scoring rubrics and compatibility matrices
+- **#333 (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
 - **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
 - **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
 - Batch script `scripts/add-complexity.mjs` for applying complexity classifications
@@ -24,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **#327 (P1-B)**: CC minimum version updated to >= 2.1.32 across CLAUDE.md, README, hooks README, marketplace
 - MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
 - CI workflow renames for clarity and pipeline parallelism
+- Skill count: 197 → 199 (added upgrade-assessment, platform-upgrade-knowledge)
 - Hook count: 117 → 119 (91 global + 22 agent + 6 skill-scoped)
 
 ---

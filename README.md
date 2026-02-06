@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**197 skills · 36 agents · 118 hooks · 2 plugins**
+**199 skills · 36 agents · 119 hooks · 2 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.32-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -57,9 +57,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 197 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 199 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 117 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 119 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
 
 **[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
@@ -91,7 +91,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 **orkl** (107 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
-**ork** (197 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (199 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -162,8 +162,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
 - `orkl` (107 skills) — Universal toolkit, all workflows work out of the box
-- `ork` (197 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 118 hooks included in both plugins
+- `ork` (199 skills) — Full specialized with Python, React, LLM/RAG patterns
+- All 36 agents and 119 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 

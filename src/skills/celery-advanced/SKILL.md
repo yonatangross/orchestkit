@@ -495,7 +495,4 @@ Production-ready code templates:
 
 ### task-monitoring
 **Keywords:** flower, monitoring, health check, task state
-**Solves:**
-- Production task monitoring
-- Worker health checks
-- Custom task state tracking
+**Solves:** Production task monitoring, worker health checks, custom task state tracking

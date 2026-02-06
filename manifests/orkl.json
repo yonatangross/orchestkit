@@ -109,7 +109,9 @@
     "skill-analyzer",
     "edge-computing-patterns",
     "evidence-verification",
-    "mem0-memory"
+    "mem0-memory",
+    "upgrade-assessment",
+    "platform-upgrade-knowledge"
   ],
   "agents": "all",
   "hooks": "all"

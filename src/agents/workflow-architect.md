@@ -58,6 +58,10 @@ Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination w
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete workflow graphs, state schemas, and node implementations in a single pass.
+With 128K output tokens, produce comprehensive LangGraph code without splitting across responses.
+
 
 ## Concrete Objectives
 1. Design LangGraph workflow graphs with clear node responsibilities

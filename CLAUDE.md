@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **197 skills**: Reusable knowledge modules
+- **199 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **119 hooks**: TypeScript lifecycle automation (91 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 197 skills
+├── skills/             # 199 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -150,12 +150,12 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-197 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+199 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
+| Command | 23 | `user-invocable: true` | User runs via `/ork:name` |
 | Reference | 175 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
@@ -234,7 +234,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Plugin | Skills | Description |
 |--------|--------|-------------|
 | `orkl` | 107 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
-| `ork` | 197 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
+| `ork` | 199 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
 Both include all 36 agents, 119 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
@@ -265,6 +265,6 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 - **Current**: 6.0.0
 - **Claude Code**: >= 2.1.32
-- **Hooks**: 118 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
+- **Hooks**: 119 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

@@ -14,10 +14,10 @@ window.ORCHESTKIT_DATA = {
   // Totals for the full ork plugin (superset) - AUTO-GENERATED
   totals: {
       "plugins": 2,
-      "skills": 197,
+      "skills": 199,
       "agents": 36,
-      "hooks": 112,
-      "commands": 22,
+      "hooks": 113,
+      "commands": 23,
       "compositions": 14
   },
 
@@ -31,14 +31,14 @@ window.ORCHESTKIT_DATA = {
   plugins: [
       {
           "name": "orkl",
-          "description": "Universal toolkit — 107 skills, 36 agents, 112 hooks. Language-agnostic, works for any stack.",
+          "description": "Universal toolkit — 109 skills, 36 agents, 113 hooks. Language-agnostic, works for any stack.",
           "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
           "category": "development",
-          "version": "6.0.1",
-          "skillCount": 107,
+          "version": "6.0.2",
+          "skillCount": 109,
           "agentCount": 36,
-          "hooks": 112,
-          "commandCount": 22,
+          "hooks": 113,
+          "commandCount": 23,
           "color": "#8b5cf6",
           "required": false,
           "recommended": true,
@@ -123,20 +123,21 @@ window.ORCHESTKIT_DATA = {
               "remember",
               "review-pr",
               "skill-evolution",
+              "upgrade-assessment",
               "verify",
               "worktree-coordination"
           ]
       },
       {
           "name": "ork",
-          "description": "Full specialized toolkit — 197 skills, 36 agents, 112 hooks. Adds Python, React, LLM/RAG patterns.",
+          "description": "Full specialized toolkit — 199 skills, 36 agents, 113 hooks. Adds Python, React, LLM/RAG patterns.",
           "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
           "category": "development",
-          "version": "6.0.1",
-          "skillCount": 197,
+          "version": "6.0.2",
+          "skillCount": 199,
           "agentCount": 36,
-          "hooks": 112,
-          "commandCount": 22,
+          "hooks": 113,
+          "commandCount": 23,
           "color": "#06b6d4",
           "required": false,
           "recommended": false,
@@ -225,6 +226,7 @@ window.ORCHESTKIT_DATA = {
               "remember",
               "review-pr",
               "skill-evolution",
+              "upgrade-assessment",
               "verify",
               "worktree-coordination"
           ]
@@ -3298,7 +3300,7 @@ window.ORCHESTKIT_DATA = {
           "skills-validation.md"
         ]
       },
-      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 119 skills, 36 agents, 118 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 195 skills, 36 agents, 118 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
+      "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 119 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 199 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 23 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
       "contentTruncated": true,
       "plugins": [
         "ork",
@@ -4703,7 +4705,7 @@ window.ORCHESTKIT_DATA = {
           "implementation-review.md"
         ]
       },
-      "content": "# Implement Feature\n\nMaximum utilization of parallel subagent execution for feature implementation with built-in scope control and reflection.\n\n## Quick Start\n\n```bash\n/implement user authentication\n/implement real-time notifications\n/implement dashboard analytics\n```\n\n---\n\n## STEP 0: Verify User Intent with AskUserQuestion\n\n**BEFORE creating tasks or doing ANY work**, ask the user to clarify scope:\n\n```python\nAskUserQuestion(\n  questions=[\n    {\n      \"question\": \"What scope for this implementation?\",\n      \"header\": \"Scope\",\n      \"options\": [\n        {\"label\": \"Full-stack (Recommended)\", \"description\": \"Backend + frontend + tests + docs\"},\n        {\"label\": \"Backend only\", \"description\": \"API + database + backend tests\"},\n        {\"label\": \"Frontend only\", \"description\": \"UI components + state + frontend tests\"},\n        {\"label\": \"Quick prototype\", \"description\": \"Minimal working version, skip tests\"}\n      ],\n      \"multiSelect\": false\n    },\n    {\n      \"question\": \"Any constraints I should know about?\",\n      \"header\": \"Constraints\",\n      \"options\": [\n        {\"label\": \"None (Recommended)\", \"description\": \"Use best practices and modern patterns\"},\n        {\"label\": \"Match existing patterns\", \"description\": \"Follow existing codebase conventions exactly\"},\n        {\"label\": \"Minimal dependencies\", \"description\": \"Avoid adding new packages\"},\n        {\"label\": \"Specific tech stack\", \"description\": \"I'll specify the technologies to use\"}\n      ],\n      \"multiSelect\": false\n    }\n  ]\n)\n```\n\n**Based on user's answers, adjust the workflow:**\n- **Full-stack**: All 10 phases, all parallel agents\n- **Backend only**: Skip frontend agents (phases 5b, 6b)\n- **Frontend only**: Skip backend agents (phases 5a, 6a)\n- **Quick prototype**: Skip phases 7-10 (scope check, verification, docs, reflection)\n\n---\n\n## CRITICAL: Task Management is MANDATORY (CC 2.1.16)\n\n**BEFORE doing ANYTHING else, create tasks to track progress:**\n\n```python\n# 1. Create main implementation task IMMEDIATELY\nTaskCreate(\n  subject=\"Implement: {feature}\",\n  description=\"Full-stack implementation with parallel agents\",\n  activeForm=\"Implementing {feature}\"\n)\n\n# 2. Create subtasks for each phase (10-phase process)\nTaskCreate(subject=\"Research best practices\", activeForm=\"Researching best practices\")\nTaskCreate(subject=\"Design architecture\", activeForm=\"Designing architecture\")\nTaskCreate(subject=\"Micro-plan each task\", activeForm=\"Creating micro-plans\")\nTaskCreate(subject=\"Setup git worktree (optional)\", activeForm=\"Setting up worktree\")\nTaskCreate(subject=\"Implement backend\", activeForm=\"Implementing backend\")\nTaskCreate(subject=\"Implement frontend\", activeForm=\"Implementing frontend\")\nTaskCreate(subject=\"Write tests\", activeForm=\"Writing tests\")\nTaskCreate(subject=\"Integration verification\", activeForm=\"Verifying integration\")\nTaskCreate(subject=\"Scope creep check\", activeForm=\"Checking for scope creep\")\nTaskCreate(subject=\"Post-implementation reflection\", activeForm=\"Reflecting on im",
+      "content": "# Implement Feature\n\nMaximum utilization of parallel subagent execution for feature implementation with built-in scope control and reflection.\n\n## Quick Start\n\n```bash\n/implement user authentication\n/implement real-time notifications\n/implement dashboard analytics\n```\n\n---\n\n## STEP 0: Verify User Intent with AskUserQuestion\n\n**BEFORE creating tasks or doing ANY work**, ask the user to clarify scope:\n\n```python\nAskUserQuestion(\n  questions=[\n    {\n      \"question\": \"What scope for this implementation?\",\n      \"header\": \"Scope\",\n      \"options\": [\n        {\"label\": \"Full-stack (Recommended)\", \"description\": \"Backend + frontend + tests + docs\"},\n        {\"label\": \"Backend only\", \"description\": \"API + database + backend tests\"},\n        {\"label\": \"Frontend only\", \"description\": \"UI components + state + frontend tests\"},\n        {\"label\": \"Quick prototype\", \"description\": \"Minimal working version, skip tests\"}\n      ],\n      \"multiSelect\": false\n    },\n    {\n      \"question\": \"Any constraints I should know about?\",\n      \"header\": \"Constraints\",\n      \"options\": [\n        {\"label\": \"None (Recommended)\", \"description\": \"Use best practices and modern patterns\"},\n        {\"label\": \"Match existing patterns\", \"description\": \"Follow existing codebase conventions exactly\"},\n        {\"label\": \"Minimal dependencies\", \"description\": \"Avoid adding new packages\"},\n        {\"label\": \"Specific tech stack\", \"description\": \"I'll specify the technologies to use\"}\n      ],\n      \"multiSelect\": false\n    }\n  ]\n)\n```\n\n**Based on user's answers, adjust the workflow:**\n- **Full-stack**: All 10 phases, all parallel agents\n- **Backend only**: Skip frontend agents (phases 5b, 6b)\n- **Frontend only**: Skip backend agents (phases 5a, 6a)\n- **Quick prototype**: Skip phases 7-10 (scope check, verification, docs, reflection)\n\n---\n\n## Opus 4.6: 128K Output Token Advantage\n\nWith 128K output tokens (2x previous 64K), agents can generate **complete artifacts in fewer passes**:\n\n| Artifact | Before (64K) | After (128K) |\n|----------|-------------|--------------|\n| Full API + models | 2 passes | 1 pass |\n| Component + tests | 2 passes | 1 pass |\n| Complete feature (API + UI + tests) | 4-6 passes | 2-3 passes |\n\n**Guidance for agents:** Generate complete, working code in a single pass whenever possible. Don't split implementations across multiple responses unless the scope genuinely exceeds 128K tokens. Prefer one comprehensive response over multiple incremental ones.\n\n---\n\n## CRITICAL: Task Management is MANDATORY (CC 2.1.16)\n\n**BEFORE doing ANYTHING else, create tasks to track progress:**\n\n```python\n# 1. Create main implementation task IMMEDIATELY\nTaskCreate(\n  subject=\"Implement: {feature}\",\n  description=\"Full-stack implementation with parallel agents\",\n  activeForm=\"Implementing {feature}\"\n)\n\n# 2. Create subtasks for each phase (10-phase process)\nTaskCreate(subject=\"Research best practices\", activeForm=\"Researching best practices\")\nTaskCreate(subject=\"Design architecture\", activeFor",
       "contentTruncated": true,
       "plugins": [
         "ork",
@@ -6539,6 +6541,37 @@ window.ORCHESTKIT_DATA = {
       "contentTruncated": true,
       "plugins": [
         "ork"
+      ],
+      "relatedAgents": []
+    },
+    "platform-upgrade-knowledge": {
+      "name": "platform-upgrade-knowledge",
+      "description": "Platform upgrade evaluation criteria and compatibility knowledge. Use when assessing model or CC version upgrades.",
+      "version": "1.0.0",
+      "author": "OrchestKit",
+      "tags": [
+        "upgrade",
+        "assessment",
+        "compatibility",
+        "platform",
+        "migration"
+      ],
+      "userInvocable": false,
+      "context": "fork",
+      "allowedTools": [],
+      "skills": [],
+      "agent": "deployment-manager",
+      "structure": {
+        "references": [
+          "compatibility-matrix.md",
+          "scoring-rubric.md"
+        ]
+      },
+      "content": "# Platform Upgrade Knowledge\n\nComprehensive reference for evaluating Claude model transitions, Claude Code version bumps, and OrchestKit plugin upgrades. Provides the evaluation criteria, compatibility matrices, and migration effort estimates used by the `upgrade-assessment` skill.\n\n## Overview\n\nPlatform upgrades span three independent axes, each with distinct compatibility concerns:\n\n```\n┌─────────────────────────────────────────────────────────┐\n│                   Platform Upgrade Axes                  │\n├─────────────────┬─────────────────┬─────────────────────┤\n│  Claude Model   │  Claude Code    │  OrchestKit Plugin  │\n│  (AI backend)   │  (CLI runtime)  │  (skills/hooks/     │\n│                 │                 │   agents layer)     │\n├─────────────────┼─────────────────┼─────────────────────┤\n│  Context window │  Hook types     │  Skill format       │\n│  Output limits  │  Skill format   │  Agent format       │\n│  Capabilities   │  Agent format   │  Hook source        │\n│  Model ID       │  Tool registry  │  Manifest schema    │\n│  Pricing        │  Permission fmt │  Build system       │\n└─────────────────┴─────────────────┴─────────────────────┘\n```\n\nEach axis can be upgraded independently, but interactions between them must be validated.\n\n## When to Use\n\n- As reference knowledge for the `upgrade-assessment` command skill\n- When planning a migration strategy across model or platform versions\n- When estimating effort for a platform upgrade\n- When classifying breaking changes by severity\n\n---\n\n## Model Capability Evolution\n\n### Context Windows\n\n| Model | Context Window | Max Output | Released |\n|-------|---------------|------------|----------|\n| Claude 3 Haiku | 200K | 4,096 | Mar 2024 |\n| Claude 3.5 Sonnet | 200K | 8,192 | Jun 2024 |\n| Claude 3.5 Sonnet v2 | 200K | 8,192 | Oct 2024 |\n| Claude 3.5 Haiku | 200K | 8,192 | Nov 2024 |\n| Claude Sonnet 4 | 200K | 64,000 | May 2025 |\n| Claude Opus 4 | 200K | 32,000 | May 2025 |\n| Claude Sonnet 4.5 | 1,000K | 64,000 | Sep 2025 |\n| Claude Opus 4.6 | 1,000K | 128,000 | Jan 2026 |\n\n### Feature Evolution\n\n| Feature | First Available | Notes |\n|---------|----------------|-------|\n| Tool use | Claude 3 | All current models |\n| Vision (image input) | Claude 3 | All current models |\n| Extended thinking | Claude Sonnet 4 | Opus 4, Sonnet 4.5, Opus 4.6 |\n| Computer use | Claude Sonnet 4 | Beta, not all models |\n| PDF input | Claude 3.5 Sonnet v2 | All newer models |\n| Token counting API | Claude 3.5 | All current models |\n| Prompt caching | Claude 3.5 | Automatic on Anthropic API |\n| Batch API | Claude 3.5 | All current models |\n| Citations | Claude Sonnet 4 | API feature |\n| Code execution | Claude Opus 4 | Sandbox environment |\n| MCP (Model Context Protocol) | Claude Sonnet 4 | Via Claude Code / Desktop |\n| Files API | Claude Opus 4.6 | Direct file attachment |\n\n### Model ID Mapping\n\nWhen upgrading models, these are the common transitions:\n\n| From | To | Key Changes |\n|------|----|-------------|\n| `claude",
+      "contentTruncated": true,
+      "plugins": [
+        "ork",
+        "orkl"
       ],
       "relatedAgents": []
     },
@@ -8567,6 +8600,47 @@ window.ORCHESTKIT_DATA = {
         "frontend-ui-developer",
         "test-generator"
       ]
+    },
+    "upgrade-assessment": {
+      "name": "upgrade-assessment",
+      "description": "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades.",
+      "version": "1.0.0",
+      "author": "OrchestKit",
+      "tags": [
+        "upgrade",
+        "assessment",
+        "platform",
+        "compatibility",
+        "migration"
+      ],
+      "userInvocable": true,
+      "context": "fork",
+      "allowedTools": [
+        "AskUserQuestion",
+        "Bash",
+        "Read",
+        "Grep",
+        "Glob",
+        "Task",
+        "WebSearch",
+        "WebFetch"
+      ],
+      "skills": [
+        "platform-upgrade-knowledge",
+        "explore",
+        "verify",
+        "remember",
+        "memory"
+      ],
+      "agent": null,
+      "structure": {},
+      "content": "# Upgrade Assessment\n\nEvaluate platform upgrade readiness for Claude model transitions, Claude Code version bumps, and OrchestKit plugin updates. Produces a structured JSON assessment report with a 0-10 readiness score across 6 dimensions.\n\n## When to Use\n\n- Before upgrading the Claude model (e.g., Sonnet 4 to Opus 4.6)\n- Before upgrading Claude Code to a new major/minor version\n- Before upgrading OrchestKit to a new major version\n- When evaluating whether a team environment is ready for a platform change\n- As part of release planning for model or platform migrations\n\n## Quick Start\n\n```bash\n/ork:upgrade-assessment           # Interactive assessment\n/ork:upgrade-assessment --json    # Machine-readable output\n```\n\n---\n\n## 6-Phase Workflow\n\n### Phase 0: Scope Definition\n\n**Tool:** `AskUserQuestion`\n\nDetermine the assessment scope before scanning. Ask the user:\n\n> What type of upgrade are you assessing?\n> 1. **Full platform** - Model + CC version + OrchestKit (comprehensive)\n> 2. **Model only** - Switching Claude model (e.g., Sonnet 4.5 to Opus 4.6)\n> 3. **CC version only** - Claude Code version bump (e.g., 2.1.25 to 2.1.32)\n> 4. **OrchestKit only** - Plugin version upgrade (e.g., 5.x to 6.x)\n\nRecord the scope and target versions. If the user does not specify target versions, research the latest available in Phase 2.\n\n---\n\n### Phase 1: Detection\n\n**Tools:** `Bash`, `Read`, `Grep`, `Glob`\n\nDetect the current environment state:\n\n```bash\n# 1. Current Claude model\n# Check CLAUDE.md, settings, or environment for model references\ngrep -r \"claude-\" CLAUDE.md .claude/ 2>/dev/null | head -20\n\n# 2. Claude Code version\nclaude --version 2>/dev/null || echo \"CC version not detectable from CLI\"\n\n# 3. OrchestKit version\n# Check CLAUDE.md or package.json for version field\ngrep \"Current.*:\" CLAUDE.md | head -5\n\n# 4. Hooks configuration\ncat src/hooks/hooks.json | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'Hooks: {len(d.get(\\\"hooks\\\",[]))} entries')\" 2>/dev/null\n\n# 5. Skill and agent counts\nls src/skills/ | wc -l\nls src/agents/ | wc -l\n```\n\n**Output:** Environment snapshot including:\n- Current model ID (e.g., `claude-sonnet-4-5`)\n- Current CC version (e.g., `2.1.25`)\n- Current OrchestKit version (e.g., `6.0.0`)\n- Hook count and bundle count\n- Skill count and agent count\n\n---\n\n### Phase 2: Research\n\n**Tools:** `WebSearch`, `WebFetch`\n\nResearch the target versions for new capabilities and breaking changes:\n\n1. **Model changes:**\n   - Search for the target model's capabilities (context window, output limits, new features)\n   - Search for breaking changes or deprecations from the previous model\n   - Check for new tool support or changed behavior\n\n2. **CC version changes:**\n   - Search for Claude Code changelog or release notes\n   - Identify new hook types, skill format changes, or agent format changes\n   - Check for deprecated configuration fields\n\n3. **OrchestKit changes:**\n   - Read CHANGELOG.md for the target version\n   - Identify new skills, removed ",
+      "contentTruncated": true,
+      "plugins": [
+        "ork",
+        "orkl"
+      ],
+      "relatedAgents": []
     },
     "user-research-methods": {
       "name": "user-research-methods",
