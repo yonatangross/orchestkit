@@ -4753,6 +4753,7 @@ window.ORCHESTKIT_DATA = {
       "structure": {
         "references": [
           "agent-phases.md",
+          "agent-teams-security-audit.md",
           "micro-planning-guide.md",
           "scope-creep-detection.md",
           "worktree-workflow.md"
