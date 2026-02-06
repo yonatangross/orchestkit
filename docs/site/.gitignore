@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Next.js build
+.next/
+out/
+
+# Fumadocs generated types
+.source/
+
+# Turbopack cache
+.turbo/
+
+# Environment
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Vercel
+.vercel/
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+next-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts

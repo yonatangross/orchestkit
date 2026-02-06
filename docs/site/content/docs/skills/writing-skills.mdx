@@ -1,0 +1,425 @@
+---
+title: "Create Your Own SKILL.md"
+description: "Step-by-step guide to writing custom skills -- frontmatter template, best practices, directory structure, and testing with npm run test:skills."
+---
+
+## When to Write a Skill
+
+Write a new skill when you find yourself repeatedly explaining the same pattern, convention, or workflow to Claude. If you have told Claude "always use cursor-based pagination" three times this week, that knowledge belongs in a skill.
+
+Good candidates for skills:
+
+- Team conventions that differ from defaults (naming patterns, directory structure, error formats).
+- Domain-specific patterns unique to your project (your auth flow, your deployment pipeline).
+- Technology knowledge not covered by OrchestKit's 199 built-in skills.
+- Checklists and decision frameworks your team uses repeatedly.
+
+---
+
+## Directory Structure
+
+Every skill lives in its own directory under `src/skills/`:
+
+```
+src/skills/my-new-skill/
+  SKILL.md              # Required
+  references/           # Optional
+    detailed-guide.md
+    examples.md
+```
+
+The directory name must match the `name:` field in the frontmatter. Use kebab-case: `my-new-skill`, not `myNewSkill` or `my_new_skill`.
+
+---
+
+## The SKILL.md Template
+
+Here is a complete template with all supported frontmatter fields:
+
+```yaml
+---
+name: my-new-skill
+description: "What this skill teaches. Use when doing X, implementing Y, or deciding Z."
+context: fork
+version: 1.0.0
+author: Your Name
+tags: [keyword1, keyword2, keyword3]
+user-invocable: false
+agent: backend-system-architect
+complexity: medium
+---
+
+# My New Skill
+
+One-paragraph overview of what this skill covers and why it matters.
+
+## When to Use
+
+- Situation 1 where this skill applies
+- Situation 2 where this skill applies
+- Situation 3 where this skill applies
+
+## Patterns
+
+### Pattern Name
+
+Explanation of the pattern with context on when and why to use it.
+
+```python
+# Complete, runnable example
+from mylib import something
+
+result = something.do_the_thing(
+    param="value",
+    option=True,
+)
+print(result)
+```
+
+### Decision Table
+
+| Scenario | Recommendation | Rationale |
+|----------|---------------|-----------|
+| Small dataset | Approach A | Lower complexity |
+| Large dataset | Approach B | Better performance |
+| Real-time | Approach C | Lower latency |
+
+## Anti-Patterns
+
+| Do Not | Instead | Why |
+|--------|---------|-----|
+| Bad practice 1 | Good practice 1 | Explanation |
+| Bad practice 2 | Good practice 2 | Explanation |
+
+## Related Skills
+
+- `related-skill-1` - How it connects to this skill
+- `related-skill-2` - How it connects to this skill
+
+## Key Decisions
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Design choice 1 | Option A | Why this was chosen |
+| Design choice 2 | Option B | Why this was chosen |
+```
+
+---
+
+## Frontmatter Field Guide
+
+### Required Fields
+
+**`name`** -- Must match the directory name exactly. Kebab-case only.
+
+```yaml
+name: cursor-pagination  # Directory: src/skills/cursor-pagination/
+```
+
+**`description`** -- One line. Start with what the skill does, end with "Use when..." triggers. This is how hooks and agents discover the skill.
+
+```yaml
+# Good: Actionable, includes triggers
+description: "Cursor-based pagination patterns for large datasets. Use when implementing pagination, handling large result sets, or optimizing list endpoints."
+
+# Bad: Vague, no triggers
+description: "Pagination stuff."
+```
+
+**`tags`** -- Keywords for search and auto-suggest. Include technology names, pattern names, and problem domains.
+
+```yaml
+tags: [pagination, cursor, offset, api, performance, database]
+```
+
+**`user-invocable`** -- Set to `true` only if the skill is a command workflow that users invoke with `/ork:skill-name`. Most custom skills should be `false`.
+
+**`context`** -- Controls execution context:
+
+- `fork` -- Isolated context. Use for most reference skills.
+- `inherit` -- Parent context. Use when the skill needs to read current files or state.
+- `none` -- No context needed. Use for memory operations or pure knowledge lookups.
+
+**`complexity`** -- Adaptive thinking alignment:
+
+- `low` -- Quick lookups, simple patterns. Claude spends minimal reasoning tokens.
+- `medium` -- Most implementation patterns. Standard reasoning depth.
+- `high` -- Complex multi-system patterns. Deep reasoning.
+- `max` -- System-wide assessments. Maximum reasoning budget.
+
+### Optional Fields
+
+**`agent`** -- Which agent primarily uses this skill. Set this for reference skills to create the agent-skill binding.
+
+```yaml
+agent: database-engineer  # This skill loads when database-engineer spawns
+```
+
+**`skills`** -- Other skills to co-load. Typically used by command skills only.
+
+```yaml
+skills: [api-design-framework, unit-testing, memory]
+```
+
+**`allowedTools`** -- Restricts which tools are available when this skill's context is active.
+
+```yaml
+allowedTools: [Read, Grep, Glob, Bash]
+```
+
+**`hooks`** -- Skill-scoped hooks that fire only when this skill is active. Advanced feature.
+
+```yaml
+hooks:
+  PostToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/my-validator"
+```
+
+**`version`** and **`author`** -- Metadata for tracking changes and ownership.
+
+---
+
+## Writing Effective Skill Content
+
+### Lead with the Most Useful Information
+
+Put the most common patterns first. Claude reads skills linearly, and the context budget may truncate content at the end. Structure your skill so the first 50% covers 90% of use cases.
+
+### Use Decision Tables Over Prose
+
+Tables are easier for the model to parse and apply than long paragraphs:
+
+```markdown
+| Scenario | Pattern | Example |
+|----------|---------|---------|
+| < 10K rows | Offset pagination | `LIMIT 20 OFFSET 40` |
+| 10K-1M rows | Cursor pagination | `WHERE id > :cursor LIMIT 20` |
+| > 1M rows | Keyset pagination | `WHERE (created_at, id) > (:ts, :id)` |
+```
+
+### Include Complete, Runnable Code Examples
+
+Partial snippets frustrate Claude. Always include imports, setup, and error handling:
+
+```python
+# Bad: What is cache? Where does it come from?
+result = cache.get(key)
+
+# Good: Complete context
+import redis.asyncio as redis
+
+client = redis.Redis(host="localhost", port=6379, decode_responses=True)
+
+async def get_cached(key: str) -> str | None:
+    """Get value from cache, returns None on miss."""
+    try:
+        return await client.get(key)
+    except redis.ConnectionError:
+        return None  # Graceful degradation
+```
+
+### Document Anti-Patterns Explicitly
+
+Telling Claude what NOT to do is as important as telling it what to do:
+
+```markdown
+## Anti-Patterns
+
+| Do Not | Instead | Why |
+|--------|---------|-----|
+| `SELECT *` in production | Explicit column list | Prevents schema drift issues |
+| Offset pagination on large tables | Cursor pagination | O(n) vs O(1) performance |
+| Storing passwords as MD5 | bcrypt with cost 12 | MD5 is cryptographically broken |
+```
+
+### Add a Capability Details Section
+
+For reference skills, a `Capability Details` section at the end helps the auto-suggest hook match prompts:
+
+```markdown
+## Capability Details
+
+### cursor-pagination
+**Keywords:** pagination, cursor, offset, limit, next page
+**Solves:**
+- How do I paginate large result sets?
+- Cursor vs offset pagination
+- Keyset pagination patterns
+```
+
+---
+
+## Adding to a Manifest
+
+After creating the skill, add it to the appropriate manifest so it gets included in the plugin build.
+
+For most skills, edit `manifests/ork.json`. Since OrchestKit uses `"skills": "all"`, any skill in `src/skills/` is automatically included. You only need to explicitly list skills if a manifest uses selective inclusion.
+
+For the `orkl` (lite) manifest, you may need to add the skill name to `manifests/orkl.json` if it should be available in the universal toolkit.
+
+---
+
+## Testing Your Skill
+
+OrchestKit includes automated tests for skill structure validation.
+
+### Run the Skill Tests
+
+```bash
+npm run test:skills
+```
+
+This runs `tests/skills/structure/test-skill-md.sh`, which validates:
+
+- Every skill directory contains a `SKILL.md` file.
+- The SKILL.md has valid YAML frontmatter.
+- Required fields are present: `name`, `description`, `tags`, `user-invocable`.
+- The `name` field matches the directory name.
+- Tags is an array with at least one entry.
+- The skill count matches the expected total (currently 199).
+
+### Common Test Failures
+
+| Error | Fix |
+|-------|-----|
+| "Missing SKILL.md" | Ensure the file is named exactly `SKILL.md` (uppercase) |
+| "name does not match directory" | The `name:` field must match the directory name exactly |
+| "Missing required field: tags" | Add a `tags:` array to the frontmatter |
+| "Expected N skills, found M" | Update the expected count in the test after adding a new skill |
+
+### Manual Verification
+
+After writing a skill, verify it works end-to-end:
+
+1. **Build the plugin:** `npm run build`
+2. **Check the output:** Verify your skill appears in `plugins/ork/skills/my-new-skill/SKILL.md`.
+3. **Test auto-suggest:** Type a prompt containing your skill's keywords and check if it gets suggested.
+4. **Test agent injection:** If you set `agent: some-agent`, spawn that agent and verify the skill content appears in context.
+
+---
+
+## Checklist
+
+Before merging a new skill, verify:
+
+- [ ] Directory is `src/skills/my-skill-name/` (kebab-case)
+- [ ] `SKILL.md` has valid YAML frontmatter between `---` delimiters
+- [ ] `name:` matches directory name exactly
+- [ ] `description:` starts with what it does, ends with "Use when..."
+- [ ] `tags:` has 3-8 relevant keywords
+- [ ] `user-invocable:` is set to `true` or `false`
+- [ ] `context:` is set to `fork`, `inherit`, or `none`
+- [ ] `complexity:` is set to `low`, `medium`, `high`, or `max`
+- [ ] Content leads with the most useful information
+- [ ] Code examples are complete and runnable
+- [ ] Anti-patterns are documented
+- [ ] Related skills are linked
+- [ ] `npm run test:skills` passes
+- [ ] `npm run build` succeeds and skill appears in `plugins/`
+
+---
+
+## Example: Creating a Skill From Scratch
+
+Here is a complete walkthrough for creating a `cursor-pagination` skill.
+
+### 1. Create the directory
+
+```bash
+mkdir -p src/skills/cursor-pagination
+```
+
+### 2. Write the SKILL.md
+
+```yaml
+---
+name: cursor-pagination
+description: "Cursor-based pagination for large datasets. Use when implementing pagination, handling millions of rows, or optimizing list API endpoints."
+context: fork
+version: 1.0.0
+author: Your Team
+tags: [pagination, cursor, keyset, api, performance, database, postgresql]
+user-invocable: false
+agent: database-engineer
+complexity: low
+---
+
+# Cursor-Based Pagination
+
+Cursor pagination uses an opaque token (typically an encoded primary key or timestamp)
+to mark position in a result set. Unlike offset pagination, performance does not degrade
+as the user pages deeper into results.
+
+## Quick Reference
+
+| Method | Time Complexity | Stable Under Inserts | Max Practical Depth |
+|--------|-----------------|----------------------|---------------------|
+| OFFSET | O(offset + limit) | No | ~10K rows |
+| Cursor (ID) | O(limit) | Yes | Unlimited |
+| Keyset (composite) | O(limit) | Yes | Unlimited |
+
+## Implementation
+
+```python
+from fastapi import Query
+from pydantic import BaseModel
+
+class Page(BaseModel):
+    items: list[dict]
+    next_cursor: str | None
+
+async def list_users(
+    cursor: str | None = Query(None),
+    limit: int = Query(20, le=100),
+) -> Page:
+    query = "SELECT * FROM users"
+    params = {"limit": limit + 1}
+
+    if cursor:
+        query += " WHERE id > :cursor"
+        params["cursor"] = decode_cursor(cursor)
+
+    query += " ORDER BY id ASC LIMIT :limit"
+    rows = await db.fetch_all(query, params)
+
+    has_next = len(rows) > limit
+    items = rows[:limit]
+
+    return Page(
+        items=items,
+        next_cursor=encode_cursor(items[-1]["id"]) if has_next else None,
+    )
+```
+
+## Anti-Patterns
+
+| Do Not | Instead | Why |
+|--------|---------|-----|
+| OFFSET on tables > 10K rows | Cursor pagination | O(n) scan for each page |
+| Expose raw IDs as cursors | Base64-encode cursors | Prevents client manipulation |
+| Allow unlimited page size | Cap at 100 with default 20 | Prevents memory exhaustion |
+
+## Related Skills
+
+- `api-design-framework` - General API pagination conventions
+- `database-schema-designer` - Index design for cursor columns
+```
+
+### 3. Build and test
+
+```bash
+npm run build && npm run test:skills
+```
+
+### 4. Verify
+
+Check that `plugins/ork/skills/cursor-pagination/SKILL.md` exists and contains your content.
+
+---
+
+## What's Next
+
+- [How Skills Work](/docs/skills/overview) -- Understand the full skill lifecycle.
+- [176 Reference Skills](/docs/skills/reference-skills) -- See how existing reference skills are structured.
+- [23 Command Skills](/docs/skills/command-skills) -- If you want to create a command skill workflow.

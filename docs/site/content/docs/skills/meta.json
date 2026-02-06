@@ -1,0 +1,11 @@
+{
+  "title": "Skills",
+  "icon": "Sparkles",
+  "pages": [
+    "overview",
+    "command-skills",
+    "reference-skills",
+    "skill-composition",
+    "writing-skills"
+  ]
+}

@@ -1,0 +1,129 @@
+---
+title: Find What You Need
+description: Hub-and-spoke navigation — find the right skills and agents for your role and task.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+OrchestKit has 199 skills and 36 agents. You don't need to memorize them — this page helps you find exactly what you need.
+
+## By Role
+
+Pick your role to see your recommended toolkit:
+
+### Backend Developer
+
+**Your agents:** `backend-system-architect`, `database-engineer`, `event-driven-architect`
+
+**Your key skills:**
+- `/ork:implement` — Full feature implementation
+- `fastapi-advanced` — Lifespan, middleware, dependencies
+- `database-schema-designer` — Normalization, indexes, migrations
+- `sqlalchemy-2-async` — Async sessions, relationships
+- `celery-advanced` — Task queues, canvas workflows
+- `alembic-migrations` — Safe schema changes
+
+### Frontend Developer
+
+**Your agents:** `frontend-ui-developer`, `performance-engineer`, `accessibility-specialist`
+
+**Your key skills:**
+- `react-server-components-framework` — RSC patterns, Next.js 16+
+- `shadcn-patterns` — Component variants, CVA
+- `tanstack-query-advanced` — Infinite scroll, optimistic updates
+- `core-web-vitals` — LCP, INP, CLS optimization
+- `motion-animation-patterns` — Framer Motion animations
+
+### AI / LLM Engineer
+
+**Your agents:** `workflow-architect`, `llm-integrator`, `data-pipeline-engineer`
+
+**Your key skills:**
+- `rag-retrieval` — Retrieval-Augmented Generation
+- `langgraph-supervisor` — Multi-agent workflows
+- `function-calling` — Tool use patterns
+- `llm-evaluation` — Quality assessment
+- `embeddings` — Semantic search
+
+### DevOps / Platform
+
+**Your agents:** `ci-cd-engineer`, `infrastructure-architect`, `deployment-manager`
+
+**Your key skills:**
+- `devops-deployment` — CI/CD pipelines, Terraform, K8s
+- `zero-downtime-migration` — Safe rollouts
+- `observability-monitoring` — Prometheus, Grafana
+
+### Tech Lead
+
+**Your agents:** `system-design-reviewer`, `code-quality-reviewer`, `product-strategist`
+
+**Your key skills:**
+- `/ork:review-pr` — AI-powered code review
+- `architecture-decision-record` — ADR templates
+- `clean-architecture` — SOLID, hexagonal
+- `system-design-interrogation` — Design review checklist
+
+### Security Engineer
+
+**Your agents:** `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`
+
+**Your key skills:**
+- `owasp-top-10` — Web vulnerability patterns
+- `defense-in-depth` — 8-layer security model
+- `llm-safety-patterns` — Prompt injection, guardrails
+- `mcp-security-hardening` — MCP server security
+
+## By Task
+
+| I want to... | Use this |
+|---|---|
+| Ship a feature fast | `/ork:implement` |
+| Review a PR | `/ork:review-pr` |
+| Fix a GitHub issue | `/ork:fix-issue #123` |
+| Write tests | Just ask — `test-generator` auto-activates |
+| Debug a problem | Just describe it — `debug-investigator` activates |
+| Create a commit | `/ork:commit` |
+| Run all checks | `/ork:verify` |
+| Search memory | `/ork:memory search "topic"` |
+| Store a decision | `/ork:remember "decision text"` |
+| Check health | `/ork:doctor` |
+| Explore codebase | `/ork:explore` |
+| Create a PR | `/ork:create-pr` |
+
+## By Command
+
+All 23 command skills you can invoke directly:
+
+| Command | What It Does |
+|---|---|
+| `/ork:implement` | Full feature implementation with parallel agents |
+| `/ork:verify` | Run tests, security, and quality gates |
+| `/ork:commit` | Conventional commit with analysis |
+| `/ork:create-pr` | PR with summary and test plan |
+| `/ork:review-pr` | Multi-agent code review |
+| `/ork:fix-issue` | Issue to PR in one command |
+| `/ork:explore` | Deep codebase exploration |
+| `/ork:memory` | Search, load, sync memory |
+| `/ork:remember` | Store decisions in knowledge graph |
+| `/ork:doctor` | Health diagnostics |
+| `/ork:configure` | Plugin settings |
+| `/ork:help` | Skill directory |
+| `/ork:assess` | Quality rating 0-10 |
+| `/ork:assess-complexity` | Task complexity analysis |
+| `/ork:brainstorming` | Design exploration |
+| `/ork:demo-producer` | Create demo videos |
+| `/ork:feedback` | Submit feedback |
+| `/ork:git-recovery` | Recover from git mistakes |
+| `/ork:skill-evolution` | Evolve skills from usage |
+| `/ork:upgrade-assessment` | Platform upgrade readiness |
+| `/ork:run-tests` | Parallel test execution |
+| `/ork:errors` | Error pattern analysis |
+| `/ork:best-practices` | View/manage best practices |
+
+## Next Steps
+
+<Cards>
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="Environment variables and MCP setup" />
+  <Card title="How Skills Work" href="/docs/skills/overview" description="Deep dive into the skill system" />
+</Cards>

@@ -1,0 +1,364 @@
+---
+title: Fix a GitHub Issue
+description: From issue to PR in one command with root cause analysis, memory-powered investigation, and auto-linked pull requests.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:fix-issue` command turns a GitHub issue into a complete fix -- root cause analysis, implementation, tests, and a PR linked back to the issue. It is particularly effective for bugs that require investigation, because the `debug-investigator` agent systematically traces execution paths rather than guessing. This cookbook walks through fixing an intermittent authentication failure on mobile Safari.
+
+## Scenario
+
+A user reports issue #123: "Login fails intermittently on mobile Safari." The error is not consistent -- it works on Chrome, works on desktop Safari, and even works on mobile Safari about 70% of the time. Your team has spent 30 minutes in the issue thread theorizing, but nobody has reproduced it yet.
+
+## What You'll Use
+
+| Component | Type | Role |
+|---|---|---|
+| `/ork:fix-issue` | Command skill | Orchestrates the full investigation-to-PR workflow |
+| `/ork:verify` | Command skill | Targeted verification of the fix |
+| `/ork:commit` | Command skill | Conventional commit linked to issue |
+| `debug-investigator` | Agent | Reproduces the bug, traces execution, identifies root cause |
+| `backend-system-architect` | Agent | Designs the fix with minimal blast radius |
+| `test-generator` | Agent | Writes regression tests for the specific failure |
+| `security-auditor` | Agent | Validates the fix does not weaken auth |
+| `memory-context-injector` | Hook | Searches memory for similar past issues |
+| `skill-suggester` | Hook | Injects relevant debugging and auth skills |
+| `issue-progress-tracking` | Hook | Posts progress updates to the GitHub issue |
+
+---
+
+## Step 1: Read the Issue and Choose an Approach
+
+```bash
+/ork:fix-issue 123
+```
+
+OrchestKit fetches the issue from GitHub using `gh issue view 123`, reads the title, body, labels, and all comments, then asks you to choose a fix approach:
+
+```
+Issue #123: "Login fails intermittently on mobile Safari"
+  Labels: bug, auth, P1  |  Comments: 4  |  Assignee: none
+
+Fix approach:
+
+  [1] Proper fix     — Full investigation, root cause analysis, tests
+  [2] Quick fix      — Minimal change, skip deep analysis
+  [3] Investigate    — Analysis only, no code changes yet
+  [4] Hotfix         — Emergency patch, skip PR review
+
+> 1
+```
+
+Selecting **Proper fix** triggers the full 11-phase workflow.
+
+<Callout type="info">
+The "Investigate" option is useful when you are not sure the issue is a bug at all. It runs the analysis phases without writing any code, producing a root cause report you can share in the issue thread before deciding on a fix.
+</Callout>
+
+---
+
+## Step 2: Parallel Analysis Phase
+
+OrchestKit spawns the `debug-investigator` agent and runs three analysis tracks simultaneously:
+
+```
+/ork:fix-issue 123 (Proper fix)
+    |
+    |  Phase 1-3: Parallel analysis
+    |
+    |---> debug-investigator ----------------------------------+
+    |      Model: opus                                         |
+    |      Skills injected:                                    |
+    |        root-cause-analysis                              |
+    |        pwa-patterns                                        |
+    |        auth-patterns                                     |
+    |      Actions:                                            |
+    |        - Read issue body + all 4 comments                |
+    |        - Trace auth flow: login endpoint -> cookie ->    |
+    |          session validation -> response                  |
+    |        - Search codebase for cookie/session config       |
+    |        - Check Safari-specific edge cases                |
+    |                                                          |
+    |---> memory search ----------------------------------------+|
+    |      Query: "Safari" + "cookie" + "authentication"       ||
+    |      Result: Found 2 past observations                   ||
+    |        [GRAPH] SameSite-cookie (Pattern)                 ||
+    |          -> CAUSED -> intermittent-auth-failures         ||
+    |          Observation: "Safari rejects SameSite=None      ||
+    |          without Secure flag on localhost"               ||
+    |                                                         ||
+    +---> git blame analysis ----------------------------------+||
+           Files: auth/middleware.py, auth/config.py           |||
+           Result: cookie config last changed 12 days ago      |||
+             commit a3f8c2d: "chore: update cookie defaults"   |||
+                                                               |||
+    <-------------- Analysis complete <------------------------+++
+```
+
+The memory search is the key accelerator here. OrchestKit's knowledge graph already contains a pattern from a previous session noting that Safari has stricter cookie handling. This observation immediately narrows the investigation.
+
+<Callout type="warn">
+Memory compounds across sessions. If your team has never encountered a Safari cookie issue before, the analysis phase takes longer because the `debug-investigator` must trace the full execution path from scratch. The first investigation populates memory, making every subsequent similar issue faster.
+</Callout>
+
+---
+
+## Step 3: Root Cause Analysis
+
+The `debug-investigator` synthesizes findings from all three tracks into a root cause report:
+
+```
+Root Cause Analysis — Issue #123
+=====================================================
+
+Symptom:
+  Login fails intermittently on mobile Safari.
+
+Root Cause:
+  The session cookie is set with SameSite=Lax (the default
+  after commit a3f8c2d), but the login endpoint redirects
+  through an OAuth callback that crosses origin boundaries.
+  Safari treats cross-origin redirects as "unsafe" navigation
+  and strips SameSite=Lax cookies from the request. This
+  causes the session validation middleware to reject the
+  request because the cookie is missing.
+
+Why Intermittent:
+  The failure only occurs when the user arrives from an
+  external link (cross-origin navigation). Users who type
+  the URL directly or use a bookmark (same-origin navigation)
+  get SameSite=Lax cookies attached normally. This explains
+  the ~70% success rate: most users navigate directly.
+
+Affected Code:
+  File: app/auth/config.py:18
+    SESSION_COOKIE_SAMESITE = "lax"  # Changed from "none"
+    SESSION_COOKIE_SECURE = True
+
+  File: app/auth/middleware.py:42
+    No fallback when cookie is missing from redirect flow.
+
+Confidence: HIGH (memory corroborated, git blame confirmed)
+```
+
+OrchestKit posts a summary of this analysis as a comment on issue #123 via the `issue-progress-tracking` hook:
+
+```
+Posted to issue #123:
+  "Root cause identified: SameSite=Lax cookie stripped during
+   cross-origin OAuth redirect on Safari. Fix in progress."
+```
+
+---
+
+## Step 4: Implement the Fix
+
+The `backend-system-architect` agent designs a minimal fix based on the root cause:
+
+```python
+# app/auth/config.py (before)
+SESSION_COOKIE_SAMESITE = "lax"
+SESSION_COOKIE_SECURE = True
+
+# app/auth/config.py (after)
+SESSION_COOKIE_SAMESITE = "none"
+SESSION_COOKIE_SECURE = True  # Required when SameSite=None
+```
+
+```python
+# app/auth/middleware.py (added fallback)
+async def validate_session(request: Request):
+    session_id = request.cookies.get("session_id")
+
+    # Fallback: check Authorization header when cookie is missing.
+    # This handles cross-origin redirects where Safari strips cookies.
+    if not session_id:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            session_id = await resolve_session_from_token(
+                auth_header.removeprefix("Bearer ")
+            )
+
+    if not session_id:
+        raise HTTPException(status_code=401, detail="Session required")
+
+    return await get_session(session_id)
+```
+
+The fix has two parts: restore `SameSite=None` for the cookie (the direct fix) and add a fallback Authorization header path in the middleware (defense in depth). The `security-auditor` validates that `SameSite=None` combined with `Secure=True` is safe for production.
+
+---
+
+## Step 5: Regression Tests
+
+The `test-generator` agent writes tests targeting the exact failure scenario:
+
+```python
+# tests/auth/test_safari_cookie.py
+import pytest
+from httpx import AsyncClient
+
+@pytest.mark.asyncio
+async def test_login_with_cross_origin_redirect(client: AsyncClient):
+    """Regression test for issue #123: Safari strips SameSite cookies
+    on cross-origin OAuth redirect."""
+    # Simulate a request without session cookie (as Safari would send)
+    response = await client.get(
+        "/protected/resource",
+        headers={"Authorization": "Bearer valid-session-token"},
+    )
+    assert response.status_code == 200
+
+@pytest.mark.asyncio
+async def test_login_without_cookie_or_header(client: AsyncClient):
+    """Verify that missing both cookie and header returns 401."""
+    response = await client.get("/protected/resource")
+    assert response.status_code == 401
+
+@pytest.mark.asyncio
+async def test_samesite_cookie_attribute(client: AsyncClient):
+    """Verify cookie is set with SameSite=None; Secure."""
+    response = await client.post("/auth/login", json={
+        "email": "test@example.com",
+        "password": "test-password",
+    })
+    cookie_header = response.headers.get("set-cookie", "")
+    assert "SameSite=None" in cookie_header
+    assert "Secure" in cookie_header
+```
+
+---
+
+## Step 6: Verify, Commit, and Create PR
+
+```bash
+/ork:verify
+```
+
+OrchestKit runs targeted verification against the changed files:
+
+```
+Verification Results (targeted)
+=====================================================
+
+  Tests:     10/10   3 new + 22 existing passed, 0 failed
+  Security:  10/10   SameSite=None with Secure flag validated
+  Quality:    9/10   Clean diff, minimal blast radius
+
+  Overall:   9.7/10
+```
+
+```bash
+/ork:commit
+```
+
+```
+Commit message:
+  fix(auth): handle Safari SameSite cookie policy on cross-origin redirect
+
+  Safari strips SameSite=Lax cookies during cross-origin OAuth redirects,
+  causing intermittent login failures. Restore SameSite=None (with Secure)
+  and add Authorization header fallback in session middleware.
+
+  Closes #123
+
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+Proceed? [Y/n]
+```
+
+The `Closes #123` trailer is added automatically because OrchestKit knows which issue triggered the workflow.
+
+```bash
+/ork:create-pr
+```
+
+```
+Created PR #89: fix(auth): handle Safari SameSite cookie policy
+
+  ## Summary
+  - Restore SameSite=None on session cookie for cross-origin compat
+  - Add Authorization header fallback in session middleware
+  - 3 regression tests for the Safari-specific failure
+
+  ## Root Cause
+  Safari strips SameSite=Lax cookies on cross-origin OAuth redirects.
+  See issue #123 for full investigation.
+
+  ## Test Plan
+  - [x] Regression test: cross-origin redirect without cookie
+  - [x] Regression test: missing both cookie and header -> 401
+  - [x] Regression test: SameSite=None; Secure attribute verified
+  - [x] Security validation: SameSite=None is safe with Secure flag
+  - [ ] Manual: test on mobile Safari via BrowserStack
+
+  Closes #123
+
+  https://github.com/your-org/your-repo/pull/89
+```
+
+---
+
+## Behind the Scenes
+
+### The 11-Phase Workflow
+
+The `/ork:fix-issue` command with "Proper fix" runs through these phases:
+
+| Phase | Action | Agent |
+|---|---|---|
+| 1 | Fetch issue metadata from GitHub | -- |
+| 2 | Read issue body and all comments | -- |
+| 3 | Search memory for similar past issues | `memory-context-injector` |
+| 4 | Analyze git blame on affected files | `debug-investigator` |
+| 5 | Trace execution path to identify root cause | `debug-investigator` |
+| 6 | Post root cause summary to issue | `issue-progress-tracking` |
+| 7 | Design the fix | `backend-system-architect` |
+| 8 | Security review of the fix | `security-auditor` |
+| 9 | Write regression tests | `test-generator` |
+| 10 | Run verification | parallel agents |
+| 11 | Commit and create PR linked to issue | -- |
+
+Phases 3-5 run in parallel during the analysis step. Phases 7-9 run sequentially because each depends on the previous output. Phase 10 spawns parallel verification agents.
+
+### Hooks That Fired
+
+| Hook | When | What It Did |
+|---|---|---|
+| `skill-suggester` | Issue fetched | Detected "Safari" and "login" keywords, injected `pwa-patterns` and `auth-patterns` skills |
+| `memory-context-injector` | Analysis start | Searched graph for "Safari" + "cookie", found previous SameSite pattern |
+| `issue-progress-tracking` | Root cause found | Posted analysis summary as comment on issue #123 |
+| `dangerous-command-blocker` | During git blame | Validated the git commands were read-only |
+| `auto-lint` | After fix written | Formatted the changed Python files with `ruff format` |
+| `auto-remember-continuity` | Session end | Stored "Safari SameSite=Lax breaks cross-origin OAuth" in memory |
+
+### Memory Made This Faster
+
+The knowledge graph already contained a `SameSite-cookie` pattern entity from a previous debugging session. Without that memory, the `debug-investigator` would have needed to research Safari cookie behavior from scratch -- adding 30-60 seconds to the analysis phase. With memory, the agent corroborated the pattern against the codebase in under 10 seconds.
+
+After this fix, the memory is enriched: the `SameSite-cookie` entity now has an additional observation linking it to OAuth redirects specifically, making future investigations even faster.
+
+---
+
+## Tips
+
+<Callout type="info">
+**Use "Investigate" for unclear issues.** If the issue title is vague or the root cause is uncertain, choose option 3 (Investigate). You get the full analysis without any code changes, so you can share the root cause report in the issue thread and discuss with your team before committing to a fix approach.
+</Callout>
+
+<Callout type="info">
+**Memory carries across projects.** The SameSite cookie pattern stored here will surface in any future project where OrchestKit encounters a similar Safari issue. Use `/ork:remember --global` for patterns that apply universally across all your repositories.
+</Callout>
+
+<Callout type="warn">
+**Hotfix mode skips PR review.** Option 4 (Hotfix) commits directly to a hotfix branch and merges without waiting for review. Use it only for production-down emergencies. The security auditor still runs, but test verification is skipped in favor of speed.
+</Callout>
+
+<Callout type="info">
+**Issue progress comments keep your team informed.** The `issue-progress-tracking` hook posts status updates directly to the GitHub issue thread as the workflow progresses. Your teammates can follow along without asking "any updates?" -- they see the root cause analysis posted in real time.
+</Callout>
+
+<Callout type="info">
+**The `Closes #123` trailer is automatic.** OrchestKit detects that the fix was triggered by `/ork:fix-issue 123` and appends the GitHub closing keyword to the commit message and PR body. When the PR merges, GitHub closes the issue automatically.
+</Callout>

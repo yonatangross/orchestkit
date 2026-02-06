@@ -1,0 +1,197 @@
+---
+title: "Composing Skills Into Workflows"
+description: "How command skills, reference skills, hooks, and agents combine to form intelligent workflows -- and when to use each composition pattern."
+---
+
+## The Composition Model
+
+OrchestKit does not have a single orchestration engine. Instead, skill composition emerges from three independent mechanisms working together:
+
+1. **Hook-based injection** -- The `skill-auto-suggest` hook matches keywords in your prompt and injects relevant skills into context.
+2. **Command skill composition** -- A command skill's `skills:` frontmatter field loads reference skills alongside the workflow.
+3. **Agent skill injection** -- An agent's `skills:` frontmatter field ensures it always has domain-specific knowledge.
+
+These mechanisms stack. A single interaction can involve all three, producing a rich context that combines workflow instructions, domain knowledge, and project-specific patterns.
+
+---
+
+## Anatomy of a Composed Workflow
+
+Here is what happens when you type `/ork:implement payment processing`:
+
+```
+Step 1: You invoke /ork:implement
+        -> Command skill "implement" loads
+
+Step 2: implement's frontmatter pulls in reference skills:
+        -> api-design-framework
+        -> react-server-components-framework
+        -> type-safety-validation
+        -> unit-testing
+        -> integration-testing
+        -> explore
+        -> verify
+        -> memory
+        -> worktree-coordination
+
+Step 3: implement asks you for scope (full-stack, backend, etc.)
+
+Step 4: implement spawns parallel agents:
+        -> backend-system-architect (gets its own skills:
+           fastapi-advanced, sqlalchemy-2-async, etc.)
+        -> frontend-ui-developer (gets its own skills:
+           shadcn-patterns, zustand-patterns, etc.)
+        -> test-generator (gets its own skills:
+           pytest-advanced, integration-testing, etc.)
+
+Step 5: Each agent works with full knowledge from
+        both the command's skills AND its own skills
+
+Step 6: implement's verify step runs /ork:verify,
+        which spawns its own parallel test agents
+```
+
+The total knowledge context for this interaction might include 15-20 skills, all loaded transparently without you specifying any of them.
+
+---
+
+## Composition Patterns
+
+### Pattern 1: Direct Command
+
+The simplest pattern. You invoke a command skill, and it handles everything.
+
+```
+/ork:commit
+```
+
+The `commit` skill runs in `inherit` context (it needs to see your staged changes), loads `git-recovery` as a companion skill, and produces a conventional commit message. No agents spawn. No additional skills are suggested.
+
+**When to use:** For focused, single-purpose tasks where the command skill contains all needed knowledge.
+
+### Pattern 2: Command + Parallel Agents
+
+The most powerful pattern. A command skill spawns multiple agents that work in parallel, each with their own skill sets.
+
+```
+/ork:implement search feature
+```
+
+The `implement` skill forks context, loads 9 reference skills, asks for scope, then spawns 2-4 agents depending on your answer. Each agent receives its own reference skills from its frontmatter.
+
+**When to use:** For multi-step feature development, complex investigations, or comprehensive reviews.
+
+### Pattern 3: Hook Auto-Suggestion
+
+No command invoked. You type a regular prompt, and the skill-auto-suggest hook detects relevant keywords.
+
+```
+How should I structure the database schema for user permissions?
+```
+
+The hook detects "database" and "schema", injects `database-schema-designer` (confidence 80) and potentially `auth-patterns` (confidence 60) into the response context. Claude then uses those patterns to answer.
+
+**When to use:** For questions and exploratory conversations. You do not need to remember which skills exist -- the hook handles discovery.
+
+### Pattern 4: Agent Cascade
+
+An agent spawned by one command invokes behavior that triggers additional skill injection.
+
+```
+/ork:fix-issue 456
+```
+
+The `fix-issue` command spawns a `debug-investigator` agent. That agent has `root-cause-analysis` in its skills. During investigation, it might spawn a sub-agent `test-generator` that brings `pytest-advanced` and `integration-testing`. The skill set grows organically as agents delegate work.
+
+**When to use:** For complex debugging or investigation where the needed skills are not known upfront.
+
+---
+
+## /ork:implement vs. Manual Prompting
+
+A common question: when should you use `/ork:implement` versus just describing what you want in a regular prompt?
+
+| Factor | `/ork:implement` | Manual prompt |
+|--------|-------------------|---------------|
+| **Structure** | Multi-phase workflow with scope clarification, parallel agents, and verification | Single-shot response |
+| **Skills loaded** | 9+ reference skills plus agent-specific skills | 0-3 skills via hook auto-suggest |
+| **Agent count** | 2-4 parallel agents | 0 (main conversation only) |
+| **Verification** | Built-in `/ork:verify` step | Manual, if you remember |
+| **Token cost** | Higher (parallel agents, more context) | Lower |
+| **Best for** | Features requiring multiple files, tests, and coordination | Small changes, single-file edits, questions |
+
+**Rule of thumb:** If the task touches 3+ files or needs both implementation and tests, use `/ork:implement`. If it is a single-file change or a question, a regular prompt with hook auto-suggest is sufficient.
+
+---
+
+## Cost and Context Tradeoffs
+
+Skills consume context window budget. More skills means richer knowledge but less room for code and conversation. Here are the tradeoffs:
+
+### Context Budget
+
+Claude Code 2.1.33+ allocates approximately 2% of the context window for skill content. With a 200K context window, that is roughly 1,200 tokens for skills. With 1M context, roughly 6,000 tokens.
+
+When multiple skills are injected, the platform prioritizes by relevance score. Lower-priority skills may be truncated or omitted if the budget is exhausted.
+
+### Token Cost Per Pattern
+
+| Pattern | Approximate extra tokens | When it pays off |
+|---------|--------------------------|-------------------|
+| Hook auto-suggest (1-3 skills) | 500-1,500 | Always -- nearly free, prevents common mistakes |
+| Command skill + references | 2,000-4,000 | Multi-step tasks where the workflow prevents rework |
+| Command + parallel agents | 10,000-30,000 | Complex features where parallel work saves wall-clock time |
+
+### When Composition Gets Expensive
+
+The highest cost scenario is `/ork:implement` with full-stack scope on a large codebase. It spawns multiple agents, each loading multiple skills, each reading many source files. For a typical feature implementation, expect 50,000-100,000 tokens total across all agents.
+
+This is almost always worthwhile for real features, because the alternative -- implementing without tests, missing security patterns, or forgetting to validate types -- costs more in debugging and rework.
+
+---
+
+## Skill Interaction Patterns
+
+### Skills That Reinforce Each Other
+
+Some skill combinations produce better results than either alone:
+
+- `api-design-framework` + `fastapi-advanced` -- General API principles applied through FastAPI-specific patterns.
+- `database-schema-designer` + `alembic-migrations` -- Schema design with migration-aware constraints.
+- `owasp-top-10` + `input-validation` -- Vulnerability awareness paired with concrete prevention code.
+- `unit-testing` + `pytest-advanced` -- Test philosophy combined with framework-specific techniques.
+
+### Skills That Set Boundaries
+
+Some skills constrain each other constructively:
+
+- `clean-architecture` + `backend-architecture-enforcer` -- Design principles paired with automated enforcement.
+- `type-safety-validation` + `integration-testing` -- Static guarantees complemented by runtime verification.
+- `quality-gates` + `test-standards-enforcer` -- Quality thresholds applied to test coverage and conventions.
+
+---
+
+## Debugging Composition Issues
+
+### "Claude did not use the pattern from skill X"
+
+Check whether the skill was actually injected:
+
+1. Run `/ork:doctor` to verify the skill exists and is loadable.
+2. Check if the skill's keywords match your prompt (for hook auto-suggest).
+3. Check if the agent you are using lists the skill in its frontmatter.
+4. Check if the context budget was exhausted -- if many skills competed, lower-priority ones may have been truncated.
+
+### "Too many skills are being suggested"
+
+The `skill-auto-suggest` hook has a minimum confidence threshold of 30 and a maximum of 3 suggestions. If irrelevant skills appear, the issue is usually broad keywords. For example, "test" matches `integration-testing` at confidence 60 even if you meant "test the deployment".
+
+The hook cannot be tuned per-session today. If auto-suggestions are consistently unhelpful for your domain, the best workaround is to use command skills (which load their own explicit skill sets) rather than relying on auto-suggest.
+
+---
+
+## What's Next
+
+- [23 Command Skills](/docs/skills/command-skills) -- See the full list of commands and what they compose.
+- [176 Reference Skills](/docs/skills/reference-skills) -- Browse the knowledge library by domain.
+- [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Add skills tailored to your project.

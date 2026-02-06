@@ -1,0 +1,72 @@
+---
+title: Installation
+description: Install OrchestKit in Claude Code — marketplace, CLI, or manual setup.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+## From Claude Code Marketplace (Recommended)
+
+```bash
+# Universal toolkit (109 skills)
+claude install orchestkit/orkl
+
+# Full toolkit (199 skills — includes Python, React, LLM/RAG)
+claude install orchestkit/ork
+```
+
+Not sure which? See [Choosing a Plugin](/docs/foundations/choosing-a-plugin).
+
+## Verify Installation
+
+Run the health check after installing:
+
+```
+/ork:doctor
+```
+
+Expected output:
+
+```
+OrchestKit Health Check
+=======================
+Plugin:     ork v6.0.2
+Skills:     199 loaded (23 commands, 176 reference)
+Agents:     36 registered
+Hooks:      119 active (91 global, 22 agent, 6 skill-scoped)
+Memory:     Graph ✓  Local ✓  Mem0 ○  CC Native ✓
+MCP:        memory ✓
+
+Status: Healthy
+```
+
+`○` means optional and not configured. `✓` means active.
+
+## Optional: Memory Tiers
+
+OrchestKit works out of the box with Graph Memory and Local Memory. For enhanced capabilities:
+
+| Tier | Env Variable | What It Adds |
+|---|---|---|
+| Mem0 Cloud | `MEM0_API_KEY` | Semantic search across sessions |
+| Tavily Search | `TAVILY_API_KEY` | Web research in workflows |
+| BrightData | `BRIGHTDATA_API_TOKEN` | Browser automation for scraping |
+
+Set these in your shell profile (`~/.zshrc` or `~/.bashrc`):
+
+```bash
+export MEM0_API_KEY="your-key-here"
+```
+
+## Requirements
+
+- **Claude Code** >= 2.1.33
+- **Node.js** >= 18 (for hooks)
+- **Git** (for commit/PR workflows)
+
+## Next Steps
+
+<Cards>
+  <Card title="First 10 Minutes" href="/docs/getting-started/first-10-minutes" description="Guided walkthrough of your first session" />
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="Full environment setup" />
+</Cards>

@@ -1,0 +1,330 @@
+---
+title: Multi-Agent Patterns
+description: "How OrchestKit orchestrates parallel agents for implementation, review, and complex workflows."
+---
+
+# Parallel Agents and Orchestration
+
+OrchestKit's most powerful capability is spawning multiple specialized agents that work in parallel. Instead of one generalist handling everything, the system decomposes work into focused tasks and assigns each to the best-suited agent.
+
+Two built-in workflow skills demonstrate this: `/ork:implement` for building features and `/ork:review-pr` for reviewing pull requests.
+
+## How Parallel Agents Work
+
+Claude Code's `Task` tool supports a `run_in_background` parameter. When set to `true`, the agent runs in a background thread and the orchestrator can immediately spawn the next agent without waiting. This enables true parallel execution.
+
+```python
+# These three agents launch simultaneously
+Task(
+  description="Design the API",
+  subagent_type="backend-system-architect",
+  prompt="Design RESTful endpoints for user management...",
+  run_in_background=True
+)
+Task(
+  description="Design the UI",
+  subagent_type="frontend-ui-developer",
+  prompt="Design React components for user management...",
+  run_in_background=True
+)
+Task(
+  description="Review the architecture",
+  subagent_type="system-design-reviewer",
+  prompt="Evaluate the proposed user management design...",
+  run_in_background=True
+)
+```
+
+Each agent:
+- Runs with its own model, tools, and skills (from frontmatter)
+- Operates in its own context (when `context: fork`)
+- Returns a structured result to the parent task
+- Has no direct communication with sibling agents
+
+## Pattern 1: /ork:implement -- Feature Implementation
+
+The `/ork:implement` skill is OrchestKit's most complex orchestration pattern. It runs up to 14 agents across 3 parallel phases, taking a feature request from idea to tested, documented code.
+
+### Scope Selection
+
+Before any work begins, the skill asks the user to choose a scope:
+
+| Scope | Agents Spawned | Phases |
+|-------|---------------|--------|
+| Full-stack | All 14 agents | All 10 phases |
+| Backend only | Backend + test + security | Skip frontend phases |
+| Frontend only | Frontend + test + quality | Skip backend phases |
+| Quick prototype | Minimal implementers | Skip verification and docs |
+
+### Phase 4: Architecture Design (5 Parallel Agents)
+
+All five agents launch in a single message and run concurrently:
+
+| Agent | Focus |
+|-------|-------|
+| `workflow-architect` | Architecture planning, dependency graph |
+| `backend-system-architect` | API design, services, database models |
+| `frontend-ui-developer` | Component tree, state management, hooks |
+| `llm-integrator` | LLM integration points (if the feature needs AI) |
+| `ux-researcher` | User experience, accessibility, interaction patterns |
+
+Each agent produces a design summary. The orchestrator waits for all five to complete before proceeding to implementation.
+
+### Phase 5: Implementation (5 Parallel Agents)
+
+With Opus 4.6's 128K output token limit, each agent generates complete artifacts in a single pass:
+
+| Agent | Deliverable |
+|-------|------------|
+| `backend-system-architect` | Complete backend: API routes + service layer + DB models |
+| `frontend-ui-developer` | Complete frontend: components + state + API hooks + styling |
+| `llm-integrator` | AI integration (if needed) |
+| `test-generator` | Full test suite: unit + integration + fixtures |
+| `rapid-ui-designer` | Design system specs + tokens (if new design) |
+
+### Phase 6: Integration and Validation (4 Parallel Agents)
+
+| Agent | Task |
+|-------|------|
+| `backend-system-architect` | Backend + database integration verification |
+| `frontend-ui-developer` | Frontend + API integration verification |
+| `code-quality-reviewer` | Full test suite execution and quality checks |
+| `security-auditor` | Security audit of new code |
+
+### Why This Works
+
+The key insight is that agents in each phase are independent -- they can work simultaneously without blocking each other. Dependencies only exist between phases:
+
+```
+Phase 4 (Design)           Phase 5 (Build)           Phase 6 (Validate)
++-------------------+      +-------------------+     +-------------------+
+| workflow-architect |      | backend-architect |     | backend-architect |
+| backend-architect  | ---> | frontend-dev      | --> | frontend-dev      |
+| frontend-dev       |      | llm-integrator    |     | code-reviewer     |
+| llm-integrator     |      | test-generator    |     | security-auditor  |
+| ux-researcher      |      | rapid-ui-designer |     +-------------------+
++-------------------+      +-------------------+
+   All 5 parallel              All 5 parallel            All 4 parallel
+```
+
+## Pattern 2: /ork:review-pr -- Pull Request Review
+
+The `/ork:review-pr` skill dispatches 6 specialized reviewers against a pull request simultaneously.
+
+### Phase 1: Gather Context (Parallel Reads)
+
+Three independent data fetches run in parallel:
+
+```bash
+gh pr view $PR --json title,body,files,additions,deletions   # PR metadata
+gh pr diff $PR                                                 # Changed code
+gh pr checks $PR                                               # CI status
+```
+
+### Phase 3: Parallel Review (6 Agents)
+
+All six agents launch in one message:
+
+| Agent | Focus Area | Output |
+|-------|-----------|--------|
+| `code-quality-reviewer` (1) | Readability, complexity, DRY, SOLID | PASS / WARN / FAIL |
+| `code-quality-reviewer` (2) | Type safety, Zod, Pydantic, exhaustive types | PASS / WARN / FAIL |
+| `security-auditor` | Secrets, injection, auth, dependency CVEs | PASS / WARN / BLOCK |
+| `test-generator` | Test coverage, edge cases, meaningful assertions | Coverage % + gaps |
+| `backend-system-architect` | API design, async patterns, query efficiency | PASS / WARN / FAIL |
+| `frontend-ui-developer` | React 19 patterns, hooks, accessibility | PASS / WARN / FAIL |
+
+Note that the same agent type can be spawned multiple times with different prompts. The two `code-quality-reviewer` instances focus on different aspects of the review.
+
+### Optional 7th Agent
+
+If the PR includes AI/ML code, a 7th agent is added:
+
+| Agent | Focus |
+|-------|-------|
+| `llm-integrator` | Prompt injection prevention, token limits, caching, error handling |
+
+### Phase 5: Synthesize
+
+The orchestrator collects all agent results and produces a single structured review:
+
+```markdown
+# PR Review: #123
+
+## Summary
+Well-structured feature with minor security concern.
+
+## Code Quality
+| Area          | Status | Notes                        |
+|---------------|--------|------------------------------|
+| Readability   | PASS   | Clean naming, low complexity |
+| Type Safety   | PASS   | Zod validation on all APIs   |
+| Test Coverage | 87%    | Missing edge case for timeout|
+
+## Security
+| Check            | Status |
+|------------------|--------|
+| Secrets          | PASS   |
+| Input Validation | WARN   |
+| Dependencies     | PASS   |
+
+## Blockers (Must Fix)
+- Input validation missing on /api/v1/upload endpoint
+
+## Suggestions (Non-Blocking)
+- Add timeout handling for external API calls
+```
+
+## Pattern 3: Agent Handoff Chains
+
+Beyond parallel execution, agents also hand off work sequentially. Each agent's definition includes an **Integration** section that documents who it receives from and hands off to.
+
+### Implementation Chain
+
+```
+requirements-translator    "Here are the user stories"
+        |
+        v
+backend-system-architect   "Here is the API design"
+        |
+        v
+database-engineer          "Here are the migrations"
+        |
+        v
+frontend-ui-developer      "Here are the components"
+        |
+        v
+code-quality-reviewer      "Here is the review"
+```
+
+### Release Chain
+
+```
+code-quality-reviewer      "PR approved"
+        |
+        v
+release-engineer           "Tag created, changelog generated"
+        |
+        v
+deployment-manager         "Deployed to production"
+        |
+        v
+monitoring-engineer        "Alerts configured"
+```
+
+### Security Audit Chain
+
+```
+security-auditor           "Vulnerabilities found"
+        |
+        v
+backend-system-architect   "Fixes implemented"
+        |
+        v
+security-layer-auditor     "Defense-in-depth verified"
+```
+
+## Task Management with TaskCreate and TaskUpdate
+
+All multi-agent workflows use Claude Code's task management system (CC 2.1.16+) to track progress. This is mandatory -- not optional.
+
+### Creating Tasks
+
+```python
+# Main task
+TaskCreate(
+  subject="Implement: user authentication",
+  description="Full-stack implementation with parallel agents",
+  activeForm="Implementing user authentication"
+)
+
+# Subtasks for each phase
+TaskCreate(subject="Research best practices", activeForm="Researching")
+TaskCreate(subject="Design architecture", activeForm="Designing")
+TaskCreate(subject="Implement backend", activeForm="Building backend")
+TaskCreate(subject="Implement frontend", activeForm="Building frontend")
+TaskCreate(subject="Run tests", activeForm="Testing")
+```
+
+### Updating Status
+
+```python
+TaskUpdate(taskId="3", status="in_progress")   # Starting phase
+TaskUpdate(taskId="3", status="completed")     # Phase done
+```
+
+### Dependencies Between Tasks
+
+```python
+TaskCreate(
+  subject="Integration testing",
+  addBlockedBy=["backend-task-id", "frontend-task-id"]
+)
+```
+
+The task blocked by others will not start until its dependencies are marked `completed`.
+
+### Task Metrics (CC 2.1.30+)
+
+Task results include efficiency metrics that help monitor scope:
+
+```markdown
+## Phase 5 Metrics
+| Agent                    | Tokens | Tools | Duration |
+|--------------------------|--------|-------|----------|
+| backend-system-architect | 680    | 15    | 25s      |
+| frontend-ui-developer    | 720    | 18    | 30s      |
+| test-generator           | 540    | 12    | 20s      |
+```
+
+If an agent's token count exceeds 80% of its budget, the orchestrator flags potential scope creep.
+
+## Scope Creep Detection
+
+The `/ork:implement` skill includes a dedicated scope creep check (Phase 7). After implementation, the `workflow-architect` agent compares planned versus actual work:
+
+| Score | Level | Action |
+|-------|-------|--------|
+| 0-2 | Minimal | Proceed |
+| 3-5 | Moderate | Document and justify unplanned changes |
+| 6-8 | Significant | Review with user, potentially split PR |
+| 9-10 | Major | Stop and reassess |
+
+## Designing Your Own Multi-Agent Workflow
+
+To create a custom multi-agent pattern:
+
+1. **Identify independent tasks** -- What can run in parallel?
+2. **Choose agents** -- Match each task to the best specialist
+3. **Define phases** -- Group parallel tasks into sequential phases
+4. **Add dependencies** -- Use `addBlockedBy` for ordering
+5. **Collect results** -- Synthesize agent outputs into a single report
+
+Example: A custom "security hardening" workflow:
+
+```python
+# Phase 1: Parallel audits (3 agents)
+Task(subagent_type="security-auditor", prompt="OWASP scan...", run_in_background=True)
+Task(subagent_type="ai-safety-auditor", prompt="LLM safety...", run_in_background=True)
+Task(subagent_type="security-layer-auditor", prompt="8-layer check...", run_in_background=True)
+
+# Phase 2: Fix (after all audits complete)
+Task(subagent_type="backend-system-architect", prompt="Fix findings...")
+
+# Phase 3: Verify (after fixes)
+Task(subagent_type="security-auditor", prompt="Re-scan...")
+```
+
+## Key Principles
+
+1. **Agents within a phase are independent** -- They share no state and can run in true parallel.
+2. **Phases are sequential** -- Phase N+1 depends on Phase N completing.
+3. **Task management is mandatory** -- Every multi-step workflow tracks progress with TaskCreate/TaskUpdate.
+4. **Agent boundaries are enforced** -- Read-only agents cannot write. Backend agents stay out of frontend.
+5. **Each agent returns a structured result** -- The orchestrator synthesizes individual reports into a unified output.
+6. **128K output means fewer passes** -- Opus 4.6 lets each agent produce complete artifacts, reducing the total number of agents needed compared to smaller output limits.
+
+## What's Next
+
+- [Writing Agents](/docs/agents/writing-agents) -- Build your own agent to add to these workflows
+- [Agents Overview](/docs/agents/overview) -- Full reference of all 36 agents

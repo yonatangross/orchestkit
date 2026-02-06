@@ -1,0 +1,21 @@
+---
+title: "PostToolUse"
+description: "Hooks triggered on PostToolUse events (10 hooks)."
+---
+
+# PostToolUse Hooks
+
+**10 hooks** registered for the `PostToolUse` lifecycle event.
+
+| Hook | Matcher | Scope | Notes |
+|------|---------|-------|-------|
+| `unified-dispatcher` | `Bash|Write|Edit|Task|Skill|NotebookEdit` | Global |  |
+| `context-budget-monitor` | `Bash|Write|Edit|Task|Skill|NotebookEdit` | Global |  |
+| `unified-error-handler` | `Bash|Write|Edit|Task|Skill|NotebookEdit` | Global |  |
+| `file-lock-release` | `Write|Edit` | Global |  |
+| `auto-lint` | `Write|Edit` | Global |  |
+| `readme-sync` | `Write|Edit` | Global |  |
+| `merge-conflict-predictor` | `Write|Edit` | Skill |  |
+| `coverage-predictor` | `Write|Edit` | Global |  |
+| `release-lock-on-commit` | `Write|Edit` | Global |  |
+| `redact-secrets` | `Bash` | Skill |  |

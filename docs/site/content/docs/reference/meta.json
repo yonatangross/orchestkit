@@ -1,0 +1,10 @@
+{
+  "title": "Reference",
+  "icon": "Library",
+  "pages": [
+    "index",
+    "skills",
+    "agents",
+    "hooks"
+  ]
+}

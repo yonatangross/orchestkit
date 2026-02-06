@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/preset.css";
+@import "fumadocs-ui/css/ocean.css";
+
+/*
+ * OrchestKit theme refinements
+ * Minimal overrides — work WITH Fumadocs ocean, not against it.
+ */
+
+/* Focus indicators — WCAG 2.4.7 Focus Visible */
+*:focus-visible {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Ensure focused elements aren't hidden by sticky nav — WCAG 2.4.11 */
+:target {
+  scroll-margin-top: 80px;
+}
+
+/* Theme-aware success color */
+:root {
+  --color-success: oklch(0.577 0.245 142.5);
+}
+.dark {
+  --color-success: oklch(0.647 0.19 142.5);
+}
+
+/* Subtle fade-in for page content */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in { animation: fade-in-up 0.5s ease-out both; }
+  .delay-100 { animation-delay: 0.08s; }
+  .delay-200 { animation-delay: 0.16s; }
+  .delay-300 { animation-delay: 0.24s; }
+}
+
+/* Ensure reduced-motion users see content immediately */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .delay-100,
+  .delay-200,
+  .delay-300 {
+    animation: none !important;
+    animation-delay: 0s !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

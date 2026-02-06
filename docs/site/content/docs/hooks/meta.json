@@ -1,0 +1,11 @@
+{
+  "title": "Hooks",
+  "icon": "Webhook",
+  "pages": [
+    "overview",
+    "lifecycle-hooks",
+    "safety-hooks",
+    "memory-hooks",
+    "writing-hooks"
+  ]
+}

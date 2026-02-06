@@ -1,0 +1,74 @@
+---
+title: What is OrchestKit?
+description: The complete AI development toolkit for Claude Code — 199 skills, 36 agents, 119 hooks working together.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+OrchestKit is a **Claude Code plugin** that gives your AI assistant deep expertise in software engineering. Instead of explaining your stack on every prompt, OrchestKit injects the right knowledge at the right time.
+
+## Before vs After
+
+| Without OrchestKit | With OrchestKit |
+|---|---|
+| "Use FastAPI with async, SQLAlchemy 2.0..." | Just describe the feature |
+| Manual code review checklists | `/ork:review-pr` runs 3 agents in parallel |
+| Copy-paste commit conventions | `/ork:commit` writes conventional commits |
+| "Remember to check OWASP..." | Security hooks fire automatically |
+| Context lost between sessions | 4-tier memory persists everything |
+
+## How It Works
+
+When you type a prompt, OrchestKit works in three layers:
+
+```
+Your Prompt
+    │
+    ▼
+┌──────────────────────────────────────┐
+│  HOOKS (119)                         │
+│  Fire automatically on every action  │
+│  Security gates, auto-lint, memory   │
+└──────────────┬───────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────┐
+│  AGENTS (36)                         │
+│  Activate from keywords in prompt    │
+│  "review PR" → security-auditor     │
+│  "design API" → backend-architect   │
+└──────────────┬───────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────┐
+│  SKILLS (199)                        │
+│  Knowledge injected into agents      │
+│  FastAPI patterns, React hooks,      │
+│  OWASP checklist, RAG strategies     │
+└──────────────────────────────────────┘
+```
+
+**Hooks** are invisible guardians — they fire on every tool call, every prompt, every session start/stop. You never invoke them directly.
+
+**Agents** are specialists — they activate when your prompt matches their keywords. Say "review this PR" and three agents spawn in parallel.
+
+**Skills** are knowledge — reusable expertise that gets injected into agents. An agent doesn't need to know everything; it loads the right skills on demand.
+
+## Two Plugins
+
+OrchestKit ships as two plugins so you install only what you need:
+
+| Plugin | Skills | Best For |
+|--------|--------|----------|
+| **orkl** | 109 | Any stack — workflows, memory, security, CI/CD |
+| **ork** | 199 | orkl + Python, React, LLM/RAG, LangGraph, MCP |
+
+Both include all 36 agents and 119 hooks. The difference is skill coverage.
+
+## Next Steps
+
+<Cards>
+  <Card title="The 3 Building Blocks" href="/docs/foundations/skills-agents-hooks" description="Understand skills, agents, and hooks in depth" />
+  <Card title="Install OrchestKit" href="/docs/getting-started/installation" description="Get up and running in 2 minutes" />
+  <Card title="First 10 Minutes" href="/docs/getting-started/first-10-minutes" description="Guided walkthrough of your first session" />
+</Cards>

@@ -1,0 +1,21 @@
+{
+  "title": "Hooks",
+  "pages": [
+    "index",
+    "pre-tool-use",
+    "post-tool-use",
+    "post-tool-use-failure",
+    "permission-request",
+    "user-prompt-submit",
+    "session-start",
+    "session-end",
+    "stop",
+    "subagent-start",
+    "subagent-stop",
+    "notification",
+    "pre-compact",
+    "teammate-idle",
+    "task-completed",
+    "setup"
+  ]
+}

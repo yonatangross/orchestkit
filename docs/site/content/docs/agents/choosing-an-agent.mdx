@@ -1,0 +1,268 @@
+---
+title: Choosing an Agent
+description: "Decision tree and complete reference for picking the right agent for any task."
+---
+
+# Which Agent For Your Task?
+
+OrchestKit's 36 agents cover the full software development lifecycle. This page helps you find the right specialist quickly -- whether you need to build a feature, fix a bug, review code, or plan a release.
+
+## Decision Tree
+
+Start with your task type, then narrow down:
+
+```
+What are you trying to do?
+|
++-- BUILD / IMPLEMENT something
+|   |
+|   +-- Backend API or service?
+|   |   --> backend-system-architect
+|   |
+|   +-- Frontend component or page?
+|   |   --> frontend-ui-developer
+|   |
+|   +-- Database schema or migration?
+|   |   --> database-engineer
+|   |
+|   +-- LangGraph workflow or AI pipeline?
+|   |   --> workflow-architect
+|   |
+|   +-- LLM API integration?
+|   |   --> llm-integrator
+|   |
+|   +-- Full-stack feature?
+|       --> /ork:implement (spawns multiple agents)
+|
++-- REVIEW / AUDIT code
+|   |
+|   +-- Pull request review?
+|   |   --> /ork:review-pr (spawns 6 parallel agents)
+|   |
+|   +-- Code quality and linting?
+|   |   --> code-quality-reviewer
+|   |
+|   +-- Security vulnerabilities?
+|   |   --> security-auditor
+|   |
+|   +-- LLM safety (prompt injection, guardrails)?
+|   |   --> ai-safety-auditor
+|   |
+|   +-- Architecture design review?
+|   |   --> system-design-reviewer
+|   |
+|   +-- Defense-in-depth layers?
+|       --> security-layer-auditor
+|
++-- DEBUG / INVESTIGATE a problem
+|   |
+|   +-- Application bug or error?
+|   |   --> debug-investigator
+|   |
+|   +-- Performance bottleneck (Python)?
+|   |   --> python-performance-engineer
+|   |
+|   +-- Frontend performance (Web Vitals)?
+|       --> performance-engineer
+|
++-- TEST code
+|   |
+|   +-- Generate unit/integration tests?
+|   |   --> test-generator
+|   |
+|   +-- Accessibility compliance?
+|       --> accessibility-specialist
+|
++-- DEPLOY / RELEASE
+|   |
+|   +-- Production deployment?
+|   |   --> deployment-manager
+|   |
+|   +-- GitHub release and changelog?
+|   |   --> release-engineer
+|   |
+|   +-- CI/CD pipeline?
+|   |   --> ci-cd-engineer
+|   |
+|   +-- Infrastructure (Terraform, K8s)?
+|   |   --> infrastructure-architect
+|   |
+|   +-- Monitoring and alerting?
+|       --> monitoring-engineer
+|
++-- DESIGN / PLAN
+|   |
+|   +-- System architecture?
+|   |   --> system-design-reviewer
+|   |
+|   +-- UI/UX prototyping?
+|   |   --> rapid-ui-designer
+|   |
+|   +-- User research and personas?
+|   |   --> ux-researcher
+|   |
+|   +-- Product strategy?
+|   |   --> product-strategist
+|   |
+|   +-- Requirements and user stories?
+|   |   --> requirements-translator
+|   |
+|   +-- Feature prioritization?
+|   |   --> prioritization-analyst
+|   |
+|   +-- Business case and ROI?
+|   |   --> business-case-builder
+|   |
+|   +-- OKRs and metrics?
+|       --> metrics-architect
+|
++-- RESEARCH
+|   |
+|   +-- Competitive analysis?
+|   |   --> market-intelligence
+|   |
+|   +-- Web scraping and content extraction?
+|       --> web-research-analyst
+|
++-- DOCUMENT
+|   |
+|   +-- API docs, READMEs, ADRs?
+|   |   --> documentation-specialist
+|   |
+|   +-- Demo video or showcase?
+|       --> demo-producer
+|
++-- GIT operations
+    |
+    +-- Branching, rebasing, recovery?
+        --> git-operations-engineer
+```
+
+## Complete Agent Reference
+
+The table below lists all 36 agents with their activation keywords, model assignment, and key skills.
+
+### Backend Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `backend-system-architect` | opus | API design, database schema, microservice, REST, GraphQL, endpoint, route, authentication, authorization, JWT, middleware, service layer | api-design-framework, database-schema-designer, fastapi-advanced, auth-patterns, rate-limiting |
+| `database-engineer` | inherit | database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint | database-schema-designer, sqlalchemy-2-async |
+| `event-driven-architect` | opus | event sourcing, message queue, Kafka, RabbitMQ, pub/sub, CQRS, saga, outbox, CDC, Debezium | faststream-messaging, saga-patterns |
+| `python-performance-engineer` | opus | performance, profiling, memory leak, slow query, bottleneck, benchmark, cProfile, N+1 | performance-optimization, caching-strategies, connection-pooling |
+
+### Frontend Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `frontend-ui-developer` | inherit | React, TypeScript, component, UI, frontend, Zod, TanStack, Suspense, form, validation, PWA, dashboard | react-server-components-framework, design-system-starter, tanstack-query-advanced, shadcn-patterns |
+| `rapid-ui-designer` | inherit | UI, UX, prototype, Tailwind, design system, component, mockup | design-system-starter, responsive-patterns |
+| `accessibility-specialist` | inherit | accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, focus management | wcag-compliance, focus-management, react-aria-patterns |
+| `performance-engineer` | inherit | performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, RUM | core-web-vitals, render-optimization, image-optimization |
+
+### Security Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `security-auditor` | opus | security, vulnerability, CVE, audit, OWASP, injection, XSS, CSRF, secrets, credentials, bandit | owasp-top-10, security-scanning, defense-in-depth, auth-patterns |
+| `ai-safety-auditor` | opus | safety audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, tool poisoning | llm-safety-patterns, mcp-security-hardening |
+| `security-layer-auditor` | opus | security layer, defense-in-depth, security audit, 8 layers | defense-in-depth, owasp-top-10 |
+
+### Testing Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `code-quality-reviewer` | inherit | test, review, quality, lint, security, coverage, audit, validate, CI, type-check | code-review-playbook, quality-gates, biome-linting, test-standards-enforcer |
+| `debug-investigator` | inherit | bug, error, exception, crash, failure, debugging, regression, flaky test | root-cause-analysis, observability-monitoring |
+| `test-generator` | inherit | test, coverage, unit test, integration test, MSW, VCR, fixture | unit-testing, integration-testing, e2e-testing, pytest-advanced, property-based-testing |
+
+### DevOps Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `ci-cd-engineer` | inherit | CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, artifact, cache, matrix testing | devops-deployment, github-operations |
+| `deployment-manager` | inherit | deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production | devops-deployment, release-management, resilience-patterns |
+| `infrastructure-architect` | opus | infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, IaC | devops-deployment, observability-monitoring |
+| `monitoring-engineer` | inherit | monitoring, prometheus, grafana, alerting, tracing, opentelemetry, SLO, SLI | observability-monitoring |
+| `release-engineer` | inherit | release, milestone, changelog, tag, version, semver, sprint, roadmap | release-management, github-operations |
+
+### LLM / AI Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `workflow-architect` | opus | LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent | langgraph-supervisor, langgraph-routing, langgraph-parallel, langgraph-state, multi-agent-orchestration |
+| `llm-integrator` | inherit | LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token | prompt-engineering, structured-output, langfuse-observability |
+| `prompt-engineer` | inherit | prompts, prompt-engineering, COT, few-shot, structured-output, A/B testing, evaluation | prompt-engineering, structured-output |
+| `multimodal-specialist` | inherit | vision, image, audio, video, multimodal, whisper, TTS, transcription, OCR, CLIP | multimodal-rag, vision-processing |
+| `data-pipeline-engineer` | inherit | embeddings, chunking, vector index, data pipeline, batch processing, ETL, embedding cache | embedding-strategies, chunking-strategies |
+
+### Product Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `product-strategist` | inherit | product strategy, value proposition, build/buy/partner, go/no-go | product-strategy |
+| `requirements-translator` | inherit | PRD, user story, acceptance criteria, requirements, specification | requirements-engineering |
+| `prioritization-analyst` | inherit | RICE, ICE, WSJF, prioritization, backlog, opportunity cost | prioritization-frameworks |
+| `business-case-builder` | inherit | ROI, cost-benefit, risk assessment, business case, budget, NPV, IRR, TCO | business-analysis |
+| `metrics-architect` | opus | OKR, KPI, metrics, success criteria, instrumentation | metrics-design |
+
+### Design & Research Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `system-design-reviewer` | opus | system design, architecture review, scale, security review, implementation plan | architecture-decision-record, system-design-interrogation, ascii-visualizer |
+| `ux-researcher` | inherit | user research, persona, user journey, usability, user testing, insights | ux-research-patterns |
+| `demo-producer` | sonnet | demo, video, marketing, showcase, terminal recording, VHS, remotion, tutorial | video-production, remotion-composition |
+| `market-intelligence` | inherit | market research, competitor, TAM, SAM, SOM, market size, competitive landscape | competitive-analysis |
+| `web-research-analyst` | inherit | web research, scraping, competitor analysis, browser automation, content extraction | web-research-workflow, tavily-integration |
+
+### Docs & Git Agents
+
+| Agent | Model | Activation Keywords | Key Skills |
+|-------|-------|-------------------|------------|
+| `documentation-specialist` | inherit | documentation, readme, api-docs, technical-writing, ADR, changelog, OpenAPI | api-design-framework, architecture-decision-record |
+| `git-operations-engineer` | inherit | git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick | git-workflow, stacked-prs |
+
+## Common Scenarios
+
+### "I need to build a new feature end-to-end"
+
+Use `/ork:implement`. It spawns up to 14 agents across design, implementation, and validation phases. You choose the scope (full-stack, backend-only, frontend-only, or quick prototype).
+
+### "Someone submitted a PR, I need to review it"
+
+Use `/ork:review-pr 123`. It spawns 6 parallel reviewers (code quality, type safety, security, tests, backend, frontend) and synthesizes their findings into a single structured report.
+
+### "The app is broken and I do not know why"
+
+Spawn `debug-investigator`. It follows a scientific method: reproduce, gather evidence, form hypotheses, test them, isolate the root cause, and recommend a fix -- without modifying any code.
+
+### "I need to set up CI/CD and deploy to production"
+
+Start with `ci-cd-engineer` for pipeline setup, then `deployment-manager` for the release. The `release-engineer` handles versioning and changelogs.
+
+### "I want to design an architecture before coding"
+
+Use `system-design-reviewer` to evaluate your plan against five dimensions (Scale, Data, Security, UX, Coherence). It returns a structured review with APPROVE / REQUEST CHANGES / REJECT verdicts.
+
+### "I need to audit security before a release"
+
+Run `security-auditor` for OWASP Top 10 and dependency scanning. Add `ai-safety-auditor` if the codebase includes LLM integrations. Use `security-layer-auditor` for defense-in-depth verification.
+
+## Read-Only vs Read-Write Agents
+
+Some agents are intentionally restricted to read-only operations using agent-scoped hooks that block Write and Edit tools:
+
+| Read-Only Agents | Why |
+|-----------------|-----|
+| `security-auditor` | Should report vulnerabilities, not fix them |
+| `debug-investigator` | Should diagnose problems, not change code |
+| `code-quality-reviewer` | Should review code, not rewrite it |
+| `system-design-reviewer` | Should evaluate plans, not implement them |
+
+All other agents have full read-write access to the tools listed in their frontmatter.
+
+## What's Next
+
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- How agents work together in parallel
+- [Writing Agents](/docs/agents/writing-agents) -- Create your own custom agent

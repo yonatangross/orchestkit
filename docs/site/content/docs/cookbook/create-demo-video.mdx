@@ -1,0 +1,335 @@
+---
+title: Create a Demo Video
+description: From script to polished video with AI-powered production.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Scenario
+
+You just shipped a new authentication flow: login, signup, OAuth, token refresh, password reset. The code works. The tests pass. Now your team lead asks for a 60-second demo video to show stakeholders.
+
+You could open QuickTime, fumble through screen recordings, splice clips in iMovie, and spend two hours on something that looks amateur. Or you can let OrchestKit orchestrate the entire pipeline -- from storyboard to rendered video with background music and thumbnails -- in a single command.
+
+## What You'll Use
+
+| Component | Type | Purpose |
+|---|---|---|
+| `/ork:demo-producer` | Command skill | Orchestrates the full video pipeline |
+| `demo-producer` | Agent | Coordinates storyboard, recording, composition |
+| `video-storyboarding` | Reference skill | AI scene breakdown with timing |
+| `terminal-demo-generator` | Reference skill | VHS terminal recording automation |
+| `remotion-composer` | Reference skill | Programmatic video composition with React |
+| `music-sfx-selection` | Reference skill | Background music and sound effects |
+| `thumbnail-first-frame` | Reference skill | Cover image generation |
+| `content-type-recipes` | Reference skill | Video structure templates by type |
+| `hook-formulas` | Reference skill | Attention and retention patterns |
+
+## Step-by-Step
+
+### Step 1: Launch the Pipeline
+
+Start with a description of what you want to demo:
+
+```bash
+/ork:demo-producer "Demo the new authentication flow — login, OAuth, and token refresh"
+```
+
+The `demo-producer` agent activates and asks you to choose a video type:
+
+```
+What type of video?
+
+  1. Feature Demo     — Show a feature in action (60-90s)
+  2. Tutorial          — Step-by-step walkthrough (2-5min)
+  3. Release Notes     — Changelog highlights (30-60s)
+
+> 1
+```
+
+Choose **Feature Demo** for a concise stakeholder-facing clip.
+
+### Step 2: Storyboarding
+
+The agent generates a scene-by-scene breakdown using the `video-storyboarding` skill. Each scene has a visual description, timing, text overlay, and audio note:
+
+```
+Storyboard: "Authentication Flow Demo"
+Duration: 60 seconds | Aspect: 16:9 + 1:1
+
+Scene 1 (0:00-0:08) — Hook
+  Visual: Split-screen: old login page vs new login page
+  Text overlay: "Authentication, reimagined"
+  Audio: Upbeat intro sting
+
+Scene 2 (0:08-0:22) — Login Flow
+  Visual: Terminal recording — user signs up, receives JWT
+  Text overlay: "JWT-based auth with automatic refresh"
+  Audio: Ambient background
+
+Scene 3 (0:22-0:36) — OAuth Integration
+  Visual: Browser recording — Google OAuth flow
+  Text overlay: "One-click OAuth for Google, GitHub, Apple"
+  Audio: Continue ambient
+
+Scene 4 (0:36-0:48) — Token Refresh
+  Visual: Terminal — token expires, auto-refreshes, request succeeds
+  Text overlay: "Seamless token refresh — zero user interruption"
+  Audio: Continue ambient
+
+Scene 5 (0:48-0:60) — CTA
+  Visual: Code diff — before/after line count
+  Text overlay: "Ship it. /ork:implement"
+  Audio: Outro sting
+
+Approve storyboard? [Y/edit/n]
+```
+
+Type `Y` to approve, or `edit` to modify individual scenes. The storyboard is saved as `storyboard.json` for reuse.
+
+### Step 3: Terminal Recording
+
+For scenes that show terminal interactions, OrchestKit uses **VHS** (the terminal recorder by Charm) to create reproducible recordings:
+
+```bash
+# VHS generates a .tape file for each terminal scene
+# Scene 2: Login flow
+Output scene-2-login.gif
+Set FontSize 16
+Set Width 1200
+Set Height 800
+Set Theme "Catppuccin Mocha"
+
+Type "curl -X POST https://api.example.com/auth/signup"
+Enter
+Sleep 1s
+Type '  -d '"'"'{"email":"demo@example.com","password":"secure123"}'"'"''
+Enter
+Sleep 2s
+
+# Response appears...
+```
+
+The `terminal-demo-generator` skill handles `.tape` file creation. VHS renders each scene as a GIF or MP4 clip.
+
+<Callout type="info">
+VHS must be installed locally: `brew install vhs`. If not available, OrchestKit falls back to static code screenshots with syntax highlighting. The video still renders -- just with stills instead of animated terminal sequences.
+</Callout>
+
+### Step 4: Composition with Remotion
+
+The `remotion-composer` skill assembles all scene clips into a final video using Remotion (React-based programmatic video):
+
+```
+Composing video...
+  Composition: ScrapbookDemo (16:9)
+  Scenes: 5 clips loaded
+  Transitions: paper-fold (100-200ms between scenes)
+  Background: warm paper texture (#F0F0E8)
+  Text overlays: Tiempos serif for impact, Inter sans-serif for data
+  Duration: 60.0s @ 30fps
+
+Rendering 16:9...  [====================] 100%
+Rendering 1:1...   [====================] 100%
+
+Output:
+  ./output/auth-demo-16x9.mp4  (1920x1080, 12.4 MB)
+  ./output/auth-demo-1x1.mp4   (1080x1080, 8.7 MB)
+```
+
+The composition uses the **Anthropic "Scrapbook Motion"** visual style:
+- Warm paper backgrounds (`#F0F0E8`), not dark themes
+- Fast cuts (100-200ms transitions) with paper-fold effects
+- Mixed media collage: terminal recordings, browser captures, code diffs
+- Typography: Tiempos (serif) for headings, Inter (sans-serif) for data
+
+<Callout type="info">
+Two registered compositions handle most use cases: **ScrapbookDemo** for feature demos and **ReleaseNotes** for changelog videos. Both render in 16:9 and 1:1 aspect ratios automatically. OrchestKit has 79 total Remotion compositions for specialized needs.
+</Callout>
+
+### Step 5: Audio Generation
+
+The pipeline adds audio using **Kling 3.0** as the primary source:
+
+```
+Generating audio...
+  Engine: Kling 3.0 (native audio, 5 languages)
+  Intro sting: 3s upbeat electronic
+  Background: 54s ambient lo-fi
+  Outro sting: 3s fade-out
+
+  Mixing...
+  Audio levels: music -18dB, SFX -12dB
+  Output: ./output/auth-demo-audio.mp3
+```
+
+Kling 3.0 generates background music natively -- multi-shot, 4K at 60fps, up to 15 seconds per clip, with audio in 5 languages. For longer tracks, clips are stitched with crossfade.
+
+Optionally, add voice narration via ElevenLabs (backup TTS):
+
+```bash
+# Only if you want narration — most feature demos skip it
+/ork:demo-producer --narrate "Demo the new authentication flow"
+```
+
+<Callout type="warn">
+Audio generation requires the `KLING_API_KEY` environment variable. Optional fallbacks: `FAL_KEY` for video generation, `SUNO_API_KEY` for music. Without any keys, the video renders silently -- still usable, just without generated audio.
+</Callout>
+
+### Step 6: Thumbnail Generation
+
+The `thumbnail-first-frame` skill generates a cover image from the first scene:
+
+```
+Generating thumbnail...
+  Source: Scene 1, frame 0
+  Style: Scrapbook Motion (paper texture + bold text)
+  Text: "Authentication Flow Demo"
+  Sizes:
+    ./output/thumb-1280x720.png  (YouTube)
+    ./output/thumb-1080x1080.png (Social)
+```
+
+### Final Output
+
+The complete pipeline produces:
+
+```
+Pipeline complete!
+
+Files:
+  ./output/auth-demo-16x9.mp4      1920x1080, 60s, 12.4 MB
+  ./output/auth-demo-1x1.mp4       1080x1080, 60s, 8.7 MB
+  ./output/auth-demo-audio.mp3     60s, 1.2 MB
+  ./output/thumb-1280x720.png      YouTube thumbnail
+  ./output/thumb-1080x1080.png     Social thumbnail
+  ./output/storyboard.json         Scene data (reusable)
+
+Elapsed: 4m 32s
+```
+
+## Behind the Scenes
+
+### Agent Orchestration
+
+When you invoke `/ork:demo-producer`, the `demo-producer` agent spawns and coordinates a multi-step pipeline. Here is the full execution flow:
+
+```
+/ork:demo-producer "Demo the new authentication flow"
+    |
+    +---> demo-producer agent spawns (model: opus)
+    |       Skills injected:
+    |         video-storyboarding
+    |         terminal-demo-generator
+    |         remotion-composer
+    |         music-sfx-selection
+    |         thumbnail-first-frame
+    |         content-type-recipes
+    |         hook-formulas
+    |
+    +---> Step 1: Storyboard generation
+    |       content-type-recipes skill -> selects "Feature Demo" template
+    |       video-storyboarding skill -> generates scene breakdown
+    |       hook-formulas skill -> inserts attention patterns (hook, payoff, CTA)
+    |
+    +---> Step 2: Asset creation (parallel)
+    |       terminal-demo-generator -> VHS recordings for terminal scenes
+    |       Browser recording -> Playwright captures for UI scenes
+    |
+    +---> Step 3: Composition
+    |       remotion-composer -> assembles clips into ScrapbookDemo composition
+    |       Renders both 16:9 and 1:1 variants
+    |
+    +---> Step 4: Audio (parallel with thumbnail)
+    |       music-sfx-selection -> selects style and generates via Kling 3.0
+    |       Audio mixing: music at -18dB, SFX at -12dB
+    |
+    +---> Step 5: Thumbnail
+    |       thumbnail-first-frame -> extracts frame, applies Scrapbook style
+    |
+    +---> Final: Merge audio + video, output files
+```
+
+### Hooks That Fire
+
+Throughout the pipeline, several hooks fire automatically:
+
+| Hook | Event | What It Does |
+|---|---|---|
+| `session-env-setup` | lifecycle/start | Detects `KLING_API_KEY`, `FAL_KEY`, `SUNO_API_KEY` availability |
+| `dangerous-command-blocker` | pretool/bash | Validates VHS and ffmpeg commands before execution |
+| `file-guard` | pretool/write | Prevents overwriting existing output files without confirmation |
+| `audit-logger` | posttool/bash | Records every tool execution for pipeline reproducibility |
+| `session-metrics` | posttool/bash | Tracks render times, file sizes, scene counts |
+
+### The Scrapbook Motion Style
+
+OrchestKit's video output follows the Anthropic "Scrapbook Motion" aesthetic, inspired by the Claude Opus 4 announcement video:
+
+| Element | Specification |
+|---|---|
+| Background | Warm paper texture `#F0F0E8` (not dark) |
+| Transitions | Fast cuts, 100-200ms, paper-fold effect |
+| Typography | Tiempos serif for impact text, Inter sans-serif for data |
+| Media | Mixed collage: terminal, browser, code, diagrams |
+| Audio | Lo-fi ambient, electronic stings for transitions |
+| Voiceover | None by default (clean, visual-first) |
+
+This style ensures every video produced through OrchestKit has a consistent, professional look without requiring design skills.
+
+### Remotion Composition Registry
+
+OrchestKit registers 79 Remotion compositions. The two most commonly used for demo videos:
+
+| Composition | Use Case | Outputs |
+|---|---|---|
+| `ScrapbookDemo` | Feature demos, tutorials | 16:9 + 1:1 |
+| `ReleaseNotes` | Changelog and version highlights | 16:9 + 1:1 |
+
+Each composition is a React component that accepts scene data (clips, overlays, timing) as props and renders a programmatic video. The scene data comes from `storyboard.json`, making every video fully reproducible.
+
+### Kling 3.0 Capabilities
+
+Kling 3.0 (launched February 4, 2026) is the primary video and audio engine:
+
+| Feature | Specification |
+|---|---|
+| Resolution | Up to 4K at 60fps |
+| Duration | Up to 15 seconds per clip |
+| Audio | Native generation in 5 languages |
+| Multi-shot | Up to 6 cuts per generation |
+| Element Library | Reusable assets and overlays |
+
+ElevenLabs serves as a backup TTS provider, used only when explicit narration is requested. HeyGen was deprecated in favor of Kling 3.0 for all video generation tasks.
+
+## Tips
+
+<Callout type="info">
+**Reuse storyboards.** The `storyboard.json` output file contains the full scene breakdown. Pass it back for iteration: `/ork:demo-producer --storyboard ./output/storyboard.json` skips the storyboarding step and goes straight to rendering. Useful for tweaking individual scenes without regenerating everything.
+</Callout>
+
+<Callout type="info">
+**Use 1:1 for social, 16:9 for presentations.** Both aspect ratios render by default. The 1:1 version is optimized for Twitter/LinkedIn feeds where square video gets more screen real estate. The 16:9 version is standard for YouTube, Slack, and slide decks.
+</Callout>
+
+<Callout type="warn">
+**Large videos need disk space.** Remotion renders frame-by-frame. A 60-second video at 30fps generates 1800 frames as intermediate PNGs before encoding to MP4. Ensure at least 2 GB of free disk space for the render. Intermediate files are cleaned up automatically after encoding.
+</Callout>
+
+<Callout type="info">
+**Add vertical video for TikTok and Reels.** Use the `--vertical` flag to generate a 9:16 output alongside the standard formats: `/ork:demo-producer --vertical "Demo the auth flow"`. The storyboarding skill automatically reframes scenes for portrait orientation, repositioning text overlays and cropping terminal recordings.
+</Callout>
+
+<Callout type="info">
+**No API keys? No problem.** Without `KLING_API_KEY`, the pipeline still generates the video -- just without generated audio. You can add a royalty-free music track manually in any video editor, or re-run with the key later using the saved storyboard. The pipeline is designed for graceful degradation at every step.
+</Callout>
+
+<Callout type="info">
+**Generate release videos from changelogs.** For release notes videos, pass your version tag: `/ork:demo-producer --type release-notes v6.0.2`. The agent reads your CHANGELOG.md, extracts highlights, and generates a ReleaseNotes composition automatically. No storyboarding step needed -- the changelog is the storyboard.
+</Callout>
+
+## Next Steps
+
+- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** -- Understand how agents and skills connect
+- **[Configuration](/docs/getting-started/configuration)** -- Set up `KLING_API_KEY` and other env vars
+- **[Security Audit Cookbook](/docs/cookbook/security-audit)** -- Another multi-agent workflow in action

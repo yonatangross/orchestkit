@@ -1,0 +1,44 @@
+---
+title: "AI Engineer"
+description: "OrchestKit toolkit for AI engineers"
+---
+
+## You're an AI engineer. Here's your toolkit.
+
+You build RAG pipelines, orchestrate multi-agent systems, wire up function calling, and optimize token costs. OrchestKit gives you 7 skills covering retrieval, embeddings, LangGraph, evaluation, and prompt caching -- plus 4 agents that can design agent workflows, integrate LLM APIs, build data pipelines, and craft prompts. When you describe an AI task, the relevant patterns for your specific LLM stack are injected automatically.
+
+## Your Skills
+
+| Skill | What it does |
+|---|---|
+| `rag-retrieval` | RAG pipeline patterns for context construction, citations, hybrid search, and grounded responses |
+| `langgraph-supervisor` | Supervisor-worker pattern for LangGraph with round-robin and priority-based agent dispatch |
+| `function-calling` | Tool schemas, execution loops, and structured output patterns for OpenAI, Anthropic, and Ollama |
+| `llm-evaluation` | LLM-as-judge patterns, quality gates for AI outputs, RAGAS metrics, and Langfuse integration |
+| `embeddings` | Embedding model selection, chunking strategies, vector indexing, and document similarity |
+| `contextual-retrieval` | Anthropic's Contextual Retrieval with hybrid BM25+vector search to reduce retrieval failures |
+| `prompt-caching` | Provider-native cache breakpoints for Claude and OpenAI to cut token costs on repeated prefixes |
+
+## Your Agents
+
+| Agent | Model | Activates when... |
+|---|---|---|
+| `workflow-architect` | opus | LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent orchestration |
+| `llm-integrator` | inherit | LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token costs |
+| `data-pipeline-engineer` | inherit | embeddings, chunking, vector index, data pipeline, batch processing, ETL, cache warming |
+| `prompt-engineer` | inherit | prompt design, chain-of-thought, few-shot, structured output, A/B testing, cost optimization |
+
+## Your Workflows
+
+- **[Implement a Feature](/docs/cookbook/implement-feature)** -- Describe an AI feature, get agents building retrieval pipelines, tool schemas, and evaluation harnesses in parallel
+- **[Set Up Memory](/docs/cookbook/setup-memory)** -- Configure OrchestKit's 4-tier memory system with knowledge graph, local storage, and optional mem0 cloud
+
+## Quick Start
+
+Try this right now:
+
+```bash
+/ork:implement "Build a RAG pipeline with contextual retrieval and reranking"
+```
+
+The `workflow-architect` agent activates with `rag-retrieval` and `contextual-retrieval` skills injected, producing a pipeline with document chunking, hybrid BM25+vector search, contextual embedding enrichment, and a reranking step with evaluation metrics.

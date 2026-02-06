@@ -1,0 +1,246 @@
+---
+title: "Graph Memory (Primary)"
+description: "The zero-config knowledge graph that stores entities and typed relations as OrchestKit's primary memory tier."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Graph memory is Tier 1 -- the **primary** storage layer in OrchestKit's memory architecture. It uses the `@anthropic/memory-mcp-server` to maintain a knowledge graph of entities and their relationships. It requires zero configuration and is always available.
+
+## How It Works
+
+The knowledge graph stores two things:
+
+1. **Entities** -- named nodes with a type and a list of observations
+2. **Relations** -- directed, typed edges between entities
+
+When you run `/ork:remember "database-engineer uses pgvector for RAG applications"`, the system creates:
+
+```
+Entities:
+  - database-engineer (Agent)     observations: ["Uses pgvector for RAG"]
+  - pgvector (Technology)         observations: ["Used for RAG applications"]
+  - RAG (Pattern)                 observations: ["Implemented with pgvector"]
+
+Relations:
+  database-engineer --USES--> pgvector
+  pgvector --USED_FOR--> RAG
+```
+
+This structure enables precise queries that flat text search cannot answer: "What does database-engineer use?" returns `pgvector` via the `USES` relation. "What is pgvector used for?" returns `RAG` via the `USED_FOR` relation.
+
+## MCP Commands
+
+All graph operations go through the MCP memory server. OrchestKit wraps these in hooks and skills so you rarely call them directly, but understanding the API helps when debugging or doing advanced queries.
+
+### Creating Entities
+
+```
+mcp__memory__create_entities
+{
+  "entities": [
+    {
+      "name": "cursor-pagination",
+      "entityType": "Pattern",
+      "observations": [
+        "Chosen for all list endpoints",
+        "Scales well for 2M+ row tables"
+      ]
+    },
+    {
+      "name": "PostgreSQL",
+      "entityType": "Technology",
+      "observations": [
+        "Primary database for transactional data"
+      ]
+    }
+  ]
+}
+```
+
+### Creating Relations
+
+```
+mcp__memory__create_relations
+{
+  "relations": [
+    {
+      "from": "project",
+      "to": "cursor-pagination",
+      "relationType": "CHOSE"
+    },
+    {
+      "from": "cursor-pagination",
+      "to": "offset-pagination",
+      "relationType": "CHOSE_OVER"
+    }
+  ]
+}
+```
+
+### Searching the Graph
+
+```
+mcp__memory__search_nodes
+{
+  "query": "pagination database"
+}
+```
+
+Returns matching entities with their observations and connected relations. This is the call the `memory-context` hook generates automatically on every prompt.
+
+### Opening Entity Details
+
+```
+mcp__memory__open_nodes
+{
+  "names": ["cursor-pagination", "PostgreSQL"]
+}
+```
+
+Returns full entity details including all observations and all relations where the entity appears (as source or target).
+
+### Adding Observations
+
+```
+mcp__memory__add_observations
+{
+  "observations": [
+    {
+      "entityName": "cursor-pagination",
+      "contents": ["Confirmed to handle 5M rows with sub-100ms response"]
+    }
+  ]
+}
+```
+
+Appends new observations to an existing entity without creating duplicates. The `/ork:remember` skill uses this when it detects that an entity already exists in the graph.
+
+## Entity Types
+
+The memory writer infers entity types from the content of your text:
+
+| Entity Type | Examples | When Assigned |
+|---|---|---|
+| `Technology` | PostgreSQL, React, FastAPI, pgvector | Capitalized technology names |
+| `Pattern` | cursor-pagination, connection-pooling, CQRS | Named patterns and conventions |
+| `Decision` | "Use JWT for auth" | Text with "decided", "chose", "selected" |
+| `Preference` | "Prefer TypeScript over JavaScript" | User preferences |
+| `AntiPattern` | offset-pagination (failed) | Patterns marked with `--failed` |
+| `Agent` | database-engineer, backend-system-architect | OrchestKit agent names |
+| `Tool` | grep, jest, pytest | Development tools |
+| `Workflow` | CI/CD pipeline, release process | Process descriptions |
+| `Solution` | "Fixed N+1 with DataLoader" | Problem-solution records |
+
+## Relation Types
+
+| Relation | Meaning | Example |
+|---|---|---|
+| `CHOSE` | Active selection | `project --CHOSE--> JWT` |
+| `CHOSE_OVER` | Rejected alternative | `JWT --CHOSE_OVER--> session-cookies` |
+| `USES` | Active usage | `auth-service --USES--> JWT` |
+| `USED_FOR` | Purpose | `pgvector --USED_FOR--> RAG` |
+| `REQUIRES` | Dependency | `auth-service --REQUIRES--> PostgreSQL` |
+| `ENABLES` | Capability | `pgvector --ENABLES--> semantic-search` |
+| `PREFERS` | Preference | `user --PREFERS--> TypeScript` |
+| `RELATES_TO` | Co-occurrence | `PostgreSQL --RELATES_TO--> pgvector` |
+| `CONSTRAINT` | Limiting factor | `decision --CONSTRAINT--> "must be HIPAA compliant"` |
+| `TRADEOFF` | Accepted cost | `decision --TRADEOFF--> "more complex deployment"` |
+| `MENTIONS` | Reference | `decision --MENTIONS--> FastAPI` |
+| `SOLVED_BY` | Resolution | `N+1-problem --SOLVED_BY--> DataLoader` |
+
+## Hooks That Read the Graph
+
+| Hook | Lifecycle | What It Does |
+|---|---|---|
+| `memory-context` | `prompt` | Searches graph for entities matching prompt keywords; injects search hints into Claude's context |
+| `memory-context-loader` | `prompt` (once) | Loads recent decisions from local JSONL on session start |
+| `graph-memory-inject` | `subagent-start` | Searches graph for entities in the spawned agent's domain (e.g., database keywords for database-engineer) |
+| `memory-fabric-init` | `pretool` (once) | Lazy initialization of memory directories and session registration on first memory MCP call |
+
+## Hooks That Write to the Graph
+
+| Hook | Lifecycle | What It Does |
+|---|---|---|
+| `memory-bridge` | `posttool` | Confirms graph writes after `mcp__memory__create_entities` calls |
+| `agent-memory-store` | `subagent-stop` | Extracts patterns from agent output and queues them for graph storage |
+| `auto-remember-continuity` | `stop` | Prompts Claude to persist session context to graph before ending |
+
+## Agent Domain Mapping
+
+When the `graph-memory-inject` hook fires for an agent spawn, it maps the agent type to domain keywords for targeted graph search:
+
+| Agent | Search Keywords |
+|---|---|
+| `database-engineer` | database schema SQL PostgreSQL migration pgvector |
+| `backend-system-architect` | API REST architecture backend FastAPI microservice |
+| `frontend-ui-developer` | React frontend UI component TypeScript Tailwind |
+| `security-auditor` | security OWASP vulnerability audit authentication |
+| `workflow-architect` | LangGraph workflow agent orchestration state |
+| `llm-integrator` | LLM API OpenAI Anthropic embeddings RAG function-calling |
+
+This means a `database-engineer` agent automatically inherits all graph knowledge about PostgreSQL, schemas, and migrations stored in previous sessions.
+
+## User-Facing Commands
+
+### Storing Knowledge
+
+```bash
+# The /ork:remember skill writes to graph as primary
+/ork:remember "Use PostgreSQL with pgvector for vector search"
+```
+
+Behind the scenes, the skill calls `mcp__memory__create_entities` and `mcp__memory__create_relations` to build the graph. It also writes to Tier 2 (local JSONL) as a backup.
+
+### Searching Knowledge
+
+```bash
+# The /ork:memory search skill queries the graph
+/ork:memory search "database indexing strategy"
+```
+
+This calls `mcp__memory__search_nodes` and formats results showing entity types, observations, and relations.
+
+### Visualizing the Graph
+
+```bash
+# Render as Mermaid diagram
+/ork:memory viz
+
+# Focus on specific entity
+/ork:memory viz --entity PostgreSQL --depth 2
+
+# Filter by entity type
+/ork:memory viz --type Technology
+```
+
+## MCP Server Configuration
+
+The knowledge graph MCP server is configured automatically by Claude Code. If you need to verify or troubleshoot the setup, the server configuration is:
+
+```json
+{
+  "mcpServers": {
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/memory-mcp-server"]
+    }
+  }
+}
+```
+
+<Callout type="info">
+The graph MCP server stores data locally on your machine. No data is sent to external servers. The graph persists across sessions automatically -- you do not need to configure storage paths or databases.
+</Callout>
+
+## Graph Size and Performance
+
+The `graph-memory-inject` hook includes a safety check: if the graph data file is smaller than 100 bytes (approximately fewer than 3 entities), it skips injection to avoid noisy empty results. As you store more decisions, the graph grows richer and the injected context becomes more valuable.
+
+The `memory-context` hook requires prompts to be at least 20 characters long before triggering a search. Single-word prompts or very short questions are skipped to avoid low-quality matches.
+
+## Next Steps
+
+- [Local Persistence](/docs/memory/local-memory) -- how local JSONL files back up and queue graph operations
+- [Architecture Overview](/docs/memory/overview) -- see how graph memory fits into the 4-tier system
+- [Set Up Cross-Session Memory](/docs/cookbook/setup-memory) -- hands-on walkthrough

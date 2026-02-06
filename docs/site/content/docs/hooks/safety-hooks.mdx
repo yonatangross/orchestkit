@@ -1,0 +1,345 @@
+---
+title: "Security Gates and File Guards"
+description: "How OrchestKit blocks dangerous commands, protects sensitive files, and auto-approves safe operations -- the defense-in-depth hooks that run before every tool use."
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+## Defense in Depth
+
+OrchestKit implements security at multiple layers. No single hook is responsible for all safety -- instead, hooks compose to form a defense-in-depth chain:
+
+```
+PermissionRequest  -->  PreToolUse  -->  Tool Executes  -->  PostToolUse
+      |                     |                                     |
+  auto-approve          file-guard                          secret-redactor
+  safe commands     dangerous-command-blocker               audit-logger
+  project writes    security-pattern-validator               error-handler
+                    architecture-change-detector
+                    multi-instance-lock
+```
+
+If any hook in the chain returns `{ continue: false }`, the operation is blocked and Claude receives the `stopReason` explaining why.
+
+## Dangerous Command Blocker
+
+**Hook:** `pretool/bash/dangerous-command-blocker`
+**Event:** PreToolUse (Bash)
+**Behavior:** Blocks commands that match known destructive patterns.
+
+### What It Blocks
+
+The blocker checks against three categories of dangerous patterns:
+
+<Tabs items={["Literal Patterns", "Regex Patterns"]}>
+<Tab value="Literal Patterns">
+
+These are matched as literal substrings in the normalized (lowercased, whitespace-collapsed) command:
+
+| Pattern | Category |
+|---------|----------|
+| `rm -rf /` | Filesystem destruction |
+| `rm -rf ~` | Filesystem destruction |
+| `rm -fr /` | Filesystem destruction (alternate flag order) |
+| `rm -fr ~` | Filesystem destruction |
+| `mv /* /dev/null` | Filesystem destruction |
+| `> /dev/sda` | Device wiping |
+| `mkfs.` | Device wiping (filesystem format) |
+| `dd if=/dev/zero of=/dev/` | Device wiping |
+| `dd if=/dev/random of=/dev/` | Device wiping |
+| `chmod -R 777 /` | Permission abuse |
+| `:(){:\|:&};:` | Fork bomb |
+| `git reset --hard` | Destructive git (data loss) |
+| `git clean -fd` | Destructive git (data loss) |
+| `drop database` | Database destruction |
+| `drop schema` | Database destruction |
+| `truncate table` | Database destruction |
+
+</Tab>
+<Tab value="Regex Patterns">
+
+These are matched using regular expressions for patterns that require flexible matching:
+
+| Pattern | What It Catches |
+|---------|-----------------|
+| `/\|\s*(sh\|bash\|zsh\|dash)\b/i` | Piping to shell: `curl url \| bash`, `wget url \| sh` |
+| `/git\s+push\s+.*(-f\|--force)\b/i` | Force push: `git push --force`, `git push -f origin main` |
+
+</Tab>
+</Tabs>
+
+### How Normalization Prevents Bypass
+
+Before pattern matching, commands are normalized to prevent evasion techniques:
+
+```typescript
+function normalizeCommand(command: string): string {
+  return command
+    .replace(/\\\s*[\r\n]+/g, ' ')  // Remove line continuations (rm -rf \<newline>/)
+    .replace(/\n/g, ' ')             // Replace newlines with spaces
+    .replace(/\s+/g, ' ')            // Collapse whitespace
+    .trim();
+}
+```
+
+This means `rm \<newline>-rf /` is caught just as reliably as `rm -rf /`.
+
+### When a Command Is Blocked
+
+The user sees a clear denial message:
+
+```json
+{
+  "continue": false,
+  "stopReason": "Command matches dangerous pattern: rm -rf /\n\nThis command could cause severe system damage and has been blocked.",
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "deny",
+    "permissionDecisionReason": "Command matches dangerous pattern: rm -rf /"
+  }
+}
+```
+
+Every denial is also logged to `permission-feedback.log` for audit:
+
+```
+2026-01-23T10:15:30.123Z | deny | Dangerous pattern: rm -rf / | tool=Bash | session=abc123
+```
+
+## File Guard
+
+**Hook:** `pretool/write-edit/file-guard`
+**Event:** PreToolUse (Write|Edit)
+**Behavior:** Blocks writes to sensitive files, warns on config files.
+
+### Protected Files (Always Blocked)
+
+| Pattern | Files Matched |
+|---------|---------------|
+| `/\.env$/` | `.env` |
+| `/\.env\.local$/` | `.env.local` |
+| `/\.env\.production$/` | `.env.production` |
+| `/credentials\.json$/` | `credentials.json` |
+| `/secrets\.json$/` | `secrets.json` |
+| `/private\.key$/` | `private.key` |
+| `/\.pem$/` | Any `.pem` file |
+| `/id_rsa$/` | SSH private key |
+| `/id_ed25519$/` | SSH private key (Ed25519) |
+
+### Config Files (Warning Only)
+
+These files trigger a warning log but are allowed through:
+
+| Pattern | Files Matched |
+|---------|---------------|
+| `/package\.json$/` | `package.json` |
+| `/pyproject\.toml$/` | `pyproject.toml` |
+| `/tsconfig\.json$/` | `tsconfig.json` |
+
+### Symlink Resolution (ME-001 Fix)
+
+The file guard resolves symlinks before checking patterns to prevent bypass attacks:
+
+```typescript
+function resolveRealPath(filePath: string, projectDir: string): string {
+  const absolutePath = isAbsolute(filePath)
+    ? filePath
+    : resolve(projectDir, filePath);
+
+  // Follow symlinks if file exists
+  if (existsSync(absolutePath)) {
+    return realpathSync(absolutePath);  // Resolves symlinks
+  }
+
+  return absolutePath;
+}
+```
+
+Without this, an attacker could create `harmless.txt -> .env` and write to the symlink to bypass the guard. The `realpathSync` call resolves the real target before pattern matching.
+
+### Denial Message
+
+When a protected file is blocked:
+
+```
+Cannot modify protected file: .env
+
+Resolved path: /Users/dev/project/.env
+Matched pattern: /\.env$/
+
+Protected files include:
+- Environment files (.env, .env.local, .env.production)
+- Credential files (credentials.json, secrets.json)
+- Private keys (.pem, id_rsa, id_ed25519)
+
+If you need to modify this file, do it manually outside Claude Code.
+```
+
+## Permission Auto-Approve Hooks
+
+OrchestKit includes three permission hooks that reduce friction for safe operations.
+
+### Auto-Approve Safe Bash
+
+**Hook:** `permission/auto-approve-safe-bash`
+**Event:** PermissionRequest (Bash)
+
+Auto-approves bash commands that are known to be read-only or safe:
+
+| Category | Approved Patterns |
+|----------|-------------------|
+| **Git read ops** | `git status`, `git log`, `git diff`, `git branch`, `git show`, `git fetch`, `git pull`, `git checkout` |
+| **Package managers** | `npm list`, `npm test`, `npm run`, `pnpm audit`, `yarn outdated`, `poetry show` |
+| **Docker read ops** | `docker ps`, `docker images`, `docker logs`, `docker-compose ps` |
+| **Shell basics** | `ls`, `pwd`, `echo`, `cat`, `head`, `tail`, `wc`, `find`, `which`, `env` |
+| **GitHub CLI** | `gh issue list`, `gh pr view`, `gh repo status`, `gh milestone` |
+| **Testing/linting** | `pytest`, `npm run test`, `npm run lint`, `ruff check`, `mypy` |
+
+Commands not matching any safe pattern fall through to manual user approval -- they are not denied, just not auto-approved.
+
+### Auto-Approve Project Writes
+
+**Hook:** `permission/auto-approve-project-writes`
+**Event:** PermissionRequest (Write|Edit)
+
+Auto-approves file writes that are within the project directory, with exclusions:
+
+```typescript
+// Path containment check (prevents prefix attacks)
+const relativePath = relative(normalizedProject, normalizedFile);
+const isInsideProject = !relativePath.startsWith('..') && !isAbsolute(relativePath);
+```
+
+**Excluded directories** (require manual approval even within project):
+- `node_modules/`
+- `.git/`
+- `dist/`
+- `build/`
+- `__pycache__/`
+- `.venv/` and `venv/`
+
+<Callout type="info">
+The path containment check uses `path.relative()` instead of string prefix matching. This prevents the attack where `/project-malicious/evil.js` would match a project at `/project` via naive `startsWith` comparison.
+</Callout>
+
+### Auto-Approve Read Operations
+
+Read, Glob, and Grep operations have an empty hooks array in the `PermissionRequest` configuration, meaning Claude Code auto-approves them with zero overhead.
+
+### Learning Tracker
+
+**Hook:** `permission/learning-tracker`
+**Event:** PermissionRequest (Bash)
+
+Tracks which commands the user manually approves over time. This data feeds into pattern learning -- if you consistently approve `docker build` commands, the system notes this for potential future auto-approval.
+
+## Additional PreToolUse Safety Hooks
+
+Beyond the command blocker and file guard, several other hooks provide safety at the PreToolUse stage:
+
+### Compound Command Validator
+
+**Hook:** `pretool/bash/compound-command-validator`
+
+Validates compound bash commands (piped, chained with `&&` or `;`) to ensure no individual segment contains dangerous patterns that might be hidden within a longer command.
+
+### Security Pattern Validator
+
+**Hook:** `pretool/Write/security-pattern-validator`
+
+Checks code being written for common security anti-patterns:
+- Hardcoded secrets or API keys
+- SQL injection vulnerabilities
+- Unsafe deserialization patterns
+
+### Architecture Change Detector
+
+**Hook:** `pretool/Write/architecture-change-detector`
+
+Detects when a write modifies a file that represents a significant architectural component. Injects context reminding Claude to consider backwards compatibility and documentation updates.
+
+### Multi-Instance Lock
+
+**Hook:** `pretool/write-edit/multi-instance-lock`
+
+When multiple Claude instances are running on the same project, this hook acquires a file lock before allowing writes. Uses atomic file operations (write to temp, then `renameSync`) to prevent race conditions.
+
+### Agent-Scoped Safety (Task hooks)
+
+When spawning subagents via the Task tool, 5 additional hooks validate the operation:
+
+| Hook | Purpose |
+|------|---------|
+| `agent/block-writes` | Prevents certain agents from writing outside their scope |
+| `agent/migration-safety-check` | Validates database migrations before execution |
+| `agent/security-command-audit` | Audits commands issued by security-sensitive agents |
+| `agent/ci-safety-check` | Validates CI/CD pipeline modifications |
+| `agent/deployment-safety-check` | Guards against risky deployment operations |
+
+## PostToolUse Safety
+
+### Secret Redactor
+
+**Hook:** `skill/redact-secrets`
+**Event:** PostToolUse (Bash)
+
+After a bash command completes, this hook scans the output for patterns that look like secrets (API keys, tokens, passwords) and redacts them before they appear in the conversation context.
+
+### Unified Error Handler
+
+**Hook:** `posttool/unified-error-handler`
+**Event:** PostToolUse (Bash|Write|Edit|Task|Skill|NotebookEdit)
+
+Categorizes tool failures and provides actionable recovery suggestions. Tracks error patterns across the session to detect systemic issues.
+
+## Customizing Safety Hooks
+
+### Hook Overrides
+
+You can disable specific hooks per-project by creating `.claude/hook-overrides.json`:
+
+```json
+{
+  "disabled": [
+    "pretool/Write/docstring-enforcer"
+  ],
+  "timeouts": {
+    "pretool/bash/license-compliance": 5
+  }
+}
+```
+
+<Callout type="warn">
+Never disable security-critical hooks like `dangerous-command-blocker` or `file-guard`. These exist to prevent catastrophic damage and should remain active at all times.
+</Callout>
+
+### Permission Mode: dontAsk
+
+Claude Code 2.1.25 introduced `permissionMode: 'dontAsk'` for automated workflows. When this mode is active, quality gates emit warnings instead of blocking:
+
+```typescript
+import { isDontAskMode } from './lib/guards.js';
+
+export function myQualityGate(input: HookInput): HookResult {
+  if (isDontAskMode(input)) {
+    // Warn instead of block in automated mode
+    return outputWarning('Code quality issue detected');
+  }
+  return outputBlock('Code quality issue -- fix before proceeding');
+}
+```
+
+Security-critical hooks (dangerous command blocker, file guard) always block regardless of permission mode.
+
+## Audit Trail
+
+All permission decisions are logged to `~/.claude/logs/ork/permission-feedback.log`:
+
+```
+2026-01-23T10:15:30.123Z | allow | Matches safe pattern: /^git status/ | tool=Bash | session=abc123
+2026-01-23T10:15:31.456Z | deny  | Protected file blocked: .env | tool=Write | session=abc123
+2026-01-23T10:15:32.789Z | warn  | Config file modification: package.json | tool=Edit | session=abc123
+```
+
+The log rotates automatically at 100 KB. General hook activity is logged to `hooks.log` with rotation at 200 KB.

@@ -1,0 +1,43 @@
+---
+title: "Backend Developer"
+description: "OrchestKit toolkit for backend developers"
+---
+
+## You're a backend developer. Here's your toolkit.
+
+You build APIs, design database schemas, wire up background jobs, and keep services fast under load. OrchestKit gives you 7 skills covering FastAPI, SQLAlchemy, Celery, caching, and connection management -- plus 3 agents that can design endpoints, write migrations, and architect event-driven systems alongside you. Instead of switching between docs tabs, you describe what you need and the right patterns are injected automatically.
+
+## Your Skills
+
+| Skill | What it does |
+|---|---|
+| `fastapi-advanced` | Lifespan events, dependency injection, middleware chains, and Pydantic settings for async Python services |
+| `database-schema-designer` | SQL and NoSQL schema design with normalization, indexing strategies, and migration planning |
+| `alembic-migrations` | Alembic migration patterns for SQLAlchemy 2.0 async -- reversible changes, zero-downtime deploys |
+| `celery-advanced` | Canvas workflows, priority queues, rate limiting, multi-queue routing, and Flower monitoring |
+| `sqlalchemy-2-async` | AsyncSession, async_sessionmaker, and FastAPI integration for async ORM queries |
+| `connection-pooling` | asyncpg and aiohttp pool configuration, connection lifecycle tuning for high-concurrency services |
+| `caching-strategies` | Redis write-through, write-behind, cache-aside, TTL management, and stampede prevention |
+
+## Your Agents
+
+| Agent | Model | Activates when... |
+|---|---|---|
+| `backend-system-architect` | opus | API design, database schema, microservice, REST, GraphQL, JWT, middleware, dependency injection |
+| `database-engineer` | inherit | database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint |
+| `event-driven-architect` | opus | event sourcing, message queue, Kafka, RabbitMQ, pub/sub, CQRS, saga, outbox pattern |
+
+## Your Workflows
+
+- **[Implement a Feature](/docs/cookbook/implement-feature)** -- Describe a feature, get parallel agents writing endpoints, tests, and security scans simultaneously
+- **[Run a Security Audit](/docs/cookbook/security-audit)** -- 8-layer defense-in-depth scan that checks auth, input validation, and data handling across your backend
+
+## Quick Start
+
+Try this right now:
+
+```bash
+/ork:implement "Add cursor-based pagination to the /api/users endpoint"
+```
+
+The `backend-system-architect` agent picks up the task, pulls in `api-design-framework` and `fastapi-advanced` skills, and produces the endpoint with proper cursor encoding, Pydantic response models, and integration tests.

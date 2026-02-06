@@ -1,0 +1,626 @@
+---
+title: "Create Your Own Hook"
+description: "Step-by-step guide to writing, registering, building, and testing a custom OrchestKit hook -- from TypeScript types to esbuild bundles."
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+## Prerequisites
+
+Before writing a hook, make sure you can build the hooks project:
+
+```bash
+cd src/hooks
+npm install
+npm run build       # Compile TypeScript to ESM bundles
+npm run typecheck   # Verify types without building
+npm test            # Run the test suite
+```
+
+## The HookInput / HookResult Types
+
+Every hook is a function that receives `HookInput` and returns `HookResult`. These types are defined in `src/hooks/src/types.ts`.
+
+### HookInput
+
+This is the JSON payload that Claude Code pipes to your hook via stdin:
+
+```typescript
+interface HookInput {
+  // Core fields (always present)
+  hook_event?: HookEvent;       // 'PreToolUse' | 'PostToolUse' | 'PermissionRequest' | ...
+  tool_name: string;            // 'Bash' | 'Write' | 'Edit' | 'Read' | 'Task' | ...
+  session_id: string;           // Guaranteed by CC 2.1.9+
+  tool_input: ToolInput;        // Tool-specific parameters (see below)
+  project_dir?: string;         // Absolute path to the project
+
+  // PostToolUse only
+  tool_output?: unknown;        // The tool's output
+  tool_error?: string;          // Error message if the tool failed
+  exit_code?: number;           // Bash exit code
+
+  // UserPromptSubmit only
+  prompt?: string;              // The user's prompt text
+
+  // SubagentStart / SubagentStop
+  subagent_type?: string;       // Agent type being spawned
+  agent_output?: string;        // Agent output (SubagentStop)
+  duration_ms?: number;         // Execution time
+
+  // CC 2.1.25
+  permissionMode?: 'default' | 'acceptEdits' | 'dontAsk';
+}
+```
+
+### ToolInput
+
+The `tool_input` field varies by tool:
+
+```typescript
+interface ToolInput {
+  command?: string;       // Bash tool
+  timeout?: number;       // Bash tool
+  file_path?: string;     // Write, Edit, Read tools
+  content?: string;       // Write tool
+  old_string?: string;    // Edit tool
+  new_string?: string;    // Edit tool
+  pattern?: string;       // Glob, Grep tools
+  [key: string]: unknown; // Additional properties
+}
+```
+
+Use the built-in type guards for safe access:
+
+```typescript
+import { isBashInput, isWriteInput, isEditInput, isReadInput } from '../types.js';
+
+if (isBashInput(input.tool_input)) {
+  // TypeScript knows input.tool_input.command exists
+  const command: string = input.tool_input.command;
+}
+
+if (isWriteInput(input.tool_input)) {
+  // TypeScript knows file_path and content exist
+  const { file_path, content } = input.tool_input;
+}
+```
+
+### HookResult
+
+This is the JSON your hook writes to stdout:
+
+```typescript
+interface HookResult {
+  continue: boolean;              // true = proceed, false = block
+  suppressOutput?: boolean;       // Hide hook output from user
+  systemMessage?: string;         // Message shown to user
+  stopReason?: string;            // Why the operation was blocked (when continue=false)
+  hookSpecificOutput?: {
+    permissionDecision?: 'allow' | 'deny';
+    permissionDecisionReason?: string;
+    additionalContext?: string;     // Injected into Claude's context (CC 2.1.9)
+    hookEventName?: HookEvent;     // Required when using additionalContext
+    updatedInput?: Record<string, unknown>; // Modify tool input (CC 2.1.25)
+  };
+}
+```
+
+### HookFn
+
+The function signature:
+
+```typescript
+type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+```
+
+Hooks can be synchronous or async. Prefer synchronous for PreToolUse and PermissionRequest hooks (critical path). Use async for PostToolUse and analytics hooks where latency is less critical.
+
+## Step-by-Step: Write a Hook
+
+Let's build a hook that warns when Claude writes a file longer than 500 lines.
+
+<Steps>
+<Step>
+### Create the Hook File
+
+Place it in the appropriate directory based on when it fires:
+
+```bash
+# PreToolUse hook for Write operations
+touch src/hooks/src/pretool/Write/large-file-warner.ts
+```
+
+Directory conventions:
+- `pretool/bash/` -- PreToolUse hooks for Bash commands
+- `pretool/write-edit/` -- PreToolUse hooks for Write and Edit
+- `pretool/Write/` -- PreToolUse hooks for Write only
+- `posttool/` -- PostToolUse hooks
+- `prompt/` -- UserPromptSubmit hooks
+- `permission/` -- PermissionRequest hooks
+- `lifecycle/` -- SessionStart / SessionEnd hooks
+- `stop/` -- Stop event hooks
+</Step>
+
+<Step>
+### Implement the Hook
+
+```typescript
+/**
+ * Large File Warner - Warns when writing files over 500 lines
+ * Hook: PreToolUse (Write)
+ */
+
+import type { HookInput, HookResult } from '../../types.js';
+import {
+  outputSilentSuccess,
+  outputAllowWithContext,
+  logHook,
+} from '../../lib/common.js';
+
+const MAX_LINES = 500;
+
+export function largeFileWarner(input: HookInput): HookResult {
+  const content = input.tool_input.content || '';
+  const filePath = input.tool_input.file_path || '';
+
+  // Skip if no content (Edit operations don't have full content)
+  if (!content) {
+    return outputSilentSuccess();
+  }
+
+  const lineCount = content.split('\n').length;
+
+  if (lineCount > MAX_LINES) {
+    logHook('large-file-warner', `Large file detected: ${filePath} (${lineCount} lines)`);
+
+    return outputAllowWithContext(
+      `This file has ${lineCount} lines (threshold: ${MAX_LINES}). ` +
+      `Consider splitting into smaller modules for maintainability.`
+    );
+  }
+
+  return outputSilentSuccess();
+}
+```
+
+Key patterns demonstrated:
+- **Early return** for cases that don't apply
+- **`outputSilentSuccess()`** when everything is fine (no output to user)
+- **`outputAllowWithContext()`** to allow the operation but inject a hint for Claude
+- **`logHook()`** for debug logging (respects `ORCHESTKIT_LOG_LEVEL`)
+</Step>
+
+<Step>
+### Register in the Entry Point
+
+Add the hook to the appropriate entry point for split bundle loading. For a PreToolUse Write hook, that is `src/entries/pretool.ts`:
+
+```typescript
+// In src/hooks/src/entries/pretool.ts
+import { largeFileWarner } from '../pretool/Write/large-file-warner.js';
+
+export const hooks: Record<string, HookFn> = {
+  // ... existing hooks ...
+  'pretool/Write/large-file-warner': largeFileWarner,
+};
+```
+
+Also add to `src/index.ts` for the unified bundle (used by CLI tools):
+
+```typescript
+export { largeFileWarner } from './pretool/Write/large-file-warner.js';
+```
+</Step>
+
+<Step>
+### Register in hooks.json
+
+Add the hook to `src/hooks/hooks.json` under the appropriate event and matcher:
+
+```json
+{
+  "matcher": "Write|Edit",
+  "hooks": [
+    // ... existing hooks ...
+    {
+      "type": "command",
+      "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/Write/large-file-warner"
+    }
+  ]
+}
+```
+
+The `matcher` field is a regex-like pattern that Claude Code matches against the tool name. Common matchers:
+- `"Bash"` -- Bash tool only
+- `"Write|Edit"` -- Write or Edit tools
+- `"Bash|Write|Edit|Task|Skill|NotebookEdit"` -- Multiple tools
+- `"mcp__memory__*"` -- MCP memory tools (glob pattern)
+</Step>
+
+<Step>
+### Build
+
+```bash
+cd src/hooks
+npm run build
+```
+
+This compiles all entry points into split bundles in `dist/`. Verify your hook is included:
+
+```bash
+cat dist/bundle-stats.json | python3 -m json.tool
+```
+
+Check that the `pretool` bundle size increased slightly.
+</Step>
+
+<Step>
+### Test Manually
+
+Pipe a mock input to your hook:
+
+```bash
+echo '{"tool_name":"Write","session_id":"test","tool_input":{"file_path":"big.ts","content":"'$(python3 -c "print('line\\\\n' * 600)")'"}}' | \
+  node bin/run-hook.mjs pretool/Write/large-file-warner
+```
+
+Expected output (prettified):
+
+```json
+{
+  "continue": true,
+  "suppressOutput": true,
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "additionalContext": "This file has 600 lines (threshold: 500). Consider splitting into smaller modules.",
+    "permissionDecision": "allow"
+  }
+}
+```
+</Step>
+
+<Step>
+### Write a Vitest Test
+
+Create `src/hooks/src/__tests__/large-file-warner.test.ts`:
+
+```typescript
+import { describe, it, expect } from 'vitest';
+import { largeFileWarner } from '../pretool/Write/large-file-warner.js';
+import type { HookInput } from '../types.js';
+
+function makeInput(lines: number): HookInput {
+  return {
+    tool_name: 'Write',
+    session_id: 'test-session',
+    tool_input: {
+      file_path: 'test.ts',
+      content: Array(lines).fill('const x = 1;').join('\n'),
+    },
+  };
+}
+
+describe('large-file-warner', () => {
+  it('allows small files silently', () => {
+    const result = largeFileWarner(makeInput(100));
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+    expect(result.hookSpecificOutput).toBeUndefined();
+  });
+
+  it('warns on large files but allows them', () => {
+    const result = largeFileWarner(makeInput(600));
+    expect(result.continue).toBe(true);
+    expect(result.hookSpecificOutput?.additionalContext).toContain('600 lines');
+  });
+
+  it('handles missing content gracefully', () => {
+    const result = largeFileWarner({
+      tool_name: 'Write',
+      session_id: 'test',
+      tool_input: { file_path: 'test.ts' },
+    });
+    expect(result.continue).toBe(true);
+  });
+});
+```
+
+Run the test:
+
+```bash
+cd src/hooks
+npm test -- --filter large-file-warner
+```
+</Step>
+</Steps>
+
+## Output Builders Reference
+
+Use the helpers from `lib/common.ts` for consistent output. Never construct `HookResult` objects manually.
+
+| Builder | Returns | Use When |
+|---------|---------|----------|
+| `outputSilentSuccess()` | `{ continue: true, suppressOutput: true }` | Hook completed, nothing to report |
+| `outputSilentAllow()` | `{ continue: true, ..., permissionDecision: 'allow' }` | PermissionRequest: auto-approve |
+| `outputBlock(reason)` | `{ continue: false, stopReason: reason }` | Block the operation with explanation |
+| `outputDeny(reason)` | `{ continue: false, ..., permissionDecision: 'deny' }` | PermissionRequest: deny |
+| `outputWithContext(ctx)` | `{ continue: true, ..., additionalContext: ctx }` | PostToolUse: inject context |
+| `outputPromptContext(ctx)` | `{ continue: true, ..., additionalContext: ctx }` | UserPromptSubmit: inject context |
+| `outputAllowWithContext(ctx)` | `{ continue: true, ..., additionalContext: ctx, permissionDecision: 'allow' }` | PreToolUse: allow + context |
+| `outputWarning(msg)` | `{ continue: true, systemMessage: msg }` | Show a warning to the user |
+| `outputError(msg)` | `{ continue: true, systemMessage: msg }` | Show an error (non-blocking) |
+| `outputWithUpdatedInput(input)` | `{ continue: true, ..., updatedInput: input }` | Modify tool input (CC 2.1.25) |
+
+## Guards Reference
+
+Guards are predicates that determine whether a hook should run. Apply them at the top of your hook function for early returns.
+
+```typescript
+import { guardBash, guardWriteEdit, runGuards } from '../../lib/guards.js';
+
+export function myHook(input: HookInput): HookResult {
+  // Single guard
+  const guardResult = guardBash(input);
+  if (guardResult) return guardResult;
+
+  // Multiple guards (all must pass)
+  const result = runGuards(input, guardBash, guardNontrivialBash);
+  if (result) return result;
+
+  // Hook logic...
+}
+```
+
+| Guard | Passes When |
+|-------|-------------|
+| `guardBash(input)` | `tool_name === 'Bash'` |
+| `guardWriteEdit(input)` | `tool_name === 'Write'` or `'Edit'` |
+| `guardTool(input, ...tools)` | `tool_name` matches any of the given tools |
+| `guardCodeFiles(input)` | File extension is `.py`, `.ts`, `.tsx`, `.js`, `.jsx`, `.go`, `.rs`, `.java` |
+| `guardPythonFiles(input)` | File extension is `.py` |
+| `guardTypescriptFiles(input)` | File extension is `.ts`, `.tsx`, `.js`, `.jsx` |
+| `guardTestFiles(input)` | File path contains `test`, `spec`, or `__tests__` |
+| `guardSkipInternal(input)` | File path is NOT in `.claude/`, `node_modules/`, `.git/`, `dist/`, etc. |
+| `guardNontrivialBash(input)` | Command is not `echo`, `ls`, `pwd`, `cat`, `head`, `tail`, `wc`, `date`, `whoami` |
+| `guardGitCommand(input)` | Command starts with `git` |
+| `guardFileExtension(input, ...exts)` | File extension matches any of the given extensions |
+| `guardPathPattern(input, ...patterns)` | File path matches any of the given patterns |
+| `guardMultiInstance(input)` | Multi-instance coordination database exists |
+| `isDontAskMode(input)` | `permissionMode === 'dontAsk'` (CC 2.1.25) |
+
+Compose guards with `runGuards()`:
+
+```typescript
+const result = runGuards(input, guardBash, guardNontrivialBash, guardGitCommand);
+// Only runs hook logic for non-trivial git commands
+```
+
+## Building with esbuild
+
+The hooks project uses esbuild to compile TypeScript into ESM bundles. The configuration is in `esbuild.config.mjs`.
+
+### Split Bundles (Default)
+
+```bash
+npm run build
+```
+
+Produces 11 event-specific bundles + 1 unified bundle:
+
+```
+dist/
+  permission.mjs    (8 KB)
+  pretool.mjs       (48 KB)
+  posttool.mjs      (58 KB)
+  prompt.mjs        (57 KB)
+  lifecycle.mjs     (31 KB)
+  stop.mjs          (33 KB)
+  subagent.mjs      (56 KB)
+  notification.mjs  (5 KB)
+  setup.mjs         (24 KB)
+  skill.mjs         (52 KB)
+  agent.mjs         (8 KB)
+  hooks.mjs         (324 KB, unified, for CLI tools only)
+  bundle-stats.json (build metrics)
+```
+
+### Watch Mode (Development)
+
+```bash
+npm run build:watch
+```
+
+Uses a single unified bundle for simplicity during development.
+
+### Build Options
+
+| Flag | Effect |
+|------|--------|
+| `--split` (default) | Build 11 split bundles + unified |
+| `--single` | Build only the unified bundle |
+| `--watch` | Watch mode with auto-rebuild |
+
+Build settings:
+- **Target:** Node 20 (ESM)
+- **Minification:** Enabled in production, disabled in watch mode
+- **Source maps:** Always enabled
+- **External dependencies:** None (zero runtime deps)
+
+## Testing with Vitest
+
+The hooks project uses Vitest for testing. Tests live in `src/hooks/src/__tests__/`.
+
+### Running Tests
+
+```bash
+cd src/hooks
+npm test                        # Run all tests
+npm run test:watch              # Watch mode
+npm test -- --filter my-hook    # Run specific test
+```
+
+### Test Patterns
+
+<Tabs items={["PreToolUse", "PermissionRequest", "UserPromptSubmit"]}>
+<Tab value="PreToolUse">
+```typescript
+import { describe, it, expect } from 'vitest';
+import { myHook } from '../pretool/bash/my-hook.js';
+
+describe('my-hook', () => {
+  it('blocks dangerous commands', () => {
+    const result = myHook({
+      tool_name: 'Bash',
+      session_id: 'test',
+      tool_input: { command: 'rm -rf /' },
+    });
+    expect(result.continue).toBe(false);
+    expect(result.stopReason).toContain('dangerous');
+  });
+
+  it('allows safe commands silently', () => {
+    const result = myHook({
+      tool_name: 'Bash',
+      session_id: 'test',
+      tool_input: { command: 'echo hello' },
+    });
+    expect(result.continue).toBe(true);
+    expect(result.suppressOutput).toBe(true);
+  });
+});
+```
+</Tab>
+
+<Tab value="PermissionRequest">
+```typescript
+describe('my-permission-hook', () => {
+  it('auto-approves safe operations', () => {
+    const result = myHook({
+      tool_name: 'Bash',
+      session_id: 'test',
+      tool_input: { command: 'git status' },
+    });
+    expect(result.hookSpecificOutput?.permissionDecision).toBe('allow');
+  });
+
+  it('passes through unknown commands', () => {
+    const result = myHook({
+      tool_name: 'Bash',
+      session_id: 'test',
+      tool_input: { command: 'some-unknown-cmd' },
+    });
+    // Does not set permissionDecision -- falls through to user
+    expect(result.hookSpecificOutput?.permissionDecision).toBeUndefined();
+  });
+});
+```
+</Tab>
+
+<Tab value="UserPromptSubmit">
+```typescript
+describe('my-prompt-hook', () => {
+  it('injects context for relevant prompts', () => {
+    const result = myHook({
+      tool_name: '',
+      session_id: 'test',
+      tool_input: {},
+      prompt: 'implement the user authentication system',
+    });
+    expect(result.hookSpecificOutput?.additionalContext).toBeDefined();
+  });
+
+  it('skips short prompts', () => {
+    const result = myHook({
+      tool_name: '',
+      session_id: 'test',
+      tool_input: {},
+      prompt: 'ok',
+    });
+    expect(result.suppressOutput).toBe(true);
+  });
+});
+```
+</Tab>
+</Tabs>
+
+## Best Practices
+
+### Keep Hooks Fast
+
+| Hook Type | Target | Max |
+|-----------|--------|-----|
+| PermissionRequest | < 5 ms | 10 ms |
+| PreToolUse | < 20 ms | 50 ms |
+| PostToolUse | < 50 ms | 100 ms |
+| UserPromptSubmit | < 10 ms | 50 ms |
+
+Hooks are on the critical path. Every millisecond of hook execution is a millisecond the user waits. Use guards for early returns, avoid file I/O when possible, and never make network calls in synchronous hooks.
+
+### Silent by Default
+
+```typescript
+// GOOD: Silent when nothing to report
+if (noIssuesFound) return outputSilentSuccess();
+
+// BAD: Noisy output for normal operations
+return { continue: true, systemMessage: "Hook completed successfully!" };
+```
+
+### Block with Clear Reasons
+
+```typescript
+// GOOD: Explain what happened and how to fix it
+return outputBlock(
+  `Direct commits to 'main' branch are not allowed.\n\n` +
+  `Fix: Create a feature branch\n` +
+  `  git checkout -b feature/my-feature\n` +
+  `  git commit -m "Your changes"\n` +
+  `  gh pr create`
+);
+
+// BAD: Vague error
+return outputBlock('Operation not allowed');
+```
+
+### Handle Errors Gracefully
+
+```typescript
+// GOOD: Catch errors, return silent success
+export function myHook(input: HookInput): HookResult {
+  try {
+    // Hook logic...
+    return outputSilentSuccess();
+  } catch (err) {
+    logHook('my-hook', `Error: ${err.message}`);
+    return outputSilentSuccess();  // Don't block on hook errors
+  }
+}
+
+// BAD: Let errors crash the hook
+export function myHook(input: HookInput): HookResult {
+  const data = fs.readFileSync('/might-not-exist');  // Unhandled throw!
+}
+```
+
+A crashing hook can break the entire Claude Code session. Always wrap potentially failing operations in try/catch and return `outputSilentSuccess()` on error.
+
+### Log Sparingly
+
+```typescript
+// GOOD: Log meaningful events
+logHook('my-hook', `Blocked dangerous command: ${command}`);
+
+// BAD: Log noise
+logHook('my-hook', 'Hook started');
+logHook('my-hook', 'Checking command...');
+logHook('my-hook', 'Command is safe');
+logHook('my-hook', 'Hook finished');
+```
+
+Logging writes to disk on every call. The `logHook` function respects `ORCHESTKIT_LOG_LEVEL` (default: `warn`), so debug-level logs are suppressed in production. But keep your log lines meaningful regardless.
+
+<Callout type="info">
+After creating your hook, rebuild the plugins with `npm run build` from the project root to ensure the hook is included in the assembled plugin.
+</Callout>

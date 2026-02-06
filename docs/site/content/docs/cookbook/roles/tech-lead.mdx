@@ -1,0 +1,42 @@
+---
+title: "Tech Lead"
+description: "OrchestKit toolkit for tech leads"
+---
+
+## You're a tech lead. Here's your toolkit.
+
+You review PRs, make architecture decisions, enforce code quality standards, and keep the team aligned on patterns. OrchestKit gives you 6 skills covering ADRs, clean architecture, code review, system design interrogation, API design, and quality gates -- plus 3 agents that can review system designs, audit code quality, and evaluate product strategy. Instead of doing all the review work yourself, you delegate to specialized agents and focus on the decisions that matter.
+
+## Your Skills
+
+| Skill | What it does |
+|---|---|
+| `architecture-decision-record` | ADR templates following the Nygard format with context, decision, consequences, and alternatives |
+| `clean-architecture` | SOLID principles, hexagonal architecture, ports and adapters, and DDD tactical patterns |
+| `code-review-playbook` | Structured review processes, conventional comments, language-specific checklists, and feedback templates |
+| `system-design-interrogation` | Structured questions covering scalability, security, data, and operational dimensions before implementation |
+| `api-design-framework` | REST, GraphQL, and gRPC design patterns with pagination, rate limiting, and error response standards |
+| `quality-gates` | Complexity scoring (1-5) with escalation workflows to catch risky tasks before they spiral |
+
+## Your Agents
+
+| Agent | Model | Activates when... |
+|---|---|---|
+| `system-design-reviewer` | opus | system design, architecture review, scale, security review, implementation plan |
+| `code-quality-reviewer` | inherit | test, review, quality, lint, security, coverage, audit, validate, CI, type-check |
+| `product-strategist` | inherit | product strategy, value proposition, build/buy/partner, go/no-go decisions |
+
+## Your Workflows
+
+- **[Review a Pull Request](/docs/cookbook/review-pr)** -- Multi-agent PR review covering correctness, security, performance, testing, documentation, and style in parallel
+- **[Run a Security Audit](/docs/cookbook/security-audit)** -- 8-layer defense-in-depth verification to ensure the team's code meets security standards before launch
+
+## Quick Start
+
+Try this right now:
+
+```bash
+/ork:review-pr 47
+```
+
+Three agents review PR #47 in parallel: `code-quality-reviewer` checks patterns and complexity, `system-design-reviewer` evaluates architectural impact, and `security-auditor` scans for vulnerabilities. You get a unified scorecard with actionable findings ranked by severity.
