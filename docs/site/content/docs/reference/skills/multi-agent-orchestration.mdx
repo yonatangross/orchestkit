@@ -175,6 +175,86 @@ class AgentBus:
         return self.messages
 ```
 
+## CC Agent Teams (CC 2.1.33+)
+
+CC 2.1.33 introduces native Agent Teams — teammates with peer-to-peer messaging, shared task lists, and mesh topology.
+
+### Star vs Mesh Topology
+
+```
+Star (Task tool):              Mesh (Agent Teams):
+      Lead                           Lead (delegate)
+     /||\                          /  |  \
+    / || \                        /   |   \
+   A  B  C  D                   A ←→ B ←→ C
+   (no cross-talk)              (peer messaging)
+```
+
+### Dual-Mode Decision Tree
+
+```
+Complexity Assessment:
+├── Score < 3.0  → Task tool subagents (cheaper, simpler)
+├── Score 3.0-3.5 → User choice (recommend Teams for cross-cutting)
+└── Score > 3.5  → Agent Teams (if CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1)
+
+Override: ORCHESTKIT_PREFER_TEAMS=1 forces Agent Teams
+Fallback: Teams disabled → always use Task tool
+```
+
+### Team Formation
+
+```
+# 1. Create team with shared task list
+TeamCreate(team_name="feature-auth", description="User auth implementation")
+
+# 2. Create tasks in shared list
+TaskCreate(subject="Design API schema", description="...")
+TaskCreate(subject="Build React components", description="...", addBlockedBy=["1"])
+TaskCreate(subject="Write integration tests", description="...", addBlockedBy=["1","2"])
+
+# 3. Spawn teammates (each is a full CC session)
+Task(prompt="You are the backend architect...",
+     team_name="feature-auth", name="backend-dev",
+     subagent_type="backend-system-architect")
+
+Task(prompt="You are the frontend developer...",
+     team_name="feature-auth", name="frontend-dev",
+     subagent_type="frontend-ui-developer")
+
+# 4. Teammates self-claim tasks from shared list
+# 5. Teammates message each other directly
+# 6. Lead monitors via idle notifications
+```
+
+### Peer Messaging Patterns
+
+```
+# Direct message (default — use this)
+SendMessage(type="message", recipient="frontend-dev",
+  content="API contract: GET /users/:id → {id, name, email}",
+  summary="API contract ready")
+
+# Broadcast (expensive — use sparingly)
+SendMessage(type="broadcast",
+  content="Auth header format changed to Bearer",
+  summary="Breaking auth change")
+
+# Shutdown when done
+SendMessage(type="shutdown_request", recipient="frontend-dev",
+  content="All tasks complete")
+```
+
+### Cost Comparison
+
+| Scenario | Task Tool | Agent Teams | Ratio |
+|----------|-----------|-------------|-------|
+| 3-agent review | ~150K tokens | ~400K tokens | 2.7x |
+| 8-agent feature | ~500K tokens | ~1.2M tokens | 2.4x |
+| 6-agent research | ~300K tokens | ~800K tokens | 2.7x |
+
+Teams cost more because each teammate is a full CC session. Worth it when cross-agent communication prevents rework.
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -182,7 +262,8 @@ class AgentBus:
 | Agent count | 3-8 specialists |
 | Parallelism | Parallelize independent agents |
 | Conflict resolution | Confidence score or LLM arbitration |
-| Communication | Shared state or message bus |
+| Communication | Shared state, message bus, or **SendMessage (CC 2.1.33+)** |
+| Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
 
 ## Common Mistakes
 
@@ -190,12 +271,15 @@ class AgentBus:
 - No error isolation (one failure crashes workflow)
 - Over-coordination (too much overhead)
 - Missing synthesis (raw agent outputs not useful)
+- Using Agent Teams for simple sequential work (use Task tool)
+- Broadcasting when a direct message suffices (wastes tokens)
 
 ## Related Skills
 
 - `langgraph-supervisor` - LangGraph supervisor pattern
 - `langgraph-parallel` - Fan-out/fan-in with LangGraph
 - `agent-loops` - Single agent patterns
+- `task-dependency-patterns` - Task management with Agent Teams workflow
 
 ## Capability Details
 

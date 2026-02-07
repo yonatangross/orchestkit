@@ -19,6 +19,7 @@
     "asyncio-advanced",
     "audio-language-models",
     "audio-mixing-patterns",
+    "audit-full",
     "auth-patterns",
     "backend-architecture-enforcer",
     "background-jobs",
