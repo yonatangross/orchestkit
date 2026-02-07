@@ -13,7 +13,7 @@ export const SITE = {
 export const COUNTS = {
   skills: 200,
   agents: 36,
-  hooks: 122,
+  hooks: 119,
 } as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks with Opus 4.6 support`;

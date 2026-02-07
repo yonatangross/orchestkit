@@ -24,6 +24,20 @@ export default async function Page(props: {
       ? page.data.lastModified
       : undefined;
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: page.data.title,
+    description: page.data.description,
+    url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
+    publisher: {
+      "@type": "Organization",
+      name: SITE.name,
+      url: SITE.domain,
+    },
+    ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
+  };
+
   return (
     <DocsPage
       toc={page.data.toc}
@@ -39,6 +53,10 @@ export default async function Page(props: {
         ),
       }}
     >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <DocsTitle>{page.data.title}</DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody>
