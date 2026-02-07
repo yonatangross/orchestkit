@@ -64,5 +64,8 @@
     "typescript": "5.9.3",
     "vitest": "^4.0.18"
   },
+  "overrides": {
+    "webpack": "^5.104.1"
+  },
   "private": true
 }
