@@ -41,11 +41,6 @@ Pinning to SHAs prevents supply chain attacks where a compromised action tag cou
 - `actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238`
 - `actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd`
 
-### `.github/workflows/deploy-playgrounds.yml`
-- `actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8`
-- `actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238`
-- `actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd`
-
 ### `.github/workflows/mem0-visualization.yml`
 - `actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8`
 - `actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405`

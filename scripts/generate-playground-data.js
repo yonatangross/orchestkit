@@ -22,7 +22,6 @@ const SKILLS_DIR = path.join(PROJECT_ROOT, 'src', 'skills');
 const AGENTS_DIR = path.join(PROJECT_ROOT, 'src', 'agents');
 const MANIFESTS_DIR = path.join(PROJECT_ROOT, 'manifests');
 const HOOKS_DIR = path.join(PROJECT_ROOT, 'src', 'hooks');
-const OUTPUT_FILE = path.join(PROJECT_ROOT, 'docs', 'playgrounds', 'data.js');
 const TS_OUTPUT_FILE = path.join(PROJECT_ROOT, 'docs', 'site', 'lib', 'playground-data.ts');
 
 // Colors for console output
@@ -753,20 +752,6 @@ function generate() {
     { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "orkl", tags: ["advanced","landscape","tri-terminal"] }
   ];
 
-  // Generate full data.js
-  const dataJsContent = generateDataJs({
-    version: "6.0.2",
-    totals,
-    plugins,
-    agents,
-    categories,
-    skillsSummary,
-    compositions,
-    skillsDetailed
-  });
-
-  fs.writeFileSync(OUTPUT_FILE, dataJsContent);
-
   // Generate TypeScript module for Fumadocs site
   const tsContent = generateTypeScriptModule({
     totals,
@@ -797,7 +782,7 @@ function generate() {
   console.log(`  User-invocable:         ${GREEN}${userInvocableCount}${NC}`);
   console.log(`  orkl skill count:       ${GREEN}${orklSkills.length}${NC}`);
   console.log(`  ork skill count:        ${GREEN}${orkSkills.length}${NC}`);
-  console.log(`  Output:                 ${GREEN}${OUTPUT_FILE}${NC}`);
+  console.log(`  Output:                 ${GREEN}${TS_OUTPUT_FILE}${NC}`);
   console.log(`${CYAN}============================================================${NC}`);
   console.log('');
 }

@@ -118,7 +118,6 @@ __pycache__/
 orchestkit-demos/build/
 
 # Vercel local project config
-docs/playgrounds/.vercel
 
 # Feedback system (user-specific learning data)
 .claude/feedback/

@@ -16,12 +16,12 @@
 ---
 
 <p align="center">
-  <a href="https://orchestkit.vercel.app/">
-    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Playgrounds Demo" width="700">
+  <a href="https://orchestkit.dev/">
+    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Documentation" width="700">
   </a>
   <br>
-  <a href="https://orchestkit.vercel.app/"><strong>🎮 Explore the Playgrounds →</strong></a><br>
-  <sub>Interactive marketplace, demo gallery, setup wizard</sub>
+  <a href="https://orchestkit.dev/"><strong>Explore the Docs →</strong></a><br>
+  <sub>Interactive skill browser, demo gallery, setup wizard</sub>
 </p>
 
 ---
@@ -62,7 +62,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 | **Hooks** | 118 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
 
-**[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
+**[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
 
 ---
 
@@ -171,7 +171,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 <div align="center">
 
-**[Playgrounds](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
+**[Docs](https://orchestkit.dev/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

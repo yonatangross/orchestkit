@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Patch docs/playgrounds/data.js with CDN URLs from Sanity upload.
+ * Patch docs/site/lib/playground-data.ts with CDN URLs from Sanity upload.
  *
  * Reads:  out/cdn-urls.json (from upload-to-sanity.mjs)
- * Writes: docs/playgrounds/data.js (adds thumbnailCdn + videoCdn fields)
+ * Writes: docs/site/lib/playground-data.ts (adds thumbnailCdn + videoCdn fields)
  *
  * Usage:
  *   node scripts/update-data-cdn-urls.mjs
@@ -14,7 +14,7 @@ import path from "path";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
 const CDN_URLS_FILE = path.join(ROOT, "out", "cdn-urls.json");
-const DATA_JS_FILE = path.join(ROOT, "..", "docs", "playgrounds", "data.js");
+const DATA_JS_FILE = path.join(ROOT, "..", "docs", "site", "lib", "playground-data.ts");
 
 function main() {
   if (!fs.existsSync(CDN_URLS_FILE)) {

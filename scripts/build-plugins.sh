@@ -350,9 +350,9 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 7: Generate Playground Data
+# Phase 7: Generate Docs Site Data
 # ============================================================================
-echo -e "${BLUE}[7/9] Generating playground data...${NC}"
+echo -e "${BLUE}[7/9] Generating docs site data...${NC}"
 
 if [[ -f "$SCRIPT_DIR/generate-playground-data.js" ]]; then
     node "$SCRIPT_DIR/generate-playground-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-playground-data.js failed, skipping${NC}"

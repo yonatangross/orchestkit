@@ -7,7 +7,6 @@
     "prebuild": "echo '🔨 Building plugins from source...'",
     "postbuild": "echo '✅ Build complete! Plugins assembled in plugins/ directory'",
     "generate:playground-data": "node scripts/generate-playground-data.js",
-    "verify:playground-thumbnails": "node scripts/verify-playground-thumbnails.js",
     "test": "bash tests/run-all-tests.sh",
     "test:security": "bash tests/security/run-security-tests.sh",
     "test:skills": "bash tests/skills/structure/test-skill-md.sh",
@@ -18,9 +17,6 @@
     "test:manifests:ordering": "bash tests/manifests/test-marketplace-ordering.sh",
     "test:manifests:orphans": "bash tests/manifests/test-plugin-orphan-skills.sh",
     "test:indexes": "bash tests/indexes/test-index-generation.sh",
-    "test:playgrounds": "bash tests/playgrounds/test-data-freshness.sh && bash tests/playgrounds/test-data-accuracy.sh",
-    "test:playgrounds:freshness": "bash tests/playgrounds/test-data-freshness.sh",
-    "test:playgrounds:accuracy": "bash tests/playgrounds/test-data-accuracy.sh",
     "typecheck": "cd src/hooks && npx tsc --noEmit",
     "verify:imports": "node scripts/verify-imports.js",
     "prepush": "./bin/git-hooks/pre-push"

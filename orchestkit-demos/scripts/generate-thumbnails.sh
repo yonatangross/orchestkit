@@ -1,5 +1,5 @@
 #!/bin/bash
-# generate-thumbnails.sh — Batch generate composition thumbnails for the playground demo gallery
+# generate-thumbnails.sh — Batch generate composition thumbnails for the docs site demo gallery
 # Captures frame 180 (6s at 30fps) of each composition as a scaled-down PNG.
 # NOTE: On Apple Silicon, run with: arch -arm64 bash scripts/generate-thumbnails.sh
 #       if /usr/local/bin/bash is x86_64-only (esbuild arch mismatch).
@@ -7,15 +7,15 @@
 # Usage: ./scripts/generate-thumbnails.sh [--force]
 #   --force   Regenerate existing thumbnails
 #
-# Output: docs/playgrounds/thumbnails/<CompositionId>.png
-#         docs/playgrounds/thumbnails/_manifest.json
+# Output: docs/site/public/thumbnails/<CompositionId>.png
+#         docs/site/public/thumbnails/_manifest.json
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEMOS_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-THUMB_DIR="$PROJECT_ROOT/docs/playgrounds/thumbnails"
+THUMB_DIR="$PROJECT_ROOT/docs/site/public/thumbnails"
 MANIFEST="$THUMB_DIR/_manifest.json"
 
 FRAME=180       # 6s at 30fps — past intro animations into main content
