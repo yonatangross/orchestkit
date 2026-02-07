@@ -44,13 +44,12 @@ CDN_FILE="${PROJECT_ROOT}/orchestkit-demos/out/cdn-urls.json"
 
 log_section "CDN URLs Source File"
 
-test_cdn_file_exists() {
-    if [[ -f "$CDN_FILE" ]]; then
-        log_pass "cdn-urls.json exists"
-    else
-        log_fail "cdn-urls.json not found at $CDN_FILE"
-    fi
-}
+# cdn-urls.json lives in an external repo (orchestkit-demos/) and is NOT committed here.
+# These tests only run when the file is present (local dev with demos repo cloned).
+if [[ ! -f "$CDN_FILE" ]]; then
+    echo -e "${YELLOW}SKIP${NC} cdn-urls.json not found at $CDN_FILE (external repo, optional)"
+    echo "  CDN-specific tests skipped — only code-structure tests will run"
+else
 
 test_cdn_file_valid_json() {
     if node -e "JSON.parse(require('fs').readFileSync('$CDN_FILE','utf-8'))" 2>/dev/null; then
@@ -97,10 +96,11 @@ test_cdn_video_urls_are_mp4() {
     fi
 }
 
-test_cdn_file_exists
 test_cdn_file_valid_json
 test_cdn_urls_are_sanity
 test_cdn_video_urls_are_mp4
+
+fi  # end cdn-urls.json guard
 
 # ── Generated playground-data.ts ─────────────────────────────
 

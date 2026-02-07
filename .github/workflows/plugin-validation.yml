@@ -226,19 +226,25 @@ jobs:
 
           echo "Plugin manifest is valid!"
 
-      - name: Check settings.json hook paths
+      - name: Check hooks.json hook paths
         shell: bash
         run: |
-          echo "Validating hook paths in settings.json..."
+          echo "Validating hook paths in hooks.json..."
 
-          # Extract all hook commands
-          hooks=$(jq -r '.. | .command? // empty' .claude/settings.json | sort -u)
+          HOOKS_JSON="src/hooks/hooks.json"
+          if [[ ! -f "$HOOKS_JSON" ]]; then
+            echo "ERROR: hooks.json not found at $HOOKS_JSON"
+            exit 1
+          fi
+
+          # Extract all hook commands from hooks.json
+          hooks=$(jq -r '.. | .command? // empty' "$HOOKS_JSON" | sort -u)
 
           missing=0
           while IFS= read -r hook; do
             [[ -z "$hook" ]] && continue
-            # Replace variable patterns with current directory
-            resolved=$(echo "$hook" | sed -e 's|\${CLAUDE_PLUGIN_ROOT}|.|g' -e 's|\${CLAUDE_PROJECT_DIR}|.|g' -e 's|\$CLAUDE_PROJECT_DIR|.|g')
+            # Replace variable patterns with source directory
+            resolved=$(echo "$hook" | sed -e 's|\${CLAUDE_PLUGIN_ROOT}|src|g' -e 's|\${CLAUDE_PROJECT_DIR}|.|g' -e 's|\$CLAUDE_PROJECT_DIR|.|g')
 
             # Handle command-style hooks
             if [[ "$resolved" == node\ * ]]; then
