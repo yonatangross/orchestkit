@@ -70,6 +70,7 @@ export async function generateMetadata(props: {
       url,
       siteName: SITE.name,
       type: "article",
+      images: [`/api/og/${params.slug?.join("/") ?? ""}`],
     },
     twitter: {
       card: "summary_large_image",

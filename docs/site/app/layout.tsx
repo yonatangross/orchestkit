@@ -16,6 +16,15 @@ export const metadata: Metadata = {
   },
   description: `${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks for Claude Code. Stop explaining your stack. Start shipping.`,
   icons: { icon: "/favicon.svg" },
+  openGraph: {
+    siteName: SITE.name,
+    type: "website",
+    url: SITE.domain,
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  metadataBase: new URL(SITE.domain),
 };
 
 export default function Layout({ children }: { children: ReactNode }) {
