@@ -4,17 +4,21 @@
 
 With Opus 4.6's 128K output tokens, each agent produces **complete artifacts in a single pass**. This reduces implementation from 17 agents across 4 phases to **14 agents across 3 phases**.
 
-| Metric | Before (64K) | After (128K) |
-|--------|-------------|--------------|
-| Phase 4 agents | 5 | 5 (unchanged) |
-| Phase 5 agents | 8 | 5 |
-| Phase 6 agents | 4 | 4 (unchanged) |
-| **Total agents** | **17** | **14** |
-| Full API + models | 2 passes | 1 pass |
-| Component + tests | 2 passes | 1 pass |
-| Complete feature | 4-6 passes | 2-3 passes |
+| Metric | Before (64K) | After (128K) | Agent Teams Mode |
+|--------|-------------|--------------|-----------------|
+| Phase 4 agents | 5 | 5 (unchanged) | 4 teammates + lead |
+| Phase 5 agents | 8 | 5 | Same 4 teammates (persist) |
+| Phase 6 agents | 4 | 4 (unchanged) | 1 (code-reviewer verdict) + lead tests |
+| **Total agents** | **17** | **14** | **4 teammates** (reused across phases) |
+| Full API + models | 2 passes | 1 pass | 1 pass (same) |
+| Component + tests | 2 passes | 1 pass | 1 pass (same) |
+| Complete feature | 4-6 passes | 2-3 passes | 1-2 passes (overlapping) |
+| Communication | Lead relays | Lead relays | Peer-to-peer messaging |
+| Token cost | Baseline | ~Same | ~2.5x (full sessions) |
 
 **Key principle:** Prefer one comprehensive response over multiple incremental ones. Only split when scope genuinely exceeds 128K tokens.
+
+**Agent Teams advantage:** Teammates persist across phases 4→5→6, so context is preserved. No re-explaining architecture to implementation agents — they already know it because they designed it.
 
 ---
 
@@ -153,6 +157,12 @@ Task(
   run_in_background=true
 )
 ```
+
+### Phase 4 — Teams Mode
+
+In Agent Teams mode, 4 teammates form a team (`implement-{feature-slug}`) instead of 5 independent Task spawns. The workflow-architect and ux-researcher roles are handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+
+See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
 
 ---
 
@@ -331,6 +341,10 @@ Task(
 )
 ```
 
+### Phase 5 — Teams Mode
+
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
+
 ---
 
 ## Phase 6: Integration & Validation (4 Agents)
@@ -432,3 +446,7 @@ Task(
 - XSS prevention
 - Proper input validation
 - npm audit / pip-audit
+
+### Phase 6 — Teams Mode
+
+In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team (shutdown_request to all teammates + TeamDelete + worktree cleanup).

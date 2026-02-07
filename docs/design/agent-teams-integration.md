@@ -599,27 +599,27 @@ Team "security-audit-{timestamp}":
 - [x] Register in `hooks.json`, rebuild bundles (91 global, 119 total)
 - [x] Tests for all new hooks (36 tests across 4 files)
 
-### Phase 3: Full-Stack Pipeline (P3-A.3)
+### Phase 3: Full-Stack Pipeline (P3-A.3) — DONE
 
 **Goal:** Migrate Pipeline 2 (Full-Stack Feature) to Agent Teams.
 
 **Deliverables:**
-- [ ] Per-teammate worktree setup
-- [ ] Cross-agent messaging for API contract handoff
-- [ ] Integration testing across worktrees
-- [ ] Lead synthesis and merge
-- [ ] Cost comparison report
+- [x] Per-teammate worktree setup — `references/team-worktree-setup.md`
+- [x] Cross-agent messaging for API contract handoff — `references/agent-teams-full-stack.md`
+- [x] Integration testing across worktrees — lead synthesis protocol in full-stack reference
+- [x] Lead synthesis and merge — squash merge strategy documented
+- [x] Cost comparison report — ~500K (Task) vs ~1.2M (Teams) documented
 
-### Phase 4: `/ork:implement` Integration (P3-A.4)
+### Phase 4: `/ork:implement` Integration (P3-A.4) — DONE
 
 **Goal:** Dual-mode orchestration in the implement skill.
 
 **Deliverables:**
-- [ ] Complexity-based routing (Task tool vs Agent Teams)
-- [ ] Update `src/skills/implement/SKILL.md` with team formation phases
-- [ ] Update `src/skills/multi-agent-orchestration/SKILL.md` with Agent Teams patterns
-- [ ] User override: `ORCHESTKIT_PREFER_TEAMS=1`
-- [ ] Graceful fallback when Agent Teams is disabled
+- [x] Complexity-based routing (Task tool vs Agent Teams) — Step 0b in SKILL.md
+- [x] Update `src/skills/implement/SKILL.md` with team formation phases — Phases 4/5/6 alternatives + teardown
+- [ ] Update `src/skills/multi-agent-orchestration/SKILL.md` with Agent Teams patterns — future work
+- [x] User override: `ORCHESTKIT_PREFER_TEAMS=1` — documented in Step 0b
+- [x] Graceful fallback when Agent Teams is disabled — fallback notes on every Teams section
 
 ---
 
