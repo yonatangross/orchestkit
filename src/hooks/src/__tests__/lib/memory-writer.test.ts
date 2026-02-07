@@ -1111,7 +1111,8 @@ describe('storeDecision with CC native memory', () => {
     const fs = await import('node:fs');
     // Parent exists, but memory subdir doesn't
     vi.mocked(fs.existsSync).mockImplementation((path) => {
-      const pathStr = String(path);
+      // Normalize to forward slashes for cross-platform matching (Windows uses backslashes)
+      const pathStr = String(path).replace(/\\/g, '/');
       if (pathStr.includes('/memory/MEMORY.md')) return false;
       if (pathStr.includes('/memory')) return false;
       return true; // Parent project dir exists

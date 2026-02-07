@@ -24,6 +24,7 @@ vi.mock('../../lib/common.js', () => ({
 import { appendEventLog } from '../../lib/event-logger.js';
 import { getProjectDir } from '../../lib/common.js';
 import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 
 // =============================================================================
 // Tests
@@ -46,7 +47,7 @@ describe('appendEventLog', () => {
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
-        '/test/project/.claude/logs/test.jsonl',
+        join('/test/project', '.claude', 'logs', 'test.jsonl'),
         expect.stringContaining('"event":"test"'),
         { flag: 'a' },
       );
@@ -108,7 +109,7 @@ describe('appendEventLog', () => {
 
       // Assert
       expect(mkdirSync).toHaveBeenCalledWith(
-        '/test/project/.claude/logs',
+        join('/test/project', '.claude', 'logs'),
         { recursive: true },
       );
     });
@@ -190,7 +191,7 @@ describe('appendEventLog', () => {
 
       // Assert
       expect(writeFileSync).toHaveBeenCalledWith(
-        '/my/project/.claude/logs/custom-log.jsonl',
+        join('/my/project', '.claude', 'logs', 'custom-log.jsonl'),
         expect.any(String),
         expect.any(Object),
       );

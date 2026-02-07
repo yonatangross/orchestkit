@@ -49,6 +49,11 @@ function createHookInput(): HookInput {
   };
 }
 
+/** Normalize path separators to forward slashes for cross-platform matching */
+function normalizePath(p: string): string {
+  return p.replace(/\\/g, '/');
+}
+
 /**
  * Set up mocked filesystem with skill directories and content
  */
@@ -56,7 +61,7 @@ function setupSkills(skills: Record<string, string>) {
   const skillNames = Object.keys(skills);
 
   vi.mocked(existsSync).mockImplementation((p: unknown) => {
-    const path = String(p);
+    const path = normalizePath(String(p));
     if (path.endsWith('/skills')) return true;
     for (const name of skillNames) {
       if (path.endsWith(`/${name}/SKILL.md`)) return true;
@@ -73,7 +78,7 @@ function setupSkills(skills: Record<string, string>) {
   } as ReturnType<typeof statSync>);
 
   vi.mocked(readFileSync).mockImplementation((p: unknown) => {
-    const path = String(p);
+    const path = normalizePath(String(p));
     for (const [name, content] of Object.entries(skills)) {
       if (path.includes(`/${name}/SKILL.md`)) return content;
     }
