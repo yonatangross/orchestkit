@@ -36,10 +36,10 @@ echo "  Hook Chain Integration Tests"
 echo "=========================================="
 echo ""
 
-# Check settings.json exists
+# Check settings.json exists (gitignored — only available locally, not in CI)
 if [[ ! -f "$SETTINGS_FILE" ]]; then
-    echo -e "${RED}ERROR: settings.json not found${NC}"
-    exit 1
+    echo -e "${YELLOW}SKIP: settings.json not found (gitignored, only available locally)${NC}"
+    exit 0
 fi
 
 # Extract hook chains from settings
