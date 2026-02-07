@@ -497,6 +497,8 @@ function generateTypeScriptModule(data) {
     '  primaryColor: string;',
     '  relatedPlugin: string;',
     '  tags: string[];',
+    '  thumbnailCdn?: string;',
+    '  videoCdn?: string;',
     '}',
     '',
     'export interface CategoryMeta {',
@@ -751,6 +753,28 @@ function generate() {
     { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", relatedPlugin: "orkl", tags: ["ai","landscape","tri-terminal"] },
     { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "orkl", tags: ["advanced","landscape","tri-terminal"] }
   ];
+
+  // Merge CDN URLs from orchestkit-demos/out/cdn-urls.json (if it exists)
+  const cdnUrlsPath = path.join(PROJECT_ROOT, 'orchestkit-demos', 'out', 'cdn-urls.json');
+  if (fs.existsSync(cdnUrlsPath)) {
+    try {
+      const cdnUrls = JSON.parse(fs.readFileSync(cdnUrlsPath, 'utf-8'));
+      for (const comp of compositions) {
+        const cdn = cdnUrls[comp.id];
+        if (cdn) {
+          if (cdn.thumbnailCdn) comp.thumbnailCdn = cdn.thumbnailCdn;
+          if (cdn.videoCdn) comp.videoCdn = cdn.videoCdn;
+        }
+      }
+      const videoCount = compositions.filter(c => c.videoCdn).length;
+      const thumbCount = compositions.filter(c => c.thumbnailCdn).length;
+      console.log(`${GREEN}  CDN URLs merged: ${thumbCount} thumbnails, ${videoCount} videos${NC}`);
+    } catch (err) {
+      console.log(`${YELLOW}  Warning: Could not parse cdn-urls.json: ${err.message}${NC}`);
+    }
+  } else {
+    console.log(`${YELLOW}  Note: cdn-urls.json not found — CDN fields omitted${NC}`);
+  }
 
   // Generate TypeScript module for Fumadocs site
   const tsContent = generateTypeScriptModule({

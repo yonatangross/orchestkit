@@ -162,7 +162,7 @@ export default function HomePage() {
               >
                 <div className="aspect-video bg-fd-secondary relative">
                   <img
-                    src={`/thumbnails/${comp.id}.png`}
+                    src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
                     alt={comp.id}
                     className="h-full w-full object-cover"
                     loading="lazy"

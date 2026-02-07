@@ -352,7 +352,7 @@ function GalleryCard({
       {/* Thumbnail container */}
       <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
         <img
-          src={`/thumbnails/${composition.id}.png`}
+          src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
           alt={`Thumbnail for ${formatTitle(composition.id)}`}
           className="h-full w-full object-cover"
           loading="lazy"
@@ -481,29 +481,45 @@ function CompositionModal({
 
         {/* Content */}
         <div className="p-6">
-          {/* Thumbnail — large */}
+          {/* Video or thumbnail — large */}
           <div className="mb-6 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
             <div className="relative aspect-video">
-              <img
-                src={`/thumbnails/${composition.id}.png`}
-                alt={`Preview for ${formatTitle(composition.id)}`}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = "none";
-                  const parent = target.parentElement;
-                  if (
-                    parent &&
-                    !parent.querySelector(".modal-placeholder-icon")
-                  ) {
-                    const placeholder = document.createElement("div");
-                    placeholder.className =
-                      "modal-placeholder-icon absolute inset-0 flex items-center justify-center";
-                    placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
-                    parent.appendChild(placeholder);
-                  }
-                }}
-              />
+              {composition.videoCdn ? (
+                <video
+                  src={composition.videoCdn}
+                  poster={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <>
+                  <img
+                    src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
+                    alt={`Preview for ${formatTitle(composition.id)}`}
+                    className="h-full w-full object-cover"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = "none";
+                      const parent = target.parentElement;
+                      if (
+                        parent &&
+                        !parent.querySelector(".modal-placeholder-icon")
+                      ) {
+                        const placeholder = document.createElement("div");
+                        placeholder.className =
+                          "modal-placeholder-icon absolute inset-0 flex items-center justify-center";
+                        placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
+                        parent.appendChild(placeholder);
+                      }
+                    }}
+                  />
+                  <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm">
+                    Video coming soon
+                  </span>
+                </>
+              )}
             </div>
           </div>
 

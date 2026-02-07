@@ -145,6 +145,29 @@ describe("playground-data", () => {
         expect(validFormats).toContain(comp.format);
       }
     });
+
+    it("CDN thumbnail URLs point to Sanity CDN", () => {
+      const withThumb = COMPOSITIONS.filter((c) => c.thumbnailCdn);
+      expect(withThumb.length).toBeGreaterThan(0);
+      for (const comp of withThumb) {
+        expect(comp.thumbnailCdn).toMatch(/^https:\/\/cdn\.sanity\.io\//);
+      }
+    });
+
+    it("CDN video URLs point to Sanity CDN mp4 files", () => {
+      const withVideo = COMPOSITIONS.filter((c) => c.videoCdn);
+      // At least some compositions should have videos
+      for (const comp of withVideo) {
+        expect(comp.videoCdn).toMatch(/^https:\/\/cdn\.sanity\.io\/.*\.mp4$/);
+      }
+    });
+
+    it("every composition with videoCdn also has thumbnailCdn", () => {
+      const withVideo = COMPOSITIONS.filter((c) => c.videoCdn);
+      for (const comp of withVideo) {
+        expect(comp.thumbnailCdn).toBeTruthy();
+      }
+    });
   });
 
   // ── SKILLS ────────────────────────────────────────────────
