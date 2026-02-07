@@ -1,4 +1,4 @@
-name: Validate: Plugins
+name: "Validate: Plugins"
 
 on:
   push:

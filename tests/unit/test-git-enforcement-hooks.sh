@@ -24,6 +24,10 @@ HOOKS_BIN="$HOOKS_DIR/bin/run-hook.mjs"
 # Export CLAUDE_PLUGIN_ROOT for hooks (test-helpers.sh exports CLAUDE_PROJECT_DIR)
 export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT"
 
+# Simulate a feature branch so branch-protection checks don't block test commits
+# (In CI, HEAD is often 'main' which the hook correctly blocks)
+export ORCHESTKIT_BRANCH="feat/test-branch"
+
 # ============================================================================
 # HELPER FUNCTION: Run TypeScript Hook
 # ============================================================================
