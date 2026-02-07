@@ -1,0 +1,26 @@
+{
+  "name": "ork-creative",
+  "version": "6.0.3",
+  "description": "OrchestKit Creative — Video production, demo recording, Remotion composition, and content creation tools. Add-on for orkl.",
+  "dependencies": ["orkl"],
+  "skills": [
+    "demo-producer",
+    "terminal-demo-generator",
+    "remotion-composer",
+    "manim-visualizer",
+    "video-storyboarding",
+    "video-pacing",
+    "narration-scripting",
+    "content-type-recipes",
+    "hook-formulas",
+    "scene-intro-cards",
+    "callout-positioning",
+    "thumbnail-first-frame",
+    "ascii-visualizer",
+    "audio-mixing-patterns",
+    "music-sfx-selection",
+    "elevenlabs-narration"
+  ],
+  "agents": ["demo-producer"],
+  "hooks": "all"
+}

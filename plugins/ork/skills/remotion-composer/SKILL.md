@@ -264,7 +264,7 @@ npx remotion render ExploreDemo out/ExploreDemo.mp4
 ### HighlightCaption
 ```tsx
 <HighlightCaption
-  text="24 commands and 176 skills"
+  text="24 commands and 175 skills"
   startFrame={0}
   endFrame={90}
   highlightColor="#8b5cf6"

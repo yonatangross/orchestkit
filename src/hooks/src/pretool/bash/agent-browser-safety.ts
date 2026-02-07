@@ -298,6 +298,10 @@ function fetchRobotsTxt(origin: string): RobotsCacheEntry | null {
   // Fetch robots.txt (synchronous with timeout)
   const robotsUrl = `${origin}/robots.txt`;
   try {
+    // Reject URLs containing shell metacharacters to prevent command injection
+    if (/[`$\\;"'|&<>(){}!\n\r]/.test(robotsUrl)) {
+      return null;
+    }
     // Use curl with timeout for synchronous fetch
     const result = execSync(`curl -sL --max-time 5 "${robotsUrl}"`, {
       encoding: 'utf-8',
@@ -354,7 +358,9 @@ function isAllowedByRobots(url: string): { allowed: boolean; reason?: string } {
     for (const disallowed of robots.disallowedPaths) {
       // Handle wildcard patterns
       if (disallowed.includes('*')) {
-        const regex = new RegExp('^' + disallowed.replace(/\*/g, '.*'));
+        // Escape regex special chars first, then convert escaped glob wildcards (\*) back to .*
+        const escaped = disallowed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '.*');
+        const regex = new RegExp('^' + escaped);
         if (regex.test(path)) {
           return {
             allowed: false,

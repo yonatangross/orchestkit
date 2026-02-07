@@ -8,8 +8,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'skills/**'
-      - 'agents/**'
+      - 'src/skills/**'
+      - 'src/agents/**'
       - '.github/workflows/mem0-visualization.yml'
 
 env:
@@ -46,7 +46,7 @@ jobs:
         timeout-minutes: 5
         continue-on-error: true
         run: |
-          python3 skills/mem0-memory/scripts/validation/update-memories-metadata.py --limit 100 2>&1 | head -50 || echo "Metadata update skipped due to error"
+          python3 src/skills/mem0-memory/scripts/validation/update-memories-metadata.py --limit 100 2>&1 | head -50 || echo "Metadata update skipped due to error"
         env:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
 
@@ -56,7 +56,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p outputs
-          python3 skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
+          python3 src/skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
             --format json \
             --limit 500 \
             --cache \
@@ -70,7 +70,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p outputs
-          python3 skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
+          python3 src/skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
             --format plotly \
             --limit 500 \
             --cache \
@@ -84,7 +84,7 @@ jobs:
         continue-on-error: true
         run: |
           mkdir -p outputs
-          python3 skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
+          python3 src/skills/mem0-memory/scripts/visualization/visualize-mem0-graph.py \
             --format mermaid \
             --limit 500 \
             --cache \
@@ -107,7 +107,7 @@ jobs:
             echo ""
             if [ -f outputs/mem0-graph.json ]; then
               echo "Graph Statistics:"
-              python3 skills/mem0-memory/scripts/visualization/generate-graph-stats.py || echo "  (Could not parse statistics)"
+              python3 src/skills/mem0-memory/scripts/visualization/generate-graph-stats.py || echo "  (Could not parse statistics)"
             fi
           } > outputs/mem0-ci-summary.txt
           cat outputs/mem0-ci-summary.txt

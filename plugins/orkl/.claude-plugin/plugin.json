@@ -1,7 +1,7 @@
 {
   "name": "orkl",
   "version": "6.0.3",
-  "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For Python/React/LLM specializations, use full 'ork' plugin.",
+  "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For video/creative tools, add 'ork-creative'. For Python/React/LLM specializations, use full 'ork' plugin.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

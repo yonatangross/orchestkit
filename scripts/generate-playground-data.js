@@ -309,18 +309,21 @@ function generateSkillsSummary(skillsDetailed, manifestData, allSkillNames) {
 
   const summary = {
     orkl: {},
+    'ork-creative': {},
     ork: { includesAllOrkLite: true }
   };
 
   // Get skills for each plugin
   const orklManifest = manifestData['orkl'];
+  const orkCreativeManifest = manifestData['ork-creative'];
   const orkManifest = manifestData['ork'];
 
   const orklSkills = orklManifest ? getManifestSkills(orklManifest, allSkillNames) : [];
+  const orkCreativeSkills = orkCreativeManifest ? getManifestSkills(orkCreativeManifest, allSkillNames) : [];
   const orkSkills = orkManifest ? getManifestSkills(orkManifest, allSkillNames) : [];
 
-  // Find ork-only skills (not in orkl)
-  const orkOnlySkills = orkSkills.filter(s => !orklSkills.includes(s));
+  // Find ork-only skills (not in orkl or ork-creative)
+  const orkOnlySkills = orkSkills.filter(s => !orklSkills.includes(s) && !orkCreativeSkills.includes(s));
 
   // Categorize orkl skills
   for (const [category, keywords] of Object.entries(categoryMappings)) {
@@ -615,11 +618,12 @@ function generate() {
 
   // Calculate plugin skill counts from manifests
   const orklSkills = getManifestSkills(manifestData['orkl'], allSkillNames);
+  const orkCreativeSkills = getManifestSkills(manifestData['ork-creative'], allSkillNames);
   const orkSkills = getManifestSkills(manifestData['ork'], allSkillNames);
 
   // Build totals
   const totals = {
-    plugins: 2,
+    plugins: 3,
     skills: allSkillNames.length,
     agents: agentFiles.length,
     hooks: hookCounts.total,
@@ -632,7 +636,7 @@ function generate() {
     {
       name: "orkl",
       description: `Universal toolkit — ${orklSkills.length} skills, ${agentFiles.length} agents, ${hookCounts.total} hooks. Language-agnostic, works for any stack.`,
-      fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
+      fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
       category: "development",
       version: manifestData['orkl'].version || "6.0.0",
       skillCount: orklSkills.length,
@@ -648,6 +652,23 @@ function generate() {
         .filter(([_, s]) => s.userInvocable)
         .map(([name]) => name)
         .sort()
+    },
+    {
+      name: "ork-creative",
+      description: `Video production add-on — ${orkCreativeSkills.length} skills, 1 agent. Demo recording, Remotion, storyboarding.`,
+      fullDescription: "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
+      category: "development",
+      version: manifestData['ork-creative'].version || "6.0.0",
+      skillCount: orkCreativeSkills.length,
+      agentCount: 1,
+      hooks: hookCounts.total,
+      commandCount: 1,
+      color: "#ec4899",
+      required: false,
+      recommended: false,
+      skills: orkCreativeSkills,
+      agents: ["demo-producer"],
+      commands: ["demo-producer"]
     },
     {
       name: "ork",
@@ -711,13 +732,25 @@ function generate() {
     'workflow-architect': 'ai'
   };
 
-  const agents = Object.entries(agentsData).map(([name, data]) => ({
-    name: name,
-    description: data.description,
-    plugins: ["orkl", "ork"],
-    model: data.model,
-    category: agentCategories[name] || 'development'
-  })).sort((a, b) => a.name.localeCompare(b.name));
+  const agents = Object.entries(agentsData).map(([name, data]) => {
+    // Determine which plugins contain this agent
+    const plugins = [];
+    for (const [pluginName, manifest] of Object.entries(manifestData)) {
+      const agentList = manifest.agents === 'all'
+        ? Object.keys(agentsData)
+        : (manifest.agents || []);
+      if (agentList.includes(name)) {
+        plugins.push(pluginName);
+      }
+    }
+    return {
+      name,
+      description: data.description,
+      plugins: plugins.sort(),
+      model: data.model,
+      category: agentCategories[name] || 'development'
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   // Static categories definition
   const categories = {

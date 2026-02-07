@@ -85,8 +85,8 @@ export interface Totals {
 // ── Data ───────────────────────────────────────────────────
 
 export const TOTALS: Totals = {
-  "plugins": 2,
-  "skills": 200,
+  "plugins": 3,
+  "skills": 199,
   "agents": 36,
   "hooks": 119,
   "commands": 24,
@@ -96,11 +96,11 @@ export const TOTALS: Totals = {
 export const PLUGINS: Plugin[] = [
   {
     "name": "orkl",
-    "description": "Universal toolkit — 109 skills, 36 agents, 119 hooks. Language-agnostic, works for any stack.",
-    "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
+    "description": "Universal toolkit — 88 skills, 36 agents, 119 hooks. Language-agnostic, works for any stack.",
+    "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 109,
+    "skillCount": 88,
     "agentCount": 36,
     "hooks": 119,
     "commandCount": 24,
@@ -122,12 +122,12 @@ export const PLUGINS: Plugin[] = [
       "remember",
       "memory",
       "memory-fabric",
-      "demo-producer",
       "brainstorming",
       "git-recovery",
       "worktree-coordination",
       "help",
-      "configure"
+      "configure",
+      "feedback"
     ],
     "agents": [
       "accessibility-specialist",
@@ -195,12 +195,50 @@ export const PLUGINS: Plugin[] = [
     ]
   },
   {
+    "name": "ork-creative",
+    "description": "Video production add-on — 16 skills, 1 agent. Demo recording, Remotion, storyboarding.",
+    "fullDescription": "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
+    "category": "development",
+    "version": "6.0.3",
+    "skillCount": 16,
+    "agentCount": 1,
+    "hooks": 119,
+    "commandCount": 1,
+    "color": "#ec4899",
+    "required": false,
+    "recommended": false,
+    "skills": [
+      "demo-producer",
+      "terminal-demo-generator",
+      "remotion-composer",
+      "manim-visualizer",
+      "video-storyboarding",
+      "video-pacing",
+      "narration-scripting",
+      "content-type-recipes",
+      "hook-formulas",
+      "scene-intro-cards",
+      "callout-positioning",
+      "thumbnail-first-frame",
+      "ascii-visualizer",
+      "audio-mixing-patterns",
+      "music-sfx-selection",
+      "elevenlabs-narration"
+    ],
+    "agents": [
+      "demo-producer"
+    ],
+    "commands": [
+      "demo-producer"
+    ]
+  },
+  {
     "name": "ork",
-    "description": "Full specialized toolkit — 200 skills, 36 agents, 119 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 199 skills, 36 agents, 119 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 200,
+    "skillCount": 199,
     "agentCount": 36,
     "hooks": 119,
     "commandCount": 24,
@@ -305,8 +343,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "accessibility-specialist",
     "description": "Accessibility expert who audits and implements WCAG 2.2 compliance, screen reader compatibility, and keyboard navigation patterns. Focuses on inclusive design, ARIA patterns, and automated a11y testing. Auto Mode keywords - accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, inclusive design, contrast, focus management",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "frontend"
@@ -315,8 +353,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "ai-safety-auditor",
     "description": "AI safety and security auditor for LLM systems. Red teaming, prompt injection, jailbreak testing, guardrail validation, OWASP LLM compliance. Use for safety audit, security audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, vulnerabilities, penetration testing, mcp security, tool poisoning.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "security"
@@ -325,8 +363,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "backend-system-architect",
     "description": "Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "backend"
@@ -335,8 +373,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "business-case-builder",
     "description": "Business analyst who builds ROI projections, cost-benefit analyses, risk assessments, and investment justifications to support product decisions with financial rationale. Activates for ROI, cost-benefit, risk assessment, investment justification, business case, budget, revenue impact, cost analysis, financial, payback period, NPV, IRR, TCO, revenue projection",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "product"
@@ -345,8 +383,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "ci-cd-engineer",
     "description": "CI/CD specialist who designs and implements GitHub Actions workflows, GitLab CI pipelines, and automated deployment strategies. Focuses on build optimization, caching, matrix testing, and security scanning integration. Auto Mode keywords - CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, deploy, artifact, cache, matrix testing, release automation",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "devops"
@@ -355,8 +393,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "code-quality-reviewer",
     "description": "Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "testing"
@@ -365,8 +403,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "data-pipeline-engineer",
     "description": "Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "data"
@@ -375,8 +413,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "database-engineer",
     "description": "PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "backend"
@@ -385,8 +423,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "debug-investigator",
     "description": "Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces. Use when investigating broken functionality, debugging regressions, or analyzing flaky tests.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "testing"
@@ -395,8 +433,9 @@ export const AGENTS: AgentSummary[] = [
     "name": "demo-producer",
     "description": "Universal demo video producer that creates polished marketing videos for any content - skills, agents, plugins, tutorials, CLI tools, or code walkthroughs. Uses VHS terminal recording and Remotion composition. Activates for demo, video, marketing, showcase, terminal recording, VHS, remotion, tutorial, screencast",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "ork-creative",
+      "orkl"
     ],
     "model": "sonnet",
     "category": "development"
@@ -405,8 +444,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "deployment-manager",
     "description": "Release and deployment specialist who manages production releases, rollback procedures, feature flags, and blue-green deployments. Focuses on zero-downtime deployments and incident response. Auto Mode keywords - deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production, rollout, incident",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "devops"
@@ -415,8 +454,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "documentation-specialist",
     "description": "Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "development"
@@ -425,8 +464,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "event-driven-architect",
     "description": "Event-driven architecture specialist who designs event sourcing systems, message queue topologies, and CQRS patterns. Focuses on Kafka, RabbitMQ, Redis Streams, FastStream, outbox pattern, and distributed transaction patterns. Auto Mode keywords - event sourcing, message queue, Kafka, RabbitMQ, pub/sub, CQRS, event-driven, async, saga, event store, outbox, CDC, Debezium",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "backend"
@@ -435,8 +474,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "frontend-ui-developer",
     "description": "Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "frontend"
@@ -445,8 +484,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "git-operations-engineer",
     "description": "Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "development"
@@ -455,8 +494,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "infrastructure-architect",
     "description": "Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "devops"
@@ -465,8 +504,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "llm-integrator",
     "description": "LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "ai"
@@ -475,8 +514,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "market-intelligence",
     "description": "Market research specialist who analyzes competitive landscapes, identifies market trends, sizes opportunities (TAM/SAM/SOM), and surfaces threats/opportunities to inform product strategy. Activates for market research, competitor, TAM, SAM, SOM, market size, competitive landscape keywords.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "product"
@@ -485,8 +524,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "metrics-architect",
     "description": "Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "product"
@@ -495,8 +534,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "monitoring-engineer",
     "description": "Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, SLOs/SLIs. Use for monitoring, prometheus, grafana, alerting, tracing, opentelemetry, metrics, observability, logs, slo, sli.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "devops"
@@ -505,8 +544,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "multimodal-specialist",
     "description": "Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "ai"
@@ -515,8 +554,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "performance-engineer",
     "description": "Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "frontend"
@@ -525,8 +564,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "prioritization-analyst",
     "description": "Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "product"
@@ -535,8 +574,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "product-strategist",
     "description": "Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "product"
@@ -545,8 +584,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "prompt-engineer",
     "description": "Expert prompt designer and optimizer. Chain-of-thought, few-shot learning, structured outputs, prompt versioning, A/B testing, cost optimization. Use for prompts, prompt-engineering, cot, few-shot, prompt design, prompt optimization, structured-output, a-b-testing, cost-optimization, prompt-testing, evaluation.",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "ai"
@@ -555,8 +594,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "python-performance-engineer",
     "description": "Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "backend"
@@ -565,8 +604,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "rapid-ui-designer",
     "description": "UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "frontend"
@@ -575,8 +614,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "release-engineer",
     "description": "Release and versioning specialist who manages GitHub releases, milestones, changelogs, and semantic versioning. Handles release automation and project tracking. Auto Mode keywords - release, milestone, changelog, tag, version, semver, sprint, roadmap",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "devops"
@@ -585,8 +624,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "requirements-translator",
     "description": "Requirements specialist who transforms ambiguous ideas into clear PRDs, user stories with acceptance criteria, and scoped specifications ready for engineering handoff. Activates for PRD, user story, acceptance criteria, requirements, specification",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "product"
@@ -595,8 +634,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "security-auditor",
     "description": "Security specialist who scans for vulnerabilities, audits dependencies, checks OWASP Top 10 compliance, and identifies secrets/credentials in code. Returns actionable findings with severity and remediation steps. Auto Mode keywords - security, vulnerability, CVE, audit, OWASP, injection, XSS, CSRF, secrets, credentials, npm audit, pip-audit, bandit",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "security"
@@ -605,8 +644,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "security-layer-auditor",
     "description": "Security layer auditor who verifies defense-in-depth implementation across 8 security layers, from edge to storage, ensuring comprehensive protection. Auto Mode keywords - security layer, defense-in-depth, security audit, 8 layers",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "security"
@@ -615,8 +654,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "system-design-reviewer",
     "description": "System design reviewer who evaluates implementation plans against scale, data, security, UX, and coherence criteria before code is written. Auto Mode keywords: system design, architecture review, scale, security review, implementation plan",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "development"
@@ -625,8 +664,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "test-generator",
     "description": "Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions. Activates for test, coverage, unit test, integration test, MSW, VCR, fixture",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "testing"
@@ -635,8 +674,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "ux-researcher",
     "description": "User research specialist who creates personas, maps user journeys, validates design decisions, and ensures features solve real user problems through data-driven insights and behavioral analysis. Auto-activates for user research, persona, user journey, usability, user testing, insights",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "frontend"
@@ -645,8 +684,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "web-research-analyst",
     "description": "Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "inherit",
     "category": "research"
@@ -655,8 +694,8 @@ export const AGENTS: AgentSummary[] = [
     "name": "workflow-architect",
     "description": "Multi-agent workflow specialist who designs LangGraph pipelines, implements supervisor-worker patterns, manages state and checkpointing, and orchestrates RAG retrieval flows for complex AI systems. Auto-activates for LangGraph, workflow, supervisor, state, checkpoint, RAG, multi-agent",
     "plugins": [
-      "orkl",
-      "ork"
+      "ork",
+      "orkl"
     ],
     "model": "opus",
     "category": "ai"
@@ -1116,8 +1155,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Add to Golden Dataset\n\nMulti-agent curation workflow with quality score explanations, bias detection, and version tracking.\n\n## Quick Start\n\n```bash\n/add-golden https://example.com/article\n/add-golden https://arxiv.org/abs/2312.xxxxx\n```\n\n---\n\n## Task Management (CC 2.1.16)\n\n```python\n# Create main curation task\nTaskCreate(\n  subject=\"Add to golden dataset: {url}\",\n  description=\"Multi-agent curation with quality explanation\",\n  activeForm=\"Curating document\"\n)\n\n# Create subtasks for 9-phase process\nphases = [\"Fetch content\", \"Run quality analysis\", \"Explain scores\",\n          \"Check bias\", \"Check diversity\", \"Validate\", \"Get approval\",\n          \"Write to dataset\", \"Update version\"]\nfor phase in phases:\n    TaskCreate(subject=phase, activeForm=f\"{phase}ing\")\n```\n\n---\n\n## Workflow Overview\n\n| Phase | Activities | Output |\n|-------|------------|--------|\n| **1. Input Collection** | Get URL, detect content type | Document metadata |\n| **2. Fetch and Extract** | Parse document structure | Structured content |\n| **3. Quality Analysis** | 4 parallel agents evaluate | Raw scores |\n| **4. Quality Explanation** | Explain WHY each score | Score rationale |\n| **5. Bias Detection** | Check for bias in content | Bias report |\n| **6. Diversity Check** | Assess dataset balance | Diversity metrics |\n| **7. Validation** | Schema, duplicates, gates | Validation status |\n| **8. Silver-to-Gold** | Promote or mark as silver | Classification |\n| **9. Version Tracking** | Track changes, rollback | Version entry |\n\n---\n\n## Phase 1-2: Input and Extraction\n\nDetect content type: article, tutorial, documentation, research_paper.\n\nExtract: title, sections, code blocks, key terms, metadata (author, date).\n\n---\n\n## Phase 3: Parallel Quality Analysis (4 Agents)\n\nLaunch ALL agents in ONE message with `run_in_background=True`.\n\n| Agent | Focus | Output |\n|-------|-------|--------|\n| code-quality-reviewer | Accuracy, coherence, depth, relevance | Quality scores |\n| workflow-architect | Keyword directness, paraphrase, reasoning | Difficulty level |\n| data-pipeline-engineer | Primary/secondary domains, skill level | Tags |\n| test-generator | Direct, paraphrased, multi-hop queries | Test queries |\n\nSee [Quality Scoring](references/quality-scoring.md) for detailed criteria.\n\n---\n\n## Phase 4: Quality Explanation\n\nEach dimension gets WHY explanation:\n\n```markdown\n### Accuracy: [N.NN]/1.0\n**Why this score:**\n- [Specific reason with evidence]\n**What would improve it:**\n- [Specific improvement]\n```\n\n---\n\n## Phase 5: Bias Detection\n\nSee [Bias Detection Guide](references/bias-detection-guide.md) for patterns.\n\nCheck for:\n- Technology bias (favors specific tools)\n- Recency bias (ignores LTS versions)\n- Complexity bias (assumed knowledge)\n- Vendor bias (promotes products)\n- Geographic/cultural bias\n\n| Bias Score | Action |\n|------------|--------|\n| 0-2 | Proceed normally |\n| 3-5 | Add disclaimer |\n| 6-8 | Require user review |\n| 9-10 | Recommend against |\n\n---\n\n## Phase 6: Diversity Dashboa",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -1538,8 +1576,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# ASCII Visualizer Skill\n\nCreate clear ASCII visualizations for explaining complex concepts.\n\n## Box-Drawing Characters\n\n**IMPORTANT:** Use a fixed-width (monospace) font for proper rendering.\n\n```\n┌─┐│└─┘  Standard weight\n┏━┓┃┗━┛  Heavy weight\n├─┤┬┴    Connectors\n╔═╗║╚═╝  Double lines\n```\n\n## Quick Examples\n\n### Architecture\n```\n┌──────────────┐      ┌──────────────┐\n│   Frontend   │─────▶│   Backend    │\n│   React 19   │      │   FastAPI    │\n└──────────────┘      └───────┬──────┘\n                              │\n                              ▼\n                      ┌──────────────┐\n                      │  PostgreSQL  │\n                      └──────────────┘\n```\n\n### Progress\n```\n[████████░░] 80% Complete\n✅ Design    (2 days)\n✅ Backend   (5 days)\n🔄 Frontend  (3 days)\n⏳ Testing   (pending)\n```\n\nSee `references/` for complete patterns.\n\n## Related Skills\n\n- `architecture-decision-record` - Document decisions that ASCII diagrams help visualize\n- `brainstorming` - Use visualizations to explore and communicate ideas\n- `explore` - Visualize codebase structure during exploration\n\n## Capability Details\n\n### architecture-diagrams\n**Keywords:** architecture, diagram, system design, components, flow\n**Solves:**\n- How do I visualize system architecture?\n- Show component relationships with ASCII\n- Explain system design visually\n- Create architecture diagrams in documentation\n\n### workflows\n**Keywords:** workflow, process, steps, pipeline, flowchart\n**Solves:**\n- How do I visualize process flow?\n- Show step-by-step workflow with ASCII\n- Explain pipeline stages visually\n- Document multi-agent workflows\n\n### comparisons\n**Keywords:** compare, vs, before after, metrics, changes\n**Solves:**\n- How do I compare two options visually?\n- Show before/after metrics\n- Display progress comparison\n- Visualize A/B testing results\n\n### file-trees\n**Keywords:** file tree, directory, structure, folder hierarchy\n**Solves:**\n- How do I show directory structure?\n- Visualize file hierarchy with ASCII\n- Explain codebase organization\n- Document project structure\n\n### progress-tracking\n**Keywords:** progress, status, completion, percentage, metrics\n**Solves:**\n- How do I show progress visually?\n- Create progress bars with ASCII\n- Display completion status\n- Track task completion metrics",
     "contentTruncated": false,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": [
       "system-design-reviewer"
@@ -1757,8 +1795,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Audio Mixing Patterns\n\nComprehensive guide to audio mixing for video production using ffmpeg. Covers narration/music balancing, automatic ducking, timing control, and loudness normalization.\n\n## Core Principle\n\n**Quality Audio = Clear Narration + Supportive Music + Appropriate Levels**\n\nThe human voice occupies 85-255 Hz (fundamental) with harmonics up to 8kHz. Music must support, not compete.\n\n## Volume Balancing Formula\n\n```\nStandard Video Mix Ratios:\n--------------------------\nNarration:  100% (reference level)\nMusic:      15-20% of narration level\nSFX:        70-100% of narration level (contextual)\n\ndB Relationships:\n-----------------\nNarration:  -14 dB LUFS (dialogue standard)\nMusic bed:  -30 to -35 dB LUFS (under narration)\nMusic only: -16 dB LUFS (no narration sections)\nSFX:        -18 to -20 dB LUFS\n```\n\n### Volume Multiplier Quick Reference\n\n| Ratio | Multiplier | Use Case |\n|-------|------------|----------|\n| 100% | 1.0 | Full volume (narration) |\n| 70% | 0.7 | Prominent SFX |\n| 50% | 0.5 | Equal blend |\n| 30% | 0.3 | Noticeable background |\n| 20% | 0.2 | Subtle bed (recommended music) |\n| 15% | 0.15 | Minimal presence |\n| 10% | 0.1 | Barely audible |\n\n## Basic ffmpeg Mixing Commands\n\n### Two-Track Mix (Narration + Music)\n\n```bash\n# Basic mix: narration at full, music at 15%\nffmpeg -i narration.mp3 -i music.mp3 \\\n  -filter_complex \"[0:a]volume=1.0[narr];[1:a]volume=0.15[music];[narr][music]amix=inputs=2:duration=first\" \\\n  -c:a aac -b:a 192k output.m4a\n```\n\n### Three-Track Mix (Narration + Music + SFX)\n\n```bash\nffmpeg -i narration.mp3 -i music.mp3 -i sfx.mp3 \\\n  -filter_complex \"\\\n    [0:a]volume=1.0[narr];\\\n    [1:a]volume=0.15[music];\\\n    [2:a]volume=0.7[sfx];\\\n    [narr][music][sfx]amix=inputs=3:duration=first:weights='3 1 2'\" \\\n  -c:a aac -b:a 192k output.m4a\n```\n\n## Timing with adelay Filter\n\nThe `adelay` filter positions audio at precise timestamps.\n\n### Syntax\n\n```bash\nadelay=delays[|delays...][,all=1]\n# delays: milliseconds or samples (with 'S' suffix)\n# all=1: apply same delay to all channels\n```\n\n### Position Music at Specific Time\n\n```bash\n# Start music at 5 seconds\nffmpeg -i narration.mp3 -i music.mp3 \\\n  -filter_complex \"\\\n    [0:a]volume=1.0[narr];\\\n    [1:a]adelay=5000|5000,volume=0.15[music];\\\n    [narr][music]amix=inputs=2:duration=first\" \\\n  output.m4a\n```\n\n### Multiple Timed Audio Cues\n\n```bash\n# Narration starts at 0, music at 2s, SFX at 5.5s\nffmpeg -i narration.mp3 -i music.mp3 -i sfx.wav \\\n  -filter_complex \"\\\n    [0:a]volume=1.0[narr];\\\n    [1:a]adelay=2000|2000,volume=0.15[music];\\\n    [2:a]adelay=5500|5500,volume=0.7[sfx];\\\n    [narr][music][sfx]amix=inputs=3:duration=longest\" \\\n  output.m4a\n```\n\n## Audio Ducking\n\nAutomatically lower music when speech is present.\n\n### Simple Sidechain Compression (Ducking)\n\n```bash\nffmpeg -i narration.mp3 -i music.mp3 \\\n  -filter_complex \"\\\n    [0:a]asplit=2[narr][sc];\\\n    [1:a][sc]sidechaincompress=threshold=0.02:ratio=10:attack=50:release=500[ducked];\\\n    [narr][ducked]am",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2314,8 +2352,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Callout Positioning\n\nDebug grids and coordinate systems for accurate arrow/annotation placement in Remotion video compositions. Essential for precise callout placement across different resolutions and aspect ratios.\n\n## Overview\n\n- Positioning callouts, arrows, and annotations in video compositions\n- Debugging coordinate misalignment in Remotion renders\n- Calibrating element positions using screenshot-based workflow\n- Creating responsive annotations for multi-resolution exports\n- Building reusable callout components with precise positioning\n\n## Quick Start\n\n```tsx\n// 1. Enable debug grid during development\nimport { DebugGrid } from './components/DebugGrid';\n\n<AbsoluteFill>\n  <YourScene />\n  <DebugGrid enabled={process.env.NODE_ENV === 'development'} />\n</AbsoluteFill>\n\n// 2. Position callouts using grid coordinates\n<Callout\n  x={960}   // Center horizontal (1920/2)\n  y={540}   // Center vertical (1080/2)\n  type=\"pointer\"\n  label=\"Click here\"\n/>\n```\n\n## Coordinate Systems\n\n### 1920x1080 (Horizontal/Landscape)\n\nStandard YouTube/Twitter format. Origin at top-left.\n\n| Region | X Range | Y Range | Description |\n|--------|---------|---------|-------------|\n| Top-Left | 0-640 | 0-360 | Logo/watermark |\n| Top-Center | 640-1280 | 0-360 | Titles |\n| Top-Right | 1280-1920 | 0-360 | Controls/badges |\n| Center | 640-1280 | 360-720 | Main content |\n| Bottom | 0-1920 | 720-1080 | CTAs/captions |\n\n### 1080x1920 (Vertical/Portrait)\n\nTikTok/Reels/Shorts format. Origin at top-left.\n\n| Region | X Range | Y Range | Description |\n|--------|---------|---------|-------------|\n| Safe-Top | 0-1080 | 200-400 | Below platform UI |\n| Center | 0-1080 | 640-1280 | Main content |\n| Safe-Bottom | 0-1080 | 1520-1720 | Above controls |\n\n### 1080x1080 (Square)\n\nInstagram/LinkedIn format.\n\n| Region | X Range | Y Range | Description |\n|--------|---------|---------|-------------|\n| Center | 270-810 | 270-810 | Safe content zone |\n| Margins | 0-270 | 0-1080 | Decorative only |\n\n## Debug Grid Component\n\nEnable during development to visualize coordinates.\n\n```tsx\nimport { DebugGrid } from './components/DebugGrid';\n\n// In your composition\n<AbsoluteFill>\n  <YourSceneContent />\n\n  {/* Toggle with prop or env var */}\n  <DebugGrid\n    enabled={showDebug}\n    gridSize={100}        // Grid cell size in pixels\n    showCoordinates       // Show X,Y at cursor position\n    showRulers            // Show pixel rulers on edges\n    highlightCenter       // Crosshair at center\n    opacity={0.5}\n  />\n</AbsoluteFill>\n```\n\n**See: `references/debug-grid-component.md`** for full component implementation.\n\n## Callout Types\n\n### 1. Pointer Callout\n\nArrow pointing to a specific location with label.\n\n```tsx\n<PointerCallout\n  targetX={400}\n  targetY={300}\n  labelX={600}\n  labelY={200}\n  label=\"Important feature\"\n  arrowColor=\"#8b5cf6\"\n  animate              // Fade in with arrow draw\n/>\n```\n\n### 2. Bracket Callout\n\nBrackets around a region to highlight an area.\n\n```tsx\n<BracketCallout\n  x={300}\n  y={200}\n  widt",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -2626,8 +2664,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Content Type Recipes\n\nComplete production recipes for creating demo videos across different OrchestKit content types. Each recipe provides exact timing, shot breakdowns, audio cues, text overlays, and transitions.\n\n## Recipe Overview\n\n| Content Type | Duration | Use Case |\n|--------------|----------|----------|\n| Skill Demo | 15-25s | Single skill showcase |\n| Agent Demo | 20-30s | Parallel execution, multi-agent |\n| Plugin Install | 10-15s | Quick impact, marketplace |\n| Tutorial | 60-120s | Educational, step-by-step |\n| Comparison | 20-40s | Before/after transformations |\n| Feature Highlight | 10-20s | Single feature focus |\n\n## Quick Reference\n\n### Frame Rate & Resolution\n- **Frame Rate**: 30fps (standard), 60fps (smooth typing)\n- **Resolution**: 1920x1080 (YouTube), 1080x1920 (shorts)\n- **Aspect Ratios**: 16:9 (horizontal), 9:16 (vertical), 1:1 (social)\n\n### Timing Constants\n\n```typescript\nconst TIMING = {\n  TYPING_SPEED: 50,      // ms per character\n  COMMAND_PAUSE: 500,    // ms after command typed\n  RESULT_DELAY: 200,     // ms before showing result\n  READ_TIME: 3000,       // ms for text comprehension\n  TRANSITION: 300,       // ms for smooth transitions\n};\n```\n\n### Audio Cues Library\n- **Key Press**: Subtle mechanical keyboard sound\n- **Command Execute**: Soft whoosh or confirmation tone\n- **Success**: Bright chime (C major)\n- **Error**: Low tone (for contrast demos)\n- **Transition**: Subtle swoosh\n\n## Recipe 1: Skill Demo (15-25 seconds)\n\n**Purpose**: Showcase a single skill's capability in minimal time.\n\n### Structure\n\n```\n[0:00-0:03] Hook - Problem statement\n[0:03-0:08] Command - Type and execute\n[0:08-0:18] Result - Show output with highlights\n[0:18-0:22] Impact - Key benefit callout\n[0:22-0:25] CTA - Next step or skill name\n```\n\n### Shot List\n\n| Shot | Duration | Camera | Subject | Notes |\n|------|----------|--------|---------|-------|\n| 1 | 3s | Static | Terminal | Problem text overlay |\n| 2 | 5s | Static | Terminal | Typing animation |\n| 3 | 10s | Slow zoom | Output | Highlight key areas |\n| 4 | 4s | Pull back | Full screen | Impact + CTA |\n| 5 | 3s | Static | Skill badge | End card |\n\nSee `references/skill-demo-recipe.md` for detailed breakdown.\n\n## Recipe 2: Agent Demo (20-30 seconds)\n\n**Purpose**: Demonstrate multi-agent coordination and parallel execution.\n\n### Structure\n\n```\n[0:00-0:04] Setup - Show the task\n[0:04-0:10] Dispatch - Agent spawning visualization\n[0:10-0:22] Parallel Work - Split screen showing agents\n[0:22-0:27] Synthesis - Results combining\n[0:27-0:30] Summary - Agent count and time saved\n```\n\nSee `references/agent-demo-recipe.md` for detailed breakdown.\n\n## Recipe 3: Plugin Install Demo (10-15 seconds)\n\n**Purpose**: Quick impact showcase for marketplace listings.\n\n### Structure\n\n```\n[0:00-0:02] Before State - Empty/manual\n[0:02-0:06] Install Command - One line\n[0:06-0:10] Transformation - Capabilities appear\n[0:10-0:13] Available Now - Feature list flash\n[0:13-0:15] Install CTA\n```\n\nSee `references/plugin-de",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -3097,8 +3135,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Demo Producer\n\nUniversal demo video creation for any content type.\n\n## Quick Start\n\n```bash\n/demo-producer                    # Interactive mode - asks what to create\n/demo-producer skill explore      # Create demo for a skill\n/demo-producer plugin ork     # Create demo for a plugin\n/demo-producer tutorial \"Building a REST API\"  # Custom tutorial\n```\n\n## Supported Content Types\n\n| Type | Source | Example |\n|------|--------|---------|\n| `skill` | skills/{name}/SKILL.md | `/demo-producer skill commit` |\n| `agent` | agents/{name}.md | `/demo-producer agent debug-investigator` |\n| `plugin` | plugins/{name}/plugin.json | `/demo-producer plugin ork` |\n| `marketplace` | Marketplace install flow | `/demo-producer marketplace ork` |\n| `tutorial` | Custom description | `/demo-producer tutorial \"Git workflow\"` |\n| `cli` | Any CLI tool | `/demo-producer cli \"npm create vite\"` |\n| `code` | Code walkthrough | `/demo-producer code src/api/auth.ts` |\n\n## Interactive Flow\n\nWhen invoked without arguments, asks:\n\n### Question 1: Content Type\n```\nWhat type of demo do you want to create?\n\n○ Skill - OrchestKit skill showcase\n○ Agent - AI agent demonstration\n○ Plugin - Plugin installation/features\n○ Tutorial - Custom coding tutorial\n○ CLI Tool - Command-line tool demo\n○ Code Walkthrough - Explain existing code\n```\n\n### Question 2: Format\n```\nWhat format(s) do you need?\n\n☑ Horizontal (16:9) - YouTube, Twitter\n☑ Vertical (9:16) - TikTok, Reels, Shorts\n☐ Square (1:1) - Instagram, LinkedIn\n```\n\n### Question 3: Style\n```\nWhat style fits your content?\n\n○ Quick Demo (6-10s) - Fast showcase, single feature\n○ Standard Demo (15-25s) - Full workflow, multiple steps\n○ Tutorial (30-60s) - Detailed explanation, code examples\n○ Cinematic (60s+) - Story-driven, high polish\n○ Scrapbook (15-35s) - Warm paper, fast cuts, social proof collage (Anthropic style)\n```\n\n### Question 4: Audio\n```\nAudio preferences?\n\n○ Music Only - Subtle ambient background\n○ Music + SFX - Background + success sounds\n○ Silent - No audio\n```\n\n## Pipeline Architecture\n\n```\n┌──────────────────────────────────────────────────────────────────┐\n│                     Demo Producer Pipeline                        │\n├──────────────────────────────────────────────────────────────────┤\n│                                                                   │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │   Content   │───▶│   Content    │───▶│   Script Generator  │  │\n│  │   Detector  │    │   Analyzer   │    │   (per type)        │  │\n│  └─────────────┘    └──────────────┘    └──────────┬──────────┘  │\n│                                                     │             │\n│                                                     ▼             │\n│  ┌─────────────┐    ┌──────────────┐    ┌─────────────────────┐  │\n│  │  Remotion   │◀───│    VHS       │◀───│   Terminal Script   │  │\n│  │  Composer   │    │   Recorder   │    │   (.sh + .tape)     │  │\n│  └──────┬──────┘    └──────────────┘    └─────────────",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": [
       "demo-producer"
@@ -3283,7 +3321,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "skills-validation.md"
       ]
     },
-    "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 109 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 200 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 24 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle f",
+    "content": "# OrchestKit Health Diagnostics\n\n## Overview\n\nThe `/ork:doctor` command performs comprehensive health checks on your OrchestKit installation. It auto-detects installed plugins and validates 10 categories:\n\n1. **Installed Plugins** - Detects orkl or ork\n2. **Skills Validation** - Frontmatter, references, token budget (dynamic count)\n3. **Agents Validation** - Frontmatter, tool refs, skill refs (dynamic count)\n4. **Hook Health** - Registration, bundles, async patterns\n5. **Permission Rules** - Detects unreachable rules (CC 2.1.3 feature)\n6. **Schema Compliance** - Validates JSON files against schemas\n7. **Coordination System** - Checks lock health and registry integrity\n8. **Context Budget** - Monitors token usage against budget\n9. **Memory System** - Graph, Mem0, Fabric health\n10. **Claude Code Version** - Validates CC >= 2.1.16\n\n## When to Use\n\n- After installing or updating OrchestKit\n- When hooks aren't firing as expected\n- Before deploying to a team environment\n- When debugging coordination issues\n- After running `npm run build`\n\n## Quick Start\n\n```bash\n/ork:doctor           # Standard health check\n/ork:doctor -v        # Verbose output\n/ork:doctor --json    # Machine-readable for CI\n```\n\n## CLI Options\n\n| Flag | Description |\n|------|-------------|\n| `-v`, `--verbose` | Detailed output per check |\n| `--json` | JSON output for CI integration |\n| `--category=X` | Run only specific category |\n\n## Health Check Categories\n\n### 0. Installed Plugins Detection\n\nAuto-detects which OrchestKit plugins are installed:\n\n```bash\n# Detection logic:\n# - Scans for .claude-plugin/plugin.json in plugin paths\n# - Identifies orkl or ork\n# - Counts skills/agents per installed plugin\n```\n\n**Output (orkl):**\n```\nInstalled Plugins: 1\n- orkl: 88 skills, 36 agents, 119 hook entries\n```\n\n**Output (ork full):**\n```\nInstalled Plugins: 1\n- ork: 199 skills, 36 agents, 119 hook entries\n```\n\n### 1. Skills Validation\n\nValidates skills in installed plugins (count varies by installation):\n\n```bash\n# Checks performed:\n# - SKILL.md frontmatter (name, description, user-invocable)\n# - context: fork field (required for CC 2.1.0+)\n# - Token budget compliance (300-5000 tokens)\n# - Internal link validation (references/ paths)\n# - Related Skills references exist\n```\n\n**Output (full ork):**\n```\nSkills: 186/186 valid\n- User-invocable: 24 commands\n- Reference skills: 163\n```\n\n**Output (orkl only):**\n```\nSkills: 18/18 valid\n- User-invocable: 0 commands\n- Reference skills: 18\n```\n\n### 2. Agents Validation\n\nValidates agents in installed plugins:\n\n```bash\n# Checks performed:\n# - Frontmatter fields (name, description, model, tools, skills)\n# - Model validation (opus, sonnet, haiku only)\n# - Skills references exist in src/skills/\n# - Tools are valid CC tools\n```\n\n**Output:**\n```\nAgents: 35/35 valid\n- Models: 12 sonnet, 15 haiku, 8 opus\n- All skill references valid\n```\n\n### 3. Hook Health\n\nVerifies hooks are properly configured:\n\n```bash\n# Checks performed:\n# - hooks.json schema valid\n# - Bundle fi",
     "contentTruncated": true,
     "plugins": [
       "ork",
@@ -3481,8 +3519,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# ElevenLabs Narration for Video Production\n\nComplete integration guide for using ElevenLabs text-to-speech in video production pipelines. Covers voice selection, timing calculations, API patterns, and cost optimization for professional narration.\n\n## Overview\n\n- Generating narration audio for video segments\n- Selecting appropriate voices for content type\n- Calculating segment timing from frames to milliseconds\n- Building script-to-audio pipelines\n- Optimizing API usage and costs\n- Handling rate limits and errors\n\n## ElevenLabs API Overview\n\n### Model Comparison (2026)\n\n| Model | Latency | Quality | Cost | Best For |\n|-------|---------|---------|------|----------|\n| **eleven_multilingual_v2** | Medium | Best | $0.30/1K chars | Production, multilingual |\n| **eleven_turbo_v2_5** | Low | Excellent | $0.18/1K chars | Real-time, drafts |\n| **eleven_flash_v2_5** | Lowest | Good | $0.08/1K chars | Previews, testing |\n| **eleven_english_sts_v2** | Medium | Best | $0.30/1K chars | Speech-to-speech |\n\n### API Endpoints\n\n```\nBase URL: https://api.elevenlabs.io/v1\n\nPOST /text-to-speech/{voice_id}           # Generate audio\nPOST /text-to-speech/{voice_id}/stream    # Stream audio\nGET  /voices                              # List voices\nGET  /voices/{voice_id}                   # Voice details\nGET  /user                                # Usage/quota\nPOST /speech-to-speech/{voice_id}         # Voice conversion\n```\n\n## Core Integration Pattern\n\n### Basic Text-to-Speech\n\n```typescript\nimport { ElevenLabsClient } from 'elevenlabs';\n\nconst client = new ElevenLabsClient({\n  apiKey: process.env.ELEVENLABS_API_KEY\n});\n\nasync function generateNarration(\n  text: string,\n  voiceId: string = 'Rachel'\n): Promise<Buffer> {\n  const audio = await client.generate({\n    voice: voiceId,\n    text: text,\n    model_id: 'eleven_multilingual_v2',\n    voice_settings: {\n      stability: 0.5,\n      similarity_boost: 0.8,\n      style: 0.0,\n      use_speaker_boost: true\n    }\n  });\n\n  // Convert stream to buffer\n  const chunks: Buffer[] = [];\n  for await (const chunk of audio) {\n    chunks.push(chunk);\n  }\n  return Buffer.concat(chunks);\n}\n```\n\n## Voice Selection Quick Reference\n\n### Pre-Built Voices for Video Narration\n\n| Voice | ID | Characteristics | Use Case |\n|-------|-----|-----------------|----------|\n| **Rachel** | 21m00Tcm4TlvDq8ikWAM | Warm, conversational | General narration |\n| **Adam** | pNInz6obpgDQGcFmaJgB | Deep, authoritative | Tech explainers |\n| **Antoni** | ErXwobaYiN019PkySvjV | Energetic, youthful | Product demos |\n| **Bella** | EXAVITQu4vr4xnSDxMaL | Friendly, engaging | Tutorials |\n| **Josh** | TxGEqnHWrfWFTfGW9XjX | Deep, narrative | Documentaries |\n\n### Voice Settings Explained\n\n```typescript\ninterface VoiceSettings {\n  stability: number;        // 0.0-1.0 (lower = more expressive)\n  similarity_boost: number; // 0.0-1.0 (higher = closer to original)\n  style: number;           // 0.0-1.0 (v2 models only)\n  use_speaker_boost: boolean; // Clarity enhancement\n}\n\n// Rec",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -4365,34 +4403,6 @@ export const SKILLS: Record<string, SkillDetail> = {
     ],
     "relatedAgents": []
   },
-  "heygen-avatars": {
-    "name": "heygen-avatars",
-    "description": "Best practices for HeyGen - AI avatar video creation API. Use when creating AI avatar videos, generating talking head videos, or integrating HeyGen with Remotion.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "heygen",
-      "video",
-      "avatar",
-      "ai",
-      "api",
-      "text-to-video",
-      "remotion"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {},
-    "content": "# HeyGen Avatars\n\nAI avatar video creation using HeyGen API for talking head videos, avatar generation, and text-to-video workflows.\n\n## Quick Start\n\n```typescript\n// Check remaining quota\nconst response = await fetch(\"https://api.heygen.com/v2/user/remaining_quota\", {\n  headers: { \"X-Api-Key\": process.env.HEYGEN_API_KEY! }\n});\n\n// Generate avatar video\nconst video = await fetch(\"https://api.heygen.com/v2/video/generate\", {\n  method: \"POST\",\n  headers: {\n    \"X-Api-Key\": process.env.HEYGEN_API_KEY!,\n    \"Content-Type\": \"application/json\"\n  },\n  body: JSON.stringify({\n    video_inputs: [{\n      character: { type: \"avatar\", avatar_id: \"your-avatar-id\" },\n      voice: { type: \"text\", input_text: \"Hello world!\", voice_id: \"your-voice-id\" }\n    }],\n    dimension: { width: 1280, height: 720 }\n  })\n});\n```\n\n## When to use\n\nUse this skill whenever you are dealing with HeyGen API code to obtain domain-specific knowledge for creating AI avatar videos, managing avatars, handling video generation workflows, and integrating with HeyGen's services.\n\n## How to use\n\nRead individual rule files for detailed explanations and code examples:\n\n### Foundation\n- [rules/authentication.md](rules/authentication.md) - API key setup, X-Api-Key header, and authentication patterns\n- [rules/quota.md](rules/quota.md) - Credit system, usage limits, and checking remaining quota\n- [rules/video-status.md](rules/video-status.md) - Polling patterns, status types, and retrieving download URLs\n- [rules/assets.md](rules/assets.md) - Uploading images, videos, and audio for use in video generation\n\n### Core Video Creation\n- [rules/avatars.md](rules/avatars.md) - Listing avatars, avatar styles, and avatar_id selection\n- [rules/voices.md](rules/voices.md) - Listing voices, locales, speed/pitch configuration\n- [rules/scripts.md](rules/scripts.md) - Writing scripts, pauses/breaks, pacing, and structure templates\n- [rules/video-generation.md](rules/video-generation.md) - POST /v2/video/generate workflow and multi-scene videos\n- [rules/video-agent.md](rules/video-agent.md) - One-shot prompt video generation with Video Agent API\n- [rules/dimensions.md](rules/dimensions.md) - Resolution options (720p/1080p) and aspect ratios\n\n### Video Customization\n- [rules/backgrounds.md](rules/backgrounds.md) - Solid colors, images, and video backgrounds\n- [rules/text-overlays.md](rules/text-overlays.md) - Adding text with fonts and positioning\n- [rules/captions.md](rules/captions.md) - Auto-generated captions and subtitle options\n\n### Advanced Features\n- [rules/templates.md](rules/templates.md) - Template listing and variable replacement\n- [rules/video-translation.md](rules/video-translation.md) - Translating videos, quality/fast modes, and dubbing\n- [rules/streaming-avatars.md](rules/streaming-avatars.md) - Real-time interactive avatar sessions\n- [rules/photo-avatars.md](rules/photo-avatars.md) - Creating avatars from photos (talking photos)\n- [rules/webhooks.md](rules/webhooks.md) - Registering webhook endpo",
-    "contentTruncated": true,
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": []
-  },
   "high-performance-inference": {
     "name": "high-performance-inference",
     "description": "High-performance LLM inference with vLLM, quantization (AWQ, GPTQ, FP8), speculative decoding, and edge deployment. Use when optimizing inference latency, throughput, or memory.",
@@ -4463,8 +4473,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Video Hook Formulas\n\nMaster the art of the first 3 seconds - proven patterns that stop the scroll and capture attention.\n\n## Why Hooks Matter\n\n- **47%** of video value is delivered in the first 3 seconds\n- **65%** of viewers who watch the first 3 seconds will watch at least 10 more\n- Hooks determine algorithmic reach on every platform\n\n## The Hook Framework\n\n### Anatomy of a Perfect Hook\n\n```\n[PATTERN] + [SPECIFICITY] + [TENSION] = Scroll-stopping hook\n```\n\n1. **Pattern**: Use a proven formula (see patterns below)\n2. **Specificity**: Add concrete numbers, names, or details\n3. **Tension**: Create curiosity gap or emotional response\n\n---\n\n## 12 Proven Hook Patterns\n\n### 1. The Shocking Statistic\n\n**Formula**: \"[Surprising number] + [unexpected context]\"\n\n**Examples**:\n- \"90% of Claude Code users are writing code wrong\"\n- \"This one setting saves 4 hours per week\"\n- \"Only 3% of developers know this exists\"\n\n**When to use**: Product features, productivity tips, industry insights\n\n---\n\n### 2. The Transformation Hook\n\n**Formula**: \"I went from [bad state] to [good state] in [timeframe]\"\n\n**Examples**:\n- \"I went from manual deploys to zero-downtime in 20 minutes\"\n- \"My code reviews went from 2 hours to 15 minutes\"\n- \"From 50 errors to zero - here's what changed\"\n\n**When to use**: Before/after demos, tool adoption stories\n\n---\n\n### 3. The Contrarian Statement\n\n**Formula**: \"[Common belief] is wrong. Here's why...\"\n\n**Examples**:\n- \"Writing tests first is actually slower. Let me explain.\"\n- \"Stop using ChatGPT for code. Here's what works better.\"\n- \"AI won't replace developers. It'll replace THIS instead.\"\n\n**When to use**: Thought leadership, challenging status quo\n\n---\n\n### 4. The Direct Question\n\n**Formula**: \"[Pain point question]?\" or \"What if [desired outcome]?\"\n\n**Examples**:\n- \"Tired of debugging the same errors every week?\"\n- \"What if your AI assistant actually understood your codebase?\"\n- \"Why does every PR review feel like a fight?\"\n\n**When to use**: Problem-aware audiences, relatable pain points\n\n---\n\n### 5. The \"Stop Doing This\" Hook\n\n**Formula**: \"Stop [common practice] immediately\"\n\n**Examples**:\n- \"Stop writing console.log for debugging\"\n- \"Stop copying code from ChatGPT directly\"\n- \"Stop reviewing PRs without this checklist\"\n\n**When to use**: Common mistakes, bad habits, quick wins\n\n---\n\n### 6. The Secret/Hidden Hook\n\n**Formula**: \"The [hidden/secret] [thing] that [benefit]\"\n\n**Examples**:\n- \"The hidden Claude feature that 10x'd my productivity\"\n- \"A secret prompt pattern that actually works\"\n- \"The debugging trick seniors don't share\"\n\n**When to use**: Insider knowledge, exclusive tips\n\n---\n\n### 7. The \"Most People\" Hook\n\n**Formula**: \"Most [audience] [mistake]. Here's what to do instead.\"\n\n**Examples**:\n- \"Most devs use AI wrong. Here's the right way.\"\n- \"Most teams waste 40% of their standup time\"\n- \"Most prompts fail because of this one word\"\n\n**When to use**: Positioning expertise, common mistakes\n\n---\n\n### 8. The Countdown/List Hoo",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -5451,8 +5461,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Manim Visualizer\n\nCreates animated visualizations using Manim (3Blue1Brown's animation engine).\n\n## Quick Start\n\n```bash\n# Install manim\npip install manim\n\n# Generate visualization\npython scripts/visualize.py explore --type=workflow\n```\n\n## Visualization Types\n\n### 1. Workflow Animation\nShows skill execution phases as animated flowchart.\n\n```python\n# Input: SkillMetadata with phases\n# Output: workflow-{skill}.mp4\n\nPhases flow left-to-right with:\n- Phase boxes appearing sequentially\n- Tool icons animating in\n- Parallel phases shown side-by-side\n- Completion checkmarks\n```\n\n### 2. Agent Spawning\nVisualizes parallel agent spawning from Task tool.\n\n```python\n# Shows:\n# - Central orchestrator\n# - Agents spawning outward\n# - Parallel execution lines\n# - Results merging back\n```\n\n### 3. Architecture Diagram\nStatic-to-animated architecture visualization.\n\n```python\n# Components:\n# - Boxes for services/modules\n# - Arrows for data flow\n# - Highlights for focus areas\n```\n\n## Output Specs\n\n| Type | Resolution | Duration | FPS |\n|------|------------|----------|-----|\n| workflow | 1920x400 | 5-10s | 30 |\n| agents | 1920x600 | 3-5s | 30 |\n| architecture | 1920x1080 | 5-8s | 30 |\n\n## Integration with Remotion\n\nManim outputs are imported as overlays:\n\n```tsx\n<Sequence from={hookEnd} durationInFrames={150}>\n  <OffthreadVideo src={staticFile(\"manim/workflow.mp4\")} />\n</Sequence>\n```\n\n## Color Palette\n\nMatches OrchestKit branding:\n- Primary: #8b5cf6 (purple)\n- Success: #22c55e (green)\n- Warning: #f59e0b (amber)\n- Info: #06b6d4 (cyan)\n- Background: #0a0a0f (dark)\n\n## Related Skills\n\n- `remotion-composer`: Combines Manim MP4 outputs with terminal recordings\n- `demo-producer`: Full demo pipeline orchestration\n- `terminal-demo-generator`: Terminal recordings that pair with Manim animations\n- `video-storyboarding`: Scene planning before animation creation",
     "contentTruncated": false,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": [
       "demo-producer"
@@ -6007,8 +6017,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Multi-Scenario Orchestration\n\n**Design patterns for showcasing one skill across 3 parallel scenarios with synchronized execution and progressive difficulty.**\n\n## Core Pattern\n\n```\n┌─────────────────────────────────────────────────────────────────────┐\n│                   MULTI-SCENARIO ORCHESTRATOR                        │\n├─────────────────────────────────────────────────────────────────────┤\n│                                                                     │\n│  [Coordinator] ──┬─→ [Scenario 1: Simple]       (Easy)            │\n│       ▲          │      └─→ [Skill Instance 1]                    │\n│       │          ├─→ [Scenario 2: Medium]       (Intermediate)    │\n│       │          │      └─→ [Skill Instance 2]                    │\n│       │          └─→ [Scenario 3: Complex]      (Advanced)        │\n│       │                 └─→ [Skill Instance 3]                    │\n│       │                                                             │\n│   [State Manager] ◄──── All instances report progress              │\n│   [Aggregator] ─→ Cross-scenario synthesis                         │\n│                                                                     │\n└─────────────────────────────────────────────────────────────────────┘\n```\n\n## When to Use\n\n| Scenario | Example |\n|----------|---------|\n| **Skill demos** | Show `/implement` on simple, medium, complex tasks |\n| **Progressive testing** | Validate skill scales with complexity |\n| **Comparative analysis** | How does approach differ by difficulty? |\n| **Training/tutorials** | Show skill progression from easy to hard |\n\n## Quick Start\n\n```python\nfrom langgraph.graph import StateGraph\n\n# 1. Define 3 scenarios with progressive difficulty\nscenarios = [\n    {\"name\": \"simple\", \"complexity\": 1.0, \"input_size\": 10},\n    {\"name\": \"medium\", \"complexity\": 3.0, \"input_size\": 50},\n    {\"name\": \"complex\", \"complexity\": 8.0, \"input_size\": 200},\n]\n\n# 2. Fan out to parallel execution\n# 3. Aggregate results\n# 4. Report comparative metrics\n```\n\n## Scenario Difficulty Scaling\n\n| Level | Complexity | Input Size | Time Budget | Quality |\n|-------|------------|------------|-------------|---------|\n| Simple | 1x | Small (10) | 30s | Basic |\n| Medium | 3x | Medium (50) | 90s | Good |\n| Complex | 8x | Large (200) | 300s | Excellent |\n\n## Synchronization Modes\n\n| Mode | Description | Use When |\n|------|-------------|----------|\n| **Free-running** | All run independently | Demo videos |\n| **Milestone-sync** | Wait at 30%, 70%, 100% | Comparative analysis |\n| **Lock-step** | All proceed together | Training |\n\n## Key Components\n\n1. **Coordinator** - Spawns and monitors 3 instances\n2. **State Manager** - Tracks progress per scenario\n3. **Aggregator** - Merges results, extracts patterns\n\n## Key Decisions\n\n| Decision | Recommendation |\n|----------|----------------|\n| Synchronization mode | Free-running with checkpoints |\n| Scenario count | Always 3: simple, medium, complex |\n| Input scaling | 1x, 3x, 8x (exponential) |\n| Tim",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -6076,8 +6085,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Music and SFX Selection for Tech Demo Videos\n\nComprehensive guide for selecting, timing, and mixing audio elements in technology demonstration videos.\n\n## Music Matching Matrix\n\nMatch your content type to the appropriate audio style:\n\n| Content Type | Audio Style | BPM Range | Key Characteristics |\n|--------------|-------------|-----------|---------------------|\n| AI/ML Demo | Electronic Ambient | 80-100 | Subtle synths, minimal percussion, futuristic pads |\n| Code Tutorial | Lo-fi/Chill | 70-90 | Relaxed beats, non-intrusive, study-music feel |\n| Product Launch | Uplifting Corporate | 100-120 | Building energy, positive resolution |\n| Bug Fix/Debug | Tense to Resolution | 90-110 | Minor key start, major key resolution |\n| Performance Demo | High Energy Electronic | 120-140 | Driving beats, impressive feel |\n| API Integration | Tech Corporate | 95-115 | Professional, modern, clean |\n| Security Feature | Dark Electronic | 85-105 | Suspenseful undertones, protective feel |\n| Success Story | Inspirational | 100-120 | Emotional build, triumphant finish |\n\n## BPM Guidelines by Mood\n\n### Calm/Professional (70-90 BPM)\n- Documentation walkthroughs\n- Slow-paced tutorials\n- Thoughtful explanations\n\n### Moderate/Engaging (90-110 BPM)\n- Standard demos\n- Feature overviews\n- Most tech content\n\n### Energetic/Exciting (110-130 BPM)\n- Product launches\n- Performance comparisons\n- Call-to-action sections\n\n### High Energy (130-150 BPM)\n- Speed demonstrations\n- Competitive comparisons\n- Hype moments (use sparingly)\n\n## SFX Categories for Tech Videos\n\n### Typing/Keyboard SFX\n- **Mechanical keyboard**: Satisfying tactile sound for code input\n- **Soft membrane**: Subtle for background typing\n- **Terminal beep**: Old-school computer feel\n- **Recommended**: Layer 2-3 variations to avoid repetition\n\n### UI Interaction SFX\n- **Click/Tap**: Button interactions, menu selections\n- **Hover**: Subtle whoosh for cursor movement\n- **Toggle**: Switch on/off sounds\n- **Scroll**: Gentle movement indicator\n\n### Transition SFX\n- **Whoosh**: Scene changes, fast movements\n- **Sweep**: Gradual transitions\n- **Glitch**: Error states, interruptions\n- **Portal/Warp**: Teleportation between views\n\n### Feedback SFX\n- **Success chime**: Task completion, green checkmarks\n- **Error buzz**: Failed operations, red indicators\n- **Warning tone**: Caution states, yellow alerts\n- **Notification ping**: New messages, updates\n\n### Ambient SFX\n- **Data flow**: Background processing sound\n- **Server hum**: Infrastructure ambiance\n- **Digital rain**: Matrix-style atmosphere\n- **Circuit pulse**: Electronic heartbeat\n\n## SFX Timing Patterns\n\n### Typing Sequence\n```\nFrame 0: First keystroke SFX\nFrame 3-5: Subsequent keystrokes (randomize timing)\nEvery 15-20 frames: Brief pause\nFinal frame: Enter key or completion sound\n```\n\n### Success Animation\n```\nFrame 0: Action initiated (subtle click)\nFrame 15-30: Processing indicator (soft loop)\nFrame X: Completion (rising chime, 200-400ms)\nFrame X+10: Visual confirmat",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -6109,8 +6118,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Narration Scripting\n\nComprehensive guide to writing narration scripts optimized for video production, TTS synthesis, and audience engagement.\n\n## Overview\n\n- Writing scene-by-scene narration for demo videos\n- Timing synchronization between visuals and voice\n- Pacing narration for optimal comprehension\n- CTA scripting that converts viewers\n- TTS-optimized script formatting\n- Multi-format narration (horizontal, vertical, square)\n\n## Core Principle\n\n**Narration = Visual Support + Comprehension Timing + Emotional Arc**\n\nNarration should enhance visuals, not compete with them. Words must land precisely when viewers need context, and pacing must match cognitive load.\n\n## Timing Fundamentals\n\n### Frame to Milliseconds Conversion\n\n```\nFrame Rate    1 Frame    15 Frames    30 Frames    60 Frames\n─────────────────────────────────────────────────────────────\n24 fps        41.67ms    625ms        1250ms       2500ms\n30 fps        33.33ms    500ms        1000ms       2000ms\n60 fps        16.67ms    250ms        500ms        1000ms\n\nCommon Timing Shortcuts:\n├── 30fps: Frame# x 33.33 = milliseconds\n├── 24fps: Frame# x 41.67 = milliseconds\n└── 60fps: Frame# / 60 x 1000 = milliseconds\n```\n\n### Sync Point Types\n\n```\nType            Symbol    Usage                   Precision\n──────────────────────────────────────────────────────────────\nHard Sync       [!]       Word lands on action    +/- 2 frames\nSoft Sync       [~]       Word near action        +/- 10 frames\nWindow Sync     [...]     Word during scene       Flexible\nLead Sync       [>]       Word before action      100-300ms early\nLag Sync        [<]       Word after action       100-500ms late\n```\n\n## Words Per Minute (WPM) Guidelines\n\n### Comprehension-Based Pacing\n\n```\nContent Type          WPM Range    Pause Frequency    Use Case\n─────────────────────────────────────────────────────────────────\nTechnical Demo        120-140      Every 8-10 words   Complex UI, code\nTutorial              130-150      Every 10-12 words  Step-by-step\nProduct Feature       140-160      Every 12-15 words  Marketing, benefits\nQuick Overview        150-170      Every 15-20 words  Intro sequences\nHigh Energy           170-190      Minimal pauses     TikTok, Reels\nDocumentary           110-130      Natural pauses     Storytelling\n```\n\n### Platform-Specific WPM\n\n```\nPlatform       WPM Range    Why\n────────────────────────────────────────────────────\nTikTok         160-180      Fast scroll, hook fast\nReels          150-170      Slightly slower aesthetic\nYouTube Shorts 140-160      More value-focused\nYouTube Long   130-150      Comprehension over speed\nLinkedIn       120-140      Professional, clear\nTwitter/X      150-170      Quick engagement\n```\n\n### Calculating Script Length\n\n```\nFormula: (Video Duration in seconds) x (WPM / 60) = Word Count\n\nExamples:\n├── 15s video @ 150 WPM = 37 words\n├── 30s video @ 140 WPM = 70 words\n├── 60s video @ 130 WPM = 130 words\n├── 5m video @ 140 WPM = 700 words\n└── 10m video @ 135 WPM = 1350 words\n\nInc",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -7343,8 +7352,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Remotion Composer\n\nProduction-quality video composition with AnimStats-level animations. Supports data visualization, spring physics, easing presets, and cinematic transitions.\n\n## Quick Start\n\n```bash\n# Install enhanced packages\ncd orchestkit-demos && npm install\n\n# Add composition for a skill\n./scripts/add-composition.sh explore\n\n# Render\nnpx remotion render ExploreDemo out/ExploreDemo.mp4\n```\n\n## Package Library (v2.1)\n\n### Core Animation\n```json\n{\n  \"@remotion/shapes\": \"^4.0.0\",      // Geometric primitives (pie, rect, triangle)\n  \"@remotion/paths\": \"^4.0.0\",       // SVG path animations (evolvePath)\n  \"@remotion/noise\": \"^4.0.0\",       // Procedural noise (noise2D, noise3D)\n  \"@remotion/transitions\": \"^4.0.0\", // Scene transitions (fade, slide, wipe)\n  \"@remotion/motion-blur\": \"^4.0.0\", // Motion trails and blur\n  \"@remotion/gif\": \"^4.0.0\",         // GIF synchronization\n  \"@remotion/animated-emoji\": \"^4.0.0\", // Lottie emojis\n  \"@remotion/layout-utils\": \"^4.0.0\"   // Text fitting and layout\n}\n```\n\n### Advanced Capabilities\n```json\n{\n  \"@remotion/three\": \"^4.0.0\",       // Three.js 3D graphics\n  \"@remotion/lottie\": \"^4.0.0\",      // After Effects animations\n  \"@remotion/rive\": \"^4.0.0\",        // Rive interactive animations\n  \"@remotion/captions\": \"^4.0.0\",    // Subtitles and captions\n  \"@remotion/player\": \"^4.0.0\",      // Embeddable player\n  \"@remotion/renderer\": \"^4.0.0\",    // Server-side rendering\n  \"@remotion/media-utils\": \"^4.0.0\"  // Audio/video metadata\n}\n```\n\n### 3D & Animation Runtimes\n```json\n{\n  \"three\": \"^0.175.0\",                    // Three.js core\n  \"@react-three/fiber\": \"^9.1.0\",         // React Three Fiber\n  \"@react-three/drei\": \"^10.3.0\",         // Three.js helpers\n  \"@lottiefiles/react-lottie-player\": \"^3.5.4\", // Lottie player\n  \"@rive-app/react-canvas\": \"^4.21.0\"     // Rive runtime\n}\n```\n\n## Animation Presets\n\n### Easing Reference\n| Preset | Use Case | Feel |\n|--------|----------|------|\n| `bounce` | Success celebrations | Playful |\n| `elastic` | Attention grab | Energetic |\n| `back` | Entry animations | Anticipation |\n| `snappy` | Quick UI | Overshoot |\n| `spring` | Default | Natural |\n\n### Spring Configs\n| Name | damping | stiffness | Use |\n|------|---------|-----------|-----|\n| Bouncy | 10-12 | 100-120 | Playful enters |\n| Snappy | 15-20 | 150-200 | Quick UI |\n| Smooth | 80 | 200 | Subtle moves |\n| Heavy | 15 | 50 | Large elements |\n\n## Data Visualization Components\n\n### StatCounter (Enhanced)\n```tsx\n<StatCounter\n  value={168}\n  label=\"Skills\"\n  color=\"#8b5cf6\"\n  easing=\"bounce\"           // bounce, elastic, back, snappy, spring\n  digitMorph                // Individual digit animation\n  gradientColors={[\"#8b5cf6\", \"#22c55e\"]}  // Animated gradient\n  celebrateOnComplete       // Particle burst\n  size=\"lg\"                 // sm, md, lg\n/>\n```\n\n### ProgressRing\n```tsx\n<ProgressRing\n  progress={85}\n  color=\"#22c55e\"\n  size={120}\n  delay={15}\n  showLabel\n  easing=\"spring\"\n/>\n```\n\n### BarChart\n```tsx\n<BarChart\n  da",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": [
       "demo-producer"
@@ -7739,8 +7748,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Scene Intro Cards\n\nTransitional intro cards that appear between video scenes to prepare viewers for upcoming content. These \"Coming up next\" style cards increase engagement by building anticipation and providing visual breathing room.\n\n## Core Principle\n\n**Intro Cards = Anticipation Builder + Cognitive Reset**\n\nScene intro cards serve two purposes:\n1. **Build anticipation** for the next segment\n2. **Provide cognitive reset** between dense information sections\n\n```\nVIEWER JOURNEY\n==============\n\n[Dense Content A]\n       |\n       v\n+------------------+\n|  INTRO CARD      |  <-- 2-4 seconds\n|  \"Coming Up...\"  |      Viewer anticipation peaks\n+------------------+\n       |\n       v\n[Dense Content B]     <-- Viewer re-engages with fresh attention\n```\n\n## When to Use Intro Cards\n\n| Use Case | Card Duration | Style |\n|----------|---------------|-------|\n| Major topic change | 3-4 seconds | Bold, high contrast |\n| Section within topic | 2-3 seconds | Minimal, subtle |\n| Returning from tangent | 2 seconds | Quick reminder |\n| Before key reveal | 3-4 seconds | Building tension |\n| Tutorial steps | 2 seconds | Numbered, clear |\n\n## Card Anatomy\n\n```\n+------------------------------------------+\n|                                          |\n|     [ICON/EMOJI]                         |\n|                                          |\n|     PRIMARY TEXT                         |\n|     \"Coming Up Next\"                     |\n|                                          |\n|     Secondary text (optional)            |\n|     Brief description                    |\n|                                          |\n|     ---------=--------- (progress bar)   |\n|                                          |\n+------------------------------------------+\n```\n\n### Required Elements\n- **Primary text**: 2-4 words maximum\n- **Visual anchor**: Icon, emoji, or simple graphic\n\n### Optional Elements\n- Secondary descriptive text\n- Progress indicator\n- Section number\n- Estimated time\n\n## Style Variations\n\n### 1. Minimal\n\nClean and fast, ideal for short-form content.\n\n```\n+------------------------------------------+\n|                                          |\n|                                          |\n|              NEXT UP                     |\n|              --------                    |\n|                                          |\n|                                          |\n+------------------------------------------+\n\nColors: Muted background, high-contrast text\nAnimation: Simple fade\nUse: Professional, educational content, TikTok/Reels\nDuration: 1.5-2 seconds\n```\n\n### 2. Bold\n\nHigh impact, attention-grabbing for major transitions.\n\n```\n+------------------------------------------+\n|  ////////////////////////////////////////|\n|  //                                    //|\n|  //       COMING UP                    //|\n|  //       THE GOOD STUFF               //|\n|  //                                    //|\n|  ////////////////////////////////////////|\n+------------------------------------------+\n",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -7963,8 +7972,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Skill Analyzer\n\nReference patterns for extracting structured metadata from SKILL.md files.\n\n> **Note**: Actual analysis is performed by `demo-producer/scripts/generate.sh`. This skill provides reference patterns.\n\n## Output Structure\n\n```typescript\ninterface SkillMetadata {\n  name: string;\n  description: string;\n  tags: string[];\n  version: string;\n  userInvocable: boolean;\n  context: 'fork' | 'inherit' | 'none';\n\n  // Extracted content\n  phases: WorkflowPhase[];\n  examples: CodeExample[];\n  keyFeatures: string[];\n  relatedSkills: string[];\n}\n\ninterface WorkflowPhase {\n  name: string;\n  description: string;\n  tools: string[];\n  isParallel: boolean;\n}\n\ninterface CodeExample {\n  language: string;\n  code: string;\n  description: string;\n}\n```\n\n## Extraction Rules\n\n### Frontmatter Parsing (Bash)\n```bash\n# Extract name\nname=$(grep \"^name:\" SKILL.md | head -1 | cut -d: -f2- | xargs)\n\n# Extract description\ndescription=$(grep \"^description:\" SKILL.md | head -1 | cut -d: -f2- | xargs)\n\n# Extract tags\ntags=$(grep \"^tags:\" SKILL.md | sed 's/tags: \\[//' | sed 's/\\]//' | tr -d '\"')\n```\n\n### Phase Detection\n- Look for `## Phase N:` or `### Phase N:` headers\n- Extract tools from code blocks (Grep, Glob, Read, Task, etc.)\n- Detect parallel execution from \"PARALLEL\" comments or multiple tool calls\n\n### Example Detection\n- Find code blocks with language tags\n- Extract surrounding context as description\n- Identify quick start examples\n\n### Feature Detection\n- Parse bullet points after \"Key Features\" or \"What it does\"\n- Extract from description field\n- Identify from tags\n\n## Usage in Demo Pipeline\n\n```bash\n# Integrated into demo-producer\n./skills/demo-producer/scripts/generate.sh skill explore\n\n# Internally calls extraction functions to:\n# 1. Parse SKILL.md frontmatter\n# 2. Extract phases from ## headers\n# 3. Identify related skills\n# 4. Generate demo script with extracted content\n```\n\n## Related Skills\n\n- `demo-producer`: Uses skill-analyzer output for script generation\n- `terminal-demo-generator`: Creates recordings based on extracted phases\n- `content-type-recipes`: Templates that consume analyzed metadata\n\n## References\n\nSee `references/` for detailed extraction patterns:\n- `frontmatter-parsing.md` - YAML frontmatter extraction\n- `phase-extraction.md` - Workflow phase detection",
     "contentTruncated": false,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -7999,8 +8007,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Skill Evolution Manager\n\nEnables skills to automatically improve based on usage patterns, user edits, and success rates. Provides version control with safe rollback capability.\n\n## Overview\n\n- Reviewing how skills are performing across sessions\n- Identifying patterns in user edits to skill outputs\n- Applying learned improvements to skill templates\n- Rolling back problematic skill changes\n- Tracking skill version history and success rates\n\n## Quick Reference\n\n| Command | Description |\n|---------|-------------|\n| `/ork:skill-evolution` | Show evolution report for all skills |\n| `/ork:skill-evolution analyze <skill-id>` | Analyze specific skill patterns |\n| `/ork:skill-evolution evolve <skill-id>` | Review and apply suggestions |\n| `/ork:skill-evolution history <skill-id>` | Show version history |\n| `/ork:skill-evolution rollback <skill-id> <version>` | Restore previous version |\n\n---\n\n## How It Works\n\nThe skill evolution system operates in three phases:\n\n```\nCOLLECT                    ANALYZE                    ACT\n───────                    ───────                    ───\n┌─────────────┐           ┌─────────────┐           ┌─────────────┐\n│ PostTool    │──────────▶│ Evolution   │──────────▶│ /ork:skill  │\n│ Edit        │  patterns │ Analyzer    │ suggest   │ evolve      │\n│ Tracker     │           │ Engine      │           │ command     │\n└─────────────┘           └─────────────┘           └─────────────┘\n     │                          │                          │\n     ▼                          ▼                          ▼\n┌─────────────┐           ┌─────────────┐           ┌─────────────┐\n│ edit-       │           │ evolution-  │           │ versions/   │\n│ patterns.   │           │ registry.   │           │ snapshots   │\n│ jsonl       │           │ json        │           │             │\n└─────────────┘           └─────────────┘           └─────────────┘\n```\n\n### Edit Pattern Categories\n\nThe system tracks these common edit patterns:\n\n| Pattern | Description | Detection |\n|---------|-------------|-----------|\n| `add_pagination` | User adds pagination to API responses | `limit.*offset`, `cursor.*pagination` |\n| `add_rate_limiting` | User adds rate limiting | `rate.?limit`, `throttl` |\n| `add_error_handling` | User adds try/catch blocks | `try.*catch`, `except` |\n| `add_types` | User adds TypeScript/Python types | `interface\\s`, `Optional` |\n| `add_validation` | User adds input validation | `validate`, `Pydantic`, `Zod` |\n| `add_logging` | User adds logging/observability | `logger\\.`, `console.log` |\n| `remove_comments` | User removes generated comments | Pattern removal detection |\n| `add_auth_check` | User adds authentication checks | `@auth`, `@require_auth` |\n\n### Suggestion Thresholds\n\n| Threshold | Default | Description |\n|-----------|---------|-------------|\n| Minimum Samples | 5 | Uses before generating suggestions |\n| Add Threshold | 70% | Frequency to suggest adding pattern |\n| Auto-Apply Confidence | 85% | Confidence for auto-applicat",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -8394,8 +8401,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Terminal Demo Generator\n\nTwo approaches for terminal demo recordings:\n\n| Method | Best For | Authenticity |\n|--------|----------|--------------|\n| **asciinema** | Real CC sessions, actual output | ⭐⭐⭐⭐⭐ |\n| **VHS scripts** | Controlled demos, reproducible | ⭐⭐⭐ |\n\n## Quick Start\n\n### Real Session (Recommended)\n```bash\n# Record actual Claude Code session\nasciinema rec --cols 120 --rows 35 -i 2 demo.cast\n\n# Convert to MP4 via VHS\nvhs << 'EOF'\nOutput demo.mp4\nSet Width 1400\nSet Height 800\nSource demo.cast\nEOF\n```\n\n### Scripted Demo\n```bash\n# Generate script via demo-producer\n./skills/demo-producer/scripts/generate.sh skill verify\n\n# Record with VHS\nvhs orchestkit-demos/tapes/sim-verify.tape\n```\n\n## Recording Methods\n\n### 1. Asciinema (Real Sessions)\n\nRecord actual Claude Code usage:\n\n```bash\n# Start recording\nasciinema rec \\\n  --cols 120 \\\n  --rows 35 \\\n  --idle-time-limit 2 \\\n  session.cast\n\n# Inside recording:\nclaude\n> /verify\n# ... real Claude output ...\n> exit\n```\n\nSee `references/asciinema-recording.md` for editing and conversion.\n\n### 2. VHS Scripts (Controlled)\n\nPre-scripted terminal simulations:\n\n```tape\nOutput demo.mp4\nSet Shell \"bash\"\nSet FontFamily \"Menlo\"\nSet FontSize 16\nSet Width 1400\nSet Height 800\nSet Theme \"Dracula\"\nSet Framerate 30\n\nType \"./demo-script.sh\"\nEnter\nSleep 15s\n```\n\n## Claude Code CLI Patterns\n\n### Status Bar (CC 2.1.16+)\n```\n[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m\n✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞\n>> bypass permissions on (shift+Tab to cycle)\n```\n\n### Task Management\n```\n◆ TaskCreate #1 \"Analyze codebase\"\n◆ TaskCreate #2 \"Security scan\"\n◆ TaskCreate #3 \"Generate report\" blockedBy: #1, #2\n◆ TaskUpdate: #1, #2 → in_progress (PARALLEL)\n✓ Task #1 completed\n✓ Task #2 completed\n◆ Task #3 unblocked (2/2 resolved)\n```\n\n### Agent Spawning\n```\n⚡ Spawning 6 parallel agents via Task tool\n  ▸ code-reviewer spawned\n  ▸ security-auditor spawned\n  ▸ test-generator spawned\n```\n\n## Color Codes\n\n```bash\nP=\"\\033[35m\"  # Purple - skills, agents\nC=\"\\033[36m\"  # Cyan - info, tasks\nG=\"\\033[32m\"  # Green - success\nY=\"\\033[33m\"  # Yellow - warnings, progress\nR=\"\\033[31m\"  # Red - errors\nD=\"\\033[90m\"  # Gray - dim/secondary\nB=\"\\033[1m\"   # Bold\nN=\"\\033[0m\"   # Reset\n```\n\n## Pipeline Integration\n\nTerminal recordings feed into the full demo pipeline:\n\n```\nterminal-demo-generator     →  demo-producer  →  remotion-composer\n(asciinema/VHS recording)      (orchestration)    (final composition)\n                                    ↓\n                            manim-visualizer\n                            (animations)\n```\n\n## Related Skills\n\n- `demo-producer`: Full pipeline orchestration that uses terminal recordings\n- `remotion-composer`: Combines terminal recordings with animations\n- `manim-visualizer`: Animated diagrams that complement terminal demos\n- `video-pacing`: Timing patterns for terminal output display\n\n## References\n\n- `references/asciinema-recording.md` - Real session recording\n- See `demo-producer` for full pipe",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": [
       "demo-producer"
@@ -8500,8 +8507,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Thumbnail and First-Frame Optimization\n\nMaximize click-through rates with proven thumbnail design formulas, text rules, and platform-specific optimization.\n\n## Core Principle: The 3-Second Test\n\nThumbnails must communicate value in under 3 seconds. Users scroll at 300+ items/hour.\n\n```\nATTENTION FUNNEL\n================\n\n  Scroll Speed: ~300 items/hour\n           |\n           v\n  +------------------+\n  |   THUMBNAIL      |  <-- 0.5s: Pattern interrupt (face/color)\n  |   VISIBLE        |\n  +------------------+\n           |\n           v\n  +------------------+\n  |   TEXT READ      |  <-- 1.0s: Value proposition (3-4 words)\n  +------------------+\n           |\n           v\n  +------------------+\n  |   CLICK          |  <-- 2.0s: Curiosity/benefit decision\n  |   DECISION       |\n  +------------------+\n```\n\n## Thumbnail Composition Formulas\n\n### Formula 1: Face + Text + Context\n\nThe most effective formula for tutorial/educational content.\n\n```\n+------------------------------------------+\n|                                          |\n|  +--------+                              |\n|  |        |     \"3 TRICKS               |\n|  |  FACE  |      YOU MISSED\"            |\n|  | (40%)  |                              |\n|  +--------+          +-------+           |\n|                      | ICON  |           |\n|                      +-------+           |\n|                                          |\n+------------------------------------------+\n     LEFT THIRD          RIGHT TWO-THIRDS\n```\n\n### Formula 2: Before/After Split\n\nEffective for transformation content, tutorials, comparisons.\n\n```\n+-------------------+-------------------+\n|                   |                   |\n|     BEFORE        |      AFTER        |\n|  - Muted colors   |  - Vibrant colors |\n|  - Problem state  |  - Solution state |\n|                   |                   |\n+-------------------+-------------------+\n```\n\n### Formula 3: Number + Benefit\n\nHigh-performing for listicles and how-to content.\n\n```\n+------------------------------------------+\n|     +-----+                              |\n|     | 7   |   \"MISTAKES\"                 |\n|     +-----+   \"KILLING YOUR CODE\"        |\n|    (large                                |\n|     number)    [relevant icon/visual]    |\n+------------------------------------------+\n```\n\n## Text Rules for Thumbnails\n\n### The 3-4 Word Maximum\n\n```\nGOOD                          BAD\n====                          ===\n\"FIX THIS NOW\"                \"Here's How To Fix This Common\n\"STOP DOING THIS\"              Problem That Many Developers\n\"10X FASTER\"                   Face When Building Apps\"\n```\n\n### High-Contrast Text Techniques\n\n```\nTECHNIQUE 1: Stroke/Outline\n+---------------------------+\n|  █ WHITE TEXT      █      |\n|  █ BLACK OUTLINE   █      |\n+---------------------------+\n\nTECHNIQUE 2: Background Bar\n+---------------------------+\n|  | DARK BAR        |      |\n|  | Light text here |      |\n+---------------------------+\n```\n\n## Color Psychology for CTR\n\n### Color Performan",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -8796,8 +8803,8 @@ export const SKILLS: Record<string, SkillDetail> = {
     "content": "# Video Pacing\n\nComprehensive guide to video rhythm, timing, and pacing for maximum viewer engagement across platforms.\n\n## Core Principle\n\n**Pacing = Information Density x Visual Change Rate**\n\nThe optimal pace balances cognitive load with visual stimulation. Too fast overwhelms; too slow loses attention.\n\n## Attention Curve Theory\n\n```\nEngagement\n    |\n100%|●━━━━━━━━━━●\n    |          ╲\n 80%|           ╲━━━━━━━━━━━━━━●\n    |                          ╲\n 60%|                           ╲━━━━━━●\n    |                                  ╲\n 40%|                                   ╲━━━━━━●\n    |                                          ╲\n 20%|                                           ╲━━━●\n    |\n  0%└────────────────────────────────────────────────▶\n    0s   3s   10s   30s   60s   90s   120s   180s\n              Time in Video\n\n■ Critical retention points:\n  • 0-3s: Hook (lose 33% without strong hook)\n  • 10s: First major drop-off\n  • 30s: Platform algorithm threshold\n  • 60s: Half-time engagement check\n```\n\n## Platform-Specific Pacing Rules\n\n| Platform | Optimal Cut Rate | Avg. Shot Duration | Hook Window | Sweet Spot Length |\n|----------|------------------|-------------------|-------------|-------------------|\n| TikTok   | 20-40 cuts/min   | 1.5-3 seconds     | 0.5 seconds | 15-30 seconds     |\n| Reels    | 15-30 cuts/min   | 2-4 seconds       | 1 second    | 30-60 seconds     |\n| YouTube Shorts | 15-25 cuts/min | 2-4 seconds    | 1.5 seconds | 30-60 seconds     |\n| YouTube Long | 8-15 cuts/min  | 4-8 seconds       | 5 seconds   | 8-15 minutes      |\n| LinkedIn | 5-10 cuts/min    | 6-12 seconds      | 3 seconds   | 60-90 seconds     |\n| Twitter/X | 15-25 cuts/min  | 2-4 seconds       | 1 second    | 15-45 seconds     |\n\n## Cut Frequency Patterns\n\n### High-Energy Pattern (TikTok, Reels)\n```\nTime:    |0s     |1.5s   |3s     |4.5s   |6s     |7.5s   |9s\nCuts:    ●━━━━━━━●━━━━━━━●━━━━━━━●━━━━━━━●━━━━━━━●━━━━━━━●\nEnergy:  [HIGH]  [HIGH]  [PEAK]  [HIGH]  [PEAK]  [HIGH]  [END]\n```\n\n### Building Tension Pattern\n```\nTime:    |0s       |4s       |7s      |9s     |10s   |10.5s |11s\nCuts:    ●━━━━━━━━━●━━━━━━━━━●━━━━━━━●━━━━━━●━━━━━●━━━━━●━━━▶\nSpeed:   [SLOW]    [MEDIUM]  [FAST]  [FASTER] [RAPID] [PEAK]\n```\n\n### Breathe Pattern (Documentary/Educational)\n```\nTime:    |0s       |8s       |16s       |20s     |28s      |36s\nCuts:    ●━━━━━━━━━●━━━━━━━━━●━━━━━━━━━━●━━━━━━━●━━━━━━━━━●\nRhythm:  [INTRO]   [DEVELOP]  [BREATHE]  [BUILD] [DEVELOP] [LAND]\n```\n\n## The 3-Second Rule\n\nEvery 3 seconds, provide ONE of:\n- New visual information (cut, motion, transition)\n- New audio information (voice change, sound effect, music shift)\n- New text information (caption, graphic, lower third)\n\n```\n0s        3s        6s        9s        12s\n|━━━━━━━━━|━━━━━━━━━|━━━━━━━━━|━━━━━━━━━|\n[CUT]     [TEXT]    [SFX]     [CUT]     [MUSIC]\n```\n\n## Rhythm Patterns\n\n### 1. Heartbeat Rhythm\nMimics natural pulse: strong-weak-strong-weak\n```\nBeat:     |●     |○     |●     |○     |●     |○\nTiming:   |0s",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -8826,11 +8833,11 @@ export const SKILLS: Record<string, SkillDetail> = {
         "scene-templates.md"
       ]
     },
-    "content": "# Video Storyboarding for Tech Demos\n\nPre-production planning system for creating compelling tech demo videos. Combines the AIDA marketing framework with structured scene planning.\n\n## Overview\n\n```\n┌─────────────────────────────────────────────────────────────────┐\n│                    VIDEO PRODUCTION PIPELINE                     │\n├─────────────────────────────────────────────────────────────────┤\n│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐     │\n│  │ CONCEPT  │──▶│STORYBOARD│──▶│  ASSETS  │──▶│  RENDER  │     │\n│  │          │   │          │   │          │   │          │     │\n│  │ • AIDA   │   │ • Scenes │   │ • Code   │   │ • Export │     │\n│  │ • Hook   │   │ • Timing │   │ • B-roll │   │ • Review │     │\n│  │ • CTA    │   │ • Shots  │   │ • Audio  │   │ • Publish│     │\n│  └──────────┘   └──────────┘   └──────────┘   └──────────┘     │\n└─────────────────────────────────────────────────────────────────┘\n```\n\n## AIDA Framework for Tech Demos\n\nThe AIDA framework structures your video to guide viewers from awareness to action.\n\n### Framework Timeline\n\n```\n┌─────────────────────────────────────────────────────────────────┐\n│                         AIDA TIMELINE                            │\n├─────────────────────────────────────────────────────────────────┤\n│  0s              15s              45s              75s    90s   │\n│  │───────────────│────────────────│────────────────│──────│    │\n│  │   ATTENTION   │    INTEREST    │     DESIRE     │ACTION│    │\n│  │    (15%)      │     (35%)      │     (35%)      │(15%) │    │\n│                                                                  │\n│  Emotion: Curious   Engaged        Convinced        Motivated   │\n└─────────────────────────────────────────────────────────────────┘\n```\n\n### Phase Summary\n\n| Phase | Duration | Goal | Content |\n|-------|----------|------|---------|\n| **A - Attention** | 10-15s | Stop the scroll | Bold claim, visual impact, pattern interrupt |\n| **I - Interest** | 30-40s | Demonstrate value | Problem setup, solution intro, feature highlights |\n| **D - Desire** | 30-40s | Build connection | Benefits, social proof, differentiation |\n| **A - Action** | 10-15s | Drive conversion | Clear CTA, next steps, closing |\n\n### Anti-Patterns to Avoid\n\n```\n❌ Logo animations (skip these)\n❌ Slow fade-ins\n❌ Generic stock footage\n❌ Reading from slides\n```\n\n## Scene Planning Template\n\n```yaml\n# scene-001-hook.yaml\nscene:\n  id: \"001\"\n  name: \"Hook\"\n  phase: \"attention\"\n\ntiming:\n  start: \"00:00\"\n  duration: \"00:08\"\n  end: \"00:08\"\n\ncontent:\n  narration: |\n    What if you could give Claude Code\n    the memory of a senior developer?\n\n  on_screen_text:\n    - text: \"179 Skills\"\n      animation: \"scale-in\"\n      timing: \"0:02-0:04\"\n\nvisuals:\n  background: \"dark gradient\"\n  main_element: \"animated skill icons\"\n\ntransitions:\n  in: \"cut\"\n  out: \"fade\"\n\nassets_required:\n  - \"skill-icons-spritesheet.png\"\n  - \"claude-logo.svg\"\n```\n\n## Timing Calculations\n\n### Video Length Guidelines\n\n| Pla",
+    "content": "# Video Storyboarding for Tech Demos\n\nPre-production planning system for creating compelling tech demo videos. Combines the AIDA marketing framework with structured scene planning.\n\n## Overview\n\n```\n┌─────────────────────────────────────────────────────────────────┐\n│                    VIDEO PRODUCTION PIPELINE                     │\n├─────────────────────────────────────────────────────────────────┤\n│  ┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐     │\n│  │ CONCEPT  │──▶│STORYBOARD│──▶│  ASSETS  │──▶│  RENDER  │     │\n│  │          │   │          │   │          │   │          │     │\n│  │ • AIDA   │   │ • Scenes │   │ • Code   │   │ • Export │     │\n│  │ • Hook   │   │ • Timing │   │ • B-roll │   │ • Review │     │\n│  │ • CTA    │   │ • Shots  │   │ • Audio  │   │ • Publish│     │\n│  └──────────┘   └──────────┘   └──────────┘   └──────────┘     │\n└─────────────────────────────────────────────────────────────────┘\n```\n\n## AIDA Framework for Tech Demos\n\nThe AIDA framework structures your video to guide viewers from awareness to action.\n\n### Framework Timeline\n\n```\n┌─────────────────────────────────────────────────────────────────┐\n│                         AIDA TIMELINE                            │\n├─────────────────────────────────────────────────────────────────┤\n│  0s              15s              45s              75s    90s   │\n│  │───────────────│────────────────│────────────────│──────│    │\n│  │   ATTENTION   │    INTEREST    │     DESIRE     │ACTION│    │\n│  │    (15%)      │     (35%)      │     (35%)      │(15%) │    │\n│                                                                  │\n│  Emotion: Curious   Engaged        Convinced        Motivated   │\n└─────────────────────────────────────────────────────────────────┘\n```\n\n### Phase Summary\n\n| Phase | Duration | Goal | Content |\n|-------|----------|------|---------|\n| **A - Attention** | 10-15s | Stop the scroll | Bold claim, visual impact, pattern interrupt |\n| **I - Interest** | 30-40s | Demonstrate value | Problem setup, solution intro, feature highlights |\n| **D - Desire** | 30-40s | Build connection | Benefits, social proof, differentiation |\n| **A - Action** | 10-15s | Drive conversion | Clear CTA, next steps, closing |\n\n### Anti-Patterns to Avoid\n\n```\n❌ Logo animations (skip these)\n❌ Slow fade-ins\n❌ Generic stock footage\n❌ Reading from slides\n```\n\n## Scene Planning Template\n\n```yaml\n# scene-001-hook.yaml\nscene:\n  id: \"001\"\n  name: \"Hook\"\n  phase: \"attention\"\n\ntiming:\n  start: \"00:00\"\n  duration: \"00:08\"\n  end: \"00:08\"\n\ncontent:\n  narration: |\n    What if you could give Claude Code\n    the memory of a senior developer?\n\n  on_screen_text:\n    - text: \"199 Skills\"\n      animation: \"scale-in\"\n      timing: \"0:02-0:04\"\n\nvisuals:\n  background: \"dark gradient\"\n  main_element: \"animated skill icons\"\n\ntransitions:\n  in: \"cut\"\n  out: \"fade\"\n\nassets_required:\n  - \"skill-icons-spritesheet.png\"\n  - \"claude-logo.svg\"\n```\n\n## Timing Calculations\n\n### Video Length Guidelines\n\n| Pla",
     "contentTruncated": true,
     "plugins": [
-      "ork",
-      "orkl"
+      "ork-creative",
+      "ork"
     ],
     "relatedAgents": []
   },
@@ -9233,8 +9240,6 @@ export const SKILLS_SUMMARY = {
       "mem0-memory"
     ],
     "product": [
-      "video-storyboarding",
-      "content-type-recipes",
       "product-strategy-frameworks",
       "business-case-analysis",
       "market-analysis-patterns",
@@ -9249,18 +9254,8 @@ export const SKILLS_SUMMARY = {
       "fix-issue",
       "assess",
       "remember",
-      "demo-producer",
-      "git-recovery"
-    ],
-    "video": [
-      "demo-producer",
-      "terminal-demo-generator",
-      "remotion-composer",
-      "manim-visualizer",
-      "video-storyboarding",
-      "video-pacing",
-      "narration-scripting",
-      "content-type-recipes"
+      "git-recovery",
+      "feedback"
     ],
     "accessibility": [
       "aggregate-patterns",
@@ -9276,12 +9271,12 @@ export const SKILLS_SUMMARY = {
     "testing": [
       "verify",
       "review-pr",
-      "add-golden",
-      "multi-scenario-orchestration",
       "unit-testing",
       "integration-testing",
       "e2e-testing",
-      "test-data-management"
+      "test-data-management",
+      "contract-testing",
+      "test-standards-enforcer"
     ],
     "security": [
       "review-pr",
@@ -9314,6 +9309,7 @@ export const SKILLS_SUMMARY = {
       "aggregate-patterns"
     ]
   },
+  "ork-creative": {},
   "ork": {
     "includesAllOrkLite": true,
     "python": [

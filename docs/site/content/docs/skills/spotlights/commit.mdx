@@ -1,0 +1,160 @@
+---
+title: "/ork:commit"
+description: Conventional commits with branch safety, validation, and co-authorship in one command.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:commit` command replaces the manual cycle of staging, linting, formatting, writing a commit message, and remembering to add a co-author trailer. It runs every check that CI would run, prevents commits to protected branches, and produces conventional commit messages tied to issue numbers. This page walks through how the skill works, why it exists, and the patterns that make it most effective.
+
+## Why This Skill
+
+Most failed CI runs trace back to something that could have been caught locally: a lint error, a type mismatch, a commit to `main` instead of a feature branch. The `/ork:commit` skill front-loads those checks so that by the time your code reaches CI, it has already passed.
+
+It is the lowest-complexity command skill in OrchestKit (`complexity: low`) and one of the most frequently used. Unlike `/ork:implement` or `/ork:review-pr`, it does not spawn agents -- it runs checks directly and generates a commit message from the staged diff.
+
+## Quick Start
+
+```bash
+/ork:commit
+```
+
+That is the entire invocation. OrchestKit reads the staged diff, runs validation, and proposes a commit message. You approve or edit the message, and the commit is created.
+
+## How It Works
+
+### Step 1: Branch Safety Check
+
+Before anything else, the skill checks the current branch name:
+
+```bash
+BRANCH=$(git branch --show-current)
+```
+
+If the branch is `main`, `master`, or `dev`, the skill stops immediately and tells you to create a feature branch. This prevents accidental direct commits to protected branches -- a mistake that is easy to make in the flow of development and painful to clean up.
+
+### Step 2: Run Validation Locally
+
+The skill runs the same linters and type checkers that CI runs:
+
+```bash
+# Python projects
+poetry run ruff format --check app/
+poetry run ruff check app/
+poetry run mypy app/
+
+# Node.js projects
+npm run format:check
+npm run lint
+npm run typecheck
+```
+
+If any check fails, the skill stops and shows you the errors. You fix them before committing, rather than discovering them 3 minutes later in a failing CI pipeline.
+
+### Step 3: Review Changes
+
+The skill examines both staged and unstaged changes:
+
+```bash
+git status
+git diff --staged
+git diff
+```
+
+This gives Claude full context about what will be committed and what will be left behind, so the commit message accurately reflects the staged changes -- not the full working tree.
+
+### Step 4: Generate and Create the Commit
+
+Based on the staged diff, Claude generates a conventional commit message:
+
+```
+feat(#123): add cursor-based pagination to user list endpoint
+
+- Replace offset pagination with cursor-based approach
+- Add `after` and `before` query parameters
+- Update OpenAPI spec with new pagination schema
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+The message follows the `type(scope): description` format. The `Co-Authored-By` trailer is always appended, crediting Claude as a collaborator.
+
+## Common Patterns
+
+### Pattern 1: Fix-and-Commit Cycle
+
+The most common workflow is fixing something and immediately committing:
+
+```bash
+# Fix the bug
+# ...editing files...
+
+# Stage and commit in one step
+git add src/auth/middleware.py
+/ork:commit
+```
+
+The skill detects that only one file is staged and generates a focused commit message for that file.
+
+### Pattern 2: Commit After `/ork:implement`
+
+After a large implementation, you typically have many changed files. Stage them selectively:
+
+```bash
+git add src/api/ src/models/ tests/
+/ork:commit
+```
+
+The skill reads the full diff across all staged files and generates a message that summarizes the feature, not individual file changes.
+
+### Pattern 3: Quick Commit for Trivial Changes
+
+For typos, single-line fixes, or documentation edits, the skill generates a minimal commit:
+
+```
+fix(#456): correct typo in error message
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+No agents are spawned. No tests are run beyond the standard lint checks. The commit is created in seconds.
+
+### Pattern 4: Referencing Issues
+
+The skill automatically includes issue references when it detects them from context. If you have been working on issue #123 (via `/ork:fix-issue 123` or conversation context), the commit message includes the issue number in the scope.
+
+## Tips and Tricks
+
+<Callout type="info">
+**One logical change per commit.** The skill works best when your staged changes represent a single logical change. If you have mixed changes (a bug fix and a refactor), stage them separately and run `/ork:commit` twice. This keeps your git history readable and makes reverts surgical.
+</Callout>
+
+<Callout type="info">
+**Subject line stays under 72 characters.** The skill enforces this automatically. If the generated subject is too long, it shortens it and moves detail into the body. This ensures commit messages render cleanly in `git log --oneline` and GitHub's commit list.
+</Callout>
+
+<Callout type="warn">
+**Validation runs every time.** Even for a one-line typo fix, the skill runs lint and type checks. This catches cases where a "trivial" change accidentally breaks something. If you need to bypass this for a genuine emergency, use `git commit` directly -- but you lose the conventional message formatting and branch safety.
+</Callout>
+
+<Callout type="info">
+**The skill does not push.** After committing, your changes are local. Use `/ork:create-pr` when you are ready to push and open a pull request. This separation lets you make multiple commits before pushing.
+</Callout>
+
+## Commit Types Reference
+
+| Type | When to Use | Example |
+|------|-------------|---------|
+| `feat` | New feature or capability | `feat(#12): add email notifications` |
+| `fix` | Bug fix | `fix(#34): handle null session token` |
+| `refactor` | Code improvement, no behavior change | `refactor: extract pagination helper` |
+| `docs` | Documentation only | `docs: update API endpoint table` |
+| `test` | Tests only | `test: add regression test for #56` |
+| `chore` | Build, deps, CI, tooling | `chore: upgrade ruff to 0.8.0` |
+
+## Related Skills
+
+- [/ork:create-pr](/docs/skills/spotlights/review-pr) -- Push and open a pull request after committing
+- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review changes before or after committing
+- [/ork:verify](/docs/skills/spotlights/verify) -- Run comprehensive verification before committing
+- [Command Skills Reference](/docs/skills/command-skills) -- All 24 command skills

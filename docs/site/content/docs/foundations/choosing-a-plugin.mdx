@@ -3,41 +3,46 @@ title: Choosing a Plugin
 description: "orkl vs ork — start universal, upgrade when you need specialized skills."
 ---
 
-OrchestKit ships as two plugins. Both include **all 36 agents** and **122 hooks**. The difference is skill coverage.
+OrchestKit ships as three plugins. Both orkl and ork include **all 36 agents** and **119 hooks**. The difference is skill coverage.
 
 ## Quick Decision
 
 ```
 Do you use Python, React, LLM/RAG, or LangGraph?
   │
-  ├─ YES ──▶ Install ork (200 skills, full specialized)
+  ├─ YES ──▶ Install ork (199 skills, full specialized)
   │
-  └─ NO ───▶ Install orkl (109 skills, universal toolkit)
+  └─ NO ───▶ Install orkl (88 skills, universal toolkit)
+              └─ Need video production? Add ork-creative (16 skills)
 ```
 
 ## Comparison
 
-| | **orkl** (Universal) | **ork** (Full) |
-|---|---|---|
-| **Skills** | 109 | 200 |
-| **Agents** | 36 | 36 |
-| **Hooks** | 122 | 122 |
-| **Workflows** | All (/commit, /verify, /implement...) | All |
-| **Memory** | All 4 tiers | All 4 tiers |
-| **Security** | OWASP, defense-in-depth | All + LLM safety |
-| **Git** | Full workflow | Full workflow |
-| **CI/CD** | GitHub Actions, deployment | All |
-| **Python/FastAPI** | - | SQLAlchemy, Celery, Alembic, asyncio |
-| **React/Next.js** | - | RSC, TanStack, Radix, shadcn, Motion |
-| **LLM/RAG** | - | LangGraph, embeddings, evals, RAG |
-| **MCP** | - | MCP servers, security hardening |
-| **GraphQL** | - | Strawberry, gRPC |
+| | **orkl** (Universal) | **ork-creative** (Video) | **ork** (Full) |
+|---|---|---|---|
+| **Skills** | 88 | 16 | 199 |
+| **Agents** | 36 | 1 | 36 |
+| **Hooks** | 119 | 119 | 119 |
+| **Workflows** | All (/commit, /verify, /implement...) | - | All |
+| **Memory** | All 4 tiers | - | All 4 tiers |
+| **Security** | OWASP, defense-in-depth | - | All + LLM safety |
+| **Git** | Full workflow | - | Full workflow |
+| **CI/CD** | GitHub Actions, deployment | - | All |
+| **Video** | - | Storyboarding, Remotion, demos | All |
+| **Python/FastAPI** | - | - | SQLAlchemy, Celery, Alembic, asyncio |
+| **React/Next.js** | - | - | RSC, TanStack, Radix, shadcn, Motion |
+| **LLM/RAG** | - | - | LangGraph, embeddings, evals, RAG |
+| **MCP** | - | - | MCP servers, security hardening |
+| **GraphQL** | - | - | Strawberry, gRPC |
 
 ## Install
 
 ```bash
 # Universal — works for any stack
 claude install orchestkit/orkl
+
+# Video production add-on
+claude install orchestkit/ork-creative
 
 # Full — includes Python, React, LLM/RAG specializations
 claude install orchestkit/ork
@@ -49,7 +54,9 @@ You can switch at any time. Installing `ork` over `orkl` is non-destructive — 
 
 **Start with `orkl`** if you're unsure. It covers all workflows, security, memory, and CI/CD. Upgrade to `ork` when you need deep Python, React, or AI/LLM expertise.
 
-**Start with `ork`** if you're building with FastAPI, React/Next.js, or LLM-powered applications. The extra 90 skills give agents significantly deeper knowledge in these domains.
+**Add `ork-creative`** if you need video production — demo recording, Remotion compositions, storyboarding, and content creation tools.
+
+**Start with `ork`** if you're building with FastAPI, React/Next.js, or LLM-powered applications. The extra 111 skills give agents significantly deeper knowledge in these domains.
 
 ## Next Steps
 

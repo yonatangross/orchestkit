@@ -598,8 +598,8 @@ export function SetupWizard() {
                       ? "AI/LLM focus requires RAG, LangGraph, embeddings, and function calling patterns available only in the full toolkit."
                       : selectedFocus === "security"
                         ? "Security focus benefits from advanced guardrails, OWASP patterns, and AI safety auditing in the full toolkit."
-                        : "Your configuration benefits from the full 200-skill toolkit with specialized patterns."
-                  : "The universal toolkit covers your needs with 109 language-agnostic skills. Lighter weight, works for any stack."}
+                        : "Your configuration benefits from the full 199-skill toolkit with specialized patterns."
+                  : "The universal toolkit covers your needs with 88 language-agnostic skills. Lighter weight, works for any stack."}
               </p>
             </div>
 
