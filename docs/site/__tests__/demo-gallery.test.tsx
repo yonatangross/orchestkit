@@ -525,8 +525,8 @@ describe("DemoGallery", () => {
       "https://cdn.sanity.io/images/test/production/release-thumb.png",
     );
 
-    // Should show "Video coming soon" badge
-    expect(within(dialog).getByText("Video coming soon")).toBeInTheDocument();
+    // Should show "Video in production" badge
+    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
   });
 
   it("shows local thumbnail fallback in modal when no CDN fields", () => {
@@ -553,7 +553,7 @@ describe("DemoGallery", () => {
     );
 
     // "Coming soon" badge
-    expect(within(dialog).getByText("Video coming soon")).toBeInTheDocument();
+    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
   });
 
   it("video element has playsInline attribute", () => {
@@ -570,5 +570,41 @@ describe("DemoGallery", () => {
     expect(
       videoEl!.hasAttribute("playsinline") || videoEl!.hasAttribute("playsInline"),
     ).toBe(true);
+  });
+
+  // ── Card status indicators ──────────────────────────────
+
+  it("shows 'In production' on hover for cards without video", () => {
+    render(<DemoGallery />);
+
+    // MemoryFabricVertical has no videoCdn
+    const card = screen.getByLabelText(
+      "View details for Memory Fabric Vertical",
+    );
+    // The "In production" text should exist in the card (visible on hover via CSS)
+    expect(within(card).getByText("In production")).toBeInTheDocument();
+  });
+
+  it("does not show 'In production' on cards with video", () => {
+    render(<DemoGallery />);
+
+    // ScrapbookDemo has videoCdn
+    const card = screen.getByLabelText("View details for Scrapbook Demo");
+    expect(within(card).queryByText("In production")).not.toBeInTheDocument();
+  });
+
+  it("dims thumbnail in modal when no video available", () => {
+    render(<DemoGallery />);
+
+    fireEvent.click(
+      screen.getByLabelText("View details for Release Notes Landscape"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const previewImg = within(dialog)
+      .getAllByRole("img")
+      .find((img) => img.getAttribute("alt")?.includes("Preview"));
+    // Thumbnail should have opacity-60 class to indicate non-playable state
+    expect(previewImg?.className).toContain("opacity-60");
   });
 });

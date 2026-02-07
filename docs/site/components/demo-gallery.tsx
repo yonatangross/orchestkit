@@ -11,6 +11,7 @@ import {
   Monitor,
   Smartphone,
   Square,
+  Loader,
 } from "lucide-react";
 import { COMPOSITIONS, type Composition } from "@/lib/playground-data";
 
@@ -377,10 +378,19 @@ function GalleryCard({
         <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
           {composition.durationSeconds}s
         </span>
-        {/* Play overlay on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20">
-          <Play className="h-8 w-8 text-white opacity-0 transition-opacity group-hover:opacity-80" />
-        </div>
+        {/* Status overlay */}
+        {composition.videoCdn ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20">
+            <Play className="h-8 w-8 text-white opacity-0 drop-shadow-lg transition-opacity group-hover:opacity-90" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/10">
+            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/80 px-2.5 py-1 text-[10px] font-semibold text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              <Loader className="h-3 w-3 animate-spin" />
+              In production
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Card body */}
@@ -498,7 +508,7 @@ function CompositionModal({
                   <img
                     src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
                     alt={`Preview for ${formatTitle(composition.id)}`}
-                    className="h-full w-full object-cover"
+                    className="h-full w-full object-cover opacity-60"
                     onError={(e) => {
                       const target = e.currentTarget;
                       target.style.display = "none";
@@ -515,9 +525,12 @@ function CompositionModal({
                       }
                     }}
                   />
-                  <span className="absolute bottom-3 right-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-medium text-white/80 backdrop-blur-sm">
-                    Video coming soon
-                  </span>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <Loader className="h-6 w-6 animate-spin text-amber-500" />
+                    <span className="rounded-full bg-amber-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      Video in production
+                    </span>
+                  </div>
                 </>
               )}
             </div>

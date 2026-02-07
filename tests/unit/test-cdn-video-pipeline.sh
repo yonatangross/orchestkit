@@ -220,6 +220,17 @@ test_demo_gallery_uses_cdn_thumbnail
 test_demo_gallery_uses_video_cdn
 test_homepage_uses_cdn_thumbnail
 
+test_demo_gallery_has_production_state() {
+    local gallery="${PROJECT_ROOT}/docs/site/components/demo-gallery.tsx"
+    if grep -q "In production" "$gallery"; then
+        log_pass "demo-gallery.tsx shows 'In production' state for missing videos"
+    else
+        log_fail "demo-gallery.tsx has no production state indicator — users see no feedback for missing videos"
+    fi
+}
+
+test_demo_gallery_has_production_state
+
 # ── Summary ──────────────────────────────────────────────────
 
 echo ""
