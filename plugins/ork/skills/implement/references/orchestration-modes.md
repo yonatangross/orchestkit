@@ -3,18 +3,16 @@
 ## Decision Logic
 
 ```python
-# Check mode
+# Check mode — Agent Teams is default when available (Issue #362)
 import os
-prefer_teams = os.environ.get("ORCHESTKIT_PREFER_TEAMS") == "1"
 teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
+force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
 
-if prefer_teams and teams_available:
-    mode = "agent_teams"
-elif not teams_available:
+if force_task_tool or not teams_available:
     mode = "task_tool"
 else:
-    # Assess complexity, then decide
-    mode = "agent_teams" if avg_complexity > 3.5 else "task_tool"
+    # Teams available — use it for non-trivial work
+    mode = "agent_teams" if avg_complexity >= 2.5 else "task_tool"
 ```
 
 ## Comparison Table

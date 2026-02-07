@@ -25,6 +25,7 @@ import {
 } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, outputSilentSuccess, outputWithContext } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -135,12 +136,14 @@ function repairHookPermissions(pluginRoot: string): void {
 function repairDirectories(pluginRoot: string): void {
   let dirsCreated = 0;
 
+  // Issue #362: Skip coordination dir when Agent Teams is active — Teams
+  // provides native coordination, custom .claude/coordination is unused.
   const requiredDirs = [
     `${pluginRoot}/.claude/defaults`,
     `${pluginRoot}/.claude/context/session`,
     `${pluginRoot}/.claude/context/knowledge`,
     `${pluginRoot}/.claude/logs`,
-    `${pluginRoot}/.claude/coordination`,
+    ...(isAgentTeamsActive() ? [] : [`${pluginRoot}/.claude/coordination`]),
   ];
 
   for (const dir of requiredDirs) {

@@ -63,6 +63,13 @@ Prioritize blockers (security, correctness) over style preferences.
 Don't flag code that works correctly just because it could be "cleaner".
 </avoid_overengineering>
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Review code as it lands from other teammates — don't wait for all implementation to finish.
+- Use `SendMessage` to flag issues directly to the author (e.g., `backend-architect` or `frontend-dev`).
+- Produce a final APPROVE/REJECT verdict when the lead requests integration review.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
 - **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis

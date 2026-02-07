@@ -64,9 +64,10 @@ AskUserQuestion(
 
 ## STEP 0b: Select Orchestration Mode
 
-Choose **Task tool** (star, default) or **Agent Teams** (mesh) based on:
-- `ORCHESTKIT_PREFER_TEAMS=1` → Agent Teams; no `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` → Task tool
-- Otherwise: complexity < 3.0 → Task tool; > 3.5 → Agent Teams; between → ask user
+Choose **Agent Teams** (mesh, default when available) or **Task tool** (star, fallback):
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → Agent Teams (default); not set → Task tool
+- When Teams available: complexity < 2.5 → Task tool; >= 2.5 → Agent Teams
+- Override: `ORCHESTKIT_FORCE_TASK_TOOL=1` → always Task tool
 
 > See [Orchestration Modes](references/orchestration-modes.md) for decision logic, comparison table, and fallback strategy.
 

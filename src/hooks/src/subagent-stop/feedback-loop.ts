@@ -18,6 +18,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, getProjectDir, getSessionId } from '../lib/common.js';
 import { getTaskByAgent, updateTaskStatus, getActivePipeline } from '../lib/task-integration.js';
 import { PIPELINES } from '../lib/multi-agent-coordinator.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -297,6 +298,12 @@ function createHandoffContext(
 // -----------------------------------------------------------------------------
 
 export function feedbackLoop(input: HookInput): HookResult {
+  // Issue #362: Yield to CC Agent Teams when active — Teams has native
+  // task tracking and peer messaging, making custom decision-log redundant.
+  if (isAgentTeamsActive()) {
+    return outputSilentSuccess();
+  }
+
   const timestamp = new Date().toISOString();
 
   const toolInput = input.tool_input || {};

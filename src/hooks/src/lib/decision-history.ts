@@ -10,6 +10,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { getProjectDir, getPluginRoot } from './common.js';
+import { isAgentTeamsActive } from './agent-teams.js';
 
 // =============================================================================
 // Type Definitions
@@ -373,9 +374,15 @@ export function loadSessionDecisions(): Decision[] {
 }
 
 /**
- * Load coordination decisions from decision-log.json
+ * Load coordination decisions from decision-log.json.
+ * Issue #362: Returns empty when Agent Teams is active — Teams uses native
+ * task lists instead of custom coordination files.
  */
 export function loadCoordinationDecisions(): Decision[] {
+  if (isAgentTeamsActive()) {
+    return [];
+  }
+
   const projectDir = getProjectDir();
   const coordFile = `${projectDir}/.claude/coordination/decision-log.json`;
 

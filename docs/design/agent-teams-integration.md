@@ -1,7 +1,7 @@
 # Agent Teams Integration Design Doc
 
 **Issue:** [#334 — Redesign /ork:implement to use native Agent Teams](https://github.com/yonatangross/orchestkit/issues/334)
-**Status:** Draft / Prototype
+**Status:** Accepted
 **Author:** OrchestKit Core
 **CC Version:** >= 2.1.33 (Agent Teams research preview)
 **Date:** 2026-02-06

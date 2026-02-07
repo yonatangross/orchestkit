@@ -57,6 +57,13 @@ Prioritize findings by real-world exploitability.
 Don't flag every minor deviation from best practices - focus on blockers.
 </avoid_overengineering>
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Audit code as it arrives from `backend-architect` and `frontend-dev` — don't wait for full implementation.
+- Use `SendMessage` to report vulnerabilities directly to the responsible teammate with severity and remediation steps.
+- For high-risk features, coordinate with `code-reviewer` to cross-check security findings.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## Opus 4.6: 128K Output Tokens
 Produce complete security audit reports (OWASP scan + dependency audit + secrets detection + remediation plan) in a single pass.
 With 128K output, audit the entire codebase and return a comprehensive report without splitting across responses.
