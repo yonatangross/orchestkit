@@ -5,7 +5,7 @@
  * - Context persistence and compression
  * - Session cleanup
  * - Memory sync operations
- * - Multi-instance cleanup
+ * - Task completion check
  *
  * Critical for ensuring session data is not lost on termination.
  */
@@ -58,7 +58,6 @@ vi.mock('../../lib/common.js', async () => {
 // Import stop hooks
 import { autoSaveContext } from '../../stop/auto-save-context.js';
 import { contextCompressor } from '../../stop/context-compressor.js';
-import { multiInstanceCleanup } from '../../stop/multi-instance-cleanup.js';
 import { sessionPatterns } from '../../stop/session-patterns.js';
 import { taskCompletionCheck } from '../../stop/task-completion-check.js';
 import { unifiedStopDispatcher } from '../../stop/unified-dispatcher.js';
@@ -156,65 +155,6 @@ describe('Stop Hook Lifecycle E2E', () => {
     });
   });
 
-  describe('Multi-Instance Cleanup', () => {
-    test('should clean up instance locks on stop', async () => {
-      process.env.CLAUDE_MULTI_INSTANCE = '1';
-      mockExistsSync.mockReturnValue(true);
-      mockReaddirSync.mockReturnValue(['lock-file-1.json', 'lock-file-2.json']);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        session_id: 'test-session-stop-123',
-        acquired_at: Date.now() - 1000,
-      }));
-
-      const input = createStopInput();
-
-      const result = await Promise.resolve(multiInstanceCleanup(input));
-
-      expect(result.continue).toBe(true);
-    });
-
-    test('should skip cleanup when multi-instance is disabled', async () => {
-      delete process.env.CLAUDE_MULTI_INSTANCE;
-      const input = createStopInput();
-
-      const result = await Promise.resolve(multiInstanceCleanup(input));
-
-      expect(result.continue).toBe(true);
-      expect(result.suppressOutput).toBe(true);
-    });
-
-    test('should not remove locks from other sessions', async () => {
-      process.env.CLAUDE_MULTI_INSTANCE = '1';
-      mockExistsSync.mockReturnValue(true);
-      mockReaddirSync.mockReturnValue(['lock-other-session.json']);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        session_id: 'other-session-456',
-        acquired_at: Date.now() - 1000,
-      }));
-
-      const input = createStopInput();
-
-      const result = await Promise.resolve(multiInstanceCleanup(input));
-
-      expect(result.continue).toBe(true);
-      // Hook may clean up various session files - the key is it continues
-    });
-
-    test('should handle cleanup errors gracefully', async () => {
-      process.env.CLAUDE_MULTI_INSTANCE = '1';
-      mockExistsSync.mockReturnValue(true);
-      mockReaddirSync.mockImplementation(() => {
-        throw new Error('Directory access denied');
-      });
-
-      const input = createStopInput();
-
-      const result = await Promise.resolve(multiInstanceCleanup(input));
-
-      expect(result.continue).toBe(true);
-    });
-  });
-
   describe('Session Patterns', () => {
     test('should extract session patterns on stop', async () => {
       const input = createStopInput();
@@ -281,7 +221,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       results.push(await Promise.resolve(contextCompressor(input)));
       results.push(await Promise.resolve(sessionPatterns(input)));
       results.push(await Promise.resolve(taskCompletionCheck(input)));
-      results.push(await Promise.resolve(multiInstanceCleanup(input)));
 
       // All hooks should continue
       expect(results.every(r => r.continue)).toBe(true);
@@ -311,7 +250,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       const stopResults = await Promise.all([
         Promise.resolve(autoSaveContext(input)),
         Promise.resolve(contextCompressor(input)),
-        Promise.resolve(multiInstanceCleanup(input)),
       ]);
 
       expect(stopResults.every(r => r.continue)).toBe(true);
@@ -335,7 +273,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       await Promise.all([
         Promise.resolve(autoSaveContext(input)),
         Promise.resolve(contextCompressor(input)),
-        Promise.resolve(multiInstanceCleanup(input)),
       ]);
 
       const elapsed = Date.now() - startTime;
@@ -350,7 +287,6 @@ describe('Stop Hook Lifecycle E2E', () => {
       const hooks = [
         autoSaveContext,
         contextCompressor,
-        multiInstanceCleanup,
         sessionPatterns,
         taskCompletionCheck,
       ];

@@ -37,8 +37,8 @@ const mocks = vi.hoisted(() => {
     contextPublisher: fn(), handoffPreparer: fn(), feedbackLoop: fn(), agentMemoryStore: fn(),
     // notification (2)
     desktopNotification: fn(), soundNotification: fn(),
-    // setup (3) — implementations live in lifecycle/
-    dependencyVersionCheck: fn(), mem0WebhookSetup: fn(), coordinationInit: fn(),
+    // setup (2) — implementations live in lifecycle/
+    dependencyVersionCheck: fn(), mem0WebhookSetup: fn(),
   };
 });
 
@@ -95,7 +95,6 @@ vi.mock('../../notification/sound.js', () => ({ soundNotification: mocks.soundNo
 // setup hooks (source files live in lifecycle/)
 vi.mock('../../lifecycle/dependency-version-check.js', () => ({ dependencyVersionCheck: mocks.dependencyVersionCheck }));
 vi.mock('../../lifecycle/mem0-webhook-setup.js', () => ({ mem0WebhookSetup: mocks.mem0WebhookSetup }));
-vi.mock('../../lifecycle/coordination-init.js', () => ({ coordinationInit: mocks.coordinationInit }));
 
 // ---------------------------------------------------------------------------
 // Dispatcher imports (AFTER mocks so vitest intercepts)
@@ -190,7 +189,6 @@ const notificationMap: Record<string, ReturnType<typeof vi.fn>> = {
 const setupMap: Record<string, ReturnType<typeof vi.fn>> = {
   'dependency-version-check': mocks.dependencyVersionCheck,
   'mem0-webhook-setup': mocks.mem0WebhookSetup,
-  'coordination-init': mocks.coordinationInit,
 };
 
 // ---------------------------------------------------------------------------
@@ -530,7 +528,7 @@ describe('Dispatcher Functional Tests', () => {
   // =========================================================================
 
   describe('setup/unified-dispatcher', () => {
-    it('calls all 3 registered hooks', async () => {
+    it('calls all 2 registered hooks', async () => {
       await unifiedSetupDispatcher(input());
       expect(called(setupMap)).toEqual(Object.keys(setupMap).sort());
     });
@@ -539,7 +537,7 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSetupDispatcher(input());
       expect(mocks.logHook).toHaveBeenCalledWith(
         'setup-dispatcher',
-        expect.stringContaining('Running 3 Setup hooks'),
+        expect.stringContaining('Running 2 Setup hooks'),
       );
     });
 
@@ -547,7 +545,7 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSetupDispatcher(input());
       expect(mocks.logHook).toHaveBeenCalledWith(
         'setup-dispatcher',
-        expect.stringContaining('All 3 Setup hooks completed successfully'),
+        expect.stringContaining('All 2 Setup hooks completed successfully'),
       );
     });
 
@@ -557,11 +555,10 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSetupDispatcher(input());
 
       expect(mocks.mem0WebhookSetup).toHaveBeenCalled();
-      expect(mocks.coordinationInit).toHaveBeenCalled();
     });
 
     it('returns silent success even on errors', async () => {
-      mocks.coordinationInit.mockImplementationOnce(() => { throw new Error('locked'); });
+      mocks.mem0WebhookSetup.mockImplementationOnce(() => { throw new Error('locked'); });
       const result = await unifiedSetupDispatcher(input());
       expect(result).toEqual(SILENT_SUCCESS);
     });

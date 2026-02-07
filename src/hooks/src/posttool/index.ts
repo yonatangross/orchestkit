@@ -30,6 +30,4 @@ export { patternExtractor } from './bash/pattern-extractor.js';
 // Skill-specific hooks
 export { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
 
-// Write-edit hooks
-export { fileLockRelease } from './write-edit/file-lock-release.js';
 export { unifiedErrorHandler } from './unified-error-handler.js';

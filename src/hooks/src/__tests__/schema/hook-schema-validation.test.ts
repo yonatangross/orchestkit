@@ -275,10 +275,8 @@ const hookTestCases: HookTestCase[] = [
   // Lifecycle hooks
   { name: 'session-context-loader', path: '../../lifecycle/session-context-loader.js', createInput: () => createHookInput({ tool_name: 'SessionStart' }), category: 'lifecycle' },
   { name: 'session-cleanup', path: '../../lifecycle/session-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
-  { name: 'coordination-cleanup', path: '../../lifecycle/coordination-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
 
   // Stop hooks
-  { name: 'multi-instance-cleanup', path: '../../stop/multi-instance-cleanup.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'task-completion-check', path: '../../stop/task-completion-check.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'context-compressor', path: '../../stop/context-compressor.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'mem0-pre-compaction-sync', path: '../../stop/mem0-pre-compaction-sync.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },

@@ -37,9 +37,6 @@ import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
 
-// PostTool/Write-Edit hooks (1)
-import { fileLockRelease } from '../posttool/write-edit/file-lock-release.js';
-
 // PostTool/Task hooks (1) — Agent Teams
 import { teamMemberStart } from '../posttool/task/team-member-start.js';
 
@@ -83,9 +80,6 @@ export const hooks: Record<string, HookFn> = {
 
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
-
-  // PostTool/Write-Edit hooks (1)
-  'posttool/write-edit/file-lock-release': fileLockRelease,
 
   // PostTool/Task hooks (1) — Agent Teams
   'posttool/task/team-member-start': teamMemberStart,

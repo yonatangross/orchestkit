@@ -32,7 +32,7 @@ export default async function Page(props: {
         children: (
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <EditOnGitHub
-              href={`${SITE.github}/edit/main/docs/site/content/docs/${page.path}`}
+              href={`${SITE.github}/edit/main/docs/site/content/docs/${page.slugs.join("/")}.mdx`}
             />
             {lastModified ? <PageLastUpdate date={lastModified} /> : null}
           </div>
@@ -72,7 +72,7 @@ export async function generateMetadata(props: {
       type: "article",
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title: page.data.title,
       description: page.data.description,
     },

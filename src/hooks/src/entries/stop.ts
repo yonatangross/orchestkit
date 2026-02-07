@@ -12,14 +12,13 @@ export * from '../lib/common.js';
 // Re-export calibration engine for stop hooks
 export * from '../lib/calibration-engine.js';
 
-// Stop hooks (11)
+// Stop hooks (10)
 import { autoRememberContinuity } from '../stop/auto-remember-continuity.js';
 import { autoSaveContext } from '../stop/auto-save-context.js';
 import { contextCompressor } from '../stop/context-compressor.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
 import { mem0PreCompactionSync } from '../stop/mem0-pre-compaction-sync.js';
-import { multiInstanceCleanup } from '../stop/multi-instance-cleanup.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { sessionPatterns } from '../stop/session-patterns.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
@@ -43,7 +42,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
-  'stop/multi-instance-cleanup': multiInstanceCleanup,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,

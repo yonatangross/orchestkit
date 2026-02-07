@@ -195,18 +195,6 @@ describe('Error Path Coverage', () => {
         expectGracefulDegradation(result);
       });
 
-      test('coordination-cleanup handles missing coordination files', async () => {
-        mockExistsSync.mockReturnValue(false);
-        mockReaddirSync.mockImplementation(() => {
-          throw new Error('ENOENT: no such file or directory');
-        });
-
-        const { coordinationCleanup } = await import('../../lifecycle/coordination-cleanup.js');
-        const input = createHookInput({ tool_name: 'SessionEnd' });
-        const result = coordinationCleanup(input);
-
-        expectGracefulDegradation(result);
-      });
     });
 
     describe('writeFileSync errors', () => {
@@ -240,17 +228,9 @@ describe('Error Path Coverage', () => {
     });
 
     describe('mkdirSync errors', () => {
-      test('file-lock-release handles missing directory', async () => {
-        mockExistsSync.mockReturnValue(false);
-        mockMkdirSync.mockImplementation(() => {
-          throw new Error('EACCES: permission denied');
-        });
-
-        const { fileLockRelease } = await import('../../posttool/write-edit/file-lock-release.js');
-        const input = createWriteInput('/test/file.ts');
-        const result = fileLockRelease(input);
-
-        expectGracefulDegradation(result);
+      // file-lock-release removed in Issue #362 (coordination hooks redundant with Agent Teams)
+      test('placeholder — original hook removed', () => {
+        expect(true).toBe(true);
       });
     });
 
@@ -322,9 +302,9 @@ describe('Error Path Coverage', () => {
     test('hooks handle missing CLAUDE_SESSION_ID', async () => {
       delete process.env.CLAUDE_SESSION_ID;
 
-      const { coordinationCleanup } = await import('../../lifecycle/coordination-cleanup.js');
+      const { sessionCleanup } = await import('../../lifecycle/session-cleanup.js');
       const input = createHookInput({ tool_name: 'SessionEnd', session_id: '' });
-      const result = coordinationCleanup(input);
+      const result = sessionCleanup(input);
 
       expectGracefulDegradation(result);
     });
@@ -356,35 +336,10 @@ describe('Error Path Coverage', () => {
   });
 
   describe('Concurrent Access Error Handling', () => {
-    test('file-lock-release handles stale lock', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReadFileSync.mockReturnValue(JSON.stringify({
-        holder: 'other-session',
-        timestamp: Date.now() - 3600000, // 1 hour ago
-      }));
-
-      const { fileLockRelease } = await import('../../posttool/write-edit/file-lock-release.js');
-      const input = createWriteInput('/test/file.ts');
-      const result = fileLockRelease(input);
-
-      expectGracefulDegradation(result);
-    });
-
-    test('multi-instance-cleanup handles orphaned instances', async () => {
-      mockExistsSync.mockReturnValue(true);
-      mockReaddirSync.mockReturnValue(['instance-1', 'instance-2', 'instance-3']);
-      mockReadFileSync.mockImplementation((path: string) => {
-        if (path.includes('heartbeat')) {
-          return String(Date.now() - 600000); // 10 minutes ago (stale)
-        }
-        return '{}';
-      });
-
-      const { multiInstanceCleanup } = await import('../../stop/multi-instance-cleanup.js');
-      const input = createHookInput({ tool_name: 'Stop' });
-      const result = multiInstanceCleanup(input);
-
-      expectGracefulDegradation(result);
+    // file-lock-release and multi-instance-cleanup removed in Issue #362
+    // (coordination hooks redundant with CC Agent Teams)
+    test('placeholder — coordination hooks removed', () => {
+      expect(true).toBe(true);
     });
   });
 

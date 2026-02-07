@@ -2,7 +2,7 @@
 
 **Date**: 2026-02-06
 **Method**: Agent Teams — 3 parallel auditors with peer cross-referencing
-**Scope**: 122 hooks across `src/hooks/` (94 global + 22 agent + 6 skill-scoped)
+**Scope**: 119 hooks across `src/hooks/` (91 global + 22 agent + 6 skill-scoped)
 
 ## Auditors
 

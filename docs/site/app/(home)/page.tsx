@@ -77,10 +77,10 @@ export default function HomePage() {
             [COUNTS.hooks, "Hooks"],
           ] as const).map(([n, label]) => (
             <div key={label} className="py-6 sm:py-8">
-              <dd className="text-2xl font-bold tabular-nums sm:text-3xl">{n}</dd>
-              <dt className="mt-0.5 text-xs font-medium text-fd-muted-foreground">
+              <dt className="text-xs font-medium text-fd-muted-foreground">
                 {label}
               </dt>
+              <dd className="mt-0.5 text-2xl font-bold tabular-nums sm:text-3xl">{n}</dd>
             </div>
           ))}
         </dl>
@@ -111,7 +111,7 @@ export default function HomePage() {
               <p className="mt-1.5 text-sm leading-relaxed text-fd-muted-foreground">
                 {item.desc}
               </p>
-              <span className="mt-3 inline-flex items-center gap-1 text-sm text-fd-primary opacity-0 transition-opacity group-hover:opacity-100" aria-hidden="true">
+              <span className="mt-3 inline-flex items-center gap-1 text-sm text-fd-primary opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100" aria-hidden="true">
                 Browse all &rarr;
               </span>
             </Link>
@@ -133,7 +133,7 @@ export default function HomePage() {
                 className="group flex items-center justify-between rounded-lg border border-fd-border px-4 py-4 transition-colors hover:bg-fd-accent"
               >
                 <div>
-                  <div className="text-sm font-medium">{item.title}</div>
+                  <h3 className="text-sm font-medium">{item.title}</h3>
                   <div className="text-sm text-fd-muted-foreground">{item.desc}</div>
                 </div>
                 <ChevronRight

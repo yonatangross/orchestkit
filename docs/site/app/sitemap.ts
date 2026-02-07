@@ -7,7 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: SITE.domain, lastModified: new Date(), changeFrequency: "weekly", priority: 1 },
     ...source.getPages().map((page) => ({
       url: `${SITE.domain}/docs/${page.slugs.join("/")}`,
-      lastModified: new Date(),
+      lastModified: page.data.lastModified instanceof Date ? page.data.lastModified : new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),

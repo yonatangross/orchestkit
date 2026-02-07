@@ -7,7 +7,7 @@
  * Reduces "Async hook SessionStart completed" messages.
  *
  * Note: One-time initialization hooks (dependency-version-check,
- * mem0-webhook-setup, coordination-init) moved to Setup dispatcher
+ * mem0-webhook-setup) moved to Setup dispatcher
  * in Issue #239 - they only need to run once at plugin load.
  *
  * CC 2.1.19 Compliant: Single async hook with internal routing
@@ -22,7 +22,7 @@ import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Import session-specific hook implementations
-// Note: dependency-version-check, mem0-webhook-setup, coordination-init
+// Note: dependency-version-check, mem0-webhook-setup
 // moved to setup/unified-dispatcher.ts (Issue #239)
 import { mem0ContextRetrieval } from './mem0-context-retrieval.js';
 import { mem0AnalyticsTracker } from './mem0-analytics-tracker.js';

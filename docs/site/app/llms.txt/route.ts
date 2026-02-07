@@ -1,4 +1,5 @@
 import { source } from "@/lib/source";
+import { COUNTS } from "@/lib/constants";
 
 export const revalidate = false;
 
@@ -8,7 +9,7 @@ export function GET() {
   const lines = [
     "# OrchestKit",
     "",
-    "> AI development toolkit for Claude Code — 200 skills, 36 agents, 122 hooks",
+    `> AI development toolkit for Claude Code — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks`,
     "",
     "## Docs",
     "",

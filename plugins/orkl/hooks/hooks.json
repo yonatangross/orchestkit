@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 94 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 91 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -65,10 +65,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/Write/security-pattern-validator"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/write-edit/multi-instance-lock"
           },
           {
             "type": "command",
@@ -168,10 +164,6 @@
       {
         "matcher": "Write|Edit",
         "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write-edit/file-lock-release"
-          },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/auto-lint"
@@ -338,10 +330,6 @@
     "SessionEnd": [
       {
         "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/coordination-cleanup"
-          },
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs lifecycle/session-metrics-summary"

@@ -132,7 +132,6 @@ describe('run-hook-background.mjs - Unit Tests', () => {
   describe('getBundleName mapping', () => {
     it('should map posttool hooks to posttool bundle', () => {
       expect(getBundleName('posttool/unified-dispatcher')).toBe('posttool');
-      expect(getBundleName('posttool/file-lock-release')).toBe('posttool');
     });
 
     it('should map pretool hooks to pretool bundle', () => {

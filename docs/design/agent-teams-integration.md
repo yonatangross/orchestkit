@@ -596,7 +596,7 @@ Team "security-audit-{timestamp}":
 - [x] `src/hooks/src/teammate-idle/team-synthesis-trigger.ts` — detect all-idle + suggest synthesis (TeammateIdle)
 - [x] `src/hooks/src/pretool/task/team-size-gate.ts` — enforce team limits (PreToolUse[Task])
 - [x] `src/hooks/src/teammate-idle/team-quality-gate.ts` — aggregate quality signals (TeammateIdle)
-- [x] Register in `hooks.json`, rebuild bundles (94 global, 122 total)
+- [x] Register in `hooks.json`, rebuild bundles (91 global, 119 total)
 - [x] Tests for all new hooks (36 tests across 4 files)
 
 ### Phase 3: Full-Stack Pipeline (P3-A.3)

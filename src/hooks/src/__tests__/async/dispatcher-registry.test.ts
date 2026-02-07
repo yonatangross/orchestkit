@@ -106,8 +106,6 @@ describe('Dispatcher Registry Wiring', () => {
         'workflow-preference-learner',
         'mem0-queue-sync',
         'mem0-pre-compaction-sync',
-        // Instance management hooks
-        'multi-instance-cleanup',
         'task-completion-check',
         // Analysis hooks
         'context-compressor',
@@ -157,7 +155,6 @@ describe('Dispatcher Registry Wiring', () => {
       expect(setupHooks()).toEqual([
         'dependency-version-check',
         'mem0-webhook-setup',
-        'coordination-init',
       ]);
     });
   });
@@ -206,8 +203,9 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 16, lifecycle: 6, stop: 28, subagent-stop: 4, notification: 2, setup: 3
-      expect(total).toBe(59);
+      // posttool: 16, lifecycle: 6, stop: 27, subagent-stop: 4, notification: 2, setup: 2
+      // #362: removed multi-instance-cleanup from stop, coordination-init from setup
+      expect(total).toBe(57);
     });
   });
 });

@@ -52,7 +52,6 @@ import { agentBrowserSafety } from './pretool/bash/agent-browser-safety.js';
 
 // PreTool/Write-Edit hooks
 import { fileGuard } from './pretool/write-edit/file-guard.js';
-import { multiInstanceLock } from './pretool/write-edit/multi-instance-lock.js';
 
 // PreTool/Write hooks
 import { architectureChangeDetector } from './pretool/Write/architecture-change-detector.js';
@@ -135,14 +134,13 @@ import { retryHandler } from './subagent-stop/retry-handler.js';
 import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
-// Stop hooks (11)
+// Stop hooks (10)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
 import { contextCompressor } from './stop/context-compressor.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { mem0PreCompactionSync } from './stop/mem0-pre-compaction-sync.js';
-import { multiInstanceCleanup } from './stop/multi-instance-cleanup.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
 import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
@@ -189,16 +187,11 @@ import { patternExtractor } from './posttool/bash/pattern-extractor.js';
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
 
-// PostTool/Write-Edit hooks (1)
-import { fileLockRelease } from './posttool/write-edit/file-lock-release.js';
-
 // PostTool/Task hooks — Agent Teams
 import { teamMemberStart } from './posttool/task/team-member-start.js';
 
-// Lifecycle hooks (17) - SessionStart/SessionEnd
+// Lifecycle hooks (15) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
-import { coordinationCleanup } from './lifecycle/coordination-cleanup.js';
-import { coordinationInit } from './lifecycle/coordination-init.js';
 import { mem0AnalyticsTracker } from './lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from './lifecycle/mem0-context-retrieval.js';
 import { mem0WebhookSetup } from './lifecycle/mem0-webhook-setup.js';
@@ -252,9 +245,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
 
-  // PreTool/Write-Edit hooks (2)
+  // PreTool/Write-Edit hooks (1)
   'pretool/write-edit/file-guard': fileGuard,
-  'pretool/write-edit/multi-instance-lock': multiInstanceLock,
 
   // PreTool/Write hooks (4)
   'pretool/Write/architecture-change-detector': architectureChangeDetector,
@@ -343,7 +335,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
-  'stop/multi-instance-cleanup': multiInstanceCleanup,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
@@ -391,16 +382,11 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
 
-  // PostTool/Write-Edit hooks (1)
-  'posttool/write-edit/file-lock-release': fileLockRelease,
-
   // PostTool/Task hooks (1) — Agent Teams
   'posttool/task/team-member-start': teamMemberStart,
 
-  // Lifecycle hooks (15) - SessionStart/SessionEnd
+  // Lifecycle hooks (13) - SessionStart/SessionEnd
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
-  'lifecycle/coordination-cleanup': coordinationCleanup,
-  'lifecycle/coordination-init': coordinationInit,
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,
   'lifecycle/mem0-webhook-setup': mem0WebhookSetup,

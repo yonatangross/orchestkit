@@ -7,7 +7,7 @@ export const SITE = {
   domain: "https://orchestkit.dev",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
-  ccVersion: "2.1.33+",
+  ccVersion: "2.1.34+",
 } as const;
 
 export const COUNTS = {
