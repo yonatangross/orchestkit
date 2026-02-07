@@ -1,7 +1,10 @@
 ---
 title: How Skills Work
 description: "Skills are reusable knowledge modules -- SKILL.md files with optional references -- that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
+full: true
 ---
+
+import { SkillBrowser } from '@/components/skill-browser';
 
 ## What Is a Skill?
 
@@ -40,6 +43,8 @@ OrchestKit ships 200 skills in two categories:
 **Command skills** are workflows you run directly -- `/ork:implement`, `/ork:fix-issue`, `/ork:create-pr`. They often orchestrate multiple agents and reference skills behind the scenes.
 
 **Reference skills** are passive knowledge. They get injected into an agent's context when the agent needs them. A `database-engineer` agent automatically receives `pgvector-search`, `alembic-migrations`, and `zero-downtime-migration` because those skills declare `agent: database-engineer` in their frontmatter.
+
+<SkillBrowser />
 
 ---
 

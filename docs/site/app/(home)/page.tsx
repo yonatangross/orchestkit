@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { CopyInstallButton } from "./copy-button";
 import { SITE, COUNTS } from "@/lib/constants";
+import { COMPOSITIONS } from "@/lib/playground-data";
 
 const PRIMITIVES = [
   {
@@ -86,6 +87,30 @@ export default function HomePage() {
         </dl>
       </section>
 
+      {/* Category Distribution */}
+      <section aria-label="Skill categories" className="bg-fd-card/30">
+        <div className="mx-auto max-w-3xl px-6 py-6">
+          <div className="flex flex-wrap justify-center gap-3">
+            {Object.entries({
+              Backend: { count: 38, color: "bg-amber-500" },
+              Frontend: { count: 32, color: "bg-blue-500" },
+              "AI / LLM": { count: 35, color: "bg-cyan-500" },
+              Security: { count: 12, color: "bg-red-500" },
+              DevOps: { count: 18, color: "bg-orange-500" },
+              Testing: { count: 22, color: "bg-emerald-500" },
+              Product: { count: 16, color: "bg-pink-500" },
+              Workflows: { count: 27, color: "bg-violet-500" },
+            }).map(([label, { count, color }]) => (
+              <div key={label} className="flex items-center gap-1.5 text-xs text-fd-muted-foreground">
+                <span className={`h-2 w-2 rounded-full ${color}`} />
+                <span>{label}</span>
+                <span className="font-medium tabular-nums text-fd-foreground">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Primitives */}
       <section aria-labelledby="primitives-heading" className="mx-auto max-w-[980px] px-6 py-16 sm:py-20">
         <h2 id="primitives-heading" className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
@@ -116,6 +141,51 @@ export default function HomePage() {
               </span>
             </Link>
           ))}
+        </div>
+      </section>
+
+      {/* Demo Showcase */}
+      <section aria-labelledby="demos-heading" className="border-t border-fd-border bg-fd-card/50">
+        <div className="mx-auto max-w-[980px] px-6 py-16 sm:py-20">
+          <h2 id="demos-heading" className="mb-2 text-center text-2xl font-bold tracking-tight sm:text-3xl">
+            See it in action
+          </h2>
+          <p className="mx-auto mb-8 max-w-md text-center text-fd-muted-foreground">
+            Every command skill comes with a demo composition.
+          </p>
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin">
+            {COMPOSITIONS.filter(c => c.format === "landscape").slice(0, 6).map((comp) => (
+              <Link
+                key={comp.id}
+                href="/docs/reference"
+                className="group flex-none w-[280px] rounded-lg border border-fd-border overflow-hidden transition-colors hover:bg-fd-accent"
+              >
+                <div className="aspect-video bg-fd-secondary relative">
+                  <img
+                    src={`/thumbnails/${comp.id}.png`}
+                    alt={comp.id}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                  <span className="absolute bottom-2 left-2 rounded bg-black/70 px-1.5 py-0.5 text-[11px] font-medium text-white">
+                    {comp.durationSeconds}s
+                  </span>
+                </div>
+                <div className="p-3">
+                  <h3 className="text-sm font-medium">{comp.id.replace(/([A-Z])/g, ' $1').trim()}</h3>
+                  <p className="mt-0.5 text-xs text-fd-muted-foreground font-mono">{comp.command}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-4 text-center">
+            <Link
+              href="/docs/reference"
+              className="text-sm text-fd-primary hover:underline"
+            >
+              View all compositions &rarr;
+            </Link>
+          </div>
         </div>
       </section>
 

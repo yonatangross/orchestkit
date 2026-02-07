@@ -22,9 +22,9 @@ export const baseOptions: BaseLayoutProps = {
       active: "nested-url",
     },
     {
-      text: "Playground",
-      url: `${SITE.github}/tree/main/docs/playgrounds`,
-      external: true,
+      text: "Reference",
+      url: "/docs/reference",
+      active: "nested-url",
     },
   ],
 };
