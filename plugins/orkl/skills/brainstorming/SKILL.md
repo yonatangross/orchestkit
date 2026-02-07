@@ -60,6 +60,25 @@ AskUserQuestion(
 
 ---
 
+## STEP 0b: Select Orchestration Mode
+
+Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
+
+1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+2. Agent Teams unavailable → **Task tool mode** (default)
+3. Otherwise: Open exploration with 3+ agents → recommend **Agent Teams** (real-time debate produces better ideas); Quick ideation → **Task tool**
+
+| Aspect | Task Tool | Agent Teams |
+|--------|-----------|-------------|
+| Idea generation | Each agent generates independently | Agents riff on each other's ideas |
+| Devil's advocate | Lead challenges after all complete | Agents challenge each other in real-time |
+| Cost | ~150K tokens | ~400K tokens |
+| Best for | Quick ideation, constrained design | Open exploration, deep evaluation |
+
+> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining phases.
+
+---
+
 ## CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 ```python
@@ -118,6 +137,58 @@ Skip brainstorming when:
 | "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
 
 **Always include:** `workflow-architect` for system design perspective.
+
+---
+
+## Agent Teams Alternative: Brainstorming Team
+
+In Agent Teams mode, form a brainstorming team where agents debate ideas in real-time. Dynamically select teammates based on topic analysis (Phase 0):
+
+```python
+TeamCreate(team_name="brainstorm-{topic-slug}", description="Brainstorm {topic}")
+
+# Always include the system design lead
+Task(subagent_type="workflow-architect", name="system-designer",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""You are the system design lead for brainstorming: {topic}
+     DIVERGENT MODE: Generate 3-4 architectural approaches.
+     When other teammates share ideas, build on them or propose alternatives.
+     Challenge ideas that seem over-engineered — advocate for simplicity.
+     After divergent phase, help synthesize the top approaches.""")
+
+# Domain-specific teammates (select 2-3 based on topic keywords)
+Task(subagent_type="backend-system-architect", name="backend-thinker",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Brainstorm backend approaches for: {topic}
+     DIVERGENT MODE: Generate 3-4 backend-specific ideas.
+     When system-designer shares architectural ideas, propose concrete API designs.
+     Challenge ideas from other teammates with implementation reality checks.
+     Play devil's advocate on complexity vs simplicity trade-offs.""")
+
+Task(subagent_type="frontend-ui-developer", name="frontend-thinker",
+     team_name="brainstorm-{topic-slug}",
+     prompt="""Brainstorm frontend approaches for: {topic}
+     DIVERGENT MODE: Generate 3-4 UI/UX ideas.
+     When backend-thinker proposes APIs, suggest frontend patterns that match.
+     Challenge backend proposals that create poor user experiences.
+     Advocate for progressive disclosure and accessibility.""")
+
+# Optional: Add security-auditor, ux-researcher, llm-integrator based on topic
+```
+
+**Key advantage:** Agents riff on each other's ideas and play devil's advocate in real-time, rather than generating ideas in isolation.
+
+**Team teardown** after synthesis:
+```python
+# After Phase 5 synthesis and design presentation
+SendMessage(type="shutdown_request", recipient="system-designer", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="backend-thinker", content="Brainstorm complete")
+SendMessage(type="shutdown_request", recipient="frontend-thinker", content="Brainstorm complete")
+# ... shutdown any additional domain teammates
+TeamDelete()
+```
+
+> **Fallback:** If team formation fails, use standard Phase 2 Task spawns from [Phase Workflow](references/phase-workflow.md).
 
 ---
 

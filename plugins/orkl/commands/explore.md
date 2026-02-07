@@ -49,6 +49,24 @@ AskUserQuestion(
 - **Quick search**: Skip to phase 1-2 only, return file list
 
 
+## STEP 0b: Select Orchestration Mode
+
+Choose **Agent Teams** (mesh — explorers share discoveries) or **Task tool** (star — all report to lead):
+
+1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+2. Agent Teams unavailable → **Task tool mode** (default)
+3. Otherwise: Full exploration with 4+ agents → recommend **Agent Teams**; Quick search or single-focus → **Task tool**
+
+| Aspect | Task Tool | Agent Teams |
+|--------|-----------|-------------|
+| Discovery sharing | Lead synthesizes after all complete | Explorers share discoveries as they go |
+| Cross-referencing | Lead connects dots | Data flow explorer alerts architecture explorer |
+| Cost | ~150K tokens | ~400K tokens |
+| Best for | Quick/focused searches | Deep full-codebase exploration |
+
+> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining exploration.
+
+
 ## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else, create tasks to show progress:**
@@ -149,6 +167,55 @@ Task(
 2. **Data Flow Explorer** - Entry points, processing, storage
 3. **Backend Architect** - Patterns, integration, dependencies
 4. **Frontend Developer** - Components, state, routes
+
+### Phase 3 — Agent Teams Alternative
+
+In Agent Teams mode, form an exploration team where explorers share discoveries in real-time:
+
+```python
+TeamCreate(team_name="explore-{topic}", description="Explore {topic}")
+
+Task(subagent_type="Explore", name="structure-explorer",
+     team_name="explore-{topic}",
+     prompt="""Find all files, classes, and functions related to: {topic}
+     When you discover key entry points, message data-flow-explorer so they
+     can trace data paths from those points.
+     When you find backend patterns, message backend-explorer.
+     When you find frontend components, message frontend-explorer.""")
+
+Task(subagent_type="Explore", name="data-flow-explorer",
+     team_name="explore-{topic}",
+     prompt="""Trace entry points, processing, and storage for: {topic}
+     When structure-explorer shares entry points, start tracing from those.
+     When you discover cross-boundary data flows (frontend→backend or vice versa),
+     message both backend-explorer and frontend-explorer.""")
+
+Task(subagent_type="backend-system-architect", name="backend-explorer",
+     team_name="explore-{topic}",
+     prompt="""Analyze backend architecture patterns for: {topic}
+     When structure-explorer or data-flow-explorer share backend findings,
+     investigate deeper — API design, database schema, service patterns.
+     Share integration points with frontend-explorer for consistency.""")
+
+Task(subagent_type="frontend-ui-developer", name="frontend-explorer",
+     team_name="explore-{topic}",
+     prompt="""Analyze frontend components, state, and routes for: {topic}
+     When structure-explorer shares component locations, investigate deeper.
+     When backend-explorer shares API patterns, verify frontend alignment.
+     Share component hierarchy with data-flow-explorer.""")
+```
+
+**Team teardown** after report generation:
+```python
+SendMessage(type="shutdown_request", recipient="structure-explorer", content="Exploration complete")
+SendMessage(type="shutdown_request", recipient="data-flow-explorer", content="Exploration complete")
+SendMessage(type="shutdown_request", recipient="backend-explorer", content="Exploration complete")
+SendMessage(type="shutdown_request", recipient="frontend-explorer", content="Exploration complete")
+TeamDelete()
+```
+
+> **Fallback:** If team formation fails, use standard Phase 3 Task spawns above.
+
 
 ### Phase 4: AI System Exploration (If Applicable)
 

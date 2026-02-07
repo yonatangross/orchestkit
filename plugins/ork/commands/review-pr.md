@@ -48,6 +48,24 @@ AskUserQuestion(
 - **Quick review**: Single code-quality-reviewer agent only
 
 
+## STEP 0b: Select Orchestration Mode
+
+Choose **Agent Teams** (mesh — reviewers cross-reference findings) or **Task tool** (star — all report to lead):
+
+1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+2. Agent Teams unavailable → **Task tool mode** (default)
+3. Otherwise: Full review with 6+ agents and cross-cutting concerns → recommend **Agent Teams**; Quick/focused review → **Task tool**
+
+| Aspect | Task Tool | Agent Teams |
+|--------|-----------|-------------|
+| Communication | All reviewers report to lead | Reviewers cross-reference findings |
+| Security + quality overlap | Lead deduplicates | security-auditor messages code-quality-reviewer directly |
+| Cost | ~200K tokens | ~500K tokens |
+| Best for | Quick/focused reviews | Full reviews with cross-cutting concerns |
+
+> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining review.
+
+
 ## ⚠️ CRITICAL: Task Management is MANDATORY (CC 2.1.16)
 
 **BEFORE doing ANYTHING else, create tasks to track progress:**
@@ -231,6 +249,60 @@ Task(
   run_in_background=True
 )
 ```
+
+### Phase 3 — Agent Teams Alternative
+
+In Agent Teams mode, form a review team where reviewers cross-reference findings directly:
+
+```python
+TeamCreate(team_name="review-pr-{number}", description="Review PR #{number}")
+
+Task(subagent_type="code-quality-reviewer", name="quality-reviewer",
+     team_name="review-pr-{number}",
+     prompt="""Review code quality and type safety for PR #{number}.
+     When you find patterns that overlap with security concerns,
+     message security-reviewer with the finding.
+     When you find test gaps, message test-reviewer.""")
+
+Task(subagent_type="security-auditor", name="security-reviewer",
+     team_name="review-pr-{number}",
+     prompt="""Security audit for PR #{number}.
+     Cross-reference with quality-reviewer for injection risks in code patterns.
+     When you find issues, message the responsible reviewer (backend-reviewer
+     for API issues, frontend-reviewer for XSS).""")
+
+Task(subagent_type="test-generator", name="test-reviewer",
+     team_name="review-pr-{number}",
+     prompt="""Review test coverage for PR #{number}.
+     When quality-reviewer flags test gaps, verify and suggest specific tests.
+     Message backend-reviewer or frontend-reviewer with test requirements.""")
+
+Task(subagent_type="backend-system-architect", name="backend-reviewer",
+     team_name="review-pr-{number}",
+     prompt="""Review backend code for PR #{number}.
+     When security-reviewer flags API issues, validate and suggest fixes.
+     Share API pattern findings with frontend-reviewer for consistency.""")
+
+Task(subagent_type="frontend-ui-developer", name="frontend-reviewer",
+     team_name="review-pr-{number}",
+     prompt="""Review frontend code for PR #{number}.
+     When backend-reviewer shares API patterns, verify frontend matches.
+     When security-reviewer flags XSS risks, validate and suggest fixes.""")
+```
+
+**Team teardown** after synthesis:
+```python
+# After collecting all findings and producing the review
+SendMessage(type="shutdown_request", recipient="quality-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="security-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="test-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="backend-reviewer", content="Review complete")
+SendMessage(type="shutdown_request", recipient="frontend-reviewer", content="Review complete")
+TeamDelete()
+```
+
+> **Fallback:** If team formation fails, use standard Phase 3 Task spawns above.
+
 
 ### Optional: AI Code Review
 

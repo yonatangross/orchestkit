@@ -57,6 +57,25 @@ AskUserQuestion(
 
 ---
 
+## STEP 0b: Select Orchestration Mode
+
+Choose **Agent Teams** (mesh — verifiers share findings) or **Task tool** (star — all report to lead):
+
+1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+2. Agent Teams unavailable → **Task tool mode** (default)
+3. Otherwise: Full verification with cross-domain concerns → recommend **Agent Teams**; Single-scope verification → **Task tool**
+
+| Aspect | Task Tool | Agent Teams |
+|--------|-----------|-------------|
+| Finding correlation | Lead cross-references scores | Agents discuss overlapping concerns |
+| Security + test overlap | Independent scoring | security-auditor alerts test-generator about gaps |
+| Cost | ~200K tokens | ~500K tokens |
+| Best for | Focused verification | Full-stack verification with 5 agents |
+
+> **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining verification.
+
+---
+
 ## Task Management (CC 2.1.16)
 
 ```python
@@ -116,6 +135,61 @@ Launch ALL agents in ONE message with `run_in_background=True`.
 | frontend-ui-developer | React 19, Zod, a11y | UI 0-10 |
 
 See [Grading Rubric](references/grading-rubric.md) for detailed scoring criteria.
+
+### Phase 2 — Agent Teams Alternative
+
+In Agent Teams mode, form a verification team where agents share findings and coordinate scoring:
+
+```python
+TeamCreate(team_name="verify-{feature}", description="Verify {feature}")
+
+Task(subagent_type="code-quality-reviewer", name="quality-verifier",
+     team_name="verify-{feature}",
+     prompt="""Verify code quality for {feature}. Score 0-10.
+     When you find patterns that affect security, message security-verifier.
+     When you find untested code paths, message test-verifier.
+     Share your quality score with all teammates for composite calculation.""")
+
+Task(subagent_type="security-auditor", name="security-verifier",
+     team_name="verify-{feature}",
+     prompt="""Security verification for {feature}. Score 0-10.
+     When quality-verifier flags security-relevant patterns, investigate deeper.
+     When you find vulnerabilities in API endpoints, message api-verifier.
+     Share severity findings with test-verifier for test gap analysis.""")
+
+Task(subagent_type="test-generator", name="test-verifier",
+     team_name="verify-{feature}",
+     prompt="""Verify test coverage for {feature}. Score 0-10.
+     When quality-verifier or security-verifier flag untested paths, quantify the gap.
+     Run existing tests and report coverage metrics.
+     Message the lead with coverage data for composite scoring.""")
+
+Task(subagent_type="backend-system-architect", name="api-verifier",
+     team_name="verify-{feature}",
+     prompt="""Verify API design and backend patterns for {feature}. Score 0-10.
+     When security-verifier flags endpoint issues, validate and score.
+     Share API compliance findings with ui-verifier for consistency check.""")
+
+Task(subagent_type="frontend-ui-developer", name="ui-verifier",
+     team_name="verify-{feature}",
+     prompt="""Verify frontend implementation for {feature}. Score 0-10.
+     When api-verifier shares API patterns, verify frontend matches.
+     Check React 19 patterns, accessibility, and loading states.
+     Share findings with quality-verifier for overall assessment.""")
+```
+
+**Team teardown** after report compilation:
+```python
+# After composite grading and report generation
+SendMessage(type="shutdown_request", recipient="quality-verifier", content="Verification complete")
+SendMessage(type="shutdown_request", recipient="security-verifier", content="Verification complete")
+SendMessage(type="shutdown_request", recipient="test-verifier", content="Verification complete")
+SendMessage(type="shutdown_request", recipient="api-verifier", content="Verification complete")
+SendMessage(type="shutdown_request", recipient="ui-verifier", content="Verification complete")
+TeamDelete()
+```
+
+> **Fallback:** If team formation fails, use standard Phase 2 Task spawns above.
 
 ---
 
