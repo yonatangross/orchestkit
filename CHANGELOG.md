@@ -5,6 +5,64 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.2] - 2026-02-06
+
+### Added
+
+- **#328 (P1-C)**: `complexity: low|medium|high` field added to all 199 skill frontmatters for Opus 4.6 adaptive thinking alignment
+- **#337 (P2-E)**: New `upgrade-assessment` user-invocable skill — 6-phase readiness evaluation with structured JSON scoring across 6 dimensions
+- **#338 (P2-F)**: New `platform-upgrade-knowledge` reference skill with scoring rubrics and compatibility matrices
+- **#333 (P2-D)**: 128K output token guidance added to implement skill, context-engineering, and 3 agent definitions
+- **#331 (P2-B)**: New `model-cost-advisor` SubagentStart hook — analyzes task complexity and recommends optimal model for cost savings
+- **#325 (P0-B)**: Prefill-guard SessionStart hook warns about Opus 4.6 breaking change (prefilled assistant messages return 400 errors)
+- **#346 (P1-E)**: Agent `memory` frontmatter — all 36 agents (31 `project` scope, 5 `local` scope) (CC 2.1.33)
+- **#347 (P1-F)**: New `TeammateIdle` and `TaskCompleted` hook events with progress-reporter and completion-tracker handlers (CC 2.1.33)
+- **#335 (P3-B)**: New `/ork:audit-full` user-invocable skill — single-pass whole-codebase audit (security, architecture, dependencies) leveraging 1M context window with 4 references, 2 assets, 1 checklist, 1 script
+- Batch script `scripts/add-complexity.mjs` for applying complexity classifications
+- **#334 (P3-A)**: Agent Teams dual-mode orchestration — `/ork:implement` and 5 other user-invocable skills (assess, brainstorm, explore, fix-issue, review-pr, verify) support both Task tool (star topology) and Agent Teams (mesh topology) via `ORCHESTKIT_PREFER_TEAMS` env var
+- **#405**: TeamCreate, SendMessage, TeamDelete tools added to all 36 agents
+- **#406**: task-dependency-patterns skill updated with Agent Teams coordination patterns
+- **#407**: multi-agent-orchestration skill updated with mesh topology patterns
+- **#362**: 4 Agent Teams lifecycle hooks (team-formation-advisor, teammate-progress-reporter, teammate-completion-tracker, team-coordination-advisor)
+- **#391 (P2-B)**: Interactive Agent Selector playground with search, category/task filters, quiz wizard, and 10 scenario suggestions
+- **Fumadocs site scaffold** (Milestone #56): Fumadocs v16.5 + Next.js + MDX + Orama search, reference pages auto-generated for all 200 skills, 36 agents, 15 hook categories
+
+- **Tavily Integration**: 3-tier web research workflow (WebFetch → Tavily → agent-browser) with curl patterns for search/extract/map APIs, graceful degradation when `TAVILY_API_KEY` is unset
+- **Tavily Site Discovery**: competitive-monitoring skill gains Tavily map+extract pre-step for competitor URL enumeration
+- **Tavily Agent Awareness**: web-research-analyst, market-intelligence, and product-strategist agents updated with Tavily directives
+- **BrightData MCP**: `BRIGHTDATA_API_TOKEN` env var documented for BrightData web scraping MCP server
+
+### Fixed
+
+- **SEC-001**: SQL injection prevention — `multi-instance-cleanup` and `cleanup-instance` now validate instance IDs with `/^[a-zA-Z0-9_\-.:]+$/` before SQLite interpolation
+- **SEC-003**: Atomic file writes — `multi-instance-lock` uses write-to-temp + `renameSync` to prevent TOCTOU race conditions in lock files
+- README.md hook count corrected (120 → 119)
+
+### Changed
+
+- **#348 (P2-G)**: `Task(agent_type)` restrictions on python-performance-engineer and demo-producer (CC 2.1.33)
+- **#349 (P1-G)**: CC minimum version bumped to >= 2.1.33 (from 2.1.32) for agent memory and new hook events
+- **#330 (P2-A)**: 13 agents migrated from `mcp__sequential-thinking` to Opus 4.6 native adaptive thinking
+- **#329 (P1-D)**: TOKEN_BUDGETS now scale dynamically with `CLAUDE_MAX_CONTEXT` (2% of context window per CC 2.1.32)
+- **#332 (P2-C)**: Enhanced `pre-compact-saver` v2.0 — preserves decision logs, memory tier snapshots, compaction frequency analytics
+- **#324 (P0-A)**: Replace hardcoded model string in multi-instance-init.ts with dynamic `detectModel()`
+- **#326 (P1-A)**: Memory context tier limits expanded (1200→3000 chars memory, 800→1200 chars profile)
+- **#327 (P1-B)**: CC minimum version updated to >= 2.1.33 across CLAUDE.md, README, hooks README, marketplace
+- MCP configuration docs updated with Opus 4.6 sequential-thinking deprecation note
+- CI workflow renames for clarity and pipeline parallelism
+- Skill count: 197 → 200 (added upgrade-assessment, platform-upgrade-knowledge, audit-full)
+- Hook count: 117 → 119 (91 global + 22 agent + 6 skill-scoped)
+- Opus 4.6 callouts added to top 5 user-invocable skills (verify, review-pr, fix-issue, implement, explore)
+- Agent `memory` frontmatter expanded from 22 to all 36 agents
+
+### Removed
+
+- Deprecated `sequential-thinking-auto` pretool hook (Opus 4.6 native adaptive thinking replaces MCP sequential-thinking)
+- **#362**: 6 coordination hooks removed as redundant with CC native Agent Teams (team-formation-hook, team-coordinator, teammate-monitor, team-cleanup, team-health-check, team-context-share)
+
+---
+
+
 ## [6.0.1] - 2026-02-05
 
 ### Changed

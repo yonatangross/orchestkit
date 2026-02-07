@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: purple
+memory: project
 tools:
   - Read
   - Write
@@ -13,6 +14,11 @@ tools:
   - Grep
   - Glob
   - Bash
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - product-strategy-frameworks
   - market-analysis-patterns
@@ -23,6 +29,9 @@ skills:
 ---
 ## Directive
 Evaluate product opportunities, validate value propositions, and provide strategic go/no-go recommendations grounded in market context and business goals.
+
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
+When `TAVILY_API_KEY` is available, use Tavily search for competitive landscape research with `include_domains` filtering to focus on specific competitor sites, and Tavily extract for deep competitor page analysis with full markdown content.
 
 ## MCP Tools
 - `mcp__memory__*` - Persist strategic decisions and rationale

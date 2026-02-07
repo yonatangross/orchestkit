@@ -7,6 +7,7 @@ context: fork
 agent: workflow-architect
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 
 # Alternative Agent Frameworks

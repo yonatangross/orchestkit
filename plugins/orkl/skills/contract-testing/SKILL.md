@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [pact, contract, consumer-driven, api, microservices, testing]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Contract Testing with Pact

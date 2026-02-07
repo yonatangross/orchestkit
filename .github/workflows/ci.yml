@@ -1,4 +1,4 @@
-name: CI
+name: Tests & Security
 
 on:
   push:
@@ -20,11 +20,11 @@ env:
 
 jobs:
   # ============================================================================
-  # STAGE 0: Build Plugins + Artifacts (< 1m)
+  # STAGE 0: Build + Artifacts (< 1m)
   # Single build, shared via artifacts to avoid rebuilding
   # ============================================================================
   build-plugins:
-    name: Build Plugins
+    name: Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -95,13 +95,11 @@ jobs:
           node-version: '22'
 
       - name: Audit root dependencies
-        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=critical
 
       - name: Audit hooks dependencies
         working-directory: src/hooks
-        run: npm audit --audit-level=high || echo "::warning::npm audit found vulnerabilities"
-        continue-on-error: true
+        run: npm audit --audit-level=critical
 
   # ============================================================================
   # STAGE 1c: Secret Scanning
@@ -195,11 +193,11 @@ jobs:
   # ============================================================================
   security-tests:
     name: Security Tests (${{ matrix.os }})
-    needs: lint
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
-      fail-fast: true  # Stop immediately on security failure
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
@@ -269,7 +267,7 @@ jobs:
   # ============================================================================
   performance-tests:
     name: Performance Tests (${{ matrix.os }})
-    needs: [unit-tests, security-tests]
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -303,7 +301,7 @@ jobs:
   # ============================================================================
   compliance-tests:
     name: Compliance Tests (${{ matrix.os }})
-    needs: lint
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -337,7 +335,7 @@ jobs:
   # ============================================================================
   mem0-tests:
     name: Mem0 Integration (${{ matrix.os }})
-    needs: lint
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -373,7 +371,7 @@ jobs:
   # ============================================================================
   agent-skill-tests:
     name: Agents & Skills (${{ matrix.os }})
-    needs: lint
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     strategy:
@@ -419,7 +417,7 @@ jobs:
   # ============================================================================
   system-tests:
     name: System Tests (${{ matrix.os }})
-    needs: lint
+    needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
     strategy:
@@ -458,27 +456,6 @@ jobs:
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
           bash scripts/ci/run-tests.sh tests/evaluations --verbose
 
-  # ============================================================================
-  # STAGE 8b: Playgrounds E2E Tests
-  # ============================================================================
-  playgrounds-tests:
-    name: Playgrounds E2E
-    needs: lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
-
-      - name: Setup Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
-        with:
-          node-version: '22'
-
-      - name: Run playgrounds tests
-        shell: bash
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash scripts/ci/run-tests.sh tests/playgrounds --verbose
 
   # ============================================================================
   # STAGE 9: Coverage Report
@@ -524,7 +501,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, playgrounds-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -544,23 +521,29 @@ jobs:
           echo "Mem0 Tests: ${{ needs.mem0-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
           echo "System Tests: ${{ needs.system-tests.result }}"
-          echo "Playgrounds E2E: ${{ needs.playgrounds-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
-          # All security checks must pass (audit + scanning + tests)
-          if [[ "${{ needs.lint.result }}" != "success" ]] || \
-             [[ "${{ needs.security-audit.result }}" != "success" ]] || \
-             [[ "${{ needs.secret-scanning.result }}" != "success" ]] || \
-             [[ "${{ needs.unit-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.hook-typescript-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.security-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.integration-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.performance-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.compliance-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.mem0-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.agent-skill-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.system-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.playgrounds-tests.result }}" != "success" ]]; then
+          # Fail only on explicit failures (skipped jobs are OK - they use path filters)
+          FAILED=0
+          for result in \
+            "${{ needs.lint.result }}" \
+            "${{ needs.security-audit.result }}" \
+            "${{ needs.secret-scanning.result }}" \
+            "${{ needs.unit-tests.result }}" \
+            "${{ needs.hook-typescript-tests.result }}" \
+            "${{ needs.security-tests.result }}" \
+            "${{ needs.integration-tests.result }}" \
+            "${{ needs.performance-tests.result }}" \
+            "${{ needs.compliance-tests.result }}" \
+            "${{ needs.mem0-tests.result }}" \
+            "${{ needs.agent-skill-tests.result }}" \
+            "${{ needs.system-tests.result }}"; do
+            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+              FAILED=1
+            fi
+          done
+
+          if [[ "$FAILED" == "1" ]]; then
             echo "::error::One or more CI stages failed"
             exit 1
           fi

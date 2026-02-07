@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [monitoring, alerting, anomaly, silent-failure, observability, agents]
 user-invocable: false
+complexity: medium
 ---
 
 # Silent Failure Detection

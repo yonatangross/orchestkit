@@ -1,0 +1,248 @@
+---
+title: "122 Hooks: What Fires When"
+description: "TypeScript functions that intercept every Claude Code lifecycle event -- blocking dangerous commands, injecting context, and syncing memory, all invisibly."
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+import { Tab, Tabs } from "fumadocs-ui/components/tabs";
+
+## What Is a Hook?
+
+A hook is a TypeScript function that runs automatically at specific moments in a Claude Code session. Hooks receive a JSON payload on stdin describing the event (which tool, what input, which session) and return a JSON response on stdout that either allows the operation, blocks it, or injects additional context.
+
+You never call hooks yourself. Claude Code calls them for you -- on every tool use, every prompt, every session start and stop. They are the invisible guardians of your development workflow.
+
+```typescript
+// The fundamental hook contract
+type HookFn = (input: HookInput) => HookResult | Promise<HookResult>;
+
+// Allow the operation silently
+{ continue: true, suppressOutput: true }
+
+// Block the operation with a reason
+{ continue: false, stopReason: "Direct commits to main are not allowed." }
+
+// Allow but inject guidance for Claude
+{ continue: true, hookSpecificOutput: { additionalContext: "Consider using cursor-based pagination." } }
+```
+
+## By the Numbers
+
+| Category | Count | Description |
+|----------|-------|-------------|
+| **Global hooks** | 94 | Fire on every matching event regardless of agent |
+| **Agent-scoped hooks** | 22 | Fire only when a specific agent is active |
+| **Skill-scoped hooks** | 6 | Fire only during specific skill operations |
+| **Total** | **122** | Registered in `hooks.json`, compiled into 11 split bundles |
+
+All 122 hooks are written in TypeScript, compiled via esbuild into ESM bundles, and executed by Node.js. Zero external dependencies in production.
+
+## Hook Events: The Full Timeline
+
+Every Claude Code session follows the same lifecycle. Here is every event in the order it fires, and what OrchestKit does at each stage.
+
+<Steps>
+<Step>
+### Setup
+
+**When:** Plugin installation or first run.
+
+9 hooks handle first-run setup, maintenance checks, mem0 backup configuration, monorepo detection, and analytics dashboard initialization.
+</Step>
+
+<Step>
+### SessionStart
+
+**When:** A new Claude Code session begins.
+
+5 hooks fire: a unified dispatcher (fire-and-forget) launches 7 background tasks (mem0 retrieval, pattern sync, coordination init), the session context loader reads prior state, the analytics consent checker runs, the PR status enricher loads context for `--from-pr` sessions, and the prefill guard scans for deprecated API patterns.
+</Step>
+
+<Step>
+### UserPromptSubmit
+
+**When:** The user types a message and presses Enter.
+
+13 hooks run on every prompt. The profile injector and memory context loader fire once (first prompt only). The context injector, todo enforcer, memory context searcher, satisfaction detector, communication style tracker, antipattern detector, antipattern warning, context pruning advisor, pipeline detector, intent capturer, and queue recovery handler run on each prompt.
+</Step>
+
+<Step>
+### PermissionRequest
+
+**When:** Claude requests permission to use a tool.
+
+3 hooks evaluate the request. Read/Glob/Grep operations are auto-approved (empty hook array -- Claude Code allows them). Safe bash commands (git status, npm test, ls) are auto-approved. Writes within the project directory are auto-approved, excluding `node_modules`, `.git`, and `dist`.
+</Step>
+
+<Step>
+### PreToolUse
+
+**When:** After permission is granted, before the tool executes.
+
+The largest group: hooks fire based on the tool matcher.
+
+- **Bash** (10 hooks): Dangerous command blocker, compound command validator, error pattern warner, issue docs requirement, multi-instance quality gate, default timeout setter, GitHub issue creation guide, license compliance, affected tests finder, agent browser safety.
+- **Write|Edit** (7 hooks): File guard, write headers injector, architecture change detector, security pattern validator, multi-instance lock, docstring enforcer, code quality gate.
+- **Skill** (1 hook): Skill usage tracker.
+- **MCP** (3 hooks): Context7 tracker, memory fabric initializer (once), memory validator.
+- **Task** (5 hooks): Agent block-writes, migration safety check, security command audit, CI safety check, deployment safety check.
+</Step>
+
+<Step>
+### PostToolUse
+
+**When:** After a tool completes successfully.
+
+10 hooks across three matchers:
+
+- **Bash|Write|Edit|Task|Skill|NotebookEdit** (3 hooks): Unified dispatcher (fire-and-forget, 7 analytics hooks), context budget monitor, unified error handler.
+- **Write|Edit** (6 hooks): File lock release, auto-lint, README sync, merge conflict predictor, coverage predictor, release lock on commit.
+- **Bash** (1 hook): Secret redactor.
+</Step>
+
+<Step>
+### PostToolUseFailure
+
+**When:** A tool fails (nonzero exit code, write error, etc.).
+
+1 hook: The failure handler logs the error, categorizes it, and provides recovery suggestions.
+</Step>
+
+<Step>
+### SubagentStart / SubagentStop
+
+**When:** A subagent (Task) is spawned or completes.
+
+- **SubagentStart** (7 hooks): Context stager, graph memory inject, mem0 memory inject, subagent validator, context gate, task linker, model cost advisor.
+- **SubagentStop** (7 hooks): Unified dispatcher (fire-and-forget), output validator, auto-spawn quality gate, multi-claude verifier, subagent quality gate, task completer, retry handler.
+</Step>
+
+<Step>
+### Notification
+
+**When:** Claude Code emits a notification (permission prompt, idle, auth success).
+
+2 hooks: A unified dispatcher for notification analytics, and a sound hook that plays audio alerts for permission prompts and idle notifications.
+</Step>
+
+<Step>
+### PreCompact
+
+**When:** Context window is about to be compacted.
+
+1 hook: The pre-compact saver preserves critical context (decisions, file list, key findings) before compaction discards conversation history.
+</Step>
+
+<Step>
+### TeammateIdle / TaskCompleted
+
+**When:** Multi-agent coordination events fire (CC 2.1.33+).
+
+- **TeammateIdle** (1 hook): Progress reporter checks on idle teammates.
+- **TaskCompleted** (1 hook): Completion tracker records task outcomes.
+</Step>
+
+<Step>
+### Stop
+
+**When:** The user ends the session (`/exit`, Ctrl+C, or session timeout).
+
+1 hook entry dispatches via fire-and-forget: a detached background worker runs **29 cleanup hooks** in parallel after the session exits instantly. These cover context saving, memory sync, instance cleanup, security aggregation, and skill validation. See [Lifecycle Hooks](/docs/hooks/lifecycle-hooks) for the full breakdown.
+</Step>
+
+<Step>
+### SessionEnd
+
+**When:** The session is formally ending (after Stop).
+
+4 hooks: Coordination cleanup (unregister instance, release locks), session metrics summary, session cleanup (temp files), and pattern sync push (upload learned patterns).
+</Step>
+</Steps>
+
+## Architecture: Split Bundles
+
+OrchestKit does not load all 122 hooks into memory for every event. Instead, esbuild compiles hooks into **11 event-specific bundles** plus 1 unified bundle for CLI tools.
+
+| Bundle | Size | Hooks | Loaded When |
+|--------|------|-------|-------------|
+| `permission.mjs` | 8 KB | 3 | PermissionRequest |
+| `pretool.mjs` | 48 KB | 26 | PreToolUse |
+| `posttool.mjs` | 58 KB | 10 | PostToolUse |
+| `prompt.mjs` | 57 KB | 13 | UserPromptSubmit |
+| `lifecycle.mjs` | 31 KB | 9 | SessionStart / SessionEnd |
+| `stop.mjs` | 33 KB | 29 | Stop |
+| `subagent.mjs` | 56 KB | 14 | SubagentStart / SubagentStop |
+| `notification.mjs` | 5 KB | 2 | Notification |
+| `setup.mjs` | 24 KB | 9 | Setup |
+| `skill.mjs` | 52 KB | 1+ | Skill operations |
+| `agent.mjs` | 8 KB | 5 | Agent operations |
+| `hooks.mjs` (unified) | 324 KB | all | CLI tools only |
+
+**Result:** 89% per-load savings. A typical hook invocation loads ~35 KB instead of 324 KB.
+
+The CLI runner (`bin/run-hook.mjs`) maps hook name prefixes to bundles automatically:
+
+```javascript
+const bundleMap = {
+  permission: 'permission',
+  pretool: 'pretool',
+  posttool: 'posttool',
+  prompt: 'prompt',
+  lifecycle: 'lifecycle',
+  stop: 'stop',
+  'subagent-start': 'subagent',
+  'subagent-stop': 'subagent',
+  notification: 'notification',
+  setup: 'setup',
+  skill: 'skill',
+  agent: 'agent',
+};
+```
+
+## How a Hook Executes
+
+Every hook registration in `hooks.json` follows this pattern:
+
+```json
+{
+  "type": "command",
+  "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/bash/dangerous-command-blocker"
+}
+```
+
+Claude Code pipes the event payload to stdin, and the runner:
+
+1. Parses the hook name from `process.argv[2]`
+2. Maps the prefix (`pretool`) to the correct bundle (`pretool.mjs`)
+3. Dynamic-imports the bundle
+4. Looks up the hook function by its full name
+5. Calls the function with the parsed input
+6. Writes the `HookResult` JSON to stdout
+
+For fire-and-forget hooks, a separate silent runner (`run-hook-silent.mjs`) is used, and for Stop events, `stop-fire-and-forget.mjs` spawns a detached background worker.
+
+## Special Hook Flags
+
+Some hooks in `hooks.json` have additional flags:
+
+| Flag | Meaning | Example |
+|------|---------|---------|
+| `"once": true` | Run only on the first matching event per session | `memory-context-loader` (first prompt only) |
+| `"async": true` | Run in background without blocking | Analytics dispatchers |
+| `"timeout": 30` | Maximum execution time in seconds | Network I/O hooks |
+
+## Mental Model: Invisible Guardians
+
+Think of hooks as a security and productivity layer that wraps every action Claude takes:
+
+- **Before** a bash command runs, the dangerous command blocker checks for `rm -rf /`, `git push --force`, and pipe-to-shell attacks.
+- **Before** a file is written, the file guard blocks modifications to `.env`, `.pem`, and credential files.
+- **On every prompt**, the memory context hook searches the knowledge graph for relevant past decisions.
+- **When a session ends**, 29 background hooks save context, sync memory, and clean up coordination state -- without making the user wait.
+
+You get all of this automatically. No configuration required. The hooks are registered in `hooks.json` and fire based on matcher patterns that Claude Code evaluates against the current tool name.
+
+<Callout type="info">
+To learn about individual hook categories in depth, continue to [Lifecycle Hooks](/docs/hooks/lifecycle-hooks), [Safety Hooks](/docs/hooks/safety-hooks), and [Memory Hooks](/docs/hooks/memory-hooks). To build your own hook, see [Writing Hooks](/docs/hooks/writing-hooks).
+</Callout>

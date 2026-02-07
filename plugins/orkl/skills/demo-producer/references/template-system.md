@@ -554,6 +554,88 @@ const rightPanelX = interpolate(mergeProgress, [0, 1], [960, 0]);
 
 ---
 
+## Template: ScrapbookDemo
+
+**Use when**: Creating product showcases, brand videos, or social proof compilations with a warm, editorial aesthetic.
+
+### Architecture
+
+```
+┌──────────────────────────────────────────────┐
+│        TITLE STAMP (0-3s)                    │
+│    "OrchestKit"                              │
+│    200 skills. 36 agents. One plugin.        │
+├──────────────────────────────────────────────┤
+│    SOCIAL PROOF CARDS (3-7.5s)               │
+│    ┌─────────┐  ┌─────────┐  ┌─────────┐   │
+│    │ @sarah  │  │ @marcus │  │ @priya  │   │
+│    │ "..."   │  │ "..."   │  │ "..."   │   │
+│    └─────────┘  └─────────┘  └─────────┘   │
+├──────────────────────────────────────────────┤
+│    TERMINAL CAPTURE (7.5-11.5s)              │
+│    ┌────────────────────────────┐            │
+│    │  $ /ork:implement ...     │ ← tilted   │
+│    │  ✓ Created 3 files        │   frame    │
+│    └────────────────────────────┘            │
+├──────────────────────────────────────────────┤
+│    STATS REVEAL (11.5-13.5s)                 │
+│        197        36        111              │
+│       skills    agents     hooks             │
+├──────────────────────────────────────────────┤
+│    CTA (13.5-17s)                            │
+│    Get started                               │
+│    ┌─/plugin install ork─┐                   │
+│    └─────────────────────┘                   │
+└──────────────────────────────────────────────┘
+```
+
+### Props Interface
+
+```typescript
+interface ScrapbookDemoProps {
+  title: string;           // Hero text (e.g., "OrchestKit")
+  tagline: string;         // Subtitle
+  socialCards: Array<{     // 2-4 social proof quotes
+    author: string;
+    text: string;
+    handle?: string;
+  }>;
+  terminalContent?: string; // Terminal output as multi-line string
+  stats: {
+    skills: number;
+    agents: number;
+    hooks: number;
+  };
+  ctaCommand: string;      // e.g., "/plugin install ork"
+  accentColor?: string;    // Override default teal accent
+}
+```
+
+### Component Breakdown
+
+| Component | Purpose |
+|-----------|---------|
+| `PaperTexture` | Warm cream background with canvas grain and edge shadow |
+| `KineticText` | Bold serif text that "stamps" in with spring overshoot |
+| `SocialCard` | Tweet-style card with avatar, author, quote text |
+| `CollageFrame` | Tilted frame with drop shadow for screenshots |
+| `StatsCounter` | Animated count-up numbers with accent underlines |
+
+### Style Constants
+
+- **Background**: `#F0F0E8` (warm paper cream), NOT dark
+- **Typography**: Georgia serif for headlines, Inter sans for data
+- **Animation**: 150ms transitions, 50ms stagger, spring overshoot
+- **Grain**: 4% opacity warm-toned noise
+- **Vignette**: 30% intensity warm edge darkening
+
+### Variants
+
+- `ScrapbookDemo` — 1920x1080 landscape (16:9)
+- `ScrapbookDemoSquare` — 1080x1080 square (1:1), fewer social cards
+
+---
+
 ## Creating a Configuration for Any Skill
 
 ### Step 1: Gather Skill Information

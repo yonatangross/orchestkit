@@ -9,6 +9,8 @@ Commands work without them - MCPs just add extra capabilities.
 |-----|---------|---------|----------|
 | **context7** | Up-to-date library docs | Cloud (Upstash) | /implement, /verify, /review-pr |
 | **sequential-thinking** | Structured reasoning | None | /brainstorm, /implement |
+
+> **Opus 4.6 Note:** Sequential-thinking MCP is optional when using Opus 4.6+, which has native adaptive thinking built-in. The MCP tool remains useful for non-Opus models.
 | **mem0** | Semantic memory | Cloud (mem0.ai) | Session continuity, decisions |
 | **memory** | Knowledge graph | Local file | Decisions, patterns, entities |
 

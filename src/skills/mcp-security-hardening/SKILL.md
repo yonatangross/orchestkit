@@ -7,6 +7,7 @@ context: fork
 agent: security-auditor
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 
 # MCP Security Hardening

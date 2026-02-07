@@ -8,7 +8,6 @@
  * Migrated from SessionStart dispatcher:
  * - dependency-version-check (only needs once per plugin load)
  * - mem0-webhook-setup (only needs once per plugin load)
- * - coordination-init (can init at plugin load)
  *
  * CC 2.1.10+ Compliant: Uses Setup event for plugin-level initialization
  *
@@ -24,7 +23,6 @@ import { outputSilentSuccess, logHook } from '../lib/common.js';
 // Import hook implementations from lifecycle (they stay there, we just call them from Setup)
 import { dependencyVersionCheck } from '../lifecycle/dependency-version-check.js';
 import { mem0WebhookSetup } from '../lifecycle/mem0-webhook-setup.js';
-import { coordinationInit } from '../lifecycle/coordination-init.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -48,7 +46,6 @@ interface HookConfig {
 const HOOKS: HookConfig[] = [
   { name: 'dependency-version-check', fn: dependencyVersionCheck },
   { name: 'mem0-webhook-setup', fn: mem0WebhookSetup },
-  { name: 'coordination-init', fn: coordinationInit },
 ];
 
 /** Exposed for registry wiring tests */

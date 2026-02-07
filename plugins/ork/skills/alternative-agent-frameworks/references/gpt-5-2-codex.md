@@ -180,10 +180,10 @@ GPT-5.2-Codex achieves state-of-the-art results on coding benchmarks:
 
 | Benchmark | GPT-5.2 | GPT-5.2-Codex | Previous SOTA |
 |-----------|---------|---------------|---------------|
-| SWE-Bench Pro | 61.2% | 78.4% | 68.1% (Claude Opus 4.5) |
+| SWE-Bench Pro | 61.2% | 78.4% | 68.1% (Claude Opus 4.6) |
 | Terminal-Bench 2.0 | 72.8% | 89.3% | 81.2% (Gemini 2.5) |
 | HumanEval+ | 94.1% | 96.8% | 95.2% (GPT-5.2) |
-| MBPP+ | 89.7% | 93.2% | 91.4% (Claude Opus 4.5) |
+| MBPP+ | 89.7% | 93.2% | 91.4% (Claude Opus 4.6) |
 | CodeContests | 45.2% | 58.7% | 52.3% (Gemini 2.5) |
 
 **SWE-Bench Pro Notes:**

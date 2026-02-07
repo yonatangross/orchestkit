@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [pii, masking, privacy, security, langfuse, presidio, gdpr]
 user-invocable: false
+complexity: low
 ---
 
 # PII Masking Patterns

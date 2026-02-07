@@ -8,6 +8,7 @@ tags: [accessibility, react, aria, a11y, react-aria, wcag, hooks, adobe]
 allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # React Aria Patterns

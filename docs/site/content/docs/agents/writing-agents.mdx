@@ -1,0 +1,504 @@
+---
+title: Writing Agents
+description: "Create your own specialized agent with the right model, tools, skills, and directive."
+---
+
+# Create Your Own Agent
+
+Every OrchestKit agent is a single Markdown file in `src/agents/`. There is no code to write, no class to extend, no registration API. You create a file, add YAML frontmatter, write a directive, rebuild, and the agent is available.
+
+## Step-by-Step
+
+### 1. Create the File
+
+```bash
+# Agent names use kebab-case
+touch src/agents/my-new-agent.md
+```
+
+### 2. Write the Frontmatter
+
+The frontmatter defines the agent's identity and capabilities:
+
+```yaml
+---
+name: my-new-agent
+description: Brief description of what the agent does. Activates for keyword1, keyword2, keyword3
+category: backend
+model: inherit
+context: fork
+color: blue
+memory: project
+tools:
+  - Read
+  - Edit
+  - Write
+  - Bash
+  - Grep
+  - Glob
+skills:
+  - relevant-skill-1
+  - relevant-skill-2
+  - remember
+  - memory
+---
+```
+
+### 3. Write the Directive
+
+The directive is the body of the Markdown file. It tells the agent what to do, how to behave, and where its boundaries are.
+
+```markdown
+## Directive
+Design and implement [specific domain] with focus on [key qualities].
+
+Consult project memory for past decisions before starting.
+Persist significant findings to project memory for future sessions.
+
+<investigate_before_answering>
+Read existing code and patterns before proposing changes.
+Do not speculate about code you have not inspected.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent operations in parallel:
+- Read multiple files at once
+- Run independent checks simultaneously
+Only use sequential execution when one operation depends on another.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only make changes that are directly requested or clearly necessary.
+Start with the simplest solution that works.
+</avoid_overengineering>
+
+## Concrete Objectives
+1. First thing this agent should do
+2. Second thing this agent should do
+3. Third thing this agent should do
+
+## Output Format
+Return structured report:
+```json
+{
+  "summary": "What was done",
+  "files_modified": ["path/to/file.ts"],
+  "decisions_made": ["Decision 1"],
+  "next_steps": ["What to do next"]
+}
+```
+
+## Task Boundaries
+**DO:**
+- List what this agent should do
+- Be specific about allowed actions
+
+**DON'T:**
+- List what other agents handle
+- Reference the specific agent that handles it
+
+## Integration
+- **Receives from:** agent-name (what it provides)
+- **Hands off to:** agent-name (what it needs next)
+```
+
+### 4. Add to the Manifest
+
+Edit `manifests/ork.json` (or the appropriate manifest) to include your agent:
+
+```json
+{
+  "agents": [
+    "existing-agent-1",
+    "existing-agent-2",
+    "my-new-agent"
+  ]
+}
+```
+
+### 5. Build and Test
+
+```bash
+# Build the plugin
+npm run build
+
+# Validate the agent frontmatter
+npm run test:agents
+```
+
+The test suite checks that:
+- The `name` field matches the filename
+- Required fields (`description`, `model`, `tools`, `skills`) are present
+- The `model` value is one of `opus`, `sonnet`, or `inherit`
+- The `context` value is one of `fork` or `inherit`
+- All referenced skills exist in `src/skills/`
+
+## Frontmatter Reference
+
+### Required Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Must match filename (without `.md`). Kebab-case. |
+| `description` | string | Agent summary. Include activation keywords after the description. |
+| `model` | string | `opus` for complex reasoning, `sonnet` for focused tasks, `inherit` for flexibility |
+| `tools` | string[] | Claude Code tools the agent can use |
+| `skills` | string[] | Knowledge modules to auto-inject |
+
+### Optional Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `context` | string | `fork` | `fork` for isolation, `inherit` to share parent context |
+| `category` | string | none | Grouping: `backend`, `frontend`, `security`, `testing`, `devops`, `llm`, `product`, `design`, `docs`, `git`, `research` |
+| `color` | string | none | Visual color in task display |
+| `memory` | string | none | `project` for persistent memory, `local` for session-only |
+| `hooks` | object | none | Agent-scoped hook definitions |
+
+## Skill Selection Strategy
+
+Choose skills that give the agent the knowledge it needs without bloating its context.
+
+### Guidelines
+
+1. **Start small** -- Begin with 3-5 core skills. You can always add more.
+2. **Match the domain** -- Use skills from the same category as the agent.
+3. **Always include memory** -- Add `remember` and `memory` so the agent can persist and retrieve decisions.
+4. **Check existing agents** -- Look at agents in the same category for skill inspiration.
+
+### Skills by Domain
+
+| Domain | Recommended Skills |
+|--------|--------------------|
+| Backend API | `api-design-framework`, `fastapi-advanced`, `error-handling-rfc9457`, `rate-limiting` |
+| Database | `database-schema-designer`, `sqlalchemy-2-async`, `connection-pooling` |
+| Frontend | `react-server-components-framework`, `design-system-starter`, `tanstack-query-advanced` |
+| Security | `owasp-top-10`, `security-scanning`, `defense-in-depth`, `auth-patterns` |
+| Testing | `unit-testing`, `integration-testing`, `e2e-testing`, `test-standards-enforcer` |
+| DevOps | `devops-deployment`, `github-operations`, `observability-monitoring` |
+| LLM / AI | `langgraph-supervisor`, `multi-agent-orchestration`, `langfuse-observability` |
+| Architecture | `architecture-decision-record`, `clean-architecture`, `performance-optimization` |
+| Cross-cutting | `task-dependency-patterns`, `remember`, `memory` |
+
+### Skill Budget Awareness
+
+Claude Code (CC 2.1.33+) scales the skill character budget to 2% of the context window. With a 200K context, each skill gets roughly 1,200 tokens. With a 1M context, that grows to about 6,000 tokens. Design your agent's skill list accordingly -- too many large skills may get truncated.
+
+## Tool Selection
+
+Choose tools based on what the agent needs to do:
+
+### Read-Only Agents (Reviewers, Investigators, Auditors)
+
+```yaml
+tools:
+  - Read
+  - Bash
+  - Grep
+  - Glob
+```
+
+Add the block-writes hook to enforce read-only behavior:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+```
+
+### Read-Write Agents (Implementers, Builders)
+
+```yaml
+tools:
+  - Read
+  - Edit
+  - MultiEdit
+  - Write
+  - Bash
+  - Grep
+  - Glob
+```
+
+### Minimal Agents (Analyzers, Strategists)
+
+```yaml
+tools:
+  - Read
+  - Grep
+  - Glob
+```
+
+## Model Selection
+
+| Choose | When |
+|--------|------|
+| `opus` | Complex multi-step reasoning, architecture design, security analysis, system review |
+| `sonnet` | Focused production tasks, content generation, straightforward implementation |
+| `inherit` | Most agents. Inherits the user's session model. Best for flexibility. |
+
+Currently in the OrchestKit codebase:
+- **7 agents** use `opus`: `backend-system-architect`, `security-auditor`, `ai-safety-auditor`, `security-layer-auditor`, `event-driven-architect`, `workflow-architect`, `infrastructure-architect`, `python-performance-engineer`, `metrics-architect`, `system-design-reviewer`
+- **1 agent** uses `sonnet`: `demo-producer`
+- **28 agents** use `inherit`
+
+Use `opus` sparingly -- it has higher latency and cost. Reserve it for agents that genuinely need deep reasoning.
+
+## Directive Best Practices
+
+### Use XML Tags for Behavioral Instructions
+
+OrchestKit agents use three standard XML tags in their directives:
+
+```markdown
+<investigate_before_answering>
+Read and understand existing code before proposing changes.
+Do not speculate about code you have not inspected.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent operations in parallel.
+Only use sequential execution when one depends on another.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only make changes that are directly requested.
+Start with the simplest solution that works.
+</avoid_overengineering>
+```
+
+These tags are not enforced programmatically but are followed by the LLM as part of its directive.
+
+### Define Clear Task Boundaries
+
+Every agent should have explicit DO and DON'T lists. Reference other agents by name so the LLM knows where to hand off:
+
+```markdown
+## Task Boundaries
+**DO:**
+- Design RESTful APIs with proper HTTP methods
+- Implement Pydantic v2 schemas
+- Create SQLAlchemy 2.0 models
+
+**DON'T:**
+- Modify frontend code (that's frontend-ui-developer)
+- Create database migrations (that's database-engineer)
+- Generate embeddings (that's data-pipeline-engineer)
+```
+
+### Include an Integration Section
+
+Document how your agent connects to others:
+
+```markdown
+## Integration
+- **Receives from:** requirements-translator (user stories), workflow-architect (architecture)
+- **Hands off to:** database-engineer (migrations), code-quality-reviewer (review)
+```
+
+### Specify Output Format
+
+Agents should return structured output. JSON is the standard:
+
+```markdown
+## Output Format
+Return structured report:
+```json
+{
+  "feature": "description",
+  "files_created": [],
+  "decisions_made": [],
+  "test_commands": []
+}
+```
+```
+
+## Adding Agent-Scoped Hooks
+
+Agent-scoped hooks run only when a specific agent is active. They are defined in the frontmatter:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+  PostToolUse:
+    - matcher: "Bash"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/security-command-audit"
+```
+
+Common hook patterns:
+
+| Hook | Purpose | Used By |
+|------|---------|---------|
+| `agent/block-writes` | Prevent code modification | `security-auditor`, `debug-investigator`, `code-quality-reviewer`, `system-design-reviewer` |
+| `agent/deployment-safety-check` | Validate deployment commands | `deployment-manager` |
+| `agent/security-command-audit` | Audit bash commands for safety | `security-auditor` |
+
+## Full Agent Template
+
+Here is a complete, production-ready agent template:
+
+```yaml
+---
+name: my-domain-specialist
+description: Domain specialist who handles specific-task-1, specific-task-2, and specific-task-3. Focuses on quality-1, quality-2, and quality-3. Activates for keyword1, keyword2, keyword3, keyword4, keyword5
+category: backend
+model: inherit
+context: fork
+color: blue
+memory: project
+tools:
+  - Read
+  - Edit
+  - MultiEdit
+  - Write
+  - Bash
+  - Grep
+  - Glob
+skills:
+  - primary-skill
+  - secondary-skill
+  - supporting-skill
+  - task-dependency-patterns
+  - remember
+  - memory
+---
+## Directive
+Handle specific-domain tasks with focus on quality-1 and quality-2.
+
+Consult project memory for past decisions and patterns before starting.
+Persist significant findings and lessons learned to project memory.
+
+<investigate_before_answering>
+Read existing code and patterns before proposing changes.
+Do not speculate about code you have not inspected.
+Ground all recommendations in actual codebase evidence.
+</investigate_before_answering>
+
+<use_parallel_tool_calls>
+When gathering context, run independent operations in parallel:
+- Read multiple source files in parallel
+- Run independent analysis checks in parallel
+Only use sequential execution when one operation depends on another.
+</use_parallel_tool_calls>
+
+<avoid_overengineering>
+Only make changes that are directly requested or clearly necessary.
+Start with the simplest solution that works.
+Don't add features or abstractions beyond what was asked.
+</avoid_overengineering>
+
+## Task Management
+For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
+1. `TaskCreate` for each major step with descriptive `activeForm`
+2. Set status to `in_progress` when starting a step
+3. Use `addBlockedBy` for dependencies between steps
+4. Mark `completed` only when step is fully verified
+
+## Concrete Objectives
+1. First primary objective
+2. Second primary objective
+3. Third primary objective
+4. Fourth primary objective
+
+## Output Format
+Return structured report:
+```json
+{
+  "summary": "What was accomplished",
+  "artifacts": ["list of files created or modified"],
+  "decisions": ["key decisions made and rationale"],
+  "metrics": {"relevant_metric": "value"},
+  "next_steps": ["recommended follow-up actions"]
+}
+```
+
+## Task Boundaries
+**DO:**
+- Specific allowed action 1
+- Specific allowed action 2
+- Specific allowed action 3
+
+**DON'T:**
+- Prohibited action 1 (that's other-agent-name)
+- Prohibited action 2 (that's other-agent-name)
+- Prohibited action 3
+
+## Boundaries
+- Allowed: path/to/allowed/**, other/path/**
+- Forbidden: path/to/forbidden/**, secrets/**, .env files
+
+## Resource Scaling
+- Small task: 10-15 tool calls
+- Medium task: 25-40 tool calls
+- Large task: 50-80 tool calls
+
+## Standards
+| Category | Requirement |
+|----------|-------------|
+| Standard 1 | Specific requirement |
+| Standard 2 | Specific requirement |
+
+## Example
+Task: "Example task description"
+
+1. Step 1 of the example
+2. Step 2 of the example
+3. Step 3 of the example
+4. Return structured result
+
+## Integration
+- **Receives from:** upstream-agent (what it provides)
+- **Hands off to:** downstream-agent (what it needs next)
+- **Skill references:** primary-skill, secondary-skill
+```
+
+## Testing Your Agent
+
+After creating the agent file and adding it to the manifest:
+
+```bash
+# Rebuild the plugin
+npm run build
+
+# Run agent frontmatter validation
+npm run test:agents
+
+# The test validates:
+# - name matches filename
+# - required fields present
+# - model is opus|sonnet|inherit
+# - context is fork|inherit
+# - referenced skills exist
+```
+
+To test the agent in action:
+
+```bash
+# Start a Claude Code session
+claude
+
+# Spawn your agent explicitly
+> Use the my-domain-specialist agent to analyze the current project
+```
+
+Or test keyword activation by typing a prompt that matches your agent's keywords.
+
+## Common Mistakes
+
+| Mistake | Fix |
+|---------|-----|
+| Name does not match filename | `my-agent.md` must have `name: my-agent` |
+| Missing activation keywords | Add keywords to the `description` field after the description text |
+| Too many skills | Start with 3-5, add more only if the agent needs them |
+| No task boundaries | Always include DO and DON'T lists |
+| No output format | Define a JSON output structure for consistency |
+| Forgot `remember` and `memory` skills | Always include these for decision persistence |
+| Using `opus` unnecessarily | Default to `inherit` unless the agent needs deep reasoning |
+
+## What's Next
+
+- [Agents Overview](/docs/agents/overview) -- See all 36 existing agents for inspiration
+- [Choosing an Agent](/docs/agents/choosing-an-agent) -- Understand how agents map to tasks
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- Learn how agents work together

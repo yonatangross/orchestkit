@@ -7,6 +7,7 @@ version: 2.0.0
 tags: [evaluation, llm, quality, ragas, langfuse]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # LLM Evaluation

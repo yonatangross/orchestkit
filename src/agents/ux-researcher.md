@@ -5,12 +5,17 @@ category: product
 model: inherit
 context: fork
 color: pink
+memory: project
 tools:
   - Write
   - Read
   - WebSearch
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - user-research-methods
   - persona-journey-mapping

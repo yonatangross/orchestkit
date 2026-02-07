@@ -15,7 +15,6 @@ import { auditLogger } from '../posttool/audit-logger.js';
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
 import { autoLint } from '../posttool/auto-lint.js';
 import { contextBudgetMonitor } from '../posttool/context-budget-monitor.js';
-import { coordinationHeartbeat } from '../posttool/coordination-heartbeat.js';
 import { mem0WebhookHandler } from '../posttool/mem0-webhook-handler.js';
 import { memoryBridge } from '../posttool/memory-bridge.js';
 import { realtimeSync } from '../posttool/realtime-sync.js';
@@ -30,8 +29,6 @@ import { codeStyleLearner } from '../posttool/write/code-style-learner.js';
 import { coveragePredictor } from '../posttool/write/coverage-predictor.js';
 import { namingConventionLearner } from '../posttool/write/naming-convention-learner.js';
 import { readmeSync } from '../posttool/write/readme-sync.js';
-import { releaseLockOnCommit } from '../posttool/write/release-lock-on-commit.js';
-
 // PostTool/Bash hooks (3)
 import { issueProgressCommenter } from '../posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from '../posttool/bash/issue-subtask-updater.js';
@@ -40,8 +37,8 @@ import { patternExtractor } from '../posttool/bash/pattern-extractor.js';
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from '../posttool/skill/skill-usage-optimizer.js';
 
-// PostTool/Write-Edit hooks (1)
-import { fileLockRelease } from '../posttool/write-edit/file-lock-release.js';
+// PostTool/Task hooks (1) — Agent Teams
+import { teamMemberStart } from '../posttool/task/team-member-start.js';
 
 // PostTool/Failure hooks (1)
 import { failureHandler } from '../posttool/failure-handler.js';
@@ -56,12 +53,11 @@ import type { HookFn } from '../types.js';
  * PostTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PostTool hooks - Root (13)
+  // PostTool hooks - Root (12)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
-  'posttool/coordination-heartbeat': coordinationHeartbeat,
   'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
@@ -71,12 +67,11 @@ export const hooks: Record<string, HookFn> = {
   'posttool/calibration-tracker': calibrationTracker,
   'posttool/unified-dispatcher': unifiedDispatcher,
 
-  // PostTool/Write hooks (5)
+  // PostTool/Write hooks (4)
   'posttool/write/code-style-learner': codeStyleLearner,
   'posttool/write/coverage-predictor': coveragePredictor,
   'posttool/write/naming-convention-learner': namingConventionLearner,
   'posttool/write/readme-sync': readmeSync,
-  'posttool/write/release-lock-on-commit': releaseLockOnCommit,
 
   // PostTool/Bash hooks (3)
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,
@@ -86,8 +81,8 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
 
-  // PostTool/Write-Edit hooks (1)
-  'posttool/write-edit/file-lock-release': fileLockRelease,
+  // PostTool/Task hooks (1) — Agent Teams
+  'posttool/task/team-member-start': teamMemberStart,
 
   // PostTool/Failure hooks (1)
   'posttool/failure-handler': failureHandler,

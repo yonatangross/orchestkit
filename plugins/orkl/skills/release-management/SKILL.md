@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, github, releases, versioning, changelog, automation]
 user-invocable: false
+complexity: low
 ---
 
 # Release Management
@@ -52,6 +53,19 @@ gh release view v1.2.0 --web
 
 # JSON output
 gh release list --json tagName,publishedAt,isPrerelease
+```
+
+### Verify Releases (gh CLI 2.86.0+)
+
+```bash
+# Verify release attestation (sigstore)
+gh release verify v1.2.0
+
+# Verify specific asset
+gh release verify-asset v1.2.0 ./dist/app.zip
+
+# Verify with custom trust policy
+gh release verify v1.2.0 --owner myorg
 ```
 
 ### Manage Releases

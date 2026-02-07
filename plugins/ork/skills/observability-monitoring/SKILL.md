@@ -10,6 +10,7 @@ agents: [backend-system-architect, code-quality-reviewer, llm-integrator]
 keywords: [observability, monitoring, logging, metrics, tracing, alerts, Prometheus, OpenTelemetry]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Observability & Monitoring Skill
@@ -173,7 +174,7 @@ See `examples/orchestkit-monitoring-dashboard.md` for real-world examples.
 
 ## Extended Thinking Triggers
 
-Use Opus 4.5 extended thinking for:
+Use Opus 4.6 adaptive thinking for:
 - **Incident investigation** - Correlating logs, metrics, traces
 - **Alert tuning** - Reducing noise, catching real issues
 - **Architecture decisions** - Choosing monitoring solutions

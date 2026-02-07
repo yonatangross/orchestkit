@@ -28,7 +28,6 @@ describe('Dispatcher Registry Wiring', () => {
         'code-style-learner',
         'naming-convention-learner',
         'skill-edit-tracker',
-        'coordination-heartbeat',
         'skill-usage-optimizer',
         'memory-bridge',
         'realtime-sync',
@@ -60,9 +59,6 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['naming-convention-learner']).toEqual(['Write', 'Edit']);
       expect(byName['skill-edit-tracker']).toEqual(['Write', 'Edit']);
 
-      // Task hook
-      expect(byName['coordination-heartbeat']).toBe('Task');
-
       // Skill hook
       expect(byName['skill-usage-optimizer']).toBe('Skill');
 
@@ -86,8 +82,6 @@ describe('Dispatcher Registry Wiring', () => {
         'mem0-context-retrieval',
         'mem0-analytics-tracker',
         'pattern-sync-pull',
-        'multi-instance-init',
-        'instance-heartbeat',
         'session-env-setup',
         'session-tracking',
         'memory-metrics-collector',
@@ -112,9 +106,6 @@ describe('Dispatcher Registry Wiring', () => {
         'workflow-preference-learner',
         'mem0-queue-sync',
         'mem0-pre-compaction-sync',
-        // Instance management hooks
-        'multi-instance-cleanup',
-        'cleanup-instance',
         'task-completion-check',
         // Analysis hooks
         'context-compressor',
@@ -164,7 +155,6 @@ describe('Dispatcher Registry Wiring', () => {
       expect(setupHooks()).toEqual([
         'dependency-version-check',
         'mem0-webhook-setup',
-        'coordination-init',
       ]);
     });
   });
@@ -204,7 +194,7 @@ describe('Dispatcher Registry Wiring', () => {
   });
 
   describe('Cross-dispatcher consistency', () => {
-    it('total consolidated hook count is 62', () => {
+    it('total consolidated hook count is 59', () => {
       const total =
         posttoolHooks().length +
         lifecycleHooks().length +
@@ -213,8 +203,9 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 17, lifecycle: 8, stop: 29 (Issue #243: all stop hooks consolidated), subagent-stop: 4, notification: 2, setup: 3
-      expect(total).toBe(63);
+      // posttool: 16, lifecycle: 6, stop: 27, subagent-stop: 4, notification: 2, setup: 2
+      // #362: removed multi-instance-cleanup from stop, coordination-init from setup
+      expect(total).toBe(57);
     });
   });
 });

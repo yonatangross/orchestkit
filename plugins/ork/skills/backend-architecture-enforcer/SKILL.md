@@ -11,6 +11,7 @@ hooks:
   PreToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/backend-file-naming"
+complexity: high
 ---
 
 Enforce FastAPI Clean Architecture with **BLOCKING** validation.

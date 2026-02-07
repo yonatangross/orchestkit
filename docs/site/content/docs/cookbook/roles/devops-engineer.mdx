@@ -1,0 +1,44 @@
+---
+title: "DevOps Engineer"
+description: "OrchestKit toolkit for DevOps engineers"
+---
+
+## You're a DevOps engineer. Here's your toolkit.
+
+You build pipelines, containerize services, manage infrastructure, and keep production running. OrchestKit gives you 7 skills covering CI/CD, Docker, Terraform, Kubernetes, zero-downtime migrations, and observability -- plus 4 agents that can design GitHub Actions workflows, write Terraform modules, manage releases, and set up Prometheus alerting. When you describe an infrastructure task, the right patterns and agents activate automatically.
+
+## Your Skills
+
+| Skill | What it does |
+|---|---|
+| `devops-deployment` | GitHub Actions, Docker, Helm, and Terraform patterns for CI/CD pipelines and container deployments |
+| `github-operations` | GitHub CLI operations for issues, PRs, milestones, and Projects v2 with gh commands and REST API |
+| `zero-downtime-migration` | Expand-contract pattern and online schema changes for production deploys without downtime |
+| `observability-monitoring` | Structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies |
+| `security-scanning` | Automated npm audit, pip-audit, Semgrep, and secret detection integrated into CI/CD |
+| `quality-gates` | Complexity scoring (1-5) and escalation workflows to catch issues before they reach production |
+| `infrastructure-architect` | Terraform modules, Kubernetes manifests, AWS/GCP/Azure patterns, and cost optimization |
+
+## Your Agents
+
+| Agent | Model | Activates when... |
+|---|---|---|
+| `ci-cd-engineer` | inherit | CI/CD, pipeline, GitHub Actions, workflow, build, deploy, artifact, cache, matrix testing |
+| `infrastructure-architect` | opus | infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, IaC |
+| `deployment-manager` | inherit | deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production |
+| `monitoring-engineer` | inherit | monitoring, Prometheus, Grafana, alerting, tracing, OpenTelemetry, metrics, SLO, SLI |
+
+## Your Workflows
+
+- **[Run a Security Audit](/docs/cookbook/security-audit)** -- 8-layer defense-in-depth scan including dependency CVEs, secrets detection, and transport security
+- **[Fix a GitHub Issue](/docs/cookbook/fix-github-issue)** -- Investigate, fix, test, and close an issue with automated PR creation
+
+## Quick Start
+
+Try this right now:
+
+```bash
+/ork:implement "Add a GitHub Actions CI pipeline with test matrix, security scanning, and Docker build"
+```
+
+The `ci-cd-engineer` agent activates with `devops-deployment` and `security-scanning` skills injected, producing a workflow YAML with parallel test jobs, pip-audit/npm audit steps, Docker layer caching, and artifact upload.

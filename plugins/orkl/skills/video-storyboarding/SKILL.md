@@ -6,6 +6,7 @@ context: fork
 agent: demo-producer
 user-invocable: false
 version: 1.0.0
+complexity: medium
 ---
 
 # Video Storyboarding for Tech Demos
@@ -188,7 +189,7 @@ const timing = calculatePhaseTiming({
 
 3. CRAFT HOOK
    └─▶ What stops the scroll?
-       └─▶ Example: "179 skills, one command"
+       └─▶ Example: "200 skills, one command"
 
 4. MAP AIDA PHASES
    └─▶ Allocate time to each phase

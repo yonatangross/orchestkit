@@ -31,6 +31,8 @@ function getBundleName(hookName) {
     stop: 'stop',
     'subagent-start': 'subagent',
     'subagent-stop': 'subagent',
+    'teammate-idle': 'lifecycle',
+    'task-completed': 'lifecycle',
     notification: 'notification',
     setup: 'setup',
     skill: 'skill',

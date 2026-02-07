@@ -8,9 +8,12 @@ tags: [coordination, worktree, multi-instance, locking, parallel-development]
 user-invocable: true
 allowedTools: [Read, Write, Bash, Grep, Glob]
 skills: [git-workflow, commit, stacked-prs]
+complexity: low
 ---
 
 # Worktree Coordination Skill
+
+> **Agent Teams (CC 2.1.33+):** When `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` is set, native Agent Teams provides built-in teammate lifecycle management, peer-to-peer messaging, and shared task lists. This skill's custom file locking and coordination registry are superseded by Teams' native coordination. Use this skill only for **non-Teams worktree scenarios** (e.g., multiple independent Claude Code sessions without a shared team).
 
 ## Commands
 

@@ -14,6 +14,7 @@ import { basename } from 'node:path';
 import { spawn } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getPluginRoot, outputSilentSuccess } from '../lib/common.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 /**
  * Count pending decisions not yet synced
@@ -127,12 +128,16 @@ export function mem0PreCompactionSync(input: HookInput): HookResult {
   const projectDir = input.project_dir || getProjectDir();
   const pluginRoot = getPluginRoot();
 
-  const decisionLog = `${pluginRoot}/.claude/coordination/decision-log.json`;
   const patternsLog = `${projectDir}/.claude/logs/agent-patterns.jsonl`;
-  const syncState = `${pluginRoot}/.claude/coordination/.decision-sync-state.json`;
 
-  // Count pending items
-  const decisionCount = countPendingDecisions(decisionLog, syncState);
+  // Issue #362: Skip coordination file reads when Agent Teams is active —
+  // Teams uses native task lists, custom decision-log is unused.
+  const teamsActive = isAgentTeamsActive();
+  const decisionLog = teamsActive ? '' : `${pluginRoot}/.claude/coordination/decision-log.json`;
+  const syncState = teamsActive ? '' : `${pluginRoot}/.claude/coordination/.decision-sync-state.json`;
+
+  // Count pending items (0 when Teams active since paths are empty)
+  const decisionCount = teamsActive ? 0 : countPendingDecisions(decisionLog, syncState);
   const { count: patternCount, patterns: pendingPatterns } = countPendingPatterns(patternsLog);
 
   // Extract session info

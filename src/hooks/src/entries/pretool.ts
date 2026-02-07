@@ -30,10 +30,8 @@ import { issueDocsRequirement } from '../pretool/bash/issue-docs-requirement.js'
 import { multiInstanceQualityGate } from '../pretool/bash/multi-instance-quality-gate.js';
 import { agentBrowserSafety } from '../pretool/bash/agent-browser-safety.js';
 
-// PreTool/Write-Edit hooks (3)
+// PreTool/Write-Edit hooks (1)
 import { fileGuard } from '../pretool/write-edit/file-guard.js';
-import { fileLockCheck } from '../pretool/write-edit/file-lock-check.js';
-import { multiInstanceLock } from '../pretool/write-edit/multi-instance-lock.js';
 
 // PreTool/Write hooks (4)
 import { architectureChangeDetector } from '../pretool/Write/architecture-change-detector.js';
@@ -41,17 +39,19 @@ import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
 import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
-// PreTool/MCP hooks (4)
+// PreTool/MCP hooks (3)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
 import { memoryFabricInit } from '../pretool/mcp/memory-fabric-init.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
-import { sequentialThinkingAuto } from '../pretool/mcp/sequential-thinking-auto.js';
 
 // PreTool/InputMod hooks (1)
 import { writeHeaders } from '../pretool/input-mod/write-headers.js';
 
 // PreTool/Skill hooks (1)
 import { skillTracker } from '../pretool/skill/skill-tracker.js';
+
+// PreTool/Task hooks (1) — Agent Teams
+import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 
 import type { HookFn } from '../types.js';
 
@@ -78,10 +78,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
 
-  // PreTool/Write-Edit hooks (3)
+  // PreTool/Write-Edit hooks (1)
   'pretool/write-edit/file-guard': fileGuard,
-  'pretool/write-edit/file-lock-check': fileLockCheck,
-  'pretool/write-edit/multi-instance-lock': multiInstanceLock,
 
   // PreTool/Write hooks (4)
   'pretool/Write/architecture-change-detector': architectureChangeDetector,
@@ -89,17 +87,19 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (4)
+  // PreTool/MCP hooks (3)
   'pretool/mcp/context7-tracker': context7Tracker,
   'pretool/mcp/memory-fabric-init': memoryFabricInit,
   'pretool/mcp/memory-validator': memoryValidator,
-  'pretool/mcp/sequential-thinking-auto': sequentialThinkingAuto,
 
   // PreTool/InputMod hooks (1)
   'pretool/input-mod/write-headers': writeHeaders,
 
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
+
+  // PreTool/Task hooks (1) — Agent Teams
+  'pretool/task/team-size-gate': teamSizeGate,
 };
 
 export function getHook(name: string): HookFn | undefined {

@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 tags: [biome, linting, formatting, eslint-migration, ci, code-quality, typescript]
 user-invocable: false
+complexity: low
 ---
 
 # Biome Linting

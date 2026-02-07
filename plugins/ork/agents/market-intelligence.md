@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: violet
+memory: project
 tools:
   - Read
   - WebSearch
@@ -12,6 +13,10 @@ tools:
   - Grep
   - Glob
   - Bash
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - market-analysis-patterns
   - github-operations
@@ -24,6 +29,10 @@ hooks:
 ---
 ## Directive
 Research competitive landscape, market trends, and opportunities to provide strategic intelligence for product decisions.
+
+When `TAVILY_API_KEY` is available, use Tavily search with `"topic": "finance"` for market and financial research, Tavily crawl for full competitor site extraction, and Tavily research (beta) for deep multi-source market analysis with citations. Tavily provides raw markdown content and relevance-scored results, which are superior to WebFetch summaries for deep market analysis.
+
+When `BRIGHTDATA_API_TOKEN` is available, BrightData PRO_MODE `finance` and `business` tool groups provide specialized extraction for financial data, company profiles, and job market intelligence.
 
 ## MCP Tools
 - `mcp__memory__*` - Persist market intelligence across sessions
@@ -184,3 +193,19 @@ Task: "Research the market for AI workflow builders"
 - Focuses on EVIDENCE-BASED intelligence (not opinions)
 - Always cite sources and methodology
 - Confidence levels: HIGH (primary sources), MEDIUM (secondary), LOW (estimates)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for market-intelligence]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot
+|github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

@@ -6,6 +6,7 @@ context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
+complexity: low
 ---
 
 # Demo Producer
@@ -66,6 +67,7 @@ What style fits your content?
 ○ Standard Demo (15-25s) - Full workflow, multiple steps
 ○ Tutorial (30-60s) - Detailed explanation, code examples
 ○ Cinematic (60s+) - Story-driven, high polish
+○ Scrapbook (15-35s) - Warm paper, fast cuts, social proof collage (Anthropic style)
 ```
 
 ### Question 4: Audio
@@ -159,6 +161,24 @@ Great for before/after and transformation stories:
 - Side-by-side metrics
 - Impact indicators (faster, better, safer)
 - Before/after snapshots
+
+### 4. ScrapbookDemo (Anthropic-Style Collage)
+
+Warm paper aesthetic inspired by Anthropic's Claude Opus 4.6 announcement:
+
+- **Use case**: Product launches, social proof, brand showcases
+- **Format**: Sequence of title stamp, social cards, terminal captures, stats reveal, CTA
+- **Duration**: 15-35 seconds
+- **Components**: PaperTexture, KineticText, SocialCard, CollageFrame, StatsCounter
+- **Example**: `/demo-producer plugin ork --template scrapbook`
+
+**Key Features:**
+- Warm cream background (#F0F0E8), NOT dark
+- Serif typography with spring "stamp" pop-in
+- Social proof cards sliding in from different directions
+- Tilted collage frames for screenshots
+- Animated stat counters with accent underlines
+- Fast cuts (100-200ms transitions)
 
 See `references/template-system.md` for detailed configuration guide and SkillDemoConfig interface.
 
@@ -287,6 +307,7 @@ Experiments/                  # Work in progress, testing new ideas
 - **Light mode**: Clean whites, subtle shadows
 - **Terminal**: Pure terminal aesthetic
 - **Cinematic**: High contrast, dramatic lighting
+- **Scrapbook**: Warm paper (#F0F0E8), serif typography, fast cuts, mixed media collage
 
 ### Audio Presets
 - **Ambient**: Subtle background, no SFX

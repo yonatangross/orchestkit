@@ -1,0 +1,23 @@
+{
+  "title": "OrchestKit",
+  "pages": [
+    "---[BookOpen]Foundations---",
+    "...foundations",
+    "---[Rocket]Getting Started---",
+    "...getting-started",
+    "---[ChefHat]Cookbook---",
+    "...cookbook",
+    "---[Sparkles]Skills---",
+    "...skills",
+    "---[Bot]Agents---",
+    "...agents",
+    "---[Webhook]Hooks---",
+    "...hooks",
+    "---[Brain]Memory---",
+    "...memory",
+    "---[Library]Reference---",
+    "...reference",
+    "---[CircleQuestionMark]Troubleshooting---",
+    "...troubleshooting"
+  ]
+}

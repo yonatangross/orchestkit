@@ -1,0 +1,543 @@
+"use client";
+
+import { useState, useMemo, useCallback } from "react";
+import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
+import { SKILLS, type SkillDetail } from "@/lib/playground-data";
+
+// ── Category visual metadata ────────────────────────────────
+const SKILL_CATEGORY_META: Record<
+  string,
+  { label: string; color: string; bg: string; border: string; dot: string }
+> = {
+  development: {
+    label: "Development",
+    color: "text-violet-700 dark:text-violet-300",
+    bg: "bg-violet-100 dark:bg-violet-500/20",
+    border: "border-l-violet-400 dark:border-l-violet-500",
+    dot: "bg-violet-500",
+  },
+  ai: {
+    label: "AI",
+    color: "text-cyan-700 dark:text-cyan-300",
+    bg: "bg-cyan-100 dark:bg-cyan-500/20",
+    border: "border-l-cyan-400 dark:border-l-cyan-500",
+    dot: "bg-cyan-500",
+  },
+  backend: {
+    label: "Backend",
+    color: "text-amber-700 dark:text-amber-300",
+    bg: "bg-amber-100 dark:bg-amber-500/20",
+    border: "border-l-amber-400 dark:border-l-amber-500",
+    dot: "bg-amber-500",
+  },
+  frontend: {
+    label: "Frontend",
+    color: "text-blue-700 dark:text-blue-300",
+    bg: "bg-blue-100 dark:bg-blue-500/20",
+    border: "border-l-blue-400 dark:border-l-blue-500",
+    dot: "bg-blue-500",
+  },
+  testing: {
+    label: "Testing",
+    color: "text-emerald-700 dark:text-emerald-300",
+    bg: "bg-emerald-100 dark:bg-emerald-500/20",
+    border: "border-l-emerald-400 dark:border-l-emerald-500",
+    dot: "bg-emerald-500",
+  },
+  security: {
+    label: "Security",
+    color: "text-red-700 dark:text-red-300",
+    bg: "bg-red-100 dark:bg-red-500/20",
+    border: "border-l-red-400 dark:border-l-red-500",
+    dot: "bg-red-500",
+  },
+  devops: {
+    label: "DevOps",
+    color: "text-orange-700 dark:text-orange-300",
+    bg: "bg-orange-100 dark:bg-orange-500/20",
+    border: "border-l-orange-400 dark:border-l-orange-500",
+    dot: "bg-orange-500",
+  },
+  product: {
+    label: "Product",
+    color: "text-pink-700 dark:text-pink-300",
+    bg: "bg-pink-100 dark:bg-pink-500/20",
+    border: "border-l-pink-400 dark:border-l-pink-500",
+    dot: "bg-pink-500",
+  },
+  data: {
+    label: "Data",
+    color: "text-indigo-700 dark:text-indigo-300",
+    bg: "bg-indigo-100 dark:bg-indigo-500/20",
+    border: "border-l-indigo-400 dark:border-l-indigo-500",
+    dot: "bg-indigo-500",
+  },
+  research: {
+    label: "Research",
+    color: "text-teal-700 dark:text-teal-300",
+    bg: "bg-teal-100 dark:bg-teal-500/20",
+    border: "border-l-teal-400 dark:border-l-teal-500",
+    dot: "bg-teal-500",
+  },
+};
+
+// ── Tag-to-category mapping ─────────────────────────────────
+const TAG_CATEGORY_MAP: Record<string, string[]> = {
+  backend: [
+    "api",
+    "backend",
+    "database",
+    "fastapi",
+    "sqlalchemy",
+    "grpc",
+    "rest",
+    "graphql",
+    "sql",
+    "postgres",
+    "redis",
+  ],
+  frontend: [
+    "react",
+    "frontend",
+    "css",
+    "tailwind",
+    "component",
+    "ui",
+    "next.js",
+    "nextjs",
+    "vite",
+  ],
+  ai: [
+    "llm",
+    "ai",
+    "openai",
+    "anthropic",
+    "rag",
+    "embeddings",
+    "langgraph",
+    "langchain",
+    "prompt",
+    "ml",
+  ],
+  security: [
+    "security",
+    "owasp",
+    "auth",
+    "vulnerability",
+    "authentication",
+    "authorization",
+    "encryption",
+  ],
+  testing: [
+    "test",
+    "e2e",
+    "unit-test",
+    "coverage",
+    "playwright",
+    "jest",
+    "vitest",
+    "testing",
+  ],
+  devops: [
+    "ci-cd",
+    "deployment",
+    "kubernetes",
+    "terraform",
+    "monitoring",
+    "docker",
+    "ci",
+    "cd",
+    "infrastructure",
+  ],
+  product: [
+    "product",
+    "strategy",
+    "requirements",
+    "okr",
+    "prioritization",
+    "business",
+    "market",
+  ],
+  research: ["research", "web-research", "browser", "scraping"],
+  data: ["data", "pipeline", "vector", "embeddings", "analytics", "etl"],
+};
+
+function categorizeSkill(skill: SkillDetail): string {
+  const tagSet = skill.tags.map((t) => t.toLowerCase());
+
+  // Check each category's keywords against the skill's tags
+  for (const [category, keywords] of Object.entries(TAG_CATEGORY_MAP)) {
+    for (const keyword of keywords) {
+      if (tagSet.some((tag) => tag.includes(keyword))) {
+        return category;
+      }
+    }
+  }
+
+  return "development"; // Default fallback
+}
+
+// ── Plugin filter type ──────────────────────────────────────
+type PluginFilter = "all" | "orkl" | "ork";
+
+// ── Skill entry with computed category ──────────────────────
+interface SkillEntry {
+  key: string;
+  skill: SkillDetail;
+  category: string;
+}
+
+// ── Build the full skill list with categories ───────────────
+const ALL_SKILLS: SkillEntry[] = Object.entries(SKILLS).map(([key, skill]) => ({
+  key,
+  skill,
+  category: categorizeSkill(skill),
+}));
+
+const ALL_CATEGORY_KEYS = Object.keys(SKILL_CATEGORY_META);
+
+// ── Main component ──────────────────────────────────────────
+export function SkillBrowser() {
+  const [search, setSearch] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [pluginFilter, setPluginFilter] = useState<PluginFilter>("all");
+  const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+
+  // Filter skills
+  const filtered = useMemo(() => {
+    return ALL_SKILLS.filter((entry) => {
+      // Search filter
+      if (search) {
+        const q = search.toLowerCase();
+        const haystack =
+          `${entry.skill.name} ${entry.skill.description} ${entry.skill.tags.join(" ")}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
+
+      // Category filter
+      if (
+        selectedCategories.length > 0 &&
+        !selectedCategories.includes(entry.category)
+      ) {
+        return false;
+      }
+
+      // Plugin filter
+      if (pluginFilter !== "all") {
+        if (!entry.skill.plugins.includes(pluginFilter)) return false;
+      }
+
+      return true;
+    });
+  }, [search, selectedCategories, pluginFilter]);
+
+  const toggleCategory = useCallback((cat: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat],
+    );
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setSearch("");
+    setSelectedCategories([]);
+    setPluginFilter("all");
+  }, []);
+
+  const hasFilters =
+    search !== "" ||
+    selectedCategories.length > 0 ||
+    pluginFilter !== "all";
+
+  return (
+    <div className="not-prose">
+      {/* Header row: count + plugin toggle */}
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <p
+          className="text-sm text-gray-500 dark:text-gray-400"
+          role="status"
+          aria-live="polite"
+        >
+          Showing{" "}
+          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+            {filtered.length}
+          </span>{" "}
+          of {ALL_SKILLS.length} skills
+        </p>
+        <div
+          className="inline-flex rounded-lg border border-gray-200 p-0.5 dark:border-gray-700"
+          role="group"
+          aria-label="Filter by plugin"
+        >
+          {(["all", "orkl", "ork"] as const).map((p) => {
+            const active = pluginFilter === p;
+            const label = p === "all" ? "All" : p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPluginFilter(p)}
+                aria-pressed={active}
+                className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
+                  active
+                    ? "bg-teal-50 text-teal-700 shadow-sm dark:bg-teal-500/15 dark:text-teal-300"
+                    : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Search bar */}
+      <div className="relative mb-4">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search skills by name, description, or tag..."
+          aria-label="Search skills by name, description, or tag"
+          className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500 dark:focus:border-teal-500 dark:focus:ring-teal-500/15"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            aria-label="Clear search"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Category filter pills */}
+      <fieldset className="mb-5">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          Category
+        </legend>
+        <div className="flex flex-wrap gap-1.5">
+          {ALL_CATEGORY_KEYS.map((cat) => {
+            const meta = SKILL_CATEGORY_META[cat];
+            const active = selectedCategories.includes(cat);
+            return (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => toggleCategory(cat)}
+                aria-pressed={active}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
+                  active
+                    ? `${meta.bg} ${meta.color} border-current shadow-sm`
+                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${
+                    active ? "opacity-100" : "opacity-60"
+                  } ${meta.dot}`}
+                />
+                {meta.label}
+              </button>
+            );
+          })}
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-full px-2.5 py-1 text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-gray-700 dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-gray-200"
+              aria-label="Clear all filters"
+            >
+              Clear all
+            </button>
+          )}
+        </div>
+      </fieldset>
+
+      {/* Skill grid or empty state */}
+      {filtered.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-gradient-to-b from-gray-50 to-white px-8 py-12 text-center dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900">
+          <SearchX className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" />
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+            No skills match your filters
+          </p>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Try broadening your search or removing some filters.
+          </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+          >
+            Clear all filters
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((entry) => (
+            <SkillCard
+              key={entry.key}
+              entry={entry}
+              expanded={expandedSkill === entry.key}
+              onToggle={() =>
+                setExpandedSkill(
+                  expandedSkill === entry.key ? null : entry.key,
+                )
+              }
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Skill Card ──────────────────────────────────────────────
+function SkillCard({
+  entry,
+  expanded,
+  onToggle,
+}: {
+  entry: SkillEntry;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  const { skill, category } = entry;
+  const catMeta = SKILL_CATEGORY_META[category] ?? SKILL_CATEGORY_META.development;
+
+  return (
+    <div
+      className={`rounded-lg border border-gray-200 border-l-[3px] ${catMeta.border} transition-all duration-200 dark:border-gray-700 ${
+        expanded
+          ? `${catMeta.bg} shadow-sm`
+          : "hover:bg-gray-50/80 dark:hover:bg-gray-800/50"
+      }`}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onToggle();
+          }
+        }}
+        className="flex w-full items-start gap-3 p-4 text-left"
+        aria-expanded={expanded}
+      >
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+              {skill.name}
+            </span>
+            <span
+              className={`inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight ${catMeta.bg} ${catMeta.color}`}
+            >
+              {catMeta.label}
+            </span>
+            {skill.userInvocable && (
+              <span className="inline-flex shrink-0 rounded px-1.5 py-0.5 text-[11px] font-medium leading-tight bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300">
+                Command
+              </span>
+            )}
+          </div>
+          <p className="line-clamp-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            {skill.description}
+          </p>
+        </div>
+        <ChevronRight
+          className={`mt-1 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 dark:text-gray-500 ${
+            expanded ? "rotate-90" : ""
+          }`}
+        />
+      </button>
+
+      {/* Expandable detail panel */}
+      <div
+        aria-hidden={!expanded}
+        className={`grid transition-all duration-200 ease-out ${
+          expanded
+            ? "grid-rows-[1fr] opacity-100"
+            : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="border-t border-gray-200 px-4 pb-4 pt-3 dark:border-gray-700">
+            {/* Full description */}
+            <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+              {skill.description}
+            </p>
+
+            {/* Tags */}
+            {skill.tags.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Tags
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {skill.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Related agents */}
+            {skill.relatedAgents.length > 0 && (
+              <div className="mb-3">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Related agents
+                </p>
+                <div className="flex flex-wrap gap-1">
+                  {skill.relatedAgents.map((agent) => (
+                    <a
+                      key={agent}
+                      href={`/docs/reference/agents#${agent}`}
+                      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      tabIndex={expanded ? 0 : -1}
+                    >
+                      {agent}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Plugin badges + source link */}
+            <div className="flex items-center gap-2">
+              {skill.plugins.map((plugin) => (
+                <span
+                  key={plugin}
+                  className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase leading-none tracking-wide ${
+                    plugin === "orkl"
+                      ? "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
+                      : "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300"
+                  }`}
+                >
+                  {plugin}
+                </span>
+              ))}
+              <a
+                href={`https://github.com/orchestkit/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
+                className="inline-flex items-center gap-1 text-[11px] text-teal-600 hover:underline dark:text-teal-400"
+                tabIndex={expanded ? 0 : -1}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Source
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,120 @@
+---
+title: Your First 10 Minutes
+description: From install to your first AI-assisted commit — a guided walkthrough.
+---
+
+import { Card, Cards } from 'fumadocs-ui/components/card';
+
+This guide walks you through your first OrchestKit session. By the end, you'll understand how skills, agents, and hooks work together.
+
+## Step 1: Health Check
+
+After installing, verify everything is working:
+
+```
+/ork:doctor
+```
+
+This runs diagnostics on all 200 skills, 36 agents, and 122 hooks. If anything is misconfigured, it tells you exactly what to fix.
+
+## Step 2: Your First Command Skill
+
+Make a small change to any file in your project, then:
+
+```
+/ork:commit
+```
+
+**What happens behind the scenes:**
+1. The `commit` skill loads — it knows conventional commit format
+2. Hooks fire: `git-validator` checks your branch, `dangerous-command-blocker` ensures safety
+3. Claude analyzes your staged diff and writes a conventional commit message
+4. The commit includes `Co-Authored-By: Claude` attribution
+
+**What you see:**
+
+```
+Analyzing staged changes...
+
+Commit message:
+  feat: add user email validation to registration form
+
+  Validate email format and check for duplicate emails before
+  creating user accounts. Returns 422 with specific error messages.
+
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+Proceed? [Y/n]
+```
+
+## Step 3: See Agents Activate
+
+Agents activate from keywords in your natural language. Try:
+
+```
+"Review the code I just committed for security issues"
+```
+
+**What happens:**
+- OrchestKit detects "review" and "security" keywords
+- The `security-auditor` agent spawns automatically
+- It loads skills: `owasp-top-10`, `defense-in-depth`, `llm-safety-patterns`
+- Hooks fire: `security-command-audit` tracks the review
+
+**You didn't name the agent.** You just described what you wanted, and OrchestKit matched the right specialist.
+
+## Step 4: Try Multi-Agent Orchestration
+
+For a more powerful example:
+
+```
+/ork:implement "Add rate limiting middleware to the API"
+```
+
+This spawns **multiple agents in parallel**:
+
+```
+/ork:implement
+  │
+  ├──▶ backend-system-architect   Plans the implementation
+  │     Skills: api-design-framework, rate-limiting, middleware
+  │
+  ├──▶ test-generator             Writes tests alongside code
+  │     Skills: pytest-advanced, integration-testing
+  │
+  └──▶ security-auditor           Validates the approach
+        Skills: owasp-top-10, input-validation
+```
+
+## Step 5: Explore the Memory System
+
+OrchestKit remembers across sessions. Try:
+
+```
+/ork:remember "We use JWT tokens for auth, not session cookies"
+```
+
+This stores your decision in the knowledge graph. In future sessions, when you or an agent works on authentication, this context is automatically injected.
+
+Check what's remembered:
+
+```
+/ork:memory search "authentication"
+```
+
+## What Just Happened?
+
+In 10 minutes, you used:
+
+- **3 command skills**: `/ork:commit`, `/ork:implement`, `/ork:remember`
+- **4 agents**: `security-auditor`, `backend-system-architect`, `test-generator`, plus the commit workflow
+- **~15 hooks**: firing invisibly on every action (security gates, memory sync, audit logging)
+- **~10 reference skills**: auto-injected into agents (you never invoked them directly)
+
+## Next Steps
+
+<Cards>
+  <Card title="Find Your Path" href="/docs/getting-started/navigating" description="Pick skills for your role" />
+  <Card title="Configuration" href="/docs/getting-started/configuration" description="Customize env vars and memory" />
+  <Card title="Implement Feature" href="/docs/cookbook/implement-feature" description="Deep dive into /ork:implement" />
+</Cards>

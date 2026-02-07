@@ -5,6 +5,7 @@ category: docs
 model: inherit
 context: fork
 color: gray
+memory: project
 tools:
   - Read
   - Write
@@ -13,6 +14,10 @@ tools:
   - Glob
   - Grep
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - api-design-framework
   - architecture-decision-record
@@ -24,6 +29,7 @@ skills:
 
 ## Directive
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 You are a Documentation Specialist focused on creating clear, comprehensive, and maintainable technical documentation. Your goal is to ensure codebases are well-documented with accurate API docs, readable READMEs, and decision records.
 
 ## MCP Tools
@@ -246,6 +252,10 @@ When creating documentation, provide:
 - [ ] Spelling/grammar checked
 - [ ] Follows project style
 ```
+
+## Opus 4.6: 128K Output
+
+With 128K output tokens, generate complete artifacts in a single pass. Do not split large outputs across multiple responses — deliver comprehensive results at once.
 
 ## Task Boundaries
 

@@ -52,8 +52,6 @@ import { agentBrowserSafety } from './pretool/bash/agent-browser-safety.js';
 
 // PreTool/Write-Edit hooks
 import { fileGuard } from './pretool/write-edit/file-guard.js';
-import { fileLockCheck } from './pretool/write-edit/file-lock-check.js';
-import { multiInstanceLock } from './pretool/write-edit/multi-instance-lock.js';
 
 // PreTool/Write hooks
 import { architectureChangeDetector } from './pretool/Write/architecture-change-detector.js';
@@ -65,13 +63,15 @@ import { securityPatternValidator } from './pretool/Write/security-pattern-valid
 import { context7Tracker } from './pretool/mcp/context7-tracker.js';
 import { memoryFabricInit } from './pretool/mcp/memory-fabric-init.js';
 import { memoryValidator } from './pretool/mcp/memory-validator.js';
-import { sequentialThinkingAuto } from './pretool/mcp/sequential-thinking-auto.js';
 
 // PreTool/InputMod hooks
 import { writeHeaders } from './pretool/input-mod/write-headers.js';
 
 // PreTool/Skill hooks
 import { skillTracker } from './pretool/skill/skill-tracker.js';
+
+// PreTool/Task hooks — Agent Teams
+import { teamSizeGate } from './pretool/task/team-size-gate.js';
 
 // Skill hooks (24)
 import { backendFileNaming } from './skill/backend-file-naming.js';
@@ -109,13 +109,14 @@ import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (6)
+// SubagentStart hooks (7)
 import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
 import { mem0MemoryInject } from './subagent-start/mem0-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
 import { taskLinker } from './subagent-start/task-linker.js';
+import { modelCostAdvisor } from './subagent-start/model-cost-advisor.js';
 
 // SubagentStop hooks (11)
 import { agentMemoryStore } from './subagent-stop/agent-memory-store.js';
@@ -133,15 +134,13 @@ import { retryHandler } from './subagent-stop/retry-handler.js';
 import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
-// Stop hooks (12)
+// Stop hooks (10)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
-import { cleanupInstance } from './stop/cleanup-instance.js';
 import { contextCompressor } from './stop/context-compressor.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
 import { mem0PreCompactionSync } from './stop/mem0-pre-compaction-sync.js';
-import { multiInstanceCleanup } from './stop/multi-instance-cleanup.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
 import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
@@ -168,7 +167,6 @@ import { auditLogger } from './posttool/audit-logger.js';
 import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
 import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
-import { coordinationHeartbeat } from './posttool/coordination-heartbeat.js';
 import { mem0WebhookHandler } from './posttool/mem0-webhook-handler.js';
 import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
@@ -181,8 +179,6 @@ import { codeStyleLearner } from './posttool/write/code-style-learner.js';
 import { coveragePredictor } from './posttool/write/coverage-predictor.js';
 import { namingConventionLearner } from './posttool/write/naming-convention-learner.js';
 import { readmeSync } from './posttool/write/readme-sync.js';
-import { releaseLockOnCommit } from './posttool/write/release-lock-on-commit.js';
-
 // PostTool/Bash hooks (3)
 import { issueProgressCommenter } from './posttool/bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './posttool/bash/issue-subtask-updater.js';
@@ -191,18 +187,14 @@ import { patternExtractor } from './posttool/bash/pattern-extractor.js';
 // PostTool/Skill hooks (1)
 import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
 
-// PostTool/Write-Edit hooks (1)
-import { fileLockRelease } from './posttool/write-edit/file-lock-release.js';
+// PostTool/Task hooks — Agent Teams
+import { teamMemberStart } from './posttool/task/team-member-start.js';
 
-// Lifecycle hooks (17) - SessionStart/SessionEnd
+// Lifecycle hooks (15) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
-import { coordinationCleanup } from './lifecycle/coordination-cleanup.js';
-import { coordinationInit } from './lifecycle/coordination-init.js';
-import { instanceHeartbeat } from './lifecycle/instance-heartbeat.js';
 import { mem0AnalyticsTracker } from './lifecycle/mem0-analytics-tracker.js';
 import { mem0ContextRetrieval } from './lifecycle/mem0-context-retrieval.js';
 import { mem0WebhookSetup } from './lifecycle/mem0-webhook-setup.js';
-import { multiInstanceInit } from './lifecycle/multi-instance-init.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
@@ -210,6 +202,15 @@ import { sessionContextLoader } from './lifecycle/session-context-loader.js';
 import { sessionEnvSetup } from './lifecycle/session-env-setup.js';
 import { sessionMetricsSummary } from './lifecycle/session-metrics-summary.js';
 import { dependencyVersionCheck } from './lifecycle/dependency-version-check.js';
+import { prefillGuard } from './lifecycle/prefill-guard.js';
+
+// TeammateIdle hooks (CC 2.1.33)
+import { progressReporter } from './teammate-idle/progress-reporter.js';
+import { teamSynthesisTrigger } from './teammate-idle/team-synthesis-trigger.js';
+import { teamQualityGate } from './teammate-idle/team-quality-gate.js';
+
+// TaskCompleted hooks (CC 2.1.33)
+import { completionTracker } from './task-completed/completion-tracker.js';
 
 import type { HookFn } from './types.js';
 
@@ -244,10 +245,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/bash/multi-instance-quality-gate': multiInstanceQualityGate,
   'pretool/bash/agent-browser-safety': agentBrowserSafety,
 
-  // PreTool/Write-Edit hooks (3)
+  // PreTool/Write-Edit hooks (1)
   'pretool/write-edit/file-guard': fileGuard,
-  'pretool/write-edit/file-lock-check': fileLockCheck,
-  'pretool/write-edit/multi-instance-lock': multiInstanceLock,
 
   // PreTool/Write hooks (4)
   'pretool/Write/architecture-change-detector': architectureChangeDetector,
@@ -255,17 +254,19 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (4)
+  // PreTool/MCP hooks (3)
   'pretool/mcp/context7-tracker': context7Tracker,
   'pretool/mcp/memory-fabric-init': memoryFabricInit,
   'pretool/mcp/memory-validator': memoryValidator,
-  'pretool/mcp/sequential-thinking-auto': sequentialThinkingAuto,
 
   // PreTool/InputMod hooks (1)
   'pretool/input-mod/write-headers': writeHeaders,
 
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
+
+  // PreTool/Task hooks (1) — Agent Teams
+  'pretool/task/team-size-gate': teamSizeGate,
 
   // Prompt hooks (12) - UserPromptSubmit
   'prompt/antipattern-detector': antipatternDetector,
@@ -278,13 +279,14 @@ export const hooks: Record<string, HookFn> = {
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (6)
+  // SubagentStart hooks (7)
   'subagent-start/graph-memory-inject': graphMemoryInject,
   'subagent-start/mem0-memory-inject': mem0MemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
   'subagent-start/task-linker': taskLinker,
+  'subagent-start/model-cost-advisor': modelCostAdvisor,
 
   // SubagentStop hooks (11)
   'subagent-stop/agent-memory-store': agentMemoryStore,
@@ -326,15 +328,13 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
 
-  // Stop hooks (12)
+  // Stop hooks (11)
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
-  'stop/cleanup-instance': cleanupInstance,
   'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
   'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
-  'stop/multi-instance-cleanup': multiInstanceCleanup,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
@@ -356,12 +356,11 @@ export const hooks: Record<string, HookFn> = {
   'agent/migration-safety-check': migrationSafetyCheck,
   'agent/security-command-audit': securityCommandAudit,
 
-  // PostTool hooks - Root (13)
+  // PostTool hooks - Root (12)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
-  'posttool/coordination-heartbeat': coordinationHeartbeat,
   'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
@@ -369,12 +368,11 @@ export const hooks: Record<string, HookFn> = {
   'posttool/skill-edit-tracker': skillEditTracker,
   'posttool/calibration-tracker': calibrationTracker,
 
-  // PostTool/Write hooks (5)
+  // PostTool/Write hooks (4)
   'posttool/write/code-style-learner': codeStyleLearner,
   'posttool/write/coverage-predictor': coveragePredictor,
   'posttool/write/naming-convention-learner': namingConventionLearner,
   'posttool/write/readme-sync': readmeSync,
-  'posttool/write/release-lock-on-commit': releaseLockOnCommit,
 
   // PostTool/Bash hooks (3)
   'posttool/bash/issue-progress-commenter': issueProgressCommenter,
@@ -384,18 +382,14 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Skill hooks (1)
   'posttool/skill/skill-usage-optimizer': skillUsageOptimizer,
 
-  // PostTool/Write-Edit hooks (1)
-  'posttool/write-edit/file-lock-release': fileLockRelease,
+  // PostTool/Task hooks (1) — Agent Teams
+  'posttool/task/team-member-start': teamMemberStart,
 
-  // Lifecycle hooks (17) - SessionStart/SessionEnd
+  // Lifecycle hooks (13) - SessionStart/SessionEnd
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
-  'lifecycle/coordination-cleanup': coordinationCleanup,
-  'lifecycle/coordination-init': coordinationInit,
-  'lifecycle/instance-heartbeat': instanceHeartbeat,
   'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
   'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,
   'lifecycle/mem0-webhook-setup': mem0WebhookSetup,
-  'lifecycle/multi-instance-init': multiInstanceInit,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,
@@ -403,6 +397,15 @@ export const hooks: Record<string, HookFn> = {
   'lifecycle/session-env-setup': sessionEnvSetup,
   'lifecycle/session-metrics-summary': sessionMetricsSummary,
   'lifecycle/dependency-version-check': dependencyVersionCheck,
+  'lifecycle/prefill-guard': prefillGuard,
+
+  // TeammateIdle hooks (CC 2.1.33)
+  'teammate-idle/progress-reporter': progressReporter,
+  'teammate-idle/team-synthesis-trigger': teamSynthesisTrigger,
+  'teammate-idle/team-quality-gate': teamQualityGate,
+
+  // TaskCompleted hooks (CC 2.1.33)
+  'task-completed/completion-tracker': completionTracker,
 };
 
 /**

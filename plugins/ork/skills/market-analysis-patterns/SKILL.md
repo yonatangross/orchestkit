@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, market, tam, sam, som, porter, competitive, swot]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Market Analysis Patterns

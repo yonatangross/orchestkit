@@ -5,6 +5,7 @@ category: frontend
 model: inherit
 context: fork
 color: blue
+memory: project
 tools:
   - Bash
   - Read
@@ -12,6 +13,10 @@ tools:
   - Edit
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - wcag-compliance
   - a11y-testing

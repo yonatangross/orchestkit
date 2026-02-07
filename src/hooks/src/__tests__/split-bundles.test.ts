@@ -108,7 +108,9 @@ describe('Split Bundle Entry Points', () => {
     test('hooks registry contains lifecycle hooks', () => {
       const hookNames = Object.keys(lifecycleBundle.hooks);
       expect(hookNames.length).toBeGreaterThan(0);
-      expect(hookNames.every(name => name.startsWith('lifecycle/'))).toBe(true);
+      // Lifecycle bundle includes lifecycle/* plus related event hooks (teammate-idle, task-completed)
+      const validPrefixes = ['lifecycle/', 'teammate-idle/', 'task-completed/'];
+      expect(hookNames.every(name => validPrefixes.some(p => name.startsWith(p)))).toBe(true);
     });
 
     test('all hooks are functions', () => {
@@ -288,7 +290,14 @@ describe('Cross-Bundle Consistency', () => {
     // 163 -> 165: v5.5.0 added pre-compact-saver and failure-handler
     // 165 -> 163: passive-index-migration removed agent-auto-suggest + agent-orchestrator
     // 163 -> 162: removed skill-resolver (Claude Code natively injects agent skills)
-    expect(totalHooks).toBe(162);
+    // 162 -> 164: added prefill-guard (SessionStart) and model-cost-advisor (SubagentStart)
+    // 164 -> 166: added progress-reporter (TeammateIdle) and completion-tracker (TaskCompleted)
+    // 166 -> 164: removed sequential-thinking-auto (Opus 4.6 native adaptive thinking)
+    // 164 -> 161: #361/#362 removed release-lock-on-commit, instance-heartbeat, coordination-heartbeat
+    // 161 -> 165: Agent Teams Phase 2 — team-size-gate, team-member-start, team-synthesis-trigger, team-quality-gate
+    // 165 -> 163: removed multi-instance-init + cleanup-instance (absorbed by unified-dispatcher)
+    // 163 -> 158: #362 removed coordination-init, coordination-cleanup, multi-instance-lock, file-lock-release, multi-instance-cleanup
+    expect(totalHooks).toBe(158);
   });
 });
 

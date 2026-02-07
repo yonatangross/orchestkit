@@ -1,0 +1,315 @@
+---
+title: "Memory Bridge and Context Injection"
+description: "How OrchestKit injects past decisions into every prompt, captures new decisions automatically, and syncs memory across sessions through the knowledge graph and mem0."
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+
+## The Memory Pipeline
+
+OrchestKit maintains memory across sessions through a pipeline of hooks that capture, store, load, and inject context. The system follows a graph-first architecture: the knowledge graph (via MCP) is always available with zero configuration, while mem0 cloud provides optional semantic search for cross-session continuity.
+
+```
+Session N                                   Session N+1
+---------                                   -----------
+User prompt                                 SessionStart
+    |                                           |
+    v                                           v
+capture-user-intent  --->  decisions.jsonl  --->  memory-context-loader
+    |                      graph-queue.jsonl       (once, first prompt)
+    |                      mem0-queue.jsonl            |
+    v                                                  v
+memory-context  --->  search graph  --->  additionalContext injected
+(every prompt)        for past decisions  into Claude's context
+    |
+    v
+Stop (fire-and-forget)
+    |
+    +--> graph-queue-sync (flush to graph)
+    +--> mem0-queue-sync (flush to cloud)
+    +--> auto-remember-continuity
+```
+
+## Memory Context Loader (First Prompt)
+
+**Hook:** `prompt/memory-context-loader`
+**Event:** UserPromptSubmit (`once: true`)
+**Purpose:** Load recent project decisions as context on the first prompt of every session.
+
+This hook reads from `.claude/memory/decisions.jsonl` -- a file written by the `capture-user-intent` hook during previous sessions. Each line is a JSON record containing a decision or preference:
+
+```json
+{
+  "id": "dec_abc123",
+  "type": "decision",
+  "content": {
+    "what": "Use cursor-based pagination for the orders API",
+    "why": "Offset pagination causes timeouts on tables with 1M+ rows"
+  },
+  "entities": ["cursor-pagination", "orders-api"],
+  "metadata": {
+    "timestamp": "2026-01-15T10:30:00Z",
+    "confidence": 0.85,
+    "category": "api",
+    "project": "myproject"
+  }
+}
+```
+
+The hook loads the last 10 decisions, formats them as markdown, and injects them via `additionalContext`:
+
+```markdown
+## Recent Project Decisions
+
+- **[Decision]** Use cursor-based pagination for the orders API _(because: Offset pagination causes timeouts on tables with 1M+ rows)_ [cursor-pagination, orders-api]
+- **[Preference]** Use Tailwind CSS for all new components [frontend, tailwind]
+- **[Decision]** PostgreSQL 16 for the analytics database _(because: Need JSONB and vector support)_ [PostgreSQL, analytics]
+
+_For deeper graph traversal: use mcp__memory__search_nodes or mcp__memory__open_nodes_
+```
+
+### Budget Awareness
+
+The context loader caps output at 3,000 characters to avoid consuming too much of the context window. If there are more decisions than fit within the budget, it truncates with a hint:
+
+```markdown
+- _(additional decisions available via mcp__memory__search_nodes)_
+```
+
+## Memory Context (Every Prompt)
+
+**Hook:** `prompt/memory-context`
+**Event:** UserPromptSubmit (every prompt)
+**Purpose:** Search the knowledge graph for context relevant to the current prompt.
+
+Unlike the context loader (which runs once and injects recent decisions), this hook runs on every prompt and performs keyword-based relevance detection.
+
+### Trigger Detection
+
+The hook checks the prompt against two keyword lists:
+
+**Memory triggers** (suggest memory search would be valuable):
+`add`, `implement`, `create`, `build`, `design`, `refactor`, `update`, `modify`, `fix`, `change`, `continue`, `resume`, `remember`, `previous`, `last time`, `before`, `earlier`, `pattern`, `decision`, `how did we`, `what did we`
+
+**Graph triggers** (suggest relationship queries):
+`relationship`, `related`, `connected`, `depends`, `uses`, `recommends`, `what does.*recommend`, `how does.*work with`
+
+### How It Works
+
+<Steps>
+<Step>
+**Skip check.** If the prompt is shorter than 20 characters, or contains no trigger keywords, the hook returns silently.
+</Step>
+
+<Step>
+**Extract search terms.** Stopwords are removed and the prompt is reduced to 5 key terms.
+</Step>
+
+<Step>
+**Build context hint.** The hook constructs a system message telling Claude how to search:
+
+```
+[Memory Context] For relevant past project decisions,
+use mcp__memory__search_nodes with query="cursor pagination orders"
+```
+</Step>
+
+<Step>
+**Add relationship hints** (if graph triggers detected):
+
+```
+For relationships: mcp__memory__open_nodes on found entities
+| Graph traversal available
+```
+</Step>
+
+<Step>
+**Add agent context** (if an agent is active):
+
+```
+Agent context: database-engineer
+```
+</Step>
+</Steps>
+
+The hook does not execute the graph search itself -- it provides Claude with the instruction to do so. This keeps the hook fast (under 10ms) while giving Claude the information it needs to decide whether to query memory.
+
+### Global vs Project Scope
+
+If the prompt starts with `@global` or mentions "cross-project" or "all projects", the hook switches to global scope:
+
+```
+[Memory Context] For relevant past cross-project decisions...
+```
+
+## Capture User Intent (Every Prompt)
+
+**Hook:** `prompt/capture-user-intent`
+**Event:** UserPromptSubmit (fire-and-forget via silent runner)
+**Purpose:** Extract decisions and preferences from user prompts automatically.
+
+This hook listens for decision signals in the user's natural language:
+
+| Signal | Pattern | Example |
+|--------|---------|---------|
+| Decision | "let's use X", "chose Y over Z", "going with X" | "Let's use PostgreSQL for the analytics DB" |
+| Preference | "I prefer X", "always use X" | "I prefer Tailwind over styled-components" |
+| Problem | "the issue is", "blocked by" | "The issue is that offset pagination times out" |
+| Rationale | "because X", "since X" | "...because we need JSONB support" |
+
+When a decision is detected, the hook:
+
+1. Creates a structured decision record with `what`, `why`, entities, confidence score, and category
+2. Appends it to `.claude/memory/decisions.jsonl` (via `storeDecision`)
+3. Queues a graph memory write to `.claude/memory/graph-queue.jsonl`
+4. Queues a mem0 cloud write to `.claude/memory/mem0-queue.jsonl`
+
+```typescript
+// The decision record structure
+const record = createDecisionRecord({
+  what: "Use PostgreSQL for analytics",
+  why: "Need JSONB and vector support",
+  entities: ["PostgreSQL", "analytics"],
+  category: "database",
+  confidence: 0.85,
+});
+
+storeDecision(record, projectDir);
+```
+
+The hook runs via the silent runner (`run-hook-silent.mjs`), meaning it produces no terminal output and does not block the prompt processing pipeline.
+
+## Queue-Based Memory Sync
+
+Memory writes are not performed immediately during the session. Instead, they are queued to local JSONL files and flushed at session end via the fire-and-forget stop hooks.
+
+### Graph Queue
+
+**File:** `.claude/memory/graph-queue.jsonl`
+**Flushed by:** `stop/graph-queue-sync`
+
+Each queued entry describes an entity or relation to create in the knowledge graph:
+
+```json
+{
+  "action": "create_entity",
+  "entity": {
+    "name": "PostgreSQL",
+    "entityType": "Technology",
+    "observations": ["Selected for analytics database", "Chosen for JSONB and vector support"]
+  },
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+```json
+{
+  "action": "create_relation",
+  "relation": {
+    "from": "analytics-database",
+    "to": "PostgreSQL",
+    "relationType": "USES"
+  },
+  "timestamp": "2026-01-15T10:30:00Z"
+}
+```
+
+At session end, the `graph-queue-sync` hook reads the queue and executes the operations against the knowledge graph MCP.
+
+### Mem0 Queue
+
+**File:** `.claude/memory/mem0-queue.jsonl`
+**Flushed by:** `stop/mem0-queue-sync`
+
+Each queued entry describes a memory to store in mem0 cloud:
+
+```json
+{
+  "text": "Use PostgreSQL for analytics -- JSONB and vector support",
+  "user_id": "project:myapp:decisions",
+  "metadata": {
+    "category": "database",
+    "confidence": 0.85,
+    "timestamp": "2026-01-15T10:30:00Z"
+  }
+}
+```
+
+The queue is only flushed if `MEM0_API_KEY` is configured. Otherwise, the queue accumulates and can be synced later.
+
+## Memory in Subagents
+
+When a subagent is spawned, two hooks inject memory context:
+
+### Graph Memory Inject
+
+**Hook:** `subagent-start/graph-memory-inject`
+**Event:** SubagentStart
+
+Searches the knowledge graph for entities and relations relevant to the subagent's task, then injects them as additional context.
+
+### Mem0 Memory Inject
+
+**Hook:** `subagent-start/mem0-memory-inject`
+**Event:** SubagentStart
+
+If mem0 is configured, performs a semantic search for memories relevant to the subagent's task type and injects matching results.
+
+## Memory Fabric Initializer
+
+**Hook:** `pretool/mcp/memory-fabric-init`
+**Event:** PreToolUse (mcp\_\_mem0\_\_\* | mcp\_\_memory\_\_\*) (`once: true`)
+
+On the first MCP memory tool call of the session, this hook initializes the memory fabric -- setting up the connection between the knowledge graph and any configured cloud memory backends. It runs once and silently.
+
+## Memory Validator
+
+**Hook:** `pretool/mcp/memory-validator`
+**Event:** PreToolUse (mcp\_\_memory\_\_\*)
+
+Validates knowledge graph operations before they execute, ensuring entity names are properly formatted and relation types follow the expected vocabulary.
+
+## The Four-Tier Memory Architecture
+
+OrchestKit's hooks bridge four storage tiers:
+
+| Tier | Storage | Written By | Read By |
+|------|---------|-----------|---------|
+| **1. Knowledge Graph** | MCP `mcp__memory__*` | `graph-queue-sync` (stop) | `memory-context` (prompt), `graph-memory-inject` (subagent) |
+| **2. Local JSONL** | `.claude/memory/*.jsonl` | `capture-user-intent` (prompt), `memory-writer` | `memory-context-loader` (first prompt) |
+| **3. Mem0 Cloud** | Remote API | `mem0-queue-sync` (stop) | `mem0-memory-inject` (subagent) |
+| **4. CC Native** | `MEMORY.md` | High-confidence decisions (>= 0.7) auto-written | Claude Code system prompt (automatic) |
+
+<Callout type="info">
+The graph (Tier 1) and local JSONL (Tier 2) tiers require zero configuration and always work. Mem0 cloud (Tier 3) requires `MEM0_API_KEY`. CC Native memory (Tier 4) is written automatically for high-confidence decisions and persists even without OrchestKit installed.
+</Callout>
+
+## Auto-Remember Continuity
+
+**Hook:** `stop/auto-remember-continuity` (fire-and-forget)
+
+At session end, this hook reviews the session's key decisions and ensures they are stored for the next session. It acts as a safety net -- if `capture-user-intent` missed a decision during the session, this hook catches it during the cleanup pass.
+
+## Profile Injector
+
+**Hook:** `prompt/profile-injector`
+**Event:** UserPromptSubmit (`once: true`)
+
+On the first prompt, this hook injects the user's profile context (project identity, team conventions, preferred tools) from `.claude/context/identity.json`. This is separate from memory -- it provides static configuration rather than learned decisions.
+
+## Summary: Which Hooks Touch Memory?
+
+| Hook | Event | Direction | Frequency |
+|------|-------|-----------|-----------|
+| `memory-context-loader` | UserPromptSubmit | Read (JSONL) | Once per session |
+| `memory-context` | UserPromptSubmit | Read hint (graph) | Every prompt |
+| `capture-user-intent` | UserPromptSubmit | Write (JSONL + queues) | Every prompt |
+| `graph-memory-inject` | SubagentStart | Read (graph) | Per subagent |
+| `mem0-memory-inject` | SubagentStart | Read (mem0) | Per subagent |
+| `memory-fabric-init` | PreToolUse (MCP) | Setup | Once per session |
+| `memory-validator` | PreToolUse (MCP) | Validate | Per MCP call |
+| `graph-queue-sync` | Stop | Write (graph) | Once at exit |
+| `mem0-queue-sync` | Stop | Write (mem0) | Once at exit |
+| `auto-remember-continuity` | Stop | Write (all) | Once at exit |
+| `profile-injector` | UserPromptSubmit | Read (config) | Once per session |

@@ -5,11 +5,16 @@ category: testing
 model: inherit
 context: inherit
 color: orange
+memory: local
 tools:
   - Bash
   - Read
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - root-cause-analysis
   - observability-monitoring
@@ -24,6 +29,7 @@ hooks:
 ## Directive
 Perform systematic root cause analysis on bugs using scientific method. Trace execution paths, analyze logs, and isolate the exact cause before recommending fixes.
 
+Use local memory to track findings within the current session. Do not persist sensitive security findings to shared project memory.
 <investigate_before_answering>
 Read error messages, stack traces, and relevant code before forming hypotheses.
 Do not speculate about causes you haven't verified with evidence.
@@ -46,7 +52,7 @@ Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
 
 ## MCP Tools
-- `mcp__sequential-thinking__sequentialthinking` - For complex multi-step reasoning
+- **Opus 4.6 adaptive thinking** — Complex multi-step reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - For persisting investigation context across sessions
 
 
@@ -259,3 +265,20 @@ The debug-investigator agent complements `/debug` by:
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
 - **Skill references:** observability-monitoring
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for debug-investigator]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|root-cause-analysis:{SKILL.md,references/{5-whys-workshop.md,fishbone-template.md}}|debugging,rca,5-whys,fishbone,fault-tree,incident
+|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|errors:{SKILL.md}|errors,debugging,troubleshooting,patterns
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

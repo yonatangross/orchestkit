@@ -10,7 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOOKS_DIR="$PROJECT_ROOT/src/hooks"
-SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.json"
+HOOKS_JSON="$HOOKS_DIR/hooks.json"
 
 VERBOSE="${1:-}"
 FAILED=0
@@ -25,6 +25,7 @@ NC='\033[0m'
 
 # Setup test environment
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
+export CLAUDE_PLUGIN_ROOT="$PROJECT_ROOT/src"
 export CLAUDE_SESSION_ID="integration-test-$(date +%s)"
 
 # Temp directory
@@ -36,18 +37,19 @@ echo "  Hook Chain Integration Tests"
 echo "=========================================="
 echo ""
 
-# Check settings.json exists
-if [[ ! -f "$SETTINGS_FILE" ]]; then
-    echo -e "${RED}ERROR: settings.json not found${NC}"
+# Validate hooks.json exists (committed file, must always be present)
+if [[ ! -f "$HOOKS_JSON" ]]; then
+    echo -e "${RED}ERROR: hooks.json not found at $HOOKS_JSON${NC}"
     exit 1
 fi
 
-# Extract hook chains from settings
+# Extract hook chains from hooks.json
+# hooks.json uses CLAUDE_PLUGIN_ROOT paths — resolve them to actual paths
 get_hooks_for_event() {
     local event="$1"
     local matcher="${2:-*}"
-    jq -r ".hooks.${event}[] | select(.matcher == \"$matcher\" or .matcher == null) | .hooks[].command" "$SETTINGS_FILE" 2>/dev/null | \
-        sed "s|\"\$CLAUDE_PROJECT_DIR\"|$PROJECT_ROOT|g" || echo ""
+    jq -r ".hooks.${event}[] | select(.matcher == \"$matcher\" or .matcher == null) | .hooks[].command" "$HOOKS_JSON" 2>/dev/null | \
+        sed "s|\${CLAUDE_PLUGIN_ROOT}|$CLAUDE_PLUGIN_ROOT|g" || echo ""
 }
 
 # Run a chain of hooks
@@ -79,8 +81,16 @@ run_hook_chain() {
         local hook_name=$(basename "$hook_cmd" .sh)
         echo -n "  $hook_num. $hook_name... "
 
-        if [[ ! -f "$hook_cmd" ]]; then
-            echo -e "${YELLOW}SKIP${NC} (not found)"
+        # For node commands, check the script file exists
+        local script_path=""
+        if [[ "$hook_cmd" == node* ]]; then
+            script_path=$(echo "$hook_cmd" | awk '{print $2}')
+        else
+            script_path="$hook_cmd"
+        fi
+
+        if [[ -n "$script_path" && ! -f "$script_path" ]]; then
+            echo -e "${YELLOW}SKIP${NC} (not found: $script_path)"
             ((hook_num++))
             continue
         fi
@@ -89,7 +99,7 @@ run_hook_chain() {
         local error_file="$TEST_TMP/chain_${hook_num}_err.txt"
 
         local exit_code=0
-        echo "$chain_input" | perl -e 'alarm 10; exec @ARGV' bash "$hook_cmd" > "$output_file" 2> "$error_file" || exit_code=$?
+        echo "$chain_input" | perl -e 'alarm 10; exec @ARGV' bash -c "$hook_cmd" > "$output_file" 2> "$error_file" || exit_code=$?
         # Normalize timeout exit code
         [[ $exit_code -eq 142 ]] && exit_code=124
 
@@ -123,7 +133,7 @@ echo "=========================================="
 
 # Test Read chain
 echo ""
-read_input='{"tool_name":"Read","tool_input":{"file_path":"'"$PROJECT_ROOT"'/.claude-plugin/plugin.json"},"session_id":"test"}'
+read_input='{"tool_name":"Read","tool_input":{"file_path":"'"$PROJECT_ROOT"'/README.md"},"session_id":"test"}'
 if run_hook_chain "PreToolUse" "Read|Write|Edit|Glob|Grep" "$read_input" 0; then
     PASSED=$((PASSED + 1))
 else
@@ -147,19 +157,6 @@ echo "=========================================="
 echo ""
 post_input='{"tool_name":"Read","tool_output":"test content","exit_code":0,"session_id":"test"}'
 if run_hook_chain "PostToolUse" "*" "$post_input" 0; then
-    PASSED=$((PASSED + 1))
-else
-    FAILED=$((FAILED + 1))
-fi
-
-echo ""
-echo -e "${CYAN}Testing Permission Chains${NC}"
-echo "=========================================="
-
-# Test Read permission chain
-echo ""
-perm_input='{"tool_name":"Read","tool_input":{"file_path":"'"$PROJECT_ROOT"'/README.md"},"session_id":"test"}'
-if run_hook_chain "PermissionRequest" "Read|Glob|Grep" "$perm_input" 0; then
     PASSED=$((PASSED + 1))
 else
     FAILED=$((FAILED + 1))

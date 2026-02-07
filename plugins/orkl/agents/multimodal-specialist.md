@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: magenta
+memory: project
 tools:
   - Bash
   - Read
@@ -13,6 +14,10 @@ tools:
   - Grep
   - Glob
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - vision-language-models
   - audio-language-models
@@ -65,7 +70,7 @@ Return structured integration report:
   "integration": {
     "modalities": ["vision", "audio"],
     "providers": ["openai", "anthropic", "google"],
-    "models": ["gpt-5", "claude-opus-4-5", "gemini-2.5-pro"]
+    "models": ["gpt-5", "claude-opus-4-6", "gemini-2.5-pro"]
   },
   "endpoints_created": [
     {"path": "/api/v1/analyze-image", "method": "POST"},
@@ -118,7 +123,7 @@ Return structured integration report:
 ### Vision Models
 | Task | Recommended Model |
 |------|-------------------|
-| Highest accuracy | Claude Opus 4.5, GPT-5 |
+| Highest accuracy | Claude Opus 4.6, GPT-5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M) |
 | Real-time + X data | Grok 4 with DeepSearch |
@@ -234,3 +239,19 @@ Task: "Add image analysis endpoint with document OCR"
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
 - **Skill references:** vision-language-models, audio-language-models, multimodal-rag, streaming-api-patterns
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for multimodal-specialist]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+```

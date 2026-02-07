@@ -1,0 +1,172 @@
+---
+title: The 3 Building Blocks
+description: Skills are knowledge, agents are specialists, hooks are automation. Here's how they work together.
+---
+
+OrchestKit has three types of components. Understanding how they connect is the key to using the toolkit effectively.
+
+## Skills — Reusable Knowledge
+
+A skill is a markdown file containing expert knowledge about a specific topic. Think of skills as **reference cards** that Claude reads when it needs domain expertise.
+
+```
+src/skills/fastapi-advanced/SKILL.md
+```
+
+**200 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
+
+### Two Types
+
+| Type | Count | How It Works | Example |
+|---|---|---|---|
+| **Command** | 23 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
+| **Reference** | 176 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
+
+Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
+
+### Skill Anatomy
+
+Every skill has YAML frontmatter that controls how it's discovered and used:
+
+```yaml
+---
+name: fastapi-advanced
+description: FastAPI patterns including lifespan, middleware, dependencies
+tags: [fastapi, python, async]
+user-invocable: false     # Reference skill (not a command)
+complexity: medium         # Helps Claude calibrate effort
+agent: backend-system-architect  # Which agent uses this
+---
+```
+
+## Agents — Specialized AI Personas
+
+An agent is a **specialized Claude instance** with a specific role, tools, and injected skills. When you say "design a database schema", OrchestKit spawns the `database-engineer` agent — pre-loaded with schema design skills, migration patterns, and normalization knowledge.
+
+**36 agents** covering: backend architecture, frontend UI, security auditing, test generation, debugging, deployment, and more.
+
+### How Agents Activate
+
+Agents activate from **keywords in your prompt**. You don't need to name them:
+
+| You Say | Agent Spawned | Skills Loaded |
+|---|---|---|
+| "review this PR" | `code-quality-reviewer` | code-review-playbook, test-standards |
+| "design the API" | `backend-system-architect` | api-design-framework, clean-architecture |
+| "find the bug" | `debug-investigator` | root-cause-analysis, error-handling |
+| "optimize performance" | `performance-engineer` | core-web-vitals, render-optimization |
+| "scan for vulnerabilities" | `security-auditor` | owasp-top-10, defense-in-depth |
+
+### Agent Anatomy
+
+```yaml
+---
+name: backend-system-architect
+model: opus                    # Uses the most capable model
+tools: [Read, Write, Bash, Grep, Glob]
+skills:                        # 31 skills auto-injected
+  - api-design-framework
+  - database-schema-designer
+  - clean-architecture
+  # ...
+---
+```
+
+### Parallel Agents
+
+Some commands spawn **multiple agents in parallel**. When you run `/ork:review-pr`, three agents work simultaneously:
+
+```
+/ork:review-pr
+    │
+    ├──▶ security-auditor      (OWASP scan)
+    ├──▶ code-quality-reviewer (style, patterns)
+    └──▶ test-generator        (coverage gaps)
+         │
+         ▼
+    Synthesized PR review
+```
+
+## Hooks — Invisible Automation
+
+Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
+
+**122 hooks** across 11 categories:
+
+| Category | Count | What It Does |
+|---|---|---|
+| `pretool` | 24 | Runs before a tool executes (security gates, validation) |
+| `posttool` | 19 | Runs after a tool executes (audit logging, metrics) |
+| `prompt` | 14 | Runs when you submit a prompt (context injection, memory) |
+| `lifecycle` | 16 | Session start/stop events (env setup, cleanup) |
+| `skill` | 22 | Runs during skill execution (quality gates, patterns) |
+| `agent` | 5 | Runs during agent operations (safety checks) |
+| `permission` | 3 | Auto-approves safe operations |
+| `stop` | 14 | Session end (save context, sync memory) |
+| `subagent` | 11 | Manages sub-agent lifecycle |
+| `setup` | 8 | First-run initialization |
+| `notification` | 3 | Desktop/sound alerts |
+
+### Example: What Happens on a Git Push
+
+When Claude runs `git push`, hooks fire in sequence:
+
+```
+git push
+  │
+  ├─ pretool/dangerous-command-blocker  → checks for force-push
+  ├─ pretool/git-validator              → validates branch rules
+  ├─ pretool/compound-command-validator → checks piped commands
+  │
+  ▼ (command executes)
+  │
+  ├─ posttool/audit-logger             → records the action
+  ├─ posttool/session-metrics          → updates session stats
+  └─ posttool/pattern-extractor        → learns from the workflow
+```
+
+## How They Connect
+
+```
+┌─────────────────────────────────────────────┐
+│  YOUR PROMPT: "Add user auth to the API"    │
+└──────────────────┬──────────────────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  prompt hooks fire:         │
+    │  • context-injector         │
+    │  • memory-context-loader    │
+    │  • skill-auto-suggest       │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  agent spawns:              │
+    │  backend-system-architect   │
+    │  (model: opus)              │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  skills injected:           │
+    │  • auth-patterns            │
+    │  • api-design-framework     │
+    │  • fastapi-advanced         │
+    │  • jwt / oauth patterns     │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  agent writes code          │
+    │  pretool hooks validate     │
+    │  posttool hooks audit       │
+    └──────────────┬──────────────┘
+                   │
+    ┌──────────────▼──────────────┐
+    │  stop hooks:                │
+    │  • auto-remember-continuity │
+    │  • session-profile-agg      │
+    └─────────────────────────────┘
+```
+
+## Next Steps
+
+- **[orkl vs ork](/docs/foundations/choosing-a-plugin)** — Which plugin to install
+- **[Installation](/docs/getting-started/installation)** — Get started in 2 minutes

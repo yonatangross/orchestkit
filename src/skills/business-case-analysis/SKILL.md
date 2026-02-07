@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, finance, roi, npv, irr, tco, business-case]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Business Case Analysis

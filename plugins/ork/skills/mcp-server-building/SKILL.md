@@ -7,6 +7,7 @@ agent: backend-system-architect
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: high
 ---
 # MCP Server Building
 

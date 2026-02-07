@@ -1,0 +1,394 @@
+---
+title: Run a Security Audit
+description: 8-layer defense-in-depth verification for your codebase.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Scenario
+
+Your app is a week away from production launch. The FastAPI backend handles user authentication, payment processing, and file uploads. The React frontend consumes 14 API endpoints. You have 200+ tests passing, but nobody has done a dedicated security review.
+
+You know the OWASP Top 10 exists. You know you should check for SQL injection, XSS, and hardcoded secrets. But manually scanning every endpoint, dependency, and configuration file would take days -- and you would still miss things a specialist would catch.
+
+OrchestKit runs a **defense-in-depth security audit** that checks 8 layers in parallel, returns findings by severity with file-and-line references, and grades each layer on a 0-10 scale. The entire audit takes 2-5 minutes depending on codebase size.
+
+## What You'll Use
+
+| Component | Type | Purpose |
+|---|---|---|
+| `/ork:verify --scope=security` | Command skill | Launches security-focused verification |
+| `security-auditor` | Agent (opus) | OWASP Top 10 scan, dependency audit, secrets detection |
+| `code-quality-reviewer` | Agent | Identifies unsafe code patterns and complexity |
+| `debug-investigator` | Agent | Traces data flow for injection points |
+| `dangerous-command-blocker` | Hook (pretool) | Prevents destructive commands during audit |
+| `file-guard` | Hook (pretool) | Blocks commits of `.env`, `*.pem`, credentials |
+| `security-command-audit` | Hook (posttool) | Logs all security scan results to audit trail |
+| `owasp-top-10` | Reference skill | OWASP vulnerability patterns and fixes |
+| `defense-in-depth` | Reference skill | Layered security architecture patterns |
+| `input-validation` | Reference skill | Injection prevention at every boundary |
+| `auth-patterns` | Reference skill | JWT, OAuth, session management patterns |
+| `llm-safety-patterns` | Reference skill | Prompt injection and LLM-specific threats |
+
+## The 8 Defense-in-Depth Layers
+
+OrchestKit's security audit evaluates your application across 8 distinct layers. Each layer represents a security boundary where attacks can be detected and stopped. A weakness at one layer does not compromise the system if the other seven hold.
+
+| Layer | What It Checks | Example Findings |
+|---|---|---|
+| **1. Edge** | Rate limiting, WAF rules, DDoS protection | No rate limit on `/auth/login`, missing request size caps |
+| **2. Transport** | TLS configuration, HSTS, certificate pinning | HTTP allowed in production, missing `Strict-Transport-Security` |
+| **3. Authentication** | JWT validation, session management, MFA | Weak JWT secret, no token expiry, missing refresh rotation |
+| **4. Authorization** | RBAC, resource-level permissions, policy enforcement | IDOR on `/api/documents/{id}`, missing ownership checks |
+| **5. Input Validation** | SQL injection, XSS, command injection, path traversal | f-string SQL query, `innerHTML` with user input, `shell=True` |
+| **6. Business Logic** | IDOR, mass assignment, race conditions | Price manipulation via request body, TOCTOU on inventory |
+| **7. Data** | Encryption at rest, PII handling, backup security | Plaintext passwords in logs, PII in error responses |
+| **8. Monitoring** | Audit logs, anomaly detection, incident response | No failed-login tracking, missing structured logging |
+
+## Step-by-Step
+
+### Step 1: Launch the Security Audit
+
+Start with the verify command scoped to security:
+
+```bash
+/ork:verify --scope=security
+```
+
+OrchestKit asks for the audit depth:
+
+```
+Security Audit Scope:
+
+  [1] Quick scan      — Dependency audit + secrets detection (2 min)
+  [2] Standard audit  — OWASP Top 10 + dependencies + patterns (5 min)
+  [3] Deep audit      — Full 8-layer analysis with data flow tracing (10 min)
+
+> 3
+```
+
+Choose **Deep audit** for a pre-launch review. The quick scan is useful for day-to-day checks after changes.
+
+### Step 2: Three Parallel Agents Scan Your Codebase
+
+Once you select the audit depth, OrchestKit spawns three agents simultaneously:
+
+```
+/ork:verify --scope=security (Deep audit)
+    |
+    |  Spawning 3 parallel agents...
+    |
+    +---> security-auditor (model: opus) ──────────────────────┐
+    |       Skills injected:                                    |
+    |         owasp-top-10                                      |
+    |         defense-in-depth                                  |
+    |         auth-patterns                                     |
+    |         input-validation                                  |
+    |         llm-safety-patterns                               |
+    |         security-scanning                                 |
+    |         mcp-security-hardening                            |
+    |       Tasks:                                              |
+    |         1. Run bandit -r app/ for Python vulnerabilities  |
+    |         2. Run npm audit / pip-audit for dependency CVEs  |
+    |         3. Grep for hardcoded secrets and API keys        |
+    |         4. Check OWASP Top 10 mitigations per endpoint   |
+    |         5. Validate JWT handling and session security     |
+    |                                                           |
+    +---> code-quality-reviewer ───────────────────────────────┐|
+    |       Skills injected:                                   ||
+    |         code-review-playbook                             ||
+    |         clean-architecture                               ||
+    |       Tasks:                                             ||
+    |         1. Identify unsafe patterns (eval, exec, pickle) ||
+    |         2. Check for complexity that hides vulnerabilities||
+    |         3. Flag functions missing error handling          ||
+    |                                                          ||
+    +---> debug-investigator ──────────────────────────────────┐||
+            Skills injected:                                   |||
+              input-validation                                 |||
+            Tasks:                                             |||
+              1. Trace user input from request to database     |||
+              2. Map data flow for injection points            |||
+              3. Identify unvalidated boundaries               |||
+                                                               |||
+    <------------ Results merged <------------------------------+++
+```
+
+All three agents work simultaneously on your codebase. The `security-auditor` runs automated tools (bandit, pip-audit, npm audit). The `code-quality-reviewer` analyzes code patterns. The `debug-investigator` traces data flow from request input to storage to find gaps the automated tools miss.
+
+<Callout type="info">
+The `security-auditor` agent uses parallel tool calls internally. It runs `bandit -r backend/`, `pip-audit`, `npm audit`, and secret-pattern grep all at the same time -- cutting scan time by roughly 60% compared to sequential execution.
+</Callout>
+
+### Step 3: Review the Security Scorecard
+
+After all agents complete (typically 2-10 minutes depending on codebase size and audit depth), OrchestKit synthesizes findings into a graded scorecard:
+
+```
+Security Audit Results
+===========================================================
+
+  Layer 1 — Edge:            7/10   Rate limiting missing on 3 endpoints
+  Layer 2 — Transport:       9/10   HSTS configured, TLS 1.3 enforced
+  Layer 3 — Authentication:  6/10   1 P0: JWT secret too short (32 chars)
+  Layer 4 — Authorization:   5/10   1 P0: IDOR on /api/documents/{id}
+  Layer 5 — Input Validation:8/10   1 P1: Missing Zod validation on webhook
+  Layer 6 — Business Logic:  7/10   1 P1: Race condition on inventory update
+  Layer 7 — Data:            8/10   PII redacted in logs, encryption at rest OK
+  Layer 8 — Monitoring:      4/10   No structured logging, no failed-login alerts
+
+  Overall Security Score:    6.8/10
+
+===========================================================
+
+P0 CRITICAL (fix before launch — 2 findings)
+
+  [SEC-001] JWT secret is only 32 characters
+       Layer: Authentication (3)
+       File: app/auth/config.py:8
+       Code: JWT_SECRET = os.getenv("JWT_SECRET", "a" * 32)
+       Risk: Brute-forceable secret enables token forgery
+       Fix:  Use a 256-bit (64-char hex) secret with no default value.
+             Remove the fallback entirely — fail on startup if missing.
+       OWASP: A02:2021 — Cryptographic Failures
+
+  [SEC-002] Direct object reference without ownership check
+       Layer: Authorization (4)
+       File: app/api/routes/documents.py:23
+       Code: doc = db.query(Document).get(doc_id)
+       Risk: Any authenticated user can read any document by ID
+       Fix:  Add ownership check: if doc.owner_id != current_user.id
+       OWASP: A01:2021 — Broken Access Control
+
+-----------------------------------------------------------
+
+P1 HIGH (fix before production traffic — 3 findings)
+
+  [SEC-003] No rate limiting on /auth/login
+       Layer: Edge (1)
+       File: app/auth/router.py:18
+       Risk: Enables brute-force password attacks
+       Fix:  Add slowapi or custom rate limiter: 5 attempts/minute
+
+  [SEC-004] Webhook payload not validated with Zod/Pydantic
+       Layer: Input Validation (5)
+       File: app/payments/webhook.py:12
+       Risk: Malformed payloads bypass type checking
+       Fix:  Add Pydantic model for webhook body validation
+
+  [SEC-005] Race condition on inventory decrement
+       Layer: Business Logic (6)
+       File: app/orders/service.py:45
+       Risk: Concurrent requests can oversell inventory
+       Fix:  Use SELECT ... FOR UPDATE or optimistic locking
+
+-----------------------------------------------------------
+
+P2 MEDIUM (fix within one week — 4 findings)
+
+  [SEC-006] No structured logging for auth events
+       Layer: Monitoring (8)
+       File: app/auth/router.py
+       Risk: Cannot detect or investigate brute-force attempts
+       Fix:  Log login success/failure with user ID and IP
+
+  [SEC-007] Missing Content-Security-Policy header
+       Layer: Transport (2)
+       Fix:  Add CSP header via middleware
+
+  [SEC-008] Error responses include stack traces in non-debug mode
+       Layer: Data (7)
+       File: app/core/exceptions.py:34
+       Fix:  Return generic error message; log details server-side
+
+  [SEC-009] pip-audit: aiohttp 3.8.4 has CVE-2024-23334
+       Layer: Edge (1)
+       Fix:  Upgrade to aiohttp >= 3.9.2
+
+-----------------------------------------------------------
+
+Dependencies:
+  Python (pip-audit): 1 vulnerable, 3 outdated
+  JavaScript (npm audit): 0 critical, 2 moderate
+
+Secrets Scan:
+  0 hardcoded secrets detected
+  .env in .gitignore: YES
+  .env.example contains no real values: YES
+```
+
+Each finding includes a severity (P0/P1/P2), the defense layer it belongs to, exact file and line reference, the vulnerable code, a concrete fix, and the OWASP category.
+
+### Step 4: Understand the Severity Levels
+
+Findings use three severity levels that map to clear action timelines:
+
+| Severity | Meaning | Action | SLA |
+|---|---|---|---|
+| **P0 Critical** | Exploitable vulnerability, data breach risk | Fix immediately, block launch | Before merge |
+| **P1 High** | Real vulnerability requiring specific conditions | Fix before production traffic | Within 24 hours |
+| **P2 Medium** | Hardening recommendation, best practice gap | Fix in next sprint | Within 1 week |
+
+<Callout type="warn">
+A score below 6/10 on any single layer means the audit found blocking issues at that layer. Do not proceed to production until all P0 findings are resolved and every layer scores at least 6/10. The overall score is an average -- it can hide a critically weak layer.
+</Callout>
+
+### Step 5: Fix and Re-Audit
+
+After fixing the P0 findings, run the audit again to verify:
+
+```bash
+/ork:verify --scope=security
+```
+
+The re-audit checks that your fixes actually address the vulnerabilities. It also ensures fixes did not introduce new issues. For example, after adding the IDOR ownership check, the agent verifies that admin users can still access all documents and that the new check does not break the API tests.
+
+```
+Security Re-Audit Results
+===========================================================
+
+  Layer 3 — Authentication:  9/10   JWT secret upgraded to 256-bit
+  Layer 4 — Authorization:   9/10   Ownership check added, admin bypass works
+
+  Previously P0: 2 -> 0 resolved
+  Previously P1: 3 -> 3 remaining (non-blocking)
+
+  Overall Security Score:    8.1/10   (was 6.8)
+```
+
+### Step 6: Run Security Tests in CI
+
+OrchestKit includes security tests that validate all 8 defense layers in your CI pipeline:
+
+```bash
+npm run test:security
+```
+
+This runs the security test suite:
+
+```
+OrchestKit Security Tests (CRITICAL — ZERO TOLERANCE)
+============================================================================
+
+  PASS: Command Injection Tests
+  PASS: JQ Injection Tests
+  PASS: Path Traversal Tests
+  PASS: Unicode Attack Tests
+  PASS: Symlink Attack Tests
+  PASS: Input Validation Tests
+  PASS: Additional Security Tests
+  PASS: Mem0 Security Tests
+
+============================================================================
+Results: 8 passed, 0 failed
+```
+
+These tests validate that OrchestKit's own hooks (like `dangerous-command-blocker` and `file-guard`) correctly block attack vectors. They run automatically in CI and must all pass before merge.
+
+<Callout type="info">
+The security test suite covers 8 attack categories: command injection, JQ injection, path traversal, Unicode attacks, symlink attacks, input validation, SQLite injection, and line continuation bypass. These are not application tests -- they validate OrchestKit's defensive hooks that protect your development workflow.
+</Callout>
+
+## Behind the Scenes
+
+### Hooks That Fire During the Audit
+
+| Hook | Event | What It Does |
+|---|---|---|
+| `dangerous-command-blocker` | pretool/bash | Prevents the security auditor from running destructive commands like `rm -rf /`, `chmod 777`, or `DROP TABLE`. Even security agents are sandboxed. |
+| `file-guard` | pretool/write | Blocks any attempt to write `.env`, `*.pem`, `*credentials*`, or `*.key` files to disk. Prevents accidental exposure of secrets during testing. |
+| `security-command-audit` | posttool/bash | Logs every security scan command and its results to the session audit trail. Creates a reproducible record of what was checked. |
+| `session-env-setup` | lifecycle/start | Detects available security tools (bandit, pip-audit, npm audit, semgrep) at session start. Reports missing tools so you can install them. |
+| `auto-remember-continuity` | lifecycle/stop | Persists security findings to memory so the next session knows about unresolved vulnerabilities. |
+
+### Skills Auto-Injected
+
+The `security-auditor` agent receives 7 skills via its agent definition:
+
+- **`owasp-top-10`** -- Patterns for all 10 OWASP 2021 categories with vulnerable-vs-secure code examples
+- **`defense-in-depth`** -- The 8-layer model, ensuring the agent checks every boundary
+- **`auth-patterns`** -- JWT validation, OAuth2 flows, password hashing best practices
+- **`input-validation`** -- SQL injection, XSS, command injection prevention at each input boundary
+- **`llm-safety-patterns`** -- Prompt injection, model output validation, LLM-specific threat vectors
+- **`security-scanning`** -- Scan command templates for bandit, pip-audit, npm audit, semgrep
+- **`mcp-security-hardening`** -- MCP server security: tool whitelisting, input sanitization
+
+### How the Agents Collaborate
+
+The three agents produce complementary findings:
+
+| Agent | Perspective | Catches What Others Miss |
+|---|---|---|
+| `security-auditor` | Automated scanning | Known CVEs, secrets patterns, OWASP checklist items |
+| `code-quality-reviewer` | Code structure | Complexity that hides bugs, missing error handling, unsafe patterns |
+| `debug-investigator` | Data flow tracing | Unvalidated boundaries where user input reaches databases or shell commands |
+
+The `security-auditor` runs bandit and finds a SQL injection via f-string. But it might miss that a seemingly safe ORM query has a `.filter()` call that accepts raw user input through a dynamic field name. The `debug-investigator` traces the full data path from `request.query_params["sort_by"]` through the service layer to `getattr(Model, sort_by)` and flags the dynamic attribute access as an injection vector.
+
+### The Severity Classification
+
+OrchestKit uses a consistent severity system aligned with industry standards:
+
+| Severity | Criteria | Examples |
+|---|---|---|
+| **P0 Critical** | Remote code execution, SQL injection, auth bypass, data breach | `f"SELECT * FROM users WHERE id = {user_id}"` |
+| **P1 High** | XSS, CSRF, sensitive data exposure, missing rate limits | `element.innerHTML = userInput` |
+| **P2 Medium** | Information disclosure, weak crypto, hardening gaps | Missing CSP header, outdated dependency with moderate CVE |
+| **P3 Low** | Best practice violations, minor deviations | Missing X-Frame-Options, verbose error messages in staging |
+
+### Security Scan Commands Used
+
+The `security-auditor` agent runs these scans in parallel:
+
+```bash
+# Python vulnerability scan (static analysis)
+bandit -r app/ -f json -o bandit-report.json
+
+# Python dependency audit
+pip-audit --format=json
+
+# JavaScript dependency audit
+npm audit --json
+
+# Secret pattern detection
+grep -rn "(?i)(api[_-]?key|secret|password|token|credential)" \
+  --include="*.py" --include="*.ts" --include="*.env*"
+
+# Semgrep (if installed)
+semgrep scan --config=p/security-audit --json
+```
+
+If a tool is not installed, the agent skips it and notes it in the findings: "bandit not available -- install with `pip install bandit` for Python static analysis."
+
+## Tips
+
+<Callout type="info">
+**Run quick scans after every feature.** Use `/ork:verify --scope=security` with the Quick scan option (option 1) after implementing features that touch authentication, payment, or user input. It takes 2 minutes and catches the most common issues. Save Deep audits for milestones and pre-launch reviews.
+</Callout>
+
+<Callout type="info">
+**Memory compounds security knowledge.** After your first audit, OrchestKit remembers findings via the memory system. Next time you write auth code, the `memory-context-injector` hook surfaces your past security decisions: "This project uses 256-bit JWT secrets, Argon2 for password hashing, and cursor-based pagination." The agent does not repeat past mistakes.
+</Callout>
+
+<Callout type="warn">
+**P0 findings block the entire audit with a failing score.** This is intentional. A single SQL injection or auth bypass makes all other security measures irrelevant. Fix P0 issues before addressing P1 and P2 findings. The re-audit verifies your fix actually resolves the vulnerability.
+</Callout>
+
+<Callout type="info">
+**Combine with `/ork:review-pr` for defense in depth.** Run the security audit on your local branch, then create a PR and run `/ork:review-pr` for a second opinion. The PR review uses the same `security-auditor` agent but operates on the diff rather than the full codebase, catching issues specific to the changed code.
+</Callout>
+
+<Callout type="info">
+**Install all scanning tools for maximum coverage.** The security auditor works best with all tools available: `pip install bandit pip-audit`, `npm install`, and optionally `brew install semgrep`. Each missing tool reduces coverage. The `session-env-setup` hook reports which tools are available at session start.
+</Callout>
+
+<Callout type="info">
+**Export findings as JSON for tracking.** The `security-auditor` agent returns structured JSON output. Pipe it to your issue tracker or security dashboard. Each finding has a unique ID (SEC-001, SEC-002) for tracking resolution across sprints.
+</Callout>
+
+## Next Steps
+
+- **[Implement a Feature](/docs/cookbook/implement-feature)** -- See how security checks integrate into the implementation workflow
+- **[Review a Pull Request](/docs/cookbook/review-pr)** -- Multi-agent PR review with security as one of six dimensions
+- **[Hooks Overview](/docs/hooks/overview)** -- Understand how `dangerous-command-blocker` and `file-guard` work
+- **[Configuration](/docs/getting-started/configuration)** -- Environment setup for security scanning tools

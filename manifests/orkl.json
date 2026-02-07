@@ -1,6 +1,6 @@
 {
   "name": "orkl",
-  "version": "6.0.1",
+  "version": "6.0.2",
   "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For Python/React/LLM specializations, use full 'ork' plugin.",
   "skills": [
     "explore",
@@ -109,7 +109,9 @@
     "skill-analyzer",
     "edge-computing-patterns",
     "evidence-verification",
-    "mem0-memory"
+    "mem0-memory",
+    "upgrade-assessment",
+    "platform-upgrade-knowledge"
   ],
   "agents": "all",
   "hooks": "all"

@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [context, compression, summarization, memory, optimization]
 user-invocable: false
+complexity: medium
 ---
 
 # Context Compression

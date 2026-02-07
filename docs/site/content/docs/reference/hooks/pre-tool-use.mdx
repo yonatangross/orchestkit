@@ -1,0 +1,37 @@
+---
+title: "PreToolUse"
+description: "Hooks triggered on PreToolUse events (26 hooks)."
+---
+
+# PreToolUse Hooks
+
+**26 hooks** registered for the `PreToolUse` lifecycle event.
+
+| Hook | Matcher | Scope | Notes |
+|------|---------|-------|-------|
+| `dangerous-command-blocker` | `Bash` | Global |  |
+| `compound-command-validator` | `Bash` | Global |  |
+| `error-pattern-warner` | `Bash` | Global |  |
+| `issue-docs-requirement` | `Bash` | Global |  |
+| `multi-instance-quality-gate` | `Bash` | Global |  |
+| `default-timeout-setter` | `Bash` | Global |  |
+| `gh-issue-creation-guide` | `Bash` | Global |  |
+| `license-compliance` | `Bash` | Global |  |
+| `affected-tests-finder` | `Bash` | Global |  |
+| `agent-browser-safety` | `Bash` | Global |  |
+| `file-guard` | `Write|Edit` | Global |  |
+| `write-headers` | `Write|Edit` | Global |  |
+| `architecture-change-detector` | `Write|Edit` | Global |  |
+| `security-pattern-validator` | `Write|Edit` | Global |  |
+| `docstring-enforcer` | `Write|Edit` | Global |  |
+| `code-quality-gate` | `Write|Edit` | Global |  |
+| `skill-tracker` | `Skill` | Global |  |
+| `context7-tracker` | `mcp__context7__*` | Global |  |
+| `memory-fabric-init` | `mcp__mem0__*|mcp__memory__*` | Global | once |
+| `memory-validator` | `mcp__memory__*` | Global |  |
+| `block-writes` | `Task` | Agent |  |
+| `migration-safety-check` | `Task` | Agent |  |
+| `security-command-audit` | `Task` | Agent |  |
+| `ci-safety-check` | `Task` | Agent |  |
+| `deployment-safety-check` | `Task` | Agent |  |
+| `team-size-gate` | `Task` | Global |  |

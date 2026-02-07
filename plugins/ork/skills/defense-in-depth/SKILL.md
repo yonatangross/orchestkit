@@ -11,6 +11,7 @@ allowedTools:
   - Glob
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Defense in Depth for AI Systems
@@ -30,6 +31,7 @@ Defense in depth applies multiple security layers so that if one fails, others s
 │  Layer 1: GATEWAY        │  JWT Verify, Extract Claims, Build Context  │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  Layer 2: INPUT          │  Schema Validation, PII Detection, Injection│
+│                          │  + Tavily Prompt Injection Firewall (opt.)  │
 ├─────────────────────────────────────────────────────────────────────────┤
 │  Layer 3: AUTHORIZATION  │  RBAC/ABAC, Tenant Check, Resource Access   │
 ├─────────────────────────────────────────────────────────────────────────┤
@@ -87,6 +89,7 @@ class RequestContext:
 - **Schema validation:** Pydantic/Zod for structure
 - **Content validation:** PII detection, malware scan
 - **Injection defense:** SQL, XSS, prompt injection patterns
+- **External scanning (optional):** Tavily prompt injection firewall for web-sourced content — pre-filters RAG inputs before they reach the LLM layer
 
 ### Layer 3: Authorization
 

@@ -8,6 +8,7 @@ tags: [implementation, feature, full-stack, parallel-agents, reflection, worktre
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, memory, worktree-coordination]
+complexity: medium
 ---
 
 # Implement Feature
@@ -21,6 +22,8 @@ Maximum utilization of parallel subagent execution for feature implementation wi
 /implement real-time notifications
 /implement dashboard analytics
 ```
+
+> **Opus 4.6**: Parallel agents leverage native adaptive thinking and 128K output for comprehensive implementations. Token budgets scale dynamically with context window.
 
 ---
 
@@ -62,6 +65,31 @@ AskUserQuestion(
 - **Backend only**: Skip frontend agents (phases 5b, 6b)
 - **Frontend only**: Skip backend agents (phases 5a, 6a)
 - **Quick prototype**: Skip phases 7-10 (scope check, verification, docs, reflection)
+
+---
+
+## STEP 0b: Select Orchestration Mode
+
+Choose **Agent Teams** (mesh, default when available) or **Task tool** (star, fallback):
+- `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → Agent Teams (default); not set → Task tool
+- When Teams available: complexity < 2.5 → Task tool; >= 2.5 → Agent Teams
+- Override: `ORCHESTKIT_FORCE_TASK_TOOL=1` → always Task tool
+
+> See [Orchestration Modes](references/orchestration-modes.md) for decision logic, comparison table, and fallback strategy.
+
+---
+
+## Opus 4.6: 128K Output Token Advantage
+
+With 128K output tokens (2x previous 64K), agents can generate **complete artifacts in fewer passes**:
+
+| Artifact | Before (64K) | After (128K) |
+|----------|-------------|--------------|
+| Full API + models | 2 passes | 1 pass |
+| Component + tests | 2 passes | 1 pass |
+| Complete feature (API + UI + tests) | 4-6 passes | 2-3 passes |
+
+**Guidance for agents:** Generate complete, working code in a single pass whenever possible. Don't split implementations across multiple responses unless the scope genuinely exceeds 128K tokens. Prefer one comprehensive response over multiple incremental ones.
 
 ---
 
@@ -173,18 +201,25 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 
 Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY line.
 
-## Phase 5: Parallel Implementation (8 Agents)
+> In Agent Teams mode, form a persistent team with teammates messaging each other. See [Agent Teams Phases](references/agent-teams-phases.md#phase-4--agent-teams-architecture-design) for spawn templates.
 
-| Agent | Task |
-|-------|------|
-| backend-system-architect #1 | API endpoints |
-| backend-system-architect #2 | Database layer |
-| frontend-ui-developer #1 | UI components |
-| frontend-ui-developer #2 | State & API hooks |
-| llm-integrator | AI integration |
-| rapid-ui-designer | Styling |
-| test-generator #1 | Test suite |
-| prioritization-analyst | Progress tracking |
+---
+
+## Phase 5: Parallel Implementation (5 Agents)
+
+With 128K output tokens, each agent produces **complete artifacts in a single pass** — no need to split backend into API + DB or frontend into components + state.
+
+| Agent | Task | 128K Advantage |
+|-------|------|----------------|
+| backend-system-architect | Complete backend: API + service layer + DB models | Was 2 agents, now 1 |
+| frontend-ui-developer | Complete frontend: components + state + API hooks + styling | Was 3 agents (incl. rapid-ui-designer), now 1 |
+| llm-integrator | AI integration (if needed) | Unchanged |
+| test-generator | Complete test suite: unit + integration + fixtures | Was split, now single pass |
+| rapid-ui-designer | Design system specs + tokens (if new design) | Optional, skip if existing design |
+
+> In Agent Teams mode, teammates transition from architecture to implementation with real-time contract messaging. See [Agent Teams Phases](references/agent-teams-phases.md#phase-5--agent-teams-implementation) for messaging patterns and worktree setup.
+
+---
 
 ## Phase 6: Integration & Validation (4 Agents)
 
@@ -194,6 +229,8 @@ Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY 
 | frontend-ui-developer | Frontend + API integration |
 | code-quality-reviewer #1 | Full test suite |
 | security-auditor | Security audit |
+
+> In Agent Teams mode, code-reviewer already has cumulative context. See [Agent Teams Phases](references/agent-teams-phases.md#phase-6--agent-teams-integration) for integration and [Team Teardown](references/agent-teams-phases.md#phase-6b--team-teardown-agent-teams-only) for shutdown + worktree merge.
 
 ---
 
@@ -288,54 +325,13 @@ TaskUpdate(taskId=task_id, status="completed")
 
 ## CC 2.1.30+ Enhancements
 
-### Task Metrics
-
-Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
-
-```markdown
-## Phase 5 Metrics (Implementation)
-| Agent | Tokens | Tools | Duration |
-|-------|--------|-------|----------|
-| backend-system-architect #1 | 680 | 15 | 25s |
-| backend-system-architect #2 | 540 | 12 | 20s |
-| frontend-ui-developer #1 | 720 | 18 | 30s |
-
-**Scope Check:** If token_count > 80% of budget, flag scope creep
-```
-
-### Tool Usage Guidance (CC 2.1.31)
-
-Use the right tools for each operation:
-
-| Task | Use | Avoid |
-|------|-----|-------|
-| Find files by pattern | `Glob("**/*.ts")` | `bash find` |
-| Search code | `Grep(pattern="...", glob="*.ts")` | `bash grep` |
-| Read specific file | `Read(file_path="/abs/path")` | `bash cat` |
-| Edit/modify code | `Edit(file_path=...)` | `bash sed/awk` |
-| Parse file contents | `Read` with limit/offset | `bash head/tail` |
-| Git operations | `Bash git ...` | (git needs bash) |
-| Run tests/build | `Bash npm/poetry ...` | (CLIs need bash) |
-
-### Session Resume Hints (CC 2.1.31)
-
-Before ending implementation sessions, capture context:
-
-```bash
-/ork:remember Implementation of {feature}:
-  Completed: phases 1-6
-  Remaining: verification, docs
-  Key decisions: [list]
-  Blockers: [if any]
-```
-
-Resume later with full context preserved.
+> Task metrics, tool usage guidance, and session resume hints. See [CC Enhancements](references/cc-enhancements.md) for details.
 
 ---
 
 ## Summary
 
-**Total Parallel Agents: 17 across 4 phases**
+**Total Parallel Agents: 14 across 3 phases (was 17 with 64K output)**
 
 **Tools Used:**
 - context7 MCP (library documentation)
@@ -361,3 +357,11 @@ Resume later with full context preserved.
 ## References
 
 - [Agent Phases](references/agent-phases.md)
+- [Agent Teams Phases](references/agent-teams-phases.md)
+- [Orchestration Modes](references/orchestration-modes.md)
+- [CC Enhancements](references/cc-enhancements.md)
+- [Agent Teams Full-Stack Pipeline](references/agent-teams-full-stack.md)
+- [Team Worktree Setup](references/team-worktree-setup.md)
+- [Micro-Planning Guide](references/micro-planning-guide.md)
+- [Scope Creep Detection](references/scope-creep-detection.md)
+- [Worktree Workflow](references/worktree-workflow.md)

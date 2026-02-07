@@ -8,6 +8,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess } from './common.js';
+import { isAgentTeamsActive } from './agent-teams.js';
 
 /**
  * Guard result type - either continue (null) or skip with result
@@ -214,9 +215,15 @@ export function guardGitCommand(input: HookInput): GuardResult {
 // -----------------------------------------------------------------------------
 
 /**
- * Guard: Only run if multi-instance coordination is enabled
+ * Guard: Only run if multi-instance coordination is enabled.
+ * Issue #362: Yields when Agent Teams is active — Teams provides native
+ * multi-instance coordination, making custom .claude/coordination redundant.
  */
 export function guardMultiInstance(input: HookInput): GuardResult {
+  if (isAgentTeamsActive()) {
+    return outputSilentSuccess(); // Teams handles coordination natively
+  }
+
   const projectDir = input.project_dir || process.env.CLAUDE_PROJECT_DIR || '.';
   const dbPath = `${projectDir}/.claude/coordination/.claude.db`;
 

@@ -7,6 +7,7 @@ version: 1.4.0
 author: AI Agent Hub
 tags: [frontend, react, react-19.2, nextjs-16, server-components, streaming, cache-components]
 user-invocable: false
+complexity: medium
 ---
 
 # React Server Components Framework

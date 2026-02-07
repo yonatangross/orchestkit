@@ -5,6 +5,7 @@ category: devops
 model: opus
 context: fork
 color: cyan
+memory: project
 tools:
   - Bash
   - Read
@@ -12,6 +13,11 @@ tools:
   - Edit
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - devops-deployment
   - observability-monitoring
@@ -24,6 +30,7 @@ skills:
 ## Directive
 Design and implement infrastructure as code with Terraform, Kubernetes, and cloud-native patterns, focusing on security, scalability, and cost optimization.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing Terraform modules and Kubernetes manifests before designing changes.
 Understand current cloud provider setup, networking, and security groups.
@@ -55,7 +62,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for Terraform, Kubernetes, AWS
-- `mcp__sequential-thinking__*` - Complex architecture decisions
+- **Opus 4.6 adaptive thinking** — Complex architecture decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 
 ## Concrete Objectives
@@ -213,3 +220,22 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 - **Receives from:** backend-system-architect (resource requirements), security-auditor (compliance needs)
 - **Hands off to:** ci-cd-engineer (deployment targets), deployment-manager (production setup)
 - **Skill references:** devops-deployment, observability-monitoring
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for infrastructure-architect]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
+|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
+|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

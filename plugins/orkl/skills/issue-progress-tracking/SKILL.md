@@ -4,6 +4,7 @@ description: Automatic GitHub issue progress updates from commits and sub-task c
 context: fork
 tags: [github, issues, progress, tracking, automation, commits]
 user-invocable: false
+complexity: medium
 ---
 
 # Issue Progress Tracking

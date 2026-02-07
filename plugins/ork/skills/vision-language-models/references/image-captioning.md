@@ -6,7 +6,7 @@ Best practices for generating high-quality image descriptions and captions using
 
 | Task | Best Model | Why |
 |------|------------|-----|
-| Detailed descriptions | Claude Opus 4.5 | Best visual reasoning |
+| Detailed descriptions | Claude Opus 4.6 | Best visual reasoning |
 | Concise captions | GPT-4o-mini | Fast, cost-effective |
 | Alt text (accessibility) | Claude Sonnet 4.5 | Balanced quality |
 | Batch captioning | Gemini 2.5 Flash | Cheapest at scale |

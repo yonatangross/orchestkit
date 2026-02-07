@@ -10,6 +10,7 @@ agents: [backend-system-architect, code-quality-reviewer, studio-coach]
 keywords: [CI/CD, deployment, Docker, Kubernetes, pipeline, infrastructure, GitOps, container, automation, release]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # DevOps & Deployment Skill
@@ -228,7 +229,7 @@ charts/app/
 
 ## Extended Thinking Triggers
 
-Use Opus 4.5 extended thinking for:
+Use Opus 4.6 adaptive thinking for:
 - **Architecture decisions** - Kubernetes vs serverless, multi-region setup
 - **Migration planning** - Moving between cloud providers
 - **Incident response** - Complex deployment failures

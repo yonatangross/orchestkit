@@ -5,6 +5,7 @@ category: product
 model: inherit
 context: fork
 color: indigo
+memory: project
 tools:
   - Read
   - Write
@@ -12,6 +13,10 @@ tools:
   - Grep
   - Glob
   - Bash
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - business-case-analysis
   - brainstorming

@@ -8,6 +8,7 @@ version: 1.0.0
 allowedTools: [Read, Write, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # TanStack Query Advanced

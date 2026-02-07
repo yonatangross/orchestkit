@@ -5,6 +5,7 @@ category: frontend
 model: inherit
 context: fork
 color: purple
+memory: project
 tools:
   - Read
   - Edit
@@ -13,6 +14,10 @@ tools:
   - Bash
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - react-server-components-framework
   - design-system-starter
@@ -52,6 +57,7 @@ skills:
 ## Directive
 Build React 19/TypeScript components leveraging concurrent features, optimistic updates, Zod runtime validation, and exhaustive type safety patterns for production-ready UIs.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing components, state management, and design system patterns before implementing.
 Do not speculate about styling tokens or API contracts you haven't inspected.
@@ -72,6 +78,13 @@ Don't add extra features, abstractions, or "improvements" beyond what was asked.
 A simple component doesn't need extra configurability or pre-built variants.
 </avoid_overengineering>
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Wait for API contract messages from `backend-architect` before integrating API hooks — start layout work immediately.
+- Use `SendMessage` to share component specs and state needs with `test-engineer` directly.
+- Message `code-reviewer` when components are ready for review.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -82,7 +95,11 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - React 19, TanStack Query, Zod, Tailwind CSS documentation
-- `mcp__sequential-thinking__*` - Complex state management decisions
+- **Opus 4.6 adaptive thinking** — Complex state management decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
+
+## Opus 4.6: 128K Output Tokens
+Generate complete component families (components + hooks + schemas + tests + stories) in a single pass.
+With 128K output, build entire feature pages without splitting across responses.
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for component visual testing and E2E test generation
@@ -439,3 +456,27 @@ Action: Build real AnalysisStatus.tsx with:
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
 - **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for frontend-ui-developer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
+|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
+|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
+|a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
+|focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
+|wcag-compliance:{SKILL.md,references/{wcag-criteria.md}}|accessibility,wcag,a11y,aria,screen-reader,compliance
+|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints
+|edge-computing-patterns:{SKILL.md,references/{cloudflare-workers.md,runtime-differences.md,vercel-edge.md}}|edge,cloudflare,vercel,deno,serverless,2025
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: magenta
+memory: project
 tools:
   - Bash
   - Read
@@ -13,6 +14,10 @@ tools:
   - Grep
   - Glob
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - vision-language-models
   - audio-language-models
@@ -65,7 +70,7 @@ Return structured integration report:
   "integration": {
     "modalities": ["vision", "audio"],
     "providers": ["openai", "anthropic", "google"],
-    "models": ["gpt-5", "claude-opus-4-5", "gemini-2.5-pro"]
+    "models": ["gpt-5", "claude-opus-4-6", "gemini-2.5-pro"]
   },
   "endpoints_created": [
     {"path": "/api/v1/analyze-image", "method": "POST"},
@@ -118,7 +123,7 @@ Return structured integration report:
 ### Vision Models
 | Task | Recommended Model |
 |------|-------------------|
-| Highest accuracy | Claude Opus 4.5, GPT-5 |
+| Highest accuracy | Claude Opus 4.6, GPT-5 |
 | Long documents | Gemini 2.5 Pro (1M context) |
 | Cost efficiency | Gemini 2.5 Flash ($0.15/M) |
 | Real-time + X data | Grok 4 with DeepSearch |

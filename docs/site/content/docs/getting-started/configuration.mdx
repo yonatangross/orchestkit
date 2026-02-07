@@ -1,0 +1,82 @@
+---
+title: Configuration
+description: Environment variables, MCP servers, and memory tier setup.
+---
+
+OrchestKit works out of the box with zero configuration. This page covers optional settings for power users.
+
+## Environment Variables
+
+### Core (Auto-Detected)
+
+| Variable | Description | Default |
+|---|---|---|
+| `CLAUDE_PROJECT_DIR` | Your project root | Auto-detected |
+| `CLAUDE_PLUGIN_ROOT` | Plugin installation path | Auto-detected |
+| `CLAUDE_SESSION_ID` | Current session UUID | Auto-generated |
+
+### Memory (Optional)
+
+| Variable | Description | Effect |
+|---|---|---|
+| `MEM0_API_KEY` | Mem0 cloud API key | Enables Tier 3: semantic cross-session memory |
+
+### Web Research (Optional)
+
+| Variable | Description | Effect |
+|---|---|---|
+| `TAVILY_API_KEY` | Tavily search API | Enables search/extract/map in web research workflow |
+| `BRIGHTDATA_API_TOKEN` | BrightData scraping | Enables browser automation MCP for JS-rendered pages |
+
+### Setting Variables
+
+Add to your shell profile (`~/.zshrc`, `~/.bashrc`, or `~/.config/fish/config.fish`):
+
+```bash
+# Memory
+export MEM0_API_KEY="m0-your-key-here"
+
+# Web Research
+export TAVILY_API_KEY="tvly-your-key-here"
+```
+
+Then restart Claude Code or open a new terminal.
+
+## Memory Tiers
+
+OrchestKit has 4 memory tiers. The first two work automatically:
+
+| Tier | Storage | Config Needed | What It Does |
+|---|---|---|---|
+| **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Knowledge graph: entities + relations |
+| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | Session persistence, queue sync |
+| **3. Mem0** | Cloud API | `MEM0_API_KEY` | Semantic search across all sessions |
+| **4. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected into system prompt |
+
+High-confidence decisions (confidence >= 0.7) automatically promote from Graph to CC Native, ensuring they persist even without OrchestKit installed.
+
+## Hook Behavior
+
+Hooks fire automatically. If a hook blocks an action unexpectedly:
+
+1. Check which hook blocked: the error message includes the hook name
+2. Hooks you can customize:
+   - **file-guard**: Protected file paths (edit `src/hooks/src/pretool/write-edit/file-guard.ts`)
+   - **dangerous-command-blocker**: Blocked commands list
+   - **permission auto-approve**: Safe command patterns
+
+Most users never need to customize hooks. They're designed to be transparent.
+
+## Plugin Settings
+
+Run `/ork:configure` to adjust:
+
+- Notification preferences (desktop alerts, sounds)
+- Memory sync frequency
+- Hook toggle system (enable/disable specific hooks)
+- Agent model preferences
+
+## Next Steps
+
+- **[The 3 Building Blocks](/docs/foundations/skills-agents-hooks)** — Understand the architecture
+- **[Memory System](/docs/memory/overview)** — Deep dive into 4-tier memory

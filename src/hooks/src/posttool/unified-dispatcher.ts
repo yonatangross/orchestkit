@@ -24,7 +24,6 @@ import { patternExtractor } from './bash/pattern-extractor.js';
 import { codeStyleLearner } from './write/code-style-learner.js';
 import { namingConventionLearner } from './write/naming-convention-learner.js';
 import { skillEditTracker } from './skill-edit-tracker.js';
-import { coordinationHeartbeat } from './coordination-heartbeat.js';
 import { skillUsageOptimizer } from './skill/skill-usage-optimizer.js';
 import { memoryBridge } from './memory-bridge.js';
 import { realtimeSync } from './realtime-sync.js';
@@ -73,9 +72,6 @@ const HOOKS: HookConfig[] = [
   { name: 'code-style-learner', fn: codeStyleLearner, matcher: ['Write', 'Edit'] },
   { name: 'naming-convention-learner', fn: namingConventionLearner, matcher: ['Write', 'Edit'] },
   { name: 'skill-edit-tracker', fn: skillEditTracker, matcher: ['Write', 'Edit'] },
-
-  // Task-specific
-  { name: 'coordination-heartbeat', fn: coordinationHeartbeat, matcher: 'Task' },
 
   // Skill-specific
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },

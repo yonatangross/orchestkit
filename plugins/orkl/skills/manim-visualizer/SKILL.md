@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [manim, animation, visualization, diagram, video]
 user-invocable: false
+complexity: low
 ---
 
 # Manim Visualizer

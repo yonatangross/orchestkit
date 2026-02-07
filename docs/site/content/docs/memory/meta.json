@@ -1,0 +1,11 @@
+{
+  "title": "Memory",
+  "icon": "Brain",
+  "pages": [
+    "overview",
+    "graph-memory",
+    "local-memory",
+    "mem0-cloud",
+    "native-cc-memory"
+  ]
+}

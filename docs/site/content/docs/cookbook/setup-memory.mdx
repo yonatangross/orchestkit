@@ -1,0 +1,299 @@
+---
+title: Set Up Cross-Session Memory
+description: Persist decisions, patterns, and context across conversations.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## Scenario
+
+You have been working on a project for a week. Over that time you made twenty-plus architecture decisions: JWT over session cookies, PostgreSQL with pgvector for embeddings, cursor-based pagination for all list endpoints, Zod for runtime validation at API boundaries.
+
+Then Monday arrives. You open a new Claude Code session. Claude knows none of it. It suggests session cookies. It reaches for offset pagination. Every conversation starts from zero.
+
+OrchestKit solves this with a **4-tier memory architecture** that stores decisions once and surfaces them automatically in every future session. No manual copy-pasting. No re-explaining your stack. Decisions persist across conversations, projects, and machines.
+
+## What You'll Use
+
+| Component | Type | Purpose |
+|---|---|---|
+| `/ork:remember` | Command skill | Store decisions, patterns, and context |
+| `/ork:memory` | Command skill | Search, load, sync, visualize stored knowledge |
+| `memory-writer` | Hook (posttool) | Auto-writes high-confidence decisions to CC Native |
+| `memory-context-injector` | Hook (prompt) | Searches graph memory on every prompt submit |
+| `mcp__memory__*` | MCP server | Graph database for entities and relations |
+
+## The 4 Memory Tiers
+
+Before diving into commands, understand what each tier does and when it activates.
+
+| Tier | Storage | Config | Behavior |
+|---|---|---|---|
+| **1. Graph** | MCP `mcp__memory__*` | None (zero-config) | Stores entities with typed relations. Primary tier. Always available. |
+| **2. Local** | `.claude/memory/*.jsonl` | None (auto-created) | JSONL queue files for session persistence and offline backup. |
+| **3. Mem0** | Cloud API | `MEM0_API_KEY` env var | Semantic search across all sessions and projects. Optional. |
+| **4. CC Native** | `~/.claude/projects/*/memory/MEMORY.md` | None (auto-sync) | Injected directly into Claude's system prompt. Survives plugin removal. |
+
+<Callout type="info">
+Tier 1 (Graph) and Tier 4 (CC Native) require zero configuration. They work the moment you install OrchestKit. Tier 2 adds local durability automatically. Tier 3 enables cross-project semantic search when you add a Mem0 API key.
+</Callout>
+
+## Step-by-Step
+
+### Step 1: Store Your First Decision
+
+Use `/ork:remember` to record an architecture decision. The skill auto-detects the category from keywords in your text, extracts entities, and creates typed relations in the knowledge graph.
+
+```bash
+/ork:remember "We use JWT tokens for auth, not session cookies"
+```
+
+**What you see:**
+
+```
+Remembered (authentication): "We use JWT tokens for auth, not session cookies"
+   -> Stored in knowledge graph
+   -> Created entity: JWT (Technology)
+   -> Created entity: session-cookies (Technology)
+   -> Created relation: project -> CHOSE_OVER -> JWT vs session-cookies
+   Graph: 3 entities, 1 relation
+```
+
+The skill detected `authentication` as the category from the keywords "JWT" and "auth". It extracted two Technology entities and a `CHOSE_OVER` relation. All of this happens in a single command with no manual tagging.
+
+### Step 2: Store Patterns with Outcome Tracking
+
+Mark successful patterns so OrchestKit reinforces them in future sessions. Mark anti-patterns so it warns you away from repeating mistakes.
+
+```bash
+# A pattern that worked well
+/ork:remember --success "Cursor-based pagination scales well for our 2M-row tables"
+
+# A pattern that caused problems
+/ork:remember --failed "Offset pagination caused timeouts on tables with 1M+ rows"
+```
+
+**Success output:**
+
+```
+Remembered SUCCESS (pagination): "Cursor-based pagination scales well for our 2M-row tables"
+   -> Stored in knowledge graph
+   -> Created entity: cursor-pagination (Pattern)
+   Graph: 1 entity, 0 relations
+```
+
+**Anti-pattern output:**
+
+```
+Remembered ANTI-PATTERN (pagination): "Offset pagination caused timeouts on tables with 1M+ rows"
+   -> Stored in knowledge graph
+   -> Created entity: offset-pagination (AntiPattern)
+   Lesson: Use cursor-based pagination for large datasets
+```
+
+The `--failed` flag creates an `AntiPattern` entity type instead of `Pattern`. When a future session mentions offset pagination, OrchestKit surfaces the anti-pattern warning automatically.
+
+<Callout type="warn">
+If you provide both `--success` and `--failed` on the same command, OrchestKit asks you to clarify. A single decision cannot be both a success and a failure.
+</Callout>
+
+### Step 3: Search Across All Tiers
+
+Query stored knowledge from any future session using `/ork:memory search`:
+
+```bash
+/ork:memory search "authentication"
+```
+
+**What you see:**
+
+```
+Found 3 results matching "authentication":
+
+[GRAPH] JWT (Technology)
+   -> CHOSE_OVER -> session-cookies
+   Observations: "Used for auth, not session cookies"
+
+[GRAPH] auth-service (Component)
+   -> USES -> JWT
+   Observations: "Handles login, signup, token refresh"
+
+[GRAPH] oauth-provider (Technology)
+   -> USED_FOR -> third-party auth
+```
+
+Results show the source tier, entity type, relations, and observations. You can filter and scope results with flags:
+
+```bash
+# Filter by category
+/ork:memory search --category database "indexing strategy"
+
+# Scope to a specific agent's memories
+/ork:memory search --agent backend-system-architect "caching"
+
+# Search cross-project best practices
+/ork:memory search --global "rate limiting"
+
+# Search both graph AND Mem0 cloud
+/ork:memory search --mem0 "database patterns"
+```
+
+The `--mem0` flag returns graph results first, then cloud results, with duplicates removed and cross-references marked as `[CROSS-REF]`.
+
+### Step 4: Configure Mem0 for Cloud Persistence (Optional)
+
+For semantic search across all your projects and sessions, enable Tier 3 by setting a single environment variable:
+
+```bash
+# Add to ~/.zshrc or ~/.bashrc
+export MEM0_API_KEY="m0-your-key-here"
+```
+
+Restart Claude Code. Now use the `--mem0` flag to write to both graph and cloud simultaneously:
+
+```bash
+/ork:remember --mem0 "Use connection pooling with min=5, max=20 for PostgreSQL"
+```
+
+**Output:**
+
+```
+Remembered (database): "Use connection pooling with min=5, max=20 for PostgreSQL"
+   -> Stored in knowledge graph
+   -> Created entity: connection-pooling (Pattern)
+   -> Created entity: PostgreSQL (Technology)
+   -> Created relation: PostgreSQL -> USES -> connection-pooling
+   Graph: 2 entities, 1 relation
+   -> Also synced to mem0 cloud
+```
+
+<Callout type="info">
+Without `MEM0_API_KEY`, all `--mem0` commands gracefully fall back to graph-only storage. You see a notice: "mem0 sync requested but MEM0_API_KEY not configured (graph-only)". Nothing breaks.
+</Callout>
+
+### Step 5: Verify Memory System Health
+
+Check that all tiers are operational at any time:
+
+```bash
+/ork:memory status
+```
+
+**What you see:**
+
+```
+Memory System Status:
+  Graph Memory:  healthy (42 decisions, 0 corrupt)
+  Queue Depth:   3 pending
+  Mem0 Cloud:    connected (API key configured)
+  Last Sync:     2 hours ago
+```
+
+If a tier shows an issue (for example, `Mem0 Cloud: disconnected (MEM0_API_KEY not set)`), the status output tells you exactly what to configure.
+
+### Step 6: Visualize Your Knowledge Graph
+
+See how your decisions connect to each other:
+
+```bash
+/ork:memory viz
+```
+
+This produces a Mermaid diagram showing entities and relations:
+
+```
+graph LR
+  JWT[JWT] -->|CHOSE_OVER| session-cookies[session-cookies]
+  auth-service[auth-service] -->|USES| JWT
+  PostgreSQL[PostgreSQL] -->|USES| connection-pooling[connection-pooling]
+  PostgreSQL -->|USES| pgvector[pgvector]
+  pgvector -->|USED_FOR| RAG[RAG]
+  cursor-pagination[cursor-pagination] -->|CHOSE_OVER| offset-pagination[offset-pagination]
+```
+
+Focus on a specific entity or limit relationship depth:
+
+```bash
+# Focus on one entity and its neighbors
+/ork:memory viz --entity PostgreSQL --depth 2
+
+# Filter to a specific entity type
+/ork:memory viz --type Technology
+```
+
+## Behind the Scenes
+
+Here is what happens invisibly every time you interact with Claude in an OrchestKit session.
+
+### On Every Prompt Submit
+
+The `memory-context-injector` hook fires on the `prompt` lifecycle event. It searches the knowledge graph for entities related to keywords in your prompt. If you type "set up the authentication endpoint," the hook finds your JWT decision and injects it into Claude's context -- before Claude even starts thinking about a response.
+
+This is why Claude stops suggesting session cookies after you store the JWT decision. The hook silently provides the relevant context on every prompt.
+
+### On High-Confidence Decisions
+
+The `memory-writer` hook monitors for decisions with confidence >= 0.7. When it detects one, it automatically writes to Tier 4 (CC Native MEMORY.md). This file lives at `~/.claude/projects/<your-project>/memory/MEMORY.md` and is injected into Claude's system prompt for every session -- even sessions that do not use OrchestKit.
+
+This means your most important decisions survive plugin removal, reinstallation, or upgrades. They are baked into Claude's base context.
+
+### On Session End
+
+The `auto-remember-continuity` hook fires on the `stop` lifecycle event. It captures key decisions and context from the current session and persists them to the local queue (Tier 2), ensuring nothing is lost if the session ends unexpectedly or you forget to run `/ork:remember` manually.
+
+### The Write Path
+
+When you invoke `/ork:remember`, the skill writes to all configured tiers simultaneously:
+
+```
+/ork:remember "JWT for auth"
+    |
+    +---> Tier 1: Graph (mcp__memory__create_entities + create_relations)
+    +---> Tier 2: Local (.claude/memory/graph-queue.jsonl)
+    +---> Tier 3: Mem0 cloud (only if --mem0 flag AND MEM0_API_KEY set)
+    +---> Tier 4: CC Native MEMORY.md (if confidence >= 0.7)
+```
+
+### Entity and Relation Extraction
+
+The skill automatically extracts entities from your text using these heuristics:
+
+- **Capitalized terms** become Technology entities (PostgreSQL, React, FastAPI)
+- **Agent names** with hyphens become Agent entities (database-engineer, backend-system-architect)
+- **Pattern names** become Pattern entities (cursor-pagination, connection-pooling)
+- **Relationship phrases** like "uses", "requires", "prefers", "chose X over Y" become typed relations (USES, REQUIRES, PREFERS, CHOSE_OVER)
+- **Failed patterns** become AntiPattern entities with an extracted lesson
+
+Graph memory stores explicit relationships between entities: `"JWT" -> USED_FOR -> "auth-service"`. This structure enables precise queries like "what does auth-service use?" -- something flat text search cannot do.
+
+## Tips
+
+<Callout type="info">
+**Store investigation context before ending a session.** Run `/ork:remember "Session summary: completed X, found Y, next steps Z"` before closing. The `auto-remember-continuity` hook captures some context automatically, but explicit summaries are richer, more reliable, and higher confidence -- meaning they are more likely to reach Tier 4 (CC Native).
+</Callout>
+
+<Callout type="info">
+**Use categories to organize decisions.** The 12 built-in categories (decision, architecture, pattern, blocker, constraint, preference, pagination, database, authentication, api, frontend, performance) make searching significantly faster. Use `--category` on both `remember` and `search` commands for precision.
+</Callout>
+
+<Callout type="info">
+**Use `--global` for cross-project wisdom.** Decisions like "always validate input at API boundaries" apply everywhere. Store them with `/ork:remember --global` and search them with `/ork:memory search --global`. They use a separate user ID (`orchestkit-global-best-practices`) so they never pollute project-specific context.
+</Callout>
+
+<Callout type="warn">
+**Duplicate detection is automatic.** If you store the same decision twice, OrchestKit detects the existing entity in the graph and adds a new observation instead of creating a duplicate. You see: "Updated existing entity (added observation)".
+</Callout>
+
+<Callout type="info">
+**Resume sessions with memory load.** Start a new session with `/ork:memory load` to pull in recent decisions, active project context, and agent-specific memories. Pair this with Claude Code's `--from-pr` flag for PR work: `claude --from-pr 123` loads the PR context, then `/ork:memory load` layers in your architecture decisions on top.
+</Callout>
+
+<Callout type="info">
+**Context budget scales automatically.** On CC 2.1.33+, skill injection budgets scale to 2% of your context window. With a 200K context window you get roughly 1200 tokens for memory injection; with 1M context you get roughly 6000 tokens. OrchestKit uses this budget to inject the most relevant decisions first, ranked by recency and confidence.
+</Callout>
+
+## Next Steps
+
+- **[Memory Overview](/docs/memory/overview)** -- Deep dive into the 4-tier architecture
+- **[Configuration](/docs/getting-started/configuration)** -- Set up environment variables including `MEM0_API_KEY`
+- **[Security Audit Cookbook](/docs/cookbook/security-audit)** -- See memory in action during a security review

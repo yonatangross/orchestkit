@@ -1,4 +1,4 @@
-name: CI Report
+name: Quality Report
 
 on:
   push:

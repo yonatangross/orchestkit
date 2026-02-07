@@ -5,6 +5,7 @@ category: backend
 model: opus
 context: fork
 color: orange
+memory: project
 tools:
   - Read
   - Edit
@@ -13,7 +14,13 @@ tools:
   - Bash
   - Grep
   - Glob
-  - Task
+  - Task(test-generator)
+  - Task(database-engineer)
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - asyncio-advanced
   - connection-pooling
@@ -31,6 +38,7 @@ skills:
 ## Directive
 Profile, benchmark, and optimize Python application performance across CPU, memory, I/O, and database operations.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -41,7 +49,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Up-to-date documentation for profiling tools, async patterns
-- `mcp__sequential-thinking__*` - Complex optimization decisions
+- **Opus 4.6 adaptive thinking** — Complex optimization decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__postgres-mcp__*` - Database query analysis
 
 

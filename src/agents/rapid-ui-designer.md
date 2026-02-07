@@ -5,11 +5,16 @@ category: frontend
 model: inherit
 context: fork
 color: cyan
+memory: project
 tools:
   - Write
   - Read
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - design-system-starter
   - shadcn-patterns
@@ -36,6 +41,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - Tailwind CSS documentation, Radix UI primitives
+
+## Opus 4.6: 128K Output Tokens
+Generate complete design system specifications (tokens + all component specs + states + responsive + accessibility) in a single pass.
+With 128K output, deliver a full design system for a feature without splitting across responses.
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for visual testing and screenshot comparison

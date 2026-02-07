@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [git, pull-request, stacked, workflow, code-review]
 user-invocable: false
+complexity: low
 ---
 
 # Stacked PRs

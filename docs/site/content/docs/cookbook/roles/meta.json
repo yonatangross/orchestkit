@@ -1,0 +1,11 @@
+{
+  "title": "By Role",
+  "pages": [
+    "backend-developer",
+    "frontend-developer",
+    "devops-engineer",
+    "ai-engineer",
+    "tech-lead",
+    "security-engineer"
+  ]
+}

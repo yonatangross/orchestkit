@@ -8,6 +8,7 @@ tags: [accessibility, wcag, a11y, aria, screen-reader, compliance]
 allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # WCAG Compliance

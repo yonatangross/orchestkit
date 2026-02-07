@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit AI Agent Hub
 tags: [golden-dataset, curation, quality, multi-agent, langfuse, 2025]
 user-invocable: false
+complexity: medium
 ---
 
 # Golden Dataset Curation

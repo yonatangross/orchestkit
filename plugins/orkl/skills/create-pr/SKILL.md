@@ -8,6 +8,7 @@ tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, security-scanning, memory]
+complexity: low
 ---
 
 # Create Pull Request

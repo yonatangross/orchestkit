@@ -8,6 +8,7 @@ tags: [curation, golden-dataset, evaluation, testing, quality-scoring, bias-dete
 user-invocable: true
 allowedTools: [Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [golden-dataset-validation, llm-evaluation, test-data-management]
+complexity: medium
 ---
 
 # Add to Golden Dataset

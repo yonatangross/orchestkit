@@ -9,7 +9,7 @@ Strategies to minimize costs while maintaining quality for vision workloads.
 | OpenAI | GPT-5 | $5.00 | ~129 tokens/tile high |
 | OpenAI | GPT-5.2 | $2.50 | 65 tokens low, 129+ high |
 | OpenAI | GPT-5.2-mini | $0.15 | Same structure, cheaper |
-| Anthropic | Claude Opus 4.5 | $5.00 | Per-image pricing |
+| Anthropic | Claude Opus 4.6 | $5.00 | Per-image pricing |
 | Anthropic | Claude Sonnet 4.5 | $3.00 | Per-image pricing |
 | Google | Gemini 2.5 Pro | $1.25 | 258 tokens base |
 | Google | Gemini 2.5 Flash | $0.15 | 258 tokens base |
@@ -146,8 +146,8 @@ def select_model_for_task(
         },
         "complex": {
             "budget": "claude-sonnet-4-5",
-            "normal": "claude-opus-4-5",
-            "quality": "claude-opus-4-5"
+            "normal": "claude-opus-4-6",
+            "quality": "claude-opus-4-6"
         }
     }
 
@@ -159,7 +159,7 @@ def select_model_for_task(
 | Scenario | Low Cost | Mid Cost | High Quality |
 |----------|----------|----------|--------------|
 | 1000 images, simple classification | $1.50 (GPT-5.2-mini, low) | $15 (GPT-5.2) | $50 (GPT-5) |
-| 100 documents, OCR | $3.87 (Gemini Flash) | $15 (Sonnet 4.5) | $50 (Opus 4.5) |
+| 100 documents, OCR | $3.87 (Gemini Flash) | $15 (Sonnet 4.5) | $50 (Opus 4.6) |
 | 50 charts, data extraction | $1.93 (Gemini Flash) | $15 (Sonnet 4.5) | $25 (GPT-5) |
 
 ## Best Practices

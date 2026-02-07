@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [best-practices, patterns, anti-patterns, mem0, learning]
 user-invocable: false
 allowedTools: [Read, Bash]
+complexity: low
 ---
 
 # Best Practices - View Your Pattern Library

@@ -24,8 +24,6 @@ import { workflowPreferenceLearner } from './workflow-preference-learner.js';
 // Issue #245: GAP-006 - mem0 cloud memory sync
 import { mem0QueueSync } from './mem0-queue-sync.js';
 // Issue #243: Additional stop hooks previously run separately
-import { multiInstanceCleanup } from './multi-instance-cleanup.js';
-import { cleanupInstance } from './cleanup-instance.js';
 import { taskCompletionCheck } from './task-completion-check.js';
 import { mem0PreCompactionSync } from './mem0-pre-compaction-sync.js';
 import { contextCompressor } from './context-compressor.js';
@@ -83,8 +81,6 @@ const HOOKS: HookConfig[] = [
   { name: 'mem0-pre-compaction-sync', fn: mem0PreCompactionSync },
 
   // --- Instance management hooks ---
-  { name: 'multi-instance-cleanup', fn: multiInstanceCleanup },
-  { name: 'cleanup-instance', fn: cleanupInstance },
   { name: 'task-completion-check', fn: taskCompletionCheck },
 
   // --- Analysis hooks ---

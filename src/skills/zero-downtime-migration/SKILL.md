@@ -8,6 +8,7 @@ tags: [database, migration, zero-downtime, expand-contract, pgroll]
 allowedTools: [Read, Write, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Zero-Downtime Migration ()

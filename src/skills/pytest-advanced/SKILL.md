@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [pytest, testing, python, markers, plugins, xdist]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Advanced Pytest Patterns

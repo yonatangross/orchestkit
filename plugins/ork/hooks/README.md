@@ -90,7 +90,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 167 hooks (all TypeScript, 6 async via fire-and-forget)
+**Total:** 119 hooks (all TypeScript, 6 async via fire-and-forget)
 ```
 
 ---
@@ -444,6 +444,12 @@ All stop hooks run in a single detached background process:
 **Skill Validation (12):** coverage-check, evidence-collector, coverage-threshold-gate, cross-instance-test-validator, di-pattern-enforcer, duplicate-code-detector, eval-metrics-collector, migration-validator, review-summary-generator, security-summary, test-pattern-validator, test-runner
 
 **Heavy Analysis (1):** full-test-suite
+
+### Security Hardening
+
+**SEC-001 — SQL Injection Prevention:** `multi-instance-cleanup` and `cleanup-instance` validate instance IDs with `/^[a-zA-Z0-9_\-.:]+$/` before shell-exec SQLite interpolation. Invalid IDs are rejected with silent success.
+
+**SEC-003 — Atomic File Writes:** `multi-instance-lock` writes lock data to a temp file (`locks.json.<pid>.tmp`) then uses `renameSync` for atomic replacement, preventing TOCTOU race conditions when multiple instances write concurrently.
 
 ### Background Worker Features
 
@@ -990,6 +996,6 @@ const bundleMap = {
 **Architecture:** 11 split bundles (381KB total) + 1 unified (324KB)
 **Hooks:** 152 TypeScript hooks (6 async)
 **Average Bundle:** ~35KB per event
-**Claude Code Requirement:** >= 2.1.27
+**Claude Code Requirement:** >= 2.1.33
 
 See the async hooks section above for detailed async hook patterns.

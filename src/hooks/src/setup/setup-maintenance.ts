@@ -28,6 +28,7 @@ import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getPluginRoot, getProjectDir, outputSilentSuccess, outputWithContext } from '../lib/common.js';
 import { getHomeDir, getTempDir } from '../lib/paths.js';
+import { isAgentTeamsActive } from '../lib/agent-teams.js';
 
 const CURRENT_VERSION = '4.25.0';
 
@@ -144,7 +145,8 @@ function taskLogRotation(pluginRoot: string): void {
 }
 
 /**
- * Task: Stale lock cleanup
+ * Task: Stale lock cleanup.
+ * Issue #362: Skips coordination DB when Agent Teams is active.
  */
 function taskStaleLockCleanup(pluginRoot: string): void {
   logHook('setup-maintenance', 'Task: Stale lock cleanup');
@@ -152,7 +154,7 @@ function taskStaleLockCleanup(pluginRoot: string): void {
   const coordDb = `${pluginRoot}/.claude/coordination/.claude.db`;
   let cleaned = 0;
 
-  if (existsSync(coordDb)) {
+  if (existsSync(coordDb) && !isAgentTeamsActive()) {
     try {
       execSync(`sqlite3 "${coordDb}" "DELETE FROM file_locks WHERE datetime(acquired_at) < datetime('now', '-24 hours');"`, {
         timeout: 5000,

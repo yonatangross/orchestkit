@@ -30,7 +30,7 @@ import { join } from 'node:path';
 
 const HOOK_NAME = 'memory-context-loader';
 const MAX_DECISIONS = 10;
-const MAX_CONTEXT_CHARS = 2000;
+const MAX_CONTEXT_CHARS = 3000;
 
 // =============================================================================
 // TYPES

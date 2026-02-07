@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [ux, personas, journey-map, empathy-map, experience]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Persona & Journey Mapping

@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [graphql, strawberry, fastapi, dataloader, subscriptions, federation, python]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Strawberry GraphQL Patterns

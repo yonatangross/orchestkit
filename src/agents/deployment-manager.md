@@ -3,6 +3,7 @@ name: deployment-manager
 description: Release and deployment specialist who manages production releases, rollback procedures, feature flags, and blue-green deployments. Focuses on zero-downtime deployments and incident response. Auto Mode keywords - deployment, release, rollback, blue-green, canary, feature flag, zero-downtime, production, rollout, incident
 category: devops
 model: inherit
+memory: project
 context: fork
 color: green
 tools:
@@ -12,6 +13,11 @@ tools:
   - Edit
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - devops-deployment
   - github-operations
@@ -31,6 +37,7 @@ hooks:
 ## Directive
 Manage production releases with zero-downtime deployments, rollback procedures, and feature flag strategies.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`

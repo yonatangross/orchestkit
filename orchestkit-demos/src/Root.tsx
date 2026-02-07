@@ -100,6 +100,30 @@ import {
   skillPhaseDemoSchema,
 } from "./components/SkillPhaseDemo";
 import { implementSkillPhasesConfig } from "./components/configs/implement-skill-phases";
+import {
+  ScrapbookDemo,
+  scrapbookDemoSchema,
+} from "./components/ScrapbookDemo";
+import {
+  ScrapbookDemoSquare,
+  scrapbookDemoSquareSchema,
+} from "./components/ScrapbookDemo-Square";
+import {
+  scrapbookShowcaseConfig,
+  scrapbookShowcaseSquareConfig,
+} from "./components/configs/scrapbook-showcase";
+import {
+  ReleaseNotes,
+  releaseNotesSchema,
+} from "./components/ReleaseNotes";
+import {
+  ReleaseNotesSquare,
+  releaseNotesSquareSchema,
+} from "./components/ReleaseNotes-Square";
+import {
+  releaseNotesV602Config,
+  releaseNotesV602SquareConfig,
+} from "./components/configs/release-notes-v602";
 
 const FPS = 30;
 const WIDTH = 1920;
@@ -200,6 +224,12 @@ export const RemotionRoot: React.FC = () => {
               <Composition id="ImplementSkillPhaseDemo" component={SkillPhaseDemo} durationInFrames={FPS * 24} fps={FPS} width={WIDTH} height={HEIGHT} schema={skillPhaseDemoSchema} defaultProps={implementSkillPhasesConfig} />
               <Composition id="ImplementPhases" component={PhaseComparison} durationInFrames={FPS * 20} fps={FPS} width={WIDTH} height={HEIGHT} schema={phaseComparisonSchema} defaultProps={implementPhasesConfig} />
             </Folder>
+            <Folder name="Scrapbook">
+              <Composition id="ScrapbookShowcase" component={ScrapbookDemo} durationInFrames={FPS * 17} fps={FPS} width={WIDTH} height={HEIGHT} schema={scrapbookDemoSchema} defaultProps={scrapbookShowcaseConfig} />
+            </Folder>
+            <Folder name="ReleaseNotes">
+              <Composition id="RN-v602" component={ReleaseNotes} durationInFrames={FPS * 14} fps={FPS} width={WIDTH} height={HEIGHT} schema={releaseNotesSchema} defaultProps={releaseNotesV602Config} />
+            </Folder>
           </Folder>
         </Folder>
 
@@ -251,6 +281,12 @@ export const RemotionRoot: React.FC = () => {
             <Composition id="BrainstormingShowcase" component={SkillShowcase} durationInFrames={FPS * 15} fps={FPS} width={1080} height={1080} schema={skillShowcaseSchema} defaultProps={{ configName: "brainstorming", primaryColor: "#f59e0b", secondaryColor: "#8b5cf6", accentColor: "#22c55e" }} />
             <Composition id="HooksAsyncDemo" component={HooksAsyncDemo} durationInFrames={FPS * 15} fps={FPS} width={1080} height={1080} schema={hooksAsyncDemoSchema} defaultProps={{ primaryColor: "#8b5cf6", secondaryColor: "#22c55e", accentColor: "#06b6d4" }} />
           </Folder>
+          <Folder name="Scrapbook">
+            <Composition id="SQ-ScrapbookShowcase" component={ScrapbookDemoSquare} durationInFrames={FPS * 11} fps={FPS} width={1080} height={1080} schema={scrapbookDemoSquareSchema} defaultProps={scrapbookShowcaseSquareConfig} />
+          </Folder>
+          <Folder name="ReleaseNotes">
+            <Composition id="SQ-RN-v602" component={ReleaseNotesSquare} durationInFrames={FPS * 12} fps={FPS} width={1080} height={1080} schema={releaseNotesSquareSchema} defaultProps={releaseNotesV602SquareConfig} />
+          </Folder>
         </Folder>
 
         {/* ==================== 📦 MARKETING (Brand & Intro) ==================== */}
@@ -272,6 +308,8 @@ export const RemotionRoot: React.FC = () => {
         <Composition id="TPL-SkillPhase" component={SkillPhaseDemo} durationInFrames={FPS * 24} fps={FPS} width={WIDTH} height={HEIGHT} schema={skillPhaseDemoSchema} defaultProps={implementSkillPhasesConfig} />
         <Composition id="TPL-Cinematic" component={CinematicDemo} durationInFrames={750} fps={FPS} width={WIDTH} height={HEIGHT} schema={cinematicDemoSchema} defaultProps={{ skillName: "implement", hook: "Full-power feature implementation", problemPoints: ["Complex features require multiple passes", "No skill injection for context", "Manual coordination between tools"], terminalVideo: "implement-demo.mp4", manimType: "task-dependency", results: { before: "Hours of manual coding", after: "Parallel subagent implementation", stats: [{ label: "Tasks", value: 8 }, { label: "Parallel", value: "Yes" }, { label: "Coverage", value: "85", suffix: "%" }] }, primaryColor: "#8b5cf6", ccVersion: "CC 2.1.16", hookDuration: 60, problemDuration: 90, manimDuration: 120, terminalDuration: 300, resultsDuration: 90, ctaDuration: 90, ...AUDIO_DEFAULTS }} />
         <Composition id="TPL-HybridVHS" component={HybridDemo} durationInFrames={FPS * 13} fps={FPS} width={WIDTH} height={HEIGHT} schema={hybridDemoSchema} defaultProps={{ skillName: "explore", hook: "Understand any codebase instantly", terminalVideo: "explore-demo.mp4", ccVersion: "CC 2.1.16", primaryColor: "#8b5cf6", showHook: true, showCTA: true, hookDuration: 45, ctaDuration: 75, ...AUDIO_DEFAULTS }} />
+        <Composition id="TPL-Scrapbook" component={ScrapbookDemo} durationInFrames={FPS * 17} fps={FPS} width={WIDTH} height={HEIGHT} schema={scrapbookDemoSchema} defaultProps={scrapbookShowcaseConfig} />
+        <Composition id="TPL-ReleaseNotes" component={ReleaseNotes} durationInFrames={FPS * 14} fps={FPS} width={WIDTH} height={HEIGHT} schema={releaseNotesSchema} defaultProps={releaseNotesV602Config} />
       </Folder>
 
       {/* ╔══════════════════════════════════════════════════════════════════════════════╗

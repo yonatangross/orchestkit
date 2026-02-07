@@ -1,0 +1,10 @@
+{
+  "title": "Agents",
+  "icon": "Bot",
+  "pages": [
+    "overview",
+    "choosing-an-agent",
+    "multi-agent-patterns",
+    "writing-agents"
+  ]
+}

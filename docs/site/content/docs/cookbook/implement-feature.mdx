@@ -1,0 +1,329 @@
+---
+title: Implement a Feature
+description: From idea to merged PR with parallel AI agents — a complete walkthrough of the /ork:implement workflow.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Files, Folder, File } from 'fumadocs-ui/components/files';
+
+The `/ork:implement` command is OrchestKit's flagship workflow. It takes a feature description, breaks it into tasks, spawns parallel agents, and shepherds the work all the way to a merged pull request. This cookbook walks through a realistic example: adding JWT authentication to a FastAPI application.
+
+## Scenario
+
+Your team needs JWT-based authentication for a FastAPI backend. The requirements include login and registration endpoints, token refresh, middleware for protected routes, and proper password hashing. Instead of implementing each piece manually, you describe the feature and let OrchestKit orchestrate the work.
+
+## What You'll Use
+
+| Component | Type | Role |
+|---|---|---|
+| `/ork:implement` | Command skill | Orchestrates the full workflow |
+| `/ork:verify` | Command skill | Parallel verification (tests, security, quality) |
+| `/ork:commit` | Command skill | Conventional commit with scope |
+| `/ork:create-pr` | Command skill | PR with summary and test plan |
+| `backend-system-architect` | Agent | Designs auth endpoints, middleware, JWT flow |
+| `test-generator` | Agent | Writes unit and integration tests |
+| `security-auditor` | Agent | Scans for OWASP vulnerabilities |
+| `code-quality-reviewer` | Agent | Style, patterns, complexity check |
+| `dangerous-command-blocker` | Hook | Prevents destructive commands |
+| `auto-lint` | Hook | Formats code on save |
+| `file-guard` | Hook | Warns about sensitive files |
+| `skill-suggester` | Hook | Injects relevant reference skills |
+
+---
+
+## Step 1: Launch the Implementation
+
+```bash
+/ork:implement "Add JWT authentication to the API"
+```
+
+OrchestKit does not start coding immediately. It first asks you to scope the work using `AskUserQuestion`:
+
+```
+How should I approach this implementation?
+
+  [1] Full-stack     — Backend auth + frontend login/signup UI
+  [2] Backend only   — Auth endpoints, middleware, JWT tokens
+  [3] Frontend only  — Login/signup UI against existing API
+  [4] Quick prototype — Minimal working auth, iterate later
+
+> 2
+```
+
+After you select **Backend only**, OrchestKit creates a task plan via `TaskCreate` and spawns three parallel agents.
+
+### Parallel Agent Execution
+
+```
+/ork:implement "Add JWT authentication to the API"
+    |
+    |  TaskCreate: 5 items, 3 parallel tracks
+    |
+    |---> backend-system-architect -------------------------+
+    |      Model: opus                                      |
+    |      Skills injected:                                 |
+    |        api-design-framework                           |
+    |        fastapi-advanced                               |
+    |        auth-patterns                                  |
+    |        auth-patterns (reference)                                |
+    |        rate-limiting                                  |
+    |        clean-architecture                             |
+    |        error-handling-rfc9457                          |
+    |      Output: endpoints, middleware, schemas            |
+    |                                                       |
+    |---> test-generator -----------------------------------+|
+    |      Model: sonnet                                    ||
+    |      Skills injected:                                 ||
+    |        pytest-advanced                                ||
+    |        integration-testing                            ||
+    |        test-data-management                          ||
+    |      Output: unit + integration tests                 ||
+    |                                                       ||
+    +---> security-auditor --------------------------------+||
+           Model: opus                                     |||
+           Skills injected:                                |||
+             owasp-top-10                                  |||
+             defense-in-depth                              |||
+             llm-safety-patterns                           |||
+             input-validation                              |||
+           Output: vulnerability scan, recommendations     |||
+                                                           |||
+    <--------------- Results merged <-----------------------+++
+```
+
+All three agents work simultaneously. The `backend-system-architect` designs the implementation while `test-generator` writes tests and `security-auditor` reviews the approach for vulnerabilities. No agent waits for another.
+
+<Callout type="info">
+Parallel agents share the same project context but write to different files. OrchestKit uses `TaskCreate` with `addBlockedBy` dependencies to prevent file conflicts -- tests depend on the implementation being written first, but the security scan runs independently from the start.
+</Callout>
+
+### What Gets Created
+
+After the agents finish, your project tree gains these files:
+
+<Files>
+  <Folder name="app" defaultOpen>
+    <Folder name="auth" defaultOpen>
+      <File name="__init__.py" />
+      <File name="router.py" />
+      <File name="dependencies.py" />
+      <File name="schemas.py" />
+      <File name="service.py" />
+      <File name="config.py" />
+    </Folder>
+    <Folder name="core">
+      <File name="security.py" />
+    </Folder>
+  </Folder>
+  <Folder name="tests" defaultOpen>
+    <Folder name="auth" defaultOpen>
+      <File name="test_router.py" />
+      <File name="test_service.py" />
+      <File name="test_dependencies.py" />
+      <File name="conftest.py" />
+    </Folder>
+    <Folder name="integration">
+      <File name="test_auth_flow.py" />
+    </Folder>
+  </Folder>
+</Files>
+
+---
+
+## Step 2: Review the Generated Code
+
+Before verifying, look at what was produced. The `backend-system-architect` follows patterns from the `api-design-framework` skill -- endpoints use plural nouns, error responses follow RFC 9457 Problem Details, and tokens use short-lived access with long-lived refresh:
+
+```python
+# app/auth/router.py (simplified)
+from fastapi import APIRouter, Depends, HTTPException, status
+from app.auth.schemas import LoginRequest, TokenResponse, UserCreate
+from app.auth.service import AuthService
+from app.auth.dependencies import get_current_user
+
+router = APIRouter(prefix="/auth", tags=["authentication"])
+
+@router.post("/register", response_model=TokenResponse, status_code=201)
+async def register(payload: UserCreate, auth: AuthService = Depends()):
+    user = await auth.register(payload)
+    return auth.create_token_pair(user.id)
+
+@router.post("/login", response_model=TokenResponse)
+async def login(payload: LoginRequest, auth: AuthService = Depends()):
+    user = await auth.authenticate(payload.email, payload.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    return auth.create_token_pair(user.id)
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh(token: str, auth: AuthService = Depends()):
+    return await auth.refresh_token(token)
+```
+
+<Callout type="warn">
+The security auditor flags any hardcoded secrets it finds. If your `config.py` contains a default JWT secret like `"changeme"`, you will see a P0 finding in Step 3 instructing you to use an environment variable instead.
+</Callout>
+
+---
+
+## Step 3: Verify Everything
+
+```bash
+/ork:verify
+```
+
+OrchestKit asks what level of verification you want:
+
+```
+Verification scope:
+
+  [1] Full       — Tests + security + code quality + performance
+  [2] Quick      — Tests + lint only
+  [3] Security   — Security-focused deep scan
+  [4] Pre-merge  — Everything, plus changelog and docs check
+
+> 1
+```
+
+Selecting **Full** spawns four parallel agents:
+
+```
+/ork:verify (Full)
+    |
+    |---> test-runner           -> pytest -x --tb=short
+    |---> security-auditor      -> OWASP scan + secrets detection
+    |---> code-quality-reviewer -> complexity, style, patterns
+    +---> performance-engineer  -> N+1 queries, startup cost
+         |
+         v
+    Unified scorecard (0-10 per category)
+```
+
+The output is a scorecard:
+
+```
+Verification Results
+=====================================================
+
+  Tests:        9/10   25 passed, 0 failed, 2 skipped
+  Security:     8/10   0 P0, 1 P1 (rate limiting recommended)
+  Quality:      9/10   Cyclomatic complexity OK, clean imports
+  Performance:  7/10   Token creation could cache JWK
+
+  Overall:      8.3/10
+
+Recommendations:
+  [P1] Add rate limiting to /auth/login (brute force protection)
+  [P2] Cache JWK set instead of reloading on each request
+  [P2] Add request_id to error responses for traceability
+
+Proceed to commit? [Y/n]
+```
+
+---
+
+## Step 4: Commit
+
+```bash
+/ork:commit
+```
+
+OrchestKit analyzes the diff, detects the scope from changed files, and generates a conventional commit:
+
+```
+Analyzing staged changes...
+
+  14 files changed, 487 insertions(+)
+
+Commit message:
+  feat(auth): add JWT authentication with login, register, and refresh
+
+  Implement complete auth flow with bcrypt password hashing,
+  short-lived access tokens (15m), and refresh token rotation.
+  Includes 25 unit/integration tests and OAuth2 middleware.
+
+  Co-Authored-By: Claude <noreply@anthropic.com>
+
+Proceed? [Y/n]
+```
+
+---
+
+## Step 5: Create the Pull Request
+
+```bash
+/ork:create-pr
+```
+
+OrchestKit generates a PR with a structured summary and test plan:
+
+```
+Created PR #47: feat(auth): add JWT authentication
+
+  ## Summary
+  - JWT auth with login, register, and token refresh endpoints
+  - OAuth2PasswordBearer middleware for protected routes
+  - bcrypt password hashing with configurable rounds
+  - 25 tests covering happy paths, error cases, and token expiry
+
+  ## Test Plan
+  - [x] Unit tests: auth service, token creation, password hashing
+  - [x] Integration tests: full register-login-refresh flow
+  - [x] Security scan: no P0 findings
+  - [ ] Manual: test with Postman/curl against dev environment
+
+  https://github.com/your-org/your-repo/pull/47
+```
+
+---
+
+## Behind the Scenes
+
+Here is what happened invisibly during this workflow.
+
+### Hooks That Fired
+
+| Hook | When | What It Did |
+|---|---|---|
+| `skill-suggester` | Step 1 prompt | Detected "JWT" and "authentication" keywords, injected `auth-patterns` and `owasp-top-10` reference skills into agent context |
+| `dangerous-command-blocker` | During coding | Blocked an `rm -rf` that would have wiped the existing `tests/` directory |
+| `file-guard` | During coding | Warned when agent attempted to write `.env` with a JWT secret -- redirected to `.env.example` |
+| `auto-lint` | After each file write | Ran `ruff format` on every Python file the agents created |
+| `git-validator` | Step 4 commit | Verified the branch name and checked for uncommitted secrets |
+| `security-command-audit` | Step 3 verify | Logged the security scan results to session metrics |
+| `auto-remember-continuity` | Session end | Stored "JWT auth implemented with refresh rotation" in the knowledge graph for future sessions |
+
+### Skills Auto-Injected
+
+Approximately 10 reference skills were loaded across the three agents without any explicit invocation:
+
+- `api-design-framework` -- REST endpoint patterns, HTTP status codes
+- `fastapi-advanced` -- Lifespan, middleware, dependency injection patterns
+- `auth-patterns` -- OAuth2 flows, token rotation, password hashing
+- `owasp-top-10` -- Injection, broken auth, security misconfiguration
+- `defense-in-depth` -- Layered security patterns
+- `rate-limiting` -- Brute force protection strategies
+- `error-handling-rfc9457` -- Problem Details standard for error responses
+- `pytest-advanced` -- Fixtures, parametrize, async test patterns
+- `integration-testing` -- End-to-end test patterns
+- `clean-architecture` -- Separation of concerns, dependency inversion
+
+---
+
+## Tips
+
+<Callout type="info">
+**Start narrow, expand later.** Choose "Backend only" or "Quick prototype" scope first. You can always run `/ork:implement` again to add frontend auth or additional features. Each run is additive.
+</Callout>
+
+<Callout type="info">
+**Memory compounds over time.** After this implementation, OrchestKit remembers that your project uses JWT with refresh rotation. Next time you work on auth-related code, this context is automatically injected -- no need to explain your auth strategy again.
+</Callout>
+
+<Callout type="warn">
+**Always run `/ork:verify` before committing.** The parallel verification catches issues that a single-agent review would miss. The security auditor once caught a timing attack vulnerability in password comparison that the quality reviewer did not flag.
+</Callout>
+
+<Callout type="info">
+**Check the scorecard thresholds.** A score below 6/10 in any category means there are blocking issues. Fix those before committing. Scores of 7-8 indicate suggestions worth considering. Scores of 9-10 mean the category is clean.
+</Callout>

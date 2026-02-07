@@ -1,0 +1,337 @@
+---
+title: "176 Skills That Power Agents"
+description: "Reference skills are the knowledge library behind OrchestKit agents -- auto-injected patterns for backend, frontend, databases, security, testing, LLM/RAG, and more."
+---
+
+## What Are Reference Skills?
+
+Reference skills are the 176 skills with `user-invocable: false` in their frontmatter. You never invoke them directly. Instead, they are automatically injected into agent context through three paths:
+
+1. **Agent frontmatter** -- Each agent declares which skills it needs. When the agent spawns, those skills load automatically.
+2. **Command skill composition** -- When you run `/ork:implement`, its `skills:` field pulls in reference skills like `api-design-framework` and `unit-testing`.
+3. **Keyword auto-suggest** -- The `skill-auto-suggest` hook detects keywords in your prompt and injects matching skills.
+
+Every reference skill declares an `agent:` field in its frontmatter, indicating which agent primarily consumes it. This creates a natural grouping by domain.
+
+---
+
+## Backend Architecture
+
+**Primary agent:** `backend-system-architect`
+
+Skills for designing and building server-side systems with Python, FastAPI, and distributed patterns.
+
+| Skill | Description |
+|-------|-------------|
+| `api-design-framework` | REST, GraphQL, and gRPC API design patterns with OpenAPI templates |
+| `api-versioning` | URI, header, and query parameter versioning strategies |
+| `asyncio-advanced` | Advanced Python asyncio patterns, task groups, and structured concurrency |
+| `aggregate-patterns` | DDD aggregate design, consistency boundaries, and event publishing |
+| `backend-architecture-enforcer` | Layer validation and architectural constraint enforcement |
+| `connection-pooling` | Database connection pool sizing, health checks, and failover |
+| `distributed-locks` | Redis and PostgreSQL advisory lock patterns for concurrency control |
+| `domain-driven-design` | Bounded contexts, entities, value objects, and repositories |
+| `error-handling-rfc9457` | RFC 9457 Problem Details for structured error responses |
+| `fastapi-advanced` | FastAPI dependency injection, middleware, background tasks |
+| `grpc-python` | gRPC service definitions and Python implementations |
+| `idempotency-patterns` | Idempotency keys, deduplication, and safe retry patterns |
+| `mcp-server-building` | Building MCP servers for Claude Code extensibility |
+| `rate-limiting` | Token bucket, sliding window, and tiered rate limiting |
+| `resilience-patterns` | Circuit breakers, bulkheads, retries, and fallbacks |
+| `sqlalchemy-2-async` | SQLAlchemy 2.0 async engine, sessions, and query patterns |
+| `strawberry-graphql` | Strawberry GraphQL with FastAPI integration |
+
+---
+
+## Frontend and UI
+
+**Primary agent:** `frontend-ui-developer`
+
+Skills for React, Next.js, and modern frontend development.
+
+| Skill | Description |
+|-------|-------------|
+| `biome-linting` | Biome linter and formatter configuration |
+| `core-web-vitals` | LCP, FID, CLS optimization patterns |
+| `dashboard-patterns` | Data dashboard layout, charts, and real-time update patterns |
+| `edge-computing-patterns` | Edge runtime, middleware, and CDN optimization |
+| `form-state-patterns` | Form state management with React Hook Form and Zod |
+| `i18n-date-patterns` | Internationalization, locale-aware dates, and number formatting |
+| `image-optimization` | Next.js Image, responsive images, and lazy loading |
+| `lazy-loading-patterns` | Code splitting, dynamic imports, and suspense boundaries |
+| `pwa-patterns` | Progressive web app: service workers, offline, and push notifications |
+| `radix-primitives` | Radix UI unstyled primitive components |
+| `react-server-components-framework` | Next.js 16+ App Router, RSC, Cache Components, Server Actions |
+| `recharts-patterns` | Recharts data visualization patterns and responsive charts |
+| `render-optimization` | React rendering performance, memoization, and virtual lists |
+| `responsive-patterns` | Container queries, fluid typography, and responsive layouts |
+| `scroll-driven-animations` | CSS scroll-driven animations and intersection observer |
+| `shadcn-patterns` | shadcn/ui component patterns and customization |
+| `streaming-api-patterns` | Server-Sent Events, WebSocket, and streaming fetch |
+| `tanstack-query-advanced` | TanStack Query caching, prefetching, and optimistic updates |
+| `type-safety-validation` | TypeScript strict mode, Zod schemas, and type narrowing |
+| `view-transitions` | View Transitions API for smooth page and state transitions |
+| `vite-advanced` | Vite configuration, plugins, and build optimization |
+| `zustand-patterns` | Zustand state management patterns and middleware |
+
+---
+
+## Database
+
+**Primary agent:** `database-engineer`
+
+Skills for schema design, migrations, vector search, and database operations.
+
+| Skill | Description |
+|-------|-------------|
+| `alembic-migrations` | Alembic migration generation, autogenerate, and rollback |
+| `database-schema-designer` | Schema design, normalization, indexing strategies |
+| `database-versioning` | Database version control and schema evolution |
+| `pgvector-search` | PGVector HNSW + BM25 hybrid search with Reciprocal Rank Fusion |
+| `zero-downtime-migration` | Online schema changes, shadow tables, and dual-write patterns |
+
+---
+
+## Testing
+
+**Primary agent:** `test-generator`
+
+Skills for test strategy, frameworks, and quality enforcement.
+
+| Skill | Description |
+|-------|-------------|
+| `a11y-testing` | Accessibility testing with axe, screen readers, and ARIA |
+| `browser-automation` | Playwright browser automation and scraping patterns |
+| `contract-testing` | Consumer-driven contract testing with Pact |
+| `e2e-testing` | End-to-end testing strategies with Playwright |
+| `integration-testing` | Integration test patterns, fixtures, and database isolation |
+| `llm-testing` | Testing LLM applications: determinism, evaluation, mocking |
+| `msw-mocking` | Mock Service Worker for API mocking in tests |
+| `property-based-testing` | Hypothesis and property-based test generation |
+| `pytest-advanced` | Advanced pytest fixtures, parametrize, and plugin patterns |
+| `test-data-management` | Test data factories, fixtures, and seeding strategies |
+| `test-standards-enforcer` | Test naming conventions, coverage targets, and quality rules |
+| `unit-testing` | Unit test AAA pattern, isolation, and coverage targets |
+| `vcr-http-recording` | HTTP interaction recording and replay for tests |
+| `webapp-testing` | Full-stack web application test strategies |
+
+---
+
+## Security
+
+**Primary agent:** `security-auditor`
+
+Skills for application security, authentication, and vulnerability prevention.
+
+| Skill | Description |
+|-------|-------------|
+| `auth-patterns` | JWT, OAuth2, passkey/WebAuthn, and session management |
+| `input-validation` | Input sanitization, type coercion, and injection prevention |
+| `llm-safety-patterns` | Prompt injection defense, output filtering, and safety guardrails |
+| `mcp-security-hardening` | MCP server security: auth, rate limiting, and sandboxing |
+| `owasp-top-10` | OWASP Top 10 vulnerabilities and mitigations |
+| `security-scanning` | SAST, DAST, dependency scanning, and secret detection |
+
+---
+
+## LLM, RAG, and AI
+
+**Primary agent:** `llm-integrator`
+
+Skills for building AI-powered applications with retrieval, evaluation, and inference optimization.
+
+| Skill | Description |
+|-------|-------------|
+| `fine-tuning-customization` | LLM fine-tuning strategies, data preparation, and evaluation |
+| `function-calling` | Tool/function calling patterns for Claude and OpenAI models |
+| `high-performance-inference` | Inference optimization: batching, quantization, and caching |
+| `llm-evaluation` | LLM evaluation frameworks, metrics, and benchmarking |
+| `llm-streaming` | Streaming LLM responses, token-by-token rendering |
+| `mcp-advanced-patterns` | Advanced MCP patterns: composable tools, streaming, multi-server |
+| `ollama-local` | Ollama local model deployment and inference |
+| `prompt-caching` | Prompt caching strategies for cost reduction |
+| `prompt-engineering-suite` | Prompt design patterns, chain-of-thought, and few-shot |
+
+---
+
+## Data Pipelines and RAG
+
+**Primary agent:** `data-pipeline-engineer`
+
+Skills for data processing, retrieval-augmented generation, and caching.
+
+| Skill | Description |
+|-------|-------------|
+| `agentic-rag-patterns` | Agentic RAG with routing, self-correction, and adaptive retrieval |
+| `background-jobs` | Background task queues with Celery, Redis, and async workers |
+| `browser-content-capture` | Web content extraction and structured data capture |
+| `caching-strategies` | Redis caching: write-through, write-behind, cache-aside |
+| `contextual-retrieval` | Contextual retrieval with document chunking and metadata |
+| `devops-deployment` | CI/CD pipelines, Docker, and deployment automation |
+| `embeddings` | Text embedding models, vector stores, and similarity search |
+| `golden-dataset-curation` | Golden dataset creation, validation, and quality scoring |
+| `golden-dataset-management` | Dataset versioning, storage, and lifecycle management |
+| `golden-dataset-validation` | Dataset quality validation, bias detection, and coverage analysis |
+| `hyde-retrieval` | Hypothetical Document Embeddings for improved retrieval |
+| `query-decomposition` | Complex query decomposition into sub-queries |
+| `rag-retrieval` | RAG pipeline patterns: indexing, retrieval, generation |
+| `reranking-patterns` | Cross-encoder reranking and Reciprocal Rank Fusion |
+| `semantic-caching` | Semantic similarity caching for LLM responses |
+
+---
+
+## LangGraph Workflows
+
+**Primary agent:** `workflow-architect`
+
+Skills for building stateful, multi-step AI workflows with LangGraph.
+
+| Skill | Description |
+|-------|-------------|
+| `agent-loops` | Agent loop patterns: ReAct, plan-and-execute, reflection |
+| `alternative-agent-frameworks` | Comparison of CrewAI, AutoGen, and LangGraph |
+| `langgraph-checkpoints` | LangGraph state persistence and checkpoint management |
+| `langgraph-functional` | LangGraph functional API for stateless graph definitions |
+| `langgraph-human-in-loop` | Human-in-the-loop patterns with interrupts and approvals |
+| `langgraph-parallel` | Parallel node execution and fan-out/fan-in patterns |
+| `langgraph-routing` | Conditional routing and dynamic edge selection |
+| `langgraph-state` | State management: TypedDict, Pydantic, and Annotated operators |
+| `langgraph-streaming` | Token and event streaming from LangGraph workflows |
+| `langgraph-subgraphs` | Nested subgraphs and modular workflow composition |
+| `langgraph-supervisor` | Multi-agent supervisor patterns with delegation |
+| `langgraph-tools` | Tool integration and function calling in LangGraph nodes |
+| `multi-agent-orchestration` | Multi-agent coordination patterns and protocols |
+| `multi-scenario-orchestration` | Complex multi-scenario workflow orchestration |
+| `task-dependency-patterns` | Task dependency graphs and parallel execution |
+| `temporal-io` | Temporal.io durable execution and workflow patterns |
+
+---
+
+## Event-Driven Architecture
+
+**Primary agent:** `event-driven-architect`
+
+| Skill | Description |
+|-------|-------------|
+| `cqrs-patterns` | Command Query Responsibility Segregation patterns |
+| `event-sourcing` | Event sourcing, projections, and event store patterns |
+| `message-queues` | RabbitMQ, Kafka, and Redis Streams messaging patterns |
+| `outbox-pattern` | Transactional outbox for reliable event publishing |
+| `saga-patterns` | Saga orchestration and choreography for distributed transactions |
+
+---
+
+## Observability and Metrics
+
+**Primary agents:** `metrics-architect`, `monitoring-engineer`
+
+| Skill | Description |
+|-------|-------------|
+| `cache-cost-tracking` | Cache hit/miss tracking and cost attribution |
+| `drift-detection` | Configuration and infrastructure drift detection |
+| `langfuse-observability` | LangFuse tracing for LLM application observability |
+| `observability-monitoring` | OpenTelemetry, Prometheus, Grafana, and alerting |
+| `okr-kpi-patterns` | OKR/KPI definition, tracking, and dashboard patterns |
+| `pii-masking-patterns` | PII detection and masking in logs and data streams |
+| `performance-testing` | Load testing with k6, Locust, and benchmark design |
+| `silent-failure-detection` | Detecting silent failures in distributed systems |
+
+---
+
+## Code Quality
+
+**Primary agent:** `code-quality-reviewer`
+
+| Skill | Description |
+|-------|-------------|
+| `clean-architecture` | SOLID, hexagonal architecture, ports and adapters |
+| `code-review-playbook` | Code review checklists, feedback patterns, and review culture |
+| `evidence-verification` | Evidence-based code verification and claim validation |
+| `project-structure-enforcer` | Project structure conventions and directory validation |
+| `quality-gates` | Quality gate definitions, metrics thresholds, and CI enforcement |
+
+---
+
+## Video and Demo Production
+
+**Primary agent:** `demo-producer`
+
+| Skill | Description |
+|-------|-------------|
+| `audio-mixing-patterns` | Audio mixing, ducking, and soundtrack composition |
+| `content-type-recipes` | Video content type templates: tutorials, demos, showcases |
+| `elevenlabs-narration` | ElevenLabs text-to-speech narration generation |
+| `heygen-avatars` | HeyGen AI avatar video generation (deprecated) |
+| `hook-formulas` | Video hook formulas for viewer retention |
+| `music-sfx-selection` | Music and sound effect selection for video |
+| `narration-scripting` | Narration script writing and pacing |
+| `scene-intro-cards` | Scene introduction card design and animation |
+| `thumbnail-first-frame` | Thumbnail and first-frame optimization |
+| `video-pacing` | Video pacing, timing, and rhythm patterns |
+| `video-storyboarding` | Video storyboard creation and shot planning |
+
+---
+
+## Additional Domains
+
+Skills spanning accessibility, UX research, product strategy, and more.
+
+| Skill | Agent | Description |
+|-------|-------|-------------|
+| `focus-management` | accessibility-specialist | Keyboard focus management and focus traps |
+| `react-aria-patterns` | accessibility-specialist | React Aria accessible component patterns |
+| `wcag-compliance` | accessibility-specialist | WCAG 2.2 compliance guidelines and testing |
+| `persona-journey-mapping` | ux-researcher | User persona creation and journey mapping |
+| `user-research-methods` | ux-researcher | User research methods: interviews, surveys, usability |
+| `business-case-analysis` | business-case-builder | ROI analysis, business case templates |
+| `design-system-starter` | rapid-ui-designer | Design system bootstrapping and token systems |
+| `motion-animation-patterns` | rapid-ui-designer | CSS and JS animation patterns |
+| `market-analysis-patterns` | market-intelligence | Market analysis frameworks and competitive research |
+| `product-strategy-frameworks` | product-strategist | Product strategy: RICE, MoSCoW, Kano |
+| `prioritization-frameworks` | prioritization-analyst | Prioritization methods and scoring models |
+| `requirements-engineering` | requirements-translator | Requirements gathering, user stories, acceptance criteria |
+| `system-design-interrogation` | system-design-reviewer | System design review questions and evaluation |
+| `platform-upgrade-knowledge` | deployment-manager | Platform upgrade procedures and compatibility |
+
+---
+
+## Cross-Cutting Skills
+
+These skills do not declare an `agent:` field. They serve multiple agents or the core system.
+
+| Skill | Description |
+|-------|-------------|
+| `ascii-visualizer` | ASCII art diagram generation for architecture visualization |
+| `best-practices` | General software engineering best practices |
+| `context-compression` | Context window optimization and compression techniques |
+| `context-engineering` | Context engineering patterns for LLM applications |
+| `git-workflow` | Git branching, atomic commits, and recovery patterns |
+| `github-operations` | GitHub CLI operations: issues, milestones, releases |
+| `mem0-memory` | Mem0 cloud memory integration scripts |
+| `memory-fabric` | Graph-first memory orchestration across tiers |
+| `monorepo-context` | Monorepo navigation and context management |
+| `performance-optimization` | General performance optimization patterns |
+| `release-management` | Release workflows, semantic versioning, changelogs |
+| `run-tests` | Test runner orchestration and result parsing |
+| `skill-analyzer` | Skill content analysis and optimization recommendations |
+| `stacked-prs` | Multi-PR development with dependent pull requests |
+| `web-research-workflow` | Web research with Tavily search, extract, and mapping |
+
+---
+
+## How Reference Skills Get to Agents
+
+The connection between a reference skill and its agent is bidirectional:
+
+1. **Skill side:** The skill's `agent:` frontmatter field declares which agent owns it (e.g., `agent: database-engineer`).
+2. **Agent side:** The agent's frontmatter `skills:` array lists the skills it needs.
+
+When the `database-engineer` agent spawns, Claude Code reads its frontmatter, finds the `skills:` array, and injects each listed skill's content into the agent's context window. The agent then has immediate access to all the patterns, examples, and checklists those skills contain.
+
+---
+
+## What's Next
+
+- [23 Command Skills](/docs/skills/command-skills) -- The commands that orchestrate these reference skills.
+- [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How everything fits together.
+- [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Add reference skills for your own domain.

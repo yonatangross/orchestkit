@@ -7,6 +7,7 @@ version: 2.0.0
 tags: [msw, testing, mocking, frontend]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # MSW (Mock Service Worker) 2.x

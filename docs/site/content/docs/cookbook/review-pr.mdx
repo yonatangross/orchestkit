@@ -1,0 +1,269 @@
+---
+title: Review a Pull Request
+description: AI-powered code review with 6 parallel specialized agents that catch security, performance, and quality issues.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:review-pr` command runs a multi-agent code review against any pull request. Six specialized agents analyze the diff in parallel, each focused on a different dimension of code quality. The results are synthesized into a single, actionable PR comment. This cookbook walks through reviewing a payment processing PR.
+
+## Scenario
+
+A teammate opens PR #42 that adds a Stripe payment processing endpoint to your FastAPI backend. The PR is 420 lines across 9 files: a new router, service layer, webhook handler, database migration, and tests. You want a thorough review before merging code that handles real money.
+
+## What You'll Use
+
+| Component | Type | Role |
+|---|---|---|
+| `/ork:review-pr` | Command skill | Orchestrates the multi-agent review |
+| `code-quality-reviewer` | Agent | Style, patterns, complexity |
+| `security-auditor` | Agent | Injection, XSS, secrets, OWASP |
+| `test-generator` | Agent | Missing test coverage |
+| `performance-engineer` | Agent | N+1 queries, bundle size, latency |
+| `backend-system-architect` | Agent | API design, error handling, contracts |
+| `accessibility-specialist` | Agent | A11y issues (if frontend changes present) |
+| `pr-size-warning` | Hook | Detects large PRs and warns about review difficulty |
+| `security-command-audit` | Hook | Logs security findings |
+| `skill-suggester` | Hook | Injects payment and Stripe reference skills |
+
+---
+
+## Step 1: Start the Review
+
+```bash
+/ork:review-pr 42
+```
+
+OrchestKit fetches the PR metadata from GitHub using `gh pr view 42` and asks for your review focus:
+
+```
+PR #42: "Add Stripe payment processing endpoint"
+  Author: @teammate  |  +312 / -108  |  9 files  |  base: main
+
+Review focus:
+
+  [1] Full        — All 6 agents: security, quality, tests, performance, design, a11y
+  [2] Security    — Deep security-only scan (2 agents)
+  [3] Performance — Latency, queries, resource usage
+  [4] Quick       — Quality + tests only (fast, 2 agents)
+
+> 1
+```
+
+Selecting **Full** launches all six agents against the PR diff.
+
+---
+
+## Step 2: Six Parallel Agents Analyze the Diff
+
+```
+/ork:review-pr 42 (Full)
+    |
+    |  Fetches diff: gh pr diff 42
+    |  Fetches files: 9 changed files
+    |
+    |---> code-quality-reviewer ----------------------------+
+    |      Skills: code-review-playbook, clean-architecture  |
+    |      Focus: naming, complexity, DRY, patterns          |
+    |                                                        |
+    |---> security-auditor ---------------------------------+|
+    |      Skills: owasp-top-10, defense-in-depth,          ||
+    |              input-validation, security-scanning       ||
+    |      Focus: injection, auth bypass, exposed secrets    ||
+    |                                                       ||
+    |---> test-generator -----------------------------------+||
+    |      Skills: pytest-advanced, integration-testing     |||
+    |      Focus: missing coverage, edge cases, mocks       |||
+    |                                                      |||
+    |---> performance-engineer ----------------------------+|||
+    |      Skills: performance-optimization, caching-strategies  ||||
+    |      Focus: N+1 queries, connection pooling, latency ||||
+    |                                                     ||||
+    |---> backend-system-architect -----------------------+|||||
+    |      Skills: api-design-framework,                 ||||||
+    |              error-handling-rfc9457                 ||||||
+    |      Focus: API contracts, error responses         ||||||
+    |                                                   ||||||
+    +---> accessibility-specialist ---------------------+|||||||
+           Skills: wcag-patterns, aria-guidelines       ||||||||
+           Focus: a11y (skipped -- no frontend files)   ||||||||
+                                                        ||||||||
+    <----------- Results synthesized <------------------++++++++
+```
+
+Each agent receives the full diff plus relevant skill context. The `accessibility-specialist` detects that all 9 changed files are backend Python files, reports "no frontend changes detected", and completes in under a second. The remaining five agents work in parallel.
+
+<Callout type="info">
+The `pr-size-warning` hook fires immediately when it counts 420 changed lines. It injects a note into the review context: "Large PR (420 lines). Consider whether this should have been split into smaller PRs." This note appears in the final review output.
+</Callout>
+
+---
+
+## Step 3: Review Results
+
+After all agents complete (typically 30-90 seconds for a full review), OrchestKit synthesizes their findings into a structured report:
+
+```
+PR #42 Review — "Add Stripe payment processing endpoint"
+=====================================================
+
+Quality:      8/10
+Security:     6/10   <- 1 P0, 2 P1 findings
+Tests:        7/10   3 missing test cases identified
+Performance:  9/10   No N+1 queries detected
+Design:       8/10   1 API contract suggestion
+A11y:         --     No frontend changes
+
+------------------------------------------------------
+
+SECURITY (security-auditor)
+
+  [P0] Webhook signature not verified
+       File: app/payments/webhook.py:34
+       The Stripe webhook handler processes events without
+       verifying the signature header. An attacker could forge
+       webhook payloads to credit accounts.
+       Fix: Use stripe.Webhook.construct_event() with your
+       webhook signing secret.
+
+  [P1] Stripe secret key in default parameter
+       File: app/payments/config.py:12
+       STRIPE_SECRET_KEY has a default value of "sk_test_..."
+       in the config. This will leak to version control.
+       Fix: Remove the default. Require it via env variable
+       with no fallback.
+
+  [P1] No idempotency key on charge creation
+       File: app/payments/service.py:67
+       stripe.PaymentIntent.create() is called without an
+       idempotency_key. Network retries could create duplicate
+       charges.
+       Fix: Accept an idempotency key from the client or
+       generate one from the order ID.
+
+------------------------------------------------------
+
+QUALITY (code-quality-reviewer)
+
+  [Suggestion] Extract Stripe client initialization
+       File: app/payments/service.py:15-22
+       Stripe is initialized inline in three methods. Extract
+       to a shared dependency or lifespan handler.
+
+  [Suggestion] PaymentService has 8 methods (complexity: medium)
+       Consider splitting webhook handling into a separate
+       WebhookService class.
+
+------------------------------------------------------
+
+TESTS (test-generator)
+
+  Missing test cases:
+    1. Webhook with invalid signature -> should return 400
+    2. Duplicate payment intent (idempotency) -> should not double-charge
+    3. Stripe API timeout -> should return 502 with retry-after
+
+  Coverage estimate: 74% (target: 85%)
+
+------------------------------------------------------
+
+DESIGN (backend-system-architect)
+
+  [Suggestion] POST /payments/charge returns 200 on success
+       Recommend 201 Created with a Location header pointing
+       to the payment resource: /payments/{payment_id}
+
+------------------------------------------------------
+
+PR SIZE WARNING: 420 lines across 9 files. Consider splitting
+webhook handling into a separate PR for easier review.
+```
+
+---
+
+## Step 4: Post to GitHub
+
+OrchestKit asks whether to post the review as a PR comment:
+
+```
+Post this review as a comment on PR #42? [Y/n]
+> Y
+
+Review posted to PR #42
+  https://github.com/your-org/your-repo/pull/42#issuecomment-1234567
+```
+
+The comment uses GitHub markdown with collapsible sections for each category, so it does not overwhelm the PR conversation. Security P0 findings are always expanded and highlighted.
+
+<Callout type="warn">
+P0 security findings block the review with a "Changes Requested" status. P1 findings are flagged but do not block. P2 findings are informational suggestions. The webhook signature vulnerability in this example is a P0 -- the PR should not merge until it is fixed.
+</Callout>
+
+---
+
+## Behind the Scenes
+
+### How the Review Diff is Distributed
+
+OrchestKit does not send the entire diff to every agent. It routes files intelligently:
+
+| Agent | Files Received | Rationale |
+|---|---|---|
+| `security-auditor` | All 9 files | Security must see everything |
+| `code-quality-reviewer` | All 9 files | Style applies everywhere |
+| `test-generator` | Test files + source files they test | Needs both to assess coverage |
+| `performance-engineer` | Service + migration files | Where query and latency issues live |
+| `backend-system-architect` | Router + schema files | API surface area |
+| `accessibility-specialist` | Frontend files only | Skipped when none exist |
+
+### Hooks That Fired
+
+| Hook | When | What It Did |
+|---|---|---|
+| `pr-size-warning` | PR fetched | Detected 420 lines, injected size warning into review |
+| `skill-suggester` | Review started | Detected "payment" and "Stripe" keywords, injected `input-validation` and `api-design-framework` reference skills |
+| `security-command-audit` | After security scan | Logged the P0 finding to session metrics and audit trail |
+| `auto-remember-continuity` | Review complete | Stored "PR #42 has unverified webhook signatures" in memory for follow-up |
+
+### Security Severity Levels
+
+Each security finding is assigned a severity that maps to review actions:
+
+| Severity | Meaning | Review Action |
+|---|---|---|
+| P0 | Exploitable vulnerability | Changes Requested -- blocks merge |
+| P1 | Real issue, requires specific conditions | Flagged -- fix before production |
+| P2 | Hardening suggestion | Informational -- consider improving |
+
+### Skills Auto-Injected
+
+Each agent received its standard skill set plus context-specific skills detected by the `skill-suggester` hook:
+
+- `code-review-playbook` -- Structured review methodology
+- `owasp-top-10` -- Common web vulnerability patterns
+- `defense-in-depth` -- Layered security approach
+- `api-design-framework` -- REST conventions, status codes, error formats
+- `error-handling-rfc9457` -- Problem Details standard
+- `pytest-advanced` -- Test patterns, fixtures, parametrize
+- `performance-optimization` -- N+1 detection, bundle analysis
+- `clean-architecture` -- Separation of concerns, dependency boundaries
+
+---
+
+## Tips
+
+<Callout type="info">
+**Use "Quick" for small PRs.** If the PR is under 100 lines and touches well-tested code, the Quick review (quality + tests only) runs in under 15 seconds. Save the Full review for complex or sensitive changes.
+</Callout>
+
+<Callout type="info">
+**Re-review after fixes.** After the author pushes fixes for the P0 finding, run `/ork:review-pr 42` again. OrchestKit fetches the updated diff and verifies the fixes are correct. It also checks that the fix did not introduce new issues.
+</Callout>
+
+<Callout type="warn">
+**Security findings use severity levels intentionally.** P0 means "do not merge" -- the code has a vulnerability that could be exploited. P1 means "fix before production" -- the issue is real but requires specific conditions. P2 means "consider improving" -- a hardening suggestion rather than a vulnerability.
+</Callout>
+
+<Callout type="info">
+**Combine with `/ork:verify` for pre-merge confidence.** Run `/ork:review-pr` for the review comment, then `/ork:verify` locally to confirm tests pass and the security scan is clean. This catches issues that a diff-only review cannot detect, such as tests that pass individually but fail together.
+</Callout>

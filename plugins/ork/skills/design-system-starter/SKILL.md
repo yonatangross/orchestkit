@@ -7,6 +7,7 @@ version: 1.0.0
 author: AI Agent Hub
 tags: [design-system, ui, components, design-tokens, accessibility, frontend]
 user-invocable: false
+complexity: low
 ---
 
 # Design System Starter

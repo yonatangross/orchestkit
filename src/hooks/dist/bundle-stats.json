@@ -1,41 +1,41 @@
 {
-  "generatedAt": "2026-02-05T12:29:31.170Z",
-  "buildTimeMs": 103,
+  "generatedAt": "2026-02-07T12:00:52.247Z",
+  "buildTimeMs": 129,
   "mode": "split",
   "bundles": {
     "permission": {
-      "size": 12073,
-      "sizeKB": "11.79",
+      "size": 12206,
+      "sizeKB": "11.92",
       "exports": 51
     },
     "pretool": {
-      "size": 55309,
-      "sizeKB": "54.01",
+      "size": 52017,
+      "sizeKB": "50.80",
       "exports": 60
     },
     "posttool": {
-      "size": 78877,
-      "sizeKB": "77.03",
+      "size": 77736,
+      "sizeKB": "75.91",
       "exports": 44
     },
     "prompt": {
-      "size": 81008,
-      "sizeKB": "79.11",
+      "size": 81247,
+      "sizeKB": "79.34",
       "exports": 102
     },
     "lifecycle": {
-      "size": 44145,
-      "sizeKB": "43.11",
+      "size": 45046,
+      "sizeKB": "43.99",
       "exports": 44
     },
     "stop": {
-      "size": 83880,
-      "sizeKB": "81.91",
+      "size": 79430,
+      "sizeKB": "77.57",
       "exports": 44
     },
     "subagent": {
-      "size": 69865,
-      "sizeKB": "68.23",
+      "size": 73263,
+      "sizeKB": "71.55",
       "exports": 75
     },
     "notification": {
@@ -44,29 +44,29 @@
       "exports": 35
     },
     "setup": {
-      "size": 38134,
-      "sizeKB": "37.24",
+      "size": 36510,
+      "sizeKB": "35.65",
       "exports": 35
     },
     "skill": {
-      "size": 56181,
-      "sizeKB": "54.86",
+      "size": 56352,
+      "sizeKB": "55.03",
       "exports": 44
     },
     "agent": {
-      "size": 11857,
-      "sizeKB": "11.58",
+      "size": 11990,
+      "sizeKB": "11.71",
       "exports": 51
     },
     "hooks": {
-      "size": 341195,
-      "sizeKB": "333.20",
+      "size": 334711,
+      "sizeKB": "326.87",
       "exports": 151,
       "unified": true
     }
   },
-  "totalSize": 540956,
-  "totalSizeKB": "528.28",
-  "inputs": 46,
-  "avgBundleSizeKB": "48.03"
+  "totalSize": 535424,
+  "totalSizeKB": "522.88",
+  "inputs": 45,
+  "avgBundleSizeKB": "47.53"
 }

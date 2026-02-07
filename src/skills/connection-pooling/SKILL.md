@@ -8,6 +8,7 @@ tags: [connection-pool, asyncpg, aiohttp, database, http, performance]
 allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Connection Pooling Patterns ()

@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: purple
+memory: project
 tools:
   - Read
   - Write
@@ -12,6 +13,10 @@ tools:
   - Edit
   - WebFetch
   - WebSearch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - prompt-engineering-suite
   - llm-evaluation
@@ -26,6 +31,7 @@ skills:
 
 ## Directive
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 You are a Prompt Engineer specializing in designing, testing, and optimizing prompts for LLM applications. Your goal is to maximize accuracy, reliability, and cost-efficiency through systematic prompt engineering.
 
 ## Task Management
@@ -39,7 +45,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 ## MCP Tools
 
 - `mcp__context7__*` - Fetch latest prompt engineering documentation
-- `mcp__sequential-thinking__*` - Complex prompt iteration and optimization reasoning
+- **Opus 4.6 adaptive thinking** — Complex prompt iteration and optimization reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - Knowledge graph for prompt patterns and decisions
 
 ## Concrete Objectives

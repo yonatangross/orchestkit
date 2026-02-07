@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [skill-management, evolution, versioning, analytics]
 user-invocable: true
 allowedTools: [Read, Write, Edit, Grep, Glob]
+complexity: medium
 ---
 
 # Skill Evolution Manager

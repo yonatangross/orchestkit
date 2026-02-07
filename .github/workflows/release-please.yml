@@ -21,7 +21,7 @@
 #
 # Reference: https://github.com/googleapis/release-please
 
-name: Release Please
+name: Release
 
 on:
   push:

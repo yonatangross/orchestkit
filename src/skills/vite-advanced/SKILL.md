@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 tags: [vite, build, bundler, plugins, ssr, library-mode, environment-api, optimization]
 user-invocable: false
+complexity: medium
 ---
 
 # Vite Advanced Patterns

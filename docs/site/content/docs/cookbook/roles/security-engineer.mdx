@@ -1,0 +1,42 @@
+---
+title: "Security Engineer"
+description: "OrchestKit toolkit for security engineers"
+---
+
+## You're a security engineer. Here's your toolkit.
+
+You hunt vulnerabilities, audit dependencies, harden LLM integrations, and make sure nothing leaves the pipeline without passing your checks. OrchestKit gives you 6 skills covering OWASP Top 10, defense-in-depth, LLM safety, MCP hardening, guardrails, and input validation -- plus 3 agents running on Opus that can scan for CVEs, red-team AI systems, and verify all 8 security layers. The agents run automated tools like bandit, pip-audit, and npm audit in parallel, then correlate findings into a graded scorecard with file-and-line references.
+
+## Your Skills
+
+| Skill | What it does |
+|---|---|
+| `owasp-top-10` | All 10 OWASP 2021 categories with vulnerable-vs-secure code examples and mitigation patterns |
+| `defense-in-depth` | 8-layer validation model from edge to storage -- no single point of failure in your security posture |
+| `llm-safety-patterns` | Prompt injection defense, context separation, output validation, and hallucination prevention for LLM systems |
+| `mcp-security-hardening` | MCP server security with tool poisoning prevention, input sanitization, and permission allowlists |
+| `advanced-guardrails` | NeMo, Guardrails AI, and OpenAI rails for input/output filtering, toxicity detection, and red-teaming |
+| `input-validation` | Injection prevention patterns with Zod and Pydantic at every input boundary -- SQL, XSS, command, path traversal |
+
+## Your Agents
+
+| Agent | Model | Activates when... |
+|---|---|---|
+| `security-auditor` | opus | security, vulnerability, CVE, audit, OWASP, injection, XSS, CSRF, secrets, npm audit, bandit |
+| `ai-safety-auditor` | opus | safety audit, red team, guardrails, jailbreak, prompt injection, OWASP LLM, MCP security |
+| `security-layer-auditor` | opus | security layer, defense-in-depth, 8 layers, comprehensive security verification |
+
+## Your Workflows
+
+- **[Run a Security Audit](/docs/cookbook/security-audit)** -- Full 8-layer defense-in-depth scan with P0/P1/P2 severity findings, OWASP mapping, and remediation steps
+- **[Fix a GitHub Issue](/docs/cookbook/fix-github-issue)** -- Investigate and fix security-related issues with automated testing to verify the vulnerability is resolved
+
+## Quick Start
+
+Try this right now:
+
+```bash
+/ork:verify --scope=security
+```
+
+Three Opus agents scan your codebase in parallel: `security-auditor` runs bandit, pip-audit, and secrets detection; `ai-safety-auditor` checks for prompt injection and LLM-specific threats; `security-layer-auditor` verifies all 8 defense layers. You get a graded scorecard with every finding linked to a file, line number, and OWASP category.

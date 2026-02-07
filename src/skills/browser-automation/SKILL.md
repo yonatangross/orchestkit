@@ -8,6 +8,7 @@ author: OrchestKit AI Agent Hub
 tags: [browser, automation, headless, scraping, vercel, agent-browser]
 user-invocable: false
 allowedTools: [Bash, Read, Write]
+complexity: medium
 ---
 
 # Browser Automation with agent-browser

@@ -32,14 +32,6 @@ vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({
   patternSyncPull: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
 
-vi.mock('../../lifecycle/multi-instance-init.js', () => ({
-  multiInstanceInit: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
-vi.mock('../../lifecycle/instance-heartbeat.js', () => ({
-  instanceHeartbeat: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
 vi.mock('../../lifecycle/session-env-setup.js', () => ({
   sessionEnvSetup: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -56,8 +48,6 @@ vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({
 import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js';
 import { mem0AnalyticsTracker } from '../../lifecycle/mem0-analytics-tracker.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
-import { multiInstanceInit } from '../../lifecycle/multi-instance-init.js';
-import { instanceHeartbeat } from '../../lifecycle/instance-heartbeat.js';
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
 import { sessionTracking } from '../../lifecycle/session-tracking.js';
 import { memoryMetricsCollector } from '../../lifecycle/memory-metrics-collector.js';
@@ -196,22 +186,6 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('pattern-sync-pull');
     });
 
-    test('includes multi-instance-init', () => {
-      // Act
-      const names = registeredHookNames();
-
-      // Assert
-      expect(names).toContain('multi-instance-init');
-    });
-
-    test('includes instance-heartbeat', () => {
-      // Act
-      const names = registeredHookNames();
-
-      // Assert
-      expect(names).toContain('instance-heartbeat');
-    });
-
     test('includes session-env-setup', () => {
       // Act
       const names = registeredHookNames();
@@ -236,12 +210,12 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('memory-metrics-collector');
     });
 
-    test('returns exactly 8 registered hooks', () => {
+    test('returns exactly 6 registered hooks', () => {
       // Act
       const names = registeredHookNames();
 
       // Assert
-      expect(names.length).toBe(8);
+      expect(names.length).toBe(6);
     });
   });
 
@@ -257,8 +231,6 @@ describe('unified-dispatcher', () => {
       expect(mem0ContextRetrieval).toHaveBeenCalledTimes(1);
       expect(mem0AnalyticsTracker).toHaveBeenCalledTimes(1);
       expect(patternSyncPull).toHaveBeenCalledTimes(1);
-      expect(multiInstanceInit).toHaveBeenCalledTimes(1);
-      expect(instanceHeartbeat).toHaveBeenCalledTimes(1);
       expect(sessionEnvSetup).toHaveBeenCalledTimes(1);
       expect(sessionTracking).toHaveBeenCalledTimes(1);
       expect(memoryMetricsCollector).toHaveBeenCalledTimes(1);
@@ -275,8 +247,6 @@ describe('unified-dispatcher', () => {
       expect(mem0ContextRetrieval).toHaveBeenCalledWith(input);
       expect(mem0AnalyticsTracker).toHaveBeenCalledWith(input);
       expect(patternSyncPull).toHaveBeenCalledWith(input);
-      expect(multiInstanceInit).toHaveBeenCalledWith(input);
-      expect(instanceHeartbeat).toHaveBeenCalledWith(input);
       expect(sessionEnvSetup).toHaveBeenCalledWith(input);
       expect(sessionTracking).toHaveBeenCalledWith(input);
       expect(memoryMetricsCollector).toHaveBeenCalledWith(input);
@@ -362,20 +332,14 @@ describe('unified-dispatcher', () => {
       vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('Failure 3');
       });
-      vi.mocked(multiInstanceInit).mockImplementation(() => {
+      vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw new Error('Failure 4');
       });
-      vi.mocked(instanceHeartbeat).mockImplementation(() => {
+      vi.mocked(sessionTracking).mockImplementation(() => {
         throw new Error('Failure 5');
       });
-      vi.mocked(sessionEnvSetup).mockImplementation(() => {
-        throw new Error('Failure 6');
-      });
-      vi.mocked(sessionTracking).mockImplementation(() => {
-        throw new Error('Failure 7');
-      });
       vi.mocked(memoryMetricsCollector).mockImplementation(() => {
-        throw new Error('Failure 8');
+        throw new Error('Failure 6');
       });
 
       // Act
@@ -679,13 +643,11 @@ describe('unified-dispatcher', () => {
       // Act
       await unifiedSessionStartDispatcher(input);
 
-      // Assert - all 8 hooks should be routed to
+      // Assert - all 6 hooks should be routed to
       const allHooks = [
         mem0ContextRetrieval,
         mem0AnalyticsTracker,
         patternSyncPull,
-        multiInstanceInit,
-        instanceHeartbeat,
         sessionEnvSetup,
         sessionTracking,
         memoryMetricsCollector,
@@ -770,8 +732,8 @@ describe('unified-dispatcher', () => {
     test.each([
       { failingHooks: 0, description: 'no hooks fail' },
       { failingHooks: 1, description: 'one hook fails' },
-      { failingHooks: 4, description: 'half of hooks fail' },
-      { failingHooks: 8, description: 'all hooks fail' },
+      { failingHooks: 3, description: 'nearly half of hooks fail' },
+      { failingHooks: 6, description: 'all hooks fail' },
     ])('returns success when $description', async ({ failingHooks }) => {
       // Arrange
       const input = createHookInput();
@@ -779,8 +741,6 @@ describe('unified-dispatcher', () => {
         mem0ContextRetrieval,
         mem0AnalyticsTracker,
         patternSyncPull,
-        multiInstanceInit,
-        instanceHeartbeat,
         sessionEnvSetup,
         sessionTracking,
         memoryMetricsCollector,

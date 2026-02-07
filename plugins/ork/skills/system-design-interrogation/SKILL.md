@@ -7,6 +7,7 @@ agent: system-design-reviewer
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # System Design Interrogation

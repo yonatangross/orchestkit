@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [api, versioning, rest, fastapi, backward-compatibility]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # API Versioning Strategies

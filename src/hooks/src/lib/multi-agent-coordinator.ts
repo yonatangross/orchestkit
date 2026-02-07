@@ -17,6 +17,7 @@ import type {
   TaskMetadata,
 } from './orchestration-types.js';
 import { registerPipeline, registerTask } from './task-integration.js';
+import { isAgentTeamsActive } from './agent-teams.js';
 
 // -----------------------------------------------------------------------------
 // Pipeline Definitions
@@ -247,9 +248,16 @@ export const PIPELINES: PipelineDefinition[] = [
 // -----------------------------------------------------------------------------
 
 /**
- * Detect if prompt matches a pipeline trigger
+ * Detect if prompt matches a pipeline trigger.
+ * Issue #362: Yields to CC Agent Teams when active — Teams has its own
+ * task list and peer-to-peer messaging, making custom pipelines redundant.
  */
 export function detectPipeline(prompt: string): PipelineDefinition | null {
+  if (isAgentTeamsActive()) {
+    logHook('multi-agent-coordinator', 'Agent Teams active — yielding pipeline detection to native Teams');
+    return null;
+  }
+
   const promptLower = prompt.toLowerCase();
 
   for (const pipeline of PIPELINES) {

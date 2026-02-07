@@ -7,6 +7,7 @@ context: fork
 agent: ai-safety-auditor
 author: OrchestKit
 user-invocable: false
+complexity: max
 ---
 
 # Advanced Guardrails

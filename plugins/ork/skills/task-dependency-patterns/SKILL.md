@@ -7,6 +7,7 @@ author: OrchestKit
 agent: workflow-architect
 tags: [task-management, dependencies, orchestration, cc-2.1.16, workflow, coordination]
 user-invocable: false
+complexity: medium
 ---
 
 # Task Dependency Patterns
@@ -100,12 +101,73 @@ Provide present-continuous form for spinner display:
 | Update schema | Updating schema |
 | Fix authentication | Fixing authentication |
 
+## Agent Teams (CC 2.1.33+)
+
+CC 2.1.33 introduces Agent Teams for multi-agent coordination with shared task lists and peer-to-peer messaging.
+
+### Team Workflow
+
+```
+1. TeamCreate("my-feature")           → Creates team + shared task list
+2. TaskCreate(subject, description)    → Add tasks to shared list
+3. Task(prompt, team_name, name)       → Spawn teammates
+4. TaskUpdate(owner: "teammate-name")  → Assign tasks
+5. SendMessage(type: "message")        → Direct teammate communication
+6. SendMessage(type: "shutdown_request") → Graceful shutdown
+```
+
+### When to Use Teams vs Task Tool
+
+| Criteria | Task Tool (subagents) | Agent Teams |
+|----------|----------------------|-------------|
+| Independent tasks | Yes | Overkill |
+| Cross-cutting changes | Limited | Yes |
+| Agents need to talk | No (star topology) | Yes (mesh) |
+| Cost sensitivity | Lower (~1x) | Higher (~2.5x) |
+| Complexity < 3.0 | Yes | No |
+| Complexity > 3.5 | Possible | Recommended |
+
+### Team Task Patterns
+
+```
+# Spawn teammate into shared task list
+Task(
+  prompt="You are the backend architect...",
+  team_name="my-feature",
+  name="backend-architect",
+  subagent_type="backend-system-architect"
+)
+
+# Teammate claims and works tasks
+TaskList → find unblocked, unowned tasks
+TaskUpdate(taskId, owner: "backend-architect", status: "in_progress")
+# ... do work ...
+TaskUpdate(taskId, status: "completed")
+TaskList → find next task
+```
+
+### Peer Messaging
+
+```
+# Direct message between teammates
+SendMessage(type: "message", recipient: "frontend-dev",
+  content: "API contract ready: GET /users/:id returns {...}",
+  summary: "API contract shared")
+
+# Broadcast to all (use sparingly)
+SendMessage(type: "broadcast",
+  content: "Breaking change: auth header format changed",
+  summary: "Breaking auth change")
+```
+
 ## Anti-Patterns
 
 - Creating tasks for trivial single-step work
 - Circular dependencies (A blocks B, B blocks A)
 - Leaving tasks in_progress when blocked
 - Not marking tasks completed after finishing
+- Using broadcast for messages that only concern one teammate
+- Spawning teams for simple sequential work (use Task tool instead)
 
 ## Related Skills
 

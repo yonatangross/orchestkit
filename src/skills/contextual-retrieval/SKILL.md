@@ -7,6 +7,7 @@ agent: data-pipeline-engineer
 version: 1.0.0
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 # Contextual Retrieval
 Prepend situational context to chunks before embedding to preserve document-level meaning.

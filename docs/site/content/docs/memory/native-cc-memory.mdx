@@ -1,0 +1,197 @@
+---
+title: "Auto-Sync to MEMORY.md"
+description: "How OrchestKit auto-promotes high-confidence decisions to Claude Code's native MEMORY.md, ensuring they survive plugin removal."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+CC Native memory is Tier 4 -- the **survivability layer**. Claude Code maintains a file at `~/.claude/projects/<project>/memory/MEMORY.md` that it automatically injects into the system prompt for every session. OrchestKit writes high-confidence decisions to this file, ensuring they persist even if the plugin is removed, reinstalled, or upgraded.
+
+## How Claude Code Native Memory Works
+
+Claude Code has its own built-in memory system, independent of any plugins:
+
+1. It maintains a directory at `~/.claude/projects/` with one subdirectory per project
+2. The project subdirectory is named using the absolute path with separators replaced by dashes (e.g., `/Users/alice/my-app` becomes `-Users-alice-my-app`)
+3. Inside each project directory, `memory/MEMORY.md` contains the persistent memory
+4. Claude Code injects the entire contents of this file into the system prompt at the start of every session
+
+This means anything written to MEMORY.md is visible to Claude in every conversation, without any plugin or tool call needed. The file is plain Markdown.
+
+## Auto-Promotion: Graph to MEMORY.md
+
+OrchestKit bridges its own memory system to CC Native through **auto-promotion**. The `storeDecision` function in `memory-writer.ts` evaluates every captured decision:
+
+```
+if (decision.metadata.confidence >= 0.7 && isCCNativeMemoryAvailable()) {
+    storeToCCNativeMemory(decision);
+}
+```
+
+The two conditions for auto-promotion:
+
+1. **Confidence >= 0.7** -- the decision must be high-confidence (see scoring below)
+2. **CC Native memory directory exists** -- Claude Code must have created the project directory (it does this automatically when you first open a project)
+
+### Confidence Scoring
+
+| Factor | Effect on Confidence |
+|---|---|
+| User explicitly states a decision ("we decided...", "always use...") | Higher (typically 0.8+) |
+| Decision includes rationale ("because...") | Higher |
+| User states a preference directly | Higher |
+| Pattern inferred from tool output | Lower (typically 0.4-0.6) |
+| Observation from agent completion | Lower |
+
+Only decisions with clear intent and strong signal cross the 0.7 threshold. This keeps MEMORY.md focused and concise.
+
+## What Gets Written
+
+Each promoted decision is formatted as a concise Markdown list item:
+
+```markdown
+## Recent Project Decisions
+
+- **[Decision]** Use cursor-based pagination for all list endpoints
+  _(because: Better performance for large datasets, stable under inserts/deletes)_
+  `cursor-pagination`, `PostgreSQL`
+- **[Preference]** Prefer TypeScript over JavaScript for new modules
+- **[Pattern]** All React components export default function; named exports for utilities only
+  `React`, `TypeScript`
+- **[Decision]** JWT tokens for auth, not session cookies
+  _(because: Stateless auth required for microservices architecture)_
+  `JWT`, `session-cookies`
+```
+
+Each entry includes:
+
+- **Type label** in bold: `[Decision]`, `[Preference]`, `[Pattern]`, or `[Note]`
+- **The decision text** -- the "what"
+- **Rationale** in italics (if provided) -- the "why"
+- **Entity tags** as inline code -- technologies and patterns mentioned
+
+## Deduplication
+
+Before writing a new entry, the memory writer checks if the first 50 characters of the decision text already appear in the existing MEMORY.md content. If found, the write is skipped to avoid duplicate entries. This prevents the same decision from appearing multiple times if it is captured by multiple hooks in the same session.
+
+## Ordering: Most Recent First
+
+New decisions are inserted immediately after the `## Recent Project Decisions` header, pushing older entries down. This ensures Claude sees the most relevant, most recent decisions first in its system prompt.
+
+## Size Limits
+
+MEMORY.md is injected into the system prompt in its entirety. To prevent it from consuming too much of Claude's context window, the memory writer enforces a soft limit of **50 entries**. When the 51st entry is added:
+
+1. The oldest entry is removed
+2. A marker is added: `_...older decisions archived..._`
+
+Archived decisions are not lost -- they still exist in Tier 1 (Graph) and Tier 2 (Local JSONL). The limit only applies to what gets injected into every system prompt.
+
+## File Location
+
+The path is constructed from the project directory:
+
+```
+Project:  /Users/alice/coding/my-app
+Path:     /Users/alice/.claude/projects/-Users-alice-coding-my-app/memory/MEMORY.md
+```
+
+On Windows, both `/` and `\` separators are replaced with `-`:
+
+```
+Project:  C:\Users\alice\my-app
+Path:     C:\Users\alice\.claude\projects\-C-Users-alice-my-app\memory\MEMORY.md
+```
+
+The memory writer creates the `memory/` subdirectory if it does not exist, but only if the parent project directory already exists (indicating Claude Code has been used with this project).
+
+## Manual Editing
+
+You can edit MEMORY.md directly. It is a plain Markdown file. Any changes you make will be injected into Claude's system prompt in the next session.
+
+Common reasons to edit manually:
+
+- Remove outdated decisions that no longer apply
+- Reword a decision for clarity
+- Add context that hooks did not capture
+- Reorganize entries by topic
+
+<Callout type="warn">
+If you edit MEMORY.md while a Claude Code session is active, the changes take effect in the next session, not the current one. The file is read at session start.
+</Callout>
+
+## Manual Storage via `/ork:remember`
+
+The `/ork:remember` skill also writes to MEMORY.md for high-confidence decisions. When you run:
+
+```bash
+/ork:remember "Always validate user input at API boundaries"
+```
+
+The skill captures this as a high-confidence decision (explicit user statement with clear intent, typically scoring 0.8+). Since 0.8 >= 0.7, it is auto-promoted to MEMORY.md.
+
+For decisions that should always reach MEMORY.md regardless of confidence scoring, you can write directly:
+
+```bash
+/ork:remember --success "Circuit breaker pattern with 5s timeout for external API calls"
+```
+
+The `--success` flag adds a positive outcome signal that increases confidence scoring.
+
+## The Survivability Guarantee
+
+The core design principle behind Tier 4:
+
+```
+OrchestKit installed     -->  All 4 tiers active, decisions flow everywhere
+OrchestKit removed       -->  Tier 4 still works, MEMORY.md still injected
+Different plugin version -->  Tier 4 still works, previous decisions visible
+New machine, same repo   -->  Tier 4 works if ~/.claude/ is synced/backed up
+```
+
+This means your most important decisions -- the ones that cleared the 0.7 confidence threshold -- are not locked into OrchestKit. They are plain text in a file that Claude Code itself manages. Even if you stop using OrchestKit entirely, Claude remembers what matters.
+
+## Relationship to Other Tiers
+
+| Scenario | Tier 1 (Graph) | Tier 2 (Local) | Tier 3 (Mem0) | Tier 4 (CC Native) |
+|---|---|---|---|---|
+| Low-confidence observation | Stored | Stored | Queued (if configured) | **Skipped** |
+| Medium-confidence decision (0.5) | Stored | Stored | Queued (if configured) | **Skipped** |
+| High-confidence decision (0.7+) | Stored | Stored | Queued (if configured) | **Written** |
+| Very high confidence, generalizable (0.8+) | Stored | Stored | Queued with global scope | **Written** |
+
+Tier 4 is the most selective tier. It serves as a curated summary of your most important project decisions, automatically maintained by the confidence threshold.
+
+## Hooks Involved
+
+| Hook | Role |
+|---|---|
+| `memory-writer.ts` (library) | Evaluates confidence, formats decision, writes to MEMORY.md |
+| `capture-user-intent` (prompt hook) | Detects decisions in user prompts, sends to memory writer |
+| `auto-remember-continuity` (stop hook) | Prompts Claude to persist critical session context before exit |
+
+## Troubleshooting
+
+### Decisions Not Appearing in MEMORY.md
+
+1. **Check confidence.** Only decisions with confidence >= 0.7 are promoted. Implicit or inferred patterns score lower.
+2. **Check project directory.** The parent directory `~/.claude/projects/<project-id>/` must exist. Claude Code creates it on first use.
+3. **Check for duplicates.** If the first 50 characters of the decision already appear in MEMORY.md, the write is skipped.
+
+### MEMORY.md Growing Too Large
+
+The 50-entry limit prevents runaway growth. If you still find the file too large, you can:
+
+- Edit it manually to remove obsolete entries
+- The most important entries are at the top (most recent first)
+- Older entries below the limit are archived automatically
+
+### Entries From a Different Project
+
+Verify the project path mapping. The directory name conversion replaces all path separators with dashes. If two projects map to the same path ID, they share a MEMORY.md. This is uncommon but possible with symbolic links or unusual directory structures.
+
+## Next Steps
+
+- [Architecture Overview](/docs/memory/overview) -- see how Tier 4 fits into the full system
+- [Graph Memory](/docs/memory/graph-memory) -- the primary tier that feeds auto-promotion
+- [Set Up Cross-Session Memory](/docs/cookbook/setup-memory) -- end-to-end cookbook

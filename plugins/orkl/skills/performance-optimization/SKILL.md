@@ -9,6 +9,7 @@ agents: [backend-system-architect, frontend-ui-developer, code-quality-reviewer]
 keywords: [performance, optimization, speed, latency, throughput, caching, profiling, bundle, Core Web Vitals, react-19, virtualization, code-splitting, tree-shaking]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Performance Optimization Skill
@@ -217,7 +218,7 @@ py-spy record --pid $(pgrep -f uvicorn) --output profile.svg
 
 ## Extended Thinking Triggers
 
-Use Opus 4.5 extended thinking for:
+Use Opus 4.6 adaptive thinking for:
 - **Complex debugging** - Multiple potential causes
 - **Architecture decisions** - Caching strategy selection
 - **Trade-off analysis** - Memory vs CPU vs latency

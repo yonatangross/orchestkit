@@ -5,9 +5,9 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **197 skills**: Reusable knowledge modules
+- **200 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **111 hooks**: TypeScript lifecycle automation (89 global + 22 agent-scoped, 6 fire-and-forget dispatchers)
+- **119 hooks**: TypeScript lifecycle automation (91 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 197 skills
+├── skills/             # 200 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -92,6 +92,7 @@ name: my-skill
 description: Brief description of what this skill provides
 tags: [keyword1, keyword2]
 user-invocable: true  # If callable via /ork:my-skill
+complexity: medium    # low|medium|high|max — for adaptive thinking alignment
 ---
 
 # My Skill
@@ -149,23 +150,26 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-197 skills available. 22 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+200 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 22 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 175 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
+| Reference | 176 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
 - `agent: <name>` — Which agent primarily uses this skill (e.g., `agent: demo-producer`)
+- `complexity: low|medium|high|max` — Adaptive thinking alignment for Opus 4.6
+
+**Skill Budget (CC 2.1.33+):** Platform scales skill character budget to 2% of context window. Token budgets auto-scale: 200K context → ~1200 tokens, 1M context → ~6000 tokens for skill injection.
 
 ### Agents
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-111 hook entries (89 global + 22 agent-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+119 hook entries (91 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -229,10 +233,10 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Description |
 |--------|--------|-------------|
-| `orkl` | 107 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
-| `ork` | 197 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
+| `orkl` | 109 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork` | 200 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
 
-Both include all 36 agents, 111 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
+Both include all 36 agents, 119 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -240,6 +244,9 @@ CLAUDE_PROJECT_DIR    # User's project directory
 CLAUDE_PLUGIN_ROOT    # Plugin installation directory
 CLAUDE_SESSION_ID     # Current session UUID
 MEM0_API_KEY          # Optional: enables mem0 cloud memory
+TAVILY_API_KEY        # Optional: enables Tavily search/extract/map (middle tier in web research)
+BRIGHTDATA_API_TOKEN  # Optional: enables BrightData web scraping MCP
+CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS  # Enabled: coordination hooks yield to CC native Agent Teams
 ```
 
 ### Memory Architecture (CC 2.1.30+ Integration)
@@ -259,8 +266,8 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 ## Version
 
-- **Current**: 6.0.0
-- **Claude Code**: >= 2.1.27
-- **Hooks**: 111 entries (89 global + 22 agent-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
+- **Current**: 6.0.2
+- **Claude Code**: >= 2.1.34
+- **Hooks**: 119 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

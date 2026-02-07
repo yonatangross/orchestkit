@@ -5,11 +5,17 @@ category: design
 model: opus
 context: inherit
 color: cyan
+memory: project
 tools:
   - Read
   - Grep
   - Glob
   - Bash
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - architecture-decision-record
   - system-design-interrogation

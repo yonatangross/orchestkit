@@ -5,11 +5,16 @@ category: product
 model: inherit
 context: fork
 color: magenta
+memory: project
 tools:
   - Read
   - Grep
   - Glob
   - Bash
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - requirements-engineering
   - github-operations

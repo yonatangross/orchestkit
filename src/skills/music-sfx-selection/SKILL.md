@@ -6,6 +6,7 @@ context: fork
 agent: demo-producer
 user-invocable: false
 version: 1.0.0
+complexity: low
 ---
 
 # Music and SFX Selection for Tech Demo Videos

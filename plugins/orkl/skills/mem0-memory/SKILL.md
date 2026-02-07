@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 allowedTools: [Bash, Read]
+complexity: high
 ---
 
 # Mem0 Memory Management

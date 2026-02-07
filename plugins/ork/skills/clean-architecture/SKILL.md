@@ -13,6 +13,7 @@ hooks:
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/backend-layer-validator"
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/import-direction-enforcer"
+complexity: medium
 ---
 
 # Clean Architecture Patterns

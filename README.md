@@ -5,9 +5,9 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**197 skills · 36 agents · 117 hooks · 2 plugins**
+**200 skills · 36 agents · 119 hooks · 2 plugins**
 
-[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.27-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
+[![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.34-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/yonatangross/orchestkit?style=for-the-badge&logo=github)](https://github.com/yonatangross/orchestkit)
 
@@ -16,12 +16,12 @@
 ---
 
 <p align="center">
-  <a href="https://orchestkit.vercel.app/">
-    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Playgrounds Demo" width="700">
+  <a href="https://orchestkit.dev/">
+    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Documentation" width="700">
   </a>
   <br>
-  <a href="https://orchestkit.vercel.app/"><strong>🎮 Explore the Playgrounds →</strong></a><br>
-  <sub>Interactive marketplace, demo gallery, setup wizard</sub>
+  <a href="https://orchestkit.dev/"><strong>Explore the Docs →</strong></a><br>
+  <sub>Interactive skill browser, demo gallery, setup wizard</sub>
 </p>
 
 ---
@@ -57,12 +57,12 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 197 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 200 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 117 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 118 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
 
-**[Browse everything in the Playgrounds →](https://orchestkit.vercel.app/marketplace-explorer.html)**
+**[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
 
 ---
 
@@ -89,9 +89,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (107 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**orkl** (109 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
 
-**ork** (197 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (200 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -138,7 +138,7 @@ Run `/ork:doctor` to diagnose.
 <details>
 <summary><strong>Claude Code version?</strong></summary>
 
-Requires **≥2.1.27**. Check with `claude --version`.
+Requires **≥2.1.34**. Check with `claude --version`.
 </details>
 
 ---
@@ -161,9 +161,9 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 **v6.0.0** — Two-tier plugin architecture
 
 - **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
-- `orkl` (107 skills) — Universal toolkit, all workflows work out of the box
-- `ork` (197 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 117 hooks included in both plugins
+- `orkl` (109 skills) — Universal toolkit, all workflows work out of the box
+- `ork` (200 skills) — Full specialized with Python, React, LLM/RAG patterns
+- All 36 agents and 119 hooks included in both plugins
 
 [Full Changelog →](./CHANGELOG.md)
 
@@ -171,7 +171,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 <div align="center">
 
-**[Playgrounds](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
+**[Docs](https://orchestkit.dev/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

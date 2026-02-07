@@ -203,7 +203,19 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
 
     # Copy hooks (excluding node_modules)
     if [[ "$HOOKS_MODE" == "all" ]]; then
-        rsync -a --exclude='node_modules' "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
+        rsync -a \
+            --exclude='node_modules' \
+            --exclude='.claude' \
+            --exclude='coverage' \
+            --exclude='src' \
+            --exclude='logs' \
+            --exclude='.instance' \
+            --exclude='__tests__' \
+            --exclude='TEST_REPORT.md' \
+            --exclude='IMPROVEMENT-PLAN.md' \
+            --exclude='.gitignore' \
+            --exclude='package-lock.json' \
+            "$SRC_DIR/hooks/" "$PLUGIN_DIR/hooks/"
     fi
 
     # Copy shared resources if they exist
@@ -338,9 +350,9 @@ fi
 echo ""
 
 # ============================================================================
-# Phase 7: Generate Playground Data
+# Phase 7: Generate Docs Site Data
 # ============================================================================
-echo -e "${BLUE}[7/9] Generating playground data...${NC}"
+echo -e "${BLUE}[7/9] Generating docs site data...${NC}"
 
 if [[ -f "$SCRIPT_DIR/generate-playground-data.js" ]]; then
     node "$SCRIPT_DIR/generate-playground-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-playground-data.js failed, skipping${NC}"

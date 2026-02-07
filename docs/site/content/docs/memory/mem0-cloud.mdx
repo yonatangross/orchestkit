@@ -1,0 +1,298 @@
+---
+title: "Semantic Cross-Session Memory"
+description: "How Mem0 cloud provides semantic search, cross-project sharing, and long-term memory persistence for OrchestKit."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Mem0 cloud is Tier 3 -- an **optional enhancement** that adds semantic search across all your sessions and projects. Unlike the knowledge graph (Tier 1), which uses exact entity matching, Mem0 uses embedding-based similarity search. This means querying "authentication approach" will find memories about "JWT token strategy" even if the exact words do not overlap.
+
+<Callout type="info">
+Mem0 is entirely optional. OrchestKit is fully functional with Tier 1 (Graph), Tier 2 (Local), and Tier 4 (CC Native) alone. Mem0 adds cross-session semantic search and cross-project sharing for teams that need it.
+</Callout>
+
+## Setup
+
+### 1. Get an API Key
+
+Sign up at [mem0.ai](https://mem0.ai) and create an API key.
+
+### 2. Set the Environment Variable
+
+Add the key to your shell profile:
+
+```bash
+# ~/.zshrc or ~/.bashrc
+export MEM0_API_KEY="m0-your-api-key-here"
+```
+
+Restart Claude Code for the change to take effect.
+
+### 3. Install the Python SDK
+
+Mem0 operations use Python CLI scripts, not MCP. Install the SDK:
+
+```bash
+pip install mem0ai python-dotenv
+```
+
+Or install from the OrchestKit requirements file:
+
+```bash
+pip install -r src/skills/mem0-memory/scripts/requirements.txt
+```
+
+### 4. Verify
+
+```bash
+python3 -c "from mem0 import MemoryClient; print('mem0ai installed')"
+```
+
+### Optional Configuration
+
+| Variable | Purpose | Required |
+|---|---|---|
+| `MEM0_API_KEY` | API authentication | Yes (for Tier 3) |
+| `MEM0_ORG_ID` | Organization-level namespace | No (disambiguates same-name projects) |
+| `MEM0_PROJECT_ID` | Mem0 Pro project scoping | No (Pro feature) |
+
+## Semantic vs. Keyword Search
+
+The graph (Tier 1) finds entities by name and relationship traversal. Mem0 (Tier 3) finds memories by meaning.
+
+| Query | Graph Result | Mem0 Result |
+|---|---|---|
+| "authentication" | Entities named "JWT", "auth-service" | Memories about token strategy, OAuth flows, session management |
+| "database performance" | Entities named "PostgreSQL", "pgvector" | Memories about indexing strategies, connection pooling, query optimization |
+| "what did we try that failed" | AntiPattern entities | Memories with `outcome: failed` metadata, even if worded differently |
+
+The `/ork:memory search --mem0` command queries both systems in parallel and merges results. Without `--mem0`, only the graph is searched.
+
+## How Data Reaches Mem0
+
+Mem0 receives data through two paths:
+
+### Path 1: Explicit with `--mem0` Flag
+
+```bash
+/ork:remember --mem0 "Use connection pooling with min=5, max=20 for PostgreSQL"
+```
+
+This writes to both graph (immediate) and Mem0 cloud (queued). The queue is processed at session end.
+
+### Path 2: Automatic Queue Sync
+
+The memory writer queues decisions to `mem0-queue.jsonl` when `MEM0_API_KEY` is configured. At session end, two hooks process this queue:
+
+1. **`mem0-queue-sync`** -- reads the queue, deduplicates entries, generates CLI commands for Claude to execute, and clears the queue
+2. **`mem0-pre-compaction-sync`** -- auto-syncs session summaries, pending decisions, and learned patterns using a background Python process
+
+The pre-compaction sync runs as a fire-and-forget background process:
+
+```bash
+python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py \
+  --text "Session Summary: implemented auth system (3 decisions made)" \
+  --user-id "orchestkit-continuity" \
+  --metadata '{"type":"session_summary","project":"orchestkit"}' \
+  --enable-graph
+```
+
+## Project Isolation
+
+Memories are isolated by project to prevent cross-contamination. The project name is derived from the project directory:
+
+```
+/Users/alice/my-app  -->  user_id: "my-app-decisions"
+/Users/alice/other    -->  user_id: "other-decisions"
+```
+
+### Scopes
+
+Each project uses multiple scopes for different memory types:
+
+| Scope | User ID Format | Content |
+|---|---|---|
+| `decisions` | `{project}-decisions` | Architecture and design decisions |
+| `patterns` | `{project}-patterns` | Code patterns and conventions |
+| `continuity` | `{project}-continuity` | Session handoff context |
+| `agents` | `{project}-agents` | Agent-specific patterns |
+| `best-practices` | `orchestkit-global-best-practices` | Cross-project wisdom |
+
+### Namespace Collision Warning
+
+Two different repositories with the same directory name share the same user ID scope:
+
+```
+/Users/alice/my-app  -->  my-app-decisions
+/Users/bob/my-app    -->  my-app-decisions  (collision!)
+```
+
+To avoid this, either use unique directory names or set `MEM0_ORG_ID` for additional namespacing:
+
+```bash
+export MEM0_ORG_ID="acme"
+# Results in: acme-my-app-decisions
+```
+
+## Memory Categories
+
+Memories are auto-categorized based on keywords in their content:
+
+| Category | Trigger Keywords |
+|---|---|
+| `pagination` | pagination, cursor, offset |
+| `security` | security, vulnerability, OWASP |
+| `authentication` | auth, JWT, OAuth, token |
+| `testing` | test, pytest, jest, coverage |
+| `deployment` | deploy, CI/CD, Docker, Kubernetes |
+| `observability` | monitoring, logging, tracing, metrics |
+| `performance` | performance, cache, optimize |
+| `ai-ml` | LLM, RAG, embedding, LangChain |
+| `database` | database, SQL, PostgreSQL, schema |
+| `api` | API, endpoint, REST, GraphQL |
+| `frontend` | React, component, UI, CSS |
+| `architecture` | architecture, design, system |
+| `decision` | chose, decided, selected (default) |
+
+Categories are stored as metadata and can be used for filtered search:
+
+```bash
+/ork:memory search --category database "indexing"
+```
+
+## Cross-Project Sharing
+
+Decisions marked as generalizable are shared across all your projects under the `orchestkit-global-best-practices` user ID.
+
+### What Qualifies as Generalizable
+
+A decision is automatically marked as generalizable when all three conditions are met:
+
+1. Confidence >= 0.8
+2. Rationale is provided (has a "why")
+3. At least one entity matches a well-known technology or pattern keyword (pagination, caching, authentication, testing, etc.)
+
+### Storing Global Best Practices
+
+```bash
+# Explicit global scope
+/ork:remember --global "Always validate input at API boundaries"
+
+# Global with cloud sync
+/ork:remember --global --mem0 "Use cursor-based pagination for datasets over 10K rows"
+```
+
+### Searching Global Best Practices
+
+```bash
+/ork:memory search --global "rate limiting"
+```
+
+Global memories use an anonymized contributor ID instead of your email, so they are safe to share in team contexts.
+
+## Cross-Agent Knowledge Federation
+
+When Mem0 is configured, the `mem0-memory-inject` hook provides agents with knowledge from related agents. Each agent type has a list of related agents:
+
+| Agent | Related Agents |
+|---|---|
+| `database-engineer` | backend-system-architect, security-auditor, data-pipeline-engineer |
+| `backend-system-architect` | database-engineer, frontend-ui-developer, security-auditor, llm-integrator |
+| `frontend-ui-developer` | backend-system-architect, ux-researcher, accessibility-specialist |
+| `security-auditor` | backend-system-architect, database-engineer, infrastructure-architect |
+| `workflow-architect` | llm-integrator, backend-system-architect, data-pipeline-engineer |
+
+When a `database-engineer` agent spawns, the hook searches Mem0 for:
+
+1. The agent's own past patterns
+2. Project decisions in the agent's domain
+3. Cross-project best practices
+4. Knowledge from related agents (backend-system-architect, security-auditor, data-pipeline-engineer)
+
+This federation ensures agents benefit from each other's discoveries without manual knowledge transfer.
+
+## Graph Relationships in Mem0
+
+When storing to Mem0 with the `--enable-graph` flag, the Mem0 SDK also creates graph relationships in the Mem0 cloud. Search results then include:
+
+- `relations` array with relationship information
+- `related_via` field showing how results are connected
+- `relationship_summary` with relation types found
+
+This provides a second graph layer (Mem0's cloud graph) that complements the local MCP knowledge graph. The Memory Fabric layer cross-references both graphs for boosted relevance.
+
+## Privacy
+
+- **Mem0 cloud stores your memories on their servers.** Only set `MEM0_API_KEY` if you are comfortable with this.
+- Memories include project names, entity names, and decision text. They do not include source code or file contents.
+- Global best practices use an anonymous contributor ID, not your email.
+- The `source_tool` metadata field (`orchestkit-claude`) identifies the origin tool but not the user.
+- You can delete any memory via the CLI:
+
+```bash
+python3 src/skills/mem0-memory/scripts/crud/delete-memory.py --memory-id "mem_abc123"
+```
+
+- You can export all your memories for review:
+
+```bash
+python3 src/skills/mem0-memory/scripts/export/export-memories.py \
+  --filters '{"user_id":"orchestkit-decisions"}'
+```
+
+<Callout type="warn">
+Never store secrets, credentials, API keys, or personally identifiable information in memory. The memory system is designed for architectural decisions, patterns, and conventions -- not sensitive data.
+</Callout>
+
+## Available CLI Scripts
+
+All scripts are in `src/skills/mem0-memory/scripts/`:
+
+### Core Operations
+
+| Script | Purpose |
+|---|---|
+| `crud/add-memory.py` | Store a new memory |
+| `crud/search-memories.py` | Semantic search with optional graph enrichment |
+| `crud/get-memories.py` | List all memories with filters |
+| `crud/get-memory.py` | Get a single memory by ID |
+| `crud/update-memory.py` | Update memory content or metadata |
+| `crud/delete-memory.py` | Remove a memory |
+
+### Graph Operations
+
+| Script | Purpose |
+|---|---|
+| `graph/get-related-memories.py` | Query memories related via graph traversal |
+| `graph/traverse-graph.py` | Multi-hop graph traversal for complex queries |
+
+### Advanced (Pro Features)
+
+| Script | Purpose |
+|---|---|
+| `batch/batch-update.py` | Bulk update up to 1000 memories |
+| `batch/batch-delete.py` | Bulk delete multiple memories |
+| `utils/memory-history.py` | Audit trail for a specific memory |
+| `export/export-memories.py` | Structured data export |
+| `utils/memory-summary.py` | Memory statistics and analytics |
+| `utils/get-users.py` | List all user IDs |
+| `webhooks/create-webhook.py` | Set up automation webhooks |
+
+## Graceful Degradation
+
+When `MEM0_API_KEY` is not configured:
+
+- All `--mem0` flags are silently ignored
+- Queue files (`mem0-queue.jsonl`) remain empty
+- The `mem0-queue-sync` and `mem0-pre-compaction-sync` hooks return immediately
+- The `mem0-memory-inject` hook skips entirely
+- Search results come from graph only
+- Everything else works normally
+
+You will see a notice: "mem0 sync requested but MEM0_API_KEY not configured (graph-only)". Nothing breaks.
+
+## Next Steps
+
+- [CC Native Memory](/docs/memory/native-cc-memory) -- how high-confidence decisions reach MEMORY.md
+- [Graph Memory](/docs/memory/graph-memory) -- the primary tier that works without any API keys
+- [Architecture Overview](/docs/memory/overview) -- how all 4 tiers work together

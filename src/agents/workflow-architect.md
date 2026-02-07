@@ -5,6 +5,7 @@ category: llm
 model: opus
 context: fork
 color: blue
+memory: project
 tools:
   - Bash
   - Read
@@ -12,6 +13,11 @@ tools:
   - Edit
   - Grep
   - Glob
+  - TeamCreate
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - langgraph-supervisor
   - langgraph-routing
@@ -37,6 +43,7 @@ skills:
 ## Directive
 Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination with Command API, manage state with checkpointing and Store, and orchestrate RAG pipelines for production AI systems.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 **Before designing:**
 - Read existing workflow code and state schemas
 - Understand current checkpointing configuration and node patterns
@@ -54,9 +61,13 @@ Design LangGraph 1.0 workflow graphs, implement supervisor-worker coordination w
 - Add streaming modes for user-facing workflows
 
 ## MCP Tools
-- `mcp__sequential-thinking__sequentialthinking` - Complex workflow reasoning
+- **Opus 4.6 adaptive thinking** — Complex workflow reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - Persist workflow designs across sessions
 - `mcp__context7__*` - LangGraph documentation (langgraph, langchain)
+
+## Opus 4.6: 128K Output Tokens
+Generate complete workflow graphs, state schemas, and node implementations in a single pass.
+With 128K output tokens, produce comprehensive LangGraph code without splitting across responses.
 
 
 ## Concrete Objectives

@@ -11,6 +11,7 @@ hooks:
   PostToolUse:
     - matcher: "Write|Edit"
       command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
+complexity: low
 ---
 
 # Code Review Playbook

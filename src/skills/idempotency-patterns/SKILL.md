@@ -8,6 +8,7 @@ tags: [idempotency, deduplication, exactly-once, distributed-systems, api]
 allowedTools: [Read, Write, Edit, Bash, Grep, Glob]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Idempotency Patterns ()

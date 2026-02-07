@@ -28,8 +28,8 @@ find_skill_dir() {
 
 
 # Token budget: Based on skill files (SKILL.md ~100 tokens each)
-# Updated to 400000 for video production skills expansion (179 skills)
-MAX_SKILL_TOKEN_BUDGET=400000
+# Updated to 420000 for upgrade-assessment skills expansion (199 skills)
+MAX_SKILL_TOKEN_BUDGET=420000
 
 # Verbose mode
 VERBOSE="${1:-}"

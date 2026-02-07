@@ -5,6 +5,7 @@ context: inherit
 version: 1.0.0
 tags: [git, branch, commit, recovery, workflow, reflog, staging]
 user-invocable: false
+complexity: medium
 ---
 
 # Git Workflow

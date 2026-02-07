@@ -6,6 +6,7 @@ agent: frontend-ui-developer
 version: 1.0.0
 tags: [shadcn, ui, cva, variants, tailwind, theming, oklch, components]
 user-invocable: false
+complexity: medium
 ---
 
 # shadcn/ui Patterns

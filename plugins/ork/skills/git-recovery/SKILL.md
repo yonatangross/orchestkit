@@ -7,6 +7,7 @@ author: OrchestKit
 tags: [git, recovery, undo, reflog, reset]
 user-invocable: true
 allowedTools: [Bash]
+complexity: medium
 ---
 
 # Git Recovery

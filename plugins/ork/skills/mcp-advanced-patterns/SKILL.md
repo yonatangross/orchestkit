@@ -7,6 +7,7 @@ context: fork
 agent: llm-integrator
 tags: [mcp, tools, resources, scaling, servers, composition]
 user-invocable: false
+complexity: high
 ---
 
 # MCP Advanced Patterns

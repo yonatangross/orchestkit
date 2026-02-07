@@ -1,0 +1,246 @@
+---
+title: Agents Overview
+description: "36 specialized agents -- how they activate, what they know, and when to use each."
+full: true
+---
+
+import { AgentSelector } from '@/components/agent-selector';
+
+# 36 Specialists, One Prompt Away
+
+An OrchestKit **agent** is a specialized AI persona built from four components:
+
+| Component | What it provides |
+|-----------|-----------------|
+| **Model** | The LLM powering the agent (`opus`, `sonnet`, or `inherit` from parent) |
+| **Tools** | Which Claude Code tools the agent can use (Read, Write, Bash, Grep, etc.) |
+| **Skills** | Knowledge modules auto-injected into the agent's context |
+| **Directive** | The system prompt that defines the agent's role, boundaries, and output format |
+
+Together these four pieces turn a general-purpose LLM into a focused specialist -- a security auditor that only reads code and never modifies it, a backend architect that designs APIs but never touches the frontend, or a debug investigator that forms hypotheses and traces execution paths.
+
+## What Is an Agent?
+
+Every agent is defined in a single Markdown file at `src/agents/<name>.md`. The file has two parts:
+
+1. **YAML frontmatter** -- structured metadata (model, tools, skills, hooks, category, color)
+2. **Markdown body** -- the directive, task boundaries, output format, and integration notes
+
+Here is a minimal example:
+
+```yaml
+---
+name: my-agent
+description: What this agent does. Activates for keyword1, keyword2
+model: sonnet
+context: fork
+tools:
+  - Read
+  - Write
+  - Bash
+skills:
+  - relevant-skill-1
+  - relevant-skill-2
+---
+
+## Directive
+Clear instruction for what this agent does.
+
+## Task Boundaries
+**DO:** List what this agent should do
+**DON'T:** List what other agents handle
+```
+
+## How Agents Activate
+
+Agents activate through two mechanisms:
+
+### 1. Keyword Auto-Activation
+
+Each agent's `description` field contains activation keywords. When your prompt matches those keywords, OrchestKit's hooks suggest the most relevant agent. For example:
+
+- Typing "design a REST API for user management" matches `backend-system-architect` keywords: *API design, REST, endpoint, route, authentication*
+- Typing "scan for security vulnerabilities" matches `security-auditor` keywords: *security, vulnerability, CVE, audit, OWASP*
+- Typing "this component is broken, help me debug" matches `debug-investigator` keywords: *bug, error, debug, crash, failure*
+
+### 2. Explicit Spawning
+
+You can spawn any agent directly using the `Task` tool with a `subagent_type` parameter:
+
+```python
+Task(
+  description="Design the user API",
+  subagent_type="backend-system-architect",
+  prompt="Design RESTful endpoints for user management...",
+  run_in_background=True
+)
+```
+
+Workflow skills like `/ork:implement` and `/ork:review-pr` spawn multiple agents in parallel automatically.
+
+## Find Your Agent
+
+Use the interactive selector to find the right specialist for your task.
+
+<AgentSelector />
+
+## Frontmatter Fields Explained
+
+| Field | Required | Values | Purpose |
+|-------|----------|--------|---------|
+| `name` | Yes | kebab-case string | Unique identifier used in `subagent_type` |
+| `description` | Yes | String with keywords | Agent summary and auto-activation keywords |
+| `model` | Yes | `opus`, `sonnet`, `inherit` | LLM model assignment |
+| `context` | Yes | `fork`, `inherit` | `fork` = isolated context, `inherit` = shares parent |
+| `tools` | Yes | Array of tool names | Which Claude Code tools the agent can access |
+| `skills` | Yes | Array of skill names | Knowledge modules auto-injected at spawn |
+| `category` | No | `backend`, `frontend`, `security`, etc. | Organizational grouping |
+| `color` | No | CSS color name | Visual indicator in task display |
+| `memory` | No | `project`, `local` | Memory persistence scope |
+| `hooks` | No | Object with hook definitions | Agent-scoped hooks (e.g., block writes for read-only agents) |
+
+### Model Assignment Strategy
+
+The `model` field controls which LLM powers the agent:
+
+- **`opus`** -- Used for complex reasoning tasks: architecture design, security auditing, system review, workflow design. 7 agents use Opus.
+- **`sonnet`** -- Used for focused production tasks: demo video production. 1 agent uses Sonnet.
+- **`inherit`** -- Uses whatever model the parent session is running. 28 agents inherit. This is the most flexible option and is recommended for most agents.
+
+### Context Isolation
+
+The `context` field determines how the agent's context relates to the parent:
+
+- **`fork`** -- The agent runs in an isolated context. It cannot see or modify the parent's state. This is the default for most agents and prevents unintended side effects.
+- **`inherit`** -- The agent shares the parent's context. Used when the agent needs to see the current conversation state, such as the `debug-investigator` or `code-quality-reviewer`.
+
+## Agent Lifecycle
+
+When an agent is spawned, it follows this lifecycle:
+
+```
+1. PROMPT           User types a request
+                    |
+2. KEYWORD MATCH    Hooks analyze prompt, suggest matching agent
+                    |
+3. AGENT SPAWNS     Claude Code creates a new task with:
+                    - Model from frontmatter
+                    - Tools from frontmatter
+                    - Skills auto-injected from frontmatter
+                    - Directive from markdown body
+                    |
+4. SKILL INJECTION  Skills listed in frontmatter are loaded
+                    into the agent's context automatically
+                    (CC 2.1.6+ auto-discovery)
+                    |
+5. HOOK EXECUTION   Agent-scoped hooks run (PreToolUse, PostToolUse)
+                    Example: block-writes hook prevents read-only
+                    agents from modifying code
+                    |
+6. EXECUTION        Agent performs its task using available tools
+                    - Reads code, runs commands, analyzes patterns
+                    - Follows its directive and task boundaries
+                    |
+7. RETURN           Agent produces structured output
+                    - JSON report, review findings, or implementation
+                    - Parent task receives the result
+```
+
+### Agent-Scoped Hooks
+
+Some agents define their own hooks in the frontmatter. These run only when that specific agent is active:
+
+```yaml
+hooks:
+  PreToolUse:
+    - matcher: "Write|Edit"
+      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs agent/block-writes"
+```
+
+This pattern is used by read-only agents like `security-auditor`, `debug-investigator`, `code-quality-reviewer`, and `system-design-reviewer` to prevent them from modifying code. The `deployment-manager` uses a different hook (`deployment-safety-check`) to validate commands before execution.
+
+## The 36 Agents by Category
+
+### Backend (4 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `backend-system-architect` | opus | REST/GraphQL APIs, database schemas, microservice boundaries |
+| `database-engineer` | inherit | PostgreSQL schemas, migrations, pgvector, query optimization |
+| `event-driven-architect` | opus | Event sourcing, Kafka, RabbitMQ, CQRS, saga patterns |
+| `python-performance-engineer` | opus | Python profiling, memory optimization, async performance |
+
+### Frontend (4 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `frontend-ui-developer` | inherit | React 19 components, TypeScript, Zod validation |
+| `rapid-ui-designer` | inherit | Tailwind prototyping, design systems, responsive layouts |
+| `accessibility-specialist` | inherit | WCAG 2.2 compliance, screen readers, keyboard navigation |
+| `performance-engineer` | inherit | Core Web Vitals, bundle analysis, render optimization |
+
+### Security (3 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `security-auditor` | opus | Vulnerability scanning, OWASP Top 10, dependency audit |
+| `ai-safety-auditor` | opus | LLM red teaming, prompt injection, guardrail validation |
+| `security-layer-auditor` | opus | Defense-in-depth verification across 8 security layers |
+
+### Testing (3 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `code-quality-reviewer` | inherit | Code review, linting, type checking, test coverage |
+| `debug-investigator` | inherit | Root cause analysis, hypothesis testing, execution tracing |
+| `test-generator` | inherit | Unit/integration test generation, MSW, VCR.py, fixtures |
+
+### DevOps (5 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `ci-cd-engineer` | inherit | GitHub Actions, GitLab CI, build optimization |
+| `deployment-manager` | inherit | Blue-green deployments, rollback, feature flags |
+| `infrastructure-architect` | opus | Terraform, Kubernetes, AWS/GCP/Azure, IaC |
+| `monitoring-engineer` | inherit | Prometheus, Grafana, alerting, OpenTelemetry |
+| `release-engineer` | inherit | GitHub releases, milestones, changelogs, semver |
+
+### LLM / AI (5 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `workflow-architect` | opus | LangGraph pipelines, supervisor-worker, RAG orchestration |
+| `llm-integrator` | inherit | OpenAI/Anthropic APIs, prompt templates, function calling |
+| `prompt-engineer` | inherit | Prompt design, chain-of-thought, few-shot, A/B testing |
+| `multimodal-specialist` | inherit | Vision, audio, video, transcription, OCR |
+| `data-pipeline-engineer` | inherit | Embeddings, chunking, vector indexes, ETL |
+
+### Product (5 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `product-strategist` | inherit | Value propositions, build/buy/partner, go/no-go |
+| `requirements-translator` | inherit | PRDs, user stories, acceptance criteria |
+| `prioritization-analyst` | inherit | RICE/ICE/WSJF scoring, backlog ranking |
+| `business-case-builder` | inherit | ROI projections, cost-benefit analysis |
+| `metrics-architect` | opus | OKRs, KPIs, success criteria, instrumentation |
+
+### Design & Research (5 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `system-design-reviewer` | opus | 5-dimension architecture review (Scale, Data, Security, UX, Coherence) |
+| `ux-researcher` | inherit | Personas, user journeys, usability testing |
+| `demo-producer` | sonnet | Marketing videos, VHS terminal recording, Remotion |
+| `market-intelligence` | inherit | Competitive analysis, TAM/SAM/SOM, market sizing |
+| `web-research-analyst` | inherit | Browser automation, Tavily API, content extraction |
+
+### Docs & Git (2 agents)
+| Agent | Model | Purpose |
+|-------|-------|---------|
+| `documentation-specialist` | inherit | API docs, READMEs, ADRs, changelogs, OpenAPI |
+| `git-operations-engineer` | inherit | Branches, rebases, stacked PRs, recovery |
+
+## Skills Per Agent
+
+Each agent carries a tailored set of skills. The `backend-system-architect`, for example, loads 31 skills covering API design, database schemas, caching, auth patterns, and more. The `debug-investigator` loads just 5 skills focused on root cause analysis and observability.
+
+Skills are auto-injected when the agent spawns -- no manual loading required. The platform scales skill content to fit within 2% of the context window (CC 2.1.33+).
+
+## What's Next
+
+- [Choosing an Agent](/docs/agents/choosing-an-agent) -- Decision tree for picking the right agent for your task
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- How `/ork:implement` and `/ork:review-pr` orchestrate agents in parallel
+- [Writing Agents](/docs/agents/writing-agents) -- Create your own specialized agent

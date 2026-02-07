@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [product, prioritization, rice, ice, wsjf, moscow, backlog]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Prioritization Frameworks

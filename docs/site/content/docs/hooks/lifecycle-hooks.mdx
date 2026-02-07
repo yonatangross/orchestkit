@@ -1,0 +1,255 @@
+---
+title: "Session Start to Stop"
+description: "How OrchestKit manages the full session lifecycle -- from environment setup and context loading through metrics, compaction, and fire-and-forget cleanup."
+---
+
+import { Callout } from "fumadocs-ui/components/callout";
+import { Steps, Step } from "fumadocs-ui/components/steps";
+
+## The Session Lifecycle
+
+A Claude Code session is bookended by startup and shutdown. OrchestKit hooks at every boundary to load context, track metrics, coordinate with other instances, and clean up when you leave -- all without blocking your workflow.
+
+```
+Setup (first run)
+  |
+  v
+SessionStart -----> UserPromptSubmit (repeated) -----> Stop
+  |                        |                             |
+  |  load context          |  inject memory,             |  fire-and-forget:
+  |  check consent         |  detect patterns            |  29 background hooks
+  |  enrich PR status      |  track satisfaction         |
+  |  prefill guard         |                             v
+  v                        v                        SessionEnd
+                                                      |
+                                                      |  coordination cleanup
+                                                      |  metrics summary
+                                                      |  pattern sync push
+                                                      v
+                                                    (done)
+```
+
+## Setup Hooks (9 hooks)
+
+Setup hooks run when the plugin is installed or during maintenance windows. They are registered under the `Setup` event in `hooks.json`.
+
+| Hook | Purpose | Runs Once? |
+|------|---------|------------|
+| `setup/unified-dispatcher` | Fire-and-forget launcher for background setup tasks | No |
+| `setup/setup-check` | Validate plugin installation integrity | Yes |
+| `setup/first-run-setup` | Create `.claude/` directories, initialize config files | Yes |
+| `setup/setup-maintenance` | Periodic cleanup of stale files and caches | No |
+| `setup/mem0-backup-setup` | Configure mem0 cloud backup if `MEM0_API_KEY` is set | No |
+| `setup/mem0-cleanup` | Prune old mem0 queue entries | No |
+| `setup/mem0-analytics-dashboard` | Initialize analytics tracking infrastructure | No |
+| `setup/setup-repair` | Self-heal corrupted configuration files | No |
+| `setup/monorepo-detector` | Detect monorepo structure and set workspace context | Yes |
+
+Hooks marked "Runs Once" use the `"once": true` flag in `hooks.json`, so they execute only on the first invocation per session.
+
+## SessionStart Hooks (5 hooks)
+
+When a new session begins, these hooks fire in order:
+
+<Steps>
+<Step>
+### Unified Dispatcher (fire-and-forget)
+
+Spawns a detached background process that runs 7 startup tasks in parallel without blocking the session:
+
+- **mem0-context-retrieval** -- Load context from cloud memory
+- **mem0-webhook-setup** -- Configure memory webhooks
+- **mem0-analytics-tracker** -- Initialize analytics
+- **pattern-sync-pull** -- Pull learned patterns from previous sessions
+- **coordination-init** -- Register this instance for multi-instance coordination
+- **decision-sync-pull** -- Pull decision history
+- **dependency-version-check** -- Check for outdated dependencies
+</Step>
+
+<Step>
+### Session Context Loader
+
+Loads session state using Context Protocol 2.0. Reads from:
+
+- `.claude/context/session/state.json` -- Previous session state
+- `.claude/context/identity.json` -- Project identity configuration
+- `.claude/context/knowledge/index.json` -- Knowledge index
+- `.claude/context/session/compaction-manifest.json` -- Key decisions and files touched from the last compacted session
+
+If an `AGENT_TYPE` environment variable is set (e.g., from `--from-pr` or agent dispatch), the loader also reads agent-specific configuration from `.claude/agents/{agent-type}.md`.
+
+```typescript
+// The compaction manifest bridges sessions across compactions
+const manifest = JSON.parse(readFileSync(compactionManifest, 'utf-8'));
+process.env.ORCHESTKIT_LAST_SESSION = manifest.sessionId;
+process.env.ORCHESTKIT_LAST_DECISIONS = JSON.stringify(manifest.keyDecisions);
+```
+</Step>
+
+<Step>
+### Analytics Consent Check
+
+Verifies that analytics tracking has user consent before enabling telemetry hooks.
+</Step>
+
+<Step>
+### PR Status Enricher
+
+When a session is started with `claude --from-pr 123`, this hook enriches the context with PR status, review comments, and CI check results.
+</Step>
+
+<Step>
+### Prefill Guard
+
+Scans skills for deprecated patterns (response prefilling, `output_format` parameter) that are unsupported on Opus 4.6+. If detected, it emits a warning with migration guidance:
+
+```
+Opus 4.6 deprecation: 3 skill(s) reference deprecated patterns.
+Migration: use structured outputs instead of prefilling;
+use output_config.format instead of output_format.
+```
+</Step>
+</Steps>
+
+## SessionEnd Hooks (4 hooks)
+
+When the session formally ends (after Stop hooks have dispatched), these hooks run synchronously:
+
+| Hook | Purpose |
+|------|---------|
+| `lifecycle/coordination-cleanup` | Unregisters the instance from the coordination database, updates heartbeat status to "stopping", removes `.instance_env` |
+| `lifecycle/session-metrics-summary` | Reads session metrics (tool call counts, error counts) and logs a summary |
+| `lifecycle/session-cleanup` | Removes temporary files created during the session |
+| `lifecycle/pattern-sync-push` | Pushes newly learned patterns to persistent storage |
+
+### Coordination Cleanup in Detail
+
+Multi-instance coordination uses a SQLite database at `.claude/coordination/.claude.db` and heartbeat files at `.claude/coordination/heartbeats/{instance-id}.json`. The cleanup hook:
+
+1. Loads the instance ID from `.claude/.instance_env`
+2. Updates the heartbeat file status to `"stopping"`
+3. Unregisters the instance from the coordination database (releases all locks)
+4. Deletes the `.instance_env` file
+
+```typescript
+function updateHeartbeatStatus(projectDir: string, instanceId: string): void {
+  const heartbeatFile = `${heartbeatsDir}/${instanceId}.json`;
+  const content = JSON.parse(readFileSync(heartbeatFile, 'utf-8'));
+  content.status = 'stopping';
+  writeFileSync(heartbeatFile, JSON.stringify(content, null, 2));
+}
+```
+
+## PreCompact Hook (1 hook)
+
+**When:** The context window is about to be compacted (conversation history truncated to fit within token limits).
+
+The `lifecycle/pre-compact-saver` hook preserves critical context that would otherwise be lost during compaction:
+
+- Key decisions made during the session
+- List of files touched
+- Current task status and dependencies
+- Open problems and blockers
+
+This data is written to `.claude/context/session/compaction-manifest.json` and is loaded by the session context loader on the next session start.
+
+## The Fire-and-Forget Pattern
+
+The most important architectural pattern in OrchestKit's lifecycle hooks is **fire-and-forget**. When the user types `/exit`, they should not wait 10+ seconds for 29 cleanup hooks to finish. Instead:
+
+```
+User types /exit
+    |
+    v
+stop-fire-and-forget.mjs called (stdin: hook input)
+    |
+    v
+Writes work payload to .claude/hooks/pending/stop-{uuid}.json
+    |
+    v
+Spawns detached background-worker.mjs (child.unref())
+    |
+    v
+Returns immediately: {"continue": true, "suppressOutput": true}
+    |
+    v
+Session exits instantly (~50ms)
+    |
+    v
+Background worker picks up the payload and runs 29 hooks in parallel
+```
+
+### The 29 Stop Hooks
+
+These hooks run in the background after the session has already exited:
+
+**Core Session (6):**
+- `auto-save-context` -- Save conversation context for next session
+- `session-patterns` -- Extract and persist patterns from the session
+- `issue-work-summary` -- Summarize work done on GitHub issues
+- `calibration-persist` -- Save calibration metrics
+- `session-profile-aggregator` -- Aggregate session profile data
+- `session-end-tracking` -- Final session telemetry
+
+**Memory Sync (4):**
+- `graph-queue-sync` -- Flush pending graph memory operations
+- `workflow-preference-learner` -- Learn workflow preferences from session behavior
+- `mem0-queue-sync` -- Flush pending mem0 cloud operations
+- `mem0-pre-compaction-sync` -- Ensure mem0 is synced before data loss
+
+**Instance Management (3):**
+- `multi-instance-cleanup` -- Clean up multi-instance coordination state
+- `cleanup-instance` -- Remove instance registration
+- `task-completion-check` -- Verify all tasks completed or properly handed off
+
+**Analysis (3):**
+- `context-compressor` -- Compress session context for storage
+- `auto-remember-continuity` -- Automatically store important decisions for session continuity
+- `security-scan-aggregator` -- Aggregate security findings from the session
+
+**Skill Validation (12):**
+- `coverage-check`, `evidence-collector`, `coverage-threshold-gate`, `cross-instance-test-validator`, `di-pattern-enforcer`, `duplicate-code-detector`, `eval-metrics-collector`, `migration-validator`, `review-summary-generator`, `security-summary`, `test-pattern-validator`, `test-runner`
+
+**Heavy Analysis (1):**
+- `full-test-suite` -- Run comprehensive test validation
+
+### Background Worker Safeguards
+
+The background worker (`bin/background-worker.mjs`) includes several safety mechanisms:
+
+- **5-minute timeout** -- Self-terminates via `setTimeout` to prevent hangs
+- **Orphan cleanup** -- Removes temp files in `.claude/hooks/pending/` older than 10 minutes
+- **Parallel execution** -- All 29 hooks run via `Promise.allSettled` (failures don't block others)
+- **Debug logging** -- Writes to `.claude/logs/hooks/background-worker.log`
+
+## Multi-Instance Coordination
+
+When multiple Claude Code sessions run on the same project (e.g., one per terminal tab), hooks coordinate through:
+
+1. **Instance registration** -- Each session registers with a unique instance ID at startup
+2. **Heartbeat files** -- Periodic heartbeat updates at `.claude/coordination/heartbeats/`
+3. **File locks** -- The `multi-instance-lock` PreToolUse hook writes locks atomically (temp file + `renameSync`) to prevent concurrent writes to the same file
+4. **Quality gates** -- The `multi-instance-quality-gate` checks if another instance is already working on the same area
+
+<Callout type="warn">
+**SEC-001 -- SQL Injection Prevention:** Instance IDs are validated against `/^[a-zA-Z0-9_\-.:]+$/` before any shell-exec SQLite operations. Invalid IDs are silently rejected.
+</Callout>
+
+<Callout type="warn">
+**SEC-003 -- Atomic File Writes:** Lock files are written to a temp path (`locks.json.{pid}.tmp`) then renamed atomically, preventing TOCTOU race conditions.
+</Callout>
+
+## Unified Dispatchers
+
+OrchestKit uses 6 unified dispatchers across the lifecycle. Each is a single `hooks.json` entry that fans out to multiple internal hooks:
+
+| Dispatcher | Event | Internal Hooks | Execution |
+|------------|-------|---------------|-----------|
+| `lifecycle/unified-dispatcher` | SessionStart | 7 | Fire-and-forget |
+| `posttool/unified-dispatcher` | PostToolUse | 7 | Fire-and-forget |
+| `stop-fire-and-forget.mjs` | Stop | 29 | Detached background worker |
+| `subagent-stop/unified-dispatcher` | SubagentStop | varies | Fire-and-forget |
+| `notification/unified-dispatcher` | Notification | varies | Fire-and-forget |
+| `setup/unified-dispatcher` | Setup | varies | Fire-and-forget |
+
+The fire-and-forget pattern is used exclusively for non-blocking operations: analytics, network I/O, and cleanup tasks that can fail silently without impacting the user's workflow.

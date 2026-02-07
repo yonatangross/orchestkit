@@ -14,6 +14,7 @@ allowedTools:
   - Bash
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Event Sourcing Patterns

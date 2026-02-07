@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 user-invocable: false
 tags: [rag, multimodal, image-retrieval, clip, embeddings, vector-search]
+complexity: medium
 ---
 
 # Multimodal RAG ()
@@ -367,7 +368,7 @@ def setup_multimodal_collection():
 async def generate_with_context(
     query: str,
     retrieved_chunks: list[Chunk],
-    model: str = "claude-opus-4-5-20251124"
+    model: str = "claude-opus-4-6"
 ) -> str:
     """Generate response using multimodal context."""
     content = []

@@ -5,6 +5,7 @@ category: llm
 model: inherit
 context: fork
 color: orange
+memory: project
 tools:
   - Bash
   - Read
@@ -13,6 +14,10 @@ tools:
   - Grep
   - Glob
   - WebFetch
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - function-calling
   - llm-streaming
@@ -34,6 +39,7 @@ skills:
 ## Directive
 Integrate LLM provider APIs, design versioned prompt templates, implement function calling, and optimize token costs through caching and batching.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read existing LLM integration code and prompt templates before making changes.
 Understand current provider configuration and caching strategy.
@@ -67,6 +73,9 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 - `mcp__langfuse__*` - Prompt management, cost tracking, tracing
 - `mcp__context7__*` - Up-to-date SDK documentation (openai, anthropic, langchain)
 
+## Opus 4.6: 128K Output Tokens
+Generate complete LLM integrations (provider setup + streaming endpoint + function calling + prompt templates + tests) in a single pass.
+With 128K output, build entire provider integration without splitting across responses.
 
 ## Concrete Objectives
 1. Integrate LLM provider APIs (OpenAI, Anthropic, Ollama)
@@ -148,7 +157,7 @@ PROVIDERS = {
         "models": {
             "fast": "claude-haiku-3-5-20241022",
             "balanced": "claude-sonnet-4-5-20251101",
-            "powerful": "claude-opus-4-5-20251101"
+            "powerful": "claude-opus-4-6"
         },
         "supports_caching": True,
         "supports_streaming": True
@@ -250,3 +259,31 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
 - **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for llm-integrator]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
+|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
+|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
+|prompt-caching:{SKILL.md}|llm,caching,cost-optimization,anthropic
+|semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
+|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
+|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
+|llm-safety-patterns:{SKILL.md,references/{context-separation.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,prompt-audit.md}}|ai,safety,guardrails,security,llm
+|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse
+|fine-tuning-customization:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,synthetic-data.md,when-to-finetune.md}}|fine-tuning,lora,qlora,dpo,synthetic-data,rlhf
+|high-performance-inference:{SKILL.md,references/{edge-deployment.md,quantization-guide.md,speculative-decoding.md,vllm-deployment.md}}|vllm,quantization,inference,performance,edge,speculative
+|mcp-advanced-patterns:{SKILL.md,references/{resource-management.md,scaling-strategies.md,server-building-advanced.md,tool-composition.md}}|mcp,tools,resources,scaling,servers,composition
+|ollama-local:{SKILL.md,references/{model-selection.md}}|llm,ollama,local,self-hosted
+|task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
+|remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
+|memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
+```

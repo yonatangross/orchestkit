@@ -337,7 +337,7 @@ main() {
     clear
 
     # Enhanced status bar
-    echo -e "${DIM}[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
     echo -e "${DIM}✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞${RESET}"
     echo -e "${DIM}>> bypass permissions on (shift+Tab to cycle)${RESET}"
     echo
@@ -438,7 +438,7 @@ main() {
     clear
 
     # Status bar
-    echo -e "${DIM}[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
     echo -e "${DIM}✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞${RESET}"
     echo -e "${DIM}>> bypass permissions on (shift+Tab to cycle)${RESET}"
     echo
@@ -547,7 +547,7 @@ spinner() {
 main() {
     clear
 
-    echo -e "${DIM}[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
     echo -e "${DIM}✓ Bash ×3 | ✓ Read ×5 | ✓ Grep ×2 | ✓ Task ×∞${RESET}"
     echo
 
@@ -621,7 +621,7 @@ type_text() {
 main() {
     clear
 
-    echo -e "${DIM}[Opus 4.5] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
+    echo -e "${DIM}[Opus 4.6] ████████░░ 42% | ~/project git:(main) | ● 3m${RESET}"
     echo
 
 SCRIPT_HEADER

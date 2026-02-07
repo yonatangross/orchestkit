@@ -1,0 +1,209 @@
+---
+title: "4-Tier Memory Architecture"
+description: "How OrchestKit persists decisions, patterns, and context across sessions using a layered memory system."
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+OrchestKit maintains a **4-tier memory architecture** that stores decisions once and surfaces them automatically in every future session. Each tier serves a distinct purpose, and the system degrades gracefully: if a tier is unavailable, the tiers above it continue operating without interruption.
+
+## Architecture at a Glance
+
+| Tier | Name | Storage | Config Required | Purpose |
+|------|------|---------|-----------------|---------|
+| **1** | [Graph Memory](/docs/memory/graph-memory) | MCP `mcp__memory__*` | None | Primary. Entities with typed relations. Always available. |
+| **2** | [Local Persistence](/docs/memory/local-memory) | `.claude/memory/*.jsonl` | None | Session backup, offline queues, durability. |
+| **3** | [Mem0 Cloud](/docs/memory/mem0-cloud) | Cloud API | `MEM0_API_KEY` | Semantic search across sessions and projects. Optional. |
+| **4** | [CC Native](/docs/memory/native-cc-memory) | `~/.claude/projects/*/memory/MEMORY.md` | None | Injected into Claude's system prompt. Survives plugin removal. |
+
+<Callout type="info">
+Tier 1 and Tier 4 require zero configuration. They work the moment you install OrchestKit. Tier 2 creates its directory automatically. Only Tier 3 requires an external API key.
+</Callout>
+
+## How Decisions Flow Across Tiers
+
+When you store a decision -- whether explicitly via `/ork:remember` or implicitly through the capture hooks -- the memory writer routes it to all configured backends simultaneously.
+
+```
+/ork:remember "Use cursor-based pagination for all list endpoints"
+    |
+    +---> Tier 1: Graph Memory
+    |     mcp__memory__create_entities + create_relations
+    |     Stores entities: cursor-pagination (Pattern), list-endpoints (Component)
+    |     Stores relation: project -> CHOSE -> cursor-pagination
+    |
+    +---> Tier 2: Local Persistence
+    |     Appends to .claude/memory/decisions.jsonl
+    |     Queues graph ops to .claude/memory/graph-queue.jsonl
+    |
+    +---> Tier 3: Mem0 Cloud (only if --mem0 flag AND MEM0_API_KEY set)
+    |     Queues to .claude/memory/mem0-queue.jsonl
+    |     Synced at session end via mem0-queue-sync hook
+    |
+    +---> Tier 4: CC Native (only if confidence >= 0.7)
+          Writes to ~/.claude/projects/<project>/memory/MEMORY.md
+          Claude auto-injects this into every future system prompt
+```
+
+### The Confidence Threshold
+
+Not every decision reaches Tier 4. Only decisions with a **confidence score of 0.7 or higher** are promoted to CC Native MEMORY.md. This keeps Claude's system prompt concise and focused on high-signal decisions. The confidence score is calculated from:
+
+- Explicit user statements ("we decided...", "always use...") score higher
+- Decisions with rationale ("because...") score higher than bare facts
+- Preferences stated directly by the user score higher than inferred patterns
+
+Lower-confidence observations still persist in Tier 1 (Graph) and Tier 2 (Local), where they are available through explicit search.
+
+## The Read Path
+
+When Claude processes your prompt, multiple hooks activate to surface relevant memory.
+
+### On Every Prompt
+
+The **memory-context** hook (`prompt` lifecycle) fires on every prompt submission. It:
+
+1. Scans your prompt for trigger keywords (`implement`, `create`, `refactor`, `previous`, `decision`, `pattern`, etc.)
+2. Extracts meaningful search terms by removing stopwords
+3. Injects a system message telling Claude to search the knowledge graph with those terms
+4. If the prompt contains relationship keywords (`related`, `connected`, `depends on`), adds graph traversal hints
+
+This is why Claude "remembers" your past decisions without you asking. The hook silently provides relevant context before Claude generates a response.
+
+### On First Prompt of a Session
+
+The **memory-context-loader** hook (`prompt` lifecycle, `once: true`) fires exactly once per session. It:
+
+1. Reads the last 10 decisions from `.claude/memory/decisions.jsonl`
+2. Formats them as a markdown context block with type labels, rationale, and entity tags
+3. Injects them into Claude's context as "Recent Project Decisions"
+4. Caps output at 3000 characters to stay within budget
+
+This ensures Claude always starts a session with your most recent decisions loaded, even before you type a prompt related to them.
+
+### On Agent Spawn
+
+When a subagent is created, two inject hooks fire:
+
+- **graph-memory-inject** (always) -- searches the knowledge graph for entities related to the agent's domain (e.g., a `database-engineer` agent gets entities tagged with PostgreSQL, schema, migration)
+- **mem0-memory-inject** (only if `MEM0_API_KEY` set) -- queries mem0 cloud for the agent's past patterns, project decisions in its domain, cross-project best practices, and knowledge from related agents
+
+## The Write Path
+
+Decisions enter the system through multiple channels.
+
+### Explicit Storage
+
+```bash
+# Basic decision
+/ork:remember "Use JWT tokens for auth, not session cookies"
+
+# Successful pattern
+/ork:remember --success "Cursor-based pagination scales for 2M+ rows"
+
+# Anti-pattern
+/ork:remember --failed "Offset pagination caused timeouts at 1M rows"
+
+# With cloud sync
+/ork:remember --mem0 "Connection pooling min=5, max=20 for PostgreSQL"
+
+# Cross-project best practice
+/ork:remember --global "Always validate input at API boundaries"
+```
+
+### Automatic Capture
+
+OrchestKit captures decisions automatically through hooks:
+
+| Hook | Lifecycle | What It Captures |
+|------|-----------|-----------------|
+| `capture-user-intent` | `prompt` | Decisions and preferences expressed in natural language |
+| `agent-memory-store` | `subagent-stop` | Patterns extracted from agent output after task completion |
+| `memory-bridge` | `posttool` | Entities created via graph MCP calls (confirms primary storage) |
+| `auto-remember-continuity` | `stop` | Session context preservation before session end |
+| `mem0-pre-compaction-sync` | `stop` | Pending decisions and patterns synced to Mem0 cloud |
+
+### Entity and Relation Extraction
+
+The memory writer automatically extracts structured data from natural language:
+
+| Input Pattern | Extracted Entity Type |
+|---|---|
+| Capitalized terms (PostgreSQL, React) | Technology |
+| Agent names (database-engineer) | Agent |
+| Pattern names (cursor-pagination) | Pattern |
+| "decided to...", "chose..." | Decision |
+| Failed patterns (`--failed` flag) | AntiPattern |
+
+| Input Pattern | Extracted Relation |
+|---|---|
+| "X uses Y" | `USES` |
+| "chose X over Y" | `CHOSE_OVER` |
+| "X requires Y" | `REQUIRES` |
+| "X enables Y" | `ENABLES` |
+| "X prefers Y" | `PREFERS` |
+
+## Memory Fabric: Unified Search
+
+The **Memory Fabric** layer sits above individual tiers and provides unified search with cross-referencing. When you run `/ork:memory search --mem0 "pagination"`, the fabric:
+
+1. **Parses** the query into search terms and entity hints
+2. **Dispatches** parallel queries to both graph and Mem0 cloud
+3. **Normalizes** results to a common format with source, relevance score, and entities
+4. **Deduplicates** results with greater than 85% text similarity, keeping the higher-relevance copy
+5. **Boosts** results where a Mem0 result mentions a graph entity (1.2x relevance multiplier)
+6. **Ranks** by: `recency (0.3) x relevance (0.5) x source_authority (0.2)`
+
+Without `--mem0`, searches hit only the graph, which is always available and requires no configuration.
+
+## Memory Health
+
+Check the health of all tiers at any time:
+
+```bash
+/ork:memory status
+```
+
+The health check validates:
+
+- **Graph tier**: `.claude/memory/` exists, `decisions.jsonl` is parseable, queue depth is below threshold
+- **Mem0 tier**: `MEM0_API_KEY` is present, `mem0-queue.jsonl` depth is manageable, last sync timestamp
+- **Fabric tier**: both graph and Mem0 tiers are available for unified search
+
+Possible statuses: `healthy`, `degraded` (corrupt lines or high queue depth), `unavailable` (missing directory or API key).
+
+## Sharing Scopes
+
+Decisions are scoped to control where they are visible:
+
+| Scope | User ID Format | Visibility |
+|---|---|---|
+| `local` | Current session only | Not persisted beyond session |
+| `user` | User-scoped ID | Personal across sessions |
+| `team` | `{project}-decisions` | Shared within project |
+| `global` | `orchestkit-global-best-practices` | Cross-project, anonymized |
+
+Decisions with confidence >= 0.8, a rationale, and a well-known technology or pattern keyword are automatically marked as generalizable and eligible for global sharing.
+
+## Graceful Degradation
+
+The system is designed to function at every level of configuration:
+
+| Configuration | Available Tiers | Behavior |
+|---|---|---|
+| OrchestKit installed (default) | 1, 2, 4 | Full local memory, graph storage, CC Native auto-sync |
+| + `MEM0_API_KEY` set | 1, 2, 3, 4 | Adds semantic cloud search and cross-project sharing |
+| OrchestKit removed | 4 only | CC Native MEMORY.md still injected by Claude. High-confidence decisions survive. |
+| Fresh machine, no plugins | None | Start fresh. Install OrchestKit to begin building memory. |
+
+<Callout type="info">
+The most important design decision in the memory architecture: high-confidence decisions are written to CC Native MEMORY.md (Tier 4), which is a plain Markdown file managed by Claude Code itself. This means your critical decisions persist even if you uninstall OrchestKit, switch machines, or change plugin versions.
+</Callout>
+
+## Next Steps
+
+- [Graph Memory](/docs/memory/graph-memory) -- how the primary knowledge graph works
+- [Local Persistence](/docs/memory/local-memory) -- JSONL queues and session backup
+- [Mem0 Cloud](/docs/memory/mem0-cloud) -- semantic cross-session search
+- [CC Native Memory](/docs/memory/native-cc-memory) -- auto-promotion to MEMORY.md
+- [Set Up Cross-Session Memory](/docs/cookbook/setup-memory) -- hands-on cookbook

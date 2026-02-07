@@ -49,6 +49,6 @@
 |demo-producer:{demo-producer.md}|demo,video,marketing,showcase,terminal recording,VHS,remotion,tutorial,screencast
 |system-design-reviewer:{system-design-reviewer.md}|system design,architecture review,scale,security review,implementation plan
 |# Research & Analysis
-|web-research-analyst:{web-research-analyst.md}|web research,scraping,competitor analysis,documentation capture,browser automation,web scraping,content extraction
+|web-research-analyst:{web-research-analyst.md}|web research,scraping,competitor analysis,documentation capture,browser automation,web scraping,content extraction,tavily
 |# Documentation
 |documentation-specialist:{documentation-specialist.md}|documentation,readme,api-docs,technical-writing,adr,changelog,openapi,swagger,doc-generation

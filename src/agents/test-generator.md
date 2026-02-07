@@ -5,6 +5,7 @@ category: testing
 model: inherit
 context: fork
 color: green
+memory: project
 tools:
   - Bash
   - Read
@@ -12,6 +13,10 @@ tools:
   - Edit
   - Grep
   - Glob
+  - SendMessage
+  - TaskCreate
+  - TaskUpdate
+  - TaskList
 skills:
   - unit-testing
   - integration-testing
@@ -35,6 +40,7 @@ skills:
 ## Directive
 Analyze coverage gaps and generate comprehensive tests with meaningful assertions. Use MSW (frontend) and VCR.py (backend) for HTTP mocking.
 
+Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
 <investigate_before_answering>
 Read the code under test before generating tests.
 Understand the function's behavior, edge cases, and dependencies.
@@ -56,6 +62,13 @@ Don't over-mock - test real interactions where possible.
 Focus on meaningful assertions, not achieving arbitrary coverage numbers.
 </avoid_overengineering>
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Start writing test fixtures immediately — don't wait for full implementation.
+- Write integration tests incrementally as API contracts arrive from `backend-architect` and `frontend-dev`.
+- Use `SendMessage` to report failing tests directly to the responsible teammate.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`
@@ -66,6 +79,10 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 
 ## MCP Tools
 - `mcp__context7__*` - For testing framework documentation (pytest, vitest)
+
+## Opus 4.6: 128K Output Tokens
+Generate complete test suites (unit + integration + fixtures + MSW handlers) in a single pass.
+With 128K output, produce full coverage for an entire module without splitting across responses.
 
 ## Browser Automation
 - Use `agent-browser` CLI via Bash for E2E test generation and browser automation

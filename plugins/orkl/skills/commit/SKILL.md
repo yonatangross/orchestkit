@@ -8,6 +8,7 @@ tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
 allowedTools: [Bash]
 skills: [git-recovery]
+complexity: low
 ---
 
 # Smart Commit

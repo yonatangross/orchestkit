@@ -269,17 +269,14 @@ const hookTestCases: HookTestCase[] = [
 
   // Prompt hooks
   { name: 'context-injector', path: '../../prompt/context-injector.js', createInput: () => createPromptInput('help me with code'), category: 'prompt' },
-  { name: 'skill-resolver', path: '../../prompt/skill-resolver.js', createInput: () => createPromptInput('/ork:test'), category: 'prompt' },
+  // skill-resolver removed in v6.0.2 (CC natively injects agent skills)
   { name: 'antipattern-warning', path: '../../prompt/antipattern-warning.js', createInput: () => createPromptInput('fix the bug'), category: 'prompt' },
 
   // Lifecycle hooks
   { name: 'session-context-loader', path: '../../lifecycle/session-context-loader.js', createInput: () => createHookInput({ tool_name: 'SessionStart' }), category: 'lifecycle' },
   { name: 'session-cleanup', path: '../../lifecycle/session-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
-  { name: 'coordination-cleanup', path: '../../lifecycle/coordination-cleanup.js', createInput: () => createHookInput({ tool_name: 'SessionEnd' }), category: 'lifecycle' },
 
   // Stop hooks
-  { name: 'multi-instance-cleanup', path: '../../stop/multi-instance-cleanup.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
-  { name: 'cleanup-instance', path: '../../stop/cleanup-instance.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'task-completion-check', path: '../../stop/task-completion-check.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'context-compressor', path: '../../stop/context-compressor.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'mem0-pre-compaction-sync', path: '../../stop/mem0-pre-compaction-sync.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
@@ -324,7 +321,9 @@ describe('Hook Schema Validation', () => {
     test.each(hooks.map(h => [h.name, h]))('%s returns valid HookResult', async (_, hook) => {
       try {
         const module = await import(hook.path);
-        const hookFn = module.default || module[Object.keys(module)[0]];
+        // Prefer camelCase of hook name (e.g. session-cleanup → sessionCleanup)
+        const camelName = hook.name.replace(/-([a-z])/g, (_: string, c: string) => c.toUpperCase());
+        const hookFn = module.default || module[camelName] || module[Object.keys(module)[0]];
 
         if (typeof hookFn !== 'function') {
           // Some hooks may export objects or have different structures

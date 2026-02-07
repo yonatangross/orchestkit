@@ -1,0 +1,66 @@
+---
+title: Choosing an Agent
+description: "Interactive selector and complete reference for picking the right agent for any task."
+---
+
+import { AgentSelector } from "@/components/agent-selector";
+import { Callout } from "fumadocs-ui/components/callout";
+
+# Which Agent For Your Task?
+
+OrchestKit's 36 agents cover the full software development lifecycle. Use the interactive selector below to find the right specialist — filter by category, task type, or use the guided quiz.
+
+<Callout title="Quick Start: Top 5 Agents" type="info">
+  **Most common picks:**
+  `backend-system-architect` (APIs), `frontend-ui-developer` (React),
+  `security-auditor` (OWASP), `workflow-architect` (LangGraph),
+  `debug-investigator` (bugs). For full-stack features, use `/ork:implement`.
+</Callout>
+
+<AgentSelector />
+
+---
+
+## Common Scenarios
+
+### "I need to build a new feature end-to-end"
+
+Use `/ork:implement`. It spawns up to 14 agents across design, implementation, and validation phases. You choose the scope (full-stack, backend-only, frontend-only, or quick prototype).
+
+### "Someone submitted a PR, I need to review it"
+
+Use `/ork:review-pr 123`. It spawns 6 parallel reviewers (code quality, type safety, security, tests, backend, frontend) and synthesizes their findings into a single structured report.
+
+### "The app is broken and I do not know why"
+
+Spawn `debug-investigator`. It follows a scientific method: reproduce, gather evidence, form hypotheses, test them, isolate the root cause, and recommend a fix -- without modifying any code.
+
+### "I need to set up CI/CD and deploy to production"
+
+Start with `ci-cd-engineer` for pipeline setup, then `deployment-manager` for the release. The `release-engineer` handles versioning and changelogs.
+
+### "I want to design an architecture before coding"
+
+Use `system-design-reviewer` to evaluate your plan against five dimensions (Scale, Data, Security, UX, Coherence). It returns a structured review with APPROVE / REQUEST CHANGES / REJECT verdicts.
+
+### "I need to audit security before a release"
+
+Run `security-auditor` for OWASP Top 10 and dependency scanning. Add `ai-safety-auditor` if the codebase includes LLM integrations. Use `security-layer-auditor` for defense-in-depth verification.
+
+## Read-Only vs Read-Write Agents
+
+Some agents are intentionally restricted to read-only operations using agent-scoped hooks that block Write and Edit tools:
+
+| Read-Only Agents | Why |
+|-----------------|-----|
+| `security-auditor` | Should report vulnerabilities, not fix them |
+| `debug-investigator` | Should diagnose problems, not change code |
+| `code-quality-reviewer` | Should review code, not rewrite it |
+| `system-design-reviewer` | Should evaluate plans, not implement them |
+
+All other agents have full read-write access to the tools listed in their frontmatter.
+
+## What's Next
+
+- [Multi-Agent Patterns](/docs/agents/multi-agent-patterns) -- How agents work together in parallel
+- [Writing Agents](/docs/agents/writing-agents) -- Create your own custom agent

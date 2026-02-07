@@ -6,6 +6,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [skill, metadata, parser, analysis, reference]
 user-invocable: false
+complexity: low
 ---
 
 # Skill Analyzer

@@ -3,10 +3,6 @@
 # Lifecycle Hooks Unit Tests (TypeScript Architecture)
 # ============================================================================
 # Tests TypeScript lifecycle hooks in hooks/src/lifecycle/:
-# - coordination-cleanup.ts
-# - coordination-init.ts
-# - instance-heartbeat.ts
-# - multi-instance-init.ts
 # - session-cleanup.ts
 # - session-env-setup.ts
 # - session-metrics-summary.ts
@@ -43,91 +39,6 @@ test_lifecycle_bundle_has_content() {
     if [[ "$size" -lt 1000 ]]; then
         fail "lifecycle.mjs seems too small ($size bytes)"
     fi
-}
-
-# ============================================================================
-# COORDINATION-CLEANUP TESTS
-# ============================================================================
-
-describe "coordination-cleanup.ts"
-
-test_coordination_cleanup_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/coordination-cleanup.ts"
-}
-
-test_coordination_cleanup_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/coordination-cleanup.ts" "export"
-}
-
-test_coordination_cleanup_has_hook_input() {
-    # Should use HookInput type or similar
-    if grep -qE "HookInput|input.*:|async.*function" "$TS_HOOKS_DIR/coordination-cleanup.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "coordination-cleanup.ts should have proper function signature"
-}
-
-# ============================================================================
-# COORDINATION-INIT TESTS
-# ============================================================================
-
-describe "coordination-init.ts"
-
-test_coordination_init_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/coordination-init.ts"
-}
-
-test_coordination_init_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/coordination-init.ts" "export"
-}
-
-test_coordination_init_has_instance_handling() {
-    if grep -qiE "instance|session|init" "$TS_HOOKS_DIR/coordination-init.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "coordination-init.ts should handle instance/session initialization"
-}
-
-# ============================================================================
-# INSTANCE-HEARTBEAT TESTS
-# ============================================================================
-
-describe "instance-heartbeat.ts"
-
-test_instance_heartbeat_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/instance-heartbeat.ts"
-}
-
-test_instance_heartbeat_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/instance-heartbeat.ts" "export"
-}
-
-test_instance_heartbeat_has_ping_logic() {
-    if grep -qiE "heartbeat|ping|update" "$TS_HOOKS_DIR/instance-heartbeat.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "instance-heartbeat.ts should have ping/heartbeat logic"
-}
-
-# ============================================================================
-# MULTI-INSTANCE-INIT TESTS
-# ============================================================================
-
-describe "multi-instance-init.ts"
-
-test_multi_instance_init_exists() {
-    assert_file_exists "$TS_HOOKS_DIR/multi-instance-init.ts"
-}
-
-test_multi_instance_init_exports_handler() {
-    assert_file_contains "$TS_HOOKS_DIR/multi-instance-init.ts" "export"
-}
-
-test_multi_instance_init_has_instance_detection() {
-    if grep -qiE "instance|detect|capabilities" "$TS_HOOKS_DIR/multi-instance-init.ts" 2>/dev/null; then
-        return 0
-    fi
-    fail "multi-instance-init.ts should detect instances/capabilities"
 }
 
 # ============================================================================
@@ -202,8 +113,6 @@ describe "CC 2.1.7 TypeScript Compliance"
 test_hooks_use_hook_result_type() {
     # Check that hooks return proper HookResult type
     local hook_files=(
-        "coordination-cleanup.ts"
-        "coordination-init.ts"
         "session-cleanup.ts"
         "session-env-setup.ts"
     )

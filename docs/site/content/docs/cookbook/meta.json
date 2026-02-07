@@ -1,0 +1,14 @@
+{
+  "title": "Cookbook",
+  "icon": "ChefHat",
+  "pages": [
+    "implement-feature",
+    "review-pr",
+    "fix-github-issue",
+    "setup-memory",
+    "create-demo-video",
+    "security-audit",
+    "---By Role---",
+    "...roles"
+  ]
+}

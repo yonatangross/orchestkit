@@ -377,7 +377,7 @@ Hook B catches up mid-video (better content?)
 ### Test Priority for OrchestKit
 
 1. **Pattern testing**: Which of the 12 patterns works best for developer audience?
-2. **Specificity testing**: Do numbers (179 skills) outperform general claims?
+2. **Specificity testing**: Do numbers (200 skills) outperform general claims?
 3. **Social proof testing**: Do authority hooks (1000+ reviews) help?
 4. **Demo timing**: How quickly should we show the tool in action?
 
@@ -390,7 +390,7 @@ Hook B catches up mid-video (better content?)
 skill demos because developers relate to journey narratives.
 
 **Variant A** (Statistic):
-"179 skills. Zero prompting."
+"200 skills. Zero prompting."
 
 **Variant B** (Transformation):
 "I stopped writing prompts. Now I invoke skills."

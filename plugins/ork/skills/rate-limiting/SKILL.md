@@ -7,6 +7,7 @@ version: 1.0.0
 tags: [rate-limiting, redis, token-bucket, fastapi, security]
 author: OrchestKit
 user-invocable: false
+complexity: low
 ---
 
 # Rate Limiting Patterns

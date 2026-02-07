@@ -1,0 +1,165 @@
+---
+title: How Skills Work
+description: "Skills are reusable knowledge modules -- SKILL.md files with optional references -- that OrchestKit injects into agent context so Claude knows the right patterns for the task at hand."
+full: true
+---
+
+import { SkillBrowser } from '@/components/skill-browser';
+
+## What Is a Skill?
+
+A skill is a Markdown file (`SKILL.md`) containing structured knowledge that Claude Code can load into its context window. Skills are **knowledge, not code**. They do not execute anything. They teach the model *how* to approach a category of work -- API design, database migrations, caching strategies, security patterns, and 195 other topics.
+
+Each skill lives in its own directory under `src/skills/`:
+
+```
+src/skills/api-design-framework/
+  SKILL.md            # Required: frontmatter + knowledge content
+  references/         # Optional: detailed sub-guides
+    rest-api.md
+    graphql-api.md
+    grpc-api.md
+    frontend-integration.md
+```
+
+The `SKILL.md` file has two parts:
+
+1. **YAML frontmatter** -- metadata that tells OrchestKit when and how to use the skill.
+2. **Markdown body** -- the actual knowledge: patterns, code examples, decision tables, checklists.
+
+Optional `references/` subdirectories hold deeper material that gets loaded progressively when the skill budget allows it.
+
+---
+
+## The Two Types of Skills
+
+OrchestKit ships 200 skills in two categories:
+
+| Type | Count | Who triggers it | Frontmatter marker |
+|------|-------|------------------|--------------------|
+| **Command** | 24 | User types `/ork:skill-name` | `user-invocable: true` |
+| **Reference** | 176 | Hooks or agent frontmatter inject it automatically | `user-invocable: false` |
+
+**Command skills** are workflows you run directly -- `/ork:implement`, `/ork:fix-issue`, `/ork:create-pr`. They often orchestrate multiple agents and reference skills behind the scenes.
+
+**Reference skills** are passive knowledge. They get injected into an agent's context when the agent needs them. A `database-engineer` agent automatically receives `pgvector-search`, `alembic-migrations`, and `zero-downtime-migration` because those skills declare `agent: database-engineer` in their frontmatter.
+
+<SkillBrowser />
+
+---
+
+## Skill Injection Lifecycle
+
+Here is the end-to-end flow from the moment you type a prompt to the moment Claude uses skill knowledge:
+
+```
+User prompt
+    |
+    v
+[1] UserPromptSubmit hook fires
+    |
+    v
+[2] skill-auto-suggest hook analyzes keywords
+    (e.g., "fastapi" -> fastapi-advanced, confidence 90)
+    |
+    v
+[3] Top 3 matching skills injected via additionalContext
+    |
+    v
+[4] If a command skill is invoked (/ork:implement),
+    its `skills:` frontmatter field pulls in more skills
+    |
+    v
+[5] If an agent is spawned, the agent's frontmatter
+    `skills:` array auto-injects its reference skills
+    |
+    v
+[6] Claude reads injected skill content as context
+    and follows the patterns, checklists, and examples
+    |
+    v
+Output follows best practices from skill knowledge
+```
+
+Three injection paths work together:
+
+1. **Keyword matching** -- The `skill-auto-suggest` hook scans each prompt for keywords (like "database", "auth", "fastapi") and injects up to 3 relevant skills with the highest confidence scores.
+2. **Command skill composition** -- When you invoke a command skill like `/ork:implement`, its frontmatter `skills:` field lists reference skills to load alongside it (e.g., `api-design-framework`, `type-safety-validation`, `unit-testing`).
+3. **Agent frontmatter** -- Each agent's `.md` file in `src/agents/` declares a `skills:` array. When that agent is spawned, those skills are auto-injected into its context.
+
+---
+
+## Frontmatter Fields Reference
+
+Every `SKILL.md` starts with YAML frontmatter between `---` delimiters. Here are all the fields:
+
+| Field | Required | Type | Description |
+|-------|----------|------|-------------|
+| `name` | Yes | string | Unique identifier, matches directory name |
+| `description` | Yes | string | One-line summary. Starts with what it does, ends with "Use when..." |
+| `tags` | Yes | string[] | Keywords for discovery and search |
+| `user-invocable` | Yes | boolean | `true` = command skill, `false` = reference skill |
+| `context` | Yes | string | `fork` (isolated context), `inherit` (parent context), `none` (no context needed) |
+| `complexity` | Yes | string | `low`, `medium`, `high`, or `max` -- aligns adaptive thinking budget |
+| `version` | Recommended | string | Semver version of the skill content |
+| `author` | Recommended | string | Who maintains this skill |
+| `agent` | Optional | string | Which agent primarily uses this skill (reference skills only) |
+| `skills` | Optional | string[] | Other skills to co-load (command skills only) |
+| `allowedTools` | Optional | string[] | Tools this skill's context is allowed to use |
+| `hooks` | Optional | object | Skill-scoped hooks that fire when this skill is active |
+
+### The `context` Field
+
+This field controls how Claude Code runs the skill:
+
+- **`fork`** -- The skill runs in an isolated context. Most common for reference skills. Required for CC 2.1.0+.
+- **`inherit`** -- The skill runs in the parent conversation's context. Used for skills that need to read or modify the current state (like `commit` or `doctor`).
+- **`none`** -- The skill needs no conversation context at all (like `remember`, which writes to the knowledge graph).
+
+### The `complexity` Field
+
+This aligns the skill with Claude's adaptive thinking. Higher complexity means the model spends more reasoning tokens:
+
+| Complexity | Thinking budget | Example skills |
+|------------|-----------------|----------------|
+| `low` | Minimal | `commit`, `help`, `doctor`, `explore` |
+| `medium` | Moderate | `implement`, `fix-issue`, `api-design-framework` |
+| `high` | Substantial | `memory-fabric`, `defense-in-depth` |
+| `max` | Maximum | `upgrade-assessment` |
+
+---
+
+## Skill Budget and Token Scaling
+
+Claude Code 2.1.33+ scales the skill character budget to approximately 2% of the context window. This means token budgets auto-scale with model capacity:
+
+| Context window | Approximate skill token budget |
+|----------------|-------------------------------|
+| 200K tokens | ~1,200 tokens |
+| 500K tokens | ~3,000 tokens |
+| 1M tokens | ~6,000 tokens |
+
+When multiple skills are injected, they share this budget. The platform prioritizes skills by relevance score, loading higher-confidence matches first and truncating lower-priority content if the budget is exhausted.
+
+---
+
+## Mental Model: Skills Are Knowledge, Not Code
+
+If you come from a traditional plugin ecosystem, skills may feel unfamiliar. They are not functions, they are not APIs, they are not runtime dependencies. The closest analogy is a **reference card** pinned next to your monitor while you work.
+
+When Claude loads a skill, it reads the patterns and examples the same way a developer reads documentation. The skill does not execute -- it *informs*. The model then applies that knowledge to the current task.
+
+This has practical implications:
+
+- **Skills never break at runtime.** They are static text. The worst case is outdated advice.
+- **Skills compose freely.** Loading `api-design-framework` alongside `fastapi-advanced` gives Claude both the general API principles and the FastAPI-specific implementation patterns.
+- **Skills are cheap to create.** Writing a skill is writing documentation. No build step, no dependencies, no test harness (beyond frontmatter validation).
+
+---
+
+## What's Next
+
+- [23 Command Skills](/docs/skills/command-skills) -- The full list of `/ork:X` commands you can invoke directly.
+- [176 Reference Skills](/docs/skills/reference-skills) -- The knowledge library that powers agents behind the scenes.
+- [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How command skills, reference skills, and agents work together.
+- [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Step-by-step guide to adding new skills.

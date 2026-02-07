@@ -12,6 +12,7 @@ allowedTools:
   - Glob
   - Bash  # For backup/restore scripts
 user-invocable: false
+complexity: medium
 ---
 
 # Golden Dataset Management

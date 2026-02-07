@@ -7,6 +7,7 @@ version: 1.0.0
 author: OrchestKit
 tags: [drift, monitoring, quality, statistical, psi, langfuse, evidently]
 user-invocable: false
+complexity: medium
 ---
 
 # Drift Detection

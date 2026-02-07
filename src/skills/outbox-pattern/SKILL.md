@@ -8,6 +8,7 @@ tags: [event-driven, outbox, transactions, reliability, microservices, cdc, idem
 allowedTools: [Read, Write, Grep, Glob, Bash]
 author: OrchestKit
 user-invocable: false
+complexity: medium
 ---
 
 # Outbox Pattern ()
