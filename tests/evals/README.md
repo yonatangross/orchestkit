@@ -1,12 +1,24 @@
-# Index Effectiveness Evaluation Framework
+# Golden Test Evaluation Framework
 
-CI-based evaluation to measure OrchestKit's passive indexing effectiveness.
+CI-based validation of OrchestKit's golden test cases and scaffold integrity.
 
 ## Overview
 
-This framework runs A/B tests comparing Claude Code performance **with** vs **without** OrchestKit's indexes:
+This framework has two operating modes:
+
+### Dry-run (CI default — no Claude CLI)
+Validates structural correctness only:
+- Golden YAML schema (required fields, valid scaffold references)
+- Scaffold file creation
+- Build/lint command allowlist compliance
+
+Agent routing and quality metrics are **not evaluated** without Claude CLI.
+
+### Full evaluation (local or self-hosted runner with Claude CLI)
+Runs A/B tests comparing Claude Code performance **with** vs **without** OrchestKit's indexes:
 - **With Index**: CLAUDE.md + agent-index.md + skill-indexes loaded
 - **Without Index**: Baseline Claude Code with no OrchestKit indexes
+- Agent routing accuracy measured via Claude output logs
 
 ## Directory Structure
 
@@ -25,7 +37,6 @@ tests/evals/
 │   └── empty/             # Empty project
 ├── scripts/
 │   ├── run-evals.sh       # Main test runner
-│   ├── measure.sh         # Metrics extraction
 │   └── compare.sh         # A/B comparison
 └── results/               # Output (gitignored)
     ├── with-index/
@@ -45,10 +56,7 @@ prompt: |
   The prompt to send to Claude Code
 
 expected:
-  agent_spawned: backend-system-architect  # Expected Tier 1 routing
-  skills_should_read:                      # Expected Tier 2 skills
-    - api-design-framework
-    - fastapi-advanced
+  agent_spawned: backend-system-architect  # Expected routing (requires Claude CLI)
   files_created:                           # Expected output files
     - "app/main.py"
   build_command: "poetry install"          # Validation commands
@@ -63,32 +71,33 @@ tags:
 ## Running Locally
 
 ```bash
-# Run with indexes (default)
+# Full evaluation (requires Claude CLI)
 EVAL_MODE=with-index ./tests/evals/scripts/run-evals.sh
-
-# Run without indexes (baseline)
 EVAL_MODE=without-index ./tests/evals/scripts/run-evals.sh
-
-# Compare results
 ./tests/evals/scripts/compare.sh
+
+# Dry-run (structural validation only — works without Claude CLI)
+./tests/evals/scripts/run-evals.sh
 ```
 
 ## CI Integration
 
 The GitHub Actions workflow (`.github/workflows/eval-index-effectiveness.yml`) runs:
-1. On PRs that modify: `scripts/generate-indexes.sh`, `src/skills/**`, `src/agents/**`
-2. Nightly at 2 AM UTC
-3. Manual trigger via workflow_dispatch
+1. On PRs that modify: `scripts/generate-indexes.sh`, `src/skills/**`, `src/agents/**`, `manifests/**`
+2. Manual trigger via workflow_dispatch
+
+In CI (no Claude CLI), the workflow validates golden test structure only. Full agent routing evaluation requires a self-hosted runner with Claude CLI installed.
 
 ## Metrics
 
-| Metric | Description |
-|--------|-------------|
-| Build Success | Code compiles/installs without errors |
-| Lint Compliance | No linting errors (ruff, eslint) |
-| Test Passing | Tests pass (if applicable) |
-| Agent Routing | Correct agent spawned from Tier 1 index |
-| Skill Utilization | Expected skills read from Tier 2 index |
+| Metric | Dry-run | Full eval |
+|--------|---------|-----------|
+| Golden YAML parsed | Validated | Validated |
+| Scaffold integrity | Validated | Validated |
+| Build Success | Simulated | Real |
+| Lint Compliance | Simulated | Real |
+| Test Passing | Simulated | Real |
+| Agent Routing | **Skipped** | Measured |
 
 ## Adding New Tests
 
@@ -100,8 +109,6 @@ The GitHub Actions workflow (`.github/workflows/eval-index-effectiveness.yml`) r
 
 ## Security Model
 
-The eval framework runs with specific security mitigations:
-
 | Aspect | Mitigation |
 |--------|------------|
 | Command Execution | Allowlist-based validation (no arbitrary `eval`) |
@@ -111,9 +118,3 @@ The eval framework runs with specific security mitigations:
 | Timeouts | Configurable per-test (default 120s) |
 
 **Trust Model**: Golden YAML files are version-controlled and must be reviewed by maintainers. Commands in `build_command`, `lint_command`, `test_command` are validated against an allowlist in `run-evals.sh`.
-
-## References
-
-- [Vercel agents.md evaluation](https://vercel.com/blog/agents-md-outperforms-skills-in-our-agent-evals)
-- [DeepEval agent evaluation](https://deepeval.com/guides/guides-ai-agent-evaluation)
-- [AGENTS.md standard](https://agents.md/)

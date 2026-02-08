@@ -1,9 +1,14 @@
 #!/bin/bash
 # =============================================================================
-# OrchestKit Index Effectiveness Evaluation Runner
+# OrchestKit Golden Test Evaluation Runner
 # =============================================================================
-# Runs golden test cases with Claude Code and measures outcomes.
-# Focus: Agent routing correctness via CLAUDE.md agent-index.
+# Validates golden test cases and (optionally) measures Claude Code outcomes.
+#
+# Without Claude CLI (CI default): validates YAML schema, scaffold integrity,
+# and file expectations using simulated output. Agent routing is skipped.
+#
+# With Claude CLI (local/self-hosted): runs full evaluation including agent
+# routing accuracy, build/lint/test pass rates.
 #
 # Usage:
 #   EVAL_MODE=with-index ./run-evals.sh
@@ -11,9 +16,9 @@
 #   TEST_FILTER=backend ./run-evals.sh  # Filter by tag
 #
 # Requirements:
-#   - Claude Code CLI installed (claude command)
 #   - yq for YAML parsing
 #   - jq for JSON processing
+#   - Claude Code CLI (optional — enables full evaluation)
 # =============================================================================
 
 set -uo pipefail
@@ -49,8 +54,11 @@ TEST_FILTER="${TEST_FILTER:-}"
 mkdir -p "$RESULTS_DIR"
 
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${BLUE}  OrchestKit Index Effectiveness Evaluation${NC}"
+echo -e "${BLUE}  OrchestKit Golden Test Evaluation${NC}"
 echo -e "${BLUE}  Mode: ${YELLOW}$EVAL_MODE${NC}"
+if ! command -v claude &> /dev/null; then
+    echo -e "${YELLOW}  ⚠ Dry-run: Claude CLI not found — structural validation only${NC}"
+fi
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
@@ -238,12 +246,12 @@ run_test() {
 
     # Check agent spawned (look in output log)
     local agent_correct=false
-    if [[ -n "$expected_agent" ]]; then
+    local is_dry_run=false
+    if ! command -v claude &> /dev/null; then
+        is_dry_run=true
+        # In dry-run mode, agent routing cannot be evaluated — leave as false
+    elif [[ -n "$expected_agent" ]]; then
         if grep -qi "subagent_type.*$expected_agent\|Task.*$expected_agent" "$claude_output" 2>/dev/null; then
-            agent_correct=true
-        fi
-        # For dry-run, simulate correct agent routing
-        if ! command -v claude &> /dev/null; then
             agent_correct=true
         fi
     fi
@@ -255,6 +263,7 @@ run_test() {
   "id": "$test_id",
   "name": "$test_name",
   "mode": "$EVAL_MODE",
+  "dry_run": $is_dry_run,
   "duration_seconds": $duration,
   "build_pass": $build_pass,
   "lint_pass": $lint_pass,
@@ -270,7 +279,14 @@ EOF
     local build_icon=$([[ "$build_pass" == "true" ]] && echo "✅" || echo "❌")
     local lint_icon=$([[ "$lint_pass" == "true" ]] && echo "✅" || echo "❌")
     local test_icon=$([[ "$test_pass" == "true" ]] && echo "✅" || echo "❌")
-    local agent_icon=$([[ "$agent_correct" == "true" ]] && echo "✅" || echo "❌")
+    local agent_icon
+    if [[ "$is_dry_run" == "true" ]]; then
+        agent_icon="⏭️ (dry-run)"
+    elif [[ "$agent_correct" == "true" ]]; then
+        agent_icon="✅"
+    else
+        agent_icon="❌"
+    fi
 
     echo -e "  Build: $build_icon | Lint: $lint_icon | Test: $test_icon | Agent: $agent_icon"
     echo ""
@@ -301,6 +317,7 @@ echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━�
 # Combine all JSON results into summary
 jq -s '{
   mode: .[0].mode,
+  dry_run: ([.[] | select(.dry_run)] | length) == length,
   total: length,
   build_pass: [.[] | select(.build_pass)] | length,
   lint_pass: [.[] | select(.lint_pass)] | length,
@@ -311,17 +328,27 @@ jq -s '{
   test_rate: (([.[] | select(.test_pass)] | length) / length * 100),
   agent_rate: (([.[] | select(.agent_correct)] | length) / length * 100),
   total_duration: ([.[] | .duration_seconds] | add),
-  tests: [.[] | {id, build: .build_pass, lint: .lint_pass, test: .test_pass, agent: .agent_correct}]
+  tests: [.[] | {id, dry_run, build: .build_pass, lint: .lint_pass, test: .test_pass, agent: .agent_correct}]
 }' "$RESULTS_DIR"/*.json > "$RESULTS_DIR/summary.json"
 
 echo ""
 echo -e "${GREEN}Summary:${NC}"
-jq -r '"  Total tests: \(.total)
+jq -r 'if .dry_run then
+  "  Mode: DRY-RUN (structural validation only)
+  Total tests: \(.total)
+  Build pass: \(.build_pass)/\(.total) (\(.build_rate | floor)%)
+  Lint pass: \(.lint_pass)/\(.total) (\(.lint_rate | floor)%)
+  Test pass: \(.test_pass)/\(.total) (\(.test_rate | floor)%)
+  Agent routing: skipped (no Claude CLI)
+  Total duration: \(.total_duration)s"
+else
+  "  Total tests: \(.total)
   Build pass: \(.build_pass)/\(.total) (\(.build_rate | floor)%)
   Lint pass: \(.lint_pass)/\(.total) (\(.lint_rate | floor)%)
   Test pass: \(.test_pass)/\(.total) (\(.test_rate | floor)%)
   Agent correct: \(.agent_correct)/\(.total) (\(.agent_rate | floor)%)
-  Total duration: \(.total_duration)s"' "$RESULTS_DIR/summary.json"
+  Total duration: \(.total_duration)s"
+end' "$RESULTS_DIR/summary.json"
 
 echo ""
 echo -e "${GREEN}Results saved to: $RESULTS_DIR/summary.json${NC}"
