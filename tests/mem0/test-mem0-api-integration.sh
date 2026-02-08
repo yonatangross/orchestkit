@@ -201,17 +201,19 @@ CREATED_MEMORY_ID=""
 test_start "test_add_memory"
 
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Test memory from integration test" \
+    --text "Test memory from integration test [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-crud" 2>&1)
 EXIT_CODE=$?
 
 if [[ $EXIT_CODE -eq 0 ]]; then
     SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
+    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
 
     if [[ "$SUCCESS" == "true" ]]; then
         if [[ -n "$CREATED_MEMORY_ID" && "$CREATED_MEMORY_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$CREATED_MEMORY_ID")
+        else
+            echo "    [debug] memory_id not extracted. result keys: $(echo "$OUTPUT" | jq -r '.result | keys // "N/A"' 2>/dev/null)"
         fi
         test_pass
     else
@@ -317,7 +319,7 @@ BATCH_SUCCESS=true
 # Add 3 memories
 for i in 1 2 3; do
     OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Batch test memory number $i for integration testing" \
+        --text "Batch test memory number $i for integration testing [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-batch" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -325,7 +327,7 @@ for i in 1 2 3; do
         break
     fi
 
-    MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
+    MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
     if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
         BATCH_IDS+=("$MEM_ID")
         CREATED_MEMORY_IDS+=("$MEM_ID")
@@ -387,7 +389,7 @@ echo "--- Graph Operations ---"
 test_start "test_graph_operations"
 
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "OrchestKit uses TypeScript for hooks" \
+    --text "OrchestKit uses TypeScript for hooks [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-graph" \
     --enable-graph 2>&1)
 EXIT_CODE=$?
@@ -549,7 +551,7 @@ GET_SINGLE_SCRIPT="$CRUD_DIR/get-memory.py"
 if [[ -f "$GET_SINGLE_SCRIPT" ]]; then
     # First, add a memory to retrieve
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Single memory retrieval test for integration" \
+        --text "Single memory retrieval test for integration [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-get-single" 2>&1)
     ADD_EXIT=$?
 
@@ -604,7 +606,7 @@ UPDATE_SCRIPT="$CRUD_DIR/update-memory.py"
 if [[ -f "$UPDATE_SCRIPT" ]]; then
     # Add a memory to update
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Original text before update" \
+        --text "Original text before update [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-update" 2>&1)
     ADD_EXIT=$?
 
@@ -619,7 +621,7 @@ if [[ -f "$UPDATE_SCRIPT" ]]; then
             # Update the memory text
             UPD_OUTPUT=$(python3 "$UPDATE_SCRIPT" \
                 --memory-id "$UPDATE_MEM_ID" \
-                --text "Updated text after modification" 2>&1)
+                --text "Updated text after modification [${TEST_PREFIX}]" 2>&1)
             UPD_EXIT=$?
 
             if [[ $UPD_EXIT -eq 0 ]]; then
@@ -673,7 +675,7 @@ RELATED_SCRIPT="$GRAPH_DIR/get-related-memories.py"
 if [[ -f "$RELATED_SCRIPT" ]]; then
     # Add a memory with graph enabled
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Python is used for machine learning projects" \
+        --text "Python is used for machine learning projects [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-related" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -738,7 +740,7 @@ TRAVERSE_SCRIPT="$GRAPH_DIR/traverse-graph.py"
 if [[ -f "$TRAVERSE_SCRIPT" ]]; then
     # Add a memory with graph enabled about a specific topic
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "OrchestKit uses TypeScript for hooks and automation" \
+        --text "OrchestKit uses TypeScript for hooks and automation [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-traverse" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -806,7 +808,7 @@ HISTORY_SCRIPT="$UTILS_DIR/memory-history.py"
 if [[ -f "$HISTORY_SCRIPT" ]]; then
     # Add a memory, then update it to generate history
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "History test memory original content" \
+        --text "History test memory original content [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-history" 2>&1)
     ADD_EXIT=$?
 
@@ -822,7 +824,7 @@ if [[ -f "$HISTORY_SCRIPT" ]]; then
             if [[ -f "$CRUD_DIR/update-memory.py" ]]; then
                 python3 "$CRUD_DIR/update-memory.py" \
                     --memory-id "$HISTORY_MEM_ID" \
-                    --text "History test memory updated content" >/dev/null 2>&1
+                    --text "History test memory updated content [${TEST_PREFIX}]" >/dev/null 2>&1
                 sleep 1
             fi
 
@@ -996,7 +998,7 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
 
     for i in 1 2 3; do
         OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-            --text "Batch delete test memory $i" \
+            --text "Batch delete test memory $i [${TEST_PREFIX}]" \
             --user-id "${TEST_PREFIX}-batchdel" 2>&1)
 
         if [[ $? -ne 0 ]]; then
@@ -1004,7 +1006,7 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
             break
         fi
 
-        MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
+        MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
         if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
             BD_IDS+=("$MEM_ID")
             CREATED_MEMORY_IDS+=("$MEM_ID")
@@ -1075,7 +1077,7 @@ test_start "test_metadata_filtering"
 
 # Add a memory with specific metadata
 META_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Metadata filtering test memory for integration" \
+    --text "Metadata filtering test memory for integration [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-metadata" \
     --metadata '{"category":"test","priority":"high"}' 2>&1)
 META_EXIT=$?

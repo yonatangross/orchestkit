@@ -271,7 +271,8 @@ echo "--- Workflow 2: Multi-Memory Session ---"
 MULTI_MEMORY_IDS=()
 
 test_start "test_e2e_multi_memory_create"
-ALL_CREATED=true
+ALL_ADDED=true
+ADD_COUNT=0
 
 # Memory 1: Decision
 M1_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
@@ -279,12 +280,16 @@ M1_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
     --user-id "${TEST_PREFIX}-multi" \
     --metadata "{\"category\":\"decision\",\"test_prefix\":\"${TEST_PREFIX}\"}" \
     2>&1) || true
-M1_ID=$(echo "$M1_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
-if [[ -n "$M1_ID" && "$M1_ID" != "null" ]]; then
-    MULTI_MEMORY_IDS+=("$M1_ID")
-    register_for_cleanup "$M1_ID"
+M1_SUCCESS=$(echo "$M1_OUTPUT" | jq -r '.success // false' 2>/dev/null)
+M1_ID=$(echo "$M1_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result[0].id // empty' 2>/dev/null)
+if [[ "$M1_SUCCESS" == "true" ]]; then
+    ADD_COUNT=$((ADD_COUNT + 1))
+    if [[ -n "$M1_ID" && "$M1_ID" != "null" ]]; then
+        MULTI_MEMORY_IDS+=("$M1_ID")
+        register_for_cleanup "$M1_ID"
+    fi
 else
-    ALL_CREATED=false
+    ALL_ADDED=false
 fi
 
 # Memory 2: Pattern
@@ -293,12 +298,16 @@ M2_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
     --user-id "${TEST_PREFIX}-multi" \
     --metadata "{\"category\":\"pattern\",\"test_prefix\":\"${TEST_PREFIX}\"}" \
     2>&1) || true
-M2_ID=$(echo "$M2_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
-if [[ -n "$M2_ID" && "$M2_ID" != "null" ]]; then
-    MULTI_MEMORY_IDS+=("$M2_ID")
-    register_for_cleanup "$M2_ID"
+M2_SUCCESS=$(echo "$M2_OUTPUT" | jq -r '.success // false' 2>/dev/null)
+M2_ID=$(echo "$M2_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result[0].id // empty' 2>/dev/null)
+if [[ "$M2_SUCCESS" == "true" ]]; then
+    ADD_COUNT=$((ADD_COUNT + 1))
+    if [[ -n "$M2_ID" && "$M2_ID" != "null" ]]; then
+        MULTI_MEMORY_IDS+=("$M2_ID")
+        register_for_cleanup "$M2_ID"
+    fi
 else
-    ALL_CREATED=false
+    ALL_ADDED=false
 fi
 
 # Memory 3: Blocker
@@ -307,25 +316,29 @@ M3_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
     --user-id "${TEST_PREFIX}-multi" \
     --metadata "{\"category\":\"blocker\",\"test_prefix\":\"${TEST_PREFIX}\"}" \
     2>&1) || true
-M3_ID=$(echo "$M3_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
-if [[ -n "$M3_ID" && "$M3_ID" != "null" ]]; then
-    MULTI_MEMORY_IDS+=("$M3_ID")
-    register_for_cleanup "$M3_ID"
+M3_SUCCESS=$(echo "$M3_OUTPUT" | jq -r '.success // false' 2>/dev/null)
+M3_ID=$(echo "$M3_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result[0].id // empty' 2>/dev/null)
+if [[ "$M3_SUCCESS" == "true" ]]; then
+    ADD_COUNT=$((ADD_COUNT + 1))
+    if [[ -n "$M3_ID" && "$M3_ID" != "null" ]]; then
+        MULTI_MEMORY_IDS+=("$M3_ID")
+        register_for_cleanup "$M3_ID"
+    fi
 else
-    ALL_CREATED=false
+    ALL_ADDED=false
 fi
 
-if $ALL_CREATED; then
+if $ALL_ADDED && [[ $ADD_COUNT -eq 3 ]]; then
     test_pass
 else
-    test_fail "Expected 3 memories created, got ${#MULTI_MEMORY_IDS[@]}"
+    test_fail "Expected 3 memories added successfully, got $ADD_COUNT"
 fi
 
 # Allow mem0 API time to index (eventually consistent)
 sleep 5
 
 test_start "test_e2e_multi_memory_count"
-if ! $ALL_CREATED; then
+if ! $ALL_ADDED; then
     test_skip "Not all 3 memories were created (prior test failed)"
 else
     GET_MULTI_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/get-memories.py" \
@@ -342,7 +355,7 @@ else
 fi
 
 test_start "test_e2e_multi_memory_search_specific"
-if ! $ALL_CREATED; then
+if ! $ALL_ADDED; then
     test_skip "Not all 3 memories were created (prior test failed)"
 else
     SEARCH_FOUND=0
@@ -382,7 +395,7 @@ else
 fi
 
 test_start "test_e2e_multi_memory_cleanup"
-if ! $ALL_CREATED || [[ ${#MULTI_MEMORY_IDS[@]} -eq 0 ]]; then
+if ! $ALL_ADDED; then
     test_skip "No multi-memories to clean up (prior test failed)"
 else
     DEL_SUCCESS_COUNT=0

@@ -49,24 +49,17 @@ def main():
         if not filters or not any(key in filters for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
             raise ValueError("Filters must include one of: user_id, agent_id, run_id, app_id, or memory_export_id")
         
-        # SDK method signature: create_memory_export(schema: str, **kwargs)
-        # But API expects schema as JSON object, so we pass it as JSON string
-        # Filters should be passed as kwargs (user_id, agent_id, etc.)
-        # Extract filter values and pass as kwargs
-        export_kwargs = {}
-        if "user_id" in filters:
-            export_kwargs["user_id"] = filters["user_id"]
-        if "agent_id" in filters:
-            export_kwargs["agent_id"] = filters["agent_id"]
-        if "run_id" in filters:
-            export_kwargs["run_id"] = filters["run_id"]
-        if "app_id" in filters:
-            export_kwargs["app_id"] = filters["app_id"]
-        if "memory_export_id" in filters:
-            export_kwargs["memory_export_id"] = filters["memory_export_id"]
-        
-        # API expects schema as a JSON object (dict), not a string
-        result = client.create_memory_export(schema=schema_obj, **export_kwargs)
+        # API expects both schema and filters as JSON objects
+        # Try passing filters explicitly first (newer SDK), fall back to kwargs
+        try:
+            result = client.create_memory_export(schema=schema_obj, filters=filters)
+        except TypeError:
+            # Older SDK may not accept filters kwarg — pass as individual kwargs
+            export_kwargs = {}
+            for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]:
+                if key in filters:
+                    export_kwargs[key] = filters[key]
+            result = client.create_memory_export(schema=schema_obj, **export_kwargs)
 
         print(json.dumps({
             "success": True,
