@@ -163,7 +163,7 @@ for agent_file in $AGENT_FILES; do
     all_found=true
 
     for field in "${REQUIRED_FRONTMATTER[@]}"; do
-        if ! echo "$frontmatter" | grep -q "^${field}:"; then
+        if ! grep -q "^${field}:" <<< "$frontmatter"; then
             all_found=false
             missing="$missing $field"
         fi
@@ -239,7 +239,7 @@ for agent_file in $AGENT_FILES; do
     frontmatter=$(get_frontmatter "$agent_file")
 
     # Check if skills key exists
-    if ! echo "$frontmatter" | grep -q "^skills:"; then
+    if ! grep -q "^skills:" <<< "$frontmatter"; then
         log_info "$agent_id has no skills in frontmatter"
         continue
     fi
@@ -280,7 +280,7 @@ for agent_file in $AGENT_FILES; do
     agent_id=$(basename "$agent_file" .md)
     frontmatter=$(get_frontmatter "$agent_file")
 
-    if ! echo "$frontmatter" | grep -q "^tools:"; then
+    if ! grep -q "^tools:" <<< "$frontmatter"; then
         log_fail "$agent_id has no tools declaration"
         continue
     fi

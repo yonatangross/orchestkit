@@ -241,6 +241,36 @@ wait_for_zero() {
     return 1  # gave up
 }
 
+# Extract memory ID from add-memory.py output, with get_all fallback
+# Usage: extract_memory_id "$output" "$user_id"
+# Sets: EXTRACTED_MEM_ID
+extract_memory_id() {
+    local output="$1"
+    local user_id="$2"
+
+    EXTRACTED_MEM_ID=$(echo "$output" | jq -r '
+        .memory_id //
+        .result.results[0].id //
+        .result.results[0].memory_id //
+        .result[0].id //
+        .result[0].memory_id //
+        empty
+    ' 2>/dev/null)
+
+    # Fallback: if add returned empty results (dedup/merge), use get_all with retry
+    if [[ -z "$EXTRACTED_MEM_ID" || "$EXTRACTED_MEM_ID" == "null" ]]; then
+        if wait_for_get "$user_id"; then
+            EXTRACTED_MEM_ID=$(echo "$RETRY_OUTPUT" | jq -r '
+                .memories[0].id //
+                .memories[0].memory_id //
+                .results[0].id //
+                .results[0].memory_id //
+                empty
+            ' 2>/dev/null)
+        fi
+    fi
+}
+
 # =============================================================================
 # Test 1: API Connectivity
 # =============================================================================
@@ -275,8 +305,10 @@ CREATED_MEMORY_ID=""
 
 test_start "test_add_memory"
 
+# Use a unique non-tech domain text to prevent mem0 semantic dedup across parallel CI runners
+CRUD_TEXT="The Rosetta Stone was discovered in 1799 near the Egyptian town of Rashid during Napoleon's campaign"
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Note ${TEST_PREFIX}: Python asyncio TaskGroup manages concurrent coroutines efficiently" \
+    --text "Note ${TEST_PREFIX}: ${CRUD_TEXT}" \
     --user-id "${TEST_PREFIX}-crud" 2>&1)
 EXIT_CODE=$?
 
@@ -292,10 +324,25 @@ if [[ $EXIT_CODE -eq 0 ]]; then
     ' 2>/dev/null)
 
     if [[ "$SUCCESS" == "true" ]]; then
+        # If add returned empty results (dedup/merge), wait for get_all to find the memory
+        if [[ -z "$CREATED_MEMORY_ID" || "$CREATED_MEMORY_ID" == "null" ]]; then
+            echo "    [debug] memory_id not in add response, waiting for get_all..."
+            if wait_for_get "${TEST_PREFIX}-crud"; then
+                # Extract ID from the get_all result
+                CREATED_MEMORY_ID=$(echo "$RETRY_OUTPUT" | jq -r '
+                    .memories[0].id //
+                    .memories[0].memory_id //
+                    .results[0].id //
+                    .results[0].memory_id //
+                    empty
+                ' 2>/dev/null)
+            fi
+        fi
+
         if [[ -n "$CREATED_MEMORY_ID" && "$CREATED_MEMORY_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$CREATED_MEMORY_ID")
         else
-            echo "    [debug] memory_id not extracted from response. result keys: $(echo "$OUTPUT" | jq -c '.result | keys' 2>/dev/null), results[0] keys: $(echo "$OUTPUT" | jq -c '.result.results[0] | keys' 2>/dev/null)"
+            echo "    [debug] memory_id not extracted. result keys: $(echo "$OUTPUT" | jq -c '.result | keys' 2>/dev/null), results[0] keys: $(echo "$OUTPUT" | jq -c '.result.results[0] | keys' 2>/dev/null)"
         fi
         test_pass
     else
@@ -311,7 +358,7 @@ fi
 
 test_start "test_search_memory"
 
-if wait_for_search "asyncio TaskGroup concurrent coroutines" "${TEST_PREFIX}-crud"; then
+if wait_for_search "Rosetta Stone discovered 1799 Egyptian Rashid Napoleon" "${TEST_PREFIX}-crud"; then
     test_pass
 else
     test_fail "Search returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
@@ -447,14 +494,15 @@ echo "--- Graph Operations ---"
 test_start "test_graph_operations"
 
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Note ${TEST_PREFIX}: Svelte 5 runes replace reactive declarations with signals" \
+    --text "Note ${TEST_PREFIX}: The Mariana Trench reaches 10994 meters below sea level near the Challenger Deep" \
     --user-id "${TEST_PREFIX}-graph" \
     --enable-graph 2>&1)
 EXIT_CODE=$?
 
 if [[ $EXIT_CODE -eq 0 ]]; then
     SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    GRAPH_MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+    extract_memory_id "$OUTPUT" "${TEST_PREFIX}-graph"
+    GRAPH_MEM_ID="$EXTRACTED_MEM_ID"
 
     if [[ -n "$GRAPH_MEM_ID" && "$GRAPH_MEM_ID" != "null" ]]; then
         CREATED_MEMORY_IDS+=("$GRAPH_MEM_ID")
@@ -605,12 +653,13 @@ GET_SINGLE_SCRIPT="$CRUD_DIR/get-memory.py"
 if [[ -f "$GET_SINGLE_SCRIPT" ]]; then
     # First, add a memory to retrieve
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Nginx reverse proxy handles SSL termination and load balancing" \
+        --text "Note ${TEST_PREFIX}: Beethoven completed his Ninth Symphony in 1824 while completely deaf" \
         --user-id "${TEST_PREFIX}-get-single" 2>&1)
     ADD_EXIT=$?
 
     if [[ $ADD_EXIT -eq 0 ]]; then
-        SINGLE_MEM_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        extract_memory_id "$ADD_OUTPUT" "${TEST_PREFIX}-get-single"
+        SINGLE_MEM_ID="$EXTRACTED_MEM_ID"
 
         if [[ -n "$SINGLE_MEM_ID" && "$SINGLE_MEM_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$SINGLE_MEM_ID")
@@ -660,12 +709,13 @@ UPDATE_SCRIPT="$CRUD_DIR/update-memory.py"
 if [[ -f "$UPDATE_SCRIPT" ]]; then
     # Add a memory to update
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Terraform modules manage AWS infrastructure state" \
+        --text "Note ${TEST_PREFIX}: The Great Wall of China stretches 21196 kilometers across northern China" \
         --user-id "${TEST_PREFIX}-update" 2>&1)
     ADD_EXIT=$?
 
     if [[ $ADD_EXIT -eq 0 ]]; then
-        UPDATE_MEM_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        extract_memory_id "$ADD_OUTPUT" "${TEST_PREFIX}-update"
+        UPDATE_MEM_ID="$EXTRACTED_MEM_ID"
 
         if [[ -n "$UPDATE_MEM_ID" && "$UPDATE_MEM_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$UPDATE_MEM_ID")
@@ -675,7 +725,7 @@ if [[ -f "$UPDATE_SCRIPT" ]]; then
             # Update the memory text
             UPD_OUTPUT=$(python3 "$UPDATE_SCRIPT" \
                 --memory-id "$UPDATE_MEM_ID" \
-                --text "Note ${TEST_PREFIX}: Pulumi manages cloud infrastructure with TypeScript code" 2>&1)
+                --text "Note ${TEST_PREFIX}: The Great Wall was rebuilt extensively during the Ming Dynasty 1368-1644" 2>&1)
             UPD_EXIT=$?
 
             if [[ $UPD_EXIT -eq 0 ]]; then
@@ -729,13 +779,14 @@ RELATED_SCRIPT="$GRAPH_DIR/get-related-memories.py"
 if [[ -f "$RELATED_SCRIPT" ]]; then
     # Add a memory with graph enabled
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: JAX uses XLA compiler for GPU-accelerated tensor operations" \
+        --text "Note ${TEST_PREFIX}: Saturn's rings are composed primarily of ice particles and rocky debris" \
         --user-id "${TEST_PREFIX}-related" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
 
     if [[ $ADD_EXIT -eq 0 ]]; then
-        RELATED_MEM_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        extract_memory_id "$ADD_OUTPUT" "${TEST_PREFIX}-related"
+        RELATED_MEM_ID="$EXTRACTED_MEM_ID"
 
         if [[ -n "$RELATED_MEM_ID" && "$RELATED_MEM_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$RELATED_MEM_ID")
@@ -794,13 +845,14 @@ TRAVERSE_SCRIPT="$GRAPH_DIR/traverse-graph.py"
 if [[ -f "$TRAVERSE_SCRIPT" ]]; then
     # Add a memory with graph enabled about a specific topic
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Zig programming language has comptime for compile-time evaluation" \
+        --text "Note ${TEST_PREFIX}: The Amazon River discharges 209000 cubic meters of freshwater per second" \
         --user-id "${TEST_PREFIX}-traverse" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
 
     if [[ $ADD_EXIT -eq 0 ]]; then
-        TRAVERSE_MEM_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        extract_memory_id "$ADD_OUTPUT" "${TEST_PREFIX}-traverse"
+        TRAVERSE_MEM_ID="$EXTRACTED_MEM_ID"
 
         if [[ -n "$TRAVERSE_MEM_ID" && "$TRAVERSE_MEM_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$TRAVERSE_MEM_ID")
@@ -862,12 +914,13 @@ HISTORY_SCRIPT="$UTILS_DIR/memory-history.py"
 if [[ -f "$HISTORY_SCRIPT" ]]; then
     # Add a memory, then update it to generate history
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Deno 2 supports npm packages natively without node_modules" \
+        --text "Note ${TEST_PREFIX}: Marie Curie won Nobel Prizes in both Physics 1903 and Chemistry 1911" \
         --user-id "${TEST_PREFIX}-history" 2>&1)
     ADD_EXIT=$?
 
     if [[ $ADD_EXIT -eq 0 ]]; then
-        HISTORY_MEM_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        extract_memory_id "$ADD_OUTPUT" "${TEST_PREFIX}-history"
+        HISTORY_MEM_ID="$EXTRACTED_MEM_ID"
 
         if [[ -n "$HISTORY_MEM_ID" && "$HISTORY_MEM_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$HISTORY_MEM_ID")
@@ -878,7 +931,7 @@ if [[ -f "$HISTORY_SCRIPT" ]]; then
             if [[ -f "$CRUD_DIR/update-memory.py" ]]; then
                 python3 "$CRUD_DIR/update-memory.py" \
                     --memory-id "$HISTORY_MEM_ID" \
-                    --text "Note ${TEST_PREFIX}: Bun runtime provides built-in test runner and bundler" >/dev/null 2>&1
+                    --text "Note ${TEST_PREFIX}: Marie Curie discovered radium and polonium through uranium ore research" >/dev/null 2>&1
                 sleep 1
             fi
 
@@ -966,6 +1019,10 @@ LIST_WH_SCRIPT="$WEBHOOKS_DIR/list-webhooks.py"
 DELETE_WH_SCRIPT="$WEBHOOKS_DIR/delete-webhook.py"
 
 if [[ -f "$CREATE_WH_SCRIPT" && -f "$LIST_WH_SCRIPT" && -f "$DELETE_WH_SCRIPT" ]]; then
+    # Webhooks require MEM0_PROJECT_ID — fail fast if not set
+    if [[ -z "${MEM0_PROJECT_ID:-}" ]]; then
+        test_fail "MEM0_PROJECT_ID not set — webhooks require a project_id. Add MEM0_PROJECT_ID secret to CI."
+    else
     # Create a test webhook
     WH_OUTPUT=$(python3 "$CREATE_WH_SCRIPT" \
         --url "https://httpbin.org/post?test=${TEST_PREFIX}" \
@@ -1029,6 +1086,7 @@ if [[ -f "$CREATE_WH_SCRIPT" && -f "$LIST_WH_SCRIPT" && -f "$DELETE_WH_SCRIPT" ]
             test_fail "create-webhook.py returned exit code $WH_EXIT. Output: $WH_OUTPUT"
         fi
     fi
+    fi  # end MEM0_PROJECT_ID check
 else
     test_fail "Webhook scripts not found (need create, list, and delete at $WEBHOOKS_DIR)"
 fi
