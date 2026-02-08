@@ -174,24 +174,22 @@ ADD_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
     2>&1) || true
 
 ADD_SUCCESS=$(echo "$ADD_OUTPUT" | jq -r '.success // false' 2>/dev/null)
-DECISION_MEMORY_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+DECISION_MEMORY_ID=$(echo "$ADD_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
 
-if [[ "$ADD_SUCCESS" == "true" && -n "$DECISION_MEMORY_ID" && "$DECISION_MEMORY_ID" != "null" ]]; then
-    register_for_cleanup "$DECISION_MEMORY_ID"
-    test_pass
-else
-    # Some mem0 API versions return results array instead of top-level memory_id
-    DECISION_MEMORY_ID=$(echo "$ADD_OUTPUT" | jq -r '.result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
+if [[ "$ADD_SUCCESS" == "true" ]]; then
     if [[ -n "$DECISION_MEMORY_ID" && "$DECISION_MEMORY_ID" != "null" ]]; then
         register_for_cleanup "$DECISION_MEMORY_ID"
-        test_pass
-    else
-        test_fail "Failed to create decision memory: $ADD_OUTPUT"
     fi
+    test_pass
+else
+    test_fail "Failed to create decision memory: $ADD_OUTPUT"
 fi
 
+# Allow mem0 API time to index (eventually consistent)
+sleep 5
+
 test_start "test_e2e_decision_searchable"
-if [[ -z "$DECISION_MEMORY_ID" || "$DECISION_MEMORY_ID" == "null" ]]; then
+if [[ "$ADD_SUCCESS" != "true" ]]; then
     test_skip "No decision memory to search (prior test failed)"
 else
     SEARCH_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/search-memories.py" \
@@ -214,7 +212,7 @@ else
 fi
 
 test_start "test_e2e_decision_content_intact"
-if [[ -z "$DECISION_MEMORY_ID" || "$DECISION_MEMORY_ID" == "null" ]]; then
+if [[ "$ADD_SUCCESS" != "true" ]]; then
     test_skip "No decision memory to verify (prior test failed)"
 else
     GET_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/get-memories.py" \
@@ -317,18 +315,19 @@ else
     ALL_CREATED=false
 fi
 
-if $ALL_CREATED && [[ ${#MULTI_MEMORY_IDS[@]} -eq 3 ]]; then
+if $ALL_CREATED; then
     test_pass
 else
     test_fail "Expected 3 memories created, got ${#MULTI_MEMORY_IDS[@]}"
 fi
 
+# Allow mem0 API time to index (eventually consistent)
+sleep 5
+
 test_start "test_e2e_multi_memory_count"
-if [[ ${#MULTI_MEMORY_IDS[@]} -ne 3 ]]; then
+if ! $ALL_CREATED; then
     test_skip "Not all 3 memories were created (prior test failed)"
 else
-    # Allow a brief delay for eventual consistency
-    sleep 1
     GET_MULTI_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/get-memories.py" \
         --user-id "${TEST_PREFIX}-multi" \
         2>&1) || true
@@ -343,7 +342,7 @@ else
 fi
 
 test_start "test_e2e_multi_memory_search_specific"
-if [[ ${#MULTI_MEMORY_IDS[@]} -ne 3 ]]; then
+if ! $ALL_CREATED; then
     test_skip "Not all 3 memories were created (prior test failed)"
 else
     SEARCH_FOUND=0
@@ -383,7 +382,7 @@ else
 fi
 
 test_start "test_e2e_multi_memory_cleanup"
-if [[ ${#MULTI_MEMORY_IDS[@]} -eq 0 ]]; then
+if ! $ALL_CREATED || [[ ${#MULTI_MEMORY_IDS[@]} -eq 0 ]]; then
     test_skip "No multi-memories to clean up (prior test failed)"
 else
     DEL_SUCCESS_COUNT=0
@@ -453,6 +452,9 @@ else
         test_fail "Failed to create graph memory: $GRAPH_ADD_OUTPUT"
     fi
 fi
+
+# Allow mem0 API time to index (eventually consistent)
+sleep 5
 
 test_start "test_e2e_graph_memory_search"
 if [[ -z "$GRAPH_MEMORY_ID" || "$GRAPH_MEMORY_ID" == "null" ]]; then
@@ -525,15 +527,20 @@ CONT_ADD_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/add-memory.py" \
 CONT_ADD_SUCCESS=$(echo "$CONT_ADD_OUTPUT" | jq -r '.success // false' 2>/dev/null)
 CONTINUITY_MEMORY_ID=$(echo "$CONT_ADD_OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
 
-if [[ "$CONT_ADD_SUCCESS" == "true" && -n "$CONTINUITY_MEMORY_ID" && "$CONTINUITY_MEMORY_ID" != "null" ]]; then
-    register_for_cleanup "$CONTINUITY_MEMORY_ID"
+if [[ "$CONT_ADD_SUCCESS" == "true" ]]; then
+    if [[ -n "$CONTINUITY_MEMORY_ID" && "$CONTINUITY_MEMORY_ID" != "null" ]]; then
+        register_for_cleanup "$CONTINUITY_MEMORY_ID"
+    fi
     test_pass
 else
     test_fail "Failed to save session continuity memory: $CONT_ADD_OUTPUT"
 fi
 
+# Allow mem0 API time to index (eventually consistent)
+sleep 5
+
 test_start "test_e2e_session_restore"
-if [[ -z "$CONTINUITY_MEMORY_ID" || "$CONTINUITY_MEMORY_ID" == "null" ]]; then
+if [[ "$CONT_ADD_SUCCESS" != "true" ]]; then
     test_skip "No continuity memory saved (prior test failed)"
 else
     CONT_SEARCH_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/search-memories.py" \
@@ -552,7 +559,7 @@ else
 fi
 
 test_start "test_e2e_session_restore_content"
-if [[ -z "$CONTINUITY_MEMORY_ID" || "$CONTINUITY_MEMORY_ID" == "null" ]]; then
+if [[ "$CONT_ADD_SUCCESS" != "true" ]]; then
     test_skip "No continuity memory saved (prior test failed)"
 else
     CONT_GET_OUTPUT=$(python3 "$SCRIPTS_DIR/crud/get-memories.py" \

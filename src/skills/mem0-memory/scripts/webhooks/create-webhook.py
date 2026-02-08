@@ -5,6 +5,7 @@ Usage: ./create-webhook.py --url "https://example.com/webhook" --name "My Webhoo
 """
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -37,11 +38,21 @@ def main():
         if not isinstance(event_types, list):
             raise ValueError("--event-types must be a JSON array")
 
-        result = client.create_webhook(
-            url=args.url,
-            name=args.name,
-            event_types=event_types
-        )
+        # SDK v1.1+ requires project_id as positional arg
+        project_id = args.project_id or os.getenv("MEM0_PROJECT_ID")
+        if project_id:
+            result = client.create_webhook(
+                project_id,
+                url=args.url,
+                name=args.name,
+                event_types=event_types
+            )
+        else:
+            result = client.create_webhook(
+                url=args.url,
+                name=args.name,
+                event_types=event_types
+            )
 
         print(json.dumps({
             "success": True,

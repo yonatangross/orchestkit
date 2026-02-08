@@ -65,14 +65,8 @@ def main():
         if "memory_export_id" in filters:
             export_kwargs["memory_export_id"] = filters["memory_export_id"]
         
-        # SDK expects schema as string, but API validates it as JSON object
-        # Pass as JSON string - SDK/API will handle conversion
-        if isinstance(schema_obj, dict):
-            schema_str = json.dumps(schema_obj)
-        else:
-            schema_str = str(schema_obj)
-        
-        result = client.create_memory_export(schema=schema_str, **export_kwargs)
+        # API expects schema as a JSON object (dict), not a string
+        result = client.create_memory_export(schema=schema_obj, **export_kwargs)
 
         print(json.dumps({
             "success": True,

@@ -207,16 +207,13 @@ EXIT_CODE=$?
 
 if [[ $EXIT_CODE -eq 0 ]]; then
     SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
 
     if [[ "$SUCCESS" == "true" ]]; then
         if [[ -n "$CREATED_MEMORY_ID" && "$CREATED_MEMORY_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$CREATED_MEMORY_ID")
-            test_pass
-        else
-            # Some API versions may not return memory_id directly; still a pass if success is true
-            test_pass
         fi
+        test_pass
     else
         test_fail "Response did not contain \"success\": true. Output: $OUTPUT"
     fi
@@ -228,8 +225,8 @@ fi
 # Test 3: Search Memory
 # =============================================================================
 
-# Brief pause to allow indexing
-sleep 2
+# Brief pause to allow indexing (mem0 API is eventually consistent)
+sleep 5
 
 test_start "test_search_memory"
 
@@ -328,7 +325,7 @@ for i in 1 2 3; do
         break
     fi
 
-    MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+    MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
     if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
         BATCH_IDS+=("$MEM_ID")
         CREATED_MEMORY_IDS+=("$MEM_ID")
@@ -336,8 +333,8 @@ for i in 1 2 3; do
 done
 
 if [[ "$BATCH_SUCCESS" == "true" ]]; then
-    # Brief pause for indexing
-    sleep 2
+    # Brief pause for indexing (mem0 API is eventually consistent)
+    sleep 5
 
     # Verify count
     OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
@@ -1007,7 +1004,7 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
             break
         fi
 
-        MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+        MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // empty' 2>/dev/null)
         if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
             BD_IDS+=("$MEM_ID")
             CREATED_MEMORY_IDS+=("$MEM_ID")
@@ -1092,7 +1089,7 @@ if [[ $META_EXIT -eq 0 ]]; then
     fi
 
     if [[ "$META_SUCCESS" == "true" ]]; then
-        sleep 2
+        sleep 5
 
         # Search with metadata filter
         SEARCH_OUTPUT=$(python3 "$CRUD_DIR/search-memories.py" \
