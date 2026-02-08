@@ -23,7 +23,7 @@ TESTS_FAILED=0
 TESTS_SKIPPED=0
 
 # Unique test prefix to isolate test data
-TEST_PREFIX="e2e-$(date +%s)"
+TEST_PREFIX="e2e-$(date +%s)-${RANDOM}"
 
 # Track memory IDs for cleanup
 CLEANUP_MEMORY_IDS=()
