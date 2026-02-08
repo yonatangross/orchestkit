@@ -37,7 +37,16 @@ log_section() {
     echo "═══════════════════════════════════════════════════════════════"
 }
 
-TS_FILE="${PROJECT_ROOT}/docs/site/lib/playground-data.ts"
+# After v6.0.3, playground-data.ts is a barrel re-exporting from generated/ split modules.
+# Check split files first; fall back to monolith barrel for backward compat.
+GENERATED_DIR="${PROJECT_ROOT}/docs/site/lib/generated"
+if [[ -f "${GENERATED_DIR}/compositions-data.ts" ]]; then
+    TS_FILE="${GENERATED_DIR}/compositions-data.ts"
+    TYPES_FILE="${GENERATED_DIR}/types.ts"
+else
+    TS_FILE="${PROJECT_ROOT}/docs/site/lib/playground-data.ts"
+    TYPES_FILE="$TS_FILE"
+fi
 CDN_FILE="${PROJECT_ROOT}/orchestkit-demos/out/cdn-urls.json"
 
 # ── cdn-urls.json source ─────────────────────────────────────
@@ -103,7 +112,7 @@ fi  # end cdn-urls.json guard
 log_section "Generated playground-data.ts — CDN Fields"
 
 test_ts_interface_has_cdn_fields() {
-    if grep -q "thumbnailCdn?" "$TS_FILE" && grep -q "videoCdn?" "$TS_FILE"; then
+    if grep -q "thumbnailCdn?" "$TYPES_FILE" && grep -q "videoCdn?" "$TYPES_FILE"; then
         log_pass "Composition interface has thumbnailCdn? and videoCdn? fields"
     else
         log_fail "Composition interface missing CDN fields"
