@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [6.0.3] - 2026-02-07
 
+### Added
+
+- **Langfuse v3 Rewrite** (Milestone #58): Complete rewrite of `langfuse-observability` skill from deprecated SDK v2 to v3/v4 (OTEL-native)
+  - SKILL.md bumped to v2.0.0 with 3 new capability sections (agent-graphs, mcp-prompt-management, framework-integrations)
+  - 3 new reference files: `agent-observability.md`, `framework-integrations.md`, `migration-v2-v3.md`
+  - 7 existing reference files rewritten with v3 imports (`from langfuse import observe, get_client`)
+  - All `langfuse_context` → `get_client()`, all `langfuse.decorators` → `langfuse` imports
+  - New coverage: Agent Graphs, MCP Server, Experiment Runner SDK, dataset versioning, spend alerts, natural language filtering, evaluator execution tracing
+  - 18 tracking issues (#419-#436) under Milestone #58
+
 ### Fixed
 
 - **CI**: Quote workflow names containing colons (`Validate: Plugins`, `Validate: Version`, `Eval: Agent Routing`, `Visualize: Memory`) — unquoted colons caused YAML parse errors resulting in 0 jobs

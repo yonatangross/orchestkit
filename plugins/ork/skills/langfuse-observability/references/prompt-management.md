@@ -1,11 +1,10 @@
 # Prompt Management
 
-Version control for prompts in production.
+Version control for prompts in production, with MCP Server integration and webhook notifications.
 
-## Basic Usage
+## Basic Usage (v3)
 
 ```python
-# Fetch prompt from Langfuse
 from langfuse import Langfuse
 
 langfuse = Langfuse()
@@ -17,15 +16,25 @@ prompt = langfuse.get_prompt("security_auditor", label="production")
 response = await llm.generate(
     messages=[
         {"role": "system", "content": prompt.compile()},
-        {"role": "user", "content": user_input}
+        {"role": "user", "content": user_input},
     ]
 )
 
-# Link prompt to trace
-langfuse.trace(
-    name="security_analysis",
-    metadata={"prompt_version": prompt.version}
-)
+# Link prompt to trace via @observe
+from langfuse import observe, get_client
+
+@observe()
+async def analyze(user_input: str):
+    prompt = langfuse.get_prompt("security_auditor", label="production")
+    get_client().update_current_observation(
+        metadata={"prompt_name": prompt.name, "prompt_version": prompt.version},
+    )
+    return await llm.generate(
+        messages=[
+            {"role": "system", "content": prompt.compile()},
+            {"role": "user", "content": user_input},
+        ]
+    )
 ```
 
 ## Prompt Versioning in UI
@@ -50,12 +59,108 @@ security_auditor
 prompt = langfuse.get_prompt("content_analyzer")
 compiled = prompt.compile(
     role="security auditor",
-    content_type="API endpoint"
+    content_type="API endpoint",
 )
 
 # Result:
 # "You are a security auditor. Analyze the following API endpoint..."
 ```
+
+## MCP Server for Prompt Management
+
+Langfuse exposes an MCP Server at `/api/public/mcp` for managing prompts from IDEs like Claude Code and Cursor:
+
+### Setup
+
+```json
+{
+  "mcpServers": {
+    "langfuse-prompts": {
+      "transport": "streamable-http",
+      "url": "https://cloud.langfuse.com/api/public/mcp",
+      "headers": {
+        "Authorization": "Basic <base64(public_key:secret_key)>"
+      }
+    }
+  }
+}
+```
+
+### Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `get_prompt` | Fetch a prompt by name and optional version/label |
+| `list_prompts` | List all prompts with filtering |
+| `create_prompt` | Create a new prompt version |
+| `update_prompt` | Update prompt labels (promote to production) |
+
+### Usage from IDE
+
+```
+# In Claude Code or Cursor with MCP configured:
+> Use the langfuse get_prompt tool to fetch "security_auditor" with label "production"
+> Use the langfuse create_prompt tool to create a new version of "security_auditor"
+```
+
+## Webhooks for Prompt Changes
+
+Get notified when prompts are updated:
+
+### Setup in Langfuse UI
+
+1. Navigate to **Settings → Webhooks**
+2. Add webhook URL: `https://your-app.com/api/webhooks/langfuse`
+3. Select events: `prompt.created`, `prompt.updated`, `prompt.label_changed`
+
+### Webhook Payload
+
+```json
+{
+  "event": "prompt.label_changed",
+  "data": {
+    "prompt_name": "security_auditor",
+    "version": 3,
+    "old_label": "staging",
+    "new_label": "production",
+    "changed_by": "user@example.com",
+    "timestamp": "2026-02-01T12:00:00Z"
+  }
+}
+```
+
+### Slack Notifications
+
+```python
+# backend/app/api/webhooks/langfuse.py
+from fastapi import APIRouter
+
+router = APIRouter()
+
+@router.post("/api/webhooks/langfuse")
+async def handle_langfuse_webhook(payload: dict):
+    """Handle Langfuse webhook events."""
+    event = payload["event"]
+    data = payload["data"]
+
+    if event == "prompt.label_changed" and data["new_label"] == "production":
+        await slack.post_message(
+            channel="#llm-ops",
+            text=(
+                f"Prompt `{data['prompt_name']}` v{data['version']} "
+                f"promoted to production by {data['changed_by']}"
+            ),
+        )
+```
+
+## Full-Text Search + Playground
+
+Langfuse v3 adds full-text search across all prompt versions and a side-by-side Playground:
+
+- **Search**: Find prompts by content, name, or labels
+- **Playground**: Test prompts with different variables side-by-side
+- **Compare**: View diff between prompt versions
+- **History**: Full audit trail of all changes
 
 ## A/B Testing Prompts
 
@@ -66,25 +171,23 @@ prompt_v2 = langfuse.get_prompt("security_auditor", version=2)
 
 # Run A/B test
 import random
+from langfuse import observe, get_client
 
-for test_input in test_dataset:
+@observe()
+async def ab_test(test_input: str):
     prompt = random.choice([prompt_v1, prompt_v2])
-
-    response = await llm.generate(
+    get_client().update_current_trace(
+        metadata={"prompt_version": prompt.version},
+    )
+    return await llm.generate(
         messages=[
             {"role": "system", "content": prompt.compile()},
-            {"role": "user", "content": test_input}
+            {"role": "user", "content": test_input},
         ]
     )
 
-    # Track which version was used
-    langfuse.trace(
-        name="ab_test",
-        metadata={"prompt_version": prompt.version}
-    )
-
 # Compare in Langfuse UI:
-# - Filter by prompt_version
+# - Filter by prompt_version in metadata
 # - Compare average scores
 # - Analyze cost differences
 ```
@@ -109,10 +212,11 @@ prod_prompt = langfuse.get_prompt("analyzer", label="production")
 1. **Use prompt management** instead of hardcoded prompts
 2. **Version all prompts** with meaningful descriptions
 3. **Test in staging** before promoting to production
-4. **Track prompt versions** in trace metadata
-5. **Use variables** for reusable prompt templates
-6. **A/B test** new prompts before full rollout
-7. **Document changes** in version notes
+4. **Set up webhooks** for deployment notifications
+5. **Use MCP Server** for IDE-based prompt management
+6. **Track prompt versions** in trace metadata
+7. **Use variables** for reusable prompt templates
+8. **A/B test** new prompts before full rollout
 
 ## OrchestKit 4-Level Prompt Caching Architecture
 
@@ -179,7 +283,7 @@ prompt_manager = get_prompt_manager()
 system_prompt = await prompt_manager.get_prompt(
     name="analysis-agent-security-auditor",
     variables={},
-    label="production"
+    label="production",
 )
 # Falls through: L1 → L2 → L3 (Langfuse) → L4 (Jinja2 templates)
 ```
@@ -187,5 +291,6 @@ system_prompt = await prompt_manager.get_prompt(
 ## References
 
 - [Langfuse Prompt Management](https://langfuse.com/docs/prompts)
+- [MCP Server](https://langfuse.com/docs/integrations/mcp)
+- [Prompt Webhooks](https://langfuse.com/docs/webhooks)
 - [Prompt Templates Guide](https://langfuse.com/docs/prompts/get-started)
-- [A/B Testing Prompts](https://langfuse.com/docs/prompts/example-openai-functions)
