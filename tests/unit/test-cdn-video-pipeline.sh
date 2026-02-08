@@ -60,8 +60,8 @@ test_cdn_file_valid_json() {
 }
 
 test_cdn_urls_are_sanity() {
-    local bad_urls
-    bad_urls=$(node -e "
+    local bad_urls=""
+    if bad_urls=$(node -e "
       const data = JSON.parse(require('fs').readFileSync('$CDN_FILE','utf-8'));
       const bad = [];
       for (const [id, entry] of Object.entries(data)) {
@@ -69,9 +69,7 @@ test_cdn_urls_are_sanity() {
         if (entry.videoCdn && !entry.videoCdn.startsWith('https://cdn.sanity.io/')) bad.push(id + '.videoCdn');
       }
       if (bad.length) { console.log(bad.join(',')); process.exit(1); }
-    " 2>/dev/null)
-
-    if [[ $? -eq 0 ]]; then
+    " 2>/dev/null); then
         log_pass "All CDN URLs point to cdn.sanity.io"
     else
         log_fail "Non-Sanity CDN URLs found: $bad_urls"
@@ -79,17 +77,15 @@ test_cdn_urls_are_sanity() {
 }
 
 test_cdn_video_urls_are_mp4() {
-    local bad_videos
-    bad_videos=$(node -e "
+    local bad_videos=""
+    if bad_videos=$(node -e "
       const data = JSON.parse(require('fs').readFileSync('$CDN_FILE','utf-8'));
       const bad = [];
       for (const [id, entry] of Object.entries(data)) {
         if (entry.videoCdn && !entry.videoCdn.endsWith('.mp4')) bad.push(id);
       }
       if (bad.length) { console.log(bad.join(',')); process.exit(1); }
-    " 2>/dev/null)
-
-    if [[ $? -eq 0 ]]; then
+    " 2>/dev/null); then
         log_pass "All video CDN URLs are .mp4 files"
     else
         log_fail "Non-mp4 video URLs: $bad_videos"
@@ -136,19 +132,18 @@ test_ts_has_video_cdn_values() {
 
 test_ts_video_implies_thumbnail() {
     # Every composition with videoCdn should also have thumbnailCdn (for poster)
-    local failures
-    failures=$(node -e "
+    # Use if-then pattern to avoid set -e killing the script on node failure
+    local failures=""
+    if failures=$(node -e "
       const fs = require('fs');
-      const content = fs.readFileSync('$TS_FILE', 'utf-8');
+      const content = fs.readFileSync('$(echo "$TS_FILE" | sed 's|\\|/|g')', 'utf-8');
       // Extract COMPOSITIONS array via regex
       const match = content.match(/export const COMPOSITIONS.*?= (\[[\s\S]*?\]);/);
       if (!match) { console.log('PARSE_ERROR'); process.exit(1); }
       const comps = eval(match[1]);
       const bad = comps.filter(c => c.videoCdn && !c.thumbnailCdn).map(c => c.id);
       if (bad.length) { console.log(bad.join(',')); process.exit(1); }
-    " 2>/dev/null)
-
-    if [[ $? -eq 0 ]]; then
+    " 2>/dev/null); then
         log_pass "Every composition with videoCdn also has thumbnailCdn"
     else
         log_fail "Compositions with video but no thumbnail poster: $failures"
