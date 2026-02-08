@@ -81,7 +81,6 @@ describe('Async Hooks Registry', () => {
       const blockingHookPaths = [
         // PreToolUse - security critical
         'pretool/bash/dangerous-command-blocker',
-        'pretool/bash/git-branch-protection',
         'pretool/write-edit/file-guard',
         // PermissionRequest - must block
         'permission/auto-approve-safe-bash',

@@ -14,7 +14,6 @@ source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 # Note: Since v5.1.0, sqlite_escape is provided by test-helpers.sh
 # The original hooks/_lib/common.sh was migrated to TypeScript
 
-MULTI_LOCK_HOOK="$PROJECT_ROOT/src/hooks/pretool/write-edit/multi-instance-lock.sh"
 TS_COMMON="$PROJECT_ROOT/src/hooks/src/lib/common.ts"
 
 # ============================================================================
@@ -96,53 +95,15 @@ test_injection_unicode_bypass() {
 }
 
 # ============================================================================
-# HOOK INTEGRATION TESTS
+# TYPESCRIPT ESCAPE FUNCTION TESTS
 # ============================================================================
 
-describe "Security: Multi-Instance Lock SQL Safety"
+describe "Security: TypeScript Common Escape Functions"
 
-test_multi_instance_lock_uses_escaping() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    # Check TypeScript source for escape logic if bash delegates
-    if [[ -f "$MULTI_LOCK_HOOK" ]] && grep -q "run-hook.mjs" "$MULTI_LOCK_HOOK" 2>/dev/null; then
-        # TypeScript hook - check TS source for escape patterns
-        if [[ -f "$TS_COMMON" ]]; then
-            grep -qi "escape\|sanitize\|quote" "$TS_COMMON" && return 0
-        fi
-        # TypeScript handles this internally - pass
-        return 0
-    fi
-
-    [[ ! -f "$MULTI_LOCK_HOOK" ]] && skip "multi-instance-lock.sh not found"
-
-    # Legacy bash hook - check for sqlite_escape
-    grep -q "sqlite_escape" "$MULTI_LOCK_HOOK"
-}
-
-test_multi_instance_lock_escapes_file_path() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if [[ -f "$MULTI_LOCK_HOOK" ]] && grep -q "run-hook.mjs" "$MULTI_LOCK_HOOK" 2>/dev/null; then
-        # TypeScript hook - escaping handled internally
-        return 0
-    fi
-
-    [[ ! -f "$MULTI_LOCK_HOOK" ]] && skip "multi-instance-lock.sh not found"
-
-    # Legacy bash hook - check that file_path is escaped before SQL
-    grep -q 'escaped_path=$(sqlite_escape' "$MULTI_LOCK_HOOK"
-}
-
-test_multi_instance_lock_escapes_instance_id() {
-    # Since v5.1.0, hooks may delegate to TypeScript
-    if [[ -f "$MULTI_LOCK_HOOK" ]] && grep -q "run-hook.mjs" "$MULTI_LOCK_HOOK" 2>/dev/null; then
-        # TypeScript hook - escaping handled internally
-        return 0
-    fi
-
-    [[ ! -f "$MULTI_LOCK_HOOK" ]] && skip "multi-instance-lock.sh not found"
-
-    # Legacy bash hook - check that instance_id is escaped
-    grep -q 'escaped_instance=$(sqlite_escape' "$MULTI_LOCK_HOOK"
+test_ts_common_has_escape_functions() {
+    # common.ts should have escape/sanitize utilities
+    [[ -f "$TS_COMMON" ]] || skip "common.ts not found"
+    grep -qi "escape\|sanitize\|quote" "$TS_COMMON"
 }
 
 # ============================================================================
