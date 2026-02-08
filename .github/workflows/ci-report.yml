@@ -41,10 +41,12 @@ jobs:
         id: tests
         continue-on-error: true
         run: |
+          TESTS_FAILED=false
+
           # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
           cd src/hooks
           npm ci
-          npm run test:coverage 2>&1 | tee ../../test.log
+          npm run test:coverage 2>&1 | tee ../../test.log || TESTS_FAILED=true
 
           # Copy coverage to root for report generator
           if [ -f coverage/coverage-summary.json ]; then
@@ -53,7 +55,7 @@ jobs:
           cd ../..
 
           # Run other tests
-          npm test 2>&1 | tee -a test.log
+          npm test 2>&1 | tee -a test.log || TESTS_FAILED=true
 
           # Extract test counts (vitest format)
           passed=$(grep -oP '\d+(?=\s*passed)' test.log | tail -1 || echo "0")
@@ -80,15 +82,30 @@ jobs:
             echo "coverage_statements=0" >> $GITHUB_OUTPUT
           fi
 
+          # Expose real status for quality gate
+          if [[ "$TESTS_FAILED" == "true" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run linting
         id: lint
         continue-on-error: true
         run: |
-          npm run lint 2>&1 | tee lint.log
+          LINT_FAILED=false
+          npm run lint 2>&1 | tee lint.log || LINT_FAILED=true
           errors=$(grep -c "error" lint.log || echo "0")
           warnings=$(grep -c "warning" lint.log || echo "0")
           echo "errors=${errors:-0}" >> $GITHUB_OUTPUT
           echo "warnings=${warnings:-0}" >> $GITHUB_OUTPUT
+
+          # Expose real status for quality gate
+          if [[ "$LINT_FAILED" == "true" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
 
       - name: Run security scan
         id: security
@@ -220,20 +237,19 @@ jobs:
         run: |
           GATE_FAILED=0
 
-          # Build must pass
-          if [[ "${{ steps.build.outcome }}" == "failure" ]]; then
+          # Check explicit status outputs (not step.outcome — steps use
+          # continue-on-error + if/else wrappers that always exit 0)
+          if [[ "${{ steps.build.outputs.status }}" == "failure" ]]; then
             echo "::error::Build failed"
             GATE_FAILED=1
           fi
 
-          # Tests must pass (check step outcome, not continue-on-error result)
-          if [[ "${{ steps.tests.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.tests.outputs.status }}" == "failure" ]]; then
             echo "::error::Tests failed"
             GATE_FAILED=1
           fi
 
-          # Lint must pass
-          if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
+          if [[ "${{ steps.lint.outputs.status }}" == "failure" ]]; then
             echo "::error::Lint failed"
             GATE_FAILED=1
           fi
