@@ -38,6 +38,9 @@ log_section() {
 }
 
 TS_FILE="${PROJECT_ROOT}/docs/site/lib/playground-data.ts"
+# Split modules (preferred) — generator outputs to these after v6.0.3
+TYPES_FILE="${PROJECT_ROOT}/docs/site/lib/generated/types.ts"
+COMPOSITIONS_FILE="${PROJECT_ROOT}/docs/site/lib/generated/compositions-data.ts"
 CDN_FILE="${PROJECT_ROOT}/orchestkit-demos/out/cdn-urls.json"
 
 # ── cdn-urls.json source ─────────────────────────────────────
@@ -103,7 +106,10 @@ fi  # end cdn-urls.json guard
 log_section "Generated playground-data.ts — CDN Fields"
 
 test_ts_interface_has_cdn_fields() {
-    if grep -q "thumbnailCdn?" "$TS_FILE" && grep -q "videoCdn?" "$TS_FILE"; then
+    # Check types file (split modules) or barrel (legacy)
+    local check_file="$TYPES_FILE"
+    [[ -f "$check_file" ]] || check_file="$TS_FILE"
+    if grep -q "thumbnailCdn?" "$check_file" && grep -q "videoCdn?" "$check_file"; then
         log_pass "Composition interface has thumbnailCdn? and videoCdn? fields"
     else
         log_fail "Composition interface missing CDN fields"
@@ -111,27 +117,36 @@ test_ts_interface_has_cdn_fields() {
 }
 
 test_ts_has_thumbnail_cdn_values() {
+    # Check compositions file (split modules) or barrel (legacy)
+    local check_file="$COMPOSITIONS_FILE"
+    [[ -f "$check_file" ]] || check_file="$TS_FILE"
     local count
-    count=$(grep -c '"thumbnailCdn":' "$TS_FILE" || true)
+    count=$(grep -c '"thumbnailCdn":' "$check_file" || true)
     if [[ $count -gt 0 ]]; then
-        log_pass "playground-data.ts has $count compositions with thumbnailCdn"
+        log_pass "compositions data has $count compositions with thumbnailCdn"
     else
-        log_fail "playground-data.ts has no thumbnailCdn values — generator may not be merging cdn-urls.json"
+        log_fail "compositions data has no thumbnailCdn values — generator may not be merging cdn-urls.json"
     fi
 }
 
 test_ts_has_video_cdn_values() {
+    # Check compositions file (split modules) or barrel (legacy)
+    local check_file="$COMPOSITIONS_FILE"
+    [[ -f "$check_file" ]] || check_file="$TS_FILE"
     local count
-    count=$(grep -c '"videoCdn":' "$TS_FILE" || true)
+    count=$(grep -c '"videoCdn":' "$check_file" || true)
     if [[ $count -gt 0 ]]; then
-        log_pass "playground-data.ts has $count compositions with videoCdn"
+        log_pass "compositions data has $count compositions with videoCdn"
     else
-        log_fail "playground-data.ts has no videoCdn values — no videos will play in the demo gallery"
+        log_fail "compositions data has no videoCdn values — no videos will play in the demo gallery"
     fi
 }
 
 test_ts_video_implies_thumbnail() {
     # Every composition with videoCdn should also have thumbnailCdn (for poster)
+    # Check compositions file (split modules) or barrel (legacy)
+    local check_file="$COMPOSITIONS_FILE"
+    [[ -f "$check_file" ]] || check_file="$TS_FILE"
     # Pipe file via stdin to avoid MSYS path issues on Windows (node can't read /d/a/... paths)
     local failures=""
     if failures=$(node -e "
@@ -141,7 +156,7 @@ test_ts_video_implies_thumbnail() {
       const comps = eval(match[1]);
       const bad = comps.filter(c => c.videoCdn && !c.thumbnailCdn).map(c => c.id);
       if (bad.length) { console.log(bad.join(',')); process.exit(1); }
-    " < "$TS_FILE" 2>/dev/null); then
+    " < "$check_file" 2>/dev/null); then
         log_pass "Every composition with videoCdn also has thumbnailCdn"
     else
         log_fail "Compositions with video but no thumbnail poster: $failures"
