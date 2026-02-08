@@ -220,6 +220,27 @@ wait_for_get() {
     return 1  # gave up
 }
 
+# Waits for deletion to propagate (count reaches target, default 0)
+# Usage: wait_for_zero "user_id" [max_count]
+wait_for_zero() {
+    local user_id="$1"
+    local max_count="${2:-0}"
+
+    RETRY_OUTPUT=""
+    RETRY_COUNT=999
+
+    for attempt in 2 3 5 8 12; do
+        sleep "$attempt"
+        RETRY_OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
+            --user-id "$user_id" 2>&1)
+        RETRY_COUNT=$(echo "$RETRY_OUTPUT" | jq -r '.count // 0' 2>/dev/null)
+        if [[ "$RETRY_COUNT" -le "$max_count" ]]; then
+            return 0
+        fi
+    done
+    return 1  # gave up
+}
+
 # =============================================================================
 # Test 1: API Connectivity
 # =============================================================================
@@ -332,7 +353,7 @@ if [[ -n "$CREATED_MEMORY_ID" && "$CREATED_MEMORY_ID" != "null" ]]; then
         test_fail "delete-memory.py returned exit code $EXIT_CODE. Output: $OUTPUT"
     fi
 else
-    test_skip "No memory ID was captured from test_add_memory"
+    test_fail "No memory ID was captured from test_add_memory — add-memory.py may have failed"
 fi
 
 # =============================================================================
@@ -347,10 +368,15 @@ test_start "test_batch_operations"
 BATCH_IDS=()
 BATCH_SUCCESS=true
 
-# Add 3 memories
-for i in 1 2 3; do
+# Add 3 memories — texts must be radically different domains to avoid mem0 semantic dedup
+BATCH_TEXTS=(
+    "The French Revolution of 1789 overthrew the monarchy and established the First Republic under Robespierre"
+    "Photosynthesis converts carbon dioxide and water into glucose using chlorophyll in plant chloroplasts"
+    "TCP three-way handshake uses SYN SYN-ACK ACK packets to establish reliable network connections"
+)
+for i in 0 1 2; do
     OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX} batch $i: $([ $i -eq 1 ] && echo 'React hooks optimize component rendering' || ([ $i -eq 2 ] && echo 'PostgreSQL indexes improve query performance' || echo 'Docker containers isolate dependencies'))" \
+        --text "Note ${TEST_PREFIX} batch $((i+1)): ${BATCH_TEXTS[$i]}" \
         --user-id "${TEST_PREFIX}-batch" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -394,18 +420,13 @@ if [[ "$BATCH_SUCCESS" == "true" ]]; then
             fi
         done
 
-        # Brief pause before verification
-        sleep 1
-
-        # Verify count is 0 after deletion
-        OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
-            --user-id "${TEST_PREFIX}-batch" 2>&1)
-        FINAL_COUNT=$(echo "$OUTPUT" | jq -r '.count // 0' 2>/dev/null)
-
-        if [[ "$DELETE_SUCCESS" == "true" && "$FINAL_COUNT" -eq 0 ]]; then
-            test_pass
-        elif [[ "$DELETE_SUCCESS" == "true" ]]; then
-            test_fail "Expected 0 memories after deletion, got $FINAL_COUNT"
+        # Wait for deletion to propagate (eventual consistency)
+        if [[ "$DELETE_SUCCESS" == "true" ]]; then
+            if wait_for_zero "${TEST_PREFIX}-batch"; then
+                test_pass
+            else
+                test_fail "Expected 0 memories after deletion, got $RETRY_COUNT after 30s retry"
+            fi
         else
             test_fail "Some batch deletions failed"
         fi
@@ -567,7 +588,7 @@ if [[ -f "$EXPORT_DIR/export-memories.py" ]]; then
         fi
     fi
 else
-    test_skip "export-memories.py not found at $EXPORT_DIR"
+    test_fail "export-memories.py not found at $EXPORT_DIR"
 fi
 
 # =============================================================================
@@ -616,13 +637,13 @@ if [[ -f "$GET_SINGLE_SCRIPT" ]]; then
                 test_fail "get-memory.py returned exit code $GET_EXIT. Output: $GET_OUTPUT"
             fi
         else
-            test_skip "No memory ID returned from add-memory.py"
+            test_fail "No memory ID returned from add-memory.py"
         fi
     else
         test_fail "Failed to add memory for retrieval test. Output: $ADD_OUTPUT"
     fi
 else
-    test_skip "get-memory.py not found at $GET_SINGLE_SCRIPT"
+    test_fail "get-memory.py not found at $GET_SINGLE_SCRIPT"
 fi
 
 # =============================================================================
@@ -684,13 +705,13 @@ if [[ -f "$UPDATE_SCRIPT" ]]; then
                 test_fail "update-memory.py returned exit code $UPD_EXIT. Output: $UPD_OUTPUT"
             fi
         else
-            test_skip "No memory ID returned from add-memory.py"
+            test_fail "No memory ID returned from add-memory.py"
         fi
     else
         test_fail "Failed to add memory for update test. Output: $ADD_OUTPUT"
     fi
 else
-    test_skip "update-memory.py not found at $UPDATE_SCRIPT"
+    test_fail "update-memory.py not found at $UPDATE_SCRIPT"
 fi
 
 # =============================================================================
@@ -747,19 +768,19 @@ if [[ -f "$RELATED_SCRIPT" ]]; then
                 # a graceful error is acceptable
                 HAS_ERROR=$(echo "$REL_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
                 if [[ -n "$HAS_ERROR" ]]; then
-                    test_skip "Graph get-related-memories returned error: $HAS_ERROR"
+                    test_fail "Graph get-related-memories returned error: $HAS_ERROR"
                 else
                     test_fail "get-related-memories.py returned exit code $REL_EXIT. Output: $REL_OUTPUT"
                 fi
             fi
         else
-            test_skip "No memory ID returned from add-memory.py for related test"
+            test_fail "No memory ID returned from add-memory.py for related test"
         fi
     else
         test_fail "Failed to add memory for related test. Output: $ADD_OUTPUT"
     fi
 else
-    test_skip "get-related-memories.py not found at $RELATED_SCRIPT"
+    test_fail "get-related-memories.py not found at $RELATED_SCRIPT"
 fi
 
 # =============================================================================
@@ -811,19 +832,19 @@ if [[ -f "$TRAVERSE_SCRIPT" ]]; then
             else
                 HAS_ERROR=$(echo "$TRAV_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
                 if [[ -n "$HAS_ERROR" ]]; then
-                    test_skip "Graph traverse returned error: $HAS_ERROR"
+                    test_fail "Graph traverse returned error: $HAS_ERROR"
                 else
                     test_fail "traverse-graph.py returned exit code $TRAV_EXIT. Output: $TRAV_OUTPUT"
                 fi
             fi
         else
-            test_skip "No memory ID returned from add-memory.py for traverse test"
+            test_fail "No memory ID returned from add-memory.py for traverse test"
         fi
     else
         test_fail "Failed to add memory for traverse test. Output: $ADD_OUTPUT"
     fi
 else
-    test_skip "traverse-graph.py not found at $TRAVERSE_SCRIPT"
+    test_fail "traverse-graph.py not found at $TRAVERSE_SCRIPT"
 fi
 
 # =============================================================================
@@ -878,19 +899,19 @@ if [[ -f "$HISTORY_SCRIPT" ]]; then
             else
                 HAS_ERROR=$(echo "$HIST_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
                 if [[ -n "$HAS_ERROR" ]]; then
-                    test_skip "Memory history returned error: $HAS_ERROR"
+                    test_fail "Memory history returned error: $HAS_ERROR"
                 else
                     test_fail "memory-history.py returned exit code $HIST_EXIT. Output: $HIST_OUTPUT"
                 fi
             fi
         else
-            test_skip "No memory ID returned from add-memory.py for history test"
+            test_fail "No memory ID returned from add-memory.py for history test"
         fi
     else
         test_fail "Failed to add memory for history test. Output: $ADD_OUTPUT"
     fi
 else
-    test_skip "memory-history.py not found at $HISTORY_SCRIPT"
+    test_fail "memory-history.py not found at $HISTORY_SCRIPT"
 fi
 
 # =============================================================================
@@ -921,13 +942,13 @@ if [[ -f "$USERS_SCRIPT" ]]; then
     else
         HAS_ERROR=$(echo "$USERS_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
         if [[ -n "$HAS_ERROR" ]]; then
-            test_skip "get-users.py returned error: $HAS_ERROR"
+            test_fail "get-users.py returned error: $HAS_ERROR"
         else
             test_fail "get-users.py returned exit code $USERS_EXIT. Output: $USERS_OUTPUT"
         fi
     fi
 else
-    test_skip "get-users.py not found at $USERS_SCRIPT"
+    test_fail "get-users.py not found at $USERS_SCRIPT"
 fi
 
 # =============================================================================
@@ -995,7 +1016,7 @@ if [[ -f "$CREATE_WH_SCRIPT" && -f "$LIST_WH_SCRIPT" && -f "$DELETE_WH_SCRIPT" ]
             # Webhook creation may fail if the API does not support webhooks or requires project_id
             HAS_ERROR=$(echo "$WH_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
             if [[ -n "$HAS_ERROR" ]]; then
-                test_skip "Webhook creation returned error (may require project_id): $HAS_ERROR"
+                test_fail "Webhook creation returned error (may require project_id): $HAS_ERROR"
             else
                 test_fail "Webhook creation did not return webhook_id. Output: $WH_OUTPUT"
             fi
@@ -1003,13 +1024,13 @@ if [[ -f "$CREATE_WH_SCRIPT" && -f "$LIST_WH_SCRIPT" && -f "$DELETE_WH_SCRIPT" ]
     else
         HAS_ERROR=$(echo "$WH_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
         if [[ -n "$HAS_ERROR" ]]; then
-            test_skip "Webhook creation returned error: $HAS_ERROR"
+            test_fail "Webhook creation returned error: $HAS_ERROR"
         else
             test_fail "create-webhook.py returned exit code $WH_EXIT. Output: $WH_OUTPUT"
         fi
     fi
 else
-    test_skip "Webhook scripts not found (need create, list, and delete at $WEBHOOKS_DIR)"
+    test_fail "Webhook scripts not found (need create, list, and delete at $WEBHOOKS_DIR)"
 fi
 
 # =============================================================================
@@ -1025,13 +1046,18 @@ BATCH_DIR="$SCRIPTS_DIR/batch"
 BATCH_DELETE_SCRIPT="$BATCH_DIR/batch-delete.py"
 
 if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
-    # Add 3 memories for batch deletion
+    # Add 3 memories for batch deletion — radically different domains to avoid dedup
     BD_IDS=()
     BD_ADD_SUCCESS=true
+    BD_TEXTS=(
+        "Mozart composed Symphony No. 40 in G minor during the summer of 1788 in Vienna"
+        "Mitochondria generate ATP through oxidative phosphorylation across the inner membrane"
+        "Dijkstra algorithm finds shortest paths in weighted directed graphs using a priority queue"
+    )
 
-    for i in 1 2 3; do
+    for i in 0 1 2; do
         OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-            --text "Note ${TEST_PREFIX} delete $i: $([ $i -eq 1 ] && echo 'Kubernetes pods scale horizontally' || ([ $i -eq 2 ] && echo 'Redis caching reduces latency' || echo 'GraphQL resolvers fetch nested data'))" \
+            --text "Note ${TEST_PREFIX} delete $((i+1)): ${BD_TEXTS[$i]}" \
             --user-id "${TEST_PREFIX}-batchdel" 2>&1)
 
         if [[ $? -ne 0 ]]; then
@@ -1039,16 +1065,29 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
             break
         fi
 
-        MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
+        MEM_ID=$(echo "$OUTPUT" | jq -r '
+            .memory_id //
+            .result.results[0].id //
+            .result.results[0].memory_id //
+            .result[0].id //
+            .result[0].memory_id //
+            empty
+        ' 2>/dev/null)
         if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
             BD_IDS+=("$MEM_ID")
             CREATED_MEMORY_IDS+=("$MEM_ID")
         fi
     done
 
-    if [[ "$BD_ADD_SUCCESS" == "true" && ${#BD_IDS[@]} -eq 3 ]]; then
-        sleep 2
+    # Wait for all 3 to be indexed before proceeding
+    if [[ "$BD_ADD_SUCCESS" == "true" ]]; then
+        if ! wait_for_get "${TEST_PREFIX}-batchdel" 3; then
+            # If we can't get 3 via get_all, fall back to however many IDs we captured
+            true
+        fi
+    fi
 
+    if [[ "$BD_ADD_SUCCESS" == "true" && ${#BD_IDS[@]} -ge 3 ]]; then
         # Build JSON array of IDs
         BD_JSON=$(printf '%s\n' "${BD_IDS[@]}" | jq -R . | jq -s .)
 
@@ -1067,17 +1106,11 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
                     CREATED_MEMORY_IDS=("${CREATED_MEMORY_IDS[@]/$mem_id/}")
                 done
 
-                # Verify they are gone
-                sleep 1
-                VERIFY_OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
-                    --user-id "${TEST_PREFIX}-batchdel" 2>&1)
-                VERIFY_COUNT=$(echo "$VERIFY_OUTPUT" | jq -r '.count // 0' 2>/dev/null)
-
-                if [[ "$VERIFY_COUNT" -eq 0 ]]; then
+                # Wait for deletion to propagate
+                if wait_for_zero "${TEST_PREFIX}-batchdel"; then
                     test_pass
                 else
-                    # Batch delete reported success; eventual consistency may cause count > 0
-                    test_pass
+                    test_fail "Expected 0 memories after batch delete, got $RETRY_COUNT after 30s retry"
                 fi
             else
                 test_fail "batch-delete.py did not return expected results. Output: $BD_OUTPUT"
@@ -1085,18 +1118,18 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
         else
             HAS_ERROR=$(echo "$BD_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
             if [[ -n "$HAS_ERROR" ]]; then
-                test_skip "batch-delete.py returned error: $HAS_ERROR"
+                test_fail "batch-delete.py returned error: $HAS_ERROR"
             else
                 test_fail "batch-delete.py returned exit code $BD_EXIT. Output: $BD_OUTPUT"
             fi
         fi
     elif [[ "$BD_ADD_SUCCESS" == "true" ]]; then
-        test_skip "Could not capture 3 memory IDs for batch delete test (got ${#BD_IDS[@]})"
+        test_fail "Could not capture 3 memory IDs for batch delete test (got ${#BD_IDS[@]})"
     else
         test_fail "Failed to add memories for batch delete test"
     fi
 else
-    test_skip "batch-delete.py not found at $BATCH_DELETE_SCRIPT"
+    test_fail "batch-delete.py not found at $BATCH_DELETE_SCRIPT"
 fi
 
 # =============================================================================
@@ -1108,36 +1141,47 @@ echo "--- Metadata Filtering ---"
 
 test_start "test_metadata_filtering"
 
-# Add a memory with specific metadata
+# Add a memory with specific metadata — unique domain to avoid cross-runner dedup
 META_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Note ${TEST_PREFIX}: Elasticsearch uses inverted indexes for full-text search" \
+    --text "Note ${TEST_PREFIX}: The Hubble Space Telescope orbits Earth at 547 km altitude capturing ultraviolet light from distant galaxies" \
     --user-id "${TEST_PREFIX}-metadata" \
     --metadata '{"category":"test","priority":"high"}' 2>&1)
 META_EXIT=$?
 
 if [[ $META_EXIT -eq 0 ]]; then
     META_SUCCESS=$(echo "$META_OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    META_MEM_ID=$(echo "$META_OUTPUT" | jq -r '.memory_id // empty' 2>/dev/null)
+    META_MEM_ID=$(echo "$META_OUTPUT" | jq -r '
+        .memory_id //
+        .result.results[0].id //
+        .result.results[0].memory_id //
+        .result[0].id //
+        .result[0].memory_id //
+        empty
+    ' 2>/dev/null)
 
     if [[ -n "$META_MEM_ID" && "$META_MEM_ID" != "null" ]]; then
         CREATED_MEMORY_IDS+=("$META_MEM_ID")
     fi
 
     if [[ "$META_SUCCESS" == "true" ]]; then
-        # Use get instead of search to verify metadata memory was stored
-        if wait_for_get "${TEST_PREFIX}-metadata"; then
+        # Use semantic search to find this specific memory (more reliable than get_all for dedup scenarios)
+        if wait_for_search "Hubble telescope orbits ultraviolet galaxies" "${TEST_PREFIX}-metadata"; then
             test_pass
         else
-            test_fail "Metadata get returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
+            # Fallback: try get to see if it exists under any form (dedup may have rewritten it)
+            if wait_for_get "${TEST_PREFIX}-metadata"; then
+                test_pass
+            else
+                test_fail "Metadata memory not found via search ($RETRY_COUNT results) or get after 60s total retry"
+            fi
         fi
     else
         test_fail "add-memory.py with metadata did not return success. Output: $META_OUTPUT"
     fi
 else
-    # Check if --metadata flag is supported
     HAS_ERROR=$(echo "$META_OUTPUT" | jq -r '.error // empty' 2>/dev/null)
     if [[ -n "$HAS_ERROR" ]]; then
-        test_skip "add-memory.py with --metadata returned error: $HAS_ERROR"
+        test_fail "add-memory.py with --metadata returned error: $HAS_ERROR"
     else
         test_fail "add-memory.py with metadata returned exit code $META_EXIT. Output: $META_OUTPUT"
     fi
