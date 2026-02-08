@@ -186,7 +186,7 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 | llm-integrator | LLM integration (if needed) |
 | ux-researcher | User experience, accessibility |
 
-Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY line.
+Launch all 5 agents with `run_in_background=True` and `max_turns=25`. Each agent returns a SUMMARY line.
 
 > In Agent Teams mode, form a persistent team with teammates messaging each other. See [Agent Teams Phases](references/agent-teams-phases.md#phase-4--agent-teams-architecture-design) for spawn templates.
 
