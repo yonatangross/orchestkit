@@ -513,7 +513,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [build-plugins, lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -521,6 +521,7 @@ jobs:
       - name: Check all jobs
         run: |
           echo "=== CI Summary ==="
+          echo "Build: ${{ needs.build-plugins.result }}"
           echo "Lint: ${{ needs.lint.result }}"
           echo "Security Audit: ${{ needs.security-audit.result }}"
           echo "Secret Scanning: ${{ needs.secret-scanning.result }}"
@@ -535,23 +536,29 @@ jobs:
           echo "System Tests: ${{ needs.system-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
-          # Fail only on explicit failures (skipped jobs are OK - they use path filters)
+          # Fail on failure, cancelled, OR skipped (skipped means a dependency failed)
           # mem0-tests excluded: uses continue-on-error (cloud API has dedup/eventual consistency)
+          # coverage-report excluded: informational only
           FAILED=0
-          for result in \
-            "${{ needs.lint.result }}" \
-            "${{ needs.security-audit.result }}" \
-            "${{ needs.secret-scanning.result }}" \
-            "${{ needs.unit-tests.result }}" \
-            "${{ needs.hook-typescript-tests.result }}" \
-            "${{ needs.security-tests.result }}" \
-            "${{ needs.integration-tests.result }}" \
-            "${{ needs.performance-tests.result }}" \
-            "${{ needs.compliance-tests.result }}" \
-            "${{ needs.agent-skill-tests.result }}" \
-            "${{ needs.system-tests.result }}"; do
-            if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
+          FAILED_JOBS=""
+          for job_entry in \
+            "Build:${{ needs.build-plugins.result }}" \
+            "Lint:${{ needs.lint.result }}" \
+            "Security Audit:${{ needs.security-audit.result }}" \
+            "Secret Scanning:${{ needs.secret-scanning.result }}" \
+            "Unit Tests:${{ needs.unit-tests.result }}" \
+            "Hook TS Tests:${{ needs.hook-typescript-tests.result }}" \
+            "Security Tests:${{ needs.security-tests.result }}" \
+            "Integration Tests:${{ needs.integration-tests.result }}" \
+            "Performance Tests:${{ needs.performance-tests.result }}" \
+            "Compliance Tests:${{ needs.compliance-tests.result }}" \
+            "Agent & Skill Tests:${{ needs.agent-skill-tests.result }}" \
+            "System Tests:${{ needs.system-tests.result }}"; do
+            job_name="${job_entry%%:*}"
+            result="${job_entry##*:}"
+            if [[ "$result" == "failure" || "$result" == "cancelled" || "$result" == "skipped" ]]; then
               FAILED=1
+              FAILED_JOBS="${FAILED_JOBS}  - ${job_name}: ${result}\n"
             fi
           done
 
@@ -560,8 +567,14 @@ jobs:
             echo "::warning::Mem0 integration tests had failures (non-blocking — cloud API dedup/consistency)"
           fi
 
+          # Report coverage status separately (informational, not blocking)
+          if [[ "${{ needs.coverage-report.result }}" == "failure" ]]; then
+            echo "::warning::Coverage report generation failed (non-blocking)"
+          fi
+
           if [[ "$FAILED" == "1" ]]; then
-            echo "::error::One or more CI stages failed"
+            echo "::error::CI failed. Broken jobs:"
+            echo -e "$FAILED_JOBS"
             exit 1
           fi
 

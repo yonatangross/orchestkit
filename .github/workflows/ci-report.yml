@@ -44,7 +44,7 @@ jobs:
           # Run hook tests with coverage (vitest + @vitest/coverage-v8 4.0.18)
           cd src/hooks
           npm ci
-          npm run test:coverage 2>&1 | tee ../../test.log || true
+          npm run test:coverage 2>&1 | tee ../../test.log
 
           # Copy coverage to root for report generator
           if [ -f coverage/coverage-summary.json ]; then
@@ -53,7 +53,7 @@ jobs:
           cd ../..
 
           # Run other tests
-          npm test 2>&1 | tee -a test.log || true
+          npm test 2>&1 | tee -a test.log
 
           # Extract test counts (vitest format)
           passed=$(grep -oP '\d+(?=\s*passed)' test.log | tail -1 || echo "0")
@@ -84,7 +84,7 @@ jobs:
         id: lint
         continue-on-error: true
         run: |
-          npm run lint 2>&1 | tee lint.log || true
+          npm run lint 2>&1 | tee lint.log
           errors=$(grep -c "error" lint.log || echo "0")
           warnings=$(grep -c "warning" lint.log || echo "0")
           echo "errors=${errors:-0}" >> $GITHUB_OUTPUT
@@ -94,7 +94,7 @@ jobs:
         id: security
         continue-on-error: true
         run: |
-          npm audit --json > audit.json 2>/dev/null || true
+          npm audit --json > audit.json 2>/dev/null || echo '{"metadata":{"vulnerabilities":{"critical":0,"high":0,"moderate":0,"low":0}}}' > audit.json
           critical=$(jq '.metadata.vulnerabilities.critical // 0' audit.json)
           high=$(jq '.metadata.vulnerabilities.high // 0' audit.json)
           medium=$(jq '.metadata.vulnerabilities.moderate // 0' audit.json)
@@ -196,16 +196,51 @@ jobs:
             }
 
       - name: Job Summary
+        if: always()
         run: |
-          cat ci-report.json | jq -r '
-            "## CI Assessment Report\n\n" +
-            "**Score:** \(.score)/100\n" +
-            "**Status:** \(.overallStatus | ascii_upcase)\n\n" +
-            "| Check | Result |\n" +
-            "|-------|--------|\n" +
-            "| Build | \(.build.status) |\n" +
-            "| Tests | \(.tests.passed)/\(.tests.total) passed |\n" +
-            "| Lint | \(.lint.errors) errors, \(.lint.warnings) warnings |\n" +
-            "| Security | \(.security.critical) critical, \(.security.high) high |\n" +
-            "| Coverage | \(.coverage.current)% |"
-          ' >> $GITHUB_STEP_SUMMARY
+          if [ -f ci-report.json ]; then
+            cat ci-report.json | jq -r '
+              "## CI Assessment Report\n\n" +
+              "**Score:** \(.score)/100\n" +
+              "**Status:** \(.overallStatus | ascii_upcase)\n\n" +
+              "| Check | Result |\n" +
+              "|-------|--------|\n" +
+              "| Build | \(.build.status) |\n" +
+              "| Tests | \(.tests.passed)/\(.tests.total) passed |\n" +
+              "| Lint | \(.lint.errors) errors, \(.lint.warnings) warnings |\n" +
+              "| Security | \(.security.critical) critical, \(.security.high) high |\n" +
+              "| Coverage | \(.coverage.current)% |"
+            ' >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::warning::CI report not generated — check earlier steps"
+          fi
+
+      - name: Quality gate
+        if: always()
+        run: |
+          GATE_FAILED=0
+
+          # Build must pass
+          if [[ "${{ steps.build.outcome }}" == "failure" ]]; then
+            echo "::error::Build failed"
+            GATE_FAILED=1
+          fi
+
+          # Tests must pass (check step outcome, not continue-on-error result)
+          if [[ "${{ steps.tests.outcome }}" == "failure" ]]; then
+            echo "::error::Tests failed"
+            GATE_FAILED=1
+          fi
+
+          # Lint must pass
+          if [[ "${{ steps.lint.outcome }}" == "failure" ]]; then
+            echo "::error::Lint failed"
+            GATE_FAILED=1
+          fi
+
+          if [[ "$GATE_FAILED" == "1" ]]; then
+            echo "::error::Quality gate failed — this workflow now reports real results"
+            exit 1
+          fi
+
+          echo "::notice::Quality gate passed"
