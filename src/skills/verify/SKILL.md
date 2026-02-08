@@ -8,7 +8,7 @@ tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, unit-testing, integration-testing, memory, quality-gates]
-complexity: low
+complexity: medium
 ---
 
 # Verify Feature
@@ -61,7 +61,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — verifiers share findings) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Full verification with cross-domain concerns → recommend **Agent Teams**; Single-scope verification → **Task tool**
 
@@ -124,7 +124,7 @@ git diff main --name-only | sort -u
 
 ## Phase 2: Parallel Agent Dispatch (5 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True`.
+Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
 | Agent | Focus | Output |
 |-------|-------|--------|

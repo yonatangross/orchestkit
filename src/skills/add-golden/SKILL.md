@@ -70,7 +70,7 @@ Extract: title, sections, code blocks, key terms, metadata (author, date).
 
 ## Phase 3: Parallel Quality Analysis (4 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True`.
+Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
 | Agent | Focus | Output |
 |-------|-------|--------|
