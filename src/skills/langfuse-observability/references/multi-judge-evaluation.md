@@ -2,7 +2,7 @@
 
 ## Overview
 
-Multi-judge evaluation uses multiple LLM evaluators to assess quality from different perspectives. Langfuse provides the infrastructure to run, track, and analyze these evaluations.
+Multi-judge evaluation uses multiple LLM evaluators to assess quality from different perspectives. Langfuse v3 provides evaluator execution tracing — each judge creates its own inspectable trace.
 
 **OrchestKit has built-in evaluators** at `backend/app/shared/services/g_eval/langfuse_evaluators.py` - but they're not wired up!
 
@@ -46,13 +46,51 @@ OrchestKit uses these evaluation criteria:
 | **coherence** | 0.15 | Logical structure and flow |
 | **usefulness** | 0.10 | Practical applicability |
 
-## Existing OrchestKit Evaluators (BUILT BUT NOT USED!)
+## Evaluator Execution Tracing (v3)
+
+Each evaluator run creates its own inspectable trace:
+
+```python
+from langfuse import observe, get_client, Langfuse
+
+langfuse = Langfuse()
+
+
+@observe(type="evaluator", name="depth_judge")
+async def depth_evaluator(trace_id: str, output: str) -> float:
+    """Depth evaluator — creates its own inspectable trace."""
+    score = await g_eval.evaluate(criterion="depth", output=output)
+
+    get_client().update_current_observation(
+        input=output[:500],
+        output={"score": score, "criterion": "depth"},
+        model="claude-sonnet-4-5-20250929",
+    )
+
+    # Record score on the original trace
+    langfuse.score(
+        trace_id=trace_id,
+        name="g_eval_depth",
+        value=score,
+        comment="G-Eval depth score",
+    )
+
+    return score
+```
+
+Result in Langfuse UI — the evaluator's own trace is inspectable:
+```
+evaluator:depth_judge (0.6s, $0.008)
+├── generation: depth_prompt → 0.85
+└── metadata: {criterion: "depth", model: "claude-sonnet-4-5"}
+```
+
+## Existing OrchestKit Evaluators (v3 Updated)
 
 ```python
 # backend/app/shared/services/g_eval/langfuse_evaluators.py
 
-from langfuse import Langfuse
-from langfuse.decorators import observe
+from langfuse import observe, get_client, Langfuse
 
 langfuse = Langfuse()
 
@@ -60,15 +98,20 @@ langfuse = Langfuse()
 def create_g_eval_evaluator(criterion: str):
     """
     Create a Langfuse evaluator for a G-Eval criterion.
-
-    Returns a function that can be used with langfuse.score()
+    Each evaluator creates an inspectable trace via @observe(type="evaluator").
     """
+    @observe(type="evaluator", name=f"g_eval_{criterion}")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         # Run G-Eval for this criterion
         score = await g_eval.evaluate(
             criterion=criterion,
             output=output,
-            **kwargs
+            **kwargs,
+        )
+
+        get_client().update_current_observation(
+            input=output[:500],
+            output={"score": score, "criterion": criterion},
         )
 
         # Record score in Langfuse
@@ -96,6 +139,7 @@ def create_g_eval_overall_evaluator():
         "usefulness": 0.10,
     }
 
+    @observe(type="evaluator", name="g_eval_overall")
     async def evaluator(trace_id: str, output: str, **kwargs) -> float:
         scores = {}
 
@@ -104,13 +148,17 @@ def create_g_eval_overall_evaluator():
             scores[criterion] = await g_eval.evaluate(
                 criterion=criterion,
                 output=output,
-                **kwargs
+                **kwargs,
             )
 
         # Calculate weighted average
         overall = sum(
             scores[c] * weights[c]
             for c in weights.keys()
+        )
+
+        get_client().update_current_observation(
+            output={"overall": overall, "scores": scores},
         )
 
         # Record in Langfuse
@@ -140,24 +188,24 @@ overall_evaluator = create_g_eval_overall_evaluator()
 ### Option 1: Quality Gate Integration
 
 ```python
-# backend/app/domains/analysis/workflows/nodes/quality_gate_node.py
-
+from langfuse import observe, get_client
 from app.shared.services.g_eval.langfuse_evaluators import (
     overall_evaluator,
     depth_evaluator,
     accuracy_evaluator,
 )
 
+
+@observe(name="quality_gate")
 async def quality_gate_node(state: AnalysisState) -> dict:
     """Quality gate with Langfuse multi-judge evaluation."""
 
     trace_id = state.get("langfuse_trace_id")
     synthesis = state["synthesis_result"]
 
-    # Run multi-judge evaluation
+    # Run multi-judge evaluation (each creates inspectable trace)
     scores = {}
 
-    # Individual judges
     scores["depth"] = await depth_evaluator(trace_id, synthesis)
     scores["accuracy"] = await accuracy_evaluator(trace_id, synthesis)
 
@@ -166,7 +214,7 @@ async def quality_gate_node(state: AnalysisState) -> dict:
     scores["overall"] = overall
 
     # Quality gate decision
-    passed = overall >= 0.7  # Threshold
+    passed = overall >= 0.7
 
     return {
         "quality_scores": scores,
@@ -177,28 +225,7 @@ async def quality_gate_node(state: AnalysisState) -> dict:
     }
 ```
 
-### Option 2: Post-Workflow Evaluation
-
-```python
-# Evaluate after workflow completes
-async def run_analysis_with_evaluation(url: str) -> AnalysisResult:
-    # Run workflow
-    trace = langfuse.trace(name="content_analysis", metadata={"url": url})
-    result = await workflow.ainvoke({"url": url})
-
-    # Run evaluations
-    synthesis = result["synthesis_result"]
-
-    await overall_evaluator(trace.id, synthesis)
-    await depth_evaluator(trace.id, synthesis)
-    await accuracy_evaluator(trace.id, synthesis)
-
-    return result
-```
-
-## Langfuse Experiments API
-
-Run systematic evaluations across datasets:
+### Option 2: Experiment Runner Integration
 
 ```python
 from langfuse import Langfuse
@@ -207,43 +234,26 @@ langfuse = Langfuse()
 
 
 async def run_quality_experiment(dataset_name: str):
-    """
-    Run multi-judge evaluation on a dataset.
-    """
-    # Create experiment
-    experiment = langfuse.create_experiment(
-        name=f"quality-eval-{datetime.now().isoformat()}",
-        description="Multi-judge quality evaluation",
+    """Run multi-judge evaluation using Experiment Runner."""
+
+    result = langfuse.run_experiment(
+        dataset_name=dataset_name,
+        experiment_name=f"quality-eval-{datetime.now().isoformat()}",
+        run_fn=run_analysis_pipeline,
+        evaluators=[
+            {"name": "depth", "fn": depth_evaluator},
+            {"name": "accuracy", "fn": accuracy_evaluator},
+            {"name": "overall", "fn": overall_evaluator},
+        ],
     )
 
-    # Get dataset
-    dataset = langfuse.get_dataset(dataset_name)
-
-    results = []
-    for item in dataset.items:
-        # Run analysis
-        result = await workflow.ainvoke({"url": item.input["url"]})
-
-        # Create run
-        run = experiment.create_run(
-            item_id=item.id,
-            input=item.input,
-            output=result["synthesis_result"],
-        )
-
-        # Run all judges
-        scores = {
-            "depth": await depth_evaluator(run.trace_id, result["synthesis_result"]),
-            "accuracy": await accuracy_evaluator(run.trace_id, result["synthesis_result"]),
-            "overall": await overall_evaluator(run.trace_id, result["synthesis_result"]),
-        }
-
-        results.append({"item_id": item.id, "scores": scores})
-
     return {
-        "experiment_id": experiment.id,
-        "results": results,
-        "avg_overall": np.mean([r["scores"]["overall"] for r in results]),
+        "experiment_id": result.experiment_id,
+        "avg_overall": result.stats["overall"]["mean"],
+        "avg_depth": result.stats["depth"]["mean"],
+        "pass_rate": sum(
+            1 for r in result.runs if r.scores["overall"] >= 0.7
+        ) / len(result.runs),
     }
 ```
 
@@ -255,7 +265,7 @@ async def run_quality_experiment(dataset_name: str):
 # BAD: Single judge decides everything
 score = await evaluate(output)
 
-# GOOD: Multiple judges, aggregate
+# GOOD: Multiple judges with @observe(type="evaluator"), aggregate
 scores = await asyncio.gather(
     depth_judge(output),
     accuracy_judge(output),
@@ -362,7 +372,7 @@ GROUP BY name;
 │   ─────────────────────────────────────                              │
 │   overall     ██████████████████░░░░░░  0.81                        │
 │                                                                      │
-│   Threshold: 0.70  [✓ PASS]                                         │
+│   Threshold: 0.70  [PASS]                                           │
 │                                                                      │
 └─────────────────────────────────────────────────────────────────────┘
 ```
@@ -376,18 +386,20 @@ GROUP BY name;
 
 2. **Pass trace_id through workflow**
    ```python
-   # In workflow entry point
-   trace = langfuse.trace(name="analysis")
-   state["langfuse_trace_id"] = trace.id
+   from langfuse import observe, get_client
+
+   @observe(name="analysis")
+   async def run_analysis():
+       # trace_id is automatically managed by @observe
+       state["langfuse_trace_id"] = get_client().get_current_trace_id()
    ```
 
 3. **Call evaluators in quality gate**
    ```python
-   # In quality_gate_node
    await overall_evaluator(state["langfuse_trace_id"], synthesis)
    ```
 
 4. **View scores in Langfuse dashboard**
-   - Navigate to trace
-   - See all G-Eval scores
+   - Navigate to trace — see all G-Eval scores
+   - Click evaluator scores — see the evaluator's own trace
    - Analyze trends over time

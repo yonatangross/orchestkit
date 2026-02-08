@@ -3,9 +3,9 @@ name: langfuse-observability
 description: LLM observability platform for tracing, evaluation, prompt management, and cost tracking. Use when setting up Langfuse, monitoring LLM costs, tracking token usage, or implementing prompt versioning.
 context: fork
 agent: metrics-architect
-version: 1.0.0
+version: 2.0.0
 author: OrchestKit AI Agent Hub
-tags: [langfuse, llm, observability, tracing, evaluation, prompts]
+tags: [langfuse, llm, observability, tracing, evaluation, prompts, opentelemetry, agent-graphs]
 user-invocable: false
 complexity: medium
 ---
@@ -14,20 +14,25 @@ complexity: medium
 
 ## Overview
 
-**Langfuse** is the open-source LLM observability platform that OrchestKit uses for tracing, monitoring, evaluation, and prompt management. Unlike LangSmith (deprecated), Langfuse is self-hosted, free, and designed for production LLM applications.
+**Langfuse** is the open-source LLM observability platform that OrchestKit uses for tracing, monitoring, evaluation, and prompt management. Built on OpenTelemetry (OTEL) since v3, Langfuse provides automatic instrumentation for Python and JavaScript/TypeScript applications. Acquired by ClickHouse Inc. on January 16, 2026 — remains open-source with deeper analytics integration.
 
 **When to use this skill:**
 - Setting up LLM observability from scratch
 - Debugging slow or incorrect LLM responses
 - Tracking token usage and costs
-- Managing prompts in production
+- Managing prompts in production (including via MCP Server)
 - Evaluating LLM output quality
-- Migrating from LangSmith to Langfuse
+- Tracing multi-agent workflows with Agent Graphs
+- Integrating with modern AI frameworks (Claude Agent SDK, OpenAI Agents, Pydantic AI, etc.)
 
 **OrchestKit Integration:**
-- **Status**: Migrated from LangSmith (Dec 2025)
+- **Status**: Migrated from LangSmith (Dec 2025), upgraded to SDK v3 (Feb 2026)
 - **Location**: `backend/app/shared/services/langfuse/`
 - **MCP Server**: `orchestkit-langfuse` (optional)
+
+**SDK Versions:**
+- Python SDK: v3.13.0+ (OTEL-native, GA June 2025)
+- JS/TS SDK: v4.4.x+ (OTEL JS v2, GA Aug 2025)
 
 ---
 
@@ -50,11 +55,11 @@ langfuse_client = Langfuse(
 ### Basic Tracing with @observe
 
 ```python
-from langfuse.decorators import observe, langfuse_context
+from langfuse import observe, get_client
 
-@observe()  # Automatic tracing
+@observe()  # Auto-creates trace on first root span
 async def analyze_content(content: str):
-    langfuse_context.update_current_observation(
+    get_client().update_current_observation(
         metadata={"content_length": len(content)}
     )
     return await llm.generate(content)
@@ -63,13 +68,17 @@ async def analyze_content(content: str):
 ### Session & User Tracking
 
 ```python
-langfuse.trace(
-    name="analysis",
-    user_id="user_123",
-    session_id="session_abc",
-    metadata={"content_type": "article", "agent_count": 8},
-    tags=["production", "orchestkit"]
-)
+from langfuse import observe, get_client
+
+@observe()
+async def analysis(content: str):
+    get_client().update_current_trace(
+        user_id="user_123",
+        session_id="session_abc",
+        metadata={"content_type": "article", "agent_count": 8},
+        tags=["production", "orchestkit"],
+    )
+    return await run_pipeline(content)
 ```
 
 ---
@@ -78,13 +87,16 @@ langfuse.trace(
 
 | Feature | Description | Reference |
 |---------|-------------|-----------|
-| Distributed Tracing | Track LLM calls with parent-child spans | `references/tracing-setup.md` |
-| Cost Tracking | Automatic token & cost calculation | `references/cost-tracking.md` |
-| Prompt Management | Version control for prompts | `references/prompt-management.md` |
-| LLM Evaluation | Custom scoring with G-Eval | `references/evaluation-scores.md` |
-| Session Tracking | Group related traces | `references/session-tracking.md` |
-| Experiments API | A/B testing & benchmarks | `references/experiments-api.md` |
-| Multi-Judge Eval | Ensemble LLM evaluation | `references/multi-judge-evaluation.md` |
+| Distributed Tracing | Track LLM calls with parent-child spans (OTEL) | `references/tracing-setup.md` |
+| Cost Tracking | Automatic token & cost calculation with spend alerts | `references/cost-tracking.md` |
+| Prompt Management | Version control + MCP Server for prompts | `references/prompt-management.md` |
+| LLM Evaluation | Custom scoring with evaluator execution tracing | `references/evaluation-scores.md` |
+| Session Tracking | Group related traces with natural language filtering | `references/session-tracking.md` |
+| Experiments API | Experiment Runner SDK + dataset versioning | `references/experiments-api.md` |
+| Multi-Judge Eval | Ensemble LLM evaluation with inspectable traces | `references/multi-judge-evaluation.md` |
+| Agent Observability | Agent Graphs + 7 new observation types | `references/agent-observability.md` |
+| Framework Integrations | Claude Agent SDK, OpenAI Agents, Pydantic AI, CrewAI, LiveKit, Bedrock | `references/framework-integrations.md` |
+| Migration Guide | v2→v3 Python, v3→v4 JS, self-hosting v3 | `references/migration-v2-v3.md` |
 
 ---
 
@@ -94,11 +106,11 @@ langfuse.trace(
 **See: `references/tracing-setup.md`**
 
 Key topics covered:
-- Initializing Langfuse client with @observe decorator
-- Creating nested traces and spans
-- Tracking LLM generations with metadata
-- LangChain/LangGraph CallbackHandler integration
-- Workflow integration patterns
+- v3 `@observe` decorator with `get_client()` API
+- OpenTelemetry SpanProcessor setup
+- New observation types (Agent, Tool, Chain, Retriever, Evaluator, Embedding, Guardrail)
+- W3C Trace Context ID format
+- LangChain/LangGraph OTEL-based integration
 
 ### Cost Tracking
 **See: `references/cost-tracking.md`**
@@ -106,27 +118,28 @@ Key topics covered:
 Key topics covered:
 - Automatic cost calculation from token usage
 - Custom model pricing configuration
+- Spend alerts with threshold rules
+- v2 Metrics API for programmatic cost queries
 - Monitoring dashboard SQL queries
-- Cost tracking per analysis/user
-- Daily cost trend analysis
 
 ### Prompt Management
 **See: `references/prompt-management.md`**
 
 Key topics covered:
 - Prompt versioning and labels (production/staging/draft)
+- MCP Server for prompt management (`/api/public/mcp`)
+- Webhooks for prompt changes + Slack notifications
 - Template variables with Jinja2 syntax
-- A/B testing prompt versions
 - OrchestKit 4-level caching architecture (L1-L4)
-- Linking prompts to generation spans
 
 ### LLM Evaluation
 **See: `references/evaluation-scores.md`**
 
 Key topics covered:
 - Custom scoring with numeric/categorical values
-- G-Eval automated quality assessment
-- Score trends and comparisons
+- Evaluator execution tracing (each evaluator creates inspectable trace)
+- Score analytics with multi-score comparison
+- Mutable score configs
 - Filtering traces by score thresholds
 
 ### Session Tracking
@@ -134,60 +147,85 @@ Key topics covered:
 
 Key topics covered:
 - Grouping traces by session_id
+- Natural language trace filtering
+- v2 Metrics API for session analytics
 - Multi-turn conversation tracking
-- User and metadata analytics
 
 ### Experiments API
 **See: `references/experiments-api.md`**
 
 Key topics covered:
-- Creating test datasets in Langfuse
-- Running automated evaluations
+- Experiment Runner SDK (high-level API)
+- Dataset item versioning and JSON schema enforcement
+- Corrected outputs for fine-tuning datasets
+- Experiment compare view with annotations
 - Regression testing for LLMs
-- Benchmarking prompt versions
 
 ### Multi-Judge Evaluation
 **See: `references/multi-judge-evaluation.md`**
 
 Key topics covered:
 - Multiple LLM judges for quality assessment
-- Weighted scoring across judges
+- Evaluator execution tracing (each judge creates trace)
+- Experiment Runner SDK integration
 - OrchestKit langfuse_evaluators.py integration
+
+### Agent Observability
+**See: `references/agent-observability.md`**
+
+Key topics covered:
+- Agent Graphs — visual execution flow (GA Nov 2025)
+- 7 new observation types (Agent, Tool, Chain, Retriever, Evaluator, Embedding, Guardrail)
+- Rendered tool calls in traces
+- Trace Log View for debugging agent loops
+- Framework examples (LangGraph, CrewAI, OpenAI Agents)
+
+### Framework Integrations
+**See: `references/framework-integrations.md`**
+
+Key topics covered:
+- Claude Agent SDK integration
+- OpenAI Agents SDK integration
+- Pydantic AI integration
+- CrewAI, LiveKit Agents, Amazon Bedrock AgentCore
+- OTEL exporter setup for each framework
+
+### Migration Guide
+**See: `references/migration-v2-v3.md`**
+
+Key topics covered:
+- Python v2 → v3 migration (imports, API changes, trace ID format)
+- JS v3 → v4 migration (modular packages, OTEL setup)
+- Self-hosting v3 architecture (ClickHouse + Redis + S3 + PostgreSQL)
+- ClickHouse acquisition context
+- Breaking changes checklist
 
 ---
 
 ## Best Practices
 
-1. **Always use @observe decorator** for automatic tracing
-2. **Set user_id and session_id** for better analytics
-3. **Add meaningful metadata** (content_type, analysis_id, etc.)
-4. **Score all production traces** for quality monitoring
-5. **Use prompt management** instead of hardcoded prompts
-6. **Monitor costs daily** to catch spikes early
-7. **Create datasets** for regression testing
-8. **Tag production vs staging** traces
-
----
-
-## LangSmith Migration Notes
-
-**Key Differences:**
-| Aspect | Langfuse | LangSmith |
-|--------|----------|-----------|
-| Hosting | Self-hosted, open-source | Cloud-only, proprietary |
-| Cost | Free | Paid |
-| Prompts | Built-in management | External storage needed |
-| Decorator | `@observe` | `@traceable` |
+1. **Use `from langfuse import observe, get_client`** — NOT `langfuse.decorators`
+2. **Let `@observe()` auto-create traces** — don't call `langfuse.trace()` explicitly
+3. **Set user_id and session_id** via `get_client().update_current_trace()`
+4. **Use observation types** (`type="agent"`, `type="tool"`, etc.) for Agent Graph rendering
+5. **Score all production traces** for quality monitoring
+6. **Use prompt management** with MCP Server for IDE integration
+7. **Monitor costs** with spend alerts to catch spikes early
+8. **Create datasets** with versioned items for regression testing
+9. **Tag production vs staging** traces for environment filtering
 
 ---
 
 ## External References
 
 - [Langfuse Docs](https://langfuse.com/docs)
-- [Python SDK](https://langfuse.com/docs/sdk/python)
-- [Decorators Guide](https://langfuse.com/docs/sdk/python/decorators)
+- [Python SDK v3](https://langfuse.com/docs/sdk/python)
+- [JS/TS SDK v4](https://langfuse.com/docs/sdk/typescript)
+- [OpenTelemetry Integration](https://langfuse.com/docs/integrations/opentelemetry)
+- [Agent Graphs](https://langfuse.com/docs/tracing-features/agent-graphs)
+- [MCP Server](https://langfuse.com/docs/integrations/mcp)
 - [Prompt Management](https://langfuse.com/docs/prompts)
-- [Self-Hosting](https://langfuse.com/docs/deployment/self-host)
+- [Self-Hosting v3](https://langfuse.com/docs/deployment/self-host)
 
 ---
 
@@ -203,51 +241,80 @@ Key topics covered:
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Observability platform | Langfuse (not LangSmith) | Open-source, self-hosted, free, built-in prompt management |
-| Tracing approach | @observe decorator | Automatic, low-overhead instrumentation |
-| Cost tracking | Automatic token counting | Built-in model pricing with custom overrides |
-| Prompt management | Langfuse native | Version control, A/B testing, labels in one place |
+| Tracing approach | @observe decorator + OTEL | Automatic, low-overhead, W3C-standard instrumentation |
+| Cost tracking | Automatic token counting + spend alerts | Built-in model pricing with custom overrides and alerting |
+| Prompt management | Langfuse native + MCP Server | Version control, A/B testing, labels, IDE integration |
+| OTEL foundation | OpenTelemetry SpanProcessor | Standard observability protocol, framework-agnostic |
+| Agent tracing | Agent Graphs with typed observations | Visual execution flow for multi-agent debugging |
+| MCP integration | Langfuse MCP Server `/api/public/mcp` | Prompt management from IDE via Claude Code / Cursor |
 
 ## Capability Details
 
 ### distributed-tracing
-**Keywords:** trace, tracing, observability, span, nested, parent-child, observe
+**Keywords:** trace, tracing, observability, span, nested, parent-child, observe, opentelemetry, otel
 **Solves:**
 - How do I trace LLM calls across my application?
 - How to debug slow LLM responses?
 - Track execution flow in multi-agent workflows
-- Create nested trace spans
+- Create nested trace spans with OTEL
 
 ### cost-tracking
-**Keywords:** cost, token usage, pricing, budget, spend, expense
+**Keywords:** cost, token usage, pricing, budget, spend, expense, alert
 **Solves:**
 - How do I track LLM costs?
 - Calculate token usage and pricing
 - Monitor AI budget and spending
-- Track cost per user or session
+- Set up spend alerts for cost spikes
+- Query costs via Metrics API
 
 ### prompt-management
-**Keywords:** prompt version, prompt template, prompt control, prompt registry
+**Keywords:** prompt version, prompt template, prompt control, prompt registry, mcp, webhook
 **Solves:**
 - How do I version control prompts?
 - Manage prompts in production
 - A/B test different prompt versions
-- Link prompts to traces
+- Use MCP Server for prompt management from IDE
+- Get notified on prompt changes via webhooks
 
 ### llm-evaluation
-**Keywords:** score, quality, evaluation, rating, assessment, g-eval
+**Keywords:** score, quality, evaluation, rating, assessment, g-eval, evaluator tracing
 **Solves:**
 - How do I evaluate LLM output quality?
 - Score responses with custom metrics
 - Track quality trends over time
-- Compare prompt versions by quality
+- Inspect evaluator execution traces
+- Compare scores across multiple criteria
 
 ### session-tracking
-**Keywords:** session, user tracking, conversation, group traces
+**Keywords:** session, user tracking, conversation, group traces, natural language filter
 **Solves:**
 - How do I group related traces?
 - Track multi-turn conversations
 - Monitor per-user performance
-- Organize traces by session
+- Filter traces using natural language queries
+
+### agent-graphs
+**Keywords:** agent, multi-agent, graph, execution flow, tool calls, observation types
+**Solves:**
+- How do I trace multi-agent workflows?
+- Visualize agent execution as a graph
+- Debug agent routing decisions
+- See rendered tool calls inline in traces
+
+### mcp-prompt-management
+**Keywords:** mcp, model context protocol, prompt server, ide integration
+**Solves:**
+- How do I manage prompts from my IDE?
+- Use MCP Server to fetch/update prompts
+- StreamableHTTP transport for prompt management
+
+### framework-integrations
+**Keywords:** claude agent sdk, openai agents, pydantic ai, crewai, livekit, bedrock, langchain, langgraph
+**Solves:**
+- How do I integrate Langfuse with Claude Agent SDK?
+- Set up tracing for OpenAI Agents
+- Use Pydantic AI with Langfuse
+- CrewAI/LiveKit/Bedrock observability
 
 ### langchain-integration
 **Keywords:** langchain, callback, handler, langgraph integration
@@ -258,28 +325,28 @@ Key topics covered:
 - LangChain observability setup
 
 ### datasets-evaluation
-**Keywords:** dataset, test set, evaluation dataset, benchmark
+**Keywords:** dataset, test set, evaluation dataset, benchmark, versioning
 **Solves:**
 - How do I create test datasets in Langfuse?
-- Run automated evaluations
+- Run automated evaluations with Experiment Runner
 - Regression testing for LLMs
-- Benchmark prompt versions
+- Version dataset items with JSON schema
 
 ### ab-testing
 **Keywords:** a/b test, experiment, compare prompts, variant testing
 **Solves:**
 - How do I A/B test prompts?
 - Compare two prompt versions
-- Experimental prompt evaluation
-- Statistical prompt testing
+- Use Experiment Runner for systematic testing
+- Statistical prompt evaluation
 
 ### monitoring-dashboard
-**Keywords:** dashboard, analytics, metrics, monitoring, queries
+**Keywords:** dashboard, analytics, metrics, monitoring, queries, metrics api
 **Solves:**
 - What are the most expensive traces?
 - Average cost by agent type
 - Quality score trends
-- Custom monitoring queries
+- Query metrics via v2 Metrics API
 
 ### orchestkit-integration
 **Keywords:** orchestkit, migration, setup, workflow integration
@@ -298,9 +365,17 @@ Key topics covered:
 - Wire OrchestKit's existing langfuse_evaluators.py
 
 ### experiments-api
-**Keywords:** experiment, dataset, benchmark, regression test, prompt testing
+**Keywords:** experiment, dataset, benchmark, regression test, prompt testing, experiment runner
 **Solves:**
 - How do I run experiments across datasets?
 - A/B test models and prompts systematically
 - Track quality regression over time
-- Compare experiment results
+- Use Experiment Runner SDK for high-level API
+
+### migration-v2-v3
+**Keywords:** migration, upgrade, v2, v3, v4, breaking changes, self-hosting
+**Solves:**
+- How do I migrate from Python SDK v2 to v3?
+- How do I migrate from JS SDK v3 to v4?
+- What changed in self-hosting v3?
+- What are the breaking changes?
