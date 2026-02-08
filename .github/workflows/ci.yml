@@ -356,6 +356,15 @@ jobs:
         with:
           build-plugins: 'false'
 
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
+        with:
+          python-version: '3.12'
+
+      - name: Install mem0ai
+        shell: bash
+        run: pip install -r src/skills/mem0-memory/scripts/requirements.txt
+
       - name: Run mem0 tests
         shell: bash
         env:
