@@ -26,6 +26,14 @@ TESTS_SKIPPED=0
 # Unique prefix for this test run — include RANDOM for parallel CI runners
 TEST_PREFIX="test-$(date +%s)-${RANDOM}"
 
+# Generate per-test unique tokens to defeat mem0 semantic deduplication.
+# mem0 aggressively merges memories with similar structure/semantics,
+# even across different CI runners sharing the same project.
+# Embedding truly random strings makes each text unique.
+make_unique() {
+    echo "${RANDOM}${RANDOM}${RANDOM}"
+}
+
 # Track created memory IDs for cleanup
 CREATED_MEMORY_IDS=()
 
@@ -306,7 +314,8 @@ CREATED_MEMORY_ID=""
 test_start "test_add_memory"
 
 # Use a unique non-tech domain text to prevent mem0 semantic dedup across parallel CI runners
-CRUD_TEXT="The Rosetta Stone was discovered in 1799 near the Egyptian town of Rashid during Napoleon's campaign"
+CRUD_UNIQ=$(make_unique)
+CRUD_TEXT="The Rosetta Stone was discovered in 1799 near the Egyptian town of Rashid during Napoleon's campaign [ref:${CRUD_UNIQ}]"
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
     --text "Note ${TEST_PREFIX}: ${CRUD_TEXT}" \
     --user-id "${TEST_PREFIX}-crud" 2>&1)
@@ -415,13 +424,19 @@ test_start "test_batch_operations"
 BATCH_IDS=()
 BATCH_SUCCESS=true
 
-# Add 3 memories — texts must be radically different domains to avoid mem0 semantic dedup
+# Add 3 memories — texts must be radically different domains AND contain unique tokens
+# to avoid mem0 semantic dedup across parallel CI runners sharing the same project
+BATCH_U1=$(make_unique)
+BATCH_U2=$(make_unique)
+BATCH_U3=$(make_unique)
 BATCH_TEXTS=(
-    "The French Revolution of 1789 overthrew the monarchy and established the First Republic under Robespierre"
-    "Photosynthesis converts carbon dioxide and water into glucose using chlorophyll in plant chloroplasts"
-    "TCP three-way handshake uses SYN SYN-ACK ACK packets to establish reliable network connections"
+    "The French Revolution of 1789 overthrew the monarchy and established the First Republic under Robespierre [ref:${BATCH_U1}]"
+    "Photosynthesis converts carbon dioxide and water into glucose using chlorophyll in plant chloroplasts [ref:${BATCH_U2}]"
+    "TCP three-way handshake uses SYN SYN-ACK ACK packets to establish reliable network connections [ref:${BATCH_U3}]"
 )
 for i in 0 1 2; do
+    # Sleep between adds to avoid race conditions in mem0's dedup engine
+    [[ $i -gt 0 ]] && sleep 2
     OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
         --text "Note ${TEST_PREFIX} batch $((i+1)): ${BATCH_TEXTS[$i]}" \
         --user-id "${TEST_PREFIX}-batch" 2>&1)
@@ -493,8 +508,9 @@ echo "--- Graph Operations ---"
 
 test_start "test_graph_operations"
 
+GRAPH_UNIQ=$(make_unique)
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Note ${TEST_PREFIX}: The Mariana Trench reaches 10994 meters below sea level near the Challenger Deep" \
+    --text "Note ${TEST_PREFIX}: The Mariana Trench reaches 10994 meters below sea level near the Challenger Deep [ref:${GRAPH_UNIQ}]" \
     --user-id "${TEST_PREFIX}-graph" \
     --enable-graph 2>&1)
 EXIT_CODE=$?
@@ -652,8 +668,9 @@ GET_SINGLE_SCRIPT="$CRUD_DIR/get-memory.py"
 
 if [[ -f "$GET_SINGLE_SCRIPT" ]]; then
     # First, add a memory to retrieve
+    GETSINGLE_UNIQ=$(make_unique)
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Beethoven completed his Ninth Symphony in 1824 while completely deaf" \
+        --text "Note ${TEST_PREFIX}: Beethoven completed his Ninth Symphony in 1824 while completely deaf [ref:${GETSINGLE_UNIQ}]" \
         --user-id "${TEST_PREFIX}-get-single" 2>&1)
     ADD_EXIT=$?
 
@@ -708,8 +725,9 @@ UPDATE_SCRIPT="$CRUD_DIR/update-memory.py"
 
 if [[ -f "$UPDATE_SCRIPT" ]]; then
     # Add a memory to update
+    UPDATE_UNIQ=$(make_unique)
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: The Great Wall of China stretches 21196 kilometers across northern China" \
+        --text "Note ${TEST_PREFIX}: The Great Wall of China stretches 21196 kilometers across northern China [ref:${UPDATE_UNIQ}]" \
         --user-id "${TEST_PREFIX}-update" 2>&1)
     ADD_EXIT=$?
 
@@ -725,7 +743,7 @@ if [[ -f "$UPDATE_SCRIPT" ]]; then
             # Update the memory text
             UPD_OUTPUT=$(python3 "$UPDATE_SCRIPT" \
                 --memory-id "$UPDATE_MEM_ID" \
-                --text "Note ${TEST_PREFIX}: The Great Wall was rebuilt extensively during the Ming Dynasty 1368-1644" 2>&1)
+                --text "Note ${TEST_PREFIX}: The Great Wall was rebuilt extensively during the Ming Dynasty 1368-1644 [ref:${UPDATE_UNIQ}]" 2>&1)
             UPD_EXIT=$?
 
             if [[ $UPD_EXIT -eq 0 ]]; then
@@ -778,8 +796,9 @@ RELATED_SCRIPT="$GRAPH_DIR/get-related-memories.py"
 
 if [[ -f "$RELATED_SCRIPT" ]]; then
     # Add a memory with graph enabled
+    RELATED_UNIQ=$(make_unique)
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Saturn's rings are composed primarily of ice particles and rocky debris" \
+        --text "Note ${TEST_PREFIX}: Saturn's rings are composed primarily of ice particles and rocky debris [ref:${RELATED_UNIQ}]" \
         --user-id "${TEST_PREFIX}-related" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -844,8 +863,9 @@ TRAVERSE_SCRIPT="$GRAPH_DIR/traverse-graph.py"
 
 if [[ -f "$TRAVERSE_SCRIPT" ]]; then
     # Add a memory with graph enabled about a specific topic
+    TRAVERSE_UNIQ=$(make_unique)
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: The Amazon River discharges 209000 cubic meters of freshwater per second" \
+        --text "Note ${TEST_PREFIX}: The Amazon River discharges 209000 cubic meters of freshwater per second [ref:${TRAVERSE_UNIQ}]" \
         --user-id "${TEST_PREFIX}-traverse" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -913,8 +933,9 @@ HISTORY_SCRIPT="$UTILS_DIR/memory-history.py"
 
 if [[ -f "$HISTORY_SCRIPT" ]]; then
     # Add a memory, then update it to generate history
+    HISTORY_UNIQ=$(make_unique)
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX}: Marie Curie won Nobel Prizes in both Physics 1903 and Chemistry 1911" \
+        --text "Note ${TEST_PREFIX}: Marie Curie won Nobel Prizes in both Physics 1903 and Chemistry 1911 [ref:${HISTORY_UNIQ}]" \
         --user-id "${TEST_PREFIX}-history" 2>&1)
     ADD_EXIT=$?
 
@@ -931,7 +952,7 @@ if [[ -f "$HISTORY_SCRIPT" ]]; then
             if [[ -f "$CRUD_DIR/update-memory.py" ]]; then
                 python3 "$CRUD_DIR/update-memory.py" \
                     --memory-id "$HISTORY_MEM_ID" \
-                    --text "Note ${TEST_PREFIX}: Marie Curie discovered radium and polonium through uranium ore research" >/dev/null 2>&1
+                    --text "Note ${TEST_PREFIX}: Marie Curie discovered radium and polonium through uranium ore research [ref:${HISTORY_UNIQ}]" >/dev/null 2>&1
                 sleep 1
             fi
 
@@ -1104,16 +1125,20 @@ BATCH_DIR="$SCRIPTS_DIR/batch"
 BATCH_DELETE_SCRIPT="$BATCH_DIR/batch-delete.py"
 
 if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
-    # Add 3 memories for batch deletion — radically different domains to avoid dedup
+    # Add 3 memories for batch deletion — radically different domains + unique tokens to avoid dedup
     BD_IDS=()
     BD_ADD_SUCCESS=true
+    BD_U1=$(make_unique)
+    BD_U2=$(make_unique)
+    BD_U3=$(make_unique)
     BD_TEXTS=(
-        "Mozart composed Symphony No. 40 in G minor during the summer of 1788 in Vienna"
-        "Mitochondria generate ATP through oxidative phosphorylation across the inner membrane"
-        "Dijkstra algorithm finds shortest paths in weighted directed graphs using a priority queue"
+        "Mozart composed Symphony No. 40 in G minor during the summer of 1788 in Vienna [ref:${BD_U1}]"
+        "Mitochondria generate ATP through oxidative phosphorylation across the inner membrane [ref:${BD_U2}]"
+        "Dijkstra algorithm finds shortest paths in weighted directed graphs using a priority queue [ref:${BD_U3}]"
     )
 
     for i in 0 1 2; do
+        [[ $i -gt 0 ]] && sleep 2
         OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
             --text "Note ${TEST_PREFIX} delete $((i+1)): ${BD_TEXTS[$i]}" \
             --user-id "${TEST_PREFIX}-batchdel" 2>&1)
@@ -1200,8 +1225,9 @@ echo "--- Metadata Filtering ---"
 test_start "test_metadata_filtering"
 
 # Add a memory with specific metadata — unique domain to avoid cross-runner dedup
+META_UNIQ=$(make_unique)
 META_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Note ${TEST_PREFIX}: The Hubble Space Telescope orbits Earth at 547 km altitude capturing ultraviolet light from distant galaxies" \
+    --text "Note ${TEST_PREFIX}: The Hubble Space Telescope orbits Earth at 547 km altitude capturing ultraviolet light from distant galaxies [ref:${META_UNIQ}]" \
     --user-id "${TEST_PREFIX}-metadata" \
     --metadata '{"category":"test","priority":"high"}' 2>&1)
 META_EXIT=$?
