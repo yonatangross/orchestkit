@@ -40,39 +40,22 @@ def main():
             # If not valid JSON, treat as format string and wrap in object
             schema_obj = {"format": args.schema}
         
-        # Parse filters - API requires filters with user_id, agent_id, run_id, app_id, or memory_export_id
-        filters = json.loads(args.filters) if args.filters else {}
-        if args.user_id:
-            filters["user_id"] = args.user_id
-        
-        # API requires at least one filter: user_id, agent_id, run_id, app_id, or memory_export_id
-        if not filters or not any(key in filters for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
-            raise ValueError("Filters must include one of: user_id, agent_id, run_id, app_id, or memory_export_id")
-        
-        # SDK method signature: create_memory_export(schema: str, **kwargs)
-        # But API expects schema as JSON object, so we pass it as JSON string
-        # Filters should be passed as kwargs (user_id, agent_id, etc.)
-        # Extract filter values and pass as kwargs
+        # Build export kwargs — SDK expects user_id, agent_id etc. as direct kwargs
         export_kwargs = {}
-        if "user_id" in filters:
-            export_kwargs["user_id"] = filters["user_id"]
-        if "agent_id" in filters:
-            export_kwargs["agent_id"] = filters["agent_id"]
-        if "run_id" in filters:
-            export_kwargs["run_id"] = filters["run_id"]
-        if "app_id" in filters:
-            export_kwargs["app_id"] = filters["app_id"]
-        if "memory_export_id" in filters:
-            export_kwargs["memory_export_id"] = filters["memory_export_id"]
-        
-        # SDK expects schema as string, but API validates it as JSON object
-        # Pass as JSON string - SDK/API will handle conversion
-        if isinstance(schema_obj, dict):
-            schema_str = json.dumps(schema_obj)
-        else:
-            schema_str = str(schema_obj)
-        
-        result = client.create_memory_export(schema=schema_str, **export_kwargs)
+        extra_filters = json.loads(args.filters) if args.filters else {}
+
+        # Merge user_id from --user-id flag or from filters
+        if args.user_id:
+            export_kwargs["user_id"] = args.user_id
+        for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]:
+            if key in extra_filters and key not in export_kwargs:
+                export_kwargs[key] = extra_filters[key]
+
+        # API requires at least one filter
+        if not any(key in export_kwargs for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
+            raise ValueError("Filters must include one of: user_id, agent_id, run_id, app_id, or memory_export_id")
+
+        result = client.create_memory_export(schema=schema_obj, **export_kwargs)
 
         print(json.dumps({
             "success": True,

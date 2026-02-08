@@ -166,6 +166,60 @@ echo "  Scripts: $CRUD_DIR"
 
 echo ""
 
+# -----------------------------------------------------------------------------
+# Retry helper for eventually consistent operations
+# Usage: wait_for_search "query" "user_id" [min_count]
+# Retries search up to 5 times with exponential backoff (1s, 2s, 3s, 4s, 5s)
+# Returns: sets RETRY_OUTPUT and RETRY_COUNT
+# -----------------------------------------------------------------------------
+
+RETRY_OUTPUT=""
+RETRY_COUNT=0
+
+wait_for_search() {
+    local query="$1"
+    local user_id="$2"
+    local min_count="${3:-1}"
+    local extra_args="${4:-}"
+
+    RETRY_OUTPUT=""
+    RETRY_COUNT=0
+
+    # With async_mode=False in add-memory.py, memories should be available quickly.
+    # Retry with backoff: 2+3+5+8+12 = 30s total for eventual consistency.
+    for attempt in 2 3 5 8 12; do
+        sleep "$attempt"
+        RETRY_OUTPUT=$(python3 "$CRUD_DIR/search-memories.py" \
+            --query "$query" \
+            --user-id "$user_id" \
+            $extra_args 2>&1)
+        RETRY_COUNT=$(echo "$RETRY_OUTPUT" | jq -r '.count // 0' 2>/dev/null)
+        if [[ "$RETRY_COUNT" -ge "$min_count" ]]; then
+            return 0
+        fi
+    done
+    return 1  # gave up
+}
+
+wait_for_get() {
+    local user_id="$1"
+    local min_count="${2:-1}"
+
+    RETRY_OUTPUT=""
+    RETRY_COUNT=0
+
+    for attempt in 2 3 5 8 12; do
+        sleep "$attempt"
+        RETRY_OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
+            --user-id "$user_id" 2>&1)
+        RETRY_COUNT=$(echo "$RETRY_OUTPUT" | jq -r '.count // 0' 2>/dev/null)
+        if [[ "$RETRY_COUNT" -ge "$min_count" ]]; then
+            return 0
+        fi
+    done
+    return 1  # gave up
+}
+
 # =============================================================================
 # Test 1: API Connectivity
 # =============================================================================
@@ -207,13 +261,20 @@ EXIT_CODE=$?
 
 if [[ $EXIT_CODE -eq 0 ]]; then
     SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
+    CREATED_MEMORY_ID=$(echo "$OUTPUT" | jq -r '
+        .memory_id //
+        .result.results[0].id //
+        .result.results[0].memory_id //
+        .result[0].id //
+        .result[0].memory_id //
+        empty
+    ' 2>/dev/null)
 
     if [[ "$SUCCESS" == "true" ]]; then
         if [[ -n "$CREATED_MEMORY_ID" && "$CREATED_MEMORY_ID" != "null" ]]; then
             CREATED_MEMORY_IDS+=("$CREATED_MEMORY_ID")
         else
-            echo "    [debug] memory_id not extracted. result keys: $(echo "$OUTPUT" | jq -r '.result | keys // "N/A"' 2>/dev/null)"
+            echo "    [debug] memory_id not extracted from response. result keys: $(echo "$OUTPUT" | jq -c '.result | keys' 2>/dev/null), results[0] keys: $(echo "$OUTPUT" | jq -c '.result.results[0] | keys' 2>/dev/null)"
         fi
         test_pass
     else
@@ -227,31 +288,12 @@ fi
 # Test 3: Search Memory
 # =============================================================================
 
-# Brief pause to allow indexing (mem0 API is eventually consistent)
-sleep 5
-
 test_start "test_search_memory"
 
-OUTPUT=$(python3 "$CRUD_DIR/search-memories.py" \
-    --query "Test memory from integration" \
-    --user-id "${TEST_PREFIX}-crud" 2>&1)
-EXIT_CODE=$?
-
-if [[ $EXIT_CODE -eq 0 ]]; then
-    SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    COUNT=$(echo "$OUTPUT" | jq -r '.count // 0' 2>/dev/null)
-
-    if [[ "$SUCCESS" == "true" ]]; then
-        if [[ "$COUNT" -gt 0 ]]; then
-            test_pass
-        else
-            test_fail "Search returned 0 results; expected at least 1"
-        fi
-    else
-        test_fail "Response did not contain \"success\": true. Output: $OUTPUT"
-    fi
+if wait_for_search "Test memory from integration" "${TEST_PREFIX}-crud"; then
+    test_pass
 else
-    test_fail "search-memories.py returned exit code $EXIT_CODE. Output: $OUTPUT"
+    test_fail "Search returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
 fi
 
 # =============================================================================
@@ -260,21 +302,10 @@ fi
 
 test_start "test_get_memory"
 
-OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
-    --user-id "${TEST_PREFIX}-crud" 2>&1)
-EXIT_CODE=$?
-
-if [[ $EXIT_CODE -eq 0 ]]; then
-    SUCCESS=$(echo "$OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-    COUNT=$(echo "$OUTPUT" | jq -r '.count // 0' 2>/dev/null)
-
-    if [[ "$SUCCESS" == "true" && "$COUNT" -gt 0 ]]; then
-        test_pass
-    else
-        test_fail "Expected at least 1 memory, got count=$COUNT. Output: $OUTPUT"
-    fi
+if wait_for_get "${TEST_PREFIX}-crud"; then
+    test_pass
 else
-    test_fail "get-memories.py returned exit code $EXIT_CODE. Output: $OUTPUT"
+    test_fail "Expected at least 1 memory, got count=$RETRY_COUNT. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
 fi
 
 # =============================================================================
@@ -327,7 +358,14 @@ for i in 1 2 3; do
         break
     fi
 
-    MEM_ID=$(echo "$OUTPUT" | jq -r '.memory_id // .result.results[0].id // .result.results[0].memory_id // .result[0].id // empty' 2>/dev/null)
+    MEM_ID=$(echo "$OUTPUT" | jq -r '
+        .memory_id //
+        .result.results[0].id //
+        .result.results[0].memory_id //
+        .result[0].id //
+        .result[0].memory_id //
+        empty
+    ' 2>/dev/null)
     if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
         BATCH_IDS+=("$MEM_ID")
         CREATED_MEMORY_IDS+=("$MEM_ID")
@@ -335,13 +373,12 @@ for i in 1 2 3; do
 done
 
 if [[ "$BATCH_SUCCESS" == "true" ]]; then
-    # Brief pause for indexing (mem0 API is eventually consistent)
-    sleep 5
-
-    # Verify count
-    OUTPUT=$(python3 "$CRUD_DIR/get-memories.py" \
-        --user-id "${TEST_PREFIX}-batch" 2>&1)
-    COUNT=$(echo "$OUTPUT" | jq -r '.count // 0' 2>/dev/null)
+    # Retry get until at least 3 memories indexed
+    if wait_for_get "${TEST_PREFIX}-batch" 3; then
+        COUNT=$RETRY_COUNT
+    else
+        COUNT=$RETRY_COUNT
+    fi
 
     if [[ "$COUNT" -ge 3 ]]; then
         # Delete all batch memories
@@ -1091,25 +1128,10 @@ if [[ $META_EXIT -eq 0 ]]; then
     fi
 
     if [[ "$META_SUCCESS" == "true" ]]; then
-        sleep 5
-
-        # Search with metadata filter
-        SEARCH_OUTPUT=$(python3 "$CRUD_DIR/search-memories.py" \
-            --query "Metadata filtering test" \
-            --user-id "${TEST_PREFIX}-metadata" 2>&1)
-        SEARCH_EXIT=$?
-
-        if [[ $SEARCH_EXIT -eq 0 ]]; then
-            SEARCH_SUCCESS=$(echo "$SEARCH_OUTPUT" | jq -r '.success // empty' 2>/dev/null)
-            SEARCH_COUNT=$(echo "$SEARCH_OUTPUT" | jq -r '.count // 0' 2>/dev/null)
-
-            if [[ "$SEARCH_SUCCESS" == "true" && "$SEARCH_COUNT" -gt 0 ]]; then
-                test_pass
-            else
-                test_fail "Metadata search returned 0 results; expected at least 1. Output: $SEARCH_OUTPUT"
-            fi
+        if wait_for_search "Metadata filtering test" "${TEST_PREFIX}-metadata"; then
+            test_pass
         else
-            test_fail "search-memories.py returned exit code $SEARCH_EXIT. Output: $SEARCH_OUTPUT"
+            test_fail "Metadata search returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
         fi
     else
         test_fail "add-memory.py with metadata did not return success. Output: $META_OUTPUT"

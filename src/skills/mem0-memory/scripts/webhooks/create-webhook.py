@@ -40,19 +40,18 @@ def main():
 
         # SDK v1.1+ requires project_id as positional arg
         project_id = args.project_id or os.getenv("MEM0_PROJECT_ID")
-        if project_id:
-            result = client.create_webhook(
-                project_id,
-                url=args.url,
-                name=args.name,
-                event_types=event_types
+        if not project_id:
+            raise ValueError(
+                "project_id is required for webhook creation. "
+                "Set MEM0_PROJECT_ID env var or pass --project-id"
             )
-        else:
-            result = client.create_webhook(
-                url=args.url,
-                name=args.name,
-                event_types=event_types
-            )
+
+        result = client.create_webhook(
+            url=args.url,
+            name=args.name,
+            project_id=project_id,
+            event_types=event_types
+        )
 
         print(json.dumps({
             "success": True,

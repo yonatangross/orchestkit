@@ -1,7 +1,7 @@
 {
   "name": "ork",
   "version": "6.0.3",
-  "description": "Full OrchestKit toolkit — 199 skills, 36 agents, 119 hooks. Complete AI development powerhouse for Python/React with LLM/RAG patterns, LangGraph, and MCP.",
+  "description": "All-in-one (recommended) — 199 skills, 36 agents, 119 hooks. Includes everything: orkl + creative + Python/React/LLM/RAG specializations.",
   "author": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com",

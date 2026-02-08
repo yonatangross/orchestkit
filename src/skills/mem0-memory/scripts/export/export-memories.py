@@ -40,26 +40,22 @@ def main():
             # If not valid JSON, treat as format string and wrap in object
             schema_obj = {"format": args.schema}
         
-        # Parse filters - API requires filters with user_id, agent_id, run_id, app_id, or memory_export_id
-        filters = json.loads(args.filters) if args.filters else {}
+        # Build export kwargs — SDK expects user_id, agent_id etc. as direct kwargs
+        export_kwargs = {}
+        extra_filters = json.loads(args.filters) if args.filters else {}
+
+        # Merge user_id from --user-id flag or from filters
         if args.user_id:
-            filters["user_id"] = args.user_id
-        
-        # API requires at least one filter: user_id, agent_id, run_id, app_id, or memory_export_id
-        if not filters or not any(key in filters for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
+            export_kwargs["user_id"] = args.user_id
+        for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]:
+            if key in extra_filters and key not in export_kwargs:
+                export_kwargs[key] = extra_filters[key]
+
+        # API requires at least one filter
+        if not any(key in export_kwargs for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
             raise ValueError("Filters must include one of: user_id, agent_id, run_id, app_id, or memory_export_id")
-        
-        # API expects both schema and filters as JSON objects
-        # Try passing filters explicitly first (newer SDK), fall back to kwargs
-        try:
-            result = client.create_memory_export(schema=schema_obj, filters=filters)
-        except TypeError:
-            # Older SDK may not accept filters kwarg — pass as individual kwargs
-            export_kwargs = {}
-            for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]:
-                if key in filters:
-                    export_kwargs[key] = filters[key]
-            result = client.create_memory_export(schema=schema_obj, **export_kwargs)
+
+        result = client.create_memory_export(schema=schema_obj, **export_kwargs)
 
         print(json.dumps({
             "success": True,

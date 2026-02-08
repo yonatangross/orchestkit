@@ -46,26 +46,31 @@ def main():
         # Parse metadata
         metadata = json.loads(args.metadata) if args.metadata else {}
 
-        # Add memory
+        # Add memory (sync mode to get memory ID in response)
         result = client.add(
             messages=[{"role": "user", "content": args.text}],
             user_id=args.user_id,
             agent_id=args.agent_id,
             metadata=metadata,
-            enable_graph=args.enable_graph
+            enable_graph=args.enable_graph,
+            async_mode=False
         )
 
         # Output JSON for Claude to parse
         # Handle different response formats from mem0 API
         memory_id = None
-        if isinstance(result, dict):
+        if isinstance(result, list):
+            # SDK v1.1+ may return a list directly: [{"id": "...", ...}]
+            if result and isinstance(result[0], dict):
+                memory_id = result[0].get("id") or result[0].get("memory_id")
+        elif isinstance(result, dict):
             if "results" in result and result["results"]:
                 memory_id = result["results"][0].get("id") or result["results"][0].get("memory_id")
             elif "id" in result:
                 memory_id = result["id"]
             elif "memory_id" in result:
                 memory_id = result["memory_id"]
-        
+
         print(json.dumps({
             "success": True,
             "memory_id": memory_id,

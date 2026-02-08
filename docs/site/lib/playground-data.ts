@@ -4827,7 +4827,7 @@ export const SKILLS: Record<string, SkillDetail> = {
   "langfuse-observability": {
     "name": "langfuse-observability",
     "description": "LLM observability platform for tracing, evaluation, prompt management, and cost tracking. Use when setting up Langfuse, monitoring LLM costs, tracking token usage, or implementing prompt versioning.",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit AI Agent Hub",
     "tags": [
       "langfuse",
@@ -4835,7 +4835,9 @@ export const SKILLS: Record<string, SkillDetail> = {
       "observability",
       "tracing",
       "evaluation",
-      "prompts"
+      "prompts",
+      "opentelemetry",
+      "agent-graphs"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -4844,9 +4846,12 @@ export const SKILLS: Record<string, SkillDetail> = {
     "agent": "metrics-architect",
     "structure": {
       "references": [
+        "agent-observability.md",
         "cost-tracking.md",
         "evaluation-scores.md",
         "experiments-api.md",
+        "framework-integrations.md",
+        "migration-v2-v3.md",
         "multi-judge-evaluation.md",
         "prompt-management.md",
         "session-tracking.md",
@@ -4860,7 +4865,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "langfuse-setup-checklist.md"
       ]
     },
-    "content": "# Langfuse Observability\n\n## Overview\n\n**Langfuse** is the open-source LLM observability platform that OrchestKit uses for tracing, monitoring, evaluation, and prompt management. Unlike LangSmith (deprecated), Langfuse is self-hosted, free, and designed for production LLM applications.\n\n**When to use this skill:**\n- Setting up LLM observability from scratch\n- Debugging slow or incorrect LLM responses\n- Tracking token usage and costs\n- Managing prompts in production\n- Evaluating LLM output quality\n- Migrating from LangSmith to Langfuse\n\n**OrchestKit Integration:**\n- **Status**: Migrated from LangSmith (Dec 2025)\n- **Location**: `backend/app/shared/services/langfuse/`\n- **MCP Server**: `orchestkit-langfuse` (optional)\n\n---\n\n## Quick Start\n\n### Setup\n\n```python\n# backend/app/shared/services/langfuse/client.py\nfrom langfuse import Langfuse\nfrom app.core.config import settings\n\nlangfuse_client = Langfuse(\n    public_key=settings.LANGFUSE_PUBLIC_KEY,\n    secret_key=settings.LANGFUSE_SECRET_KEY,\n    host=settings.LANGFUSE_HOST  # Self-hosted or cloud\n)\n```\n\n### Basic Tracing with @observe\n\n```python\nfrom langfuse.decorators import observe, langfuse_context\n\n@observe()  # Automatic tracing\nasync def analyze_content(content: str):\n    langfuse_context.update_current_observation(\n        metadata={\"content_length\": len(content)}\n    )\n    return await llm.generate(content)\n```\n\n### Session & User Tracking\n\n```python\nlangfuse.trace(\n    name=\"analysis\",\n    user_id=\"user_123\",\n    session_id=\"session_abc\",\n    metadata={\"content_type\": \"article\", \"agent_count\": 8},\n    tags=[\"production\", \"orchestkit\"]\n)\n```\n\n---\n\n## Core Features Summary\n\n| Feature | Description | Reference |\n|---------|-------------|-----------|\n| Distributed Tracing | Track LLM calls with parent-child spans | `references/tracing-setup.md` |\n| Cost Tracking | Automatic token & cost calculation | `references/cost-tracking.md` |\n| Prompt Management | Version control for prompts | `references/prompt-management.md` |\n| LLM Evaluation | Custom scoring with G-Eval | `references/evaluation-scores.md` |\n| Session Tracking | Group related traces | `references/session-tracking.md` |\n| Experiments API | A/B testing & benchmarks | `references/experiments-api.md` |\n| Multi-Judge Eval | Ensemble LLM evaluation | `references/multi-judge-evaluation.md` |\n\n---\n\n## References\n\n### Tracing Setup\n**See: `references/tracing-setup.md`**\n\nKey topics covered:\n- Initializing Langfuse client with @observe decorator\n- Creating nested traces and spans\n- Tracking LLM generations with metadata\n- LangChain/LangGraph CallbackHandler integration\n- Workflow integration patterns\n\n### Cost Tracking\n**See: `references/cost-tracking.md`**\n\nKey topics covered:\n- Automatic cost calculation from token usage\n- Custom model pricing configuration\n- Monitoring dashboard SQL queries\n- Cost tracking per analysis/user\n- Daily cost trend analysis\n\n### Prompt Management\n**See: `references/prompt-management.md`**\n\nKey topics covered:\n- Pr",
+    "content": "# Langfuse Observability\n\n## Overview\n\n**Langfuse** is the open-source LLM observability platform that OrchestKit uses for tracing, monitoring, evaluation, and prompt management. Built on OpenTelemetry (OTEL) since v3, Langfuse provides automatic instrumentation for Python and JavaScript/TypeScript applications. Acquired by ClickHouse Inc. on January 16, 2026 — remains open-source with deeper analytics integration.\n\n**When to use this skill:**\n- Setting up LLM observability from scratch\n- Debugging slow or incorrect LLM responses\n- Tracking token usage and costs\n- Managing prompts in production (including via MCP Server)\n- Evaluating LLM output quality\n- Tracing multi-agent workflows with Agent Graphs\n- Integrating with modern AI frameworks (Claude Agent SDK, OpenAI Agents, Pydantic AI, etc.)\n\n**OrchestKit Integration:**\n- **Status**: Migrated from LangSmith (Dec 2025), upgraded to SDK v3 (Feb 2026)\n- **Location**: `backend/app/shared/services/langfuse/`\n- **MCP Server**: `orchestkit-langfuse` (optional)\n\n**SDK Versions:**\n- Python SDK: v3.13.0+ (OTEL-native, GA June 2025)\n- JS/TS SDK: v4.4.x+ (OTEL JS v2, GA Aug 2025)\n\n---\n\n## Quick Start\n\n### Setup\n\n```python\n# backend/app/shared/services/langfuse/client.py\nfrom langfuse import Langfuse\nfrom app.core.config import settings\n\nlangfuse_client = Langfuse(\n    public_key=settings.LANGFUSE_PUBLIC_KEY,\n    secret_key=settings.LANGFUSE_SECRET_KEY,\n    host=settings.LANGFUSE_HOST  # Self-hosted or cloud\n)\n```\n\n### Basic Tracing with @observe\n\n```python\nfrom langfuse import observe, get_client\n\n@observe()  # Auto-creates trace on first root span\nasync def analyze_content(content: str):\n    get_client().update_current_observation(\n        metadata={\"content_length\": len(content)}\n    )\n    return await llm.generate(content)\n```\n\n### Session & User Tracking\n\n```python\nfrom langfuse import observe, get_client\n\n@observe()\nasync def analysis(content: str):\n    get_client().update_current_trace(\n        user_id=\"user_123\",\n        session_id=\"session_abc\",\n        metadata={\"content_type\": \"article\", \"agent_count\": 8},\n        tags=[\"production\", \"orchestkit\"],\n    )\n    return await run_pipeline(content)\n```\n\n---\n\n## Core Features Summary\n\n| Feature | Description | Reference |\n|---------|-------------|-----------|\n| Distributed Tracing | Track LLM calls with parent-child spans (OTEL) | `references/tracing-setup.md` |\n| Cost Tracking | Automatic token & cost calculation with spend alerts | `references/cost-tracking.md` |\n| Prompt Management | Version control + MCP Server for prompts | `references/prompt-management.md` |\n| LLM Evaluation | Custom scoring with evaluator execution tracing | `references/evaluation-scores.md` |\n| Session Tracking | Group related traces with natural language filtering | `references/session-tracking.md` |\n| Experiments API | Experiment Runner SDK + dataset versioning | `references/experiments-api.md` |\n| Multi-Judge Eval | Ensemble LLM evaluation with inspectable traces | `references",
     "contentTruncated": true,
     "plugins": [
       "ork"

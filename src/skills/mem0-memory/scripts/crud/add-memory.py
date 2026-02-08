@@ -46,13 +46,14 @@ def main():
         # Parse metadata
         metadata = json.loads(args.metadata) if args.metadata else {}
 
-        # Add memory
+        # Add memory (sync mode to get memory ID in response)
         result = client.add(
             messages=[{"role": "user", "content": args.text}],
             user_id=args.user_id,
             agent_id=args.agent_id,
             metadata=metadata,
-            enable_graph=args.enable_graph
+            enable_graph=args.enable_graph,
+            async_mode=False
         )
 
         # Output JSON for Claude to parse
