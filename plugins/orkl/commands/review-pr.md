@@ -52,7 +52,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — reviewers cross-reference findings) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Full review with 6+ agents and cross-cutting concerns → recommend **Agent Teams**; Quick/focused review → **Task tool**
 
@@ -169,9 +169,12 @@ Task(
   3. DRY violations and code duplication
   4. SOLID principles adherence
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [brief list]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   description="Review type safety",
@@ -184,9 +187,12 @@ Task(
   3. No `any` types or type assertions
   4. Exhaustive switch/union handling
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] type issues: [brief list]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   description="Security audit PR",
@@ -199,9 +205,12 @@ Task(
   3. Authentication/authorization checks
   4. Dependency vulnerabilities
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] findings: [severity summary]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   description="Review test coverage",
@@ -214,9 +223,12 @@ Task(
   3. Meaningful assertions (not just truthy)
   4. No flaky tests (timing, external deps)
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [N]% coverage, [M] gaps - [key missing test]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   description="Review backend code",
@@ -229,9 +241,12 @@ Task(
   3. Database query efficiency (N+1)
   4. Transaction boundaries
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   description="Review frontend code",
@@ -244,9 +259,12 @@ Task(
   3. Accessibility (a11y) compliance
   4. Performance (memoization, lazy loading)
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] issues: [key concern]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 
@@ -322,7 +340,8 @@ Task(
 
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] LLM issues: [key concern]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 

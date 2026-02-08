@@ -8,7 +8,7 @@ tags: [git, github, pull-request, pr, code-review]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
 skills: [commit, review-pr, security-scanning, memory]
-complexity: low
+complexity: medium
 ---
 
 # Create Pull Request
@@ -115,9 +115,12 @@ Task(
   3. OWASP Top 10 quick scan
   Return: {status: PASS/BLOCK, issues: [...]}
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|BLOCK] - [N] issues: [brief list or 'clean']"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   subagent_type="test-generator",
@@ -126,9 +129,12 @@ Task(
   2. Identify untested code in changed files
   Return: {coverage: N%, passed: N/N, gaps: [...]}
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [N]% coverage, [passed]/[total] tests - [status]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   subagent_type="code-quality-reviewer",
@@ -138,9 +144,12 @@ Task(
   3. Check for anti-patterns
   Return: {lint_errors: N, type_errors: N, issues: [...]}
 
+  Scope: ONLY read files directly relevant to the PR diff. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [PASS|WARN|FAIL] - [N] lint, [M] type errors"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 

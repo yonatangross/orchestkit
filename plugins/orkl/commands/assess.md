@@ -52,9 +52,21 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — assessors cross-validate scores) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
-2. Agent Teams unavailable → **Task tool mode** (default)
-3. Otherwise: Full assessment with 6 dimension agents → recommend **Agent Teams**; Quick score or single-dimension → **Task tool**
+```python
+import os
+teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
+force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
+
+if force_task_tool or not teams_available:
+    mode = "task_tool"
+else:
+    # Teams available — use for full multi-dimensional assessment
+    mode = "agent_teams" if dimensions == "full" else "task_tool"
+```
+
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` set → **Agent Teams mode** (for full assessment)
+2. Flag not set → **Task tool mode** (default)
+3. Quick score or single-dimension → **Task tool** (regardless of flag)
 
 | Aspect | Task Tool | Agent Teams |
 |--------|-----------|-------------|
@@ -62,6 +74,8 @@ Choose **Agent Teams** (mesh — assessors cross-validate scores) or **Task tool
 | Cross-dimension findings | Lead correlates after completion | Security assessor alerts performance assessor of overlap |
 | Cost | ~200K tokens | ~500K tokens |
 | Best for | Quick scores, single dimension | Full multi-dimensional assessment |
+
+> **Context window:** For full codebase assessments (>20 files), use the 1M context window to avoid agent context exhaustion. On 200K context, the scope discovery in Phase 1.5 limits files to prevent overflow.
 
 > **Fallback:** If Agent Teams encounters issues, fall back to Task tool for remaining assessment.
 
@@ -120,6 +134,42 @@ mcp__memory__search_nodes(query="$ARGUMENTS")  # Past decisions
 ```
 
 
+## Phase 1.5: Scope Discovery (CRITICAL — prevents context exhaustion)
+
+**Before spawning any agents**, build a bounded file list. Agents that receive unbounded targets will exhaust their context windows reading the entire codebase.
+
+```python
+# 1. Discover target files
+if is_file(target):
+    scope_files = [target]
+elif is_directory(target):
+    scope_files = Glob(f"{target}/**/*.{{py,ts,tsx,js,jsx,go,rs,java}}")
+else:
+    # Concept/topic — search for relevant files
+    scope_files = Grep(pattern=target, output_mode="files_with_matches", head_limit=50)
+
+# 2. Apply limits — MAX 30 files for agent assessment
+MAX_FILES = 30
+if len(scope_files) > MAX_FILES:
+    # Prioritize: entry points, configs, security-critical, then sample rest
+    # Skip: test files (except for testability agent), generated files, vendor/
+    prioritized = prioritize_files(scope_files)  # entry points first
+    scope_files = prioritized[:MAX_FILES]
+    # Tell user about sampling
+    print(f"Target has {len(scope_files)} files. Sampling {MAX_FILES} representative files.")
+
+# 3. Format as file list string for agent prompts
+file_list = "\n".join(f"- {f}" for f in scope_files)
+```
+
+**Sampling priorities** (when >30 files):
+1. Entry points (main, index, app, server)
+2. Config files (settings, env, config)
+3. Security-sensitive (auth, middleware, api routes)
+4. Core business logic (services, models, domain)
+5. Representative samples from remaining directories
+
+
 ## Phase 2: Quality Rating (6 Dimensions)
 
 Rate each dimension 0-10 with weighted composite score. See [Scoring Rubric](references/scoring-rubric.md) for details.
@@ -135,7 +185,32 @@ Rate each dimension 0-10 with weighted composite score. See [Scoring Rubric](ref
 
 **Composite Score:** Weighted average of all dimensions.
 
-Launch 6 parallel agents (one per dimension) with `run_in_background=True`.
+Launch parallel agents with `run_in_background=True`. **Always include the scoped file list from Phase 1.5** in every agent prompt — agents without scope constraints will exhaust their context windows.
+
+### Phase 2 — Task Tool Mode (Default)
+
+For each dimension, spawn a background agent with **scope constraints**:
+
+```python
+for dimension, agent_type in [
+    ("CORRECTNESS + MAINTAINABILITY", "code-quality-reviewer"),
+    ("SECURITY", "security-auditor"),
+    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; performance-engineer for frontend
+    ("TESTABILITY", "test-generator"),
+]:
+    Task(subagent_type=agent_type, run_in_background=True, max_turns=15,
+         prompt=f"""Assess {dimension} (0-10) for: {target}
+
+## Scope Constraint
+ONLY read and analyze the following {len(scope_files)} files — do NOT explore beyond this list:
+{file_list}
+
+Budget: Use at most 15 tool calls. Read files from the list above, then produce your score
+with reasoning, evidence, and 2-3 specific improvement suggestions.
+Do NOT use Glob or Grep to discover additional files.""")
+```
+
+Then collect results from all agents and proceed to Phase 3.
 
 ### Phase 2 — Agent Teams Alternative
 
@@ -144,31 +219,45 @@ In Agent Teams mode, form an assessment team where dimension assessors cross-val
 ```python
 TeamCreate(team_name="assess-{target-slug}", description="Assess {target}")
 
+# SCOPE CONSTRAINT (injected into every agent prompt):
+SCOPE_INSTRUCTIONS = f"""
+## Scope Constraint
+ONLY read and analyze the following {len(scope_files)} files — do NOT explore beyond this list:
+{file_list}
+
+Budget: Use at most 15 tool calls. Read files from the list above, then score.
+Do NOT use Glob or Grep to discover additional files.
+"""
+
 Task(subagent_type="code-quality-reviewer", name="correctness-assessor",
-     team_name="assess-{target-slug}",
-     prompt="""Assess CORRECTNESS (0-10) and MAINTAINABILITY (0-10) for: {target}
+     team_name="assess-{target-slug}", max_turns=15,
+     prompt=f"""Assess CORRECTNESS (0-10) and MAINTAINABILITY (0-10) for: {target}
+     {SCOPE_INSTRUCTIONS}
      When you find issues that affect security, message security-assessor.
      When you find issues that affect performance, message perf-assessor.
      Share your scores with all teammates for calibration — if scores diverge
      significantly (>2 points), discuss the disagreement.""")
 
 Task(subagent_type="security-auditor", name="security-assessor",
-     team_name="assess-{target-slug}",
-     prompt="""Assess SECURITY (0-10) for: {target}
+     team_name="assess-{target-slug}", max_turns=15,
+     prompt=f"""Assess SECURITY (0-10) for: {target}
+     {SCOPE_INSTRUCTIONS}
      When correctness-assessor flags security-relevant patterns, investigate deeper.
      When you find performance-impacting security measures, message perf-assessor.
      Share your score and flag any cross-dimension trade-offs.""")
 
-Task(subagent_type="performance-engineer", name="perf-assessor",
-     team_name="assess-{target-slug}",
-     prompt="""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
+Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or performance-engineer for frontend
+     team_name="assess-{target-slug}", max_turns=15,
+     prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
+     {SCOPE_INSTRUCTIONS}
      When security-assessor flags performance trade-offs, evaluate the impact.
      When you find testability issues (hard-to-benchmark code), message test-assessor.
      Share your scores with reasoning for the composite calculation.""")
 
 Task(subagent_type="test-generator", name="test-assessor",
-     team_name="assess-{target-slug}",
-     prompt="""Assess TESTABILITY (0-10) for: {target}
+     team_name="assess-{target-slug}", max_turns=15,
+     prompt=f"""Assess TESTABILITY (0-10) for: {target}
+     {SCOPE_INSTRUCTIONS}
      Evaluate test coverage, test quality, and ease of testing.
      When other assessors flag dimension-specific concerns, verify test coverage
      for those areas. Share your score and any coverage gaps found.""")
@@ -183,7 +272,9 @@ SendMessage(type="shutdown_request", recipient="test-assessor", content="Assessm
 TeamDelete()
 ```
 
-> **Fallback:** If team formation fails, use standard Phase 2 Task spawns above.
+> **Fallback — Team Formation Failure:** If team formation fails, use standard Phase 2 Task spawns above.
+>
+> **Fallback — Context Exhaustion:** If agents hit "Context limit reached" before returning scores, collect whatever partial results were produced, then score remaining dimensions yourself using the scoped file list from Phase 1.5. Do NOT re-spawn agents — assess the remaining dimensions inline and proceed to Phase 3.
 
 
 ## Phase 3: Pros/Cons Analysis
@@ -269,7 +360,7 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 |----------|--------|-----------|
 | 6 dimensions | Comprehensive coverage | All quality aspects without overwhelming |
 | 0-10 scale | Industry standard | Easy to understand and compare |
-| Parallel assessment | 6 agents | Fast, thorough evaluation |
+| Parallel assessment | 4 agents (6 dimensions) | Fast, thorough evaluation |
 | Effort/Impact scoring | 1-5 scale | Simple prioritization math |
 
 
@@ -281,4 +372,4 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 - `quality-gates` - Quality gate patterns
 
 
-**Version:** 1.0.0 (January 2026)
+**Version:** 1.1.0 (February 2026)

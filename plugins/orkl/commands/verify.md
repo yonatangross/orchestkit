@@ -55,7 +55,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — verifiers share findings) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Full verification with cross-domain concerns → recommend **Agent Teams**; Single-scope verification → **Task tool**
 
@@ -114,7 +114,7 @@ git diff main --name-only | sort -u
 
 ## Phase 2: Parallel Agent Dispatch (5 Agents)
 
-Launch ALL agents in ONE message with `run_in_background=True`.
+Launch ALL agents in ONE message with `run_in_background=True` and `max_turns=25`.
 
 | Agent | Focus | Output |
 |-------|-------|--------|

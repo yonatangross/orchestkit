@@ -53,7 +53,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — explorers share discoveries) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Full exploration with 4+ agents → recommend **Agent Teams**; Quick search or single-focus → **Task tool**
 
@@ -132,33 +132,45 @@ Task(
   subagent_type="Explore",
   prompt="""Code Structure: Find all files, classes, functions related to: $ARGUMENTS
 
+  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [N] files, [M] classes - [key location, e.g., 'src/auth/']"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   subagent_type="Explore",
   prompt="""Data Flow: Trace entry points, processing, storage for: $ARGUMENTS
 
+  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [entry] → [processing] → [storage] - [N] hop flow"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   subagent_type="backend-system-architect",
   prompt="""Backend Patterns: Analyze architecture patterns, integrations, dependencies for: $ARGUMENTS
 
+  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [pattern name] - [N] integrations, [M] dependencies"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 Task(
   subagent_type="frontend-ui-developer",
   prompt="""Frontend Analysis: Find components, state management, routes for: $ARGUMENTS
 
+  Scope: ONLY read files directly relevant to the topic. Do NOT explore the entire codebase.
+
   SUMMARY: End with: "RESULT: [N] components, [state lib] - [key route]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 
@@ -277,7 +289,8 @@ Task(
 
   SUMMARY: End with: "HEALTH: [N.N]/10 - [best dimension] strong, [worst dimension] needs work"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 
@@ -327,7 +340,8 @@ Task(
 
   SUMMARY: End with: "COUPLING: [N]/10 - [N] incoming, [M] outgoing deps - [key concern]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 
@@ -374,7 +388,8 @@ Task(
 
   SUMMARY: End with: "FINDABILITY: [N] issues - start at [recommended entry point]"
   """,
-  run_in_background=True
+  run_in_background=True,
+  max_turns=25
 )
 ```
 
