@@ -369,6 +369,7 @@ jobs:
         shell: bash
         env:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
+          MEM0_ORG_ID: ${{ secrets.MEM0_ORG_ID }}
           MEM0_PROJECT_ID: ${{ secrets.MEM0_PROJECT_ID }}
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
