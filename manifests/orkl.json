@@ -1,7 +1,7 @@
 {
   "name": "orkl",
   "version": "6.0.3",
-  "description": "OrchestKit Lite — All workflows, all agents, universal patterns. Language-agnostic toolkit that works for any stack. For video/creative tools, add 'ork-creative'. For Python/React/LLM specializations, use full 'ork' plugin.",
+  "description": "Standalone base — 88 skills, 36 agents, 119 hooks. Any stack. Add ork-creative for video or use ork for everything.",
   "skills": [
     "explore",
     "implement",
