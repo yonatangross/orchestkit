@@ -338,6 +338,7 @@ jobs:
     needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    continue-on-error: true  # mem0 cloud API has aggressive dedup + eventual consistency; don't block PRs
     strategy:
       fail-fast: false
       matrix:
@@ -535,6 +536,7 @@ jobs:
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
           # Fail only on explicit failures (skipped jobs are OK - they use path filters)
+          # mem0-tests excluded: uses continue-on-error (cloud API has dedup/eventual consistency)
           FAILED=0
           for result in \
             "${{ needs.lint.result }}" \
@@ -546,13 +548,17 @@ jobs:
             "${{ needs.integration-tests.result }}" \
             "${{ needs.performance-tests.result }}" \
             "${{ needs.compliance-tests.result }}" \
-            "${{ needs.mem0-tests.result }}" \
             "${{ needs.agent-skill-tests.result }}" \
             "${{ needs.system-tests.result }}"; do
             if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then
               FAILED=1
             fi
           done
+
+          # Report mem0 status separately (informational, not blocking)
+          if [[ "${{ needs.mem0-tests.result }}" == "failure" ]]; then
+            echo "::warning::Mem0 integration tests had failures (non-blocking — cloud API dedup/consistency)"
+          fi
 
           if [[ "$FAILED" == "1" ]]; then
             echo "::error::One or more CI stages failed"
