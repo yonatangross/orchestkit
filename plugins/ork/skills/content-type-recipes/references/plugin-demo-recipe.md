@@ -339,7 +339,7 @@ const enhancedTerminal = {
   statusBar: {
     visible: true,
     position: 'bottom',
-    content: 'OrchestKit v6.0.2 • 200 skills • 36 agents • 119 hooks',
+    content: 'OrchestKit v6.0.3 • 199 skills • 36 agents • 119 hooks',
     animation: 'slide-up',
     delay: 1200,
   },

@@ -1,6 +1,287 @@
 ---
 title: Troubleshooting
-description: Common issues, hook debugging, and migration guides.
+description: Solutions for the 10 most common OrchestKit issues.
 ---
 
-Coming soon. See [GitHub issue #400](https://github.com/yonatangross/orchestkit/issues/400).
+import { Callout } from 'fumadocs-ui/components/callout';
+
+This page covers the most frequent issues OrchestKit users encounter, ordered by how often they come up. For hook-specific debugging, see [Hook Debugging](/docs/troubleshooting/hook-debugging). For broader questions about how OrchestKit works, see the [FAQ](/docs/troubleshooting/faq).
+
+---
+
+## 1. Plugin Not Found After Installation
+
+**Symptom:** Claude Code does not recognize `/ork:` commands or shows "no matching skill."
+
+**Cause:** The plugin is not installed in the right location, or Claude Code has not reloaded.
+
+**Fix:**
+
+```bash
+# Verify the plugin is installed
+claude plugins list
+
+# If missing, reinstall
+claude plugins install orchestkit
+
+# If installed but not detected, restart Claude Code
+claude --restart
+```
+
+<Callout type="info">
+If you installed via git clone, make sure you ran `npm run build` after cloning. The `plugins/` directory is generated and must be built from `src/`.
+</Callout>
+
+---
+
+## 2. Hooks Not Firing
+
+**Symptom:** Expected behavior does not happen -- skills are not auto-suggested, dangerous commands are not blocked, or memory is not injected.
+
+**Cause:** Hooks are disabled, hooks.json is missing, or the TypeScript bundles are not compiled.
+
+**Fix:**
+
+```bash
+# Run diagnostics
+/ork:doctor
+
+# Check if hooks.json exists
+ls src/hooks/hooks.json
+
+# Rebuild hooks from TypeScript
+cd src/hooks && npm run build
+
+# Verify the compiled bundles exist
+ls src/hooks/dist/
+```
+
+If `/ork:doctor` reports hooks as unhealthy, the most common cause is missing compiled bundles in `dist/`. The TypeScript source in `src/hooks/src/` must be compiled before hooks can execute.
+
+See [Hook Debugging](/docs/troubleshooting/hook-debugging) for deeper investigation steps.
+
+---
+
+## 3. Skills Not Loading
+
+**Symptom:** Invoking `/ork:skillname` returns "skill not found" or agents do not have expected skills injected.
+
+**Cause:** The skill is not listed in the plugin manifest, or the SKILL.md frontmatter is malformed.
+
+**Fix:**
+
+```bash
+# Verify skill exists in source
+ls src/skills/your-skill/SKILL.md
+
+# Check the manifest includes the skill
+grep "your-skill" manifests/ork.json
+
+# Validate skill structure
+npm run test:skills
+
+# Rebuild the plugin
+npm run build
+```
+
+Common frontmatter issues:
+- Missing required `name` or `description` fields
+- `user-invocable: true` missing for command skills
+- Invalid YAML syntax (tabs instead of spaces, unclosed quotes)
+
+---
+
+## 4. Memory Not Persisting Across Sessions
+
+**Symptom:** Decisions stored with `/ork:remember` do not appear in the next session.
+
+**Cause:** The MCP memory server is not configured, or local memory files are not being written.
+
+**Fix:**
+
+```bash
+# Check memory system health
+/ork:memory status
+
+# Verify local memory files exist
+ls .claude/memory/
+
+# Check if MCP memory server is running
+claude mcp list
+```
+
+The memory system has 4 tiers. If Tier 1 (Graph) is not configured, decisions fall back to Tier 2 (Local files). If those are not writable, nothing persists.
+
+| Tier | Check | Fix |
+|------|-------|-----|
+| 1. Graph | `claude mcp list` shows memory server | Configure MCP memory server |
+| 2. Local | `.claude/memory/` directory exists | Create it: `mkdir -p .claude/memory` |
+| 3. Mem0 | `MEM0_API_KEY` is set | Set the environment variable |
+| 4. CC Native | `MEMORY.md` exists in project memory | Automatic -- no action needed |
+
+---
+
+## 5. Agent Spawn Failures
+
+**Symptom:** Running `/ork:implement` or `/ork:review-pr` fails with "agent not found" or agents produce empty results.
+
+**Cause:** Claude Code version is too old, the requested model is unavailable, or the agent definition file is malformed.
+
+**Fix:**
+
+```bash
+# Check Claude Code version (requires >= 2.1.34)
+claude --version
+
+# Verify agent definition exists
+ls src/agents/backend-system-architect.md
+
+# Validate agent frontmatter
+npm run test:agents
+
+# Rebuild plugin
+npm run build
+```
+
+If the Claude Code version is below 2.1.34, upgrade:
+
+```bash
+npm install -g @anthropic-ai/claude-code@latest
+```
+
+---
+
+## 6. Build Errors After Editing src/
+
+**Symptom:** `npm run build` fails after modifying skills, agents, or hooks.
+
+**Cause:** A manifest references a skill or agent that does not exist, or a new file has invalid frontmatter.
+
+**Fix:**
+
+```bash
+# Run the full test suite to identify the issue
+npm test
+
+# Common: skill referenced in manifest but not in src/
+diff <(jq -r '.skills[]' manifests/ork.json | sort) \
+     <(ls src/skills/ | sort)
+
+# Common: hook referenced in hooks.json but not compiled
+cd src/hooks && npm run build
+```
+
+<Callout type="warn">
+Never edit files in `plugins/` directly. They are generated by `npm run build` and will be overwritten. Always edit in `src/` and rebuild.
+</Callout>
+
+---
+
+## 7. Pre-Push Hook Hanging
+
+**Symptom:** `git push` hangs on "Running quick lint tests..." and never completes.
+
+**Cause:** The pre-push hook runs `./tests/run-all-tests.sh --lint`, which can hang on large test suites or when external services are unreachable.
+
+**Fix:**
+
+For safe changes (docs, config, test fixes), bypass the hook:
+
+```bash
+git push --no-verify
+```
+
+For the permanent fix, investigate which test is hanging:
+
+```bash
+# Run tests with verbose output to find the stall
+./tests/run-all-tests.sh --lint --verbose
+```
+
+<Callout type="warn">
+Only use `--no-verify` for changes you are confident about. For substantial code changes, let the pre-push hook run to catch issues before they reach CI.
+</Callout>
+
+---
+
+## 8. Count Drift After Adding Skills or Hooks
+
+**Symptom:** Tests fail with "expected 199 skills, found 201" or similar count mismatches.
+
+**Cause:** Adding a skill or hook updates the source files but not the count references scattered across the codebase.
+
+**Fix:**
+
+```bash
+# Run the count validation script
+./tests/validate-counts.sh
+
+# Update counts in all locations
+# The script will tell you which files need updating
+```
+
+Files that reference counts and must stay in sync:
+- `CLAUDE.md` (updated automatically by linter hooks)
+- `README.md`
+- `manifests/ork.json`
+- `tests/skills/structure/test-skill-md.sh`
+- `tests/hooks/split-bundles.test.ts`
+
+<Callout type="info">
+Count drift is the most common consistency bug in OrchestKit. After adding any skill, agent, or hook, always run `./tests/validate-counts.sh` before committing.
+</Callout>
+
+---
+
+## 9. Git Operations Blocked
+
+**Symptom:** Git commands fail with "operation blocked by file-guard" or "branch protection prevents this action."
+
+**Cause:** OrchestKit's safety hooks are preventing a potentially destructive operation.
+
+**Fix:**
+
+The `dangerous-command-blocker` hook blocks commands like `git push --force`, `git reset --hard`, and `rm -rf` by default. This is intentional.
+
+If the operation is legitimate:
+
+1. Check the hook output for which rule triggered
+2. If it is a branch protection rule: create a feature branch instead of committing to `main`
+3. If it is a file-guard rule: verify you are not modifying protected files (`.claude/coordination/`, secrets)
+4. If the block is incorrect: the hook returns `{"continue": false}` with a reason -- share this in a GitHub issue
+
+---
+
+## 10. Slow Performance
+
+**Symptom:** Skills take a long time to execute, sessions feel sluggish, or agent spawns are delayed.
+
+**Cause:** Too many hooks executing synchronously, large context windows, or unoptimized hook bundles.
+
+**Fix:**
+
+```bash
+# Check hook execution time
+/ork:doctor
+
+# Disable non-essential hooks temporarily
+# Edit src/hooks/hooks.json and set "enabled": false on specific hooks
+
+# Verify split bundles are working (should be 11 bundles, not 1 monolith)
+ls src/hooks/dist/
+```
+
+Performance tips:
+- OrchestKit uses 11 split bundles instead of a monolith to reduce load time
+- 6 hooks use fire-and-forget async execution for non-blocking background work
+- If a specific hook is slow, disable it temporarily and report the issue
+- Context window usage above 85% triggers automatic result condensing in memory searches
+
+---
+
+## Still Stuck?
+
+- Run `/ork:doctor` for a full health diagnostic
+- Check [Hook Debugging](/docs/troubleshooting/hook-debugging) for hook-specific issues
+- Read the [FAQ](/docs/troubleshooting/faq) for common questions
+- [Open a GitHub issue](https://github.com/yonatangross/orchestkit/issues) with the error message and `/ork:doctor` output

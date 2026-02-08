@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **200 skills**: Reusable knowledge modules
+- **199 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **119 hooks**: TypeScript lifecycle automation (91 global + 22 agent-scoped + 6 skill-scoped, 6 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 200 skills
+├── skills/             # 199 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -150,13 +150,13 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-200 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+199 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
 | Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 176 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Reference | 175 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
@@ -229,14 +229,15 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | Manifests | `manifests/<plugin>.json` | JSON plugin definitions |
 | Built plugins | `plugins/<name>/` | Generated, don't edit |
 
-### Two-Tier Plugin Structure
+### Three-Tier Plugin Structure
 
-| Plugin | Skills | Description |
-|--------|--------|-------------|
-| `orkl` | 109 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
-| `ork` | 200 | Full specialized — lite + Python, React, LLM/RAG, LangGraph, MCP. |
+| Plugin | Skills | Agents | Description |
+|--------|--------|--------|-------------|
+| `orkl` | 88 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `ork-creative` | 16 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
+| `ork` | 199 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
-Both include all 36 agents, 119 hooks, and all memory skills (remember, memory, memory-fabric, mem0-memory).
+All plugins include 119 hooks and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -266,7 +267,7 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 ## Version
 
-- **Current**: 6.0.2
+- **Current**: 6.0.3
 - **Claude Code**: >= 2.1.34
 - **Hooks**: 119 entries (91 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 6 fire-and-forget dispatchers)
 

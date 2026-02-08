@@ -1,0 +1,10 @@
+{
+  "title": "Spotlights",
+  "pages": [
+    "commit",
+    "implement",
+    "verify",
+    "review-pr",
+    "memory"
+  ]
+}

@@ -32,6 +32,7 @@ const config = {
             "img-src 'self' data: https:",
             "font-src 'self' data:",
             "connect-src 'self' https:",
+            "media-src 'self' https://cdn.sanity.io",
             "frame-ancestors 'none'",
           ].join("; "),
         },

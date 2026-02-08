@@ -1,0 +1,206 @@
+---
+title: "/ork:review-pr"
+description: Deep code review with 6 parallel specialized agents covering security, quality, tests, and architecture.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:review-pr` command runs a comprehensive code review using 6 parallel specialized agents. Each agent focuses on a different dimension -- code quality, type safety, security, test coverage, backend patterns, and frontend patterns -- and produces a structured report with conventional comment prefixes. This page explains how the review works, what each agent looks for, and how to get the most value from automated reviews.
+
+## Why This Skill
+
+Manual code review is thorough but slow. A reviewer reading a 500-line diff needs to mentally context-switch between checking for security issues, evaluating type safety, assessing test coverage, and verifying architectural patterns -- all at once. The `/ork:review-pr` skill eliminates this context-switching by assigning each concern to a dedicated agent that can focus deeply on its specialty.
+
+The result is not a replacement for human review. It is a structured pre-review that catches the mechanical issues (missing tests, type safety gaps, security vulnerabilities) so that human reviewers can focus on design decisions, naming, and business logic -- the things that require human judgment.
+
+## Quick Start
+
+```bash
+/ork:review-pr 123
+/ork:review-pr feature-branch
+```
+
+After invocation, OrchestKit asks for the review type:
+
+- **Full review**: All 6 agents (security + quality + tests + architecture)
+- **Security focus**: Prioritize the security-auditor agent
+- **Performance focus**: Add a performance-engineer agent
+- **Quick review**: Single code-quality-reviewer only
+
+## How It Works
+
+### Phase 1: Gather PR Information
+
+OrchestKit fetches the PR metadata, diff, and CI status in parallel:
+
+```bash
+gh pr view 123 --json title,body,files,additions,deletions,commits,author
+gh pr diff 123
+gh pr checks 123
+```
+
+From this, it identifies total files changed, lines added/removed, and which domains (frontend, backend, AI) are affected.
+
+### Phase 2: Skill Auto-Loading
+
+Claude Code 2.1.6+ automatically discovers and loads relevant skills based on the PR content:
+
+- `code-review-playbook` -- Review patterns and conventional comments
+- `security-scanning` -- OWASP, secrets, dependencies
+- `type-safety-validation` -- Zod, TypeScript strict mode
+
+These skills provide the knowledge base that agents use during their analysis.
+
+### Phase 3: Parallel Review (6 Agents)
+
+Six agents launch simultaneously:
+
+| Agent | Focus | Output |
+|-------|-------|--------|
+| `code-quality-reviewer` #1 | Readability, complexity, DRY, SOLID | Quality assessment |
+| `code-quality-reviewer` #2 | Type safety, Zod/Pydantic, `any` usage | Type safety report |
+| `security-auditor` | Secrets, injection, auth, dependencies | Security findings |
+| `test-generator` | Coverage, edge cases, assertion quality, flaky tests | Coverage report |
+| `backend-system-architect` | API design, async patterns, N+1 queries, transactions | Backend assessment |
+| `frontend-ui-developer` | React 19, hooks, accessibility, performance | Frontend assessment |
+
+If the PR includes AI/ML code, a 7th agent (`llm-integrator`) is added to check prompt injection prevention, token limits, caching, and error handling.
+
+### Phase 4: Validation
+
+OrchestKit runs the same linters and tests that CI runs:
+
+```bash
+# Backend
+poetry run ruff format --check app/
+poetry run ruff check app/
+poetry run pytest tests/unit/ -v --tb=short
+
+# Frontend
+npm run format:check
+npm run lint
+npm run typecheck
+npm run test
+```
+
+### Phase 5: Synthesis
+
+All agent findings are combined into a structured review:
+
+```markdown
+# PR Review: #123
+
+## Summary
+One-line overview of the PR quality.
+
+## Code Quality
+| Area | Status | Notes |
+|------|--------|-------|
+| Readability | PASS | Clean naming, low complexity |
+| Type Safety | WARN | 2 `any` types in API layer |
+| Test Coverage | PASS | 87% coverage on changed files |
+
+## Security
+| Check | Status |
+|-------|--------|
+| Secrets | PASS |
+| Input Validation | WARN |
+| Dependencies | PASS |
+
+## Blockers (Must Fix)
+- issue: Unvalidated user input in search endpoint
+
+## Suggestions (Non-Blocking)
+- suggestion: Extract pagination logic into shared helper
+- nitpick: Prefer `const` over `let` on line 42
+```
+
+### Phase 6: Submit
+
+Based on the findings, OrchestKit either approves the PR or requests changes:
+
+```bash
+gh pr review 123 --approve -b "Looks good. Minor suggestions in comments."
+# or
+gh pr review 123 --request-changes -b "Security issue in search endpoint."
+```
+
+## Common Patterns
+
+### Pattern 1: Review Before Merge
+
+The standard workflow -- review a PR before merging:
+
+```bash
+/ork:review-pr 123
+```
+
+### Pattern 2: Self-Review Before Opening PR
+
+Review your own code before pushing:
+
+```bash
+/ork:create-pr    # Creates the PR
+/ork:review-pr    # Reviews it immediately
+```
+
+This catches issues before your teammates see the PR, reducing review round-trips.
+
+### Pattern 3: Security-Focused Review
+
+For PRs touching authentication, payment, or data handling:
+
+```bash
+/ork:review-pr 123
+> Focus: Security focus
+```
+
+The `security-auditor` agent runs deeper analysis while other agents run lighter checks.
+
+### Pattern 4: Quick Triage
+
+When you have a queue of PRs to review and need to prioritize:
+
+```bash
+/ork:review-pr 123
+> Focus: Quick review
+```
+
+A single `code-quality-reviewer` runs, giving you a high-level assessment in seconds. Use full review for PRs that need deeper analysis.
+
+## Conventional Comment Prefixes
+
+The review uses conventional comment prefixes so you can quickly scan for severity:
+
+| Prefix | Meaning | Action Required |
+|--------|---------|-----------------|
+| `praise:` | Positive feedback | None |
+| `nitpick:` | Minor style suggestion | Optional |
+| `suggestion:` | Improvement idea | Consider |
+| `issue:` | Must fix before merge | Required |
+| `question:` | Needs clarification | Response needed |
+
+## Tips and Tricks
+
+<Callout type="info">
+**Review early, review often.** Run `/ork:review-pr` on draft PRs and work-in-progress branches. Early feedback is cheap; late feedback causes rework. The skill works on any branch, not just open PRs.
+</Callout>
+
+<Callout type="warn">
+**Do not skip human review.** The 6 agents catch mechanical issues -- type errors, security gaps, missing tests. They do not evaluate whether the feature makes sense, whether the naming communicates intent, or whether the architecture will scale. Those require human judgment.
+</Callout>
+
+<Callout type="info">
+**Session resume preserves PR context.** If you start a review and need to continue later, Claude Code 2.1.27+ preserves the PR diff, comments, and CI status. Resume with `claude --from-pr 123` and the full context is restored.
+</Callout>
+
+<Callout type="info">
+**Track review efficiency with metrics.** After the review completes, the skill reports token usage and tool calls per agent. Use this to identify which agents are most valuable for your codebase and optimize accordingly.
+</Callout>
+
+## Related Skills
+
+- [/ork:commit](/docs/skills/spotlights/commit) -- Commit changes after review
+- [/ork:verify](/docs/skills/spotlights/verify) -- Independent verification with grading
+- [/ork:implement](/docs/skills/spotlights/implement) -- Build features with built-in quality gates
+- [Command Skills Reference](/docs/skills/command-skills) -- All 24 command skills

@@ -81,7 +81,7 @@ All memories include:
 
 Following 2026 best practices:
 - **Agents** (Blue #3B82F6): All 36 specialized AI agent personas
-- **Skills** (Green #10B981): All 200 skills
+- **Skills** (Green #10B981): All 199 skills
 - **Technologies** (Orange #F59E0B): Core technologies
 - **Categories** (Purple #8B5CF6): Skill categories
 - **Architecture** (Red #EF4444): Architecture decisions
@@ -242,7 +242,7 @@ All scripts are located in `skills/mem0-memory/scripts/`:
 - `create-category-memories.py` - Create memories for all 18 categories
 - `create-technology-memories.py` - Create memories for 24+ technologies
 - `create-all-agent-memories.py` - Create memories for all 36 agents
-- `create-all-skill-memories.py` - Create memories for all 200 skills
+- `create-all-skill-memories.py` - Create memories for all 199 skills
 - `create-deep-relationships.py` - Create comprehensive relationships
 
 ### Maintenance Scripts

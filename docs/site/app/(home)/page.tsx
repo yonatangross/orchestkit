@@ -9,7 +9,7 @@ const PRIMITIVES = [
     letter: "S",
     title: "Skills",
     count: COUNTS.skills,
-    desc: "Reusable knowledge modules — auth patterns, migrations, API design. 24 commands + 176 auto-injected references.",
+    desc: "Reusable knowledge modules — auth patterns, migrations, API design. 24 commands + 175 auto-injected references.",
     href: "/docs/reference/skills",
   },
   {
@@ -162,7 +162,7 @@ export default function HomePage() {
               >
                 <div className="aspect-video bg-fd-secondary relative">
                   <img
-                    src={`/thumbnails/${comp.id}.png`}
+                    src={comp.thumbnailCdn ?? `/thumbnails/${comp.id}.png`}
                     alt={comp.id}
                     className="h-full w-full object-cover"
                     loading="lazy"

@@ -2,18 +2,19 @@
 # ============================================================================
 # Orphaned Skills Detection
 # ============================================================================
-# Validates that every skill directory in src/skills/ is claimed by at least
-# one plugin manifest. Orphaned skills are invisible to users — they exist
-# in source but no plugin delivers them.
+# Validates that every skill directory in src/skills/ is delivered by at least
+# one installable plugin manifest.
 #
 # Tests:
 # 1. For each directory in src/skills/, check it appears in at least one
-#    manifest's skills array (or is covered by a skills: "all" plugin)
-# 2. Report all orphaned skill directories
+#    manifest's skills array OR is covered by a skills: "all" plugin
+# 2. Report skills only available through the "all" plugin (informational)
+# 3. Fail only if a skill has NO delivery path (not in any manifest AND
+#    no skills: "all" plugin exists)
 #
 # Related: GitHub Issue #252 (Plugin Consolidation)
 # Usage: ./test-plugin-orphan-skills.sh [--verbose]
-# Exit codes: 0 = no orphans, 1 = orphans found
+# Exit codes: 0 = all skills delivered, 1 = true orphans found
 # ============================================================================
 
 set -euo pipefail
@@ -61,11 +62,10 @@ if [[ ! -d "$MANIFESTS_DIR" ]]; then
     exit 1
 fi
 
-# Collect all skills referenced in domain manifests (explicit arrays only)
-# We exclude plugins with skills: "all" from the orphan check since those
-# are meta-plugins — we want to ensure every skill has a DOMAIN plugin home.
+# Collect all skills referenced in manifests (explicit arrays + "all")
 CLAIMED_SKILLS=$(mktemp)
 HAS_ALL_PLUGIN=false
+ALL_PLUGIN_NAME=""
 trap "rm -f $CLAIMED_SKILLS" EXIT
 
 for manifest in "$MANIFESTS_DIR"/*.json; do
@@ -79,7 +79,8 @@ for manifest in "$MANIFESTS_DIR"/*.json; do
         skills_value=$(jq -r '.skills' "$manifest")
         if [[ "$skills_value" == "all" ]]; then
             HAS_ALL_PLUGIN=true
-            log_info "Plugin '$plugin_name' uses skills: \"all\" (meta-plugin, excluded from orphan check)"
+            ALL_PLUGIN_NAME="$plugin_name"
+            log_info "Plugin '$plugin_name' uses skills: \"all\" (delivers all skills)"
         fi
     fi
 done
@@ -89,11 +90,12 @@ CLAIMED_UNIQUE=$(sort -u "$CLAIMED_SKILLS")
 
 # Check each skill directory
 ORPHAN_COUNT=0
-CLAIMED_COUNT=0
+CLAIMED_EXPLICIT=0
+CLAIMED_VIA_ALL=0
 TOTAL_SKILLS=0
 
 echo "───────────────────────────────────────────────────────────────"
-echo "  Checking each skill directory against domain manifests"
+echo "  Checking each skill directory against manifests"
 echo "───────────────────────────────────────────────────────────────"
 
 for skill_dir in "$SKILLS_DIR"/*/; do
@@ -101,12 +103,14 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     skill_name=$(basename "$skill_dir")
     TOTAL_SKILLS=$((TOTAL_SKILLS + 1))
 
-    # Check if this skill appears in any domain manifest
     if echo "$CLAIMED_UNIQUE" | grep -qx "$skill_name"; then
-        log_info "Claimed: $skill_name"
-        CLAIMED_COUNT=$((CLAIMED_COUNT + 1))
+        log_info "Claimed (explicit): $skill_name"
+        CLAIMED_EXPLICIT=$((CLAIMED_EXPLICIT + 1))
+    elif $HAS_ALL_PLUGIN; then
+        log_info "Claimed (via $ALL_PLUGIN_NAME): $skill_name"
+        CLAIMED_VIA_ALL=$((CLAIMED_VIA_ALL + 1))
     else
-        log_fail "ORPHAN: '$skill_name' exists in src/skills/ but is NOT in any domain manifest"
+        log_fail "ORPHAN: '$skill_name' exists in src/skills/ but is NOT in any manifest"
         ORPHAN_COUNT=$((ORPHAN_COUNT + 1))
     fi
 done
@@ -114,24 +118,25 @@ done
 # Summary
 echo ""
 echo "══════════════════════════════════════════════════════════════════════"
-echo "  ORPHANED SKILLS SUMMARY"
+echo "  SKILL DELIVERY SUMMARY"
 echo "══════════════════════════════════════════════════════════════════════"
-echo -e "  Total skill directories:   ${BLUE}$TOTAL_SKILLS${NC}"
-echo -e "  Claimed by manifests:      ${GREEN}$CLAIMED_COUNT${NC}"
-echo -e "  Orphaned (no manifest):    ${RED}$ORPHAN_COUNT${NC}"
+echo -e "  Total skill directories:      ${BLUE}$TOTAL_SKILLS${NC}"
+echo -e "  Claimed by explicit arrays:   ${GREEN}$CLAIMED_EXPLICIT${NC}"
 if $HAS_ALL_PLUGIN; then
-    echo -e "  ${YELLOW}Note:${NC} Meta-plugin with skills:\"all\" exists, but orphans"
-    echo "  still need a domain manifest for a-la-carte install."
+    echo -e "  Delivered via '$ALL_PLUGIN_NAME' (all):  ${GREEN}$CLAIMED_VIA_ALL${NC}"
 fi
+echo -e "  True orphans (no delivery):   ${RED}$ORPHAN_COUNT${NC}"
 echo ""
 
 if [[ "$ORPHAN_COUNT" -gt 0 ]]; then
-    echo -e "${RED}FAILED${NC} — $ORPHAN_COUNT skill(s) have no domain plugin manifest."
-    echo "  These skills exist in src/skills/ but no domain manifest claims them."
-    echo "  Users installing individual plugins will never see these skills."
+    echo -e "${RED}FAILED${NC} — $ORPHAN_COUNT skill(s) have no delivery path."
+    echo "  These skills exist in src/skills/ but no installable plugin delivers them."
     echo "  See: https://github.com/yonatangross/orchestkit/issues/252"
     exit 1
 else
-    echo -e "${GREEN}PASSED${NC} — All skills have a domain plugin home."
+    echo -e "${GREEN}PASSED${NC} — All $TOTAL_SKILLS skills have a delivery path."
+    if [[ "$CLAIMED_VIA_ALL" -gt 0 ]]; then
+        echo -e "  ${YELLOW}Info:${NC} $CLAIMED_VIA_ALL skills only available in '$ALL_PLUGIN_NAME' (not in orkl/ork-creative)."
+    fi
     exit 0
 fi

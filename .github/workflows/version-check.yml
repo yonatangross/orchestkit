@@ -1,4 +1,4 @@
-name: Validate: Version
+name: "Validate: Version"
 
 on:
   pull_request:

@@ -1,0 +1,164 @@
+---
+title: "/ork:verify"
+description: Comprehensive verification with 5 parallel agents, nuanced 0-10 grading, and prioritized improvement suggestions.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:verify` command gives you an honest, structured assessment of your implementation. Five specialized agents evaluate code quality, security, test coverage, API compliance, and UI patterns simultaneously. The results are combined into a weighted composite score (0-10) with a letter grade and a prioritized list of improvements ranked by effort vs. impact. This page explains the grading system, how to interpret results, and when to use verify in your workflow.
+
+## Why This Skill
+
+Code review catches issues after you think you are done. Verification catches them before you commit. The difference matters: fixing a security vulnerability before commit is a 5-minute edit; fixing it after review means a new commit, re-review, and potentially a rebase. `/ork:verify` sits between implementation and commit, giving you a quality report while the code is still fresh in your working tree.
+
+It is also useful as a standalone audit. Run it on code you did not write -- a new dependency, a colleague's branch, or legacy code you are about to modify -- and get a structured assessment before you touch anything.
+
+## Quick Start
+
+```bash
+/ork:verify authentication flow
+/ork:verify user profile feature
+/ork:verify --scope=backend database migrations
+```
+
+After invocation, OrchestKit asks for the verification scope:
+
+- **Full verification**: All 5 agents, complete grading and suggestions
+- **Tests only**: Run unit + integration + e2e tests, skip analysis
+- **Security audit**: Focus on vulnerabilities
+- **Code quality**: Focus on lint, types, complexity
+- **Quick check**: Run tests only, skip detailed scoring
+
+## How It Works
+
+### Phase 1: Context Gathering
+
+OrchestKit examines what changed since the base branch:
+
+```bash
+git diff main --stat
+git log main..HEAD --oneline
+git diff main --name-only
+```
+
+This scopes the verification to relevant files rather than auditing the entire codebase.
+
+### Phase 2: Parallel Agent Dispatch (5 Agents)
+
+Five agents run simultaneously, each scoring their dimension 0-10:
+
+| Agent | Dimension | What It Checks |
+|-------|-----------|----------------|
+| `code-quality-reviewer` | Code Quality | Naming, complexity, DRY, SOLID principles |
+| `security-auditor` | Security | OWASP, secrets, injection, dependencies |
+| `test-generator` | Test Coverage | Coverage %, test quality, edge cases, flaky tests |
+| `backend-system-architect` | API Compliance | REST conventions, async patterns, N+1 queries |
+| `frontend-ui-developer` | UI Compliance | React 19 patterns, accessibility, loading states |
+
+### Phase 3: Composite Scoring
+
+The individual scores are weighted into a composite:
+
+| Dimension | Weight |
+|-----------|--------|
+| Code Quality | 20% |
+| Security | 25% |
+| Test Coverage | 20% |
+| API Compliance | 20% |
+| UI Compliance | 15% |
+
+Security has the highest weight because security issues are the most expensive to fix after deployment.
+
+### Grade Interpretation
+
+| Score | Grade | What It Means |
+|-------|-------|---------------|
+| 9.0-10.0 | A+ | Ship it. No improvements needed. |
+| 8.0-8.9 | A | Ready for merge. Minor polish optional. |
+| 7.0-7.9 | B | Solid work. A few improvements would elevate it. |
+| 6.0-6.9 | C | Functional but rough. Consider improvements before merge. |
+| 5.0-5.9 | D | Significant issues. Improvements strongly recommended. |
+| 0.0-4.9 | F | Do not merge. Fundamental problems to address. |
+
+### Phase 4: Improvement Suggestions
+
+Each suggestion includes an effort estimate (1-5) and impact rating (1-5). Priority is calculated as `impact / effort`, surfacing quick wins first:
+
+| Points | Effort | Impact |
+|--------|--------|--------|
+| 1 | < 15 min | Minimal |
+| 2 | 15-60 min | Low |
+| 3 | 1-4 hours | Medium |
+| 4 | 4-8 hours | High |
+| 5 | 1+ days | Critical |
+
+**Quick wins** are suggestions with effort 2 or below and impact 4 or above. These are the first things to address because they deliver the most value for the least work.
+
+## Common Patterns
+
+### Pattern 1: Post-Implementation Verification
+
+The most common use -- verify your own work before committing:
+
+```bash
+/ork:implement search feature
+# ... implementation complete ...
+/ork:verify search feature
+/ork:commit
+```
+
+### Pattern 2: Pre-Review Audit
+
+Before reviewing someone else's PR, run verify on their branch:
+
+```bash
+git checkout feature/user-auth
+/ork:verify --scope=backend
+```
+
+This gives you a structured report before you start reading code, so you know where to focus your attention.
+
+### Pattern 3: Security-Focused Check
+
+When the change touches authentication, authorization, or data handling:
+
+```bash
+/ork:verify --scope=security payment processing
+```
+
+Only the `security-auditor` agent runs, but it runs deeper: checking for OWASP Top 10, secrets in code, dependency vulnerabilities, and injection vectors.
+
+### Pattern 4: Continuous Quality Tracking
+
+The verify skill stores scores in memory. Over time, you can query trends:
+
+```bash
+/ork:memory search "VerificationMetrics"
+```
+
+This shows how your codebase quality evolves across implementations.
+
+## Tips and Tricks
+
+<Callout type="info">
+**Run verify before every PR.** Making `/ork:verify` a habit catches issues early. A 30-second verification pass is cheaper than a review round-trip that takes hours because a security issue was missed.
+</Callout>
+
+<Callout type="warn">
+**A score below 5.0 on security is a hard blocker.** The default policy blocks merges when the security dimension scores below 5.0. This is intentional -- security issues compound, and shipping a known vulnerability creates technical debt that is expensive to remediate.
+</Callout>
+
+<Callout type="info">
+**Quick wins first.** The improvement suggestions are sorted by priority (impact/effort). Start with quick wins: they are fast to implement and have outsized impact on the composite score. A 15-minute fix that raises your security score from 6 to 8 is always worth doing.
+</Callout>
+
+<Callout type="info">
+**Use Policy-as-Code to customize thresholds.** Create `.claude/policies/verification-policy.json` to set minimum scores per dimension, blocking rules, and coverage targets. This lets your team enforce standards automatically rather than relying on manual review.
+</Callout>
+
+## Related Skills
+
+- [/ork:implement](/docs/skills/spotlights/implement) -- Build features with built-in quality gates
+- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review pull requests with parallel agents
+- [/ork:commit](/docs/skills/spotlights/commit) -- Commit verified changes
+- [Command Skills Reference](/docs/skills/command-skills) -- All 24 command skills

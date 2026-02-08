@@ -11,6 +11,7 @@ import {
   Monitor,
   Smartphone,
   Square,
+  Loader,
 } from "lucide-react";
 import { COMPOSITIONS, type Composition } from "@/lib/playground-data";
 
@@ -352,7 +353,7 @@ function GalleryCard({
       {/* Thumbnail container */}
       <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
         <img
-          src={`/thumbnails/${composition.id}.png`}
+          src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
           alt={`Thumbnail for ${formatTitle(composition.id)}`}
           className="h-full w-full object-cover"
           loading="lazy"
@@ -377,10 +378,19 @@ function GalleryCard({
         <span className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
           {composition.durationSeconds}s
         </span>
-        {/* Play overlay on hover */}
-        <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20">
-          <Play className="h-8 w-8 text-white opacity-0 transition-opacity group-hover:opacity-80" />
-        </div>
+        {/* Status overlay */}
+        {composition.videoCdn ? (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/20">
+            <Play className="h-8 w-8 text-white opacity-0 drop-shadow-lg transition-opacity group-hover:opacity-90" />
+          </div>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all group-hover:bg-black/10">
+            <span className="flex items-center gap-1.5 rounded-full bg-amber-500/80 px-2.5 py-1 text-[10px] font-semibold text-white opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+              <Loader className="h-3 w-3 animate-spin" />
+              In production
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Card body */}
@@ -481,29 +491,48 @@ function CompositionModal({
 
         {/* Content */}
         <div className="p-6">
-          {/* Thumbnail — large */}
+          {/* Video or thumbnail — large */}
           <div className="mb-6 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
             <div className="relative aspect-video">
-              <img
-                src={`/thumbnails/${composition.id}.png`}
-                alt={`Preview for ${formatTitle(composition.id)}`}
-                className="h-full w-full object-cover"
-                onError={(e) => {
-                  const target = e.currentTarget;
-                  target.style.display = "none";
-                  const parent = target.parentElement;
-                  if (
-                    parent &&
-                    !parent.querySelector(".modal-placeholder-icon")
-                  ) {
-                    const placeholder = document.createElement("div");
-                    placeholder.className =
-                      "modal-placeholder-icon absolute inset-0 flex items-center justify-center";
-                    placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
-                    parent.appendChild(placeholder);
-                  }
-                }}
-              />
+              {composition.videoCdn ? (
+                <video
+                  src={composition.videoCdn}
+                  poster={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <>
+                  <img
+                    src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
+                    alt={`Preview for ${formatTitle(composition.id)}`}
+                    className="h-full w-full object-cover opacity-60"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = "none";
+                      const parent = target.parentElement;
+                      if (
+                        parent &&
+                        !parent.querySelector(".modal-placeholder-icon")
+                      ) {
+                        const placeholder = document.createElement("div");
+                        placeholder.className =
+                          "modal-placeholder-icon absolute inset-0 flex items-center justify-center";
+                        placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
+                        parent.appendChild(placeholder);
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                    <Loader className="h-6 w-6 animate-spin text-amber-500" />
+                    <span className="rounded-full bg-amber-500/90 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      Video in production
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

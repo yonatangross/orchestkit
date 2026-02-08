@@ -622,7 +622,7 @@ const nextStepsCTA = {
       primary: true,
     },
     {
-      text: 'Explore all 200 skills',
+      text: 'Explore all 199 skills',
       link: '/skills-catalog',
       primary: false,
     },

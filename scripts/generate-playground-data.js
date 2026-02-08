@@ -309,18 +309,21 @@ function generateSkillsSummary(skillsDetailed, manifestData, allSkillNames) {
 
   const summary = {
     orkl: {},
+    'ork-creative': {},
     ork: { includesAllOrkLite: true }
   };
 
   // Get skills for each plugin
   const orklManifest = manifestData['orkl'];
+  const orkCreativeManifest = manifestData['ork-creative'];
   const orkManifest = manifestData['ork'];
 
   const orklSkills = orklManifest ? getManifestSkills(orklManifest, allSkillNames) : [];
+  const orkCreativeSkills = orkCreativeManifest ? getManifestSkills(orkCreativeManifest, allSkillNames) : [];
   const orkSkills = orkManifest ? getManifestSkills(orkManifest, allSkillNames) : [];
 
-  // Find ork-only skills (not in orkl)
-  const orkOnlySkills = orkSkills.filter(s => !orklSkills.includes(s));
+  // Find ork-only skills (not in orkl or ork-creative)
+  const orkOnlySkills = orkSkills.filter(s => !orklSkills.includes(s) && !orkCreativeSkills.includes(s));
 
   // Categorize orkl skills
   for (const [category, keywords] of Object.entries(categoryMappings)) {
@@ -497,6 +500,8 @@ function generateTypeScriptModule(data) {
     '  primaryColor: string;',
     '  relatedPlugin: string;',
     '  tags: string[];',
+    '  thumbnailCdn?: string;',
+    '  videoCdn?: string;',
     '}',
     '',
     'export interface CategoryMeta {',
@@ -613,11 +618,12 @@ function generate() {
 
   // Calculate plugin skill counts from manifests
   const orklSkills = getManifestSkills(manifestData['orkl'], allSkillNames);
+  const orkCreativeSkills = getManifestSkills(manifestData['ork-creative'], allSkillNames);
   const orkSkills = getManifestSkills(manifestData['ork'], allSkillNames);
 
   // Build totals
   const totals = {
-    plugins: 2,
+    plugins: 3,
     skills: allSkillNames.length,
     agents: agentFiles.length,
     hooks: hookCounts.total,
@@ -630,7 +636,7 @@ function generate() {
     {
       name: "orkl",
       description: `Universal toolkit — ${orklSkills.length} skills, ${agentFiles.length} agents, ${hookCounts.total} hooks. Language-agnostic, works for any stack.`,
-      fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, video production, and all specialized agents. Language-agnostic — works for any tech stack.",
+      fullDescription: "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
       category: "development",
       version: manifestData['orkl'].version || "6.0.0",
       skillCount: orklSkills.length,
@@ -646,6 +652,23 @@ function generate() {
         .filter(([_, s]) => s.userInvocable)
         .map(([name]) => name)
         .sort()
+    },
+    {
+      name: "ork-creative",
+      description: `Video production add-on — ${orkCreativeSkills.length} skills, 1 agent. Demo recording, Remotion, storyboarding.`,
+      fullDescription: "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
+      category: "development",
+      version: manifestData['ork-creative'].version || "6.0.0",
+      skillCount: orkCreativeSkills.length,
+      agentCount: 1,
+      hooks: hookCounts.total,
+      commandCount: 1,
+      color: "#ec4899",
+      required: false,
+      recommended: false,
+      skills: orkCreativeSkills,
+      agents: ["demo-producer"],
+      commands: ["demo-producer"]
     },
     {
       name: "ork",
@@ -709,13 +732,25 @@ function generate() {
     'workflow-architect': 'ai'
   };
 
-  const agents = Object.entries(agentsData).map(([name, data]) => ({
-    name: name,
-    description: data.description,
-    plugins: ["orkl", "ork"],
-    model: data.model,
-    category: agentCategories[name] || 'development'
-  })).sort((a, b) => a.name.localeCompare(b.name));
+  const agents = Object.entries(agentsData).map(([name, data]) => {
+    // Determine which plugins contain this agent
+    const plugins = [];
+    for (const [pluginName, manifest] of Object.entries(manifestData)) {
+      const agentList = manifest.agents === 'all'
+        ? Object.keys(agentsData)
+        : (manifest.agents || []);
+      if (agentList.includes(name)) {
+        plugins.push(pluginName);
+      }
+    }
+    return {
+      name,
+      description: data.description,
+      plugins: plugins.sort(),
+      model: data.model,
+      category: agentCategories[name] || 'development'
+    };
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   // Static categories definition
   const categories = {
@@ -751,6 +786,28 @@ function generate() {
     { id: "Assess", skill: "assess", command: "/ork:assess", hook: "Evaluate quality across 6 dimensions", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/AI-Skills", category: "ai", primaryColor: "#22c55e", relatedPlugin: "orkl", tags: ["ai","landscape","tri-terminal"] },
     { id: "DemoProducer", skill: "demo-producer", command: "/ork:demo-producer", hook: "Professional demos in minutes, not days", style: "TriTerminalRace", format: "landscape", width: 1920, height: 1080, fps: 30, durationSeconds: 20, folder: "Production/Landscape-16x9/Advanced-Skills", category: "advanced", primaryColor: "#ec4899", relatedPlugin: "orkl", tags: ["advanced","landscape","tri-terminal"] }
   ];
+
+  // Merge CDN URLs from orchestkit-demos/out/cdn-urls.json (if it exists)
+  const cdnUrlsPath = path.join(PROJECT_ROOT, 'orchestkit-demos', 'out', 'cdn-urls.json');
+  if (fs.existsSync(cdnUrlsPath)) {
+    try {
+      const cdnUrls = JSON.parse(fs.readFileSync(cdnUrlsPath, 'utf-8'));
+      for (const comp of compositions) {
+        const cdn = cdnUrls[comp.id];
+        if (cdn) {
+          if (cdn.thumbnailCdn) comp.thumbnailCdn = cdn.thumbnailCdn;
+          if (cdn.videoCdn) comp.videoCdn = cdn.videoCdn;
+        }
+      }
+      const videoCount = compositions.filter(c => c.videoCdn).length;
+      const thumbCount = compositions.filter(c => c.thumbnailCdn).length;
+      console.log(`${GREEN}  CDN URLs merged: ${thumbCount} thumbnails, ${videoCount} videos${NC}`);
+    } catch (err) {
+      console.log(`${YELLOW}  Warning: Could not parse cdn-urls.json: ${err.message}${NC}`);
+    }
+  } else {
+    console.log(`${YELLOW}  Note: cdn-urls.json not found — CDN fields omitted${NC}`);
+  }
 
   // Generate TypeScript module for Fumadocs site
   const tsContent = generateTypeScriptModule({

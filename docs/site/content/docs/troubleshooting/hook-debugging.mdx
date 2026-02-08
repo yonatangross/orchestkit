@@ -1,0 +1,190 @@
+---
+title: Hook Debugging
+description: How to diagnose and fix hook execution issues.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+Hooks are TypeScript functions that execute at specific points in the Claude Code lifecycle. When a hook misbehaves -- not firing, firing incorrectly, or producing errors -- this guide walks through systematic debugging.
+
+## How Hooks Execute
+
+Hooks are defined in `src/hooks/hooks.json` and compiled to JavaScript bundles in `src/hooks/dist/`. When Claude Code hits a lifecycle event (session start, tool use, prompt submit, etc.), it:
+
+1. Reads `hooks.json` to find matching hooks for the event
+2. Loads the compiled bundle from `dist/`
+3. Calls the exported function with a `HookInput` object
+4. Receives a `HookResult`: `{"continue": true}` to proceed or `{"continue": false}` to block
+
+```
+Lifecycle Event
+    |
+    v
+hooks.json (find matching hooks)
+    |
+    v
+dist/bundle.mjs (load compiled code)
+    |
+    v
+exported function(HookInput) -> HookResult
+    |
+    v
+continue: true  --> proceed
+continue: false --> block with reason
+```
+
+## Step 1: Verify Hooks Are Loaded
+
+```bash
+/ork:doctor
+```
+
+The doctor command checks whether `hooks.json` is readable and whether the `dist/` directory contains compiled bundles. If it reports hooks as unhealthy, the issue is in compilation, not logic.
+
+## Step 2: Check hooks.json
+
+Open `src/hooks/hooks.json` and verify:
+
+1. **The hook entry exists** for the lifecycle event you expect
+2. **The `command` field** points to a valid file in `dist/`
+3. **The `enabled` field** is not set to `false`
+4. **The `event` field** matches the lifecycle event (e.g., `PreToolUse`, `SessionStart`)
+
+Example hook entry:
+
+```json
+{
+  "event": "PreToolUse",
+  "hooks": [
+    {
+      "type": "command",
+      "command": "node dist/pre-tool-use/dangerous-command-blocker.mjs",
+      "timeout": 5000
+    }
+  ]
+}
+```
+
+## Step 3: Run the Hook Directly
+
+You can test a hook in isolation by calling it with a mock input:
+
+```bash
+echo '{"event":"PreToolUse","tool_name":"Bash","tool_input":{"command":"rm -rf /"}}' | \
+  node src/hooks/dist/pre-tool-use/dangerous-command-blocker.mjs
+```
+
+The hook should return a JSON object. If it throws an error, the issue is in the hook code itself.
+
+## Step 4: Check the Compiled Bundle
+
+If the hook source (`src/hooks/src/`) looks correct but the behavior is wrong, the compiled bundle might be stale:
+
+```bash
+# Rebuild all hooks
+cd src/hooks && npm run build
+
+# Verify the bundle was updated
+ls -la dist/pre-tool-use/dangerous-command-blocker.mjs
+```
+
+<Callout type="warn">
+A common mistake is editing TypeScript source without rebuilding. The `dist/` directory is what Claude Code actually executes. Always run `cd src/hooks && npm run build` after editing hook source files.
+</Callout>
+
+## Common Hook Errors
+
+### Schema Validation Failure
+
+**Error:** "Hook output does not match expected schema"
+
+**Cause:** The hook returns an object that is not a valid `HookResult`. Every hook must return:
+
+```json
+{"continue": true}
+```
+
+or:
+
+```json
+{"continue": false, "reason": "Why it was blocked"}
+```
+
+Extra fields are ignored, but missing `continue` will fail validation.
+
+### Export Format Issues
+
+**Error:** "Cannot find default export" or "module is not a function"
+
+**Cause:** The hook file exports its function incorrectly. Hooks must use a named export that matches the pattern expected by the hook runner:
+
+```typescript
+// Correct
+export async function dangerousCommandBlocker(input: HookInput): Promise<HookResult> {
+  return { continue: true };
+}
+
+// Incorrect -- default export
+export default async function(input: HookInput): Promise<HookResult> {
+  return { continue: true };
+}
+```
+
+The hook runner uses `module[Object.keys(module)[0]]` to find the exported function, so the first named export is what gets called.
+
+### Bundle Not Found
+
+**Error:** "ENOENT: no such file or directory, dist/..."
+
+**Cause:** The hook references a bundle file that does not exist. Either the build failed or the `command` field in `hooks.json` has a typo.
+
+```bash
+# List all bundles
+ls src/hooks/dist/**/*.mjs
+
+# Compare with hooks.json references
+grep -o 'dist/[^"]*' src/hooks/hooks.json | sort -u
+```
+
+### Timeout
+
+**Error:** "Hook timed out after 5000ms"
+
+**Cause:** The hook takes too long to execute. This can happen with hooks that make network requests or read large files.
+
+**Fix:** Increase the timeout in `hooks.json`, or convert the hook to use the fire-and-forget pattern for non-blocking execution.
+
+## Hook Toggle System
+
+To isolate whether a specific hook is causing problems, disable it temporarily:
+
+1. Open `src/hooks/hooks.json`
+2. Find the hook entry
+3. Add `"enabled": false` to the hook object
+4. Test whether the issue resolves
+
+This is faster than commenting out code and rebuilding. Remember to re-enable the hook after debugging.
+
+## Fire-and-Forget Hooks
+
+OrchestKit has 6 hooks that use a fire-and-forget async pattern. These hooks dispatch background work (analytics, network I/O, startup tasks) without blocking the main Claude Code thread. If a fire-and-forget hook fails silently, check:
+
+```bash
+# Look for error logs from async dispatchers
+grep -r "error" src/hooks/dist/ --include="*.mjs" -l
+```
+
+Fire-and-forget hooks intentionally do not return errors to Claude Code. If they fail, the failure is logged but does not block the user's workflow.
+
+## Debugging Checklist
+
+| Check | Command | Expected |
+|-------|---------|----------|
+| hooks.json exists | `ls src/hooks/hooks.json` | File present |
+| Bundles compiled | `ls src/hooks/dist/` | 11 bundle directories |
+| Hook entry for event | `grep "EventName" src/hooks/hooks.json` | Entry found |
+| Hook enabled | Check `hooks.json` entry | No `"enabled": false` |
+| Bundle file exists | `ls <path from hooks.json>` | File present |
+| Hook returns valid JSON | Run hook directly with mock input | `{"continue": true/false}` |
+| TypeScript compiles | `cd src/hooks && npm run typecheck` | No errors |
+| Build is current | `cd src/hooks && npm run build` | Build succeeds |
