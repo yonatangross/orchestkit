@@ -132,18 +132,16 @@ test_ts_has_video_cdn_values() {
 
 test_ts_video_implies_thumbnail() {
     # Every composition with videoCdn should also have thumbnailCdn (for poster)
-    # Use if-then pattern to avoid set -e killing the script on node failure
+    # Pipe file via stdin to avoid MSYS path issues on Windows (node can't read /d/a/... paths)
     local failures=""
     if failures=$(node -e "
-      const fs = require('fs');
-      const content = fs.readFileSync('$(echo "$TS_FILE" | sed 's|\\|/|g')', 'utf-8');
-      // Extract COMPOSITIONS array via regex
+      const content = require('fs').readFileSync(0, 'utf-8');
       const match = content.match(/export const COMPOSITIONS.*?= (\[[\s\S]*?\]);/);
       if (!match) { console.log('PARSE_ERROR'); process.exit(1); }
       const comps = eval(match[1]);
       const bad = comps.filter(c => c.videoCdn && !c.thumbnailCdn).map(c => c.id);
       if (bad.length) { console.log(bad.join(',')); process.exit(1); }
-    " 2>/dev/null); then
+    " < "$TS_FILE" 2>/dev/null); then
         log_pass "Every composition with videoCdn also has thumbnailCdn"
     else
         log_fail "Compositions with video but no thumbnail poster: $failures"

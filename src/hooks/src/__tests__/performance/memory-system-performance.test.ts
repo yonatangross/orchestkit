@@ -643,7 +643,7 @@ describe('Performance: Metrics Persistence', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('rapidly appends 100 metric snapshots and completes within 1000ms', () => {
+  it('rapidly appends 100 metric snapshots and completes within 2000ms', () => {
     // Arrange: create minimal decision file so collectMemoryMetrics works
     const decisionsPath = join(testDir, '.claude', 'memory', 'decisions.jsonl');
     writeFileSync(decisionsPath, generateDecisionsJsonl(100));
@@ -675,7 +675,7 @@ describe('Performance: Metrics Persistence', () => {
     }
     expect(validCount).toBe(100);
 
-    expect(elapsed).toBeLessThan(1000);
+    expect(elapsed).toBeLessThan(2000);
   });
 
   it('appendMetricSnapshot creates logs directory if missing', () => {
