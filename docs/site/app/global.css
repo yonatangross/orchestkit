@@ -1,61 +1,196 @@
 @import "tailwindcss";
 @import "fumadocs-ui/css/preset.css";
-@import "fumadocs-ui/css/ocean.css";
 
 /*
- * OrchestKit theme refinements
- * Minimal overrides — work WITH Fumadocs ocean, not against it.
+ * Circuit Forge — OrchestKit docs theme
+ * Dark-first, emerald-only accent, dot-grid background, blueprint precision.
+ * Replaces fumadocs-ui/css/ocean.css with custom dark palette.
  */
 
-/* Focus indicators — WCAG 2.4.7 Focus Visible */
+/* ============================================================
+   FUMADOCS COLOR TOKENS — Tailwind v4 @theme directive
+   These generate utility classes like bg-fd-background, text-fd-primary, etc.
+   ============================================================ */
+
+@theme {
+  --color-fd-background: #0c0f14;
+  --color-fd-foreground: #e2e8f0;
+  --color-fd-muted: #1c2436;
+  --color-fd-muted-foreground: #94a3b8;
+  --color-fd-popover: #111621;
+  --color-fd-popover-foreground: #e2e8f0;
+  --color-fd-card: #111621;
+  --color-fd-card-foreground: #e2e8f0;
+  --color-fd-border: #1e293b;
+  --color-fd-primary: #10b981;
+  --color-fd-primary-foreground: #0c0f14;
+  --color-fd-secondary: #171d2b;
+  --color-fd-secondary-foreground: #e2e8f0;
+  --color-fd-accent: #1c2436;
+  --color-fd-accent-foreground: #e2e8f0;
+  --color-fd-ring: #10b981;
+  --color-fd-overlay: rgba(0, 0, 0, 0.4);
+}
+
+/* Semantic colors required by Fumadocs preset */
+@theme static {
+  --color-fd-info: oklch(62.3% 0.214 259.815);
+  --color-fd-warning: oklch(76.9% 0.188 70.08);
+  --color-fd-error: oklch(63.7% 0.237 25.331);
+  --color-fd-success: oklch(72.3% 0.219 149.579);
+  --color-fd-idea: oklch(70.5% 0.209 60.849);
+  --color-fd-diff-remove: rgba(200, 10, 100, 0.12);
+  --color-fd-diff-remove-symbol: rgb(230, 10, 100);
+  --color-fd-diff-add: rgba(14, 180, 100, 0.1);
+  --color-fd-diff-add-symbol: rgb(10, 200, 100);
+}
+
+
+:root {
+  --color-success: #10b981;
+  color-scheme: dark;
+}
+
+/* ============================================================
+   DOT GRID BACKGROUND
+   ============================================================ */
+
+.bg-dot-grid {
+  background-color: #0c0f14;
+  background-image: radial-gradient(#1e293b 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* ============================================================
+   CIRCUIT TRACE CONNECTORS
+   ============================================================ */
+
+@keyframes circuit-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.circuit-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  animation: circuit-pulse 2s ease-in-out infinite;
+}
+
+.circuit-line {
+  height: 1px;
+  background-color: #1e293b;
+}
+
+/* ============================================================
+   OVERLINES
+   ============================================================ */
+
+.overline {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #10b981;
+}
+
+.overline-muted {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* ============================================================
+   FOCUS & ACCESSIBILITY
+   ============================================================ */
+
 *:focus-visible {
-  outline: 2px solid hsl(var(--primary));
+  outline: 2px solid transparent;
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--color-fd-background), 0 0 0 4px var(--color-fd-ring);
   border-radius: 4px;
 }
 
-/* Ensure focused elements aren't hidden by sticky nav — WCAG 2.4.11 */
 :target {
   scroll-margin-top: 80px;
 }
 
-/* Theme-aware success color */
-:root {
-  --color-success: oklch(0.577 0.245 142.5);
-}
-.dark {
-  --color-success: oklch(0.647 0.19 142.5);
-}
+/* ============================================================
+   ANIMATIONS — Minimal
+   ============================================================ */
 
-/* Subtle fade-in for page content */
 @media (prefers-reduced-motion: no-preference) {
-  @keyframes fade-in-up {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
   @keyframes fade-in {
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  @keyframes slide-up {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
+
+  .animate-fade-in {
+    animation: fade-in 0.3s ease-out both;
   }
-  .animate-fade-in { animation: fade-in-up 0.5s ease-out both; }
-  .delay-100 { animation-delay: 0.08s; }
-  .delay-200 { animation-delay: 0.16s; }
-  .delay-300 { animation-delay: 0.24s; }
+
+  .stagger-1 { animation-delay: 0ms; }
+  .stagger-2 { animation-delay: 100ms; }
+  .stagger-3 { animation-delay: 200ms; }
+  .stagger-4 { animation-delay: 300ms; }
 }
 
-/* Ensure reduced-motion users see content immediately */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
-  .delay-100,
-  .delay-200,
-  .delay-300 {
+  .circuit-dot {
     animation: none !important;
-    animation-delay: 0s !important;
     opacity: 1 !important;
-    transform: none !important;
   }
+}
+
+/* ============================================================
+   CODE BLOCKS — Let Fumadocs handle base styling via fd-* tokens.
+   Only add contrast lift (card color) so blocks stand out from page bg.
+   ============================================================ */
+
+figure[data-rehype-pretty-code-figure] pre,
+pre:where(:not(.not-fumadocs-codeblock *)) {
+  background-color: #111621;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+}
+
+pre code {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.8125rem;
+  line-height: 1.625;
+}
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0c0f14;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ============================================================
+   SIDEBAR — Tighter spacing
+   ============================================================ */
+
+nav[data-fumadocs-sidebar] a {
+  padding-top: 0.375rem;
+  padding-bottom: 0.375rem;
+  font-size: 0.8125rem;
 }

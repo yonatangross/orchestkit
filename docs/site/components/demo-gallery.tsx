@@ -13,7 +13,9 @@ import {
   Square,
   Loader,
 } from "lucide-react";
-import { COMPOSITIONS, type Composition } from "@/lib/playground-data";
+import { OptimizedThumbnail } from "@/components/optimized-thumbnail";
+import type { Composition } from "@/lib/generated/types";
+import { COMPOSITIONS } from "@/lib/generated/compositions-data";
 
 // ── Category metadata ────────────────────────────────────────
 const COMP_CATEGORY_META: Record<
@@ -160,7 +162,7 @@ export function DemoGallery() {
     <div className="not-prose">
       {/* Format filter pills */}
       <fieldset className="mb-3">
-        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
           Format
         </legend>
         <div className="flex flex-wrap gap-1.5">
@@ -185,8 +187,8 @@ export function DemoGallery() {
                 aria-pressed={active}
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
-                    ? "border-teal-300 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 {Icon && <Icon className="h-3 w-3 opacity-70" />}
@@ -199,7 +201,7 @@ export function DemoGallery() {
 
       {/* Category filter pills */}
       <fieldset className="mb-3">
-        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
           Category
         </legend>
         <div className="flex flex-wrap gap-1.5">
@@ -209,8 +211,8 @@ export function DemoGallery() {
             aria-pressed={categoryFilter === "all"}
             className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
               categoryFilter === "all"
-                ? "border-teal-300 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
-                : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
             }`}
           >
             All
@@ -228,7 +230,7 @@ export function DemoGallery() {
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 <span
@@ -245,20 +247,20 @@ export function DemoGallery() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fd-muted-foreground" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search compositions by title, command, or tags..."
           aria-label="Search compositions by title, command, or tags"
-          className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500 dark:focus:border-teal-500 dark:focus:ring-teal-500/15"
+          className="h-10 w-full rounded-lg border border-fd-border bg-fd-background pl-10 pr-8 text-sm outline-none transition-all placeholder:text-fd-muted-foreground focus:border-fd-ring focus:ring-2 focus:ring-fd-ring/20"
         />
         {search && (
           <button
             type="button"
             onClick={() => setSearch("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fd-muted-foreground hover:text-fd-foreground"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -283,7 +285,7 @@ export function DemoGallery() {
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded-full px-2.5 py-1 text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-gray-700 dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-gray-200"
+            className="rounded-full px-2.5 py-1 text-xs text-fd-muted-foreground underline decoration-fd-border underline-offset-2 hover:text-fd-foreground"
             aria-label="Clear all filters"
           >
             Clear all
@@ -293,18 +295,18 @@ export function DemoGallery() {
 
       {/* Grid */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-gradient-to-b from-gray-50 to-white px-8 py-12 text-center dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900">
-          <SearchX className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" />
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+        <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
+          <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
+          <p className="text-sm font-medium text-fd-foreground">
             No compositions match your filters
           </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-fd-muted-foreground">
             Try broadening your search or removing some filters.
           </p>
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="mt-3 rounded-md border border-fd-border px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
           >
             Clear all filters
           </button>
@@ -347,28 +349,14 @@ function GalleryCard({
     <button
       type="button"
       onClick={onClick}
-      className="group rounded-lg border border-gray-200 text-left overflow-hidden transition-all hover:border-gray-300 hover:shadow-sm dark:border-gray-700 dark:hover:border-gray-600"
+      className="group rounded-lg border border-fd-border text-left overflow-hidden transition-all hover:border-fd-border hover:shadow-sm"
       aria-label={`View details for ${formatTitle(composition.id)}`}
     >
       {/* Thumbnail container */}
-      <div className="relative aspect-video bg-gray-100 dark:bg-gray-800">
-        <img
+      <div className="relative aspect-video bg-fd-muted">
+        <OptimizedThumbnail
           src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
           alt={`Thumbnail for ${formatTitle(composition.id)}`}
-          className="h-full w-full object-cover"
-          loading="lazy"
-          onError={(e) => {
-            const target = e.currentTarget;
-            target.style.display = "none";
-            const parent = target.parentElement;
-            if (parent && !parent.querySelector(".placeholder-icon")) {
-              const placeholder = document.createElement("div");
-              placeholder.className =
-                "placeholder-icon absolute inset-0 flex items-center justify-center";
-              placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
-              parent.appendChild(placeholder);
-            }
-          }}
         />
         {/* Format badge — top-right */}
         <span className="absolute right-2 top-2 rounded-full bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">
@@ -395,13 +383,13 @@ function GalleryCard({
 
       {/* Card body */}
       <div className="p-3">
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+        <h3 className="text-sm font-semibold text-fd-foreground">
           {formatTitle(composition.id)}
         </h3>
-        <p className="mt-0.5 font-mono text-[11px] text-teal-600 dark:text-teal-400">
+        <p className="mt-0.5 font-mono text-[11px] text-fd-primary">
           {composition.command}
         </p>
-        <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+        <p className="mt-1 text-xs leading-relaxed text-fd-muted-foreground">
           {composition.hook}
         </p>
         {catMeta && (
@@ -459,7 +447,7 @@ function CompositionModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-[fade-in_150ms_ease-out] dark:bg-black/70"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-fd-overlay p-4 backdrop-blur-sm animate-[fade-in_150ms_ease-out]"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -469,20 +457,20 @@ function CompositionModal({
     >
       <div
         ref={modalRef}
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-2xl animate-[slide-up_200ms_ease-out] dark:border-gray-700 dark:bg-gray-900"
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-xl border border-fd-border bg-fd-background shadow-2xl animate-[slide-up_200ms_ease-out]"
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+        <div className="flex items-center justify-between border-b border-fd-border px-6 py-4">
           <h3
             id="comp-modal-heading"
-            className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+            className="text-lg font-semibold text-fd-foreground"
           >
             {formatTitle(composition.id)}
           </h3>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            className="rounded-md p-1.5 hover:bg-fd-muted hover:text-fd-foreground"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
@@ -492,7 +480,7 @@ function CompositionModal({
         {/* Content */}
         <div className="p-6">
           {/* Video or thumbnail — large */}
-          <div className="mb-6 overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+          <div className="mb-6 overflow-hidden rounded-lg bg-fd-muted">
             <div className="relative aspect-video">
               {composition.videoCdn ? (
                 <video
@@ -505,25 +493,11 @@ function CompositionModal({
                 />
               ) : (
                 <>
-                  <img
+                  <OptimizedThumbnail
                     src={composition.thumbnailCdn ?? `/thumbnails/${composition.id}.png`}
                     alt={`Preview for ${formatTitle(composition.id)}`}
-                    className="h-full w-full object-cover opacity-60"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = "none";
-                      const parent = target.parentElement;
-                      if (
-                        parent &&
-                        !parent.querySelector(".modal-placeholder-icon")
-                      ) {
-                        const placeholder = document.createElement("div");
-                        placeholder.className =
-                          "modal-placeholder-icon absolute inset-0 flex items-center justify-center";
-                        placeholder.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-gray-300 dark:text-gray-600"><polygon points="6 3 20 12 6 21 6 3"/></svg>`;
-                        parent.appendChild(placeholder);
-                      }
-                    }}
+                    opacity="opacity-60"
+                    placeholderSize={48}
                   />
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
                     <Loader className="h-6 w-6 animate-spin text-amber-500" />
@@ -552,7 +526,7 @@ function CompositionModal({
             <MetadataRow label="Plugin" value={composition.relatedPlugin} />
             {catMeta && (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                <span className="text-xs font-medium text-fd-muted-foreground">
                   Category
                 </span>
                 <span className="flex items-center gap-1.5">
@@ -569,17 +543,17 @@ function CompositionModal({
 
           {/* Command with copy */}
           <div className="mb-6">
-            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
               Command
             </p>
-            <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800">
-              <code className="flex-1 font-mono text-sm text-teal-600 dark:text-teal-400">
+            <div className="flex items-center gap-2 rounded-lg border border-fd-border bg-fd-muted px-3 py-2">
+              <code className="flex-1 font-mono text-sm text-fd-primary">
                 {composition.command}
               </code>
               <button
                 type="button"
                 onClick={handleCopy}
-                className="shrink-0 rounded-md p-1.5 text-gray-400 transition-colors hover:bg-gray-200 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-700 dark:hover:text-gray-300"
+                className="shrink-0 rounded-md p-1.5 text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
                 aria-label={copied ? "Copied" : "Copy command"}
               >
                 {copied ? (
@@ -594,14 +568,14 @@ function CompositionModal({
           {/* Tags */}
           {composition.tags.length > 0 && (
             <div>
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
                 Tags
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {composition.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[11px] font-medium text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                    className="rounded-full border border-fd-border bg-fd-muted px-2.5 py-0.5 text-[11px] font-medium text-fd-muted-foreground"
                   >
                     {tag}
                   </span>
@@ -619,10 +593,10 @@ function CompositionModal({
 function MetadataRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+      <span className="text-xs font-medium text-fd-muted-foreground">
         {label}
       </span>
-      <span className="text-xs text-gray-900 dark:text-gray-100">
+      <span className="text-xs text-fd-foreground">
         {value}
       </span>
     </div>

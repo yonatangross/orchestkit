@@ -2,8 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { DemoGallery } from "@/components/demo-gallery";
 
-// ── Mock playground data ────────────────────────────────────
-vi.mock("@/lib/playground-data", () => {
+// ── Mock next/image to render plain <img> in tests ──────────
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) => {
+    const { fill, ...rest } = props;
+    return <img {...rest} />;
+  },
+}));
+
+// ── Mock generated compositions data ────────────────────────
+vi.mock("@/lib/generated/types", () => ({}));
+vi.mock("@/lib/generated/compositions-data", () => {
   const mockCompositions = [
     {
       id: "ScrapbookDemo",

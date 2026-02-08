@@ -10,8 +10,9 @@ Object.defineProperty(navigator, "clipboard", {
   configurable: true,
 });
 
-// ── Mock playground data ────────────────────────────────────
-vi.mock("@/lib/playground-data", () => {
+// ── Mock generated plugins data ─────────────────────────────
+vi.mock("@/lib/generated/types", () => ({}));
+vi.mock("@/lib/generated/plugins-data", () => {
   const mockPlugins = [
     {
       name: "orkl",

@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { SkillBrowser } from "@/components/skill-browser";
 
-// ── Mock playground data ────────────────────────────────────
-vi.mock("@/lib/playground-data", () => {
+// ── Mock generated skills data ──────────────────────────────
+vi.mock("@/lib/generated/skills-data", () => {
   const mockSkills: Record<string, any> = {
     implement: {
       name: "implement",
@@ -17,8 +17,6 @@ vi.mock("@/lib/playground-data", () => {
       skills: [],
       agent: null,
       structure: {},
-      content: "",
-      contentTruncated: false,
       plugins: ["orkl", "ork"],
       relatedAgents: ["frontend-ui-developer", "backend-system-architect"],
     },
@@ -34,8 +32,6 @@ vi.mock("@/lib/playground-data", () => {
       skills: [],
       agent: "backend-system-architect",
       structure: {},
-      content: "",
-      contentTruncated: false,
       plugins: ["ork"],
       relatedAgents: ["backend-system-architect"],
     },
@@ -51,8 +47,6 @@ vi.mock("@/lib/playground-data", () => {
       skills: [],
       agent: "frontend-ui-developer",
       structure: {},
-      content: "",
-      contentTruncated: false,
       plugins: ["ork"],
       relatedAgents: ["frontend-ui-developer"],
     },
@@ -68,8 +62,6 @@ vi.mock("@/lib/playground-data", () => {
       skills: [],
       agent: "security-auditor",
       structure: {},
-      content: "",
-      contentTruncated: false,
       plugins: ["ork"],
       relatedAgents: ["security-auditor", "ai-safety-auditor"],
     },
@@ -85,8 +77,6 @@ vi.mock("@/lib/playground-data", () => {
       skills: [],
       agent: "test-generator",
       structure: {},
-      content: "",
-      contentTruncated: false,
       plugins: ["orkl", "ork"],
       relatedAgents: ["test-generator"],
     },
@@ -94,6 +84,8 @@ vi.mock("@/lib/playground-data", () => {
 
   return { SKILLS: mockSkills };
 });
+
+vi.mock("@/lib/generated/types", () => ({}));
 
 describe("SkillBrowser", () => {
   beforeEach(() => {

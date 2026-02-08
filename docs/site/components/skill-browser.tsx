@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { Search, X, ChevronRight, ExternalLink, SearchX } from "lucide-react";
-import { SKILLS, type SkillDetail } from "@/lib/playground-data";
+import type { SkillMeta } from "@/lib/generated/types";
+import { SKILLS } from "@/lib/generated/skills-data";
 
 // ── Category visual metadata ────────────────────────────────
 const SKILL_CATEGORY_META: Record<
@@ -162,7 +163,7 @@ const TAG_CATEGORY_MAP: Record<string, string[]> = {
   data: ["data", "pipeline", "vector", "embeddings", "analytics", "etl"],
 };
 
-function categorizeSkill(skill: SkillDetail): string {
+function categorizeSkill(skill: SkillMeta): string {
   const tagSet = skill.tags.map((t) => t.toLowerCase());
 
   // Check each category's keywords against the skill's tags
@@ -183,7 +184,7 @@ type PluginFilter = "all" | "orkl" | "ork";
 // ── Skill entry with computed category ──────────────────────
 interface SkillEntry {
   key: string;
-  skill: SkillDetail;
+  skill: SkillMeta;
   category: string;
 }
 
@@ -253,18 +254,18 @@ export function SkillBrowser() {
       {/* Header row: count + plugin toggle */}
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p
-          className="text-sm text-gray-500 dark:text-gray-400"
+          className="text-sm text-fd-muted-foreground"
           role="status"
           aria-live="polite"
         >
           Showing{" "}
-          <span className="font-semibold tabular-nums text-gray-900 dark:text-gray-100">
+          <span className="font-semibold tabular-nums text-fd-foreground">
             {filtered.length}
           </span>{" "}
           of {ALL_SKILLS.length} skills
         </p>
         <div
-          className="inline-flex rounded-lg border border-gray-200 p-0.5 dark:border-gray-700"
+          className="inline-flex rounded-lg border border-fd-border p-0.5"
           role="group"
           aria-label="Filter by plugin"
         >
@@ -279,8 +280,8 @@ export function SkillBrowser() {
                 aria-pressed={active}
                 className={`rounded-md px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "bg-teal-50 text-teal-700 shadow-sm dark:bg-teal-500/15 dark:text-teal-300"
-                    : "text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-gray-800"
+                    ? "bg-fd-primary/10 text-fd-primary shadow-sm"
+                    : "text-fd-muted-foreground hover:bg-fd-muted"
                 }`}
               >
                 {label}
@@ -292,20 +293,20 @@ export function SkillBrowser() {
 
       {/* Search bar */}
       <div className="relative mb-4">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fd-muted-foreground" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search skills by name, description, or tag..."
           aria-label="Search skills by name, description, or tag"
-          className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500 dark:focus:border-teal-500 dark:focus:ring-teal-500/15"
+          className="h-10 w-full rounded-lg border border-fd-border bg-fd-background pl-10 pr-8 text-sm outline-none transition-all placeholder:text-fd-muted-foreground focus:border-fd-ring focus:ring-2 focus:ring-fd-ring/20"
         />
         {search && (
           <button
             type="button"
             onClick={() => setSearch("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fd-muted-foreground hover:text-fd-foreground"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -315,7 +316,7 @@ export function SkillBrowser() {
 
       {/* Category filter pills */}
       <fieldset className="mb-5">
-        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
           Category
         </legend>
         <div className="flex flex-wrap gap-1.5">
@@ -331,7 +332,7 @@ export function SkillBrowser() {
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 <span
@@ -347,7 +348,7 @@ export function SkillBrowser() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-full px-2.5 py-1 text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-gray-700 dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-gray-200"
+              className="rounded-full px-2.5 py-1 text-xs text-fd-muted-foreground underline decoration-fd-border underline-offset-2 hover:text-fd-foreground"
               aria-label="Clear all filters"
             >
               Clear all
@@ -358,18 +359,18 @@ export function SkillBrowser() {
 
       {/* Skill grid or empty state */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-gradient-to-b from-gray-50 to-white px-8 py-12 text-center dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900">
-          <SearchX className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" />
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+        <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
+          <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
+          <p className="text-sm font-medium text-fd-foreground">
             No skills match your filters
           </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-fd-muted-foreground">
             Try broadening your search or removing some filters.
           </p>
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="mt-3 rounded-md border border-fd-border px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
           >
             Clear all filters
           </button>
@@ -409,10 +410,10 @@ function SkillCard({
 
   return (
     <div
-      className={`rounded-lg border border-gray-200 border-l-[3px] ${catMeta.border} transition-all duration-200 dark:border-gray-700 ${
+      className={`rounded-lg border border-fd-border border-l-[3px] ${catMeta.border} transition-all duration-200 ${
         expanded
           ? `${catMeta.bg} shadow-sm`
-          : "hover:bg-gray-50/80 dark:hover:bg-gray-800/50"
+          : "hover:bg-fd-muted"
       }`}
     >
       <button
@@ -429,7 +430,7 @@ function SkillCard({
       >
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex flex-wrap items-center gap-2">
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <span className="text-sm font-semibold text-fd-foreground">
               {skill.name}
             </span>
             <span
@@ -443,12 +444,12 @@ function SkillCard({
               </span>
             )}
           </div>
-          <p className="line-clamp-2 text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          <p className="line-clamp-2 text-xs leading-relaxed text-fd-muted-foreground">
             {skill.description}
           </p>
         </div>
         <ChevronRight
-          className={`mt-1 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 dark:text-gray-500 ${
+          className={`mt-1 h-4 w-4 shrink-0 text-fd-muted-foreground transition-transform duration-200 ${
             expanded ? "rotate-90" : ""
           }`}
         />
@@ -464,23 +465,23 @@ function SkillCard({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-200 px-4 pb-4 pt-3 dark:border-gray-700">
+          <div className="border-t border-fd-border px-4 pb-4 pt-3">
             {/* Full description */}
-            <p className="mb-3 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+            <p className="mb-3 text-xs leading-relaxed text-fd-muted-foreground">
               {skill.description}
             </p>
 
             {/* Tags */}
             {skill.tags.length > 0 && (
               <div className="mb-3">
-                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
                   Tags
                 </p>
                 <div className="flex flex-wrap gap-1">
                   {skill.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                      className="rounded-full bg-fd-muted px-2 py-0.5 text-[11px] text-fd-muted-foreground"
                     >
                       {tag}
                     </span>
@@ -492,7 +493,7 @@ function SkillCard({
             {/* Related agents */}
             {skill.relatedAgents.length > 0 && (
               <div className="mb-3">
-                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
                   Related agents
                 </p>
                 <div className="flex flex-wrap gap-1">
@@ -500,7 +501,7 @@ function SkillCard({
                     <a
                       key={agent}
                       href={`/docs/reference/agents#${agent}`}
-                      className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[11px] text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+                      className="inline-flex items-center gap-1 rounded-full bg-fd-muted px-2 py-0.5 text-[11px] text-fd-foreground hover:bg-fd-muted"
                       tabIndex={expanded ? 0 : -1}
                     >
                       {agent}
@@ -526,7 +527,7 @@ function SkillCard({
               ))}
               <a
                 href={`https://github.com/orchestkit/orchestkit/tree/main/src/skills/${skill.name}/SKILL.md`}
-                className="inline-flex items-center gap-1 text-[11px] text-teal-600 hover:underline dark:text-teal-400"
+                className="inline-flex items-center gap-1 text-[11px] text-fd-primary hover:underline"
                 tabIndex={expanded ? 0 : -1}
                 target="_blank"
                 rel="noopener noreferrer"

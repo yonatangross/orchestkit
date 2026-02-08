@@ -54,7 +54,7 @@ const MODEL_STYLES: Record<string, string> = {
   opus: "bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300",
   sonnet: "bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300",
   inherit:
-    "bg-gray-100 text-gray-600 dark:bg-gray-700/50 dark:text-gray-400",
+    "bg-fd-muted text-fd-muted-foreground",
 };
 
 const ALL_CATEGORIES = Object.keys(CATEGORY_META) as Category[];
@@ -178,7 +178,7 @@ export function AgentSelector() {
           ref={quizTriggerRef}
           type="button"
           onClick={startQuiz}
-          className="inline-flex items-center gap-2 rounded-lg border border-teal-200 bg-gradient-to-r from-teal-500/10 to-emerald-500/10 px-4 py-2 text-sm font-medium text-teal-700 transition-all hover:from-teal-500/20 hover:to-emerald-500/20 hover:shadow-sm dark:border-teal-800 dark:text-teal-300"
+          className="inline-flex items-center gap-2 rounded-lg border border-fd-primary/30 bg-fd-primary/10 px-4 py-2 text-sm font-medium text-fd-primary transition-all hover:bg-fd-primary/20 hover:shadow-sm"
         >
           <Sparkles className="h-4 w-4" />
           Help me choose
@@ -200,8 +200,8 @@ export function AgentSelector() {
                 }
                 className={`group inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                   active
-                    ? "border-teal-300 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
                 aria-pressed={active}
               >
@@ -212,8 +212,8 @@ export function AgentSelector() {
                 <span
                   className={`hidden text-[11px] font-normal sm:inline ${
                     active
-                      ? "text-teal-600/70 dark:text-teal-400/60"
-                      : "text-gray-400 dark:text-gray-500"
+                      ? "text-fd-primary/60"
+                      : "text-fd-muted-foreground"
                   }`}
                 >
                   {s.description}
@@ -226,7 +226,7 @@ export function AgentSelector() {
 
       {/* Search — with teal focus ring */}
       <div className="relative mb-4">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fd-muted-foreground" />
         <input
           type="text"
           value={search}
@@ -236,13 +236,13 @@ export function AgentSelector() {
           }}
           placeholder="Search agents by name, keyword, or description..."
           aria-label="Search agents by name, keyword, or description"
-          className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-8 text-sm outline-none transition-all placeholder:text-gray-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 dark:border-gray-700 dark:bg-gray-900 dark:placeholder:text-gray-500 dark:focus:border-teal-500 dark:focus:ring-teal-500/15"
+          className="h-10 w-full rounded-lg border border-fd-border bg-fd-background pl-10 pr-8 text-sm outline-none transition-all placeholder:text-fd-muted-foreground focus:border-fd-ring focus:ring-2 focus:ring-fd-ring/20"
         />
         {search && (
           <button
             type="button"
             onClick={() => setSearch("")}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fd-muted-foreground hover:text-fd-foreground"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -252,7 +252,7 @@ export function AgentSelector() {
 
       {/* Category filters — with colored dots */}
       <fieldset className="mb-3">
-        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
           Category
         </legend>
         <div className="flex flex-wrap gap-1.5">
@@ -268,7 +268,7 @@ export function AgentSelector() {
                 className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
                     ? `${meta.bg} ${meta.color} border-current shadow-sm`
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 <span
@@ -285,7 +285,7 @@ export function AgentSelector() {
 
       {/* Task type filters — with inline icons */}
       <fieldset className="mb-5">
-        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <legend className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
           Task type
         </legend>
         <div className="flex flex-wrap gap-1.5">
@@ -300,8 +300,8 @@ export function AgentSelector() {
                 aria-pressed={active}
                 className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-all ${
                   active
-                    ? "border-teal-300 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 <Icon className="h-3 w-3 opacity-70" />
@@ -313,7 +313,7 @@ export function AgentSelector() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-full px-2.5 py-1 text-xs text-gray-500 underline decoration-gray-300 underline-offset-2 hover:text-gray-700 dark:text-gray-400 dark:decoration-gray-600 dark:hover:text-gray-200"
+              className="rounded-full px-2.5 py-1 text-xs text-fd-muted-foreground underline decoration-fd-border underline-offset-2 hover:text-fd-foreground"
               aria-label="Clear all filters"
             >
               Clear all
@@ -324,18 +324,18 @@ export function AgentSelector() {
 
       {/* Agent grid */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-gray-300 bg-gradient-to-b from-gray-50 to-white px-8 py-12 text-center dark:border-gray-700 dark:from-gray-800/50 dark:to-gray-900">
-          <SearchX className="mx-auto mb-3 h-8 w-8 text-gray-300 dark:text-gray-600" />
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+        <div className="rounded-xl border border-dashed border-fd-border bg-fd-muted px-8 py-12 text-center">
+          <SearchX className="mx-auto mb-3 h-8 w-8 text-fd-muted-foreground/50" />
+          <p className="text-sm font-medium text-fd-foreground">
             No agents match your filters
           </p>
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          <p className="mt-1 text-xs text-fd-muted-foreground">
             Try broadening your search or removing some filters.
           </p>
           <button
             type="button"
             onClick={clearFilters}
-            className="mt-3 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            className="mt-3 rounded-md border border-fd-border px-3 py-1.5 text-xs font-medium text-fd-foreground transition-colors hover:bg-fd-muted"
           >
             Clear all filters
           </button>
@@ -404,10 +404,10 @@ function AgentCard({
 
   return (
     <div
-      className={`rounded-lg border border-gray-200 border-l-[3px] ${catMeta.border} transition-all duration-200 dark:border-gray-700 ${
+      className={`rounded-lg border border-fd-border border-l-[3px] ${catMeta.border} transition-all duration-200 ${
         expanded
           ? `${catMeta.bg} shadow-sm`
-          : "hover:bg-gray-50/80 dark:hover:bg-gray-800/50"
+          : "hover:bg-fd-muted"
       }`}
     >
       <button
@@ -418,7 +418,7 @@ function AgentCard({
       >
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <span className="text-sm font-semibold text-fd-foreground">
               {agent.name}
             </span>
             <span
@@ -427,7 +427,7 @@ function AgentCard({
               {catMeta.label}
             </span>
           </div>
-          <p className="text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+          <p className="text-xs leading-relaxed text-fd-muted-foreground">
             {agent.description}
           </p>
           <div className="mt-2 flex items-center gap-2">
@@ -436,7 +436,7 @@ function AgentCard({
             >
               {MODEL_LABELS[agent.model]}
             </span>
-            <span className="text-[11px] text-gray-500 dark:text-gray-400">
+            <span className="text-[11px] text-fd-muted-foreground">
               {agent.taskTypes
                 .map((t) => TASK_TYPE_META[t].label)
                 .join(", ")}
@@ -444,7 +444,7 @@ function AgentCard({
           </div>
         </div>
         <ChevronRight
-          className={`mt-1 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 dark:text-gray-500 ${
+          className={`mt-1 h-4 w-4 shrink-0 text-fd-muted-foreground transition-transform duration-200 ${
             expanded ? "rotate-90" : ""
           }`}
         />
@@ -459,27 +459,27 @@ function AgentCard({
         }`}
       >
         <div className="overflow-hidden">
-          <div className="border-t border-gray-200 px-4 pb-4 pt-3 dark:border-gray-700">
-            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <div className="border-t border-fd-border px-4 pb-4 pt-3">
+            <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
               Example prompts
             </p>
             <ul className="space-y-1.5">
               {agent.examplePrompts.map((prompt, i) => (
                 <li
                   key={i}
-                  className="rounded-md bg-gray-100 px-3 py-2 text-xs leading-relaxed text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                  className="rounded-md bg-fd-muted px-3 py-2 text-xs leading-relaxed text-fd-foreground"
                 >
                   &ldquo;{prompt}&rdquo;
                 </li>
               ))}
             </ul>
             <div className="mt-3 flex items-center gap-2">
-              <code className="rounded bg-gray-100 px-2 py-0.5 text-[11px] font-mono text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+              <code className="rounded bg-fd-muted px-2 py-0.5 text-[11px] font-mono text-fd-foreground">
                 {agent.id}
               </code>
               <a
                 href={`/docs/reference/agents#${agent.id}`}
-                className="inline-flex items-center gap-1 text-[11px] text-teal-600 hover:underline dark:text-teal-400"
+                className="inline-flex items-center gap-1 text-[11px] text-fd-primary hover:underline"
                 tabIndex={expanded ? 0 : -1}
               >
                 Full reference
@@ -583,7 +583,7 @@ function QuizModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm animate-[fade-in_150ms_ease-out] dark:bg-black/70"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-fd-overlay p-4 backdrop-blur-sm animate-[fade-in_150ms_ease-out]"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -593,21 +593,21 @@ function QuizModal({
     >
       <div
         ref={modalRef}
-        className="w-full max-w-lg overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl animate-[slide-up_200ms_ease-out] dark:border-gray-700 dark:bg-gray-900"
+        className="w-full max-w-lg overflow-hidden rounded-xl border border-fd-border bg-fd-background shadow-2xl animate-[slide-up_200ms_ease-out]"
       >
         {/* Colored header bar */}
-        <div className="bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-4 dark:from-teal-600 dark:to-emerald-600">
+        <div className="bg-fd-primary px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 id="quiz-heading" className="text-lg font-semibold text-white">
+              <h3 id="quiz-heading" className="text-lg font-semibold text-fd-primary-foreground">
                 Help me choose
               </h3>
-              <p className="text-xs text-teal-100">Step {step + 1} of 3</p>
+              <p className="text-xs text-fd-primary-foreground/80">Step {step + 1} of 3</p>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md p-1 text-teal-100 transition-colors hover:bg-white/20 hover:text-white"
+              className="rounded-md p-1 text-fd-primary-foreground/80 transition-colors hover:bg-fd-primary-foreground/20 hover:text-fd-primary-foreground"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
@@ -633,7 +633,7 @@ function QuizModal({
             {/* Step 0: Task type — with icons */}
             {step === 0 && (
               <div>
-                <p className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-4 text-sm font-medium text-fd-foreground">
                   What are you trying to do?
                 </p>
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -644,10 +644,10 @@ function QuizModal({
                         key={tt}
                         type="button"
                         onClick={() => onSelectTaskType(tt)}
-                        className="flex flex-col items-center gap-1.5 rounded-lg border border-gray-200 p-3 text-center transition-all hover:border-teal-300 hover:bg-teal-50 dark:border-gray-700 dark:hover:border-teal-600 dark:hover:bg-teal-900/20"
+                        className="flex flex-col items-center gap-1.5 rounded-lg border border-fd-border p-3 text-center transition-all hover:border-fd-primary/40 hover:bg-fd-primary/10"
                       >
-                        <Icon className="h-5 w-5 text-gray-600 dark:text-gray-300" />
-                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                        <Icon className="h-5 w-5 text-fd-muted-foreground" />
+                        <span className="text-xs font-medium text-fd-foreground">
                           {TASK_TYPE_META[tt].label}
                         </span>
                       </button>
@@ -660,7 +660,7 @@ function QuizModal({
             {/* Step 1: Category — with colored dots + left borders */}
             {step === 1 && (
               <div>
-                <p className="mb-4 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-4 text-sm font-medium text-fd-foreground">
                   What domain or stack?
                 </p>
                 <div className="grid grid-cols-3 gap-2">
@@ -671,7 +671,7 @@ function QuizModal({
                         key={cat}
                         type="button"
                         onClick={() => onSelectCategory(cat)}
-                        className={`rounded-lg border border-gray-200 border-l-[3px] ${meta.border} p-3 text-left transition-all hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800`}
+                        className={`rounded-lg border border-fd-border border-l-[3px] ${meta.border} p-3 text-left transition-all hover:bg-fd-muted`}
                       >
                         <div className="flex items-center gap-2">
                           <span
@@ -690,7 +690,7 @@ function QuizModal({
                 <button
                   type="button"
                   onClick={onSkipCategory}
-                  className="mt-3 w-full text-center text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="mt-3 w-full text-center text-xs text-fd-muted-foreground hover:text-fd-foreground"
                 >
                   Skip &mdash; show all categories
                 </button>
@@ -700,16 +700,16 @@ function QuizModal({
             {/* Step 2: Results — with colored card borders */}
             {step === 2 && (
               <div>
-                <p className="mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-1 text-sm font-medium text-fd-foreground">
                   {results.length === 0
                     ? "No exact matches"
                     : `${results.length} agent${results.length === 1 ? "" : "s"} match${results.length === 1 ? "es" : ""}`}
                 </p>
-                <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
+                <p className="mb-4 text-xs text-fd-muted-foreground">
                   {taskType && (
                     <span>
                       Task:{" "}
-                      <strong className="text-gray-700 dark:text-gray-200">
+                      <strong className="text-fd-foreground">
                         {TASK_TYPE_META[taskType].label}
                       </strong>
                     </span>
@@ -730,10 +730,10 @@ function QuizModal({
                     return (
                       <div
                         key={agent.id}
-                        className={`rounded-lg border border-gray-200 border-l-[3px] ${catMeta.border} p-3 dark:border-gray-700`}
+                        className={`rounded-lg border border-fd-border border-l-[3px] ${catMeta.border} p-3`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                          <span className="text-sm font-semibold text-fd-foreground">
                             {agent.name}
                           </span>
                           <span
@@ -747,14 +747,14 @@ function QuizModal({
                             {MODEL_LABELS[agent.model]}
                           </span>
                         </div>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                        <p className="mt-1 text-xs text-fd-muted-foreground">
                           {agent.description}
                         </p>
                       </div>
                     );
                   })}
                   {results.length === 0 && (
-                    <p className="py-4 text-center text-xs text-gray-500 dark:text-gray-400">
+                    <p className="py-4 text-center text-xs text-fd-muted-foreground">
                       Try a different combination. Click Back to change your
                       selection.
                     </p>
@@ -764,7 +764,7 @@ function QuizModal({
                   <button
                     type="button"
                     onClick={onApply}
-                    className="flex-1 rounded-lg bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:from-teal-600 hover:to-emerald-600 hover:shadow dark:from-teal-600 dark:to-emerald-600 dark:hover:from-teal-700 dark:hover:to-emerald-700"
+                    className="flex-1 rounded-lg bg-fd-primary px-4 py-2.5 text-sm font-medium text-fd-primary-foreground shadow-sm transition-all hover:bg-fd-primary/90 hover:shadow"
                   >
                     Apply to grid
                   </button>
@@ -778,7 +778,7 @@ function QuizModal({
             <button
               type="button"
               onClick={onBack}
-              className="mt-4 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+              className="mt-4 text-xs text-fd-muted-foreground hover:text-fd-foreground"
             >
               &larr; Back
             </button>
