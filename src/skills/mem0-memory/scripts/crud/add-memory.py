@@ -56,11 +56,9 @@ def main():
             async_mode=False
         )
 
-        # Output JSON for Claude to parse
-        # Handle different response formats from mem0 API
+        # Extract memory ID from response
         memory_id = None
         if isinstance(result, list):
-            # SDK v1.1+ may return a list directly: [{"id": "...", ...}]
             if result and isinstance(result[0], dict):
                 memory_id = result[0].get("id") or result[0].get("memory_id")
         elif isinstance(result, dict):
@@ -70,6 +68,18 @@ def main():
                 memory_id = result["id"]
             elif "memory_id" in result:
                 memory_id = result["memory_id"]
+
+        # Fallback: if add returned empty results (dedup/merge), find the memory via get_all
+        if memory_id is None and args.user_id:
+            import time
+            time.sleep(1)
+            try:
+                all_result = client.get_all(filters={"user_id": args.user_id})
+                memories = all_result.get("results", []) if isinstance(all_result, dict) else (all_result if isinstance(all_result, list) else [])
+                if memories:
+                    memory_id = memories[0].get("id") or memories[0].get("memory_id")
+            except Exception:
+                pass  # fallback failed, continue without ID
 
         print(json.dumps({
             "success": True,

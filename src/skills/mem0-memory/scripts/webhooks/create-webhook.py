@@ -55,7 +55,7 @@ def main():
 
         print(json.dumps({
             "success": True,
-            "webhook_id": result.get("id") if isinstance(result, dict) else None,
+            "webhook_id": (result.get("webhook_id") or result.get("id")) if isinstance(result, dict) else None,
             "webhook": result
         }, indent=2))
 

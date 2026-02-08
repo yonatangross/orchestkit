@@ -35,7 +35,17 @@ def main():
         if not isinstance(memory_ids, list):
             raise ValueError("--memory-ids must be a JSON array")
 
-        result = client.batch_delete(memories=memory_ids)
+        # SDK expects list of dicts: [{"memory_id": "xxx"}, ...]
+        memories = []
+        for mid in memory_ids:
+            if isinstance(mid, str):
+                memories.append({"memory_id": mid})
+            elif isinstance(mid, dict):
+                memories.append(mid)
+            else:
+                raise ValueError(f"Invalid memory ID format: {mid}")
+
+        result = client.batch_delete(memories=memories)
 
         print(json.dumps({
             "success": True,

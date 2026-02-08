@@ -32,10 +32,18 @@ def main():
 
         result = client.users()
 
+        # SDK returns {"results": [...]} dict from /v1/entities/
+        if isinstance(result, dict):
+            users = result.get("results", [])
+        elif isinstance(result, list):
+            users = result
+        else:
+            users = []
+
         print(json.dumps({
             "success": True,
-            "users": result if isinstance(result, list) else [result],
-            "count": len(result) if isinstance(result, list) else 1
+            "users": users,
+            "count": len(users)
         }, indent=2))
 
     except ValueError as e:

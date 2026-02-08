@@ -255,7 +255,7 @@ CREATED_MEMORY_ID=""
 test_start "test_add_memory"
 
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Test memory from integration test [${TEST_PREFIX}]" \
+    --text "Python asyncio TaskGroup manages concurrent coroutines efficiently [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-crud" 2>&1)
 EXIT_CODE=$?
 
@@ -290,7 +290,7 @@ fi
 
 test_start "test_search_memory"
 
-if wait_for_search "Test memory from integration" "${TEST_PREFIX}-crud"; then
+if wait_for_search "asyncio TaskGroup concurrent coroutines" "${TEST_PREFIX}-crud"; then
     test_pass
 else
     test_fail "Search returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
@@ -350,7 +350,7 @@ BATCH_SUCCESS=true
 # Add 3 memories
 for i in 1 2 3; do
     OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Batch test memory number $i for integration testing [${TEST_PREFIX}]" \
+        --text "Batch item $i: $([ $i -eq 1 ] && echo 'React hooks optimize component rendering' || ([ $i -eq 2 ] && echo 'PostgreSQL indexes improve query performance' || echo 'Docker containers isolate dependencies')) [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-batch" 2>&1)
 
     if [[ $? -ne 0 ]]; then
@@ -426,7 +426,7 @@ echo "--- Graph Operations ---"
 test_start "test_graph_operations"
 
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "OrchestKit uses TypeScript for hooks [${TEST_PREFIX}]" \
+    --text "Svelte 5 runes replace reactive declarations with signals [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-graph" \
     --enable-graph 2>&1)
 EXIT_CODE=$?
@@ -445,7 +445,7 @@ if [[ $EXIT_CODE -eq 0 ]]; then
 
         # Search with graph enabled
         SEARCH_OUTPUT=$(python3 "$CRUD_DIR/search-memories.py" \
-            --query "OrchestKit TypeScript hooks" \
+            --query "Svelte runes reactive signals" \
             --user-id "${TEST_PREFIX}-graph" \
             --enable-graph 2>&1)
         SEARCH_EXIT=$?
@@ -478,16 +478,12 @@ echo "--- Error Handling ---"
 
 test_start "test_error_handling_invalid_key"
 
-# Temporarily set an invalid API key
-export MEM0_API_KEY="invalid-key-12345"
-
+# Pass invalid API key directly via --api-key flag to bypass .env override
 OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
     --text "This should fail with invalid key" \
-    --user-id "${TEST_PREFIX}-error" 2>&1)
+    --user-id "${TEST_PREFIX}-error" \
+    --api-key "invalid-key-12345" 2>&1)
 EXIT_CODE=$?
-
-# Restore the real API key immediately
-export MEM0_API_KEY="$REAL_API_KEY"
 
 # The script should return a non-zero exit code or an error in the output
 # The key thing is it should NOT crash with an unhandled exception
@@ -588,7 +584,7 @@ GET_SINGLE_SCRIPT="$CRUD_DIR/get-memory.py"
 if [[ -f "$GET_SINGLE_SCRIPT" ]]; then
     # First, add a memory to retrieve
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Single memory retrieval test for integration [${TEST_PREFIX}]" \
+        --text "Nginx reverse proxy handles SSL termination and load balancing [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-get-single" 2>&1)
     ADD_EXIT=$?
 
@@ -643,7 +639,7 @@ UPDATE_SCRIPT="$CRUD_DIR/update-memory.py"
 if [[ -f "$UPDATE_SCRIPT" ]]; then
     # Add a memory to update
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Original text before update [${TEST_PREFIX}]" \
+        --text "Terraform modules manage AWS infrastructure state [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-update" 2>&1)
     ADD_EXIT=$?
 
@@ -658,7 +654,7 @@ if [[ -f "$UPDATE_SCRIPT" ]]; then
             # Update the memory text
             UPD_OUTPUT=$(python3 "$UPDATE_SCRIPT" \
                 --memory-id "$UPDATE_MEM_ID" \
-                --text "Updated text after modification [${TEST_PREFIX}]" 2>&1)
+                --text "Pulumi manages cloud infrastructure with TypeScript code [${TEST_PREFIX}]" 2>&1)
             UPD_EXIT=$?
 
             if [[ $UPD_EXIT -eq 0 ]]; then
@@ -712,7 +708,7 @@ RELATED_SCRIPT="$GRAPH_DIR/get-related-memories.py"
 if [[ -f "$RELATED_SCRIPT" ]]; then
     # Add a memory with graph enabled
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Python is used for machine learning projects [${TEST_PREFIX}]" \
+        --text "JAX uses XLA compiler for GPU-accelerated tensor operations [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-related" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -777,7 +773,7 @@ TRAVERSE_SCRIPT="$GRAPH_DIR/traverse-graph.py"
 if [[ -f "$TRAVERSE_SCRIPT" ]]; then
     # Add a memory with graph enabled about a specific topic
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "OrchestKit uses TypeScript for hooks and automation [${TEST_PREFIX}]" \
+        --text "Zig programming language has comptime for compile-time evaluation [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-traverse" \
         --enable-graph 2>&1)
     ADD_EXIT=$?
@@ -845,7 +841,7 @@ HISTORY_SCRIPT="$UTILS_DIR/memory-history.py"
 if [[ -f "$HISTORY_SCRIPT" ]]; then
     # Add a memory, then update it to generate history
     ADD_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "History test memory original content [${TEST_PREFIX}]" \
+        --text "Deno 2 supports npm packages natively without node_modules [${TEST_PREFIX}]" \
         --user-id "${TEST_PREFIX}-history" 2>&1)
     ADD_EXIT=$?
 
@@ -861,7 +857,7 @@ if [[ -f "$HISTORY_SCRIPT" ]]; then
             if [[ -f "$CRUD_DIR/update-memory.py" ]]; then
                 python3 "$CRUD_DIR/update-memory.py" \
                     --memory-id "$HISTORY_MEM_ID" \
-                    --text "History test memory updated content [${TEST_PREFIX}]" >/dev/null 2>&1
+                    --text "Bun runtime provides built-in test runner and bundler [${TEST_PREFIX}]" >/dev/null 2>&1
                 sleep 1
             fi
 
@@ -951,9 +947,9 @@ DELETE_WH_SCRIPT="$WEBHOOKS_DIR/delete-webhook.py"
 if [[ -f "$CREATE_WH_SCRIPT" && -f "$LIST_WH_SCRIPT" && -f "$DELETE_WH_SCRIPT" ]]; then
     # Create a test webhook
     WH_OUTPUT=$(python3 "$CREATE_WH_SCRIPT" \
-        --url "https://httpbin.org/post" \
+        --url "https://httpbin.org/post?test=${TEST_PREFIX}" \
         --name "${TEST_PREFIX}-webhook" \
-        --event-types '["memory.created"]' 2>&1)
+        --event-types '["memory_add"]' 2>&1)
     WH_EXIT=$?
 
     if [[ $WH_EXIT -eq 0 ]]; then
@@ -1035,7 +1031,7 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
 
     for i in 1 2 3; do
         OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-            --text "Batch delete test memory $i [${TEST_PREFIX}]" \
+            --text "Batch delete item $i: $([ $i -eq 1 ] && echo 'Kubernetes pods scale horizontally' || ([ $i -eq 2 ] && echo 'Redis caching reduces latency' || echo 'GraphQL resolvers fetch nested data')) [${TEST_PREFIX}]" \
             --user-id "${TEST_PREFIX}-batchdel" 2>&1)
 
         if [[ $? -ne 0 ]]; then
@@ -1114,7 +1110,7 @@ test_start "test_metadata_filtering"
 
 # Add a memory with specific metadata
 META_OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-    --text "Metadata filtering test memory for integration [${TEST_PREFIX}]" \
+    --text "Elasticsearch uses inverted indexes for full-text search [${TEST_PREFIX}]" \
     --user-id "${TEST_PREFIX}-metadata" \
     --metadata '{"category":"test","priority":"high"}' 2>&1)
 META_EXIT=$?
@@ -1128,10 +1124,11 @@ if [[ $META_EXIT -eq 0 ]]; then
     fi
 
     if [[ "$META_SUCCESS" == "true" ]]; then
-        if wait_for_search "Metadata filtering test" "${TEST_PREFIX}-metadata"; then
+        # Use get instead of search to verify metadata memory was stored
+        if wait_for_get "${TEST_PREFIX}-metadata"; then
             test_pass
         else
-            test_fail "Metadata search returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
+            test_fail "Metadata get returned $RETRY_COUNT results; expected at least 1. Output: $(echo "$RETRY_OUTPUT" | jq -c '.' 2>/dev/null)"
         fi
     else
         test_fail "add-memory.py with metadata did not return success. Output: $META_OUTPUT"

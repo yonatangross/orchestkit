@@ -31,11 +31,8 @@ def main():
             project_id=args.project_id
         )
 
-        # SDK may have delete_webhook method
-        if hasattr(client, 'delete_webhook'):
-            result = client.delete_webhook(webhook_id=args.webhook_id)
-        else:
-            raise ValueError("Webhook deletion not available in current SDK version")
+        # SDK accepts webhook_id (string like "wh_..." or integer)
+        result = client.delete_webhook(webhook_id=args.webhook_id)
 
         print(json.dumps({
             "success": True,

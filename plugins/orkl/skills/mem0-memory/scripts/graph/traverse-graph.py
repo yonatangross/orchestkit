@@ -70,12 +70,12 @@ def traverse_graph(
         return [{"path": current_path, "depth": len(current_path) - 1}]
     
     # Get relations from memory metadata or via search
-    memory_metadata = memory.get("metadata", {})
+    memory_metadata = memory.get("metadata") or {}
     relations = memory_metadata.get("relations", [])
     
     # If no relations in metadata, try searching with graph enabled
     if not relations:
-        entities = memory_metadata.get("entities", [])
+        entities = (memory_metadata or {}).get("entities", [])
         if entities:
             query = " ".join([e.get("name", "") for e in entities[:3]])
             search_result = client.search(

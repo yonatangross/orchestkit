@@ -40,14 +40,14 @@ def get_related_memories(client, memory_id: str, depth: int = 1, relation_type: 
     
     # Extract entities and relationships from the starting memory
     # Graph memory stores relationships in the memory metadata
-    memory_metadata = start_memory.get("metadata", {})
+    memory_metadata = start_memory.get("metadata") or {}
     relations = memory_metadata.get("relations", [])
     
     # If no relations in metadata, try searching with graph enabled to get relations
     if not relations:
         # Use search with graph enabled to find related memories
         # Search for memories that might be related based on entities
-        entities = memory_metadata.get("entities", [])
+        entities = (memory_metadata or {}).get("entities", [])
         if entities:
             # Search for memories mentioning the same entities
             query = " ".join([e.get("name", "") for e in entities[:3]])  # Use first 3 entities

@@ -1149,6 +1149,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "version-entry.json"
       ],
       "scripts": [
+        "__pycache__",
         "diversity-checker.py"
       ]
     },
@@ -1262,6 +1263,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "self-rag.md"
       ],
       "scripts": [
+        "__pycache__",
         "crag-workflow.py",
         "self-rag-graph.py"
       ],
@@ -1303,6 +1305,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "invariant-enforcement.md"
       ],
       "scripts": [
+        "__pycache__",
         "aggregate-root-template.py"
       ],
       "checklists": [
@@ -1350,6 +1353,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "alembic-advanced.md"
       ],
       "scripts": [
+        "__pycache__",
         "create-migration.md",
         "detect-model-changes.py",
         "migration-template.py"
@@ -1395,6 +1399,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "openai-agents-sdk.md"
       ],
       "scripts": [
+        "__pycache__",
         "crewai-crew.py",
         "openai-multi-agent.py"
       ],
@@ -1520,6 +1525,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "adr-template.md"
       ],
       "scripts": [
+        "__pycache__",
         "adr-frontmatter.yaml",
         "adr-manager.py",
         "create-adr.md",
@@ -1710,6 +1716,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "taskgroup-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "async-service-template.py"
       ],
       "checklists": [
@@ -1888,6 +1895,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "oauth-2.1-passkeys.md"
       ],
       "scripts": [
+        "__pycache__",
         "auth-middleware-template.py"
       ],
       "checklists": [
@@ -1964,6 +1972,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "task-queue-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "arq-worker-template.py"
       ],
       "checklists": [
@@ -2304,6 +2313,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "cache-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "redis-cache-service.py"
       ],
       "checklists": [
@@ -2384,6 +2394,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "rate-limiting-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "canvas-workflow-template.py",
         "celery-config-template.py",
         "priority-task-template.py"
@@ -2466,6 +2477,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "review-feedback-template.md"
       ],
       "scripts": [
+        "__pycache__",
         "fetch-pr-data.sh",
         "review-pr.md",
         "run-pr-checks.py"
@@ -2619,6 +2631,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "pool-sizing.md"
       ],
       "scripts": [
+        "__pycache__",
         "pool-setup-template.py"
       ],
       "checklists": [
@@ -2795,6 +2808,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "provider-verification.md"
       ],
       "scripts": [
+        "__pycache__",
         "consumer-test-template.py",
         "provider-verification-template.py"
       ],
@@ -2886,6 +2900,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "query-handlers.md"
       ],
       "scripts": [
+        "__pycache__",
         "command-bus-template.py",
         "projection-template.py",
         "query-handler-template.py"
@@ -3268,6 +3283,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "redlock-algorithm.md"
       ],
       "scripts": [
+        "__pycache__",
         "distributed-lock-template.py"
       ],
       "checklists": [
@@ -3547,6 +3563,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "chunking-strategies.md"
       ],
       "scripts": [
+        "__pycache__",
         "embedding-pipeline.py"
       ],
       "checklists": [
@@ -3660,6 +3677,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "event-store-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "event-store-template.py"
       ],
       "checklists": [
@@ -3883,6 +3901,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "when-to-finetune.md"
       ],
       "scripts": [
+        "__pycache__",
         "create-lora-config.md",
         "dpo-training.py",
         "lora-config.yaml"
@@ -4075,6 +4094,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "tool-schema.md"
       ],
       "scripts": [
+        "__pycache__",
         "function-def.py"
       ],
       "checklists": [
@@ -4357,6 +4377,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "streaming-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "grpc-client-template.py",
         "grpc-server-template.py",
         "proto-service-template.proto"
@@ -4429,6 +4450,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "vllm-deployment.md"
       ],
       "scripts": [
+        "__pycache__",
         "quantization-config.py",
         "vllm-server.py"
       ],
@@ -4576,6 +4598,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "stripe-pattern.md"
       ],
       "scripts": [
+        "__pycache__",
         "idempotency-middleware-template.py"
       ],
       "checklists": [
@@ -4774,6 +4797,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "agent": "test-generator",
     "structure": {
       "scripts": [
+        "__pycache__",
         "create-integration-test.md",
         "pytest-integration.py",
         "test-plan-template.md"
@@ -4858,6 +4882,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "tracing-setup.md"
       ],
       "scripts": [
+        "__pycache__",
         "callback-handler.py",
         "observe-decorator.py"
       ],
@@ -5009,6 +5034,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "map-reduce.md"
       ],
       "scripts": [
+        "__pycache__",
         "parallel-agent-fanout.py"
       ],
       "checklists": [
@@ -5048,6 +5074,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "semantic-routing.md"
       ],
       "scripts": [
+        "__pycache__",
         "semantic-router.py"
       ],
       "checklists": [
@@ -5303,6 +5330,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "evaluation-metrics.md"
       ],
       "scripts": [
+        "__pycache__",
         "evaluator-template.py"
       ],
       "checklists": [
@@ -5345,6 +5373,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "prompt-audit.md"
       ],
       "scripts": [
+        "__pycache__",
         "prompt_builder.py",
         "safe_llm_call.py"
       ],
@@ -5418,6 +5447,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "deepeval-ragas-api.md"
       ],
       "scripts": [
+        "__pycache__",
         "llm-test-template.py"
       ],
       "checklists": [
@@ -5543,6 +5573,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "tool-composition.md"
       ],
       "scripts": [
+        "__pycache__",
         "mcp-server-template.py"
       ],
       "checklists": [
@@ -5662,6 +5693,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "visualization.md"
       ],
       "scripts": [
+        "__pycache__",
         "batch",
         "create",
         "crud",
@@ -5843,6 +5875,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "rabbitmq-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "queue-consumer-template.py"
       ],
       "checklists": [
@@ -6246,6 +6279,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "model-selection.md"
       ],
       "scripts": [
+        "__pycache__",
         "ollama-provider-template.py"
       ]
     },
@@ -6290,6 +6324,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "outbox-delivery-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "outbox-publisher-template.py"
       ],
       "checklists": [
@@ -6708,6 +6743,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "agent": "llm-integrator",
     "structure": {
       "scripts": [
+        "__pycache__",
         "prompt-cache-wrapper.py"
       ]
     },
@@ -6747,6 +6783,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "prompt-versioning.md"
       ],
       "scripts": [
+        "__pycache__",
         "cot-template.py",
         "few-shot-template.py",
         "jinja2-prompts.py"
@@ -6787,6 +6824,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "strategies-guide.md"
       ],
       "scripts": [
+        "__pycache__",
         "hypothesis-conftest.py"
       ],
       "checklists": [
@@ -6860,6 +6898,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "xdist-parallel.md"
       ],
       "scripts": [
+        "__pycache__",
         "conftest-template.py"
       ],
       "checklists": [
@@ -6901,6 +6940,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "workflows.md"
       ],
       "scripts": [
+        "__pycache__",
         "analyze-codebase.sh",
         "assess-complexity.md",
         "complexity-assessment.md",
@@ -7225,6 +7265,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "semver.md"
       ],
       "scripts": [
+        "__pycache__",
         "create-release.md",
         "release-scripts.sh",
         "version-manager.py"
@@ -7500,6 +7541,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "retry-strategies.md"
       ],
       "scripts": [
+        "__pycache__",
         "bulkhead.py",
         "circuit-breaker.py",
         "llm-fallback-chain.py",
@@ -7705,6 +7747,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "state-machine-saga.md"
       ],
       "scripts": [
+        "__pycache__",
         "event-router-template.py",
         "saga-orchestrator-template.py",
         "saga-step-template.py"
@@ -7857,6 +7900,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "cache-strategies.md"
       ],
       "scripts": [
+        "__pycache__",
         "redis-cache.py",
         "semantic-cache-service.py"
       ]
@@ -8047,6 +8091,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "fastapi-integration.md"
       ],
       "scripts": [
+        "__pycache__",
         "repository-template.py"
       ],
       "checklists": [
@@ -8127,6 +8172,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "subscription-setup.md"
       ],
       "scripts": [
+        "__pycache__",
         "dataloader-template.py",
         "strawberry-fastapi-template.py",
         "strawberry-schema-template.py",
@@ -8294,6 +8340,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "status-workflow.md"
       ],
       "scripts": [
+        "__pycache__",
         "task-tree-visualizer.py"
       ],
       "checklists": [
@@ -8358,6 +8405,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "workflow-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "saga-workflow-template.py",
         "scheduled-workflow-template.py",
         "temporal-worker-template.py"
@@ -8434,6 +8482,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "factory-patterns.md"
       ],
       "scripts": [
+        "__pycache__",
         "factory-boy.py"
       ],
       "checklists": [
@@ -8584,6 +8633,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "aaa-pattern.md"
       ],
       "scripts": [
+        "__pycache__",
         "create-test-case.md",
         "create-test-fixture.md",
         "pytest-fixture.py",
@@ -8701,6 +8751,7 @@ export const SKILLS: Record<string, SkillDetail> = {
     "agent": "test-generator",
     "structure": {
       "scripts": [
+        "__pycache__",
         "vcr-cassette.py"
       ],
       "checklists": [
@@ -9162,6 +9213,7 @@ export const SKILLS: Record<string, SkillDetail> = {
         "pgroll-guide.md"
       ],
       "scripts": [
+        "__pycache__",
         "expand-contract-template.py"
       ],
       "checklists": [

@@ -33,33 +33,39 @@ def main():
             project_id=args.project_id
         )
 
-        # Parse schema - API expects JSON object, not string
+        # Parse schema - API expects JSON object
         try:
             schema_obj = json.loads(args.schema) if args.schema else {"format": "json"}
         except json.JSONDecodeError:
-            # If not valid JSON, treat as format string and wrap in object
             schema_obj = {"format": args.schema}
-        
-        # Build export kwargs — SDK expects user_id, agent_id etc. as direct kwargs
-        export_kwargs = {}
+
+        # Build filter conditions from flags and --filters JSON
+        filter_conditions = []
         extra_filters = json.loads(args.filters) if args.filters else {}
 
-        # Merge user_id from --user-id flag or from filters
         if args.user_id:
-            export_kwargs["user_id"] = args.user_id
+            filter_conditions.append({"user_id": args.user_id})
         for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]:
-            if key in extra_filters and key not in export_kwargs:
-                export_kwargs[key] = extra_filters[key]
+            if key in extra_filters:
+                filter_conditions.append({key: extra_filters[key]})
 
-        # API requires at least one filter
-        if not any(key in export_kwargs for key in ["user_id", "agent_id", "run_id", "app_id", "memory_export_id"]):
+        if not filter_conditions:
             raise ValueError("Filters must include one of: user_id, agent_id, run_id, app_id, or memory_export_id")
 
-        result = client.create_memory_export(schema=schema_obj, **export_kwargs)
+        # Export API requires AND operator format: {"AND": [{...}, ...]}
+        result = client.create_memory_export(
+            schema=schema_obj,
+            filters={"AND": filter_conditions}
+        )
+
+        # Response is an async job: {"message": "...", "id": "export-id"}
+        export_id = None
+        if isinstance(result, dict):
+            export_id = result.get("id") or result.get("export_id")
 
         print(json.dumps({
             "success": True,
-            "export_id": result.get("export_id") if isinstance(result, dict) else None,
+            "export_id": export_id,
             "result": result
         }, indent=2))
 

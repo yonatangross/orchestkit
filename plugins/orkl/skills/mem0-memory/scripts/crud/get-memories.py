@@ -33,19 +33,14 @@ def main():
             project_id=args.project_id
         )
 
-        # get_all() expects user_id, agent_id etc. as direct kwargs (not nested in filters)
-        get_kwargs = {}
+        # get_all() requires filters dict with user_id/agent_id at top level
+        filters = json.loads(args.filters) if args.filters else {}
         if args.user_id:
-            get_kwargs["user_id"] = args.user_id
+            filters["user_id"] = args.user_id
         if args.agent_id:
-            get_kwargs["agent_id"] = args.agent_id
-        # Merge any extra filters as direct kwargs
-        extra_filters = json.loads(args.filters) if args.filters else {}
-        for key in ["app_id", "top_k", "page", "page_size"]:
-            if key in extra_filters:
-                get_kwargs[key] = extra_filters[key]
+            filters["agent_id"] = args.agent_id
 
-        result = client.get_all(**get_kwargs)
+        result = client.get_all(filters=filters if filters else None)
 
         # Handle both list and dict response formats from mem0 API
         if isinstance(result, dict):
