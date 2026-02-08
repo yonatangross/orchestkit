@@ -6,8 +6,7 @@ export const baseOptions: BaseLayoutProps = {
     title: SITE.name,
   },
   themeSwitch: {
-    enabled: true,
-    mode: "light-dark-system",
+    enabled: false,
   },
   githubUrl: SITE.github,
   links: [

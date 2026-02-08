@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`dark ${geist.variable} ${geistMono.variable}`}>
       <body className="flex min-h-screen flex-col font-[family-name:var(--font-geist)]">
         <a
           href="#main-content"
