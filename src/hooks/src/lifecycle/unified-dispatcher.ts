@@ -30,6 +30,7 @@ import { patternSyncPull } from './pattern-sync-pull.js';
 import { sessionEnvSetup } from './session-env-setup.js';
 import { sessionTracking } from './session-tracking.js';
 import { memoryMetricsCollector } from './memory-metrics-collector.js';
+import { staleTeamCleanup } from './stale-team-cleanup.js';
 
 // -----------------------------------------------------------------------------
 // Types
@@ -57,6 +58,7 @@ const HOOKS: HookConfig[] = [
   { name: 'session-env-setup', fn: sessionEnvSetup },
   { name: 'session-tracking', fn: sessionTracking },
   { name: 'memory-metrics-collector', fn: memoryMetricsCollector },
+  { name: 'stale-team-cleanup', fn: staleTeamCleanup },
 ];
 
 /** Exposed for registry wiring tests */

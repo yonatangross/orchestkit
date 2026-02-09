@@ -15,7 +15,7 @@
 
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputDeny, logHook } from '../../lib/common.js';
-import { getTeamMembers } from '../../lib/agent-teams.js';
+import { getTeamMembers, isStaleTeam, cleanupTeam } from '../../lib/agent-teams.js';
 
 const MAX_TEAM_SIZE = 6;
 const MAX_OPUS_MEMBERS = 3;
@@ -27,6 +27,12 @@ export function teamSizeGate(input: HookInput): HookResult {
   const teamName = toolInput.team_name as string | undefined;
   if (!teamName) {
     return outputSilentSuccess();
+  }
+
+  // Auto-clean stale team if TeamCreate would conflict (#447)
+  if (isStaleTeam(teamName)) {
+    cleanupTeam(teamName);
+    logHook('team-size-gate', `Auto-cleaned stale team "${teamName}" before TeamCreate`);
   }
 
   const model = (toolInput.model as string) || '';
