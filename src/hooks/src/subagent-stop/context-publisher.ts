@@ -90,11 +90,18 @@ function writeJsonFile(filePath: string, data: unknown): void {
 }
 
 // -----------------------------------------------------------------------------
+// Constants
+// -----------------------------------------------------------------------------
+
+/** Maximum completed tasks to retain in session state */
+const MAX_COMPLETED_TASKS = 50;
+
+// -----------------------------------------------------------------------------
 // Hook Implementation
 // -----------------------------------------------------------------------------
 
 export function contextPublisher(input: HookInput): HookResult {
-  const agentName = process.env.CLAUDE_AGENT_NAME || 'unknown';
+  const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
   // Read agent output from input
@@ -106,35 +113,41 @@ export function contextPublisher(input: HookInput): HookResult {
     summary += '...';
   }
 
+  // Skip recording empty/unknown task entries — they bloat state.json
+  const hasContent = agentName !== 'unknown' || summary.trim().length > 0;
+
   // Create agent key (replace hyphens with underscores for JSON)
   const agentKey = agentName.replace(/-/g, '_');
 
   // === Update Decisions File (Context Protocol 2.0) ===
-  const decisionsFile = getDecisionsFile();
-  const decisionsDir = dirname(decisionsFile);
-  ensureDir(decisionsDir);
+  // Only write decisions for identified agents with output
+  if (hasContent) {
+    const decisionsFile = getDecisionsFile();
+    const decisionsDir = dirname(decisionsFile);
+    ensureDir(decisionsDir);
 
-  const defaultDecisions: DecisionsFile = {
-    schema_version: '2.0.0',
-    decisions: {},
-  };
+    const defaultDecisions: DecisionsFile = {
+      schema_version: '2.0.0',
+      decisions: {},
+    };
 
-  const decisions = readJsonFile(decisionsFile, defaultDecisions);
+    const decisions = readJsonFile(decisionsFile, defaultDecisions);
 
-  // Ensure decisions object exists (defensive against old schema versions)
-  if (!decisions.decisions || typeof decisions.decisions !== 'object') {
-    decisions.decisions = {};
+    // Ensure decisions object exists (defensive against old schema versions)
+    if (!decisions.decisions || typeof decisions.decisions !== 'object') {
+      decisions.decisions = {};
+    }
+
+    const decisionEntry: DecisionEntry = {
+      timestamp,
+      agent: agentName,
+      summary,
+      status: 'completed',
+    };
+
+    decisions.decisions[agentKey] = decisionEntry;
+    writeJsonFile(decisionsFile, decisions);
   }
-
-  const decisionEntry: DecisionEntry = {
-    timestamp,
-    agent: agentName,
-    summary,
-    status: 'completed',
-  };
-
-  decisions.decisions[agentKey] = decisionEntry;
-  writeJsonFile(decisionsFile, decisions);
 
   // === Update Session State (Context Protocol 2.0) ===
   const sessionStateFile = getSessionState();
@@ -161,13 +174,22 @@ export function contextPublisher(input: HookInput): HookResult {
     sessionState.tasks_pending = [];
   }
 
-  const taskEntry: TaskEntry = {
-    agent: agentName,
-    timestamp,
-    summary,
-  };
+  // Only record tasks with meaningful content (fixes #449: empty entries bloat)
+  if (hasContent) {
+    const taskEntry: TaskEntry = {
+      agent: agentName,
+      timestamp,
+      summary,
+    };
 
-  sessionState.tasks_completed.push(taskEntry);
+    sessionState.tasks_completed.push(taskEntry);
+
+    // Cap array size — keep most recent entries (fixes #449: unbounded growth)
+    if (sessionState.tasks_completed.length > MAX_COMPLETED_TASKS) {
+      sessionState.tasks_completed = sessionState.tasks_completed.slice(-MAX_COMPLETED_TASKS);
+    }
+  }
+
   sessionState.last_activity = timestamp;
   sessionState.active_agent = null;
 
@@ -183,7 +205,7 @@ export function contextPublisher(input: HookInput): HookResult {
   const logContent = `=== CONTEXT PUBLICATION (Protocol 2.0) ===
 Agent: ${agentName}
 Timestamp: ${timestamp}
-Decisions file: ${decisionsFile}
+Decisions file: ${getDecisionsFile()}
 Session state: ${sessionStateFile}
 
 === AGENT OUTPUT ===

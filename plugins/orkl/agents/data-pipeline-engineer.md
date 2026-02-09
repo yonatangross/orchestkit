@@ -2,7 +2,7 @@
 name: data-pipeline-engineer
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
 category: data
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project

@@ -2,7 +2,7 @@
 name: backend-system-architect
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection
 category: backend
-model: opus
+model: sonnet
 context: fork
 color: yellow
 memory: project
@@ -23,33 +23,19 @@ skills:
   - api-design-framework
   - api-versioning
   - database-schema-designer
-  - grpc-python
-  - strawberry-graphql
   - error-handling-rfc9457
   - rate-limiting
   - architecture-decision-record
   - backend-architecture-enforcer
   - owasp-top-10
-  - streaming-api-patterns
   - observability-monitoring
-  - performance-optimization
-  - devops-deployment
-  - golden-dataset-management
-  - edge-computing-patterns
-  - github-operations
-  - resilience-patterns
-  - langgraph-supervisor
-  - mcp-server-building
   - caching-strategies
   - auth-patterns
-  - asyncio-advanced
   - sqlalchemy-2-async
   - fastapi-advanced
-  - connection-pooling
   - idempotency-patterns
   - domain-driven-design
   - aggregate-patterns
-  - distributed-locks
   - task-dependency-patterns
   - remember
   - memory

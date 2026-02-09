@@ -2,7 +2,7 @@
 name: frontend-ui-developer
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: purple
 memory: project
@@ -24,32 +24,18 @@ skills:
   - type-safety-validation
   - unit-testing
   - e2e-testing
-  - webapp-testing
-  - i18n-date-patterns
-  - motion-animation-patterns
   - a11y-testing
   - focus-management
   - render-optimization
-  - shadcn-patterns
-  - radix-primitives
   - biome-linting
-  - vite-advanced
   - zustand-patterns
   - tanstack-query-advanced
   - form-state-patterns
   - core-web-vitals
-  - image-optimization
-  - react-aria-patterns
   - wcag-compliance
-  - lazy-loading-patterns
-  - view-transitions
-  - scroll-driven-animations
-  - responsive-patterns
-  - pwa-patterns
-  - recharts-patterns
-  - dashboard-patterns
-  - edge-computing-patterns
-  - streaming-api-patterns
+  - project-structure-enforcer
+  - performance-optimization
+  - stacked-prs
   - task-dependency-patterns
   - remember
   - memory
@@ -469,13 +455,11 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
 |e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
 |focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
 |wcag-compliance:{SKILL.md,references/{wcag-criteria.md}}|accessibility,wcag,a11y,aria,screen-reader,compliance
-|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints
-|edge-computing-patterns:{SKILL.md,references/{cloudflare-workers.md,runtime-differences.md,vercel-edge.md}}|edge,cloudflare,vercel,deno,serverless,2025
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
+|performance-optimization:{SKILL.md,references/{caching-strategies.md,core-web-vitals.md,database-optimization.md,frontend-performance.md,profiling.md}}|performance,optimization,profiling,caching
+|stacked-prs:{SKILL.md,references/{stack-management.md}}|git,pull-request,stacked,workflow,code-review
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

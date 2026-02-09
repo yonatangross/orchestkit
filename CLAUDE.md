@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **199 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **111 hooks**: TypeScript lifecycle automation (83 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
+- **97 hooks**: TypeScript lifecycle automation (69 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -169,7 +169,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-111 hook entries (83 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+97 hook entries (69 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -237,7 +237,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | `ork-creative` | 16 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
 | `ork` | 199 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
-All plugins include 111 hooks and all memory skills (remember, memory, memory-fabric, mem0-memory).
+All plugins include 97 hooks and all memory skills (remember, memory, memory-fabric, mem0-memory).
 
 ### Environment Variables
 ```bash
@@ -269,6 +269,6 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 - **Current**: 6.0.3
 - **Claude Code**: >= 2.1.34
-- **Hooks**: 111 entries (83 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 7 fire-and-forget dispatchers)
+- **Hooks**: 97 entries (69 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

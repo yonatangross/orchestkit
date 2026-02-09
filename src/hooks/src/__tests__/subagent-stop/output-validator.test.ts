@@ -56,6 +56,7 @@ function createSubagentStopInput(
     session_id: 'test-session-ov',
     tool_input: {},
     agent_output: agentOutput,
+    subagent_type: 'test-agent',
     ...overrides,
   };
 }
@@ -69,7 +70,6 @@ describe('output-validator', () => {
     vi.clearAllMocks();
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    process.env.CLAUDE_AGENT_NAME = 'test-agent';
   });
 
   // ---------------------------------------------------------------------------
@@ -264,14 +264,10 @@ describe('output-validator', () => {
   // ---------------------------------------------------------------------------
 
   describe('check 4: JSON validation (backend-system-architect)', () => {
-    beforeEach(() => {
-      process.env.CLAUDE_AGENT_NAME = 'backend-system-architect';
-    });
-
     test('warns for malformed JSON in output', () => {
       // Arrange
       const badJson = 'A'.repeat(60) + ' {"name": "test" invalid}';
-      const input = createSubagentStopInput(badJson);
+      const input = createSubagentStopInput(badJson, { subagent_type: 'backend-system-architect' });
 
       // Act
       const result = outputValidator(input);
@@ -284,7 +280,7 @@ describe('output-validator', () => {
     test('no warning for valid JSON', () => {
       // Arrange
       const validJson = 'A'.repeat(60) + ' {"name": "test"}';
-      const input = createSubagentStopInput(validJson);
+      const input = createSubagentStopInput(validJson, { subagent_type: 'backend-system-architect' });
 
       // Act
       const result = outputValidator(input);
@@ -296,9 +292,8 @@ describe('output-validator', () => {
 
     test('no JSON check for non-backend agents', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'test-generator';
       const badJson = 'A'.repeat(60) + ' {"name": "test" invalid}';
-      const input = createSubagentStopInput(badJson);
+      const input = createSubagentStopInput(badJson, { subagent_type: 'test-generator' });
 
       // Act
       const result = outputValidator(input);
@@ -311,7 +306,7 @@ describe('output-validator', () => {
     test('no JSON check when no braces in output', () => {
       // Arrange
       const noJson = 'A'.repeat(100) + ' API design complete';
-      const input = createSubagentStopInput(noJson);
+      const input = createSubagentStopInput(noJson, { subagent_type: 'backend-system-architect' });
 
       // Act
       const result = outputValidator(input);
@@ -340,8 +335,7 @@ describe('output-validator', () => {
 
     test('includes agent name', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'my-agent';
-      const input = createSubagentStopInput('A'.repeat(100));
+      const input = createSubagentStopInput('A'.repeat(100), { subagent_type: 'my-agent' });
 
       // Act
       const result = outputValidator(input);
@@ -463,8 +457,7 @@ describe('output-validator', () => {
 
     test('log file path includes agent name', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'custom-agent';
-      const input = createSubagentStopInput('A'.repeat(100));
+      const input = createSubagentStopInput('A'.repeat(100), { subagent_type: 'custom-agent' });
 
       // Act
       outputValidator(input);
@@ -523,8 +516,7 @@ describe('output-validator', () => {
   describe('edge cases', () => {
     test('handles unknown agent name', () => {
       // Arrange
-      delete process.env.CLAUDE_AGENT_NAME;
-      const input = createSubagentStopInput('A'.repeat(100));
+      const input = createSubagentStopInput('A'.repeat(100), { subagent_type: undefined });
 
       // Act
       const result = outputValidator(input);
@@ -622,10 +614,9 @@ describe('output-validator', () => {
 
     test('multiple warnings are accumulated', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'backend-system-architect';
       // Need output with: short length + error keyword + malformed JSON
       // The regex /\{[^}]*\}/ requires { content } pattern
-      const input = createSubagentStopInput('error {bad json}');
+      const input = createSubagentStopInput('error {bad json}', { subagent_type: 'backend-system-architect' });
 
       // Act
       const result = outputValidator(input);

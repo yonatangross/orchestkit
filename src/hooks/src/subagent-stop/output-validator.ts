@@ -30,7 +30,7 @@ function getLogDir(): string {
 // -----------------------------------------------------------------------------
 
 export function outputValidator(input: HookInput): HookResult {
-  const agentName = process.env.CLAUDE_AGENT_NAME || 'unknown';
+  const agentName = input.subagent_type || input.agent_type || 'unknown';
   const timestamp = new Date().toISOString();
 
   // Read agent output

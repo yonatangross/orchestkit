@@ -645,7 +645,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "event-driven-architect",
       "python-performance-engineer"
     ]
@@ -1516,7 +1515,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "python-performance-engineer"
     ]
   },
@@ -1850,9 +1848,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "database-schema-designer": {
     "name": "database-schema-designer",
@@ -2093,7 +2089,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "ci-cd-engineer",
       "data-pipeline-engineer",
       "deployment-manager",
@@ -2136,9 +2131,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": [
-      "backend-system-architect"
-    ]
+    "relatedAgents": []
   },
   "doctor": {
     "name": "doctor",
@@ -2331,10 +2324,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": [
-      "backend-system-architect",
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "elevenlabs-narration": {
     "name": "elevenlabs-narration",
@@ -3015,7 +3005,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "business-case-builder",
       "ci-cd-engineer",
       "deployment-manager",
@@ -3101,7 +3090,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "data-pipeline-engineer"
     ]
   },
@@ -3180,9 +3168,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "backend-system-architect"
-    ]
+    "relatedAgents": []
   },
   "help": {
     "name": "help",
@@ -3343,8 +3329,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist",
-      "frontend-ui-developer"
+      "accessibility-specialist"
     ]
   },
   "idempotency-patterns": {
@@ -3432,7 +3417,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "frontend-ui-developer",
       "performance-engineer"
     ]
   },
@@ -3978,7 +3962,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "workflow-architect"
     ]
   },
@@ -4046,7 +4029,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "frontend-ui-developer",
       "performance-engineer"
     ]
   },
@@ -4386,9 +4368,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "backend-system-architect"
-    ]
+    "relatedAgents": []
   },
   "mem0-memory": {
     "name": "mem0-memory",
@@ -4663,7 +4643,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "accessibility-specialist",
-      "frontend-ui-developer",
       "rapid-ui-designer"
     ]
   },
@@ -5111,8 +5090,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "database-engineer",
+      "frontend-ui-developer",
       "system-design-reviewer"
     ]
   },
@@ -5394,7 +5373,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "code-quality-reviewer"
+      "code-quality-reviewer",
+      "frontend-ui-developer"
     ]
   },
   "prompt-caching": {
@@ -5534,9 +5514,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "pytest-advanced": {
     "name": "pytest-advanced",
@@ -5688,7 +5666,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "frontend-ui-developer",
       "rapid-ui-designer"
     ]
   },
@@ -5801,8 +5778,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "accessibility-specialist",
-      "frontend-ui-developer"
+      "accessibility-specialist"
     ]
   },
   "react-server-components-framework": {
@@ -5884,9 +5860,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "release-management": {
     "name": "release-management",
@@ -6192,7 +6166,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "code-quality-reviewer",
       "deployment-manager",
       "event-driven-architect",
@@ -6230,9 +6203,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "review-pr": {
     "name": "review-pr",
@@ -6448,9 +6419,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "security-scanning": {
     "name": "security-scanning",
@@ -6570,7 +6539,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "frontend-ui-developer",
       "rapid-ui-designer"
     ]
   },
@@ -6744,6 +6712,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
+      "frontend-ui-developer",
       "git-operations-engineer"
     ]
   },
@@ -6789,9 +6758,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "backend-system-architect"
-    ]
+    "relatedAgents": []
   },
   "streaming-api-patterns": {
     "name": "streaming-api-patterns",
@@ -6826,9 +6793,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "backend-system-architect",
       "event-driven-architect",
-      "frontend-ui-developer",
       "llm-integrator",
       "multimodal-specialist"
     ]
@@ -7494,9 +7459,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork"
     ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
+    "relatedAgents": []
   },
   "vision-language-models": {
     "name": "vision-language-models",
@@ -7577,7 +7540,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "ci-cd-engineer",
-      "frontend-ui-developer",
       "performance-engineer"
     ]
   },
@@ -7696,7 +7658,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "code-quality-reviewer",
-      "frontend-ui-developer",
       "test-generator"
     ]
   },

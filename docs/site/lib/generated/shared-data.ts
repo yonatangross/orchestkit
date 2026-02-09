@@ -7,7 +7,7 @@ export const TOTALS: Totals = {
   "plugins": 3,
   "skills": 199,
   "agents": 36,
-  "hooks": 111,
+  "hooks": 97,
   "commands": 24,
   "compositions": 14
 };
@@ -20,7 +20,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -40,7 +40,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "opus",
+    "model": "sonnet",
     "category": "backend"
   },
   {
@@ -50,7 +50,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -60,7 +60,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "devops"
   },
   {
@@ -70,7 +70,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "testing"
   },
   {
@@ -80,7 +80,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "data"
   },
   {
@@ -90,7 +90,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "backend"
   },
   {
@@ -100,7 +100,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "testing"
   },
   {
@@ -121,7 +121,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -131,7 +131,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "development"
   },
   {
@@ -151,7 +151,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -161,7 +161,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "development"
   },
   {
@@ -171,7 +171,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "opus",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -181,7 +181,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "ai"
   },
   {
@@ -191,7 +191,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -201,7 +201,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "opus",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -211,7 +211,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "devops"
   },
   {
@@ -221,7 +221,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "ai"
   },
   {
@@ -231,7 +231,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -241,7 +241,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "product"
   },
   {
@@ -251,7 +251,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "product"
   },
   {
@@ -261,7 +261,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "ai"
   },
   {
@@ -271,7 +271,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "opus",
+    "model": "sonnet",
     "category": "backend"
   },
   {
@@ -281,7 +281,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "frontend"
   },
   {
@@ -291,7 +291,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "devops"
   },
   {
@@ -301,7 +301,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "haiku",
     "category": "product"
   },
   {
@@ -341,7 +341,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "testing"
   },
   {
@@ -351,7 +351,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "frontend"
   },
   {
@@ -361,7 +361,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "inherit",
+    "model": "sonnet",
     "category": "research"
   },
   {

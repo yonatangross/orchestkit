@@ -2,7 +2,7 @@
 name: frontend-ui-developer
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: purple
 memory: project
@@ -24,32 +24,18 @@ skills:
   - type-safety-validation
   - unit-testing
   - e2e-testing
-  - webapp-testing
-  - i18n-date-patterns
-  - motion-animation-patterns
   - a11y-testing
   - focus-management
   - render-optimization
-  - shadcn-patterns
-  - radix-primitives
   - biome-linting
-  - vite-advanced
   - zustand-patterns
   - tanstack-query-advanced
   - form-state-patterns
   - core-web-vitals
-  - image-optimization
-  - react-aria-patterns
   - wcag-compliance
-  - lazy-loading-patterns
-  - view-transitions
-  - scroll-driven-animations
-  - responsive-patterns
-  - pwa-patterns
-  - recharts-patterns
-  - dashboard-patterns
-  - edge-computing-patterns
-  - streaming-api-patterns
+  - project-structure-enforcer
+  - performance-optimization
+  - stacked-prs
   - task-dependency-patterns
   - remember
   - memory

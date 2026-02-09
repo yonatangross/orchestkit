@@ -53,6 +53,11 @@ import { skillTracker } from '../pretool/skill/skill-tracker.js';
 // PreTool/Task hooks (1) — Agent Teams
 import { teamSizeGate } from '../pretool/task/team-size-gate.js';
 
+// Unified dispatchers (3) — consolidate sequential hooks into single process
+import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
+import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
+import { unifiedAgentSafetyDispatcher } from '../pretool/task/unified-agent-safety-dispatcher.js';
+
 import type { HookFn } from '../types.js';
 
 /**
@@ -100,6 +105,11 @@ export const hooks: Record<string, HookFn> = {
 
   // PreTool/Task hooks (1) — Agent Teams
   'pretool/task/team-size-gate': teamSizeGate,
+
+  // Unified dispatchers (3) — consolidate sequential hooks into single process
+  'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,
+  'pretool/write-edit/unified-quality-dispatcher': unifiedWriteEditQualityDispatcher,
+  'pretool/task/unified-agent-safety-dispatcher': unifiedAgentSafetyDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

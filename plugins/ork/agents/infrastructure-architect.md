@@ -2,7 +2,7 @@
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC
 category: devops
-model: opus
+model: sonnet
 context: fork
 color: cyan
 memory: project
