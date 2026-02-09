@@ -279,6 +279,53 @@ extract_memory_id() {
     fi
 }
 
+# Helper: add 3 diverse memories with --no-infer for deterministic batch tests.
+# Usage: add_batch_memories <user_id_suffix>
+# Sets globals: BATCH_RESULT_IDS (array), BATCH_RESULT_SUCCESS (true/false)
+add_batch_memories() {
+    local suffix="$1"
+    BATCH_RESULT_IDS=()
+    BATCH_RESULT_SUCCESS=true
+
+    local u1 u2 u3
+    u1=$(make_unique)
+    u2=$(make_unique)
+    u3=$(make_unique)
+
+    local texts=(
+        "The Nile River stretches over 6650 kilometers from Burundi to the Mediterranean Sea in Egypt [ref:${u1}]"
+        "Sodium chloride dissolves in water because polar H2O molecules pull apart Na+ and Cl- ions [ref:${u2}]"
+        "Johann Sebastian Bach composed the Well-Tempered Clavier as 48 preludes and fugues in all keys [ref:${u3}]"
+    )
+
+    for i in 0 1 2; do
+        local output
+        output=$(python3 "$CRUD_DIR/add-memory.py" \
+            --text "Note ${TEST_PREFIX} ${suffix} $((i+1)): ${texts[$i]}" \
+            --user-id "${TEST_PREFIX}-${suffix}" \
+            --no-infer 2>&1)
+
+        if [[ $? -ne 0 ]]; then
+            BATCH_RESULT_SUCCESS=false
+            break
+        fi
+
+        local mem_id
+        mem_id=$(echo "$output" | jq -r '
+            .memory_id //
+            .result.results[0].id //
+            .result.results[0].memory_id //
+            .result[0].id //
+            .result[0].memory_id //
+            empty
+        ' 2>/dev/null)
+        if [[ -n "$mem_id" && "$mem_id" != "null" ]]; then
+            BATCH_RESULT_IDS+=("$mem_id")
+            CREATED_MEMORY_IDS+=("$mem_id")
+        fi
+    done
+}
+
 # =============================================================================
 # Test 1: API Connectivity
 # =============================================================================
@@ -421,42 +468,9 @@ echo "--- Batch Operations ---"
 
 test_start "test_batch_operations"
 
-BATCH_IDS=()
-BATCH_SUCCESS=true
-
-# Add 3 memories with --no-infer to disable semantic dedup, ensuring deterministic counts
-BATCH_U1=$(make_unique)
-BATCH_U2=$(make_unique)
-BATCH_U3=$(make_unique)
-BATCH_TEXTS=(
-    "The French Revolution of 1789 overthrew the monarchy and established the First Republic under Robespierre [ref:${BATCH_U1}]"
-    "Photosynthesis converts carbon dioxide and water into glucose using chlorophyll in plant chloroplasts [ref:${BATCH_U2}]"
-    "TCP three-way handshake uses SYN SYN-ACK ACK packets to establish reliable network connections [ref:${BATCH_U3}]"
-)
-for i in 0 1 2; do
-    OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-        --text "Note ${TEST_PREFIX} batch $((i+1)): ${BATCH_TEXTS[$i]}" \
-        --user-id "${TEST_PREFIX}-batch" \
-        --no-infer 2>&1)
-
-    if [[ $? -ne 0 ]]; then
-        BATCH_SUCCESS=false
-        break
-    fi
-
-    MEM_ID=$(echo "$OUTPUT" | jq -r '
-        .memory_id //
-        .result.results[0].id //
-        .result.results[0].memory_id //
-        .result[0].id //
-        .result[0].memory_id //
-        empty
-    ' 2>/dev/null)
-    if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
-        BATCH_IDS+=("$MEM_ID")
-        CREATED_MEMORY_IDS+=("$MEM_ID")
-    fi
-done
+add_batch_memories "batch"
+BATCH_IDS=("${BATCH_RESULT_IDS[@]}")
+BATCH_SUCCESS=$BATCH_RESULT_SUCCESS
 
 if [[ "$BATCH_SUCCESS" == "true" ]]; then
     # Retry get until at least 3 memories indexed
@@ -1129,42 +1143,9 @@ BATCH_DIR="$SCRIPTS_DIR/batch"
 BATCH_DELETE_SCRIPT="$BATCH_DIR/batch-delete.py"
 
 if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
-    # Add 3 memories for batch deletion with --no-infer to disable semantic dedup
-    BD_IDS=()
-    BD_ADD_SUCCESS=true
-    BD_U1=$(make_unique)
-    BD_U2=$(make_unique)
-    BD_U3=$(make_unique)
-    BD_TEXTS=(
-        "Mozart composed Symphony No. 40 in G minor during the summer of 1788 in Vienna [ref:${BD_U1}]"
-        "Mitochondria generate ATP through oxidative phosphorylation across the inner membrane [ref:${BD_U2}]"
-        "Dijkstra algorithm finds shortest paths in weighted directed graphs using a priority queue [ref:${BD_U3}]"
-    )
-
-    for i in 0 1 2; do
-        OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
-            --text "Note ${TEST_PREFIX} delete $((i+1)): ${BD_TEXTS[$i]}" \
-            --user-id "${TEST_PREFIX}-batchdel" \
-            --no-infer 2>&1)
-
-        if [[ $? -ne 0 ]]; then
-            BD_ADD_SUCCESS=false
-            break
-        fi
-
-        MEM_ID=$(echo "$OUTPUT" | jq -r '
-            .memory_id //
-            .result.results[0].id //
-            .result.results[0].memory_id //
-            .result[0].id //
-            .result[0].memory_id //
-            empty
-        ' 2>/dev/null)
-        if [[ -n "$MEM_ID" && "$MEM_ID" != "null" ]]; then
-            BD_IDS+=("$MEM_ID")
-            CREATED_MEMORY_IDS+=("$MEM_ID")
-        fi
-    done
+    add_batch_memories "batchdel"
+    BD_IDS=("${BATCH_RESULT_IDS[@]}")
+    BD_ADD_SUCCESS=$BATCH_RESULT_SUCCESS
 
     # Wait for all 3 to be indexed before proceeding
     if [[ "$BD_ADD_SUCCESS" == "true" ]]; then

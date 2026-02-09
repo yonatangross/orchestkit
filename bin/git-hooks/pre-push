@@ -236,6 +236,8 @@ CI_UNIT_TESTS=(
   tests/unit/test-pii-validation.sh
   tests/unit/test-evolution-engine.sh
   tests/unit/test-version-manager.sh
+  # Pre-push hook tests
+  tests/unit/test-pre-push-hook.sh
 )
 
 UNIT_TEST_ERRORS=0

@@ -367,6 +367,7 @@ jobs:
         run: pip install -r src/skills/mem0-memory/scripts/requirements.txt
 
       - name: Run mem0 tests
+        id: mem0-run
         shell: bash
         env:
           MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
@@ -374,7 +375,15 @@ jobs:
           MEM0_PROJECT_ID: ${{ secrets.MEM0_PROJECT_ID }}
         run: |
           export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash scripts/ci/run-tests.sh tests/mem0 --verbose
+          bash scripts/ci/run-tests.sh tests/mem0 --verbose 2>&1 | tee mem0-test-output.log
+
+      - name: Upload mem0 test logs
+        if: failure()
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4
+        with:
+          name: mem0-test-logs-${{ matrix.os }}
+          path: mem0-test-output.log
+          retention-days: 7
 
   # ============================================================================
   # STAGE 7: Agent & Skill Validation
@@ -557,7 +566,7 @@ jobs:
 
           # Report mem0 status separately (informational, not blocking)
           if [[ "${{ needs.mem0-tests.result }}" == "failure" ]]; then
-            echo "::warning::Mem0 integration tests had failures (non-blocking — cloud API dedup/consistency)"
+            echo "::warning::Mem0 integration tests had failures (non-blocking). Check mem0-test-logs artifacts for details."
           fi
 
           if [[ "$FAILED" == "1" ]]; then
