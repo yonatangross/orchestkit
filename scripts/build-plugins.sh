@@ -106,7 +106,11 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[2/10] Cleaning previous build...${NC}"
 
-rm -rf "$PLUGINS_DIR"
+# Clean contents but keep the directory — rm -rf on the dir itself fails
+# on macOS when com.apple.provenance extended attribute is set (sandbox).
+if [[ -d "$PLUGINS_DIR" ]]; then
+  find "$PLUGINS_DIR" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null || true
+fi
 mkdir -p "$PLUGINS_DIR"
 echo -e "${GREEN}  Cleaned plugins/ directory${NC}"
 echo ""
