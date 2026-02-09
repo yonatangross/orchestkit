@@ -7,7 +7,7 @@
  */
 
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, logHook, getProjectDir } from '../lib/common.js';
+import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
 import { basename } from 'node:path';
 
 // Keywords that suggest implementation work where antipatterns matter
@@ -104,8 +104,5 @@ python3 ${scriptPath} --query "${matchedKeyword} failed" --user-id "${projectUse
 \`\`\`
 Or check global: --user-id "${globalUserId}"`;
 
-  return {
-    continue: true,
-    systemMessage: systemMsg,
-  };
+  return outputPromptContext(systemMsg);
 }
