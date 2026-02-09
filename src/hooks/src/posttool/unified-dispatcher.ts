@@ -15,6 +15,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
 // Import individual hook implementations
 import { sessionMetrics } from './session-metrics.js';
@@ -131,6 +132,18 @@ export function matchesTool(toolName: string, matcher: string | string[]): boole
  */
 export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
   const toolName = input.tool_name || '';
+
+  // Cross-project skill tracking (Issue #459)
+  if (toolName === 'Skill') {
+    const skillName = (input.tool_input?.skill as string) || '';
+    if (skillName) {
+      appendAnalytics('skill-usage.jsonl', {
+        ts: new Date().toISOString(),
+        pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+        skill: skillName,
+      });
+    }
+  }
 
   // Filter hooks that match this tool
   const matchingHooks = HOOKS.filter(h => matchesTool(toolName, h.matcher));

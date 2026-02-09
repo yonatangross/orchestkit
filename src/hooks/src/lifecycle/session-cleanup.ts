@@ -11,6 +11,7 @@ import { homedir } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -304,6 +305,14 @@ export function sessionCleanup(input: HookInput): HookResult {
       ? `Cleaned team "${teamName}" directories`
       : `Warning: partial cleanup for team "${teamName}"`);
   }
+
+  // Cross-project session summary (Issue #459)
+  const totalTools = getTotalTools(metricsFile);
+  appendAnalytics('session-summary.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(projectDir),
+    total_tools: totalTools,
+  });
 
   logHook('session-cleanup', 'Session cleanup complete');
 

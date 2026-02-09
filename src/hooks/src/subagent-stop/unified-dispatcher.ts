@@ -11,6 +11,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
+import { appendAnalytics, hashProject } from '../lib/analytics.js';
 
 // Import individual hook implementations
 import { contextPublisher } from './context-publisher.js';
@@ -73,6 +74,16 @@ function trackAgentResult(input: HookInput): void {
         has_error: !!input.error,
       },
       context: input.agent_id,
+    });
+
+    // Cross-project analytics (Issue #459)
+    appendAnalytics('agent-usage.jsonl', {
+      ts: new Date().toISOString(),
+      pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+      agent: agentType,
+      duration_ms: durationMs,
+      success,
+      output_len: outputLength,
     });
   } catch {
     // Silent failure - tracking should never break hooks
