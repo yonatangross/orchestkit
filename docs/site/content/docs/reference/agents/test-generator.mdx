@@ -71,6 +71,13 @@ Don't over-mock - test real interactions where possible.
 Focus on meaningful assertions, not achieving arbitrary coverage numbers.
 &lt;/avoid_overengineering&gt;
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Start writing test fixtures immediately — don't wait for full implementation.
+- Write integration tests incrementally as API contracts arrive from `backend-architect` and `frontend-dev`.
+- Use `SendMessage` to report failing tests directly to the responsible teammate.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`

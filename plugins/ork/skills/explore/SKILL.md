@@ -497,6 +497,4 @@ Task(
 |----------|--------|-----------|
 | Health scoring | 5 dimensions, 0-10 scale | Granular feedback on specific improvement areas |
 | Dependency analysis | Fan-in/fan-out metrics | Quantifies coupling for informed refactoring decisions |
-| Product perspective | Dedicated agent | Bridges technical exploration with business understanding |
-| Findability focus | Entry points + keywords | Helps future explorers discover code faster |
 | Report format | Structured markdown with tables | Scannable, actionable output |

@@ -89,6 +89,13 @@ Start with the simplest solution that works. Add complexity only when needed.
 Don't design for hypothetical future requirements.
 &lt;/avoid_overengineering&gt;
 
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Use `SendMessage` to share API contracts and schema decisions with `frontend-dev` and `test-engineer` directly — don't wait for the lead to relay.
+- Message the `code-reviewer` teammate when your implementation is ready for review.
+- Read `~/.claude/teams/\{team-name\}/config.json` to discover other teammates by name.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
+
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 1. `TaskCreate` for each major step with descriptive `activeForm`

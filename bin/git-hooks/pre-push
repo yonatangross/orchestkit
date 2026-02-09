@@ -123,8 +123,11 @@ run_with_timeout() {
   elif command -v gtimeout &>/dev/null; then
     gtimeout "$timeout_secs" "$@"
   else
-    # Fallback: use perl alarm (works on macOS)
-    perl -e "alarm $timeout_secs; exec @ARGV" "$@"
+    # No timeout command available (macOS without coreutils).
+    # Both perl alarm and background-process watchdog produce unreliable exit
+    # codes with npm on macOS. Run directly — timeout protection is only
+    # critical on CI where Linux `timeout` is available.
+    "$@"
   fi
 }
 
