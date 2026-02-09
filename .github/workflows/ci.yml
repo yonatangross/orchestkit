@@ -338,7 +338,7 @@ jobs:
     needs: [build-plugins]
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
-    continue-on-error: true  # mem0 cloud API has aggressive dedup + eventual consistency; don't block PRs
+    continue-on-error: true  # mem0 cloud API availability/rate limits; dedup handled via --no-infer
     strategy:
       fail-fast: false
       matrix:

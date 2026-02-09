@@ -424,8 +424,7 @@ test_start "test_batch_operations"
 BATCH_IDS=()
 BATCH_SUCCESS=true
 
-# Add 3 memories — texts must be radically different domains AND contain unique tokens
-# to avoid mem0 semantic dedup across parallel CI runners sharing the same project
+# Add 3 memories with --no-infer to disable semantic dedup, ensuring deterministic counts
 BATCH_U1=$(make_unique)
 BATCH_U2=$(make_unique)
 BATCH_U3=$(make_unique)
@@ -435,11 +434,10 @@ BATCH_TEXTS=(
     "TCP three-way handshake uses SYN SYN-ACK ACK packets to establish reliable network connections [ref:${BATCH_U3}]"
 )
 for i in 0 1 2; do
-    # Sleep between adds to avoid race conditions in mem0's dedup engine
-    [[ $i -gt 0 ]] && sleep 2
     OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
         --text "Note ${TEST_PREFIX} batch $((i+1)): ${BATCH_TEXTS[$i]}" \
-        --user-id "${TEST_PREFIX}-batch" 2>&1)
+        --user-id "${TEST_PREFIX}-batch" \
+        --no-infer 2>&1)
 
     if [[ $? -ne 0 ]]; then
         BATCH_SUCCESS=false
@@ -468,9 +466,8 @@ if [[ "$BATCH_SUCCESS" == "true" ]]; then
         COUNT=$RETRY_COUNT
     fi
 
-    # mem0 cloud aggressively dedupes even unrelated texts at project level.
-    # Accept >= 2 as success (proves batch API works; dedup is legitimate behavior).
-    if [[ "$COUNT" -ge 2 ]]; then
+    # With --no-infer, dedup is disabled so all 3 memories are stored deterministically.
+    if [[ "$COUNT" -ge 3 ]]; then
         # Delete all batch memories
         DELETE_SUCCESS=true
         for mem_id in "${BATCH_IDS[@]}"; do
@@ -495,7 +492,7 @@ if [[ "$BATCH_SUCCESS" == "true" ]]; then
             test_fail "Some batch deletions failed"
         fi
     else
-        test_fail "Expected at least 2 memories after batch add, got $COUNT"
+        test_fail "Expected at least 3 memories after batch add, got $COUNT"
     fi
 else
     test_fail "Failed to add batch memories"
@@ -1132,7 +1129,7 @@ BATCH_DIR="$SCRIPTS_DIR/batch"
 BATCH_DELETE_SCRIPT="$BATCH_DIR/batch-delete.py"
 
 if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
-    # Add 3 memories for batch deletion — radically different domains + unique tokens to avoid dedup
+    # Add 3 memories for batch deletion with --no-infer to disable semantic dedup
     BD_IDS=()
     BD_ADD_SUCCESS=true
     BD_U1=$(make_unique)
@@ -1145,10 +1142,10 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
     )
 
     for i in 0 1 2; do
-        [[ $i -gt 0 ]] && sleep 2
         OUTPUT=$(python3 "$CRUD_DIR/add-memory.py" \
             --text "Note ${TEST_PREFIX} delete $((i+1)): ${BD_TEXTS[$i]}" \
-            --user-id "${TEST_PREFIX}-batchdel" 2>&1)
+            --user-id "${TEST_PREFIX}-batchdel" \
+            --no-infer 2>&1)
 
         if [[ $? -ne 0 ]]; then
             BD_ADD_SUCCESS=false
@@ -1177,8 +1174,8 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
         fi
     fi
 
-    # mem0 dedup may reduce 3 adds to 2 IDs — accept >= 2
-    if [[ "$BD_ADD_SUCCESS" == "true" && ${#BD_IDS[@]} -ge 2 ]]; then
+    # With --no-infer, dedup is disabled so all 3 IDs should be captured.
+    if [[ "$BD_ADD_SUCCESS" == "true" && ${#BD_IDS[@]} -ge 3 ]]; then
         # Build JSON array of IDs
         BD_JSON=$(printf '%s\n' "${BD_IDS[@]}" | jq -R . | jq -s .)
 
@@ -1215,8 +1212,7 @@ if [[ -f "$BATCH_DELETE_SCRIPT" ]]; then
             fi
         fi
     elif [[ "$BD_ADD_SUCCESS" == "true" ]]; then
-        echo "    [dedup] mem0 deduped batch memories — only ${#BD_IDS[@]} IDs captured. CRUD tests verify core API."
-        test_pass
+        test_fail "Expected at least 3 IDs with --no-infer, got ${#BD_IDS[@]}"
     else
         test_fail "Failed to add memories for batch delete test"
     fi

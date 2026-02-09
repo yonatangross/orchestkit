@@ -33,6 +33,8 @@ def main():
     parser.add_argument("--api-key", help="Mem0 API key (or use MEM0_API_KEY env)")
     parser.add_argument("--org-id", help="Org ID (or use MEM0_ORG_ID env)")
     parser.add_argument("--project-id", help="Project ID (or use MEM0_PROJECT_ID env)")
+    parser.add_argument("--no-infer", action="store_true",
+                        help="Disable semantic inference (stores raw text, skips dedup)")
     args = parser.parse_args()
 
     try:
@@ -47,14 +49,17 @@ def main():
         metadata = json.loads(args.metadata) if args.metadata else {}
 
         # Add memory (sync mode to get memory ID in response)
-        result = client.add(
+        add_kwargs = dict(
             messages=[{"role": "user", "content": args.text}],
             user_id=args.user_id,
             agent_id=args.agent_id,
             metadata=metadata,
             enable_graph=args.enable_graph,
-            async_mode=False
+            async_mode=False,
         )
+        if args.no_infer:
+            add_kwargs["infer"] = False
+        result = client.add(**add_kwargs)
 
         # Extract memory ID from response
         memory_id = None
@@ -69,8 +74,9 @@ def main():
             elif "memory_id" in result:
                 memory_id = result["memory_id"]
 
-        # Fallback: if add returned empty results (dedup/merge), find the memory via get_all
-        if memory_id is None and args.user_id:
+        # Fallback: if add returned empty results (dedup/merge), find the memory via get_all.
+        # Only needed when infer=True (default) since dedup can swallow the response.
+        if memory_id is None and args.user_id and not args.no_infer:
             import time
             time.sleep(1)
             try:
