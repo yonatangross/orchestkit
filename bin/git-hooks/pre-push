@@ -61,7 +61,10 @@ fi
 # ===== Changelog Check =====
 echo -n "  Checking CHANGELOG.md... "
 
-if ! git diff origin/main --name-only 2>/dev/null | grep -q "CHANGELOG.md"; then
+# Note: git diff exits 1 when differences exist; pipefail would break the pipe.
+# Capture output first to avoid pipefail interaction.
+_CL_FILES=$(git diff origin/main --name-only 2>/dev/null </dev/null || true)
+if ! echo "$_CL_FILES" | grep -q "CHANGELOG.md"; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
