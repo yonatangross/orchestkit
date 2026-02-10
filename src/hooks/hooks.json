@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 69 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 70 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
   "hooks": {
     "PreToolUse": [
       {
@@ -83,6 +83,15 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/task/team-size-gate"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs pretool/read/tldr-summary"
           }
         ]
       }
