@@ -15,7 +15,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
-import { appendAnalytics, hashProject } from '../lib/analytics.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 // Import individual hook implementations
 import { sessionMetrics } from './session-metrics.js';
@@ -141,6 +141,7 @@ export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
         ts: new Date().toISOString(),
         pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
         skill: skillName,
+        ...getTeamContext(),
       });
     }
   }

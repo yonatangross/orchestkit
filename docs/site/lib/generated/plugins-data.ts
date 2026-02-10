@@ -13,7 +13,7 @@ export const PLUGINS: Plugin[] = [
     "skillCount": 88,
     "agentCount": 36,
     "hooks": 97,
-    "commandCount": 24,
+    "commandCount": 25,
     "color": "#8b5cf6",
     "required": false,
     "recommended": true,
@@ -79,6 +79,7 @@ export const PLUGINS: Plugin[] = [
     ],
     "commands": [
       "add-golden",
+      "analytics",
       "assess",
       "assess-complexity",
       "audit-full",
@@ -144,14 +145,14 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 199 skills, 36 agents, 97 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 200 skills, 36 agents, 97 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 199,
+    "skillCount": 200,
     "agentCount": 36,
     "hooks": 97,
-    "commandCount": 24,
+    "commandCount": 25,
     "color": "#06b6d4",
     "required": false,
     "recommended": false,
@@ -164,6 +165,7 @@ export const PLUGINS: Plugin[] = [
       "aggregate-patterns",
       "alembic-migrations",
       "alternative-agent-frameworks",
+      "analytics",
       "api-design-framework",
       "api-versioning",
       "architecture-decision-record",
@@ -178,8 +180,7 @@ export const PLUGINS: Plugin[] = [
       "backend-architecture-enforcer",
       "background-jobs",
       "best-practices",
-      "biome-linting",
-      "brainstorming"
+      "biome-linting"
     ],
     "agents": [
       "accessibility-specialist",
@@ -221,6 +222,7 @@ export const PLUGINS: Plugin[] = [
     ],
     "commands": [
       "add-golden",
+      "analytics",
       "assess",
       "assess-complexity",
       "audit-full",

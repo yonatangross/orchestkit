@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **199 skills**: Reusable knowledge modules
+- **200 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **97 hooks**: TypeScript lifecycle automation (69 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 199 skills
+├── skills/             # 200 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -150,7 +150,7 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-199 skills available. 24 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+200 skills available. 25 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
@@ -235,7 +235,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 |--------|--------|--------|-------------|
 | `orkl` | 88 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork-creative` | 16 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
-| `ork` | 199 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
+| `ork` | 200 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
 All plugins include 97 hooks and all memory skills (remember, memory, memory-fabric, mem0-memory).
 

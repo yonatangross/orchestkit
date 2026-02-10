@@ -237,8 +237,9 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
     const analyticsDir = join(homedir(), '.claude', 'analytics');
     mkdirSync(analyticsDir, { recursive: true });
     const pid = createHash('sha256').update(projectDir).digest('hex').slice(0, 12);
+    const team = process.env.CLAUDE_CODE_TEAM_NAME || undefined;
     appendFileSync(join(analyticsDir, 'hook-timing.jsonl'),
-      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid }) + '\n');
+      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}) }) + '\n');
   } catch {
     // Silent failure - tracking should never break hooks
   }

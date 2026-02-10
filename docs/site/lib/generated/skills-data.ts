@@ -346,6 +346,37 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
+  "analytics": {
+    "name": "analytics",
+    "description": "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "analytics",
+      "metrics",
+      "usage",
+      "teams",
+      "agents",
+      "skills",
+      "hooks"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Bash",
+      "Read",
+      "Grep",
+      "Glob",
+      "AskUserQuestion"
+    ],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": []
+  },
   "api-design-framework": {
     "name": "api-design-framework",
     "description": "Comprehensive API design patterns for REST, GraphQL, and gRPC. Use when designing APIs, creating endpoints, adding routes, implementing pagination, rate limiting, or authentication patterns.",

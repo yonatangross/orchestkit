@@ -14,6 +14,7 @@
 import type { HookInput, HookResult } from '../../types.js';
 import { outputSilentSuccess, outputWithContext, logHook } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
+import { appendAnalytics, hashProject } from '../../lib/analytics.js';
 
 export function teamMemberStart(input: HookInput): HookResult {
   const toolInput = input.tool_input || {};
@@ -40,6 +41,17 @@ export function teamMemberStart(input: HookInput): HookResult {
     model,
     description,
     session_id: input.session_id,
+  });
+
+  // Cross-project team activity analytics (Issue #459)
+  appendAnalytics('team-activity.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+    event: 'spawn',
+    agent: subagentType,
+    member: memberName,
+    model,
+    team: teamName,
   });
 
   return outputWithContext(

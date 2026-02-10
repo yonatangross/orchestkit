@@ -8,11 +8,13 @@
  * Validates:
  * - appendAnalytics creates dir and writes JSONL
  * - hashProject returns 12-char hex, is deterministic, and is irreversible
+ * - getTeamContext extracts team from env vars
+ * - rotateIfNeeded renames files over threshold
  * - Handles write errors gracefully (no throw)
  * - Doesn't write PII (no raw paths in output)
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 vi.mock('node:fs', async () => {
   const actual = await vi.importActual('node:fs');
@@ -20,6 +22,8 @@ vi.mock('node:fs', async () => {
     ...actual,
     appendFileSync: vi.fn(),
     mkdirSync: vi.fn(),
+    statSync: vi.fn(() => ({ size: 100 })),
+    renameSync: vi.fn(),
   };
 });
 
@@ -28,12 +32,19 @@ vi.mock('../../lib/paths.js', () => ({
   joinPath: (...args: string[]) => args.join('/'),
 }));
 
-import { appendFileSync, mkdirSync } from 'node:fs';
-import { hashProject, appendAnalytics } from '../../lib/analytics.js';
+import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
+import { hashProject, appendAnalytics, getTeamContext, rotateIfNeeded } from '../../lib/analytics.js';
 
 describe('analytics', () => {
+  const originalEnv = process.env;
+
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env = { ...originalEnv };
+  });
+
+  afterEach(() => {
+    process.env = originalEnv;
   });
 
   describe('hashProject', () => {
@@ -64,6 +75,53 @@ describe('analytics', () => {
     it('handles empty string input', () => {
       const hash = hashProject('');
       expect(hash).toMatch(/^[0-9a-f]{12}$/);
+    });
+  });
+
+  describe('getTeamContext', () => {
+    it('returns team name when CLAUDE_CODE_TEAM_NAME is set', () => {
+      process.env.CLAUDE_CODE_TEAM_NAME = 'my-swarm';
+      expect(getTeamContext()).toEqual({ team: 'my-swarm' });
+    });
+
+    it('returns undefined when CLAUDE_CODE_TEAM_NAME is not set', () => {
+      delete process.env.CLAUDE_CODE_TEAM_NAME;
+      expect(getTeamContext()).toBeUndefined();
+    });
+
+    it('returns undefined when CLAUDE_CODE_TEAM_NAME is empty', () => {
+      process.env.CLAUDE_CODE_TEAM_NAME = '';
+      expect(getTeamContext()).toBeUndefined();
+    });
+  });
+
+  describe('rotateIfNeeded', () => {
+    it('does not rotate files under the threshold', () => {
+      (statSync as ReturnType<typeof vi.fn>).mockReturnValueOnce({ size: 100 });
+      rotateIfNeeded('/mock/path/agent-usage.jsonl');
+      expect(renameSync).not.toHaveBeenCalled();
+    });
+
+    it('rotates files over the threshold', () => {
+      (statSync as ReturnType<typeof vi.fn>).mockReturnValueOnce({ size: 11_000_000 });
+      rotateIfNeeded('/mock/path/agent-usage.jsonl');
+      expect(renameSync).toHaveBeenCalledWith(
+        '/mock/path/agent-usage.jsonl',
+        expect.stringMatching(/\/mock\/path\/agent-usage\.\d{4}-\d{2}\.jsonl$/),
+      );
+    });
+
+    it('does not throw when file does not exist', () => {
+      (statSync as ReturnType<typeof vi.fn>).mockImplementationOnce(() => {
+        throw new Error('ENOENT');
+      });
+      expect(() => rotateIfNeeded('/mock/path/missing.jsonl')).not.toThrow();
+    });
+
+    it('respects custom maxBytes threshold', () => {
+      (statSync as ReturnType<typeof vi.fn>).mockReturnValueOnce({ size: 500 });
+      rotateIfNeeded('/mock/path/agent-usage.jsonl', 400);
+      expect(renameSync).toHaveBeenCalled();
     });
   });
 
@@ -116,6 +174,37 @@ describe('analytics', () => {
       expect(written).not.toContain('secret-user');
       expect(written).not.toContain('private-project');
       expect(written).not.toContain(projectPath);
+    });
+
+    it('includes team field when team context is present', () => {
+      process.env.CLAUDE_CODE_TEAM_NAME = 'test-swarm';
+      appendAnalytics('agent-usage.jsonl', {
+        agent: 'test-agent',
+        ...getTeamContext(),
+      });
+
+      const written = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls[0][1] as string;
+      const parsed = JSON.parse(written.trim());
+      expect(parsed.team).toBe('test-swarm');
+    });
+
+    it('omits team field when not in team context', () => {
+      delete process.env.CLAUDE_CODE_TEAM_NAME;
+      appendAnalytics('agent-usage.jsonl', {
+        agent: 'test-agent',
+        ...getTeamContext(),
+      });
+
+      const written = (appendFileSync as ReturnType<typeof vi.fn>).mock.calls[0][1] as string;
+      const parsed = JSON.parse(written.trim());
+      expect(parsed.team).toBeUndefined();
+    });
+
+    it('calls rotateIfNeeded before writing', () => {
+      // statSync is mocked to return small file by default (100 bytes)
+      appendAnalytics('agent-usage.jsonl', { agent: 'test' });
+      // statSync should have been called (rotation check)
+      expect(statSync).toHaveBeenCalled();
     });
   });
 });

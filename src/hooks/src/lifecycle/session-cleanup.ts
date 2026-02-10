@@ -11,7 +11,7 @@ import { homedir } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
 import { cleanupTeam } from '../lib/agent-teams.js';
-import { appendAnalytics, hashProject } from '../lib/analytics.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -312,6 +312,7 @@ export function sessionCleanup(input: HookInput): HookResult {
     ts: new Date().toISOString(),
     pid: hashProject(projectDir),
     total_tools: totalTools,
+    ...getTeamContext(),
   });
 
   logHook('session-cleanup', 'Session cleanup complete');

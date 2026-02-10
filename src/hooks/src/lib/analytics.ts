@@ -11,7 +11,7 @@
  * Issue #459: Local Cross-Project Analytics System
  */
 
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, statSync, renameSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { getHomeDir, joinPath } from './paths.js';
 
@@ -24,12 +24,34 @@ export function hashProject(projectDir: string): string {
   return createHash('sha256').update(projectDir).digest('hex').slice(0, 12);
 }
 
+/** Extract team context from env vars. Returns undefined when not in a team. */
+export function getTeamContext(): { team: string } | undefined {
+  const team = process.env.CLAUDE_CODE_TEAM_NAME;
+  return team ? { team } : undefined;
+}
+
+/** Rotate file if it exceeds maxBytes (default 10MB). Renames to <name>.<YYYY-MM>.jsonl */
+export function rotateIfNeeded(filePath: string, maxBytes = 10_485_760): void {
+  try {
+    const stats = statSync(filePath);
+    if (stats.size > maxBytes) {
+      const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+      const rotated = filePath.replace(/\.jsonl$/, `.${month}.jsonl`);
+      renameSync(filePath, rotated);
+    }
+  } catch {
+    // File doesn't exist or rename failed — both fine
+  }
+}
+
 /** Append a JSONL entry to ~/.claude/analytics/<file>. Fire-and-forget. */
 export function appendAnalytics(file: string, entry: Record<string, unknown>): void {
   try {
     const dir = getAnalyticsDir();
     mkdirSync(dir, { recursive: true });
-    appendFileSync(joinPath(dir, file), JSON.stringify(entry) + '\n');
+    const filePath = joinPath(dir, file);
+    rotateIfNeeded(filePath);
+    appendFileSync(filePath, JSON.stringify(entry) + '\n');
   } catch {
     // Never block hooks
   }

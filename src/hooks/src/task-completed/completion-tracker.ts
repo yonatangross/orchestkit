@@ -11,6 +11,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { getProjectDir } from '../lib/common.js';
 import { appendEventLog } from '../lib/event-logger.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 /** Match code implementation tasks — require 2+ word subjects to avoid false positives */
 const IMPLEMENTATION_PATTERN = /\b(?:implement|refactor|build|migrate)\b.{5,}/i;
@@ -33,6 +34,15 @@ export async function completionTracker(input: HookInput): Promise<HookResult> {
     task_status: taskStatus,
     duration_ms: duration,
     session_id: input.session_id,
+  });
+
+  // Cross-project task analytics (Issue #459)
+  appendAnalytics('task-usage.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+    task_status: taskStatus,
+    duration_ms: duration,
+    ...getTeamContext(),
   });
 
   // Suggest verification only for substantial implementation tasks

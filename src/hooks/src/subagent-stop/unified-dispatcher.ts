@@ -11,7 +11,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
 import { trackEvent } from '../lib/session-tracker.js';
-import { appendAnalytics, hashProject } from '../lib/analytics.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 // Import individual hook implementations
 import { contextPublisher } from './context-publisher.js';
@@ -84,6 +84,7 @@ function trackAgentResult(input: HookInput): void {
       duration_ms: durationMs,
       success,
       output_len: outputLength,
+      ...getTeamContext(),
     });
   } catch {
     // Silent failure - tracking should never break hooks
