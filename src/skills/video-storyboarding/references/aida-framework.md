@@ -69,7 +69,7 @@ pattern_interrupts:
 │                                                                  │
 │  THE STATISTIC HOOK                                              │
 │  "[Large number] [impressive thing]"                             │
-│  Example: "199 skills. One command."                             │
+│  Example: "200 skills. One command."                             │
 │                                                                  │
 │  THE PAIN HOOK                                                   │
 │  "Stop [frustrating activity]"                                   │
@@ -155,7 +155,7 @@ Once attention is captured, the brain asks "Is this relevant to me?" You must qu
 │   │   you start a   │───▶│  a better │───▶│  gives Claude   │   │
 │   │   new session,  │    │  way..."  │    │  instant        │   │
 │   │   Claude        │    │           │    │  access to      │   │
-│   │   forgets..."   │    │           │    │  199 skills"    │   │
+│   │   forgets..."   │    │           │    │  200 skills"    │   │
 │   │                 │    │           │    │                 │   │
 │   └─────────────────┘    └───────────┘    └─────────────────┘   │
 │                                                                  │
@@ -212,7 +212,7 @@ problem_frameworks:
 │                                                                  │
 │  Example placement for OrchestKit:                               │
 │                                                                  │
-│  HIGHLIGHT:     Parallel agents, 199 skills, quality hooks      │
+│  HIGHLIGHT:     Parallel agents, 200 skills, quality hooks      │
 │  MENTION:       Task management, skill auto-suggest              │
 │  IF TIME:       GitHub integration                               │
 │  SKIP:          Basic file operations                            │

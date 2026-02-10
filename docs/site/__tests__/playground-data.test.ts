@@ -78,10 +78,10 @@ describe("playground-data", () => {
       expect(orkCreative!.skillCount).toBe(16);
     });
 
-    it("ork has 199 skills", () => {
+    it("ork has 200 skills", () => {
       const ork = PLUGINS.find((p) => p.name === "ork");
       expect(ork).toBeDefined();
-      expect(ork!.skillCount).toBe(199);
+      expect(ork!.skillCount).toBe(200);
     });
   });
 
@@ -185,8 +185,8 @@ describe("playground-data", () => {
       expect(Object.keys(SKILLS).length).toBeGreaterThan(0);
     });
 
-    it("has 199 skills", () => {
-      expect(Object.keys(SKILLS).length).toBe(199);
+    it("has 200 skills", () => {
+      expect(Object.keys(SKILLS).length).toBe(200);
     });
 
     it("has correct SkillDetail shape", () => {

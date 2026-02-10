@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**199 skills · 36 agents · 119 hooks · 3 plugins**
+**200 skills · 36 agents · 98 hooks · 3 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.34-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -57,9 +57,9 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 199 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 200 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 119 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 98 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
 
 **[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
@@ -93,7 +93,7 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 **ork-creative** (16 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
 
-**ork** (199 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork** (200 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -165,8 +165,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
 - `orkl` (88 skills) — Universal toolkit, all workflows work out of the box
 - `ork-creative` (16 skills) — Video production add-on for demo recording and content creation
-- `ork` (199 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 119 hooks included in orkl and ork
+- `ork` (200 skills) — Full specialized with Python, React, LLM/RAG patterns
+- All 36 agents and 98 hooks included in orkl and ork
 
 [Full Changelog →](./CHANGELOG.md)
 

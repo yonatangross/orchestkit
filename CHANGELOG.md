@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **TLDR-Lite File Summaries** (#463): New `PreToolUse[Read]` hook injects structural summaries for large files (>500 lines or >2000 tokens)
+  - Regex-based extractors for TypeScript/JS, Python, Go, Rust, Shell, Markdown
+  - Extracts imports, functions, classes, types, exports as a navigation roadmap
+  - ~500 token summary injected as `additionalContext` alongside full file content
+  - 7 guard conditions: skip targeted reads, unsupported extensions, small files, >2MB files
+  - 42 new tests (25 library + 17 hook)
+  - Hook count: 97 → 98 (70 global + 22 agent + 6 skill)
+  - pretool bundle: 57.42 → 63.36 KB (+10%)
+
+### Fixed
+
+- **Docs**: Corrected stale component counts across README, marketplace.json, CONTRIBUTING.md, Fumadocs site pages, and skill references (199→200 skills, 119→98 hooks)
+
+---
+
 ## [6.0.3] - 2026-02-07
 
 ### Added

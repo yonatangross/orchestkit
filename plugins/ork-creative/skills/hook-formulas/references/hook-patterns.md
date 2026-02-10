@@ -71,7 +71,7 @@ People stop for content that reflects who they are or want to be:
 ### OrchestKit Examples
 
 ```
-"199 skills. 119 hooks. Zero config."
+"200 skills. 98 hooks. Zero config."
 "I replaced 7 tools with one plugin"
 "1 command. 6 parallel agents. 30 seconds."
 ```
@@ -394,7 +394,7 @@ This creates:
 
 ```
 "6 agents running in parallel. One command."
-"199 skills. Here are the 5 you need first."
+"200 skills. Here are the 5 you need first."
 "7 hooks that prevent my most common mistakes"
 ```
 
@@ -562,7 +562,7 @@ Balance confidence with humility:
 ```
 "After building 100+ AI tools, I learned one thing..."
 "Thousands of automated reviews taught me this pattern"
-"Creating 199 skills revealed what developers actually need"
+"Creating 200 skills revealed what developers actually need"
 ```
 
 ---

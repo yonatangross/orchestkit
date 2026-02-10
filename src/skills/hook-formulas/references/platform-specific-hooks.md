@@ -71,7 +71,7 @@ Break expectations immediately:
 "POV: Your AI writes your tests for you"
 [Show test generation in real-time]
 
-"This AI has 199 skills and nobody knows about it"
+"This AI has 200 skills and nobody knows about it"
 [Quick montage of skill invocations]
 
 "Stop. You're prompting wrong."
@@ -203,7 +203,7 @@ Longer format allows for authority hooks:
 Here's my setup after 30 days."
 [Full workflow tour and review]
 
-"179 AI skills for developers: The ones that actually matter"
+"200 AI skills for developers: The ones that actually matter"
 [Curated skill showcase with real examples]
 
 "Parallel AI agents changed how I code. Full breakdown."
@@ -350,7 +350,7 @@ After [experience], here's what I found:"
 
 Now I invoke skills.
 
-The difference: 179 battle-tested patterns vs. making it up each time."
+The difference: 200 battle-tested patterns vs. making it up each time."
 
 "Your AI assistant is goldfish-brained.
 
@@ -399,7 +399,7 @@ Thumbnail creates question. Hook answers it.
 
 ```
 Thumbnail: Face + "179 Skills?!"
-Hook: "I discovered a Claude plugin with 179 specialized skills. Here's the 5 that matter."
+Hook: "I discovered a Claude plugin with 200 specialized skills. Here's the 5 that matter."
 
 Thumbnail: Before (chaos code) / After (clean)
 Hook: "Same PR. Before and after AI review. The difference is embarrassing."

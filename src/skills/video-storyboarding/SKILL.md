@@ -86,7 +86,7 @@ content:
     the memory of a senior developer?
 
   on_screen_text:
-    - text: "199 Skills"
+    - text: "200 Skills"
       animation: "scale-in"
       timing: "0:02-0:04"
 
@@ -189,7 +189,7 @@ const timing = calculatePhaseTiming({
 
 3. CRAFT HOOK
    └─▶ What stops the scroll?
-       └─▶ Example: "199 skills, one command"
+       └─▶ Example: "200 skills, one command"
 
 4. MAP AIDA PHASES
    └─▶ Allocate time to each phase
