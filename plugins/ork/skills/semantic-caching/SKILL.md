@@ -149,7 +149,7 @@ result = redis.execute_command(
 ## Related Skills
 
 - `prompt-caching` - Provider-native caching
-- `embeddings` - Vector generation
+- `rag-retrieval` - Vector generation and retrieval patterns
 - `cache-cost-tracking` - Langfuse integration
 
 ## Capability Details

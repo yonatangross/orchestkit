@@ -147,11 +147,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 192 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 184 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 192,
+    "skillCount": 184,
     "agentCount": 36,
     "hooks": 95,
     "commandCount": 27,
@@ -163,7 +163,6 @@ export const PLUGINS: Plugin[] = [
       "add-golden",
       "advanced-guardrails",
       "agent-loops",
-      "agentic-rag-patterns",
       "aggregate-patterns",
       "alembic-migrations",
       "alternative-agent-frameworks",
@@ -182,7 +181,8 @@ export const PLUGINS: Plugin[] = [
       "backend-architecture-enforcer",
       "background-jobs",
       "best-practices",
-      "biome-linting"
+      "biome-linting",
+      "brainstorming"
     ],
     "agents": [
       "accessibility-specialist",

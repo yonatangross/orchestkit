@@ -184,7 +184,7 @@ For detailed implementation patterns, see:
 
 - `golden-dataset-validation` - Schema and integrity validation
 - `golden-dataset-curation` - Quality criteria and curation workflows
-- `pgvector-search` - Retrieval evaluation using golden dataset
+- `rag-retrieval` - Retrieval evaluation using golden dataset
 - `ai-native-development` - Embedding generation for restore
 
 ---

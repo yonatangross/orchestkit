@@ -175,47 +175,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "agentic-rag-patterns": {
-    "name": "agentic-rag-patterns",
-    "description": "Advanced RAG with Self-RAG, Corrective-RAG, and knowledge graphs. Use when building agentic RAG pipelines, adaptive retrieval, or query rewriting.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "self-rag",
-      "crag",
-      "knowledge-graph",
-      "langgraph",
-      "agentic"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {
-      "references": [
-        "adaptive-retrieval.md",
-        "corrective-rag.md",
-        "knowledge-graph-rag.md",
-        "self-rag.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "crag-workflow.py",
-        "self-rag-graph.py"
-      ],
-      "checklists": [
-        "rag-quality.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
-    ]
-  },
   "aggregate-patterns": {
     "name": "aggregate-patterns",
     "description": "DDD aggregate design patterns for consistency boundaries and invariants. Use when designing aggregate roots, enforcing business invariants, handling cross-aggregate references, or optimizing aggregate size.",
@@ -1650,31 +1609,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-engineer"
     ]
   },
-  "contextual-retrieval": {
-    "name": "contextual-retrieval",
-    "description": "Anthropic's Contextual Retrieval technique for improved RAG. Use when chunks lose context during retrieval, implementing hybrid BM25+vector search, or reducing retrieval failures.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "retrieval",
-      "anthropic",
-      "bm25",
-      "vector-search"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
-    ]
-  },
   "contract-testing": {
     "name": "contract-testing",
     "description": "Consumer-driven contract testing with Pact for API compatibility. Use when testing microservice integrations, verifying API contracts, preventing breaking changes, or implementing provider verification.",
@@ -2387,44 +2321,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
-  },
-  "embeddings": {
-    "name": "embeddings",
-    "description": "Text embeddings for semantic search and similarity. Use when converting text to vectors, choosing embedding models, implementing chunking strategies, or building document similarity features.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "ai",
-      "embeddings",
-      "vectors",
-      "semantic-search",
-      "similarity"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {
-      "references": [
-        "advanced-patterns.md",
-        "chunking-strategies.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "embedding-pipeline.py"
-      ],
-      "checklists": [
-        "embedding-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer",
-      "multimodal-specialist"
-    ]
   },
   "error-handling-rfc9457": {
     "name": "error-handling-rfc9457",
@@ -3297,30 +3193,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
-  },
-  "hyde-retrieval": {
-    "name": "hyde-retrieval",
-    "description": "HyDE (Hypothetical Document Embeddings) for improved semantic retrieval. Use when queries don't match document vocabulary, retrieval quality is poor, or implementing advanced RAG patterns.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "retrieval",
-      "hyde",
-      "semantic-search"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
-    ]
   },
   "i18n-date-patterns": {
     "name": "i18n-date-patterns",
@@ -4407,40 +4279,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "multimodal-rag": {
-    "name": "multimodal-rag",
-    "description": "CLIP, SigLIP 2, Voyage multimodal-3 patterns for image+text retrieval, cross-modal search, and multimodal document chunking. Use when building RAG with images, implementing visual search, or hybrid retrieval.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "multimodal",
-      "image-retrieval",
-      "clip",
-      "embeddings",
-      "vector-search"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "multimodal-specialist",
-    "structure": {
-      "references": [
-        "clip-embeddings.md",
-        "multimodal-chunking.md"
-      ],
-      "checklists": [
-        "implementation.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "multimodal-specialist"
-    ]
-  },
   "music-sfx-selection": {
     "name": "music-sfx-selection",
     "description": "Audio selection for tech demo videos. Use when choosing background music, timing SFX, setting volume levels, or matching mood to content",
@@ -4830,46 +4668,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "ux-researcher"
-    ]
-  },
-  "pgvector-search": {
-    "name": "pgvector-search",
-    "description": "Production hybrid search combining PGVector HNSW with BM25 using Reciprocal Rank Fusion. Use when implementing hybrid search, semantic + keyword retrieval, vector search optimization, metadata filtering, or choosing between HNSW and IVFFlat indexes.",
-    "version": "1.2.0",
-    "author": "OrchestKit AI Agent Hub",
-    "tags": [
-      "pgvector-0.8",
-      "hybrid-search",
-      "bm25",
-      "rrf",
-      "semantic-search",
-      "retrieval"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "database-engineer",
-    "structure": {
-      "references": [
-        "hybrid-search-rrf.md",
-        "indexing-strategies.md",
-        "metadata-filtering.md"
-      ],
-      "scripts": [
-        "chunk-repository.py",
-        "search-service.py"
-      ],
-      "checklists": [
-        "search-implementation-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer",
-      "database-engineer"
     ]
   },
   "pii-masking-patterns": {
@@ -5320,30 +5118,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-quality-reviewer"
     ]
   },
-  "query-decomposition": {
-    "name": "query-decomposition",
-    "description": "Query decomposition for multi-concept retrieval. Use when handling complex queries spanning multiple topics, implementing multi-hop retrieval, or improving coverage for compound questions.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "retrieval",
-      "query",
-      "decomposition"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
-    ]
-  },
   "radix-primitives": {
     "name": "radix-primitives",
     "description": "Radix UI unstyled accessible primitives for dialogs, popovers, dropdowns, and more. Use when building custom accessible components, understanding shadcn internals, or needing polymorphic composition.",
@@ -5391,15 +5165,20 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "rag-retrieval": {
     "name": "rag-retrieval",
-    "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, constructing context from retrieved documents, adding citations, or implementing hybrid search.",
-    "version": "1.0.0",
+    "description": "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "rag",
       "retrieval",
       "llm",
       "context",
-      "grounding"
+      "grounding",
+      "embeddings",
+      "hyde",
+      "reranking",
+      "pgvector",
+      "multimodal"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -5407,11 +5186,15 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [],
     "agent": "data-pipeline-engineer",
     "structure": {
-      "references": [
-        "advanced-rag.md"
-      ],
       "scripts": [
-        "rag-pipeline-template.ts"
+        "chunk-repository.py",
+        "rag-pipeline-template.ts",
+        "scripts",
+        "search-service.py"
+      ],
+      "checklists": [
+        "rag-quality.md",
+        "search-implementation-checklist.md"
       ]
     },
     "plugins": [
@@ -5419,6 +5202,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "data-pipeline-engineer",
+      "database-engineer",
+      "multimodal-specialist",
       "web-research-analyst"
     ]
   },
@@ -5817,30 +5602,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "requirements-translator"
-    ]
-  },
-  "reranking-patterns": {
-    "name": "reranking-patterns",
-    "description": "Reranking patterns for improving search precision. Use when implementing cross-encoder reranking, LLM-based relevance scoring, or improving retrieval quality in RAG pipelines.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "rag",
-      "retrieval",
-      "reranking",
-      "relevance"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {},
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
     ]
   },
   "resilience-patterns": {

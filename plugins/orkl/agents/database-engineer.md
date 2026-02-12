@@ -20,7 +20,7 @@ tools:
   - TaskList
 skills:
   - database-schema-designer
-  - pgvector-search
+  - rag-retrieval
   - performance-optimization
   - alembic-migrations
   - database-versioning
@@ -199,7 +199,7 @@ def downgrade():
 ## Integration
 - **Receives from:** backend-system-architect (model requirements)
 - **Hands off to:** code-quality-reviewer (migration review)
-- **Skill references:** database-schema-designer, pgvector-search
+- **Skill references:** database-schema-designer, rag-retrieval
 
 ## Skill Index
 

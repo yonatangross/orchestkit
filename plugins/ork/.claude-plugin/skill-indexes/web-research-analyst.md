@@ -8,6 +8,6 @@
 |browser-automation:{SKILL.md}|browser,automation,headless,scraping,vercel,agent-browser
 |competitive-monitoring:{SKILL.md}|competitive-intelligence,monitoring,diff,tracking,pricing,tavily
 |market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot
-|rag-retrieval:{SKILL.md,references/{advanced-rag.md}}|rag,retrieval,llm,context,grounding
+|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

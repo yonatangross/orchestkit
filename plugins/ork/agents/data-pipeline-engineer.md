@@ -20,14 +20,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - embeddings
   - rag-retrieval
-  - hyde-retrieval
-  - query-decomposition
-  - reranking-patterns
-  - contextual-retrieval
-  - agentic-rag-patterns
-  - pgvector-search
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
@@ -211,7 +204,7 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset-management, context-engineering
 
 ## Skill Index
 
@@ -223,14 +216,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|embeddings:{SKILL.md,references/{advanced-patterns.md,chunking-strategies.md}}|ai,embeddings,vectors,semantic-search,similarity
-|rag-retrieval:{SKILL.md,references/{advanced-rag.md}}|rag,retrieval,llm,context,grounding
-|hyde-retrieval:{SKILL.md}|rag,retrieval,hyde,semantic-search
-|query-decomposition:{SKILL.md}|rag,retrieval,query,decomposition
-|reranking-patterns:{SKILL.md}|rag,retrieval,reranking,relevance
-|contextual-retrieval:{SKILL.md}|rag,retrieval,anthropic,bm25,vector-search
-|agentic-rag-patterns:{SKILL.md,references/{adaptive-retrieval.md,corrective-rag.md,knowledge-graph-rag.md,self-rag.md}}|rag,self-rag,crag,knowledge-graph,langgraph,agentic
-|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval
+|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression
 |golden-dataset-curation:{SKILL.md,references/{annotation-patterns.md,selection-criteria.md}}|golden-dataset,curation,quality,multi-agent,langfuse,2025
 |golden-dataset-validation:{SKILL.md,references/{quality-metrics.md,validation-rules.md}}|golden-dataset,validation,integrity,schema,duplicate-detection,2025

@@ -165,7 +165,7 @@ For detailed implementation patterns, see:
 
 - `golden-dataset-curation` - Quality criteria and workflows
 - `golden-dataset-management` - Backup/restore operations
-- `pgvector-search` - Embedding-based duplicate detection
+- `rag-retrieval` - Embedding-based duplicate detection
 
 ---
 

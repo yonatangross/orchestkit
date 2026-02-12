@@ -29,14 +29,7 @@ This agent activates for: embeddings, chunking, vector index, data pipeline, bat
 
 ## Skills Used
 
-- [embeddings](/docs/reference/skills/embeddings)
 - [rag-retrieval](/docs/reference/skills/rag-retrieval)
-- [hyde-retrieval](/docs/reference/skills/hyde-retrieval)
-- [query-decomposition](/docs/reference/skills/query-decomposition)
-- [reranking-patterns](/docs/reference/skills/reranking-patterns)
-- [contextual-retrieval](/docs/reference/skills/contextual-retrieval)
-- [agentic-rag-patterns](/docs/reference/skills/agentic-rag-patterns)
-- [pgvector-search](/docs/reference/skills/pgvector-search)
 - [golden-dataset-management](/docs/reference/skills/golden-dataset-management)
 - [golden-dataset-curation](/docs/reference/skills/golden-dataset-curation)
 - [golden-dataset-validation](/docs/reference/skills/golden-dataset-validation)
@@ -220,4 +213,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset-management, context-engineering

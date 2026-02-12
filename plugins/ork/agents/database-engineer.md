@@ -20,7 +20,7 @@ tools:
   - TaskList
 skills:
   - database-schema-designer
-  - pgvector-search
+  - rag-retrieval
   - performance-optimization
   - alembic-migrations
   - database-versioning
@@ -199,7 +199,7 @@ def downgrade():
 ## Integration
 - **Receives from:** backend-system-architect (model requirements)
 - **Hands off to:** code-quality-reviewer (migration review)
-- **Skill references:** database-schema-designer, pgvector-search
+- **Skill references:** database-schema-designer, rag-retrieval
 
 ## Skill Index
 
@@ -212,7 +212,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations
-|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval
+|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
 |performance-optimization:{SKILL.md,references/{caching-strategies.md,core-web-vitals.md,database-optimization.md,frontend-performance.md,profiling.md}}|performance,optimization,profiling,caching
 |alembic-migrations:{SKILL.md,references/{alembic-advanced.md}}|alembic,migrations,sqlalchemy,database,schema,python,async
 |database-versioning:{SKILL.md,references/{audit-trails.md,environment-coordination.md,migration-testing.md,object-versioning.md}}|database,versioning,schema,change-management,audit

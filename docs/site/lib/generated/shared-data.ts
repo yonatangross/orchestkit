@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 192,
+  "skills": 184,
   "agents": 36,
   "hooks": 95,
   "commands": 27,
@@ -535,20 +535,17 @@ export const SKILLS_SUMMARY = {
       "alternative-agent-frameworks",
       "cache-cost-tracking",
       "context-engineering",
-      "contextual-retrieval",
       "function-calling",
       "grpc-python",
-      "high-performance-inference"
+      "high-performance-inference",
+      "langfuse-observability"
     ],
     "rag": [
-      "agentic-rag-patterns",
-      "contextual-retrieval",
-      "embeddings",
-      "hyde-retrieval",
       "llm-evaluation",
       "llm-testing",
-      "multimodal-rag",
-      "pgvector-search"
+      "rag-retrieval",
+      "right-sized-backend",
+      "run-tests"
     ],
     "backend": [
       "api-versioning",
