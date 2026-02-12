@@ -13,6 +13,8 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(ci-cd-engineer)
+  - Task(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate

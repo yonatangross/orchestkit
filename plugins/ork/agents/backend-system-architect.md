@@ -14,6 +14,8 @@ tools:
   - Bash
   - Grep
   - Glob
+  - Task(database-engineer)
+  - Task(test-generator)
   - TeamCreate
   - SendMessage
   - TaskCreate

@@ -13,6 +13,8 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(llm-integrator)
+  - Task(data-pipeline-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate

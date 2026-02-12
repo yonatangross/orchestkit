@@ -13,6 +13,7 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate

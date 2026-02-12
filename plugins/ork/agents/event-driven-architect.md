@@ -13,6 +13,7 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
