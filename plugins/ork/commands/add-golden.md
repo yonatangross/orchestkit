@@ -181,7 +181,7 @@ See [Silver-Gold Promotion](references/silver-gold-promotion.md) for criteria.
 
 - `golden-dataset-validation` - Validate existing datasets
 - `llm-evaluation` - LLM output evaluation patterns
-- `test-data-management` - Test data strategies
+- `testing-patterns` - Comprehensive testing patterns including test data strategies
 
 
 **Version:** 2.0.0 (January 2026)

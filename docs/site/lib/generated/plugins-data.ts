@@ -6,11 +6,11 @@ import type { Plugin } from "./types";
 export const PLUGINS: Plugin[] = [
   {
     "name": "orkl",
-    "description": "Universal toolkit — 88 skills, 36 agents, 95 hooks. Language-agnostic, works for any stack.",
+    "description": "Universal toolkit — 81 skills, 36 agents, 95 hooks. Language-agnostic, works for any stack.",
     "fullDescription": "The universal OrchestKit toolkit. Includes all workflow skills (implement, explore, verify, review-pr, commit), all memory skills (remember, memory, mem0, fabric), product/UX skills, accessibility, and all specialized agents. Language-agnostic — works for any tech stack.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 88,
+    "skillCount": 81,
     "agentCount": 36,
     "hooks": 95,
     "commandCount": 27,
@@ -147,11 +147,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 184 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 172 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 184,
+    "skillCount": 172,
     "agentCount": 36,
     "hooks": 95,
     "commandCount": 27,
@@ -159,7 +159,6 @@ export const PLUGINS: Plugin[] = [
     "required": false,
     "recommended": false,
     "skills": [
-      "a11y-testing",
       "add-golden",
       "advanced-guardrails",
       "agent-loops",
@@ -182,7 +181,8 @@ export const PLUGINS: Plugin[] = [
       "background-jobs",
       "best-practices",
       "biome-linting",
-      "brainstorming"
+      "brainstorming",
+      "browser-automation"
     ],
     "agents": [
       "accessibility-specialist",

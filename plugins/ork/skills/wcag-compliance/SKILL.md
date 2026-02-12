@@ -111,7 +111,7 @@ Web Content Accessibility Guidelines 2.2 AA implementation for inclusive, legall
 
 ## Related Skills
 
-- `a11y-testing` - Automated accessibility testing with axe-core and Playwright
+- `testing-patterns` - Comprehensive testing patterns including accessibility testing
 - `design-system-starter` - Accessible component library patterns
 - `i18n-date-patterns` - RTL layout and locale-aware formatting
 - `motion-animation-patterns` - Reduced motion and animation accessibility

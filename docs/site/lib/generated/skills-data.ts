@@ -4,52 +4,6 @@
 import type { SkillMeta } from "./types";
 
 export const SKILLS: Record<string, SkillMeta> = {
-  "a11y-testing": {
-    "name": "a11y-testing",
-    "description": "Automated accessibility testing with axe-core, Playwright, and jest-axe for WCAG compliance. Use when adding or validating a11y tests, running WCAG checks, or auditing UI accessibility.",
-    "version": "1.1.0",
-    "author": "OrchestKit",
-    "tags": [
-      "accessibility",
-      "testing",
-      "axe-core",
-      "playwright",
-      "wcag",
-      "a11y",
-      "jest-axe"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Bash",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "a11y-testing-tools.md"
-      ],
-      "scripts": [
-        "a11y-test-template.ts"
-      ],
-      "checklists": [
-        "a11y-testing-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "accessibility-specialist",
-      "frontend-ui-developer",
-      "test-generator"
-    ]
-  },
   "add-golden": {
     "name": "add-golden",
     "description": "Adds documents to golden dataset with validation. Use when curating test data or saving examples.",
@@ -79,7 +33,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     "skills": [
       "golden-dataset-validation",
       "llm-evaluation",
-      "test-data-management"
+      "testing-patterns"
     ],
     "agent": null,
     "structure": {
@@ -1609,47 +1563,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-engineer"
     ]
   },
-  "contract-testing": {
-    "name": "contract-testing",
-    "description": "Consumer-driven contract testing with Pact for API compatibility. Use when testing microservice integrations, verifying API contracts, preventing breaking changes, or implementing provider verification.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "pact",
-      "contract",
-      "consumer-driven",
-      "api",
-      "microservices",
-      "testing"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "consumer-tests.md",
-        "pact-broker.md",
-        "provider-verification.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "consumer-test-template.py",
-        "provider-verification-template.py"
-      ],
-      "checklists": [
-        "contract-testing-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "core-web-vitals": {
     "name": "core-web-vitals",
     "description": "Core Web Vitals optimization for LCP, INP, CLS with 2026 thresholds, performance budgets, and RUM. Use when improving page performance, diagnosing CWV regressions, or setting performance budgets.",
@@ -2213,44 +2126,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
-  },
-  "e2e-testing": {
-    "name": "e2e-testing",
-    "description": "End-to-end testing with Playwright 1.58+. Use when testing critical user journeys, browser automation, cross-browser testing, AI-assisted test generation, or validating complete application flows.",
-    "version": "2.1.0",
-    "author": "OrchestKit",
-    "tags": [
-      "playwright",
-      "e2e",
-      "testing",
-      "ai-agents"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "playwright-1.57-api.md"
-      ],
-      "scripts": [
-        "create-page-object.md",
-        "page-object-template.ts"
-      ],
-      "checklists": [
-        "e2e-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "accessibility-specialist",
-      "frontend-ui-developer",
-      "test-generator"
-    ]
   },
   "edge-computing-patterns": {
     "name": "edge-computing-patterns",
@@ -3355,8 +3230,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "api-design-framework",
       "react-server-components-framework",
       "type-safety-validation",
-      "unit-testing",
-      "integration-testing",
+      "testing-patterns",
       "explore",
       "verify",
       "memory",
@@ -3433,39 +3307,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ai-safety-auditor",
       "security-auditor",
       "security-layer-auditor"
-    ]
-  },
-  "integration-testing": {
-    "name": "integration-testing",
-    "description": "Integration testing patterns for APIs and components. Use when testing component interactions, API endpoints with test databases, or service layer integration.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "integration",
-      "api",
-      "database"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "scripts": [
-        "__pycache__",
-        "create-integration-test.md",
-        "pytest-integration.py",
-        "test-plan-template.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "code-quality-reviewer",
-      "test-generator"
     ]
   },
   "issue-progress-tracking": {
@@ -3727,42 +3568,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "llm-integrator",
       "multimodal-specialist",
       "prompt-engineer"
-    ]
-  },
-  "llm-testing": {
-    "name": "llm-testing",
-    "description": "Testing patterns for LLM-based applications. Use when testing AI/ML integrations, mocking LLM responses, testing async timeouts, or validating structured outputs from LLMs.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "llm",
-      "ai",
-      "deepeval",
-      "ragas"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "deepeval-ragas-api.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "llm-test-template.py"
-      ],
-      "checklists": [
-        "llm-test-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
     ]
   },
   "manim-visualizer": {
@@ -4181,41 +3986,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "rapid-ui-designer"
     ]
   },
-  "msw-mocking": {
-    "name": "msw-mocking",
-    "description": "Mock Service Worker (MSW) 2.x for API mocking. Use when testing frontend components with network mocking, simulating API errors, or creating deterministic API responses in tests.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "msw",
-      "testing",
-      "mocking",
-      "frontend"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "msw-2x-api.md"
-      ],
-      "scripts": [
-        "create-msw-handler.md",
-        "handlers-template.ts"
-      ],
-      "checklists": [
-        "msw-setup-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "multi-agent-orchestration": {
     "name": "multi-agent-orchestration",
     "description": "Multi-agent coordination and synthesis patterns. Use when orchestrating multiple specialized agents, implementing fan-out/fan-in workflows, or synthesizing outputs from parallel agents.",
@@ -4596,44 +4366,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
-  "performance-testing": {
-    "name": "performance-testing",
-    "description": "Performance and load testing with k6 and Locust. Use when validating system performance under load, stress testing, identifying bottlenecks, or establishing performance baselines.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "performance",
-      "load",
-      "stress"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "metrics-architect",
-    "structure": {
-      "references": [
-        "k6-patterns.md"
-      ],
-      "scripts": [
-        "k6-script.js"
-      ],
-      "checklists": [
-        "performance-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "metrics-architect",
-      "monitoring-engineer",
-      "python-performance-engineer",
-      "test-generator"
-    ]
-  },
   "persona-journey-mapping": {
     "name": "persona-journey-mapping",
     "description": "User personas, customer journey maps, empathy maps, and experience mapping patterns. Use when synthesizing research into actionable models, understanding user experiences, or aligning teams on customer needs.",
@@ -4967,43 +4699,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-engineer"
     ]
   },
-  "property-based-testing": {
-    "name": "property-based-testing",
-    "description": "Property-based testing with Hypothesis for discovering edge cases automatically. Use when testing invariants, finding boundary conditions, implementing stateful testing, or validating data transformations.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "hypothesis",
-      "property-testing",
-      "fuzzing",
-      "python",
-      "testing"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "stateful-testing.md",
-        "strategies-guide.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "hypothesis-conftest.py"
-      ],
-      "checklists": [
-        "property-testing-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "pwa-patterns": {
     "name": "pwa-patterns",
     "description": "Progressive Web App patterns with Workbox 7.x, service worker lifecycle, offline-first strategies, and installability. Use when building PWAs, service workers, or offline support.",
@@ -5033,44 +4728,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
-  },
-  "pytest-advanced": {
-    "name": "pytest-advanced",
-    "description": "Advanced pytest patterns including custom markers, plugins, hooks, parallel execution, and pytest-xdist. Use when implementing custom test infrastructure, optimizing test execution, or building reusable test utilities.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "pytest",
-      "testing",
-      "python",
-      "markers",
-      "plugins",
-      "xdist"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "custom-plugins.md",
-        "xdist-parallel.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "conftest-template.py"
-      ],
-      "checklists": [
-        "pytest-production-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
   },
   "quality-gates": {
     "name": "quality-gates",
@@ -6527,42 +6184,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer"
     ]
   },
-  "test-data-management": {
-    "name": "test-data-management",
-    "description": "Test data management with fixtures and factories. Use when creating test data strategies, implementing data factories, managing fixtures, or seeding test databases.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "fixtures",
-      "factories",
-      "data"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "factory-patterns.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "factory-boy.py"
-      ],
-      "checklists": [
-        "test-data-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "test-standards-enforcer": {
     "name": "test-standards-enforcer",
     "description": "Enforce testing best practices - AAA pattern, naming conventions, isolation, coverage thresholds. Blocks non-compliant tests. Use when writing or reviewing tests.",
@@ -6592,6 +6213,103 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "code-quality-reviewer",
+      "test-generator"
+    ]
+  },
+  "testing-patterns": {
+    "name": "testing-patterns",
+    "description": "Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality.",
+    "version": "2.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "testing",
+      "unit",
+      "integration",
+      "e2e",
+      "pytest",
+      "msw",
+      "vcr",
+      "property",
+      "contract",
+      "performance",
+      "llm",
+      "a11y"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": "test-generator",
+    "structure": {
+      "references": [
+        "a11y-testing-tools.md",
+        "aaa-pattern.md",
+        "consumer-tests.md",
+        "custom-plugins.md",
+        "deepeval-ragas-api.md",
+        "factory-patterns.md",
+        "generator-agent.md",
+        "healer-agent.md",
+        "k6-patterns.md",
+        "msw-2x-api.md",
+        "pact-broker.md",
+        "planner-agent.md",
+        "playwright-1.57-api.md",
+        "playwright-setup.md",
+        "provider-verification.md",
+        "stateful-testing.md",
+        "strategies-guide.md",
+        "visual-regression.md",
+        "xdist-parallel.md"
+      ],
+      "scripts": [
+        "a11y-test-template.ts",
+        "conftest-template.py",
+        "consumer-test-template.py",
+        "create-integration-test.md",
+        "create-msw-handler.md",
+        "create-page-object.md",
+        "create-test-case.md",
+        "create-test-fixture.md",
+        "factory-boy.py",
+        "handlers-template.ts",
+        "hypothesis-conftest.py",
+        "k6-script.js",
+        "llm-test-template.py",
+        "page-object-template.ts",
+        "playwright-test-template.ts",
+        "provider-verification-template.py",
+        "pytest-fixture.py",
+        "pytest-integration.py",
+        "test-case-template.md",
+        "test-plan-template.md",
+        "vcr-cassette.py"
+      ],
+      "checklists": [
+        "a11y-testing-checklist.md",
+        "contract-testing-checklist.md",
+        "e2e-checklist.md",
+        "e2e-testing-checklist.md",
+        "llm-test-checklist.md",
+        "msw-setup-checklist.md",
+        "performance-checklist.md",
+        "property-testing-checklist.md",
+        "pytest-production-checklist.md",
+        "test-data-checklist.md",
+        "vcr-checklist.md"
+      ]
+    },
+    "plugins": [
+      "ork",
+      "orkl"
+    ],
+    "relatedAgents": [
+      "accessibility-specialist",
+      "code-quality-reviewer",
+      "frontend-ui-developer",
+      "metrics-architect",
+      "monitoring-engineer",
+      "python-performance-engineer",
       "test-generator"
     ]
   },
@@ -6670,44 +6388,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-ui-developer"
     ]
   },
-  "unit-testing": {
-    "name": "unit-testing",
-    "description": "Unit testing patterns and best practices. Use when writing isolated unit tests, implementing AAA pattern, designing test isolation, or setting coverage targets for business logic.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "unit",
-      "tdd",
-      "coverage"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "aaa-pattern.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "create-test-case.md",
-        "create-test-fixture.md",
-        "pytest-fixture.py",
-        "test-case-template.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "code-quality-reviewer",
-      "frontend-ui-developer",
-      "test-generator"
-    ]
-  },
   "upgrade-assessment": {
     "name": "upgrade-assessment",
     "description": "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades.",
@@ -6784,39 +6464,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ux-researcher"
     ]
   },
-  "vcr-http-recording": {
-    "name": "vcr-http-recording",
-    "description": "VCR.py HTTP recording for Python tests. Use when testing Python code making HTTP requests, recording API responses for replay, or creating deterministic tests for external services.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "http",
-      "mocking",
-      "vcr",
-      "recording"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "scripts": [
-        "__pycache__",
-        "vcr-cassette.py"
-      ],
-      "checklists": [
-        "vcr-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "verify": {
     "name": "verify",
     "description": "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes.",
@@ -6851,8 +6498,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-scanning",
       "evidence-verification",
       "run-tests",
-      "unit-testing",
-      "integration-testing",
+      "testing-patterns",
       "memory",
       "quality-gates"
     ],
@@ -7131,47 +6777,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "web-research-analyst"
-    ]
-  },
-  "webapp-testing": {
-    "name": "webapp-testing",
-    "description": "Use when testing web applications with AI-assisted Playwright. Webapp testing covers autonomous test agents for planning, generating, and self-healing tests.",
-    "version": "1.2.0",
-    "author": "OrchestKit AI Agent Hub",
-    "tags": [
-      "playwright",
-      "testing",
-      "e2e",
-      "automation",
-      "agents"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "test-generator",
-    "structure": {
-      "references": [
-        "generator-agent.md",
-        "healer-agent.md",
-        "planner-agent.md",
-        "playwright-setup.md",
-        "visual-regression.md"
-      ],
-      "assets": [
-        "playwright-test-template.ts"
-      ],
-      "checklists": [
-        "e2e-testing-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "code-quality-reviewer",
-      "test-generator"
     ]
   },
   "worktree-coordination": {

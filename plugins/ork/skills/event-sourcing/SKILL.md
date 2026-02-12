@@ -119,7 +119,7 @@ event_schema_version: int = 1  # Support schema evolution
 
 - `message-queues` - Distributed event delivery
 - `database-schema-designer` - Event store schema design
-- `integration-testing` - Testing event-sourced systems
+- `testing-patterns` - Comprehensive testing patterns including integration testing
 
 ## Capability Details
 

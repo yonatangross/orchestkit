@@ -21,7 +21,7 @@ skills:
   - langfuse-observability
   - observability-monitoring
   - cache-cost-tracking
-  - performance-testing
+  - testing-patterns
   - remember
   - memory
 ---
@@ -347,7 +347,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |okr-kpi-patterns:{SKILL.md,references/{okr-workshop-guide.md}}|product,metrics,okr,kpi,goals,measurement
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
+|testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

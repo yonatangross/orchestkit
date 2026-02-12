@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 184,
+  "skills": 172,
   "agents": 36,
   "hooks": 95,
   "commands": 27,
@@ -457,7 +457,7 @@ export const SKILLS_SUMMARY = {
     ],
     "accessibility": [
       "aggregate-patterns",
-      "a11y-testing",
+      "testing-patterns",
       "wcag-compliance",
       "focus-management"
     ],
@@ -469,12 +469,10 @@ export const SKILLS_SUMMARY = {
     "testing": [
       "verify",
       "review-pr",
-      "unit-testing",
-      "integration-testing",
-      "e2e-testing",
-      "test-data-management",
-      "contract-testing",
-      "test-standards-enforcer"
+      "testing-patterns",
+      "test-standards-enforcer",
+      "golden-dataset-management",
+      "evidence-verification"
     ],
     "security": [
       "review-pr",
@@ -487,13 +485,14 @@ export const SKILLS_SUMMARY = {
     "python": [
       "clean-architecture",
       "domain-driven-design",
-      "aggregate-patterns"
+      "aggregate-patterns",
+      "testing-patterns"
     ],
     "llm": [
-      "streaming-api-patterns"
+      "streaming-api-patterns",
+      "testing-patterns"
     ],
     "rag": [
-      "unit-testing",
       "test-standards-enforcer"
     ],
     "backend": [
@@ -542,7 +541,6 @@ export const SKILLS_SUMMARY = {
     ],
     "rag": [
       "llm-evaluation",
-      "llm-testing",
       "rag-retrieval",
       "right-sized-backend",
       "run-tests"

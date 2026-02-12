@@ -313,8 +313,7 @@ mypy .                 # Run type checker
 
 ## Related Skills
 
-- `unit-testing` - Unit test patterns for generating test evidence
-- `integration-testing` - Integration test patterns for component verification
+- `testing-patterns` - Comprehensive testing patterns for generating test evidence
 - `security-scanning` - Security scan evidence collection (npm audit, pip-audit)
 - `test-standards-enforcer` - Enforce evidence collection standards
 

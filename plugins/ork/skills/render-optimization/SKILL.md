@@ -141,7 +141,7 @@ function App() {
 
 - `react-server-components-framework` - Server-first rendering
 - `vite-advanced` - Build optimization
-- `e2e-testing` - Performance testing with Playwright
+- `testing-patterns` - Comprehensive testing patterns including E2E and performance testing
 
 ## References
 

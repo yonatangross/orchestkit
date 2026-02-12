@@ -5,10 +5,8 @@
 |
 |code-review-playbook:{SKILL.md,references/{review-patterns.md}}|code-review,quality,collaboration,best-practices
 |owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
-|unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
-|integration-testing:{SKILL.md}|testing,integration,api,database
+|testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |evidence-verification:{SKILL.md,references/{evidence-patterns.md}}|quality,verification,testing,evidence,completion
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
 |resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
 |test-standards-enforcer:{SKILL.md,references/{naming-conventions.md}}|testing,quality,enforcement,blocking,aaa-pattern,coverage
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit

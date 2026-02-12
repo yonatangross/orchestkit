@@ -105,10 +105,7 @@ npm run test -- --watch
 
 ## Related Skills
 
-- `unit-testing` - Unit test patterns and best practices
-- `integration-testing` - Integration test patterns for component interactions
-- `e2e-testing` - End-to-end testing with Playwright
-- `test-data-management` - Test data fixtures and factories
+- `testing-patterns` - Comprehensive testing patterns and best practices
 
 ## Key Decisions
 

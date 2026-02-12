@@ -18,19 +18,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - unit-testing
-  - integration-testing
-  - e2e-testing
-  - msw-mocking
-  - vcr-http-recording
-  - webapp-testing
-  - performance-testing
-  - a11y-testing
-  - test-data-management
-  - pytest-advanced
-  - property-based-testing
-  - contract-testing
-  - llm-testing
+  - testing-patterns
   - test-standards-enforcer
   - run-tests
   - task-dependency-patterns
@@ -286,7 +274,7 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-strategy-builder, webapp-testing
+- **Skill references:** testing-patterns
 
 ## Skill Index
 
@@ -298,14 +286,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|unit-testing:{SKILL.md,references/{aaa-pattern.md}}|testing,unit,tdd,coverage
-|integration-testing:{SKILL.md}|testing,integration,api,database
-|e2e-testing:{SKILL.md,references/{playwright-1.57-api.md}}|playwright,e2e,testing,ai-agents
-|webapp-testing:{SKILL.md,references/{generator-agent.md,healer-agent.md,planner-agent.md,playwright-setup.md,visual-regression.md}}|playwright,testing,e2e,automation,agents
-|performance-testing:{SKILL.md,references/{k6-patterns.md}}|testing,performance,load,stress
-|a11y-testing:{SKILL.md,references/{a11y-testing-tools.md}}|accessibility,testing,axe-core,playwright,wcag,a11y,jest-axe
-|test-data-management:{SKILL.md,references/{factory-patterns.md}}|testing,fixtures,factories,data
-|contract-testing:{SKILL.md,references/{consumer-tests.md,pact-broker.md,provider-verification.md}}|pact,contract,consumer-driven,api,microservices,testing
+|testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |test-standards-enforcer:{SKILL.md,references/{naming-conventions.md}}|testing,quality,enforcement,blocking,aaa-pattern,coverage
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

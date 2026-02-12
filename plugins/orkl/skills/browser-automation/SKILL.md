@@ -91,5 +91,4 @@ AGENT_BROWSER_HEADED=1               # Run headed
 ## Related Skills
 
 - `browser-content-capture` — Content extraction patterns using agent-browser
-- `webapp-testing` — E2E testing with Playwright test framework
-- `e2e-testing` — End-to-end testing patterns
+- `testing-patterns` — Comprehensive testing patterns including E2E and webapp testing

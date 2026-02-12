@@ -7,7 +7,7 @@ author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
 allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
-skills: [api-design-framework, react-server-components-framework, type-safety-validation, unit-testing, integration-testing, explore, verify, memory, worktree-coordination]
+skills: [api-design-framework, react-server-components-framework, type-safety-validation, testing-patterns, explore, verify, memory, worktree-coordination]
 complexity: medium
 ---
 
