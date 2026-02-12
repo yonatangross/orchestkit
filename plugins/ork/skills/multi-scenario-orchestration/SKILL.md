@@ -101,10 +101,7 @@ scenarios = [
 
 ## Related Skills
 
-- `langgraph-supervisor` - Supervisor routing pattern
-- `langgraph-parallel` - Fan-out/fan-in execution
-- `langgraph-state` - State management
-- `langgraph-checkpoints` - Persistence
+- `langgraph` - LangGraph workflow patterns (supervisor, parallel, state, checkpoints)
 - `multi-agent-orchestration` - Coordination patterns
 
 ## References

@@ -180,6 +180,18 @@ Avoid:
 | Commit granularity | Atomic (one thing) | Independent revert, clear history, easier review |
 | Force push | --force-with-lease only | Prevents overwriting others' work on shared branches |
 
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Branch Protection | `rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
+| Merge Strategy | `rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
+| History Hygiene | `rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+
+**Total: 3 rules across 3 categories**
+
 ## References
 
 - [GitHub Flow Guide](references/github-flow.md)

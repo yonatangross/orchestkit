@@ -3680,346 +3680,30 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "langgraph-checkpoints": {
-    "name": "langgraph-checkpoints",
-    "description": "LangGraph checkpointing and persistence. Use when implementing fault-tolerant workflows, resuming interrupted executions, debugging with state history, or avoiding re-running expensive operations.",
-    "version": "1.0.0",
+  "langgraph": {
+    "name": "langgraph",
+    "description": "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "langgraph",
-      "checkpoints",
+      "workflow",
       "state",
-      "persistence"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "evaluations.md",
-        "postgres-checkpointer.md",
-        "state-inspection.md",
-        "state-recovery.md",
-        "store-memory.md"
-      ],
-      "checklists": [
-        "checkpoint-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-functional": {
-    "name": "langgraph-functional",
-    "description": "LangGraph Functional API with @entrypoint and @task decorators. Use when building workflows with the modern LangGraph pattern, enabling parallel execution, persistence, and human-in-the-loop.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "functional",
-      "api",
-      "patterns"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "determinism-rules.md",
-        "evaluations.md",
-        "injectable-parameters.md",
-        "migration-guide.md",
-        "side-effects.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-human-in-loop": {
-    "name": "langgraph-human-in-loop",
-    "description": "LangGraph human-in-the-loop patterns. Use when implementing approval workflows, manual review gates, user feedback integration, or interactive agent supervision.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "human-in-loop",
-      "review",
-      "approval"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "api-integration.md",
-        "approval-gate.md",
-        "evaluations.md",
-        "feedback-loop.md",
-        "interrupt-resume.md"
-      ],
-      "checklists": [
-        "hitl-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-parallel": {
-    "name": "langgraph-parallel",
-    "description": "LangGraph parallel execution patterns. Use when implementing fan-out/fan-in workflows, map-reduce over tasks, or running independent agents concurrently.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "parallel",
-      "concurrency",
-      "fan-out"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "error-isolation.md",
-        "evaluations.md",
-        "fanout-fanin.md",
-        "map-reduce.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "parallel-agent-fanout.py"
-      ],
-      "checklists": [
-        "parallel-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-routing": {
-    "name": "langgraph-routing",
-    "description": "LangGraph conditional routing patterns. Use when implementing dynamic routing based on state, creating branching workflows, or building retry loops with conditional edges.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
       "routing",
-      "conditional",
-      "branching"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "conditional-edges.md",
-        "evaluations.md",
-        "retry-loops.md",
-        "semantic-routing.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "semantic-router.py"
-      ],
-      "checklists": [
-        "routing-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-state": {
-    "name": "langgraph-state",
-    "description": "LangGraph state management patterns. Use when designing workflow state schemas, using TypedDict vs Pydantic, implementing accumulating state with Annotated operators, or managing shared state across nodes.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "state",
-      "management",
-      "graphs"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "custom-reducers.md",
-        "evaluations.md",
-        "messages-state.md",
-        "pydantic-state.md",
-        "typeddict-state.md"
-      ],
-      "checklists": [
-        "state-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-streaming": {
-    "name": "langgraph-streaming",
-    "description": "LangGraph streaming patterns for real-time updates. Use when implementing progress indicators, token streaming, custom events, or real-time user feedback in workflows.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "streaming",
-      "real-time",
-      "events"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "custom-events.md",
-        "evaluations.md",
-        "llm-token-streaming.md",
-        "stream-modes.md",
-        "subgraph-streaming.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-subgraphs": {
-    "name": "langgraph-subgraphs",
-    "description": "LangGraph subgraph patterns for modular workflows. Use when building nested graphs, composing reusable workflow components, or coordinating multi-agent systems with isolated state.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
-      "subgraphs",
-      "modular",
-      "composition"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "add-as-node-pattern.md",
-        "checkpointing-subgraphs.md",
-        "evaluations.md",
-        "invoke-pattern.md",
-        "state-mapping.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-supervisor": {
-    "name": "langgraph-supervisor",
-    "description": "LangGraph supervisor-worker pattern. Use when building central coordinator agents that route to specialized workers, implementing round-robin or priority-based agent dispatch.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
+      "parallel",
       "supervisor",
-      "multi-agent",
-      "orchestration"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "evaluations.md",
-        "llm-supervisor.md",
-        "priority-routing.md",
-        "round-robin.md"
-      ],
-      "scripts": [
-        "content-analysis-graph.py",
-        "supervisor-workflow.py"
-      ],
-      "checklists": [
-        "supervisor-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "workflow-architect"
-    ]
-  },
-  "langgraph-tools": {
-    "name": "langgraph-tools",
-    "description": "LangGraph tool calling patterns. Use when binding tools to LLMs, implementing ToolNode for execution, dynamic tool selection, or adding approval gates to tool calls.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "langgraph",
       "tools",
-      "function-calling",
-      "agents"
+      "checkpoints",
+      "streaming",
+      "subgraphs",
+      "functional"
     ],
     "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
     "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "bind-tools.md",
-        "dynamic-tools.md",
-        "evaluations.md",
-        "tool-interrupts.md",
-        "toolnode.md"
-      ]
-    },
+    "structure": {},
     "plugins": [
       "ork"
     ],
@@ -6283,6 +5967,38 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork",
       "orkl"
+    ],
+    "relatedAgents": []
+  },
+  "right-sized-backend": {
+    "name": "right-sized-backend",
+    "description": "Context-aware backend architecture sizing. Prevents over-engineering for interviews and MVPs, ensures proper structure for enterprise. Use when starting a new project, evaluating architecture decisions, or reviewing project structure.",
+    "version": "1.0.0",
+    "author": "OrchestKit AI Agent Hub",
+    "tags": [
+      "architecture",
+      "sizing",
+      "interview",
+      "mvp",
+      "enterprise",
+      "over-engineering",
+      "pragmatic"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": "backend-system-architect",
+    "structure": {
+      "references": [
+        "enterprise.md",
+        "interview-takehome.md",
+        "oss-cli-plugin.md",
+        "startup-mvp.md"
+      ]
+    },
+    "plugins": [
+      "ork"
     ],
     "relatedAgents": []
   },

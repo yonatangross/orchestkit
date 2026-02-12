@@ -148,6 +148,81 @@ export function extractIssueNumber(branch: string): number | null {
 }
 
 /**
+ * Get list of staged files (ready to be committed)
+ * Returns array of file paths
+ */
+export function getStagedFiles(projectDir?: string): string[] {
+  const dir = projectDir || getProjectDir();
+  try {
+    const output = execSync('git diff --cached --name-only', {
+      cwd: dir,
+      encoding: 'utf8',
+      timeout: 10000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    }).trim();
+    return output ? output.split('\n').filter((f) => f.trim()) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Analyze staged files for atomicity
+ * Returns an object describing the change characteristics
+ */
+export function analyzeStagedChanges(projectDir?: string): {
+  files: string[];
+  directories: Set<string>;
+  extensions: Set<string>;
+  hasTests: boolean;
+  hasConfig: boolean;
+  hasDocs: boolean;
+  hasSource: boolean;
+} {
+  const files = getStagedFiles(projectDir);
+  const directories = new Set<string>();
+  const extensions = new Set<string>();
+  let hasTests = false;
+  let hasConfig = false;
+  let hasDocs = false;
+  let hasSource = false;
+
+  for (const file of files) {
+    // Extract top-level directory
+    const parts = file.split('/');
+    if (parts.length > 1) {
+      directories.add(parts[0]);
+      // Also track second-level for deeper analysis
+      if (parts.length > 2) {
+        directories.add(`${parts[0]}/${parts[1]}`);
+      }
+    }
+
+    // Extension
+    const ext = file.split('.').pop() || '';
+    extensions.add(ext);
+
+    // Classify file type
+    if (/\.(test|spec)\.\w+$/.test(file) || /^tests?\//.test(file) || /__tests__\//.test(file)) {
+      hasTests = true;
+    } else if (/\.(md|mdx|txt|rst)$/.test(file) || /^docs?\//.test(file) || file === 'README.md') {
+      hasDocs = true;
+    } else if (
+      /\.(json|ya?ml|toml|ini|cfg|env)$/.test(file) ||
+      /config/i.test(file) ||
+      file === 'package.json' ||
+      file === 'tsconfig.json'
+    ) {
+      hasConfig = true;
+    } else {
+      hasSource = true;
+    }
+  }
+
+  return { files, directories, extensions, hasTests, hasConfig, hasDocs, hasSource };
+}
+
+/**
  * Validate branch name format
  * Returns error message if invalid, null if valid
  */

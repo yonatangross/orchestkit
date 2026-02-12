@@ -328,6 +328,18 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 - PR description format
 - Review checklist
 
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| TypeScript Quality | `rules/typescript-quality.md` | HIGH | No `any`, Zod validation, exhaustive switches, React 19 |
+| Python Quality | `rules/python-quality.md` | HIGH | Pydantic v2, ruff, mypy strict, async timeouts |
+| Security Baseline | `rules/security-baseline.md` | CRITICAL | No secrets, auth on endpoints, input validation |
+
+**Total: 3 rules across 3 categories**
+
 ## Available Scripts
 
 - **`scripts/review-pr.md`** - Dynamic PR review with auto-fetched GitHub data
@@ -335,6 +347,6 @@ cache.set(key, value, CACHE_TTL_SECONDS);
   - Usage: `/review-pr [PR-number]`
   - Requires: GitHub CLI (`gh`)
   - Uses `$ARGUMENTS` and `!command` for live PR data
-  
+
 - **`assets/review-feedback-template.md`** - Static review feedback template
 - **`assets/pr-template.md`** - PR description template

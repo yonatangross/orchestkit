@@ -295,7 +295,7 @@ describe('prompt/skill-auto-suggest', () => {
       }
     });
 
-    test('suggests langgraph-state for "langgraph" keyword', () => {
+    test('suggests langgraph for "langgraph" keyword', () => {
       const input = createPromptInput('Build a LangGraph workflow');
       const result = skillAutoSuggest(input);
 

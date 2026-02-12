@@ -250,8 +250,7 @@ def build_crag_workflow() -> StateGraph:
 ## Related Skills
 
 - `rag-retrieval` - Basic RAG patterns this enhances
-- `langgraph-routing` - Conditional edge patterns
-- `langgraph-state` - State design with reducers
+- `langgraph` - LangGraph workflow patterns (routing, state, checkpoints)
 - `contextual-retrieval` - Anthropic's context-prepending
 - `reranking-patterns` - Post-retrieval reranking
 

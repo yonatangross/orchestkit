@@ -1,11 +1,11 @@
 ---
 title: Skills Reference
-description: "Complete reference for all 200 OrchestKit skills."
+description: "Complete reference for all 192 OrchestKit skills."
 ---
 
 # Skills Reference
 
-OrchestKit includes **200 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
+OrchestKit includes **192 skills** — reusable knowledge modules that provide patterns, frameworks, and workflows.
 
 | Skill | Type | Complexity | Description |
 |-------|------|------------|-------------|
@@ -101,16 +101,7 @@ OrchestKit includes **200 skills** — reusable knowledge modules that provide p
 | [Integration Testing](/docs/reference/skills/integration-testing) | Reference | medium | Integration testing patterns for APIs and components. Use when testing component interactions, API endpoints with test databases, or service layer integration. |
 | [Issue Progress Tracking](/docs/reference/skills/issue-progress-tracking) | Reference | medium | Automatic GitHub issue progress updates from commits and sub-task completion. Use when tracking issue progress from commits or automating status updates. |
 | [Langfuse Observability](/docs/reference/skills/langfuse-observability) | Reference | medium | LLM observability platform for tracing, evaluation, prompt management, and cost tracking. Use when setting up Langfuse, monitoring LLM costs, tracking token usage, or implementing prompt versioning. |
-| [Langgraph Checkpoints](/docs/reference/skills/langgraph-checkpoints) | Reference | medium | LangGraph checkpointing and persistence. Use when implementing fault-tolerant workflows, resuming interrupted executions, debugging with state history, or avoiding re-running expensive operations. |
-| [Langgraph Functional](/docs/reference/skills/langgraph-functional) | Reference | medium | LangGraph Functional API with @entrypoint and @task decorators. Use when building workflows with the modern LangGraph pattern, enabling parallel execution, persistence, and human-in-the-loop. |
-| [Langgraph Human In Loop](/docs/reference/skills/langgraph-human-in-loop) | Reference | high | LangGraph human-in-the-loop patterns. Use when implementing approval workflows, manual review gates, user feedback integration, or interactive agent supervision. |
-| [Langgraph Parallel](/docs/reference/skills/langgraph-parallel) | Reference | high | LangGraph parallel execution patterns. Use when implementing fan-out/fan-in workflows, map-reduce over tasks, or running independent agents concurrently. |
-| [Langgraph Routing](/docs/reference/skills/langgraph-routing) | Reference | medium | LangGraph conditional routing patterns. Use when implementing dynamic routing based on state, creating branching workflows, or building retry loops with conditional edges. |
-| [Langgraph State](/docs/reference/skills/langgraph-state) | Reference | medium | LangGraph state management patterns. Use when designing workflow state schemas, using TypedDict vs Pydantic, implementing accumulating state with Annotated operators, or managing shared state across nodes. |
-| [Langgraph Streaming](/docs/reference/skills/langgraph-streaming) | Reference | medium | LangGraph streaming patterns for real-time updates. Use when implementing progress indicators, token streaming, custom events, or real-time user feedback in workflows. |
-| [Langgraph Subgraphs](/docs/reference/skills/langgraph-subgraphs) | Reference | high | LangGraph subgraph patterns for modular workflows. Use when building nested graphs, composing reusable workflow components, or coordinating multi-agent systems with isolated state. |
-| [Langgraph Supervisor](/docs/reference/skills/langgraph-supervisor) | Reference | high | LangGraph supervisor-worker pattern. Use when building central coordinator agents that route to specialized workers, implementing round-robin or priority-based agent dispatch. |
-| [Langgraph Tools](/docs/reference/skills/langgraph-tools) | Reference | high | LangGraph tool calling patterns. Use when binding tools to LLMs, implementing ToolNode for execution, dynamic tool selection, or adding approval gates to tool calls. |
+| [Langgraph](/docs/reference/skills/langgraph) | Reference | high | LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows. |
 | [Lazy Loading Patterns](/docs/reference/skills/lazy-loading-patterns) | Reference | low | Code splitting and lazy loading with React.lazy, Suspense, route-based splitting, intersection observer, and preload strategies for optimal bundle performance. Use when implementing lazy loading or preloading. |
 | [Llm Evaluation](/docs/reference/skills/llm-evaluation) | Reference | medium | LLM output evaluation and quality assessment. Use when implementing LLM-as-judge patterns, quality gates for AI outputs, or automated evaluation pipelines. |
 | [Llm Safety Patterns](/docs/reference/skills/llm-safety-patterns) | Reference | medium | Security patterns for LLM integrations including prompt injection defense and hallucination prevention. Use when implementing context separation, validating LLM outputs, or protecting against prompt injection attacks. |
@@ -169,6 +160,7 @@ OrchestKit includes **200 skills** — reusable knowledge modules that provide p
 | [Resilience Patterns](/docs/reference/skills/resilience-patterns) | Reference | medium | Production-grade fault tolerance for distributed systems. Use when implementing circuit breakers, retry with exponential backoff, bulkhead isolation patterns, or building resilience into LLM API integrations. |
 | [Responsive Patterns](/docs/reference/skills/responsive-patterns) | Reference | medium | Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries. |
 | [Review Pr](/docs/reference/skills/review-pr) | Command | medium | PR review with parallel specialized agents. Use when reviewing pull requests or code. |
+| [Right Sized Backend](/docs/reference/skills/right-sized-backend) | Command | high | Context-aware backend architecture sizing. Prevents over-engineering for interviews and MVPs, ensures proper structure for enterprise. Use when starting a new project, evaluating architecture decisions, or reviewing project structure. |
 | [Root Cause Analysis](/docs/reference/skills/root-cause-analysis) | Reference | medium | 5 Whys, Fishbone diagrams, Fault Tree Analysis, and systematic debugging approaches. Use when investigating bugs, analyzing incidents, or identifying root causes of problems. |
 | [Run Tests](/docs/reference/skills/run-tests) | Reference | medium | Comprehensive test execution with parallel analysis and coverage reporting. Use when running test suites or troubleshooting failures with the run-tests workflow. |
 | [Saga Patterns](/docs/reference/skills/saga-patterns) | Reference | max | Saga patterns for distributed transactions with orchestration and choreography approaches. Use when implementing multi-service transactions, handling partial failures, or building systems requiring eventual consistency with compensation. |

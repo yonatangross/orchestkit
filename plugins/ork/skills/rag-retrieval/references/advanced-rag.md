@@ -344,4 +344,4 @@ async def advanced_rag_pipeline(question: str) -> str:
 - `query-decomposition` - Multi-concept query handling
 - `reranking-patterns` - Cross-encoder and LLM reranking
 - `contextual-retrieval` - Context-prepending for chunks
-- `langgraph-functional` - Building agentic workflows
+- `langgraph` - LangGraph workflow patterns (functional API)

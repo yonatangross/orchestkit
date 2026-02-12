@@ -289,10 +289,7 @@ Choose synchronization strategy:
 
 ## 🔌 Related Skills
 
-- `langgraph-supervisor` - Supervisor routing patterns
-- `langgraph-parallel` - Fan-out/fan-in with LangGraph
-- `langgraph-state` - State management with reducers
-- `langgraph-checkpoints` - PostgreSQL persistence
+- `langgraph` - LangGraph workflow patterns (supervisor, parallel, state, checkpoints)
 - `multi-agent-orchestration` - Multi-agent coordination patterns
 - `langfuse-observability` - Trace and monitor orchestrations
 

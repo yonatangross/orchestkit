@@ -342,7 +342,7 @@ background_tasks.add_task(long_running_job)  # Lost if server restarts
 
 ## Related Skills
 
-- `langgraph-checkpoints` - LLM workflow persistence
+- `langgraph` - LangGraph workflow patterns (checkpoints, persistence)
 - `resilience-patterns` - Retry and fallback
 - `observability-monitoring` - Job metrics
 

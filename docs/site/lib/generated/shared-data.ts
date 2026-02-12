@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 200,
+  "skills": 192,
   "agents": 36,
-  "hooks": 93,
-  "commands": 26,
+  "hooks": 95,
+  "commands": 27,
   "compositions": 14
 };
 
@@ -558,7 +558,7 @@ export const SKILLS_SUMMARY = {
       "error-handling-rfc9457",
       "fastapi-advanced",
       "grpc-python",
-      "langgraph-functional"
+      "project-structure-enforcer"
     ]
   }
 };

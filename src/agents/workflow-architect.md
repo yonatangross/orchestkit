@@ -21,16 +21,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - langgraph-supervisor
-  - langgraph-routing
-  - langgraph-parallel
-  - langgraph-state
-  - langgraph-checkpoints
-  - langgraph-human-in-loop
-  - langgraph-functional
-  - langgraph-streaming
-  - langgraph-subgraphs
-  - langgraph-tools
+  - langgraph
   - multi-agent-orchestration
   - agent-loops
   - alternative-agent-frameworks
@@ -293,7 +284,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph-supervisor, langgraph-routing, langgraph-parallel, langgraph-state, langgraph-checkpoints, langgraph-human-in-loop, langgraph-functional, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, multi-agent-orchestration, langfuse-observability, context-engineering
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

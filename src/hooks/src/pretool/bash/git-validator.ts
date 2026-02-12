@@ -18,7 +18,7 @@ import {
   logPermissionFeedback,
   getCachedBranch,
 } from '../../lib/common.js';
-import { isProtectedBranch, validateBranchName, getGitStatus } from '../../lib/git.js';
+import { isProtectedBranch, validateBranchName, analyzeStagedChanges } from '../../lib/git.js';
 
 // =============================================================================
 // CONSTANTS
@@ -139,11 +139,52 @@ function validateAtomicCommit(command: string, projectDir?: string): HookResult 
     return null;
   }
 
-  const status = getGitStatus(projectDir);
-  const stagedCount = status.split('\n').filter((line) => line.trim()).length;
+  const analysis = analyzeStagedChanges(projectDir);
+  const warnings: string[] = [];
 
-  if (stagedCount > STAGED_FILE_WARNING_THRESHOLD) {
-    return outputAllowWithContext(`Large commit: ${stagedCount} files. Consider splitting into smaller commits.`);
+  // Check 1: File count threshold
+  if (analysis.files.length > STAGED_FILE_WARNING_THRESHOLD) {
+    warnings.push(`Large commit: ${analysis.files.length} staged files.`);
+  }
+
+  // Check 2: Mixed concerns — source + docs + config in one commit
+  const concernCount = [analysis.hasSource, analysis.hasDocs, analysis.hasConfig].filter(Boolean).length;
+  if (concernCount > 1 && !analysis.hasTests) {
+    // Tests with source is fine, but source + docs + config is suspicious
+    const concerns = [];
+    if (analysis.hasSource) concerns.push('source code');
+    if (analysis.hasDocs) concerns.push('documentation');
+    if (analysis.hasConfig) concerns.push('configuration');
+    warnings.push(`Mixed concerns: ${concerns.join(' + ')}. Consider separate commits for each.`);
+  }
+
+  // Check 3: Directory spread — changes in many unrelated top-level dirs
+  const topLevelDirs = new Set(analysis.files.map((f) => f.split('/')[0]).filter((d) => d && d !== '.'));
+  const UNRELATED_DIR_THRESHOLD = 4;
+  if (topLevelDirs.size >= UNRELATED_DIR_THRESHOLD) {
+    warnings.push(
+      `Changes span ${topLevelDirs.size} top-level directories (${[...topLevelDirs].slice(0, 5).join(', ')}). Verify all changes are related.`
+    );
+  }
+
+  // Check 4: Detect likely commit type mixing from file patterns
+  const commitMsg = extractCommitMessage(command);
+  if (commitMsg) {
+    const declaredType = commitMsg.match(/^(feat|fix|refactor|docs|test|chore|style|perf|ci|build)/)?.[1];
+    if (declaredType === 'feat' && analysis.hasConfig && !analysis.hasSource) {
+      warnings.push(`Commit type is "feat" but only config files are staged. Use "chore" instead?`);
+    }
+    if (declaredType === 'docs' && analysis.hasSource) {
+      warnings.push(`Commit type is "docs" but source files are staged. Split docs from code changes.`);
+    }
+    if (declaredType === 'test' && analysis.hasSource && !analysis.hasTests) {
+      warnings.push(`Commit type is "test" but no test files found in staged changes.`);
+    }
+  }
+
+  if (warnings.length > 0) {
+    const context = `Atomic commit check:\n${warnings.map((w) => `- ${w}`).join('\n')}\n\nTip: Use \`git add -p\` to stage changes interactively. See commit/rules/atomic-commit.md for guidelines.`;
+    return outputAllowWithContext(context);
   }
 
   return null;

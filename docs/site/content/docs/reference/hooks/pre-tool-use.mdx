@@ -1,17 +1,18 @@
 ---
 title: "PreToolUse"
-description: "Hooks triggered on PreToolUse events (12 hooks)."
+description: "Hooks triggered on PreToolUse events (13 hooks)."
 ---
 
 # PreToolUse Hooks
 
-**12 hooks** registered for the `PreToolUse` lifecycle event.
+**13 hooks** registered for the `PreToolUse` lifecycle event.
 
 | Hook | Matcher | Scope | Notes |
 |------|---------|-------|-------|
 | `dangerous-command-blocker` | `Bash` | Global |  |
 | `compound-command-validator` | `Bash` | Global |  |
 | `unified-advisory-dispatcher` | `Bash` | Global |  |
+| `` | `Bash(git commit*)` | Global |  |
 | `file-guard` | `Write|Edit` | Global |  |
 | `write-headers` | `Write|Edit` | Global |  |
 | `unified-quality-dispatcher` | `Write|Edit` | Global |  |

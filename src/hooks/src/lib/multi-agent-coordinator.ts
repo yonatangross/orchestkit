@@ -144,7 +144,7 @@ export const PIPELINES: PipelineDefinition[] = [
         agent: 'workflow-architect',
         description: 'Design LangGraph workflow and state',
         dependsOn: [],
-        skills: ['langgraph-state', 'langgraph-routing'],
+        skills: ['langgraph'],
         estimatedTokens: 2500,
       },
       {
