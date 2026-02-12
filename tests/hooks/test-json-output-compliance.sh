@@ -28,24 +28,24 @@ for hook in "${HOOKS[@]}"; do
 
     if [[ ! -f "$hook_path" ]]; then
         echo "❌ FAIL: $hook - file not found"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
         continue
     fi
 
     # Check that hook sources common.sh or uses jq for JSON output
     if ! grep -q "source.*common.sh\|jq -n" "$hook_path"; then
         echo "❌ FAIL: $hook - does not source common.sh or use jq"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
         continue
     fi
 
     # Check that hook uses proper output functions or jq or echo with JSON
     if grep -qE "output_silent_success|output_silent_allow|output_with_context|output_block|jq -n|echo.*continue.*true" "$hook_path"; then
         echo "✓ PASS: $hook - uses proper JSON output"
-        ((PASSED++))
+        PASSED=$((PASSED + 1))
     else
         echo "❌ FAIL: $hook - missing proper JSON output"
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
     fi
 done
 

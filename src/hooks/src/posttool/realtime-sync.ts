@@ -4,17 +4,16 @@
  *
  * Purpose: Sync critical decisions immediately to knowledge graph
  *
- * Graph-First Architecture (v2.1):
+ * Graph-First Architecture (v3.0):
  * - IMMEDIATE syncs target knowledge graph (mcp__memory__*) - always works
- * - mem0 cloud sync only if API key present AND critical priority
  *
  * Priority Classification:
  * - IMMEDIATE: "decided", "chose", "architecture", "security", "blocked", "breaking"
  * - BATCHED: "pattern", "convention", "preference"
  * - SESSION_END: Everything else (handled by existing Stop hooks)
  *
- * Version: 2.1.0 - CC 2.1.9/2.1.11 compliant, Graph-First Architecture
- * Part of Memory Fabric v2.1 - Graph-First Architecture
+ * Version: 3.0.0 - CC 2.1.9/2.1.11 compliant, Graph-First Architecture
+ * Part of Memory Fabric v3.0 - Graph-First Architecture
  */
 
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -217,7 +216,7 @@ export function realtimeSync(input: HookInput): HookResult {
   const contextPressure = getContextPressure();
   const projectDir = getProjectDir();
   const sessionId = getSessionId();
-  const pendingFile = `${projectDir}/.claude/logs/.mem0-pending-sync-${sessionId}.json`;
+  const pendingFile = `${projectDir}/.claude/logs/.pending-sync-${sessionId}.json`;
 
   // Upgrade BATCHED to IMMEDIATE if context pressure is high
   if (priority === 'BATCHED' && contextPressure >= CONTEXT_EMERGENCY_THRESHOLD) {

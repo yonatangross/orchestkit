@@ -5,8 +5,7 @@
  * This hook processes patterns at session end:
  * 1. Extracts workflow patterns (tool sequences, workflow types, languages)
  * 2. Merges queued patterns into learned-patterns.json
- * 3. Syncs to mem0 for cross-project learning
- * 4. Updates workflow profile for session analytics
+ * 3. Updates workflow profile for session analytics
  *
  * CC 2.1.7 Compliant: Uses suppressOutput for silent operation
  */

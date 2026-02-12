@@ -47,17 +47,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -115,7 +115,7 @@ MISSING_SCRIPTS=()
 for script_path in "${EXPECTED_SCRIPTS[@]}"; do
     full_path="$SKILLS_DIR/$script_path"
     if [[ -f "$full_path" ]]; then
-        ((FOUND_SCRIPTS++)) || true
+        FOUND_SCRIPTS=$((FOUND_SCRIPTS + 1))
         skill_name=$(echo "$script_path" | cut -d'/' -f1)
         info "$skill_name: Script exists"
     else
@@ -151,7 +151,7 @@ for script_path in "${MARKDOWN_SCRIPTS[@]}"; do
     full_path="$SKILLS_DIR/$script_path"
     if [[ -f "$full_path" ]]; then
         if ! check_arguments_in_command "$full_path"; then
-            ((MARKDOWN_VALID++)) || true
+            MARKDOWN_VALID=$((MARKDOWN_VALID + 1))
         fi
     fi
 done

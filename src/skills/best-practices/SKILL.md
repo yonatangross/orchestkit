@@ -4,7 +4,7 @@ description: View and manage your personal best practices library with success/f
 context: inherit
 version: 1.0.0
 author: OrchestKit
-tags: [best-practices, patterns, anti-patterns, mem0, learning]
+tags: [best-practices, patterns, anti-patterns, learning]
 user-invocable: false
 allowedTools: [Read, Bash]
 complexity: low
@@ -33,15 +33,12 @@ Display your aggregated best practices library, showing successful patterns and 
 
 ## Workflow
 
-### 1. Query mem0 for Best Practices
+### 1. Query Memory for Best Practices
 
-Use the mem0 CLI script:
+Use the knowledge graph to search for stored patterns:
 
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py \
-  --query "patterns outcomes" \
-  --user-id "project-decisions" \
-  --limit 100
+```javascript
+mcp__memory__search_nodes({ query: "patterns outcomes" })
 ```
 
 ### 2. Aggregate Results

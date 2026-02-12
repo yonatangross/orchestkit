@@ -30,7 +30,6 @@ import { memoryBridge } from './memory-bridge.js';
 import { realtimeSync } from './realtime-sync.js';
 import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
-import { mem0WebhookHandler } from './mem0-webhook-handler.js';
 import { userTracking } from './user-tracking.js';
 // GAP-011: Wire solution-detector to enable problem-tracker functionality
 import { solutionDetector } from './solution-detector.js';
@@ -67,7 +66,6 @@ const HOOKS: HookConfig[] = [
   { name: 'pattern-extractor', fn: patternExtractor, matcher: 'Bash' },
   { name: 'issue-progress-commenter', fn: issueProgressCommenter, matcher: 'Bash' },
   { name: 'issue-subtask-updater', fn: issueSubtaskUpdater, matcher: 'Bash' },
-  { name: 'mem0-webhook-handler', fn: mem0WebhookHandler, matcher: 'Bash' },
 
   // Write/Edit-specific
   { name: 'code-style-learner', fn: codeStyleLearner, matcher: ['Write', 'Edit'] },
@@ -77,7 +75,7 @@ const HOOKS: HookConfig[] = [
   // Skill-specific
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
 
-  // MCP memory-specific (mem0 uses CLI scripts now, not MCP)
+  // MCP memory-specific (graph memory)
   { name: 'memory-bridge', fn: memoryBridge, matcher: ['mcp__memory__create_entities'] },
 
   // Multi-tool matcher

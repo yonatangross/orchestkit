@@ -19,7 +19,6 @@
 |background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
 |browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
 |devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
-|mem0-memory:{SKILL.md,references/{agent-user-architecture.md,data-structure.md,metadata-filtered-architecture.md,visualization.md}}|memory,mem0,persistence,context
 |memory-fabric:{SKILL.md,references/{entity-extraction.md,query-merging.md}}|memory,orchestration,graph-first,graph,unified-search,deduplication,cross-reference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

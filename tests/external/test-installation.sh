@@ -49,26 +49,26 @@ trap teardown EXIT
 test_start() {
     local name="$1"
     echo -n "  ○ $name... "
-    ((TESTS_RUN++)) || true
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 test_pass() {
     echo -e "\033[0;32mPASS\033[0m"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 test_fail() {
     local reason="${1:-}"
     echo -e "\033[0;31mFAIL\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_FAILED++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_skip() {
     local reason="${1:-}"
     echo -e "\033[1;33mSKIP\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_SKIPPED++)) || true
+    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
 }
 
 # Create a minimal test repo

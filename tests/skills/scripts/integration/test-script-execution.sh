@@ -46,17 +46,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -116,15 +116,15 @@ for test_case in "${TEST_CASES[@]}"; do
         
         # Execute command (with error handling)
         if bash -c "$cmd_text" >/dev/null 2>&1; then
-            ((COMMAND_SUCCESSES++)) || true
+            COMMAND_SUCCESSES=$((COMMAND_SUCCESSES + 1))
             info "$skill_name: Command executed successfully"
         else
             # Command failed - check if it has a fallback
             if echo "$cmd_text" | grep -qE '\|\|'; then
-                ((COMMAND_SUCCESSES++)) || true
+                COMMAND_SUCCESSES=$((COMMAND_SUCCESSES + 1))
                 info "$skill_name: Command failed but has fallback (expected)"
             else
-                ((COMMAND_FAILURES++)) || true
+                COMMAND_FAILURES=$((COMMAND_FAILURES + 1))
                 warn "$skill_name: Command failed without fallback: $cmd_text"
             fi
         fi
@@ -174,14 +174,14 @@ for test_case in "${SUBSTITUTION_TESTS[@]}"; do
     if echo "$substituted" | grep -q "$test_args"; then
         # Verify $ARGUMENTS was removed
         if ! echo "$substituted" | grep -q '\$ARGUMENTS'; then
-            ((SUBSTITUTION_SUCCESSES++)) || true
+            SUBSTITUTION_SUCCESSES=$((SUBSTITUTION_SUCCESSES + 1))
             info "$skill_name: \$ARGUMENTS successfully substituted with '$test_args'"
         else
-            ((SUBSTITUTION_FAILURES++)) || true
+            SUBSTITUTION_FAILURES=$((SUBSTITUTION_FAILURES + 1))
             fail "$skill_name: \$ARGUMENTS not fully substituted"
         fi
     else
-        ((SUBSTITUTION_FAILURES++)) || true
+        SUBSTITUTION_FAILURES=$((SUBSTITUTION_FAILURES + 1))
         fail "$skill_name: \$ARGUMENTS substitution failed"
     fi
 done
@@ -235,14 +235,14 @@ for skill_path in "${SAMPLE_SKILLS[@]}"; do
     if [[ -s "$temp_content" ]]; then
         # Check for task instructions
         if grep -qiE "(your task|task:|instructions:)" "$temp_content"; then
-            ((CONTENT_VALID++)) || true
+            CONTENT_VALID=$((CONTENT_VALID + 1))
             info "$skill_name: Final content is valid and usable"
         else
-            ((CONTENT_INVALID++)) || true
+            CONTENT_INVALID=$((CONTENT_INVALID + 1))
             warn "$skill_name: Final content missing task instructions"
         fi
     else
-        ((CONTENT_INVALID++)) || true
+        CONTENT_INVALID=$((CONTENT_INVALID + 1))
         fail "$skill_name: Final content is empty"
     fi
     

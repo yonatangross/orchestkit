@@ -932,7 +932,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "best-practices",
       "patterns",
       "anti-patterns",
-      "mem0",
       "learning"
     ],
     "userInvocable": false,
@@ -4401,57 +4400,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "mem0-memory": {
-    "name": "mem0-memory",
-    "description": "Long-term semantic memory across sessions using Mem0. Use when you need to remember, recall, or forget information across sessions, or when referencing what we discussed last time or in a previous session.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "memory",
-      "mem0",
-      "persistence",
-      "context"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Bash",
-      "Read"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "agent-user-architecture.md",
-        "data-structure.md",
-        "metadata-filtered-architecture.md",
-        "visualization.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "batch",
-        "create",
-        "crud",
-        "export",
-        "graph",
-        "lib",
-        "requirements.txt",
-        "setup",
-        "setup.py",
-        "utils",
-        "validation",
-        "visualization",
-        "webhooks"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer"
-    ]
-  },
   "memory": {
     "name": "memory",
     "description": "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
@@ -4536,7 +4484,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory-fabric": {
     "name": "memory-fabric",
-    "description": "Graph-first memory orchestration - knowledge graph (PRIMARY, always available) with optional mem0 cloud enhancement for semantic search. Use when designing memory orchestration or combining graph and mem0.",
+    "description": "Knowledge graph memory orchestration - entity extraction, query parsing, deduplication, and cross-reference boosting. Use when designing memory orchestration.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -5269,6 +5217,63 @@ export const SKILLS: Record<string, SkillMeta> = {
     },
     "plugins": [
       "ork"
+    ],
+    "relatedAgents": []
+  },
+  "plan-viz": {
+    "name": "plan-viz",
+    "description": "Visualize planned changes before implementation. Before/after architecture, risk dashboard, execution order, impact analysis.",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "visualization",
+      "planning",
+      "before-after",
+      "architecture",
+      "diff",
+      "risk",
+      "impact",
+      "migration"
+    ],
+    "userInvocable": true,
+    "context": "fork",
+    "allowedTools": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Task",
+      "AskUserQuestion",
+      "Bash",
+      "Write"
+    ],
+    "skills": [
+      "ascii-visualizer",
+      "explore",
+      "architecture-decision-record",
+      "assess-complexity"
+    ],
+    "agent": null,
+    "structure": {
+      "references": [
+        "blast-radius-patterns.md",
+        "change-manifest-patterns.md",
+        "decision-log-patterns.md",
+        "execution-swimlane-patterns.md",
+        "risk-dashboard-patterns.md"
+      ],
+      "assets": [
+        "impact-dashboard.md",
+        "plan-report.md",
+        "tier1-header.md"
+      ],
+      "scripts": [
+        "analyze-impact.sh",
+        "detect-plan-context.sh"
+      ]
+    },
+    "plugins": [
+      "ork",
+      "orkl"
     ],
     "relatedAgents": []
   },

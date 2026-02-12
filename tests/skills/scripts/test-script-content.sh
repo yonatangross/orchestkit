@@ -51,17 +51,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -91,12 +91,12 @@ WITH_TASK=0
 
 while IFS= read -r script_file; do
     if [[ -f "$script_file" ]]; then
-        ((TOTAL_SCRIPTS++)) || true
+        TOTAL_SCRIPTS=$((TOTAL_SCRIPTS + 1))
         skill_name=$(echo "$script_file" | sed "s|$SKILLS_DIR/||" | sed 's|/scripts/.*||')
         script_name=$(basename "$script_file")
         
         if has_task_instructions "$script_file"; then
-            ((WITH_TASK++)) || true
+            WITH_TASK=$((WITH_TASK + 1))
             info "$skill_name/scripts/$script_name: Has task instructions"
         else
             NO_TASK_INSTRUCTIONS+=("$skill_name/scripts/$script_name")
@@ -129,7 +129,7 @@ while IFS= read -r script_file; do
         script_name=$(basename "$script_file")
         
         if uses_arguments_in_task "$script_file"; then
-            ((WITH_ARGS_IN_TASK++)) || true
+            WITH_ARGS_IN_TASK=$((WITH_ARGS_IN_TASK + 1))
             info "$skill_name/scripts/$script_name: Uses \$ARGUMENTS in task"
         else
         # Only warn if script has argument-hint (expects arguments)
@@ -168,7 +168,7 @@ while IFS= read -r script_file; do
         script_name=$(basename "$script_file")
         
         if has_usage_examples "$script_file"; then
-            ((WITH_USAGE++)) || true
+            WITH_USAGE=$((WITH_USAGE + 1))
             info "$skill_name/scripts/$script_name: Has usage examples"
         else
             NO_USAGE+=("$skill_name/scripts/$script_name")
@@ -211,7 +211,7 @@ while IFS= read -r script_file; do
             OVER_BUDGET+=("$skill_name/scripts/$script_name ($tokens tokens)")
             warn "$skill_name/scripts/$script_name: Over maximum token budget ($tokens > $MAX_TOKENS)"
         else
-            ((IN_BUDGET++)) || true
+            IN_BUDGET=$((IN_BUDGET + 1))
             info "$skill_name/scripts/$script_name: Token budget OK ($tokens tokens)"
         fi
     fi

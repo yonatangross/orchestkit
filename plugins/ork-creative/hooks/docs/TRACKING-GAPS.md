@@ -53,13 +53,6 @@ Branch: `test/dispatcher-registry-wiring-tests`
 - **Impact**: Problems detected but never tracked or resolved
 - **Fix**: Already wired via GAP-011 solution-detector → problem-tracker
 
-### GAP-006: mem0-queue.jsonl never processed
-- **Written by**: `src/hooks/src/lib/memory-writer.ts:89` (queueForMem0)
-- **Read by**: `src/hooks/src/stop/mem0-queue-sync.ts`
-- **Status**: [x] Fixed
-- **Impact**: Cloud memory sync completely broken - nothing ever uploads
-- **Fix**: Created `stop/mem0-queue-sync.ts` with dispatcher wiring (gated by MEM0_API_KEY)
-
 ---
 
 ## P2: Medium - Dead Code (Never Called)
@@ -145,7 +138,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 1. **GAP-001 + GAP-002**: Wire dispatchers (15 min)
 2. **GAP-012**: Remove duplicate (5 min)
 3. **GAP-003 + GAP-004 + GAP-005**: Decision: wire or remove? (30 min)
-4. **GAP-006**: Create mem0-queue-sync (30 min)
+4. **GAP-006**: (removed)
 5. **GAP-007**: Wire trackSolutionFound (15 min)
 6. **GAP-011**: Delete or wire problem-tracker (15 min)
 7. **GAP-008 + GAP-009 + GAP-010**: Delete unused query functions (10 min)
@@ -162,7 +155,7 @@ Branch: `test/dispatcher-registry-wiring-tests`
 | GAP-003 | pending-decisions reader | [x] | pending |
 | GAP-004 | user-preferences reader | [x] | pending |
 | GAP-005 | open-problems reader | [x] | bb14493c (via GAP-011) |
-| GAP-006 | mem0-queue processor | [x] | 0d0101a4 |
+| GAP-006 | ~~cloud queue processor~~ (removed) | [x] | 0d0101a4 |
 | GAP-007 | trackSolutionFound caller | [x] | pending |
 | GAP-008 | listSessionIds usage | [x] | pending |
 | GAP-009 | getRecentUserSessions usage | [x] | pending |

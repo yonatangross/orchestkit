@@ -46,10 +46,6 @@ describe('hook-priorities', () => {
       expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
     });
 
-    test('returns P2 for supplementary hooks', () => {
-      expect(getHookPriority('subagent-start/mem0-memory-inject')).toBe('P2');
-    });
-
     test('returns P3 for monitoring hooks', () => {
       expect(getHookPriority('posttool/context-budget-monitor')).toBe('P3');
     });

@@ -1,39 +1,26 @@
 /**
- * Unified Memory Writer - Store decisions to local graph and mem0 cloud
+ * Unified Memory Writer - Store decisions to graph memory and CC native MEMORY.md
  *
  * Part of Intelligent Decision Capture System
  *
  * Purpose:
- * - Unify storage to local graph memory (PRIMARY)
- * - Store backup to local JSON files
- * - Optionally sync to mem0 cloud (when MEM0_API_KEY is set)
  * - Build rich graph relationships (CHOSE, CHOSE_OVER, CONSTRAINT)
- * - Support cross-project best practices sharing via user identity
+ * - Store high-confidence decisions to CC Native MEMORY.md (auto-injected into system prompt)
+ * - Return graph operations for callers to execute via mcp__memory__* tools
  *
  * Storage Tiers:
- * 1. Local JSON (always) - .claude/memory/*.jsonl
- * 2. Local Graph (if available) - mcp__memory__* operations queued
- * 3. Mem0 Cloud (optional) - when MEM0_API_KEY env var is set
- *
- * Sharing Scopes:
- * - local: Current session only
- * - user: User's personal profile
- * - team: Shared within project/team
- * - global: Cross-project best practices (anonymized)
+ * 1. Graph Memory (primary) - mcp__memory__* operations built and returned
+ * 2. CC Native MEMORY.md (v2.1.30+) - auto-injected into system prompt
  *
  * CC 2.1.16 Compliant
  */
 
-import { existsSync, appendFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname, basename } from 'node:path';
 import { homedir } from 'node:os';
 import { getProjectDir, logHook } from './common.js';
 import {
   getIdentityContext,
-  canShare,
-  getUserIdForScope,
-  getProjectUserId,
-  getGlobalScopeId,
 } from './user-identity.js';
 import {
   trackDecisionMade,
@@ -170,61 +157,6 @@ export interface QueuedGraphOperation {
     observations?: Array<{ entityName: string; contents: string[] }>;
   };
   timestamp: string;
-}
-
-// =============================================================================
-// FILE PATHS
-// =============================================================================
-
-/**
- * Get path to decisions storage file
- */
-function getDecisionsPath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'decisions.jsonl');
-}
-
-/**
- * Get path to graph operations queue
- */
-function getGraphQueuePath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'graph-queue.jsonl');
-}
-
-/**
- * Get path to mem0 queue (for async sync)
- */
-function getMem0QueuePath(): string {
-  return join(getProjectDir(), '.claude', 'memory', 'mem0-queue.jsonl');
-}
-
-// =============================================================================
-// LOCAL STORAGE
-// =============================================================================
-
-/**
- * Append record to JSONL file
- */
-function appendToJsonl(filePath: string, record: unknown): boolean {
-  try {
-    const dir = dirname(filePath);
-    if (!existsSync(dir)) {
-      mkdirSync(dir, { recursive: true });
-    }
-
-    const line = JSON.stringify(record) + '\n';
-    appendFileSync(filePath, line);
-    return true;
-  } catch (err) {
-    logHook('memory-writer', `Failed to write to ${filePath}: ${err}`, 'warn');
-    return false;
-  }
-}
-
-/**
- * Store decision to local JSON backup
- */
-function storeToLocalJson(decision: DecisionRecord): boolean {
-  return appendToJsonl(getDecisionsPath(), decision);
 }
 
 // =============================================================================
@@ -422,81 +354,6 @@ function inferEntityType(name: string): EntityType {
   return 'Technology'; // Default
 }
 
-/**
- * Queue graph operation for later processing
- */
-export function queueGraphOperation(operation: QueuedGraphOperation): boolean {
-  return appendToJsonl(getGraphQueuePath(), operation);
-}
-
-// =============================================================================
-// MEM0 OPERATIONS
-// =============================================================================
-
-/**
- * Check if mem0 is configured
- */
-export function isMem0Configured(): boolean {
-  return !!process.env.MEM0_API_KEY;
-}
-
-/**
- * Build mem0 memory payload from decision
- * Uses appropriate user_id scope based on sharing settings
- */
-function buildMem0Payload(decision: DecisionRecord): Record<string, unknown> {
-  const scope = decision.metadata.sharing_scope || 'team';
-  const isGeneralizable = decision.metadata.is_generalizable || false;
-
-  // Determine the appropriate user_id based on scope and privacy
-  let userId: string;
-  if (scope === 'global' && isGeneralizable && canShare('decisions', 'global')) {
-    // Use global best practices scope (anonymized)
-    userId = getGlobalScopeId('best-practices');
-  } else if (canShare('decisions', 'team')) {
-    // Use project-scoped ID
-    userId = getProjectUserId('decisions');
-  } else {
-    // Fallback to user-scoped
-    userId = `${getUserIdForScope('local')}-decisions`;
-  }
-
-  return {
-    text: `${decision.type}: ${decision.content.what}${decision.content.why ? ` because ${decision.content.why}` : ''}`,
-    user_id: userId,
-    metadata: {
-      type: decision.type,
-      category: decision.metadata.category,
-      confidence: decision.metadata.confidence,
-      source: decision.metadata.source,
-      project: decision.metadata.project,
-      timestamp: decision.metadata.timestamp,
-      entities: decision.entities,
-      has_rationale: !!decision.content.why,
-      has_alternatives: !!decision.content.alternatives?.length,
-      importance: decision.metadata.importance,
-      is_generalizable: isGeneralizable,
-      // Include identity for attribution (anonymized if global)
-      contributor_id: scope === 'global' ? decision.identity.anonymous_id : decision.identity.user_id,
-    },
-  };
-}
-
-/**
- * Queue for mem0 async sync
- */
-function queueForMem0(decision: DecisionRecord): boolean {
-  if (!isMem0Configured()) {
-    return false;
-  }
-
-  const payload = buildMem0Payload(decision);
-  return appendToJsonl(getMem0QueuePath(), {
-    ...payload,
-    queued_at: new Date().toISOString(),
-  });
-}
-
 // =============================================================================
 // CC NATIVE MEMORY (v2.1.30+ auto-injection)
 // =============================================================================
@@ -637,43 +494,27 @@ function storeToCCNativeMemory(decision: DecisionRecord): boolean {
 // =============================================================================
 
 /**
- * Store a decision to all configured storage backends
+ * Store a decision to configured storage backends
+ *
+ * Builds graph operations (returned for caller to execute via mcp__memory__*)
+ * and stores high-confidence decisions to CC Native MEMORY.md.
  *
  * @param decision - The decision record to store
- * @returns Object indicating which backends succeeded
+ * @returns Object indicating which backends succeeded and graph operations to execute
  */
 export async function storeDecision(decision: DecisionRecord): Promise<{
-  local: boolean;
-  graph_queued: boolean;
-  mem0_queued: boolean;
+  graph_operations: QueuedGraphOperation[];
   cc_native: boolean;
 }> {
   const result = {
-    local: false,
-    graph_queued: false,
-    mem0_queued: false,
+    graph_operations: [] as QueuedGraphOperation[],
     cc_native: false,
   };
 
-  // 1. Store to local JSON (always, primary backup)
-  result.local = storeToLocalJson(decision);
+  // 1. Build graph operations (caller executes via mcp__memory__* tools)
+  result.graph_operations = buildGraphOperations(decision);
 
-  // 2. Queue graph operations
-  const graphOps = buildGraphOperations(decision);
-  let graphQueued = true;
-  for (const op of graphOps) {
-    if (!queueGraphOperation(op)) {
-      graphQueued = false;
-    }
-  }
-  result.graph_queued = graphQueued;
-
-  // 3. Queue for mem0 (if configured)
-  if (isMem0Configured()) {
-    result.mem0_queued = queueForMem0(decision);
-  }
-
-  // 4. Store to CC native memory (v2.1.30+ auto-injection)
+  // 2. Store to CC native memory (v2.1.30+ auto-injection)
   // Only store high-confidence decisions and preferences to keep system prompt concise
   if (decision.metadata.confidence >= 0.7 && isCCNativeMemoryAvailable()) {
     result.cc_native = storeToCCNativeMemory(decision);
@@ -681,9 +522,7 @@ export async function storeDecision(decision: DecisionRecord): Promise<{
 
   // Log result
   const backends = [
-    result.local ? 'local' : null,
-    result.graph_queued ? 'graph' : null,
-    result.mem0_queued ? 'mem0' : null,
+    result.graph_operations.length > 0 ? 'graph' : null,
     result.cc_native ? 'cc-native' : null,
   ].filter(Boolean);
 

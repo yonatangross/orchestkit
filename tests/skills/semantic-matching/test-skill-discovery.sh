@@ -17,7 +17,7 @@ echo "=========================================="
 echo
 
 while IFS= read -r skill_file; do
-    ((CHECKED++)) || true
+    CHECKED=$((CHECKED + 1))
 
     # Extract name and description from frontmatter
     name=$(awk '
@@ -44,7 +44,7 @@ while IFS= read -r skill_file; do
 
     if [[ -z "$name" || -z "$description" ]]; then
         echo "FAIL: Missing name/description in $rel_path"
-        ((FAILED++)) || true
+        FAILED=$((FAILED + 1))
         continue
     fi
 
@@ -64,7 +64,7 @@ while IFS= read -r skill_file; do
     if [[ $has_trigger -eq 0 ]]; then
         echo "WARN: $name - Missing trigger phrasing"
         echo "      File: $rel_path"
-        ((WARNINGS++)) || true
+        WARNINGS=$((WARNINGS + 1))
     fi
 
     # Heuristic: description should mention skill name or a keyword fragment
@@ -81,7 +81,7 @@ while IFS= read -r skill_file; do
         if [[ $found_fragment -eq 0 ]]; then
             echo "WARN: $name - Description does not mention skill name or fragments"
             echo "      File: $rel_path"
-            ((WARNINGS++)) || true
+            WARNINGS=$((WARNINGS + 1))
         fi
     fi
 done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)

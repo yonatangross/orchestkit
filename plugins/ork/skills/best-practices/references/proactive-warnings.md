@@ -22,7 +22,7 @@ When Claude detects implementation of a known anti-pattern:
 
 2. **Category matching:**
    - Detect category from current implementation
-   - Query mem0 for failed patterns in that category
+   - Query memory for failed patterns in that category
    - Compare semantic similarity
 
 3. **Threshold for warning:**

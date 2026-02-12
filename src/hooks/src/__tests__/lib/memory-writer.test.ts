@@ -7,7 +7,6 @@
  * - storeDecision() - Multi-backend storage
  * - Relation generation (CHOSE, CHOSE_OVER, CONSTRAINT, TRADEOFF, RELATES_TO)
  * - Entity type inference
- * - Mem0 payload building
  * - JSONL file operations
  */
 
@@ -16,8 +15,6 @@ import {
   buildGraphOperations,
   createDecisionRecord,
   storeDecision,
-  queueGraphOperation,
-  isMem0Configured,
   isCCNativeMemoryAvailable,
   type DecisionRecord,
   type QueuedGraphOperation,
@@ -672,83 +669,7 @@ describe('createDecisionRecord', () => {
   });
 });
 
-// =============================================================================
-// isMem0Configured() Tests
-// =============================================================================
-
-describe('isMem0Configured', () => {
-  const originalEnv = process.env.MEM0_API_KEY;
-
-  afterEach(() => {
-    if (originalEnv) {
-      process.env.MEM0_API_KEY = originalEnv;
-    } else {
-      delete process.env.MEM0_API_KEY;
-    }
-  });
-
-  it('should return true when MEM0_API_KEY is set', () => {
-    process.env.MEM0_API_KEY = 'test-key';
-    expect(isMem0Configured()).toBe(true);
-  });
-
-  it('should return false when MEM0_API_KEY is not set', () => {
-    delete process.env.MEM0_API_KEY;
-    expect(isMem0Configured()).toBe(false);
-  });
-
-  it('should return false when MEM0_API_KEY is empty', () => {
-    process.env.MEM0_API_KEY = '';
-    expect(isMem0Configured()).toBe(false);
-  });
-});
-
-// =============================================================================
-// queueGraphOperation() Tests
-// =============================================================================
-
-describe('queueGraphOperation', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it('should queue operation to JSONL file', async () => {
-    const fs = await import('node:fs');
-    const mockAppendFileSync = vi.mocked(fs.appendFileSync);
-
-    const operation: QueuedGraphOperation = {
-      type: 'create_entities',
-      payload: {
-        entities: [{ name: 'Test', entityType: 'Technology', observations: [] }],
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    const result = queueGraphOperation(operation);
-
-    expect(result).toBe(true);
-    expect(mockAppendFileSync).toHaveBeenCalled();
-  });
-
-  it('should return false when write fails', async () => {
-    const fs = await import('node:fs');
-    vi.mocked(fs.appendFileSync).mockImplementation(() => {
-      throw new Error('Disk full');
-    });
-
-    const operation: QueuedGraphOperation = {
-      type: 'create_entities',
-      payload: {
-        entities: [{ name: 'Test', entityType: 'Technology', observations: [] }],
-      },
-      timestamp: new Date().toISOString(),
-    };
-
-    const result = queueGraphOperation(operation);
-
-    expect(result).toBe(false);
-  });
-});
+// Note: queueGraphOperation tests removed in v7 (function removed from source)
 
 // =============================================================================
 // Edge Cases and Error Handling
@@ -1011,10 +932,8 @@ describe('storeDecision with CC native memory', () => {
 
     const result = await storeDecision(decision);
 
-    // Check all storage backends are represented
-    expect(result).toHaveProperty('local');
-    expect(result).toHaveProperty('graph_queued');
-    expect(result).toHaveProperty('mem0_queued');
+    // Check all storage backends are represented (v7: local/graph_queued removed)
+    expect(result).toHaveProperty('graph_operations');
     expect(result).toHaveProperty('cc_native');
   });
 
@@ -1074,8 +993,8 @@ describe('storeDecision with CC native memory', () => {
 
     // Should fail gracefully for CC native
     expect(result.cc_native).toBe(false);
-    // Local uses appendFileSync, should work
-    expect(result.local).toBe(true);
+    // Graph operations should still be generated
+    expect(result.graph_operations).toBeDefined();
   });
 
   it('should skip duplicate decisions', async () => {
@@ -1268,8 +1187,8 @@ describe('storeDecision with CC native memory', () => {
 
     // Should skip CC native
     expect(result.cc_native).toBe(false);
-    // Local storage uses appendFileSync, which we mock
-    expect(result.local).toBe(true);
+    // Graph operations should still be generated
+    expect(result.graph_operations.length).toBeGreaterThan(0);
   });
 
   it('should handle decisions without entities', async () => {

@@ -18,14 +18,10 @@ import { issueWorkSummary } from './issue-work-summary.js';
 import { calibrationPersist } from './calibration-persist.js';
 import { sessionProfileAggregator } from './session-profile-aggregator.js';
 import { sessionEndTracking } from './session-end-tracking.js';
-// Issue #245: GAP-001 & GAP-002 - Wire missing tracking hooks
-import { graphQueueSync } from './graph-queue-sync.js';
+// Issue #245: GAP-002 - Wire missing tracking hooks
 import { workflowPreferenceLearner } from './workflow-preference-learner.js';
-// Issue #245: GAP-006 - mem0 cloud memory sync
-import { mem0QueueSync } from './mem0-queue-sync.js';
 // Issue #243: Additional stop hooks previously run separately
 import { taskCompletionCheck } from './task-completion-check.js';
-import { mem0PreCompactionSync } from './mem0-pre-compaction-sync.js';
 import { contextCompressor } from './context-compressor.js';
 import { autoRememberContinuity } from './auto-remember-continuity.js';
 import { fullTestSuite } from './full-test-suite.js';
@@ -75,10 +71,7 @@ const HOOKS: HookConfig[] = [
   { name: 'session-end-tracking', fn: sessionEndTracking },
 
   // --- Memory sync hooks ---
-  { name: 'graph-queue-sync', fn: graphQueueSync },
   { name: 'workflow-preference-learner', fn: workflowPreferenceLearner },
-  { name: 'mem0-queue-sync', fn: mem0QueueSync },
-  { name: 'mem0-pre-compaction-sync', fn: mem0PreCompactionSync },
 
   // --- Instance management hooks ---
   { name: 'task-completion-check', fn: taskCompletionCheck },

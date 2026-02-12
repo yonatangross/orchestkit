@@ -62,7 +62,7 @@ validate_plugin_schema() {
         value=$(jq -r ".$field // empty" "$PLUGIN_JSON" 2>/dev/null)
         if [[ -z "$value" ]]; then
             echo -e "  ${RED}FAIL${NC}: Missing required field '$field'"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
         else
             echo -e "  ${GREEN}PASS${NC}: $field = $value"
         fi
@@ -87,7 +87,7 @@ validate_plugin_schema() {
                 echo -e "  ${GREEN}PASS${NC}: skills = \"$skills_val\" (valid string path)"
             else
                 echo -e "  ${YELLOW}WARN${NC}: skills path should start with ./ (got: $skills_val)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
             ;;
         "array")
@@ -97,11 +97,11 @@ validate_plugin_schema() {
             echo -e "  ${RED}FAIL${NC}: skills is OBJECT - CC 2.1.19 expects string or array"
             echo "        Current: $(jq -c '.skills' "$PLUGIN_JSON")"
             echo "        Expected: \"./skills/\" or [\"./skills/\"]"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
             ;;
         *)
             echo -e "  ${RED}FAIL${NC}: skills has unexpected type: $skills_type"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
             ;;
     esac
     echo ""
@@ -124,7 +124,7 @@ validate_plugin_schema() {
                 echo -e "  ${GREEN}PASS${NC}: agents = \"$agents_val\" (valid string path)"
             else
                 echo -e "  ${YELLOW}WARN${NC}: agents path should start with ./ (got: $agents_val)"
-                ((WARNINGS++))
+                WARNINGS=$((WARNINGS + 1))
             fi
             ;;
         "array")
@@ -134,11 +134,11 @@ validate_plugin_schema() {
             echo -e "  ${RED}FAIL${NC}: agents is OBJECT - CC 2.1.19 expects string or array"
             echo "        Current: $(jq -c '.agents' "$PLUGIN_JSON")"
             echo "        Expected: \"./agents/\" or [\"./agents/\"]"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
             ;;
         *)
             echo -e "  ${RED}FAIL${NC}: agents has unexpected type: $agents_type"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
             ;;
     esac
     echo ""
@@ -157,7 +157,7 @@ validate_plugin_schema() {
         echo -e "  ${YELLOW}WARN${NC}: commands field present - this is deprecated in CC 2.1.16"
         echo "        Use skills with 'user-invocable: true' in frontmatter instead"
         echo "        Current: $(jq -c '.commands' "$PLUGIN_JSON")"
-        ((WARNINGS++))
+        WARNINGS=$((WARNINGS + 1))
     fi
     echo ""
 
@@ -182,7 +182,7 @@ validate_plugin_schema() {
             ;;
         *)
             echo -e "  ${RED}FAIL${NC}: hooks has unexpected type: $hooks_type"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
             ;;
     esac
     echo ""
@@ -214,7 +214,7 @@ validate_plugin_schema() {
             echo -e "  ${RED}FAIL${NC}: $missing_command hook(s) missing 'command' field"
             echo "        Events with issues: ${hook_locations%, }"
             echo "        Fix: Add 'command' field to each hook with type='command'"
-            ((FAILED++))
+            FAILED=$((FAILED + 1))
         fi
     else
         echo -e "  ${GREEN}PASS${NC}: No inline hooks to validate"
@@ -242,7 +242,7 @@ if [[ -f "$MAIN_PLUGIN" ]]; then
     validate_plugin_schema "$MAIN_PLUGIN" "Main Plugin (ork)"
 else
     echo -e "${YELLOW}WARN${NC}: Main ork plugin.json not found at $MAIN_PLUGIN"
-    ((TOTAL_WARNINGS++))
+    TOTAL_WARNINGS=$((TOTAL_WARNINGS + 1))
 fi
 
 # 2. Test all modular plugins

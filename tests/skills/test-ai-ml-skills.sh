@@ -21,19 +21,19 @@ TESTS_FAILED=0
 
 pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 warn() {
     echo -e "${YELLOW}!${NC} $1"
-    ((TESTS_RUN++)) || true
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 # AI/ML skills to test
@@ -182,8 +182,8 @@ for skill in "${AI_ML_SKILLS[@]}"; do
             pass "$skill SKILL.md ~$estimated_tokens tokens (budget OK)"
         else
             echo -e "${YELLOW}!${NC} $skill SKILL.md ~$estimated_tokens tokens (over budget, but acceptable for comprehensive skill)"
-            ((TESTS_RUN++)) || true
-            ((TESTS_PASSED++)) || true
+            TESTS_RUN=$((TESTS_RUN + 1))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         fi
     fi
 done

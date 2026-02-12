@@ -32,6 +32,8 @@ vi.mock('../../../lib/common.js', () => ({
 
 vi.mock('../../../lib/agent-teams.js', () => ({
   getTeamMembers: vi.fn(() => []),
+  isStaleTeam: vi.fn(() => false),
+  cleanupTeam: vi.fn(),
 }));
 
 import { teamSizeGate } from '../../../pretool/task/team-size-gate.js';

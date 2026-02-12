@@ -2,7 +2,7 @@
  * Memory Metrics Collector - Collect memory usage metrics at session start
  *
  * Runs in the SessionStart dispatcher to snapshot memory system state.
- * Works for all users regardless of MEM0_API_KEY configuration.
+ * Works for all users with local memory files.
  */
 
 import type { HookInput, HookResult } from '../types.js';

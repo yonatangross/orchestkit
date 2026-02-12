@@ -7,7 +7,7 @@ Essential context for Claude Code when working on OrchestKit.
 **OrchestKit** is a Claude Code plugin providing:
 - **200 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **98 hooks**: TypeScript lifecycle automation (70 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
+- **93 hooks**: TypeScript lifecycle automation (70 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -237,7 +237,7 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 | `ork-creative` | 16 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
 | `ork` | 200 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
-All plugins include 98 hooks and all memory skills (remember, memory, memory-fabric, mem0-memory).
+All plugins include 93 hooks and all memory skills (remember, memory, memory-fabric).
 
 ### Environment Variables
 ```bash

@@ -12,4 +12,5 @@
   "license": "MIT",
   "keywords": ["ai-development", "langgraph", "fastapi", "react", "typescript", "python", "multi-agent"]
   ,"skills": "./skills/"
+  ,"commands": "./commands/"
 }

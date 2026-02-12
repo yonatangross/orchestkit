@@ -13,12 +13,6 @@
       "description": "Complex reasoning and architectural decision support",
       "disabled": true
     },
-    "mem0": {
-      "command": "uvx",
-      "args": ["mem0-mcp-server"],
-      "description": "Cloud semantic memory (official) - requires MEM0_API_KEY env var and uvx installed",
-      "disabled": true
-    },
     "memory": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],

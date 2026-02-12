@@ -215,7 +215,7 @@ describe('Hook Priority Integration', () => {
     trackTokenUsage('filler', 'skill-injection', 1950);
 
     // P2 throttles at 70%
-    expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(true);
+    expect(shouldThrottle('stop/context-compressor')).toBe(true);
     // P1 still OK at 90%
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false);
   });
@@ -223,7 +223,6 @@ describe('Hook Priority Integration', () => {
   test('priority assignments are correct for all known hooks', () => {
     expect(getHookPriority('pretool/bash/dangerous-command-blocker')).toBe('P0');
     expect(getHookPriority('subagent-start/graph-memory-inject')).toBe('P1');
-    expect(getHookPriority('subagent-start/mem0-memory-inject')).toBe('P2');
     expect(getHookPriority('posttool/context-budget-monitor')).toBe('P3');
     expect(getHookPriority('unknown-hook')).toBe('P2'); // default
   });

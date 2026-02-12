@@ -83,7 +83,7 @@ echo "  Skills path: $skills_dir"
 
 if [[ ! -d "$skills_dir" ]]; then
     echo -e "  ${RED}FAIL${NC}: Skills directory not found"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
 else
     # Count and categorize skills
     total_skills=0
@@ -141,7 +141,7 @@ echo "  Agents path: $agents_dir"
 
 if [[ ! -d "$agents_dir" ]]; then
     echo -e "  ${RED}FAIL${NC}: Agents directory not found"
-    ((FAILED++))
+    FAILED=$((FAILED + 1))
 else
     agent_count=0
     agent_names=()
@@ -222,7 +222,7 @@ for agent_file in "$agents_dir"/*.md; do
     if [[ "$has_name" -eq 0 ]] || [[ "$has_desc" -eq 0 ]]; then
         echo -e "  ${RED}FAIL${NC}: $agent_name missing required frontmatter"
         ((agents_with_issues++))
-        ((FAILED++))
+        FAILED=$((FAILED + 1))
     fi
 
     # Check for tools specification

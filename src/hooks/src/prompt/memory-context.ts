@@ -6,7 +6,6 @@
  * Graph-First Architecture (v2.1):
  * - ALWAYS works - knowledge graph requires no configuration
  * - Primary: Search knowledge graph (mcp__memory__search_nodes)
- * - Optional: Also search mem0 for semantic matches if configured
  *
  * Part of Memory Fabric v2.1
  */
@@ -14,7 +13,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 
 // Keywords that suggest memory search would be valuable
 const MEMORY_TRIGGER_KEYWORDS = [
@@ -169,14 +168,6 @@ function extractSearchTerms(prompt: string): string {
 }
 
 /**
- * Generate mem0 user ID for a scope
- */
-function getMem0UserId(scope: string, projectDir: string): string {
-  const projectName = basename(projectDir) || 'unknown';
-  return `project:${projectName}:${scope}`;
-}
-
-/**
  * Get current agent ID if available
  */
 function getAgentContext(projectDir: string): string {
@@ -204,9 +195,7 @@ export function memoryContext(input: HookInput): HookResult {
   const prompt = input.prompt || '';
   const projectDir = input.project_dir || getProjectDir();
 
-  const isMem0Available = false; // Simplified - mem0 availability would be checked at runtime
-
-  logHook('memory-context', `Memory context hook starting (graph-first, mem0=${isMem0Available})`);
+  logHook('memory-context', 'Memory context hook starting (graph-first)');
 
   // Skip if prompt is too short
   if (prompt.length < MIN_PROMPT_LENGTH) {
@@ -253,23 +242,12 @@ export function memoryContext(input: HookInput): HookResult {
   // Build scope description
   const scopeDesc = useGlobal ? 'cross-project' : 'project';
 
-  const userIdDecisions = getMem0UserId('decisions', projectDir);
-
   let systemMsg = `[Memory Context] For relevant past ${scopeDesc} decisions, use mcp__memory__search_nodes with query="${searchTerms}"`;
 
   // Add relationship hint if graph-related query
   if (useGraph) {
     systemMsg +=
       ' | For relationships: mcp__memory__open_nodes on found entities | Graph traversal available';
-  }
-
-  // Add mem0 hint if available (using CLI scripts)
-  if (isMem0Available && userIdDecisions) {
-    systemMsg += ` | [Enhanced] For semantic search via CLI: python3 \${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py --query "${searchTerms}" --user-id "${userIdDecisions}" --enable-graph`;
-
-    if (!useGlobal) {
-      systemMsg += ' | Cross-project: --user-id "global:best-practices"';
-    }
   }
 
   // Add agent context hint

@@ -24,7 +24,6 @@ describe('Dispatcher Registry Wiring', () => {
         'pattern-extractor',
         'issue-progress-commenter',
         'issue-subtask-updater',
-        'mem0-webhook-handler',
         'code-style-learner',
         'naming-convention-learner',
         'skill-edit-tracker',
@@ -52,7 +51,6 @@ describe('Dispatcher Registry Wiring', () => {
       expect(byName['pattern-extractor']).toBe('Bash');
       expect(byName['issue-progress-commenter']).toBe('Bash');
       expect(byName['issue-subtask-updater']).toBe('Bash');
-      expect(byName['mem0-webhook-handler']).toBe('Bash');
 
       // Write|Edit hooks
       expect(byName['code-style-learner']).toEqual(['Write', 'Edit']);
@@ -62,7 +60,7 @@ describe('Dispatcher Registry Wiring', () => {
       // Skill hook
       expect(byName['skill-usage-optimizer']).toBe('Skill');
 
-      // MCP memory hook (mem0 uses CLI now, only graph MCP)
+      // MCP memory hook (graph MCP)
       expect(byName['memory-bridge']).toEqual(['mcp__memory__create_entities']);
 
       // Multi-tool hook
@@ -79,12 +77,11 @@ describe('Dispatcher Registry Wiring', () => {
   describe('lifecycle/unified-dispatcher', () => {
     it('contains exactly the expected hooks', () => {
       expect(lifecycleHooks()).toEqual([
-        'mem0-context-retrieval',
-        'mem0-analytics-tracker',
         'pattern-sync-pull',
         'session-env-setup',
         'session-tracking',
         'memory-metrics-collector',
+        'stale-team-cleanup',
       ]);
     });
   });
@@ -101,11 +98,8 @@ describe('Dispatcher Registry Wiring', () => {
         'calibration-persist',
         'session-profile-aggregator',
         'session-end-tracking',
-        // Memory sync hooks
-        'graph-queue-sync',
+        // Memory sync hooks (v7: removed graph-queue-sync — mem0 cloud removed)
         'workflow-preference-learner',
-        'mem0-queue-sync',
-        'mem0-pre-compaction-sync',
         'task-completion-check',
         // Analysis hooks
         'context-compressor',
@@ -154,7 +148,6 @@ describe('Dispatcher Registry Wiring', () => {
     it('contains exactly the expected hooks', () => {
       expect(setupHooks()).toEqual([
         'dependency-version-check',
-        'mem0-webhook-setup',
       ]);
     });
   });
@@ -194,7 +187,7 @@ describe('Dispatcher Registry Wiring', () => {
   });
 
   describe('Cross-dispatcher consistency', () => {
-    it('total consolidated hook count is 59', () => {
+    it('total consolidated hook count matches expected', () => {
       const total =
         posttoolHooks().length +
         lifecycleHooks().length +
@@ -203,9 +196,10 @@ describe('Dispatcher Registry Wiring', () => {
         notificationHooks().length +
         setupHooks().length;
 
-      // posttool: 16, lifecycle: 6, stop: 27, subagent-stop: 4, notification: 2, setup: 2
-      // #362: removed multi-instance-cleanup from stop, coordination-init from setup
-      expect(total).toBe(57);
+      // posttool: 15, lifecycle: 5, stop: 24, subagent-stop: 4, notification: 2, setup: 1
+      // v7: removed graph-queue-sync from stop dispatcher (mem0 cloud removed)
+      // lifecycle: added stale-team-cleanup
+      expect(total).toBe(51);
     });
   });
 });

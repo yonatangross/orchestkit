@@ -43,17 +43,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -119,7 +119,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         
         # Check for scripts/ references
         if grep -qE 'scripts/' "$skill_file" 2>/dev/null; then
-            ((SCRIPTS_REFERENCES++)) || true
+            SCRIPTS_REFERENCES=$((SCRIPTS_REFERENCES + 1))
             info "$skill_name: SKILL.md references scripts/"
         fi
     fi
@@ -175,7 +175,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         skill_name=$(basename "$skill_dir")
         
         if [[ -d "$skill_dir/scripts" ]]; then
-            ((SCRIPTS_DIRS++)) || true
+            SCRIPTS_DIRS=$((SCRIPTS_DIRS + 1))
             info "$skill_name: Has scripts/ directory"
         fi
     fi

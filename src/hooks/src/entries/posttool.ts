@@ -10,12 +10,11 @@ export * from '../types.js';
 export * from '../lib/common.js';
 export * from '../lib/git.js';
 
-// PostTool hooks - Root (13)
+// PostTool hooks - Root (12)
 import { auditLogger } from '../posttool/audit-logger.js';
 import { unifiedErrorHandler } from '../posttool/unified-error-handler.js';
 import { autoLint } from '../posttool/auto-lint.js';
 import { contextBudgetMonitor } from '../posttool/context-budget-monitor.js';
-import { mem0WebhookHandler } from '../posttool/mem0-webhook-handler.js';
 import { memoryBridge } from '../posttool/memory-bridge.js';
 import { realtimeSync } from '../posttool/realtime-sync.js';
 import { userTracking } from '../posttool/user-tracking.js';
@@ -53,12 +52,11 @@ import type { HookFn } from '../types.js';
  * PostTool hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // PostTool hooks - Root (12)
+  // PostTool hooks - Root (11)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
-  'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/user-tracking': userTracking,

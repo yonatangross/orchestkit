@@ -7,12 +7,11 @@
  * Strategy:
  * - Parse agent output for decision patterns
  * - Extract key architectural choices
- * - Store in mem0 with agent_id scope for future retrieval
+ * - Log patterns for graph memory storage
  * - Track agent performance metrics
  * - Detect categories for proper organization
  *
- * Version: 1.2.0 (TypeScript port)
- * Part of mem0 Semantic Memory Integration
+ * Version: 2.1.0 (graph-first)
  */
 
 import { existsSync, mkdirSync, appendFileSync, unlinkSync } from 'node:fs';
@@ -40,8 +39,7 @@ const DECISION_PATTERNS = [
   'learned that',
 ];
 
-const MEM0_SCOPE_DECISIONS = 'decisions';
-const MEM0_SCOPE_AGENTS = 'agents';
+const SCOPE_DECISIONS = 'decisions';
 
 // -----------------------------------------------------------------------------
 // Path Helpers
@@ -70,7 +68,7 @@ function getProjectId(): string {
     .replace(/-+/g, '-');
 }
 
-function mem0UserId(scope: string): string {
+function scopedId(scope: string): string {
   return `${getProjectId()}-${scope}`;
 }
 
@@ -113,7 +111,7 @@ function detectPatternCategory(text: string): string {
   if (/performance|optimization|cache|index/.test(textLower)) {
     return 'performance';
   }
-  if (/llm|\brag\b|embedding|vector|semantic|\bai\b|\bml\b|langchain|langgraph|mem0|openai|anthropic/.test(textLower)) {
+  if (/llm|\brag\b|embedding|vector|semantic|\bai\b|\bml\b|langchain|langgraph|openai|anthropic/.test(textLower)) {
     return 'ai-ml';
   }
   if (/etl|data.*pipeline|streaming|batch.*processing|dataflow|spark/.test(textLower)) {
@@ -220,7 +218,7 @@ export function agentMemoryStore(input: HookInput): HookResult {
 
   const projectId = getProjectId();
   const timestamp = new Date().toISOString();
-  const decisionsUserId = mem0UserId(MEM0_SCOPE_DECISIONS);
+  const decisionsId = scopedId(SCOPE_DECISIONS);
 
   for (const pattern of extractedPatterns) {
     const category = detectPatternCategory(pattern);
@@ -231,10 +229,9 @@ export function agentMemoryStore(input: HookInput): HookResult {
       pattern: pattern,
       project: projectId,
       timestamp: timestamp,
-      suggested_user_id: decisionsUserId,
+      scope_id: decisionsId,
       category: category,
-      enable_graph: true,
-      pending_sync: true,
+      pending_graph_sync: true,
     };
 
     try {
@@ -248,9 +245,8 @@ export function agentMemoryStore(input: HookInput): HookResult {
 
   logHook('agent-memory-store', `Extracted ${extractedPatterns.length} patterns from ${agentType} output`);
 
-  // Build suggestion message using CLI script
-  const scriptPath = '${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py';
-  const systemMsg = `[Pattern Extraction] ${extractedPatterns.length} patterns extracted from ${agentType}. To persist, use CLI: python3 ${scriptPath} --text "..." --user-id '${decisionsUserId}' --metadata '{"agent_id":"${agentId}"}'`;
+  // Build suggestion message for graph storage
+  const systemMsg = `[Pattern Extraction] ${extractedPatterns.length} patterns extracted from ${agentType}. To persist, use mcp__memory__create_entities with entities: [{"name": "${agentType}-pattern", "entityType": "Pattern", "observations": ["<pattern>"]}]`;
 
   return {
     continue: true,

@@ -20,14 +20,6 @@ import { unifiedSessionStartDispatcher, registeredHookNames } from '../../lifecy
 // =============================================================================
 
 // Mock all the sub-hooks that the dispatcher calls
-vi.mock('../../lifecycle/mem0-context-retrieval.js', () => ({
-  mem0ContextRetrieval: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
-vi.mock('../../lifecycle/mem0-analytics-tracker.js', () => ({
-  mem0AnalyticsTracker: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({
   patternSyncPull: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -45,8 +37,6 @@ vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({
 }));
 
 // Import mocked modules
-import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js';
-import { mem0AnalyticsTracker } from '../../lifecycle/mem0-analytics-tracker.js';
 import { patternSyncPull } from '../../lifecycle/pattern-sync-pull.js';
 import { sessionEnvSetup } from '../../lifecycle/session-env-setup.js';
 import { sessionTracking } from '../../lifecycle/session-tracking.js';
@@ -162,22 +152,6 @@ describe('unified-dispatcher', () => {
       expect(names.length).toBeGreaterThan(0);
     });
 
-    test('includes mem0-context-retrieval', () => {
-      // Act
-      const names = registeredHookNames();
-
-      // Assert
-      expect(names).toContain('mem0-context-retrieval');
-    });
-
-    test('includes mem0-analytics-tracker', () => {
-      // Act
-      const names = registeredHookNames();
-
-      // Assert
-      expect(names).toContain('mem0-analytics-tracker');
-    });
-
     test('includes pattern-sync-pull', () => {
       // Act
       const names = registeredHookNames();
@@ -210,12 +184,12 @@ describe('unified-dispatcher', () => {
       expect(names).toContain('memory-metrics-collector');
     });
 
-    test('returns exactly 6 registered hooks', () => {
+    test('returns exactly 5 registered hooks', () => {
       // Act
       const names = registeredHookNames();
 
       // Assert
-      expect(names.length).toBe(6);
+      expect(names.length).toBe(5);
     });
   });
 
@@ -228,8 +202,6 @@ describe('unified-dispatcher', () => {
       await unifiedSessionStartDispatcher(input);
 
       // Assert
-      expect(mem0ContextRetrieval).toHaveBeenCalledTimes(1);
-      expect(mem0AnalyticsTracker).toHaveBeenCalledTimes(1);
       expect(patternSyncPull).toHaveBeenCalledTimes(1);
       expect(sessionEnvSetup).toHaveBeenCalledTimes(1);
       expect(sessionTracking).toHaveBeenCalledTimes(1);
@@ -244,8 +216,6 @@ describe('unified-dispatcher', () => {
       await unifiedSessionStartDispatcher(input);
 
       // Assert
-      expect(mem0ContextRetrieval).toHaveBeenCalledWith(input);
-      expect(mem0AnalyticsTracker).toHaveBeenCalledWith(input);
       expect(patternSyncPull).toHaveBeenCalledWith(input);
       expect(sessionEnvSetup).toHaveBeenCalledWith(input);
       expect(sessionTracking).toHaveBeenCalledWith(input);
@@ -260,14 +230,6 @@ describe('unified-dispatcher', () => {
       const callOrder: string[] = [];
 
       // Set up hooks to track call order with delays
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
-        callOrder.push('mem0-context');
-        return { continue: true, suppressOutput: true };
-      });
-      vi.mocked(mem0AnalyticsTracker).mockImplementation(() => {
-        callOrder.push('mem0-analytics');
-        return { continue: true, suppressOutput: true };
-      });
       vi.mocked(patternSyncPull).mockImplementation(() => {
         callOrder.push('pattern-sync');
         return { continue: true, suppressOutput: true };
@@ -277,15 +239,13 @@ describe('unified-dispatcher', () => {
       await unifiedSessionStartDispatcher(input);
 
       // Assert - all hooks should be called (order may vary due to parallel execution)
-      expect(callOrder).toContain('mem0-context');
-      expect(callOrder).toContain('mem0-analytics');
       expect(callOrder).toContain('pattern-sync');
     });
 
     test('continues execution when one hook fails', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('Hook failure');
       });
 
@@ -295,20 +255,19 @@ describe('unified-dispatcher', () => {
       // Assert - dispatcher should still succeed
       expect(result.continue).toBe(true);
       // Other hooks should still be called
-      expect(mem0AnalyticsTracker).toHaveBeenCalled();
-      expect(patternSyncPull).toHaveBeenCalled();
+      expect(sessionEnvSetup).toHaveBeenCalled();
     });
 
     test('continues execution when multiple hooks fail', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('Hook 1 failure');
       });
-      vi.mocked(mem0AnalyticsTracker).mockImplementation(() => {
+      vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw new Error('Hook 2 failure');
       });
-      vi.mocked(patternSyncPull).mockImplementation(() => {
+      vi.mocked(sessionTracking).mockImplementation(() => {
         throw new Error('Hook 3 failure');
       });
 
@@ -323,23 +282,17 @@ describe('unified-dispatcher', () => {
     test('handles all hooks failing', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('Failure 1');
       });
-      vi.mocked(mem0AnalyticsTracker).mockImplementation(() => {
+      vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw new Error('Failure 2');
       });
-      vi.mocked(patternSyncPull).mockImplementation(() => {
+      vi.mocked(sessionTracking).mockImplementation(() => {
         throw new Error('Failure 3');
       });
-      vi.mocked(sessionEnvSetup).mockImplementation(() => {
-        throw new Error('Failure 4');
-      });
-      vi.mocked(sessionTracking).mockImplementation(() => {
-        throw new Error('Failure 5');
-      });
       vi.mocked(memoryMetricsCollector).mockImplementation(() => {
-        throw new Error('Failure 6');
+        throw new Error('Failure 4');
       });
 
       // Act
@@ -355,7 +308,7 @@ describe('unified-dispatcher', () => {
     test('handles hooks returning Promises', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() =>
+      vi.mocked(patternSyncPull).mockImplementation(() =>
         Promise.resolve({ continue: true, suppressOutput: true })
       );
 
@@ -369,26 +322,26 @@ describe('unified-dispatcher', () => {
     test('handles mix of sync and async hooks', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => ({ continue: true, suppressOutput: true }));
-      vi.mocked(mem0AnalyticsTracker).mockImplementation(() =>
+      vi.mocked(patternSyncPull).mockImplementation(() => ({ continue: true, suppressOutput: true }));
+      vi.mocked(sessionEnvSetup).mockImplementation(() =>
         Promise.resolve({ continue: true, suppressOutput: true })
       );
-      vi.mocked(patternSyncPull).mockImplementation(() => ({ continue: true, suppressOutput: true }));
+      vi.mocked(sessionTracking).mockImplementation(() => ({ continue: true, suppressOutput: true }));
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);
 
       // Assert
       expect(result.continue).toBe(true);
-      expect(mem0ContextRetrieval).toHaveBeenCalled();
-      expect(mem0AnalyticsTracker).toHaveBeenCalled();
       expect(patternSyncPull).toHaveBeenCalled();
+      expect(sessionEnvSetup).toHaveBeenCalled();
+      expect(sessionTracking).toHaveBeenCalled();
     });
 
     test('handles async hook rejection', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() =>
+      vi.mocked(patternSyncPull).mockImplementation(() =>
         Promise.reject(new Error('Async rejection'))
       );
 
@@ -404,7 +357,7 @@ describe('unified-dispatcher', () => {
       const input = createHookInput();
       let asyncHookCompleted = false;
 
-      vi.mocked(mem0ContextRetrieval).mockImplementation(async () => {
+      vi.mocked(patternSyncPull).mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 10));
         asyncHookCompleted = true;
         return { continue: true, suppressOutput: true };
@@ -422,8 +375,8 @@ describe('unified-dispatcher', () => {
     test('returns success regardless of individual hook results', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockReturnValue({ continue: false, stopReason: 'blocked' });
-      vi.mocked(mem0AnalyticsTracker).mockReturnValue({ continue: false, stopReason: 'blocked' });
+      vi.mocked(patternSyncPull).mockReturnValue({ continue: false, stopReason: 'blocked' });
+      vi.mocked(sessionEnvSetup).mockReturnValue({ continue: false, stopReason: 'blocked' });
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);
@@ -436,7 +389,7 @@ describe('unified-dispatcher', () => {
     test('does not propagate hook errors to caller', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('Critical error');
       });
 
@@ -490,13 +443,13 @@ describe('unified-dispatcher', () => {
     test('handles hook throwing non-Error objects', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw 'string error';
       });
-      vi.mocked(mem0AnalyticsTracker).mockImplementation(() => {
+      vi.mocked(sessionEnvSetup).mockImplementation(() => {
         throw { message: 'object error' };
       });
-      vi.mocked(patternSyncPull).mockImplementation(() => {
+      vi.mocked(sessionTracking).mockImplementation(() => {
         throw null;
       });
 
@@ -597,7 +550,7 @@ describe('unified-dispatcher', () => {
     test('always returns continue: true on error', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(() => {
+      vi.mocked(patternSyncPull).mockImplementation(() => {
         throw new Error('error');
       });
 
@@ -631,9 +584,8 @@ describe('unified-dispatcher', () => {
 
       // Assert - single entry point that calls multiple hooks
       expect(result.continue).toBe(true);
-      expect(mem0ContextRetrieval).toHaveBeenCalled();
-      expect(mem0AnalyticsTracker).toHaveBeenCalled();
       expect(patternSyncPull).toHaveBeenCalled();
+      expect(sessionEnvSetup).toHaveBeenCalled();
     });
 
     test('internal routing to correct hooks', async () => {
@@ -643,10 +595,8 @@ describe('unified-dispatcher', () => {
       // Act
       await unifiedSessionStartDispatcher(input);
 
-      // Assert - all 6 hooks should be routed to
+      // Assert - all 4 hooks should be routed to
       const allHooks = [
-        mem0ContextRetrieval,
-        mem0AnalyticsTracker,
         patternSyncPull,
         sessionEnvSetup,
         sessionTracking,
@@ -662,7 +612,7 @@ describe('unified-dispatcher', () => {
     test('handles hook returning undefined', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockReturnValue(undefined as unknown as { continue: true; suppressOutput: true });
+      vi.mocked(patternSyncPull).mockReturnValue(undefined as unknown as { continue: true; suppressOutput: true });
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);
@@ -674,7 +624,7 @@ describe('unified-dispatcher', () => {
     test('handles hook returning null', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockReturnValue(null as unknown as { continue: true; suppressOutput: true });
+      vi.mocked(patternSyncPull).mockReturnValue(null as unknown as { continue: true; suppressOutput: true });
 
       // Act
       const result = await unifiedSessionStartDispatcher(input);
@@ -686,7 +636,7 @@ describe('unified-dispatcher', () => {
     test('handles slow hooks', async () => {
       // Arrange
       const input = createHookInput();
-      vi.mocked(mem0ContextRetrieval).mockImplementation(async () => {
+      vi.mocked(patternSyncPull).mockImplementation(async () => {
         await new Promise((resolve) => setTimeout(resolve, 50));
         return { continue: true, suppressOutput: true };
       });
@@ -732,14 +682,12 @@ describe('unified-dispatcher', () => {
     test.each([
       { failingHooks: 0, description: 'no hooks fail' },
       { failingHooks: 1, description: 'one hook fails' },
-      { failingHooks: 3, description: 'nearly half of hooks fail' },
-      { failingHooks: 6, description: 'all hooks fail' },
+      { failingHooks: 2, description: 'half of hooks fail' },
+      { failingHooks: 4, description: 'all hooks fail' },
     ])('returns success when $description', async ({ failingHooks }) => {
       // Arrange
       const input = createHookInput();
       const hooks = [
-        mem0ContextRetrieval,
-        mem0AnalyticsTracker,
         patternSyncPull,
         sessionEnvSetup,
         sessionTracking,

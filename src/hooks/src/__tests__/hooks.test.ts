@@ -1177,7 +1177,7 @@ describe('unified-error-handler (consolidated from error-collector + error-track
   });
 });
 
-describe('decision-processor (consolidated from mem0-decision-saver + decision-entity-extractor)', () => {
+describe('decision-processor (consolidated decision saver + entity extractor)', () => {
   
 
   const createSkillInput = (skillOutput: string): HookInput => ({

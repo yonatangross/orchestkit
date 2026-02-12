@@ -1,0 +1,313 @@
+{
+  "concept": {
+    "id": "A",
+    "codename": "neon-command-center",
+    "tagline": "The terminal IS the product.",
+    "philosophy": "Full cyberpunk dark mode. OrchestKit is a command center that orchestrates AI agents. The UI should feel like mission control: deep black void, neon accent scanlines, particle starfield backgrounds, holographic card surfaces. Every number glows. Every interaction sparks.",
+    "distinctive_features": [
+      "Animated particle/starfield canvas background behind hero",
+      "Neon glow borders on all interactive cards (box-shadow with color spread)",
+      "Terminal-style stat counters with monospace font and scanline overlay",
+      "Electric blue primary, toxic green success, magenta for special/creative",
+      "Glassmorphism cards with backdrop-blur over dark void",
+      "Staggered fade-in animations on every section",
+      "Code blocks styled as embedded terminals with green-on-black",
+      "Dot-grid subtle pattern on section backgrounds"
+    ]
+  },
+
+  "color_palette": {
+    "backgrounds": {
+      "void": { "hex": "#0a0a0f", "oklch": "oklch(0.07 0.01 270)", "role": "Page background, deepest layer" },
+      "surface": { "hex": "#0d1117", "oklch": "oklch(0.10 0.01 250)", "role": "Card backgrounds, sidebars" },
+      "surface_elevated": { "hex": "#151b23", "oklch": "oklch(0.14 0.01 240)", "role": "Elevated cards, modals, dropdowns" },
+      "surface_hover": { "hex": "#1c2333", "oklch": "oklch(0.17 0.02 240)", "role": "Hover state backgrounds" },
+      "overlay": { "hex": "#0d1117cc", "oklch": "oklch(0.10 0.01 250 / 0.8)", "role": "Modal overlays, blur backdrops" }
+    },
+    "borders": {
+      "default": { "hex": "#1e293b", "oklch": "oklch(0.21 0.02 250)", "role": "Card borders, dividers" },
+      "subtle": { "hex": "#162032", "oklch": "oklch(0.16 0.02 240)", "role": "Section dividers, subtle lines" },
+      "glow_blue": { "hex": "#3b82f640", "role": "Neon glow border for active/focus states" },
+      "glow_green": { "hex": "#10b98140", "role": "Neon glow border for success states" },
+      "glow_magenta": { "hex": "#d946ef40", "role": "Neon glow border for special/creative" }
+    },
+    "text": {
+      "primary": { "hex": "#e2e8f0", "oklch": "oklch(0.92 0.01 250)", "contrast_on_void": "14.5:1", "role": "Headings, primary text" },
+      "secondary": { "hex": "#94a3b8", "oklch": "oklch(0.68 0.02 250)", "contrast_on_void": "7.2:1", "role": "Body text, descriptions" },
+      "muted": { "hex": "#64748b", "oklch": "oklch(0.52 0.02 250)", "contrast_on_void": "4.6:1", "role": "Captions, labels, metadata" },
+      "inverse": { "hex": "#0a0a0f", "role": "Text on bright buttons" }
+    },
+    "accent_primary": {
+      "name": "Electric Blue",
+      "base": { "hex": "#3b82f6", "oklch": "oklch(0.62 0.21 255)" },
+      "hover": { "hex": "#60a5fa", "oklch": "oklch(0.72 0.18 255)" },
+      "muted": { "hex": "#3b82f620", "role": "Badge backgrounds, subtle fills" },
+      "glow": { "hex": "#3b82f680", "role": "Box-shadow glow spread" },
+      "contrast_on_void": "5.8:1"
+    },
+    "accent_success": {
+      "name": "Neon Green",
+      "base": { "hex": "#10b981", "oklch": "oklch(0.70 0.17 165)" },
+      "hover": { "hex": "#34d399", "oklch": "oklch(0.78 0.15 165)" },
+      "muted": { "hex": "#10b98120" },
+      "glow": { "hex": "#10b98180" }
+    },
+    "accent_special": {
+      "name": "Neon Magenta",
+      "base": { "hex": "#d946ef", "oklch": "oklch(0.65 0.28 320)" },
+      "hover": { "hex": "#e879f9", "oklch": "oklch(0.73 0.24 320)" },
+      "muted": { "hex": "#d946ef20" },
+      "glow": { "hex": "#d946ef80" }
+    },
+    "semantic": {
+      "error": { "hex": "#ef4444", "oklch": "oklch(0.63 0.24 27)" },
+      "warning": { "hex": "#f59e0b", "oklch": "oklch(0.80 0.17 80)" },
+      "info": { "hex": "#3b82f6" },
+      "success": { "hex": "#10b981" }
+    },
+    "category_colors": {
+      "skills": "#3b82f6",
+      "agents": "#10b981",
+      "hooks": "#d946ef",
+      "backend": "#f59e0b",
+      "frontend": "#3b82f6",
+      "ai_llm": "#06b6d4",
+      "security": "#ef4444",
+      "devops": "#f97316",
+      "testing": "#22c55e",
+      "product": "#ec4899",
+      "workflows": "#8b5cf6"
+    }
+  },
+
+  "typography": {
+    "fonts": {
+      "heading": {
+        "family": "Geist",
+        "fallback": "system-ui, sans-serif",
+        "variable": "--font-geist",
+        "rationale": "Already in use, geometric and modern, excellent for dark UIs"
+      },
+      "body": {
+        "family": "Geist",
+        "fallback": "system-ui, sans-serif",
+        "variable": "--font-geist"
+      },
+      "mono": {
+        "family": "Geist Mono",
+        "fallback": "ui-monospace, 'Cascadia Code', monospace",
+        "variable": "--font-geist-mono",
+        "rationale": "All stat counters, code blocks, badge values use mono"
+      }
+    },
+    "scale": {
+      "hero_title": { "size": "3.75rem", "tailwind": "text-6xl", "weight": "800", "tracking": "-0.025em", "line_height": "1.1", "mobile": "text-4xl" },
+      "section_title": { "size": "1.875rem", "tailwind": "text-3xl", "weight": "700", "tracking": "-0.02em", "line_height": "1.2" },
+      "card_title": { "size": "1.125rem", "tailwind": "text-lg", "weight": "600", "line_height": "1.4" },
+      "body": { "size": "1rem", "tailwind": "text-base", "weight": "400", "line_height": "1.75" },
+      "body_small": { "size": "0.875rem", "tailwind": "text-sm", "weight": "400", "line_height": "1.625" },
+      "caption": { "size": "0.75rem", "tailwind": "text-xs", "weight": "500", "line_height": "1.5" },
+      "stat_number": { "size": "2.25rem", "tailwind": "text-4xl", "weight": "700", "font": "mono", "tracking": "-0.02em" }
+    }
+  },
+
+  "spacing": {
+    "system": "8px grid",
+    "page_max_width": "1120px",
+    "page_padding_x": { "mobile": "1rem", "tablet": "1.5rem", "desktop": "2rem" },
+    "section_padding_y": { "mobile": "3rem", "tablet": "4rem", "desktop": "5rem" },
+    "card_padding": { "mobile": "1rem", "default": "1.5rem" },
+    "card_gap": "1rem",
+    "component_gap": { "tight": "0.5rem", "default": "1rem", "loose": "1.5rem" }
+  },
+
+  "components": {
+    "hero_section": {
+      "layout": "Centered, max-w-4xl, with particle canvas behind. Version badge top, h1 with gradient text, subtitle, two CTAs, then stat bar.",
+      "tailwind": {
+        "wrapper": "relative min-h-[80vh] flex items-center justify-center overflow-hidden",
+        "particle_canvas": "absolute inset-0 z-0",
+        "content": "relative z-10 mx-auto max-w-4xl px-6 text-center",
+        "version_badge": "inline-flex items-center gap-2 rounded-full border border-[#1e293b] bg-[#0d1117]/80 px-4 py-1.5 text-xs font-mono text-[#94a3b8] backdrop-blur-sm",
+        "badge_dot": "h-2 w-2 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b98180]",
+        "title": "mt-8 text-4xl font-extrabold tracking-tight text-[#e2e8f0] sm:text-5xl lg:text-6xl",
+        "title_accent": "bg-gradient-to-r from-[#3b82f6] via-[#8b5cf6] to-[#d946ef] bg-clip-text text-transparent",
+        "subtitle": "mx-auto mt-6 max-w-lg text-[#94a3b8] sm:text-lg leading-relaxed",
+        "cta_row": "mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center",
+        "cta_primary": "inline-flex h-11 items-center rounded-lg bg-[#3b82f6] px-8 text-sm font-semibold text-white shadow-[0_0_20px_#3b82f640] transition-all hover:bg-[#60a5fa] hover:shadow-[0_0_30px_#3b82f660]",
+        "cta_secondary": "inline-flex h-11 items-center gap-2 rounded-lg border border-[#1e293b] bg-[#0d1117] px-6 text-sm font-mono text-[#94a3b8] transition-all hover:border-[#3b82f640] hover:text-[#e2e8f0]"
+      }
+    },
+
+    "stat_bar": {
+      "layout": "Horizontal 3-column grid with dividers, monospace numbers, scanline overlay effect",
+      "tailwind": {
+        "wrapper": "border-y border-[#1e293b] bg-[#0d1117]/60 backdrop-blur-md",
+        "grid": "mx-auto grid max-w-3xl grid-cols-3 divide-x divide-[#1e293b]",
+        "cell": "py-8 text-center",
+        "label": "text-xs font-medium uppercase tracking-wider text-[#64748b]",
+        "value": "mt-1 font-mono text-3xl font-bold tabular-nums text-[#e2e8f0] sm:text-4xl",
+        "value_glow": "text-shadow: 0 0 20px currentColor"
+      },
+      "note": "The glow on numbers requires a custom CSS utility since Tailwind does not have text-shadow natively. Define in global.css."
+    },
+
+    "feature_card": {
+      "layout": "Glassmorphism card with neon glow border on hover. Contains icon badge, title, description, arrow link.",
+      "tailwind": {
+        "card": "group relative rounded-xl border border-[#1e293b] bg-[#0d1117]/60 p-6 backdrop-blur-md transition-all duration-300 hover:border-[#3b82f640] hover:shadow-[0_0_30px_#3b82f615]",
+        "icon_badge": "mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#1e293b] bg-[#151b23] font-mono text-sm font-bold text-[#3b82f6]",
+        "title": "text-lg font-semibold text-[#e2e8f0]",
+        "count": "ml-2 font-mono text-[#3b82f6]",
+        "description": "mt-2 text-sm leading-relaxed text-[#94a3b8]",
+        "link_arrow": "mt-4 inline-flex items-center gap-1 text-sm text-[#3b82f6] opacity-0 transition-all group-hover:opacity-100 group-hover:translate-x-1"
+      },
+      "variants": {
+        "skills": { "glow_color": "#3b82f6", "icon_color": "text-[#3b82f6]" },
+        "agents": { "glow_color": "#10b981", "icon_color": "text-[#10b981]" },
+        "hooks": { "glow_color": "#d946ef", "icon_color": "text-[#d946ef]" }
+      }
+    },
+
+    "navigation": {
+      "layout": "Fixed top bar with backdrop blur, logo left, links center, theme toggle + GitHub right",
+      "tailwind": {
+        "nav": "fixed top-0 z-50 w-full border-b border-[#1e293b]/50 bg-[#0a0a0f]/80 backdrop-blur-xl",
+        "inner": "mx-auto flex h-14 max-w-7xl items-center justify-between px-6",
+        "logo": "text-lg font-bold text-[#e2e8f0]",
+        "logo_accent": "text-[#3b82f6]",
+        "links": "hidden items-center gap-6 md:flex",
+        "link": "text-sm text-[#94a3b8] transition-colors hover:text-[#e2e8f0]",
+        "link_active": "text-[#3b82f6]",
+        "actions": "flex items-center gap-3"
+      }
+    },
+
+    "sidebar": {
+      "tailwind": {
+        "wrapper": "w-64 border-r border-[#1e293b] bg-[#0a0a0f] py-4",
+        "section_label": "px-4 text-xs font-semibold uppercase tracking-wider text-[#64748b]",
+        "link": "flex items-center gap-2 px-4 py-1.5 text-sm text-[#94a3b8] transition-colors hover:bg-[#1c2333] hover:text-[#e2e8f0]",
+        "link_active": "bg-[#3b82f610] text-[#3b82f6] border-l-2 border-[#3b82f6]"
+      }
+    },
+
+    "badge": {
+      "tailwind": {
+        "base": "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium font-mono",
+        "blue": "bg-[#3b82f620] text-[#60a5fa] border border-[#3b82f630]",
+        "green": "bg-[#10b98120] text-[#34d399] border border-[#10b98130]",
+        "magenta": "bg-[#d946ef20] text-[#e879f9] border border-[#d946ef30]",
+        "neutral": "bg-[#1e293b] text-[#94a3b8] border border-[#1e293b]"
+      }
+    },
+
+    "code_block": {
+      "layout": "Terminal-style with title bar (three dots), filename tab, copy button",
+      "tailwind": {
+        "wrapper": "rounded-xl border border-[#1e293b] bg-[#0a0a0f] overflow-hidden",
+        "title_bar": "flex items-center gap-2 border-b border-[#1e293b] bg-[#0d1117] px-4 py-2.5",
+        "dots": "flex gap-1.5",
+        "dot_red": "h-2.5 w-2.5 rounded-full bg-[#ef4444]/60",
+        "dot_yellow": "h-2.5 w-2.5 rounded-full bg-[#f59e0b]/60",
+        "dot_green": "h-2.5 w-2.5 rounded-full bg-[#10b981]/60",
+        "filename": "ml-3 text-xs font-mono text-[#64748b]",
+        "code_area": "p-4 font-mono text-sm leading-relaxed text-[#10b981]",
+        "line_number": "inline-block w-8 text-right text-[#64748b40] select-none mr-4"
+      }
+    },
+
+    "search": {
+      "tailwind": {
+        "trigger": "flex h-9 w-64 items-center gap-2 rounded-lg border border-[#1e293b] bg-[#0d1117] px-3 text-sm text-[#64748b] transition-colors hover:border-[#3b82f640]",
+        "kbd": "ml-auto rounded border border-[#1e293b] bg-[#151b23] px-1.5 py-0.5 font-mono text-[10px] text-[#64748b]",
+        "dialog": "rounded-xl border border-[#1e293b] bg-[#0d1117] shadow-[0_0_60px_#3b82f610] backdrop-blur-xl"
+      }
+    },
+
+    "table_of_contents": {
+      "tailwind": {
+        "wrapper": "sticky top-20 hidden xl:block",
+        "title": "text-xs font-semibold uppercase tracking-wider text-[#64748b] mb-3",
+        "link": "block py-1 text-sm text-[#64748b] transition-colors hover:text-[#e2e8f0]",
+        "link_active": "text-[#3b82f6] border-l-2 border-[#3b82f6] pl-3 -ml-[2px]"
+      }
+    }
+  },
+
+  "states": {
+    "default": "border-[#1e293b] bg-[#0d1117]/60",
+    "hover": "hover:border-[#3b82f640] hover:shadow-[0_0_30px_#3b82f615] hover:bg-[#151b23]",
+    "focus": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3b82f6] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0f]",
+    "active": "active:scale-[0.98] active:shadow-[0_0_15px_#3b82f630]",
+    "disabled": "opacity-40 cursor-not-allowed pointer-events-none",
+    "loading": "animate-pulse bg-[#1e293b]"
+  },
+
+  "animations": {
+    "hero_particles": "CSS canvas or Three.js starfield, 200 particles, slow drift, white dots with blue tint, parallax on scroll",
+    "section_entrance": {
+      "type": "stagger",
+      "presets": ["staggerContainer", "staggerItem"],
+      "description": "Each section fades up with 80ms stagger delay between children"
+    },
+    "card_hover": {
+      "type": "micro-interaction",
+      "presets": ["cardHover"],
+      "description": "Scale 1.01 + neon glow shadow intensifies"
+    },
+    "stat_counter": {
+      "type": "custom",
+      "description": "Numbers count up from 0 on viewport entry, monospace font prevents layout shift"
+    },
+    "glow_pulse": {
+      "type": "css_keyframe",
+      "keyframes": "0%: shadow-opacity 40%, 50%: shadow-opacity 70%, 100%: shadow-opacity 40%",
+      "duration": "3s",
+      "iteration": "infinite"
+    },
+    "reduced_motion": "All animations respect prefers-reduced-motion: reduce. Particles stop, counters show final value immediately, glow is static."
+  },
+
+  "responsive": {
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px"
+    },
+    "hero": {
+      "mobile": "text-4xl, single column CTAs, no particles (performance), min-h-[60vh]",
+      "tablet": "text-5xl, row CTAs, reduced particles",
+      "desktop": "text-6xl, full particles, min-h-[80vh]"
+    },
+    "cards": {
+      "mobile": "single column, p-4",
+      "tablet": "2-column grid",
+      "desktop": "3-column grid, p-6"
+    },
+    "sidebar": {
+      "mobile": "hidden, hamburger menu sheet",
+      "tablet": "collapsible",
+      "desktop": "always visible w-64"
+    }
+  },
+
+  "accessibility": {
+    "wcag_level": "AA",
+    "contrast_ratios": {
+      "primary_text_on_void": "14.5:1 (#e2e8f0 on #0a0a0f)",
+      "secondary_text_on_void": "7.2:1 (#94a3b8 on #0a0a0f)",
+      "muted_text_on_void": "4.6:1 (#64748b on #0a0a0f)",
+      "blue_accent_on_void": "5.8:1 (#3b82f6 on #0a0a0f)",
+      "green_accent_on_void": "8.1:1 (#10b981 on #0a0a0f)",
+      "magenta_accent_on_void": "5.5:1 (#d946ef on #0a0a0f)"
+    },
+    "focus_visible": true,
+    "skip_link": true,
+    "aria_labels": "All interactive sections have aria-labelledby",
+    "keyboard_navigable": true,
+    "reduced_motion": "All animations disabled, content visible immediately",
+    "screen_reader": "Stat values have sr-only labels (e.g., '199 Skills')"
+  }
+}

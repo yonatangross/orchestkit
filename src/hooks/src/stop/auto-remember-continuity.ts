@@ -5,7 +5,6 @@
  * Graph-First Architecture (v2.1):
  * - ALWAYS works - knowledge graph requires no configuration
  * - Primary: Store in knowledge graph (mcp__memory__*)
- * - Optional: Also sync to mem0 cloud if configured
  */
 
 import type { HookInput, HookResult } from '../types.js';
@@ -21,12 +20,6 @@ export function autoRememberContinuity(input: HookInput): HookResult {
   const projectDir = input.project_dir || getProjectDir();
   const projectId = basename(projectDir) || 'project';
 
-  // Check if mem0 is available (by checking env var)
-  const mem0Available = !!process.env.MEM0_API_KEY;
-  const mem0Hint = mem0Available
-    ? '\n   [Optional] Also sync to mem0 cloud with `--mem0` flag for semantic search'
-    : '';
-
   const promptMsg = `Before ending this session, consider preserving important context in the knowledge graph:
 
 1. **Session Continuity** - If there's unfinished work or next steps:
@@ -37,7 +30,7 @@ export function autoRememberContinuity(input: HookInput): HookResult {
      "entityType": "Session",
      "observations": ["What was done: [...]", "Next steps: [...]"]
    }]}
-   \`\`\`${mem0Hint}
+   \`\`\`
 
 2. **Important Decisions** - If architectural/design decisions were made:
    \`mcp__memory__create_entities\` with:

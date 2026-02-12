@@ -26,7 +26,6 @@ interface PreservedContext {
   memoryTierSnapshot?: {
     graphEntries?: number;
     localEntries?: number;
-    mem0Available?: boolean;
   };
 }
 
@@ -197,7 +196,6 @@ export function preCompactSaver(_input: HookInput): HookResult {
       decisionLog: decisions,
       memoryTierSnapshot: {
         localEntries,
-        mem0Available: !!process.env.MEM0_API_KEY,
       },
     };
 

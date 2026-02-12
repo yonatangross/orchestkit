@@ -107,17 +107,17 @@ for agent_file in "$AGENTS_DIR"/*.md; do
             # Extract command paths
             if [[ "$in_hooks" == true && "$line" =~ command:[[:space:]]*(.+) ]]; then
                 hook_cmd="${BASH_REMATCH[1]}"
-                ((TOTAL_HOOKS++)) || true
+                TOTAL_HOOKS=$((TOTAL_HOOKS + 1))
 
                 # First try to validate as run-hook.mjs command
                 if validate_run_hook_command "$hook_cmd"; then
-                    ((VALID_HOOKS++)) || true
+                    VALID_HOOKS=$((VALID_HOOKS + 1))
                 else
                     # Fallback to file path resolution
                     resolved_path=$(resolve_hook_path "$hook_cmd")
 
                     if [[ -f "$resolved_path" ]]; then
-                        ((VALID_HOOKS++)) || true
+                        VALID_HOOKS=$((VALID_HOOKS + 1))
                     else
                         echo "FAIL: $agent_name - Hook path not found: $hook_cmd"
                         echo "      Resolved to: $resolved_path"

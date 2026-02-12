@@ -44,10 +44,17 @@ import type { HookInput } from '../types.js';
 const TEST_PROJECT_DIR = join(tmpdir(), 'orchestration-integration-test');
 const TEST_SESSION_ID = 'integration-test-' + Date.now();
 
+let savedAgentTeams: string | undefined;
+
 beforeEach(() => {
   // Set test environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
   process.env.CLAUDE_SESSION_ID = TEST_SESSION_ID;
+
+  // Disable Agent Teams so detectPipeline doesn't short-circuit
+  savedAgentTeams = process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
+  delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
+  delete process.env.CLAUDE_CODE_TEAM_NAME;
 
   // Create test directory
   if (!existsSync(TEST_PROJECT_DIR)) {
@@ -60,6 +67,11 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  // Restore Agent Teams env var
+  if (savedAgentTeams !== undefined) {
+    process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS = savedAgentTeams;
+  }
+
   // Clean up test files - must clean up parent .claude directory to remove all state
   const claudeDir = `${TEST_PROJECT_DIR}/.claude`;
   if (existsSync(claudeDir)) {

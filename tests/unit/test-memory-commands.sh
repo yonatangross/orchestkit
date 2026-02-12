@@ -40,9 +40,9 @@ test_remember_has_categories() {
     assert_file_contains "$file" "constraint"
 }
 
-test_remember_references_mem0_tool() {
-    # Check for script reference instead of MCP
-    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "add-memory.py"
+test_remember_references_memory_tool() {
+    # Check for graph memory MCP reference
+    assert_file_contains "$SKILLS_DIR/remember/SKILL.md" "memory"
 }
 
 test_remember_has_workflow() {
@@ -93,9 +93,9 @@ test_memory_has_search_options() {
     grep -q "limit" "$file" || fail "memory SKILL.md should mention limit option"
 }
 
-test_memory_references_mem0_search() {
-    # Check for script reference instead of MCP
-    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "search-memories.py"
+test_memory_references_search() {
+    # Check for search functionality reference
+    assert_file_contains "$SKILLS_DIR/memory/SKILL.md" "search"
 }
 
 test_memory_has_workflow() {

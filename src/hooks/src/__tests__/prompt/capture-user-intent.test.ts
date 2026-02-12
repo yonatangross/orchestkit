@@ -36,7 +36,7 @@ vi.mock('../../lib/memory-writer.js', () => ({
     identity: { user_id: 'test', anonymous_id: 'anon', machine_id: 'machine' },
     metadata: { session_id: 'test', timestamp: '2025-01-01T00:00:00.000Z', confidence: 0.8, source: 'user_prompt', project: 'test', category: 'general' },
   })),
-  storeDecision: vi.fn(() => Promise.resolve({ local: true, graph_queued: true, mem0_queued: false })),
+  storeDecision: vi.fn(() => Promise.resolve({ local: true, graph_queued: true })),
 }));
 
 // Mock user-intent-detector.ts
@@ -171,7 +171,7 @@ describe('prompt/capture-user-intent', () => {
     mockOutputSilentSuccess.mockReturnValue({ continue: true, suppressOutput: true });
     mockDetectUserIntent.mockReturnValue(createMockIntentResult());
     mockExistsSync.mockReturnValue(true);
-    mockStoreDecision.mockResolvedValue({ local: true, graph_queued: true, mem0_queued: false });
+    mockStoreDecision.mockResolvedValue({ local: true, graph_queued: true });
     mockCreateDecisionRecord.mockImplementation((_type: string, _content: unknown, _entities: string[], _meta: unknown) => ({
       id: 'mock-record-id',
       type: _type as 'decision' | 'preference',

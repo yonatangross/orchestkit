@@ -18,7 +18,6 @@ vi.mock('../../posttool/memory-bridge.js', () => ({ memoryBridge: vi.fn(() => ({
 vi.mock('../../posttool/realtime-sync.js', () => ({ realtimeSync: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/bash/issue-progress-commenter.js', () => ({ issueProgressCommenter: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/bash/issue-subtask-updater.js', () => ({ issueSubtaskUpdater: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
-vi.mock('../../posttool/mem0-webhook-handler.js', () => ({ mem0WebhookHandler: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/user-tracking.js', () => ({ userTracking: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: vi.fn(() => ({ continue: true, suppressOutput: true })) }));
 vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: vi.fn(() => ({ continue: true, suppressOutput: true })) }));

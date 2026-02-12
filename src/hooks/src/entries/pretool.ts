@@ -39,9 +39,8 @@ import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
 import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
-// PreTool/MCP hooks (3)
+// PreTool/MCP hooks (2)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
-import { memoryFabricInit } from '../pretool/mcp/memory-fabric-init.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
 
 // PreTool/InputMod hooks (1)
@@ -95,9 +94,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (3)
+  // PreTool/MCP hooks (2)
   'pretool/mcp/context7-tracker': context7Tracker,
-  'pretool/mcp/memory-fabric-init': memoryFabricInit,
   'pretool/mcp/memory-validator': memoryValidator,
 
   // PreTool/InputMod hooks (1)

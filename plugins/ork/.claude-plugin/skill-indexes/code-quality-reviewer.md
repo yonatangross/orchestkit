@@ -16,6 +16,6 @@
 |biome-linting:{SKILL.md,references/{biome-json-config.md,ci-integration.md,eslint-migration.md,type-aware-rules.md}}|biome,linting,formatting,eslint-migration,ci,code-quality,typescript
 |clean-architecture:{SKILL.md,references/{hexagonal-architecture.md}}|architecture,solid,hexagonal,ddd,python,fastapi
 |project-structure-enforcer:{SKILL.md,references/{violation-examples.md}}|structure,architecture,enforcement,blocking,imports,organization
-|best-practices:{SKILL.md,references/{proactive-warnings.md}}|best-practices,patterns,anti-patterns,mem0,learning
+|best-practices:{SKILL.md,references/{proactive-warnings.md}}|best-practices,patterns,anti-patterns,learning
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

@@ -1,14 +1,11 @@
 /**
  * Antipattern Detector - UserPromptSubmit Hook
- * Suggests checking mem0 for known failed patterns before implementation
+ * Suggests checking graph memory for known failed patterns before implementation
  * CC 2.1.7 Compliant
- *
- * Part of mem0 Semantic Memory Integration (#49)
  */
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
-import { basename } from 'node:path';
 
 // Keywords that suggest implementation work where antipatterns matter
 const IMPLEMENTATION_KEYWORDS = [
@@ -44,26 +41,11 @@ function detectCategory(prompt: string): string {
 }
 
 /**
- * Generate mem0 user ID for a scope
- */
-function getMem0UserId(scope: string, projectDir: string): string {
-  const projectName = basename(projectDir) || 'unknown';
-  return `project:${projectName}:${scope}`;
-}
-
-/**
- * Generate global mem0 user ID
- */
-function getGlobalUserId(scope: string): string {
-  return `global:${scope}`;
-}
-
-/**
- * Antipattern detector - suggests mem0 search for known failures
+ * Antipattern detector - suggests checking graph memory for known failures
  */
 export function antipatternDetector(input: HookInput): HookResult {
   const prompt = input.prompt || '';
-  const projectDir = input.project_dir || getProjectDir();
+  const _projectDir = input.project_dir || getProjectDir();
 
   // Skip if prompt too short
   if (prompt.length < 30) {
@@ -87,22 +69,14 @@ export function antipatternDetector(input: HookInput): HookResult {
 
   logHook('antipattern-detector', `Implementation keyword detected: ${matchedKeyword}`);
 
-  // Get category and user IDs for search suggestion
+  // Get category for search suggestion
   const category = detectCategory(prompt);
-  const projectUserId = getMem0UserId('best-practices', projectDir);
-  const globalUserId = getGlobalUserId('best-practices');
 
   logHook('antipattern-detector', `Suggesting antipattern check for: ${matchedKeyword} (category: ${category})`);
 
-  // Build search suggestion message using CLI script
-  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '${CLAUDE_PLUGIN_ROOT}';
-  const scriptPath = `${pluginRoot}/src/skills/mem0-memory/scripts/crud/search-memories.py`;
-
+  // Build search suggestion using graph memory MCP
   const systemMsg = `[Antipattern Check] Before implementing ${matchedKeyword}, check for known failures:
-\`\`\`bash
-python3 ${scriptPath} --query "${matchedKeyword} failed" --user-id "${projectUserId}" --limit 5
-\`\`\`
-Or check global: --user-id "${globalUserId}"`;
+Use \`mcp__memory__search_nodes\` with query: "${matchedKeyword} failed ${category}"`;
 
   return outputPromptContext(systemMsg);
 }

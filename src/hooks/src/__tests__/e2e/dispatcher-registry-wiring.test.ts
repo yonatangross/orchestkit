@@ -278,8 +278,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       const memoryHooks = allHooks.filter(h =>
         h.command.includes('memory-inject') ||
-        h.command.includes('graph-memory') ||
-        h.command.includes('mem0-memory')
+        h.command.includes('graph-memory')
       );
 
       expect(memoryHooks.length, 'SubagentStart should have memory injection hooks').toBeGreaterThan(0);

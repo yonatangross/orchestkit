@@ -19,8 +19,6 @@
 
 **Tier 2 - Data-loss risk (90 tests):**
 - [x] `stop/auto-save-context`
-- [x] `stop/mem0-pre-compaction-sync`
-- [x] `posttool/mem0-webhook-handler`
 - [x] `lifecycle/session-context-loader`
 - [x] `subagent-stop/retry-handler`
 

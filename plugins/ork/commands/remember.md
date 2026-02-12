@@ -11,19 +11,17 @@ allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memor
 
 Store important decisions, patterns, or context in the knowledge graph for future sessions. Supports tracking success/failure outcomes for building a Best Practice Library.
 
-## Graph-First Architecture (v2.1)
+## Architecture
 
-The remember skill uses **graph memory as PRIMARY** storage:
+The remember skill uses **knowledge graph** as storage:
 
-1. **Knowledge Graph (PRIMARY)**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations` - FREE, zero-config, always works
-2. **Semantic Memory (mem0)**: Optional cloud storage via `add-memory.py` script - requires MEM0_API_KEY
+1. **Knowledge Graph**: Entity and relationship storage via `mcp__memory__create_entities` and `mcp__memory__create_relations` - FREE, zero-config, always works
 
-**Benefits of Graph-First:**
+**Benefits:**
 - Zero configuration required - works out of the box
 - Explicit relationship queries (e.g., "what does X use?")
 - Cross-referencing between entities
-- No cloud dependency for basic operation
-- Optional cloud enhancement with `--mem0` flag
+- No cloud dependency
 
 **Automatic Entity Extraction:**
 - Extracts capitalized terms as potential entities (PostgreSQL, React, pgvector)
@@ -41,10 +39,6 @@ The remember skill uses **graph memory as PRIMARY** storage:
 /remember --failed <text>      # Mark as anti-pattern
 /remember --success --category <category> <text>
 
-# Cloud sync (v2.1.0+)
-/remember --mem0 <text>                    # Write to BOTH graph AND mem0 cloud
-/remember --mem0 --success <text>          # Success pattern synced to cloud
-
 # Agent-scoped memory
 /remember --agent <agent-id> <text>         # Store in agent-specific scope
 /remember --global <text>                   # Store as cross-project best practice
@@ -54,8 +48,7 @@ The remember skill uses **graph memory as PRIMARY** storage:
 
 | Flag | Behavior |
 |------|----------|
-| (default) | Write to graph only |
-| `--mem0` | Write to BOTH graph and mem0 cloud |
+| (default) | Write to graph |
 | `--success` | Mark as successful pattern |
 | `--failed` | Mark as anti-pattern |
 | `--category <cat>` | Set category |
@@ -92,7 +85,6 @@ If neither flag is provided, the memory is stored as neutral (informational).
 Check for --success flag → outcome: success
 Check for --failed flag → outcome: failed
 Check for --category <category> flag
-Check for --mem0 flag → sync_to_mem0: true
 Check for --agent <agent-id> flag → agent_id: "ork:{agent-id}"
 Check for --global flag → use global user_id
 Extract the text to remember
@@ -193,62 +185,31 @@ Use `mcp__memory__create_relations`:
 }
 ```
 
-### 7. Store in mem0 (OPTIONAL - only if --mem0 flag)
+### 7. Confirm Storage
 
-**Skip if `--mem0` flag NOT set or MEM0_API_KEY not configured.**
-
-Execute the script:
-
-```bash
-!bash skills/mem0-memory/scripts/crud/add-memory.py \
-  --text "The user's text" \
-  --user-id "orchestkit-{project-name}-decisions" \
-  --agent-id "ork:{agent-id}" \
-  --metadata '{"category":"detected_category","outcome":"success|failed|neutral","timestamp":"current_datetime","project":"current_project_name","source":"user","lesson":"extracted_lesson_if_failed"}' \
-  --enable-graph
-```
-
-**User ID Selection:**
-- Default: `orchestkit-{project-name}-decisions`
-- With `--global`: `orchestkit-global-best-practices`
-- With `--agent`: Include `agent_id` field for agent-scoped retrieval
-
-### 8. Confirm Storage
-
-**For success (graph-first):**
+**For success:**
 ```
 ✅ Remembered SUCCESS (category): "summary of text"
    → Stored in knowledge graph
    → Created entity: {entity_name} ({entity_type})
    → Created relation: {from} → {relation_type} → {to}
    📊 Graph: {N} entities, {M} relations
-   [If --mem0]: → Also synced to mem0 cloud
 ```
 
-**For failed (graph-first):**
+**For failed:**
 ```
 ❌ Remembered ANTI-PATTERN (category): "summary of text"
    → Stored in knowledge graph
    → Created entity: {anti-pattern-name} (AntiPattern)
    💡 Lesson: {lesson if extracted}
-   [If --mem0]: → Also synced to mem0 cloud
 ```
 
-**For neutral (graph-first):**
+**For neutral:**
 ```
 ✓ Remembered (category): "summary of text"
    → Stored in knowledge graph
    → Created entity: {entity_name} ({entity_type})
    📊 Graph: {N} entities, {M} relations
-```
-
-**For --mem0 when MEM0_API_KEY not configured:**
-```
-✅ Remembered SUCCESS (category): "summary of text"
-   → Stored in knowledge graph
-   → Created entity: {entity_name} ({entity_type})
-   📊 Graph: {N} entities, {M} relations
-   ⚠️ mem0 sync requested but MEM0_API_KEY not configured (graph-only)
 ```
 
 ## Examples
@@ -263,23 +224,6 @@ Execute the script:
    → Stored in knowledge graph
    → Created entity: cursor-pagination (Pattern)
    📊 Graph: 1 entity, 0 relations
-```
-
-### Success Pattern with Cloud Sync
-
-**Input:** `/remember --mem0 --success database-engineer uses pgvector for RAG applications`
-
-**Output:**
-```
-✅ Remembered SUCCESS (database): "database-engineer uses pgvector for RAG applications"
-   → Stored in knowledge graph
-   → Created entity: pgvector (Technology)
-   → Created entity: database-engineer (Agent)
-   → Created entity: RAG (Technology)
-   → Created relation: database-engineer → USES → pgvector
-   → Created relation: pgvector → USED_FOR → RAG
-   📊 Graph: 3 entities, 2 relations
-   → Also synced to mem0 cloud
 ```
 
 ### Anti-Pattern
@@ -309,21 +253,6 @@ Execute the script:
    🤖 Agent: backend-system-architect
 ```
 
-### Global Best Practice with Cloud Sync
-
-**Input:** `/remember --global --mem0 --success Always validate user input at API boundaries`
-
-**Output:**
-```
-✅ Remembered SUCCESS (api): "Always validate user input at API boundaries"
-   → Stored in knowledge graph
-   → Created entity: input-validation (Pattern)
-   → Created relation: API → REQUIRES → input-validation
-   📊 Graph: 1 entity, 1 relation
-   🌐 Scope: global (available in all projects)
-   → Also synced to mem0 cloud (global scope)
-```
-
 ## Duplicate Detection
 
 Before storing, search for similar patterns in graph:
@@ -341,7 +270,6 @@ Before storing, search for similar patterns in graph:
 ## Error Handling
 
 - If knowledge graph unavailable, show configuration instructions
-- If --mem0 requested without MEM0_API_KEY, proceed with graph-only and notify user
 - If text is empty, ask user to provide something to remember
 - If text >2000 chars, truncate with notice
 - If both --success and --failed provided, ask user to clarify

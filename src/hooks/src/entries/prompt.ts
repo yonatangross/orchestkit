@@ -26,7 +26,6 @@ export * from '../lib/multi-agent-coordinator.js';
 // Once-only hooks (once: true)
 import { profileInjector } from '../prompt/profile-injector.js';
 import { memoryContextLoader } from '../prompt/memory-context-loader.js';
-import { queueRecovery } from '../prompt/queue-recovery.js';
 
 // Background hook (uses run-hook-silent.mjs)
 import { captureUserIntent } from '../prompt/capture-user-intent.js';
@@ -62,7 +61,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/unified-dispatcher': unifiedPromptDispatcher,
   'prompt/profile-injector': profileInjector,
   'prompt/memory-context-loader': memoryContextLoader,
-  'prompt/queue-recovery': queueRecovery,
   'prompt/capture-user-intent': captureUserIntent,
   // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,

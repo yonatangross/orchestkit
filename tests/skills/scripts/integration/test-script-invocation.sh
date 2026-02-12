@@ -52,17 +52,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -124,7 +124,7 @@ test_skill_invocation() {
     local script_name
     script_name=$(basename "$script_file")
     
-    ((TOTAL_TESTED++)) || true
+    TOTAL_TESTED=$((TOTAL_TESTED + 1))
     
     info "Testing: $skill_name/scripts/$script_name with args: $test_args"
     
@@ -311,10 +311,10 @@ for skill_entry in "${TEST_SKILLS[@]}"; do
     if [[ $has_command -gt 0 ]] && [[ $has_args -eq 1 ]]; then
         # Verify $ARGUMENTS is NOT in !command (would break execution order)
         if ! check_arguments_in_command "$skill_file"; then
-            ((EXECUTION_ORDER_CORRECT++)) || true
+            EXECUTION_ORDER_CORRECT=$((EXECUTION_ORDER_CORRECT + 1))
             info "$skill_path: Execution order correct (!command before \$ARGUMENTS)"
         else
-            ((EXECUTION_ORDER_WRONG++)) || true
+            EXECUTION_ORDER_WRONG=$((EXECUTION_ORDER_WRONG + 1))
             fail "$skill_path: Execution order WRONG (\$ARGUMENTS in !command)"
         fi
     fi

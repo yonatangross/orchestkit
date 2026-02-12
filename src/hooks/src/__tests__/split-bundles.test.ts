@@ -297,7 +297,12 @@ describe('Cross-Bundle Consistency', () => {
     // 161 -> 165: Agent Teams Phase 2 — team-size-gate, team-member-start, team-synthesis-trigger, team-quality-gate
     // 165 -> 163: removed multi-instance-init + cleanup-instance (absorbed by unified-dispatcher)
     // 163 -> 158: #362 removed coordination-init, coordination-cleanup, multi-instance-lock, file-lock-release, multi-instance-cleanup
-    expect(totalHooks).toBe(158);
+    // v7: removed 11 mem0/cloud memory hooks (graph-queue-sync, mem0-queue-sync,
+    // mem0-pre-compaction-sync, mem0-context-retrieval, mem0-analytics-tracker,
+    // mem0-webhook-handler, mem0-webhook-setup, mem0-backup-setup, mem0-cleanup,
+    // mem0-analytics-dashboard, mem0-memory-inject)
+    // Added stale-team-cleanup to lifecycle, stop has 24 hooks
+    expect(totalHooks).toBe(152);
   });
 });
 

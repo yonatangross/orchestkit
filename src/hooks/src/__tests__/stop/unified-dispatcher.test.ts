@@ -42,12 +42,6 @@ vi.mock('../../stop/graph-queue-sync.js', () => ({
 vi.mock('../../stop/workflow-preference-learner.js', () => ({
   workflowPreferenceLearner: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
-vi.mock('../../stop/mem0-queue-sync.js', () => ({
-  mem0QueueSync: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
-vi.mock('../../stop/mem0-pre-compaction-sync.js', () => ({
-  mem0PreCompactionSync: vi.fn(() => ({ continue: true, suppressOutput: true })),
-}));
 vi.mock('../../stop/task-completion-check.js', () => ({
   taskCompletionCheck: vi.fn(() => ({ continue: true, suppressOutput: true })),
 }));
@@ -308,8 +302,7 @@ describe('Unified Stop Dispatcher Hook', () => {
       expect(names).toContain('auto-save-context');
       expect(names).toContain('calibration-persist');
       expect(names).toContain('session-end-tracking');
-      expect(names).toContain('graph-queue-sync');
-      expect(names).toContain('mem0-queue-sync');
+      // v7: graph-queue-sync removed (mem0 cloud removed)
       expect(names).toContain('task-completion-check');
       expect(names).toContain('full-test-suite');
     });

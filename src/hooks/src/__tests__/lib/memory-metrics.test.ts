@@ -34,7 +34,6 @@ const mockAppendFileSync = vi.mocked(appendFileSync);
 describe('collectMemoryMetrics', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.MEM0_API_KEY;
   });
 
   it('returns zero metrics when no files exist', () => {
@@ -44,32 +43,20 @@ describe('collectMemoryMetrics', () => {
 
     expect(metrics.decisions.total).toBe(0);
     expect(metrics.queues.graphQueueDepth).toBe(0);
-    expect(metrics.queues.mem0QueueDepth).toBe(0);
     expect(metrics.completedFlows).toBe(0);
     expect(metrics.sessionCount).toBe(0);
-    expect(metrics.mem0Available).toBe(false);
   });
 
-  it('counts decisions by category and type', () => {
+  it('returns empty decisions structure (v7 simplified)', () => {
     mockExistsSync.mockReturnValue(true);
-    const decisions = [
-      JSON.stringify({ type: 'decision', metadata: { category: 'api' } }),
-      JSON.stringify({ type: 'decision', metadata: { category: 'database' } }),
-      JSON.stringify({ type: 'pattern', metadata: { category: 'api' } }),
-      JSON.stringify({ type: 'preference', metadata: { category: 'api' } }),
-    ].join('\n') + '\n';
-
-    mockReadFileSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.includes('decisions.jsonl')) return decisions;
-      return '';
-    });
+    mockReadFileSync.mockReturnValue('');
 
     const metrics = collectMemoryMetrics('/test/project');
 
-    expect(metrics.decisions.total).toBe(4);
-    expect(metrics.decisions.byCategory).toEqual({ api: 3, database: 1 });
-    expect(metrics.decisions.byType).toEqual({ decision: 2, pattern: 1, preference: 1 });
+    // v7: decisions counting simplified - totals come from health check, not metrics
+    expect(metrics.decisions.total).toBe(0);
+    expect(metrics.decisions.byCategory).toEqual({});
+    expect(metrics.decisions.byType).toEqual({});
   });
 
   it('counts queue depths', () => {
@@ -80,46 +67,12 @@ describe('collectMemoryMetrics', () => {
       if (p.includes('graph-queue.jsonl')) {
         return '{"type":"create_entities"}\n{"type":"create_relations"}\n{"type":"add_observations"}\n';
       }
-      if (p.includes('mem0-queue.jsonl')) {
-        return '{"text":"memory1"}\n{"text":"memory2"}\n';
-      }
       return '';
     });
 
     const metrics = collectMemoryMetrics('/test/project');
 
     expect(metrics.queues.graphQueueDepth).toBe(3);
-    expect(metrics.queues.mem0QueueDepth).toBe(2);
-  });
-
-  it('counts sessions from analytics', () => {
-    mockExistsSync.mockReturnValue(true);
-    mockReadFileSync.mockImplementation((path: unknown) => {
-      const p = String(path);
-      if (p.includes('mem0-analytics.jsonl')) {
-        return [
-          JSON.stringify({ event: 'session_start', timestamp: '2025-01-10T00:00:00Z' }),
-          JSON.stringify({ event: 'session_start', timestamp: '2025-01-11T00:00:00Z' }),
-          JSON.stringify({ event: 'other_event', timestamp: '2025-01-11T00:00:00Z' }),
-        ].join('\n') + '\n';
-      }
-      return '';
-    });
-
-    const metrics = collectMemoryMetrics('/test/project');
-
-    expect(metrics.sessionCount).toBe(2);
-  });
-
-  it('detects mem0 availability', () => {
-    mockExistsSync.mockReturnValue(false);
-    process.env.MEM0_API_KEY = 'test-key';
-
-    const metrics = collectMemoryMetrics('/test/project');
-
-    expect(metrics.mem0Available).toBe(true);
-
-    delete process.env.MEM0_API_KEY;
   });
 
   it('includes timestamp', () => {

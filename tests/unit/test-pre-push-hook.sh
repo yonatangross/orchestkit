@@ -23,12 +23,12 @@ TESTS_FAILED=0
 
 log_pass() {
     echo -e "  ${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_fail() {
     echo -e "  ${RED}✗${NC} $1"
-    ((TESTS_FAILED++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 log_section() {

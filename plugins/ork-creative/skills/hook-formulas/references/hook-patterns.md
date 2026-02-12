@@ -71,7 +71,7 @@ People stop for content that reflects who they are or want to be:
 ### OrchestKit Examples
 
 ```
-"200 skills. 98 hooks. Zero config."
+"200 skills. 93 hooks. Zero config."
 "I replaced 7 tools with one plugin"
 "1 command. 6 parallel agents. 30 seconds."
 ```

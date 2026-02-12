@@ -4,19 +4,14 @@
  *
  * Graph-First Architecture (v2.1):
  * - Graph (mcp__memory__*) is AUTHORITATIVE - always the source of truth
- * - Mem0 cloud uses CLI scripts (not MCP) for semantic search
  * - When graph is used (default), NO sync needed (already in primary)
  *
- * Note: Mem0 MCP tools are deprecated. Use CLI scripts at:
- * ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/
- *
- * Version: 2.1.2 - CLI-based mem0, MCP for graph only
- * Part of Memory Fabric v2.1 - Graph-First Architecture
+ * Version: 3.0.0 - Graph-only, MCP for graph memory
+ * Part of Memory Fabric v3.0 - Graph-First Architecture
  */
 
-import { existsSync } from 'node:fs';
 import type { HookInput, HookResult } from '../types.js';
-import { outputSilentSuccess, getField, getPluginRoot, logHook } from '../lib/common.js';
+import { outputSilentSuccess, logHook } from '../lib/common.js';
 
 // Entity type mapping patterns
 const ENTITY_PATTERNS: Record<string, RegExp> = {
@@ -41,7 +36,7 @@ interface Relation {
 }
 
 /**
- * Extract entities from text (Mem0 -> Graph)
+ * Extract entities from text for graph storage
  */
 function extractEntitiesFromText(text: string): Entity[] {
   const textLower = text.toLowerCase();
@@ -114,7 +109,7 @@ function extractRelationsFromText(text: string, entities: Entity[]): Relation[] 
 
 /**
  * Sync memory operations (Graph-First Architecture)
- * Note: Mem0 now uses CLI scripts, so only graph operations trigger this hook
+ * Only graph operations trigger this hook
  */
 export function memoryBridge(input: HookInput): HookResult {
   const toolName = input.tool_name || '';

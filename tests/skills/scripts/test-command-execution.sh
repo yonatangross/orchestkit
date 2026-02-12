@@ -49,17 +49,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -151,7 +151,7 @@ while IFS= read -r script_file; do
             warn "$skill_name/scripts/$script_name: $no_fallback_count command(s) without fallback"
         else
             if [[ -n "$commands" ]]; then
-                ((WITH_FALLBACK++)) || true
+                WITH_FALLBACK=$((WITH_FALLBACK + 1))
                 info "$skill_name/scripts/$script_name: All commands have fallbacks"
             fi
         fi

@@ -11,7 +11,7 @@
  * - Store with rationale ("because...") when present
  *
  * Storage:
- * - Decisions/Preferences -> decisions.jsonl + graph-queue.jsonl + mem0-queue.jsonl
+ * - Decisions/Preferences -> decisions.jsonl + graph-queue.jsonl
  *   (via createDecisionRecord + storeDecision from memory-writer)
  * - Problems -> .claude/memory/open-problems.jsonl + session tracker
  *

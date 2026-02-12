@@ -265,14 +265,7 @@ agent-browser close
 
 ## Phase 9: Documentation
 
-Save implementation decisions to mem0 for future reference:
-
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py \
-  --text "Implementation decisions..." \
-  --user-id "project-decisions" \
-  --metadata '{"scope":"project-decisions","category":"implementation"}'
-```
+Save implementation decisions to memory for future reference. Use the knowledge graph (`mcp__memory__*`) to persist decisions, patterns, and architectural choices.
 
 ---
 
@@ -335,7 +328,7 @@ TaskUpdate(taskId=task_id, status="completed")
 
 **Tools Used:**
 - context7 MCP (library documentation)
-- mem0 MCP (decision persistence)
+- mcp__memory__* (decision persistence)
 - agent-browser CLI (E2E verification)
 
 **Key Principles:**

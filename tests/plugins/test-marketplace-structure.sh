@@ -38,7 +38,7 @@ if [ "$ROOT_SOURCE_COUNT" -gt 0 ]; then
   echo "   This causes auto-install when marketplace is added!"
   echo "   All plugins should use 'source: \"./plugins/{name}\"' format"
   grep -n '"source".*"\\./"' "$MARKETPLACE_JSON" | head -5
-  ((ERRORS++))
+  ERRORS=$((ERRORS + 1))
 else
   echo "✓ No plugins use root source path (./)"
 fi
@@ -52,7 +52,7 @@ if [[ -n "$INVALID_SOURCES" ]]; then
   echo "❌ ERROR: Found plugins with invalid source format:"
   echo "$INVALID_SOURCES"
   echo "   All local plugins should use 'source: \"./plugins/{name}\"'"
-  ((ERRORS++))
+  ERRORS=$((ERRORS + 1))
 else
   echo "✓ All plugins use correct ./plugins/* source format"
 fi
@@ -65,7 +65,7 @@ if [[ -f "$ROOT_PLUGIN_DIR/plugin.json" ]]; then
   echo "❌ ERROR: Found plugin.json in root .claude-plugin/"
   echo "   Root should only contain marketplace.json (catalog)"
   echo "   Plugin definition should be in plugins/ork/.claude-plugin/plugin.json"
-  ((ERRORS++))
+  ERRORS=$((ERRORS + 1))
 else
   echo "✓ Root .claude-plugin/ does not contain plugin.json"
 fi
@@ -75,7 +75,7 @@ ROOT_FILES=$(ls -1 "$ROOT_PLUGIN_DIR" 2>/dev/null | grep -v "^marketplace.json$"
 if [[ -n "$ROOT_FILES" ]]; then
   echo "⚠ WARNING: Extra files in root .claude-plugin/:"
   echo "$ROOT_FILES"
-  ((WARNINGS++))
+  WARNINGS=$((WARNINGS + 1))
 else
   echo "✓ Root .claude-plugin/ only contains marketplace.json"
 fi
@@ -96,14 +96,14 @@ while IFS= read -r line; do
   FULL_PATH="$REPO_ROOT/$source_path"
   if [[ ! -d "$FULL_PATH" ]]; then
     echo "❌ ERROR: Plugin path does not exist: $source_path"
-    ((MISSING_PATHS++))
+    MISSING_PATHS=$((MISSING_PATHS + 1))
   fi
 done < <(grep '"source"' "$MARKETPLACE_JSON")
 
 if [[ $MISSING_PATHS -eq 0 ]]; then
   echo "✓ All plugin paths exist"
 else
-  ((ERRORS++))
+  ERRORS=$((ERRORS + 1))
 fi
 
 # Test 5: Each plugin directory should have .claude-plugin/plugin.json
@@ -119,14 +119,14 @@ while IFS= read -r line; do
   MANIFEST_PATH="$REPO_ROOT/$source_path/.claude-plugin/plugin.json"
   if [[ ! -f "$MANIFEST_PATH" ]]; then
     echo "❌ ERROR: Missing plugin.json at: $source_path/.claude-plugin/plugin.json"
-    ((MISSING_MANIFESTS++))
+    MISSING_MANIFESTS=$((MISSING_MANIFESTS + 1))
   fi
 done < <(grep '"source"' "$MARKETPLACE_JSON")
 
 if [[ $MISSING_MANIFESTS -eq 0 ]]; then
   echo "✓ All plugins have .claude-plugin/plugin.json"
 else
-  ((ERRORS++))
+  ERRORS=$((ERRORS + 1))
 fi
 
 # Test 6: Count plugins and verify
@@ -146,7 +146,7 @@ echo "  Plugin directories: $PLUGIN_DIRS"
 
 if [[ $PLUGIN_COUNT -ne $PLUGIN_DIRS ]]; then
   echo "⚠ WARNING: Mismatch between marketplace entries ($PLUGIN_COUNT) and plugin directories ($PLUGIN_DIRS)"
-  ((WARNINGS++))
+  WARNINGS=$((WARNINGS + 1))
 else
   echo "✓ Marketplace entries match plugin directories"
 fi

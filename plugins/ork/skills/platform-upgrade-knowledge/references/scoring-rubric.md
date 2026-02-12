@@ -165,29 +165,29 @@ Measures agent definition compatibility: model fields, tool references, skill bi
 
 ## Memory Architecture (Weight: 0.10)
 
-Measures compatibility of the memory tier system: graph memory, local memory, Mem0 cloud, and CC native MEMORY.md integration.
+Measures compatibility of the memory system: graph memory and CC native MEMORY.md integration.
 
 ### Score 9-10: Ready
-- All memory tiers function with target version
+- Graph memory functions with target version
 - Storage formats unchanged or backward-compatible
 - Auto-write to MEMORY.md works with target CC version
-- Queue files (graph-queue.jsonl, mem0-queue.jsonl) compatible
+- Queue files (graph-queue.jsonl) compatible
 - Session persistence unaffected
 
 ### Score 7-8: Low Risk
-- Memory tiers functional, minor format adjustments
+- Graph memory functional, minor format adjustments
 - MEMORY.md auto-write compatible with minor path changes
 - Queue processing works with target version
 - No data loss risk during upgrade
 
 ### Score 5-6: Moderate Risk
-- 1 memory tier needs migration
+- Graph memory needs migration
 - Storage format changed, migration script needed
 - MEMORY.md location or format changed
 - Queue processing requires updates
 
 ### Score 3-4: High Risk
-- Multiple memory tiers need migration
+- Graph memory needs significant migration
 - Storage format breaking change
 - Risk of data loss without careful migration
 - Queue system redesigned

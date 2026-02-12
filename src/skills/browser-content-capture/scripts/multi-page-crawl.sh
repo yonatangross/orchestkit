@@ -61,7 +61,7 @@ echo "$LINKS" | jq -c '.[]' | while read -r page; do
     # Rate limiting
     sleep 1
 
-    ((CURRENT++)) || true
+    CURRENT=$((CURRENT + 1))
 done
 
 # Close browser

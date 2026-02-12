@@ -150,11 +150,11 @@ main() {
     # Process each plugin
     for plugin_dir in "$PLUGINS_DIR"/ork-*; do
         if [[ -d "$plugin_dir" ]]; then
-            ((PLUGINS_PROCESSED++)) || true
+            PLUGINS_PROCESSED=$((PLUGINS_PROCESSED + 1))
             if restructure_plugin "$plugin_dir"; then
-                ((PLUGINS_SUCCESS++)) || true
+                PLUGINS_SUCCESS=$((PLUGINS_SUCCESS + 1))
             else
-                ((PLUGINS_FAILED++)) || true
+                PLUGINS_FAILED=$((PLUGINS_FAILED + 1))
                 log_error "Failed: $(basename "$plugin_dir")"
             fi
             echo ""

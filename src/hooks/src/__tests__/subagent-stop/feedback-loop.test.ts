@@ -49,6 +49,10 @@ vi.mock('../../lib/multi-agent-coordinator.js', () => ({
   ],
 }));
 
+vi.mock('../../lib/agent-teams.js', () => ({
+  isAgentTeamsActive: vi.fn().mockReturnValue(false),
+}));
+
 // =============================================================================
 // Import under test (after mocks)
 // =============================================================================
@@ -91,6 +95,9 @@ describe('feedback-loop', () => {
     // Arrange: Set project dir for predictable paths
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
     process.env.CLAUDE_INSTANCE_ID = 'test-instance-001';
+    // Ensure Agent Teams is not active so feedbackLoop runs its logic
+    delete process.env.CLAUDE_CODE_TEAM_NAME;
+    delete process.env.CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS;
   });
 
   // ---------------------------------------------------------------------------

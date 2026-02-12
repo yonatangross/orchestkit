@@ -7,8 +7,8 @@ export const TOTALS: Totals = {
   "plugins": 3,
   "skills": 200,
   "agents": 36,
-  "hooks": 98,
-  "commands": 25,
+  "hooks": 93,
+  "commands": 26,
   "compositions": 14
 };
 
@@ -435,9 +435,7 @@ export const SKILLS_SUMMARY = {
       "doctor",
       "remember",
       "memory",
-      "memory-fabric",
-      "best-practices",
-      "mem0-memory"
+      "memory-fabric"
     ],
     "product": [
       "product-strategy-frameworks",
@@ -500,13 +498,13 @@ export const SKILLS_SUMMARY = {
     ],
     "backend": [
       "explore",
+      "plan-viz",
       "api-design-framework",
       "clean-architecture",
       "domain-driven-design",
       "cqrs-patterns",
       "event-sourcing",
-      "saga-patterns",
-      "aggregate-patterns"
+      "saga-patterns"
     ]
   },
   "ork-creative": {},

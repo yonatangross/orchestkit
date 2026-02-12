@@ -3,12 +3,11 @@
 # Agent Memory Hooks Unit Tests (TypeScript Architecture)
 # ============================================================================
 # Tests for hooks/src/subagent-start/graph-memory-inject.ts
-# Tests for hooks/src/subagent-start/mem0-memory-inject.ts
 # Tests for hooks/src/subagent-stop/agent-memory-store.ts
 #
-# Updated for memory decomposition (v5.4.0):
-#   - agent-memory-inject.ts split into graph-memory-inject.ts + mem0-memory-inject.ts
-#   - graph hook always runs, mem0 hook gated on MEM0_API_KEY
+# Updated for v7.0 memory simplification:
+#   - mem0-memory-inject.ts removed (Tier 3 removed)
+#   - graph hook always runs (primary memory tier)
 # ============================================================================
 
 set -euo pipefail
@@ -17,7 +16,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
 TS_GRAPH_INJECT="$PROJECT_ROOT/src/hooks/src/subagent-start/graph-memory-inject.ts"
-TS_MEM0_INJECT="$PROJECT_ROOT/src/hooks/src/subagent-start/mem0-memory-inject.ts"
 TS_POST_AGENT="$PROJECT_ROOT/src/hooks/src/subagent-stop/agent-memory-store.ts"
 DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 
@@ -25,16 +23,24 @@ DIST_DIR="$PROJECT_ROOT/src/hooks/dist"
 # OLD HOOK DELETION VERIFICATION
 # ============================================================================
 
-describe "Memory Decomposition: Old Hook Removed"
+describe "Memory Decomposition: Old Hooks Removed"
 
 test_old_agent_memory_inject_deleted() {
     local old_file="$PROJECT_ROOT/src/hooks/src/subagent-start/agent-memory-inject.ts"
     if [[ -f "$old_file" ]]; then
-        fail "agent-memory-inject.ts should be deleted (replaced by graph-memory-inject.ts + mem0-memory-inject.ts)"
+        fail "agent-memory-inject.ts should be deleted (replaced by graph-memory-inject.ts)"
+    fi
+}
+
+test_mem0_memory_inject_deleted() {
+    local old_file="$PROJECT_ROOT/src/hooks/src/subagent-start/mem0-memory-inject.ts"
+    if [[ -f "$old_file" ]]; then
+        fail "mem0-memory-inject.ts should be deleted (v7 memory simplification)"
     fi
 }
 
 it "old agent-memory-inject.ts is deleted" test_old_agent_memory_inject_deleted
+it "mem0-memory-inject.ts is deleted" test_mem0_memory_inject_deleted
 
 # ============================================================================
 # GRAPH MEMORY INJECT TESTS
@@ -122,104 +128,6 @@ test_graph_inject_returns_continue() {
 it "uses HookResult type" test_graph_inject_has_hook_result
 it "returns continue: true" test_graph_inject_returns_continue
 
-# ============================================================================
-# MEM0 MEMORY INJECT TESTS
-# ============================================================================
-
-describe "Mem0 Memory Inject: TypeScript Source"
-
-test_mem0_inject_exists() {
-    assert_file_exists "$TS_MEM0_INJECT"
-}
-
-test_mem0_inject_exports_handler() {
-    assert_file_contains "$TS_MEM0_INJECT" "export"
-}
-
-test_mem0_inject_has_function() {
-    if grep -qE "export function mem0MemoryInject" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should export mem0MemoryInject function"
-}
-
-it "exists" test_mem0_inject_exists
-it "exports handler" test_mem0_inject_exports_handler
-it "exports mem0MemoryInject function" test_mem0_inject_has_function
-
-describe "Mem0 Memory Inject: API Key Gating"
-
-test_mem0_inject_checks_api_key() {
-    if grep -qE "MEM0_API_KEY" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should check MEM0_API_KEY"
-}
-
-test_mem0_inject_early_returns_without_key() {
-    if grep -qE "!process\.env\.MEM0_API_KEY" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should early-return if MEM0_API_KEY is not set"
-}
-
-test_mem0_inject_returns_silent_without_key() {
-    if grep -qE "outputSilentSuccess" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should return outputSilentSuccess when gated"
-}
-
-it "checks MEM0_API_KEY" test_mem0_inject_checks_api_key
-it "early-returns without API key" test_mem0_inject_early_returns_without_key
-it "returns silent success when gated" test_mem0_inject_returns_silent_without_key
-
-describe "Mem0 Memory Inject: Core Logic"
-
-test_mem0_inject_has_domain_mapping() {
-    if grep -qiE "AGENT_DOMAINS" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should have AGENT_DOMAINS mapping"
-}
-
-test_mem0_inject_uses_mem0_cli() {
-    # mem0 now uses CLI scripts instead of MCP (architecture change in v5.x)
-    if grep -qiE "search-memories\.py|mem0-memory.*scripts" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should reference CLI scripts (search-memories.py)"
-}
-
-test_mem0_inject_has_cross_agent_federation() {
-    if grep -qiE "RELATED_AGENTS|cross.agent" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should have cross-agent federation (RELATED_AGENTS)"
-}
-
-test_mem0_inject_has_global_best_practices() {
-    if grep -qiE "global.*best.*practice|orchestkit-global" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should query global best practices"
-}
-
-it "has AGENT_DOMAINS mapping" test_mem0_inject_has_domain_mapping
-it "uses mem0 CLI scripts (search-memories.py)" test_mem0_inject_uses_mem0_cli
-it "has cross-agent federation" test_mem0_inject_has_cross_agent_federation
-it "queries global best practices" test_mem0_inject_has_global_best_practices
-
-describe "Mem0 Memory Inject: CC 2.1.7 Compliance"
-
-test_mem0_inject_has_hook_result() {
-    if grep -qE "HookResult" "$TS_MEM0_INJECT" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-memory-inject.ts should use HookResult type"
-}
-
-it "uses HookResult type" test_mem0_inject_has_hook_result
 
 # ============================================================================
 # HOOK REGISTRATION TESTS
@@ -234,22 +142,22 @@ test_graph_inject_registered() {
     fail "graph-memory-inject should be registered in hooks.json"
 }
 
-test_mem0_inject_registered() {
+test_mem0_inject_not_registered() {
+    # mem0-memory-inject should NOT be in hooks.json (removed in v7)
     if grep -q "mem0-memory-inject" "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null; then
-        return 0
+        fail "mem0-memory-inject should NOT be in hooks.json (removed in v7)"
     fi
-    fail "mem0-memory-inject should be registered in hooks.json"
 }
 
 test_old_hook_not_registered() {
     # The old combined hook should NOT be in hooks.json
     if grep -q "subagent-start/agent-memory-inject" "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null; then
-        fail "Old agent-memory-inject should NOT be in hooks.json (replaced by split hooks)"
+        fail "Old agent-memory-inject should NOT be in hooks.json"
     fi
 }
 
 it "graph-memory-inject registered in hooks.json" test_graph_inject_registered
-it "mem0-memory-inject registered in hooks.json" test_mem0_inject_registered
+it "mem0-memory-inject NOT in hooks.json" test_mem0_inject_not_registered
 it "old agent-memory-inject NOT in hooks.json" test_old_hook_not_registered
 
 describe "Hook Registration: Entry Points"
@@ -261,11 +169,10 @@ test_graph_inject_in_subagent_entry() {
     fail "graph-memory-inject should be in subagent.ts entry"
 }
 
-test_mem0_inject_in_subagent_entry() {
+test_mem0_inject_not_in_subagent_entry() {
     if grep -q "mem0-memory-inject" "$PROJECT_ROOT/src/hooks/src/entries/subagent.ts" 2>/dev/null; then
-        return 0
+        fail "mem0-memory-inject should NOT be in subagent.ts entry (removed in v7)"
     fi
-    fail "mem0-memory-inject should be in subagent.ts entry"
 }
 
 test_graph_inject_in_index() {
@@ -275,17 +182,16 @@ test_graph_inject_in_index() {
     fail "graph-memory-inject should be in index.ts"
 }
 
-test_mem0_inject_in_index() {
+test_mem0_inject_not_in_index() {
     if grep -q "mem0-memory-inject" "$PROJECT_ROOT/src/hooks/src/index.ts" 2>/dev/null; then
-        return 0
+        fail "mem0-memory-inject should NOT be in index.ts (removed in v7)"
     fi
-    fail "mem0-memory-inject should be in index.ts"
 }
 
 it "graph-memory-inject in subagent entry" test_graph_inject_in_subagent_entry
-it "mem0-memory-inject in subagent entry" test_mem0_inject_in_subagent_entry
+it "mem0-memory-inject NOT in subagent entry" test_mem0_inject_not_in_subagent_entry
 it "graph-memory-inject in index.ts" test_graph_inject_in_index
-it "mem0-memory-inject in index.ts" test_mem0_inject_in_index
+it "mem0-memory-inject NOT in index.ts" test_mem0_inject_not_in_index
 
 # ============================================================================
 # POST-AGENT HOOK TESTS (unchanged, still agent-memory-store.ts)
@@ -392,21 +298,9 @@ test_bundle_contains_graph_inject() {
     fail "Bundle should contain graph-memory-inject hook code"
 }
 
-test_bundle_contains_mem0_inject() {
-    local bundle="$DIST_DIR/subagent.mjs"
-    if [[ ! -f "$bundle" ]]; then
-        bundle="$DIST_DIR/hooks.mjs"
-    fi
-    if grep -q "mem0-memory-inject" "$bundle" 2>/dev/null; then
-        return 0
-    fi
-    fail "Bundle should contain mem0-memory-inject hook code"
-}
-
 it "subagent bundle exists" test_subagent_bundle_exists
 it "subagent bundle has content" test_subagent_bundle_has_content
 it "bundle contains graph-memory-inject" test_bundle_contains_graph_inject
-it "bundle contains mem0-memory-inject" test_bundle_contains_mem0_inject
 
 # ============================================================================
 # PLUGIN TESTS (Two-Tier Architecture v6.0.0)
@@ -445,22 +339,6 @@ it "orkl plugin exists" test_orkl_plugin_exists
 it "ork plugin exists" test_ork_plugin_exists
 it "memory skills in orkl" test_memory_skills_in_orkl
 it "old memory plugins are gone" test_old_memory_plugins_gone
-
-# ============================================================================
-# MEM0 PRE-COMPACTION SYNC GATING TEST
-# ============================================================================
-
-describe "Mem0 Pre-Compaction Sync: API Key Gating"
-
-test_pre_compaction_sync_gated() {
-    local sync_file="$PROJECT_ROOT/src/hooks/src/stop/mem0-pre-compaction-sync.ts"
-    if grep -qE "!process\.env\.MEM0_API_KEY" "$sync_file" 2>/dev/null; then
-        return 0
-    fi
-    fail "mem0-pre-compaction-sync.ts should gate on MEM0_API_KEY"
-}
-
-it "mem0-pre-compaction-sync is gated on MEM0_API_KEY" test_pre_compaction_sync_gated
 
 # ============================================================================
 # PATTERN DETECTION TESTS (unchanged)
