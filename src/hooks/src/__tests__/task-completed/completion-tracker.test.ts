@@ -6,7 +6,8 @@
  *
  * Tests the CC 2.1.33 TaskCompleted event handler that:
  * 1. Logs task completion metrics to JSONL
- * 2. Suggests verification for implementation tasks
+ * 2. Captures token_count and tool_uses (CC 2.1.30)
+ * 3. Suggests verification for implementation tasks
  *
  * @since CC 2.1.33
  */
@@ -22,9 +23,16 @@ vi.mock('../../lib/event-logger.js', () => ({
   appendEventLog: vi.fn(),
 }));
 
+vi.mock('../../lib/analytics.js', () => ({
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn(() => 'abc123def456'),
+  getTeamContext: vi.fn(() => undefined),
+}));
+
 import { completionTracker } from '../../task-completed/completion-tracker.js';
 import { getProjectDir } from '../../lib/common.js';
 import { appendEventLog } from '../../lib/event-logger.js';
+import { appendAnalytics } from '../../lib/analytics.js';
 import type { HookInput } from '../../types.js';
 
 // =============================================================================
@@ -41,6 +49,8 @@ function createTaskInput(overrides: Partial<HookInput> = {}): HookInput {
     task_subject: 'Fix authentication bug',
     task_status: 'completed',
     duration_ms: 5000,
+    token_count: 1500,
+    tool_uses: 12,
     ...overrides,
   };
 }
@@ -188,6 +198,78 @@ describe('completion-tracker', () => {
         }),
       );
     });
+
+    test('logs token_count and tool_uses when provided', async () => {
+      // Arrange
+      const input = createTaskInput({
+        token_count: 2500,
+        tool_uses: 18,
+      });
+
+      // Act
+      await completionTracker(input);
+
+      // Assert
+      expect(appendEventLog).toHaveBeenCalledWith(
+        'task-completions.jsonl',
+        expect.objectContaining({
+          token_count: 2500,
+          tool_uses: 18,
+        }),
+      );
+    });
+
+    test('omits token_count and tool_uses when undefined', async () => {
+      // Arrange
+      const input = createTaskInput({
+        token_count: undefined,
+        tool_uses: undefined,
+      });
+
+      // Act
+      await completionTracker(input);
+
+      // Assert
+      const logCall = vi.mocked(appendEventLog).mock.calls[0][1] as Record<string, unknown>;
+      expect(logCall).not.toHaveProperty('token_count');
+      expect(logCall).not.toHaveProperty('tool_uses');
+    });
+
+    test('analytics receives token_count and tool_uses', async () => {
+      // Arrange
+      const input = createTaskInput({
+        token_count: 3000,
+        tool_uses: 25,
+      });
+
+      // Act
+      await completionTracker(input);
+
+      // Assert
+      expect(appendAnalytics).toHaveBeenCalledWith(
+        'task-usage.jsonl',
+        expect.objectContaining({
+          token_count: 3000,
+          tool_uses: 25,
+        }),
+      );
+    });
+
+    test('analytics omits token fields when undefined', async () => {
+      // Arrange
+      const input = createTaskInput({
+        token_count: undefined,
+        tool_uses: undefined,
+      });
+
+      // Act
+      await completionTracker(input);
+
+      // Assert
+      const analyticsCall = vi.mocked(appendAnalytics).mock.calls[0][1] as Record<string, unknown>;
+      expect(analyticsCall).not.toHaveProperty('token_count');
+      expect(analyticsCall).not.toHaveProperty('tool_uses');
+    });
   });
 
   describe('implementation task detection', () => {
@@ -296,6 +378,42 @@ describe('completion-tracker', () => {
       expect(result.hookSpecificOutput?.additionalContext).toContain(
         'refactor the payment service module',
       );
+    });
+
+    test('includes token info in verification message when available', async () => {
+      // Arrange
+      const input = createTaskInput({
+        task_subject: 'implement new feature endpoint handler',
+        task_status: 'completed',
+        duration_ms: 30000,
+        token_count: 2000,
+        tool_uses: 15,
+      });
+
+      // Act
+      const result = await completionTracker(input);
+
+      // Assert
+      expect(result.hookSpecificOutput?.additionalContext).toContain('2000 tokens');
+      expect(result.hookSpecificOutput?.additionalContext).toContain('15 tool calls');
+    });
+
+    test('omits token info from verification message when not available', async () => {
+      // Arrange
+      const input = createTaskInput({
+        task_subject: 'implement new feature endpoint handler',
+        task_status: 'completed',
+        duration_ms: 30000,
+        token_count: undefined,
+        tool_uses: undefined,
+      });
+
+      // Act
+      const result = await completionTracker(input);
+
+      // Assert
+      expect(result.hookSpecificOutput?.additionalContext).not.toContain('tokens');
+      expect(result.hookSpecificOutput?.additionalContext).not.toContain('tool calls');
     });
   });
 
