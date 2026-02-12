@@ -7,7 +7,7 @@ author: OrchestKit
 tags: [curation, golden-dataset, evaluation, testing, quality-scoring, bias-detection]
 user-invocable: true
 allowedTools: [Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes]
-skills: [golden-dataset-validation, llm-evaluation, test-data-management]
+skills: [golden-dataset-validation, llm-evaluation, testing-patterns]
 complexity: medium
 ---
 
@@ -198,7 +198,7 @@ See [Silver-Gold Promotion](references/silver-gold-promotion.md) for criteria.
 
 - `golden-dataset-validation` - Validate existing datasets
 - `llm-evaluation` - LLM output evaluation patterns
-- `test-data-management` - Test data strategies
+- `testing-patterns` - Comprehensive testing patterns including test data strategies
 
 ---
 

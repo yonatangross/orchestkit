@@ -201,43 +201,43 @@ describe('prompt/skill-auto-suggest', () => {
       }
     });
 
-    test('suggests pytest-advanced for "pytest" keyword', () => {
+    test('suggests testing-patterns for "pytest" keyword', () => {
       const input = createPromptInput('Configure pytest for the project');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('pytest-advanced');
+        expect(result.hookSpecificOutput.additionalContext).toContain('testing-patterns');
       }
     });
 
-    test('suggests e2e-testing for "e2e" keyword', () => {
+    test('suggests testing-patterns for "e2e" keyword', () => {
       const input = createPromptInput('Write e2e tests for the application');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('e2e-testing');
+        expect(result.hookSpecificOutput.additionalContext).toContain('testing-patterns');
       }
     });
 
-    test('suggests e2e-testing for "playwright" keyword', () => {
+    test('suggests testing-patterns for "playwright" keyword', () => {
       const input = createPromptInput('Set up Playwright for browser testing');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('e2e-testing');
+        expect(result.hookSpecificOutput.additionalContext).toContain('testing-patterns');
       }
     });
 
-    test('suggests msw-mocking for "msw" keyword', () => {
+    test('suggests testing-patterns for "msw" keyword', () => {
       const input = createPromptInput('Configure MSW for API mocking');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('msw-mocking');
+        expect(result.hookSpecificOutput.additionalContext).toContain('testing-patterns');
       }
     });
   });
@@ -434,7 +434,7 @@ describe('prompt/skill-auto-suggest', () => {
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('pytest-advanced');
+        expect(result.hookSpecificOutput.additionalContext).toContain('testing-patterns');
       }
     });
   });

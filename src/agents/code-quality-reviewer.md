@@ -21,10 +21,8 @@ tools:
 skills:
   - code-review-playbook
   - owasp-top-10
-  - unit-testing
-  - integration-testing
+  - testing-patterns
   - evidence-verification
-  - webapp-testing
   - resilience-patterns
   - test-standards-enforcer
   - security-scanning
@@ -398,4 +396,4 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 ## Integration
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
-- **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook, i18n-date-patterns
+- **Skill references:** security-checklist, testing-patterns, code-review-playbook, i18n-date-patterns

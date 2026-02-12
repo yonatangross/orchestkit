@@ -25,7 +25,7 @@ skills:
   - asyncio-advanced
   - connection-pooling
   - caching-strategies
-  - performance-testing
+  - testing-patterns
   - observability-monitoring
   - database-schema-designer
   - sqlalchemy-2-async
@@ -353,7 +353,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** asyncio-advanced, connection-pooling, caching-strategies, performance-testing, observability-monitoring
+- **Skill references:** asyncio-advanced, connection-pooling, caching-strategies, testing-patterns, observability-monitoring
 
 ## Profiling Tools Reference
 

@@ -23,7 +23,7 @@ skills:
   - observability-monitoring
   - langfuse-observability
   - core-web-vitals
-  - performance-testing
+  - testing-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -343,7 +343,7 @@ When creating monitoring configuration, provide:
 
 - **Receives from:** backend-system-architect (instrumentation points), infrastructure-architect (infrastructure metrics)
 - **Hands off to:** deployment-manager (deploy configs), ci-cd-engineer (pipeline alerts)
-- **Skill references:** observability-monitoring, langfuse-observability, core-web-vitals, performance-testing
+- **Skill references:** observability-monitoring, langfuse-observability, core-web-vitals, testing-patterns
 
 ## Example
 

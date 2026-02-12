@@ -18,19 +18,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - unit-testing
-  - integration-testing
-  - e2e-testing
-  - msw-mocking
-  - vcr-http-recording
-  - webapp-testing
-  - performance-testing
-  - a11y-testing
-  - test-data-management
-  - pytest-advanced
-  - property-based-testing
-  - contract-testing
-  - llm-testing
+  - testing-patterns
   - test-standards-enforcer
   - run-tests
   - task-dependency-patterns
@@ -286,4 +274,4 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-strategy-builder, webapp-testing
+- **Skill references:** testing-patterns

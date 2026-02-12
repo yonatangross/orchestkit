@@ -21,7 +21,7 @@ skills:
   - langfuse-observability
   - observability-monitoring
   - cache-cost-tracking
-  - performance-testing
+  - testing-patterns
   - remember
   - memory
 ---

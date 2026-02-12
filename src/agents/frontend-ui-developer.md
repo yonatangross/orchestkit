@@ -22,9 +22,7 @@ skills:
   - react-server-components-framework
   - design-system-starter
   - type-safety-validation
-  - unit-testing
-  - e2e-testing
-  - a11y-testing
+  - testing-patterns
   - focus-management
   - render-optimization
   - biome-linting

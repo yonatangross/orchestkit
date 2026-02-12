@@ -182,7 +182,7 @@ response = llm.complete("Solve: 15% of 240. Think step by step.")
 - `langfuse-observability` - Prompt management and A/B testing tracking
 - `llm-evaluation` - Evaluating prompt effectiveness
 - `function-calling` - Structured output patterns
-- `llm-testing` - Testing prompt variations
+- `testing-patterns` - Comprehensive testing patterns including LLM testing
 
 ## Capability Details
 
