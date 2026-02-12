@@ -20,14 +20,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - embeddings
   - rag-retrieval
-  - hyde-retrieval
-  - query-decomposition
-  - reranking-patterns
-  - contextual-retrieval
-  - agentic-rag-patterns
-  - pgvector-search
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
@@ -211,4 +204,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset-management, context-engineering

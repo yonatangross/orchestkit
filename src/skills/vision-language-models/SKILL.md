@@ -279,7 +279,7 @@ response = client.chat.completions.create(
 ## Related Skills
 
 - `audio-language-models` - Audio/speech processing
-- `multimodal-rag` - Image + text retrieval
+- `rag-retrieval` - Image + text retrieval (multimodal RAG rules)
 - `llm-streaming` - Streaming vision responses
 
 ## Capability Details

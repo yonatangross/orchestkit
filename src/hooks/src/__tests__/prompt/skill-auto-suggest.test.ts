@@ -147,13 +147,13 @@ describe('prompt/skill-auto-suggest', () => {
       }
     });
 
-    test('suggests pgvector-search for "pgvector" keyword', () => {
+    test('suggests rag-retrieval for "pgvector" keyword', () => {
       const input = createPromptInput('Set up pgvector for vector search');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('pgvector-search');
+        expect(result.hookSpecificOutput.additionalContext).toContain('rag-retrieval');
       }
     });
   });
@@ -285,13 +285,13 @@ describe('prompt/skill-auto-suggest', () => {
       }
     });
 
-    test('suggests embeddings for "embedding" keyword', () => {
+    test('suggests rag-retrieval for "embedding" keyword', () => {
       const input = createPromptInput('Generate embeddings for the documents');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('embedding');
+        expect(result.hookSpecificOutput.additionalContext).toContain('rag-retrieval');
       }
     });
 

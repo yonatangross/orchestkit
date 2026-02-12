@@ -342,7 +342,7 @@ async def choose_realtime_provider(
 ## Related Skills
 
 - `vision-language-models` - Image/video processing
-- `multimodal-rag` - Audio + text retrieval
+- `rag-retrieval` - Audio + text retrieval (multimodal RAG rules)
 - `streaming-api-patterns` - WebSocket patterns
 
 ## Capability Details

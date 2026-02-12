@@ -21,10 +21,9 @@ tools:
 skills:
   - vision-language-models
   - audio-language-models
-  - multimodal-rag
+  - rag-retrieval
   - streaming-api-patterns
   - llm-streaming
-  - embeddings
   - task-dependency-patterns
   - memory
   - remember
@@ -238,4 +237,4 @@ Task: "Add image analysis endpoint with document OCR"
 
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
-- **Skill references:** vision-language-models, audio-language-models, multimodal-rag, streaming-api-patterns
+- **Skill references:** vision-language-models, audio-language-models, rag-retrieval, streaming-api-patterns
