@@ -252,10 +252,26 @@ export function outputError(message: string): HookResult {
 }
 
 /**
- * Output warning message - CC 2.1.7 compliant (no ANSI in JSON)
+ * Output warning message via JSON stdout — visible to both user and Claude (CC 2.1.7+).
+ * Use this when Claude needs to see and act on the warning (e.g., cost advice, quality gates).
+ * For user-only warnings where Claude should NOT see the message, use outputStderrWarning.
  */
 export function outputWarning(message: string): HookResult {
   return { continue: true, systemMessage: `\u26a0 ${message}` };
+}
+
+/**
+ * Output warning via stderr + exit(2) — visible to user only, Claude does NOT see it (CC 2.1.39).
+ * Use this for informational warnings that should not influence Claude's behavior
+ * (e.g., deprecation notices, non-actionable advisories).
+ *
+ * IMPORTANT: This function calls process.exit(2) and never returns.
+ * Do NOT use inside unified dispatchers — it will crash the dispatcher process.
+ * Only use in standalone hook entry points.
+ */
+export function outputStderrWarning(message: string): never {
+  process.stderr.write(`\u26a0 ${message}\n`);
+  process.exit(2);
 }
 
 /**
