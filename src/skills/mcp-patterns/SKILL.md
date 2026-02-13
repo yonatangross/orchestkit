@@ -1,6 +1,7 @@
 ---
 name: mcp-patterns
 description: MCP server building, advanced patterns, and security hardening
+version: 2.0.0
 tags: [mcp, server, tools, resources, security, prompt-injection]
 user-invocable: false
 context: fork

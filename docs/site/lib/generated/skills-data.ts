@@ -1549,7 +1549,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   "mcp-patterns": {
     "name": "mcp-patterns",
     "description": "MCP server building, advanced patterns, and security hardening",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
@@ -1564,7 +1564,11 @@ export const SKILLS: Record<string, SkillMeta> = {
     "allowedTools": [],
     "skills": [],
     "agent": null,
-    "structure": {},
+    "structure": {
+      "checklists": [
+        "mcp-server-checklist.md"
+      ]
+    },
     "plugins": [
       "ork"
     ],

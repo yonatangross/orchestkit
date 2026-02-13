@@ -132,7 +132,6 @@ MARKDOWN_SCRIPTS=(
     "code-review-playbook/scripts/review-pr.md"
     "brainstorming/scripts/create-design-doc.md"
     "quality-gates/scripts/assess-complexity.md"
-    "evidence-verification/scripts/generate-test-evidence.md"
 )
 
 MARKDOWN_VALID=0
