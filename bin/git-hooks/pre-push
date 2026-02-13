@@ -242,7 +242,7 @@ CI_UNIT_TESTS=(
   tests/unit/test-pre-push-hook.sh
 )
 
-# Run tests in parallel for speed (~160s sequential → ~20s parallel on M4 Max)
+# Run tests in parallel (~160s sequential → ~75s parallel)
 MAX_JOBS=8
 if command -v nproc &>/dev/null; then
   CORES=$(nproc)
@@ -253,20 +253,22 @@ else
 fi
 [[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
 
-FAIL_DIR=$(mktemp -d)
-trap "rm -rf $FAIL_DIR" EXIT
+export _PREPUSH_FAIL_DIR=$(mktemp -d)
 
-printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '
-  test_file="{}"
+_run_test() {
+  local test_file="$1"
   if [[ -f "$test_file" ]]; then
     if ! bash "$test_file" >/dev/null 2>&1; then
-      touch "'"$FAIL_DIR"'/$(basename "$test_file")"
+      touch "$_PREPUSH_FAIL_DIR/$(basename "$test_file")"
     fi
   fi
-'
+}
+export -f _run_test
+
+printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '_run_test "$1"' _ {}
 
 FAILURES=()
-for f in "$FAIL_DIR"/*; do
+for f in "$_PREPUSH_FAIL_DIR"/*; do
   [[ -e "$f" ]] && FAILURES+=("$(basename "$f")")
 done
 
@@ -281,10 +283,10 @@ if [[ ${#FAILURES[@]} -gt 0 ]]; then
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run failing tests to see details"
   echo "╚════════════════════════════════════════════════════════════╝"
-  rm -rf "$FAIL_DIR"
+  rm -rf "$_PREPUSH_FAIL_DIR"
   exit 1
 fi
-rm -rf "$FAIL_DIR"
+rm -rf "$_PREPUSH_FAIL_DIR"
 echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 
 # ===== Security Tests =====

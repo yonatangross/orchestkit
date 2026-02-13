@@ -463,4 +463,4 @@ Task(
 ## Related Skills
 - implement: Implement after exploration
 
-**Version:** 2.0.0 (January 2026)
+**Version:** 2.1.0 (February 2026)
