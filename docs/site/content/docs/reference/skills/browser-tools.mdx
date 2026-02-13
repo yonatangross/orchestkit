@@ -272,6 +272,302 @@ Run `agent-browser --help` for the full 60+ command reference.
 
 ---
 
+## Rules (4)
+
+<Accordions type="multiple">
+
+<Accordion title="Browser: Auth Security — CRITICAL">
+
+
+## Browser: Auth Security
+
+Never hardcode credentials or log auth tokens. Use environment variables for secrets, store session state files with restrictive permissions, and clean up auth artifacts after use.
+
+**Incorrect:**
+```bash
+# Hardcoding credentials in scripts
+PASSWORD="hardcoded-password"
+agent-browser fill @e2 "$PASSWORD"
+
+# Logging auth tokens or session data to stdout
+agent-browser eval "document.cookie"
+echo "Session token: $(agent-browser eval 'localStorage.getItem(\"token\")')"
+
+# Storing auth state with default (world-readable) permissions
+agent-browser state save /tmp/auth-state.json
+# File is now readable by any user on the system
+
+# No cleanup — state file persists indefinitely
+```
+
+**Correct:**
+```bash
+# Use environment variables for all credentials
+agent-browser open https://app.example.com/login
+agent-browser wait --load networkidle
+agent-browser snapshot -i
+
+# Fill credentials from env vars (never hardcoded)
+agent-browser fill @e1 "$APP_EMAIL"
+agent-browser fill @e2 "$APP_PASSWORD"
+agent-browser click @e3
+
+agent-browser wait --url "**/dashboard"
+```
+
+```bash
+# Store state files securely with restrictive permissions
+STATE_FILE="$HOME/.config/agent-browser/auth-state.json"
+mkdir -p "$(dirname "$STATE_FILE")"
+
+agent-browser state save "$STATE_FILE"
+chmod 600 "$STATE_FILE"  # Owner read/write only
+
+# Clean up state files when done
+trap 'rm -f "$STATE_FILE"' EXIT
+```
+
+```bash
+# For 2FA/MFA, use headed mode; handle session expiry gracefully
+AGENT_BROWSER_HEADED=1 agent-browser open https://secure-site.com/login
+echo "Please complete authentication manually..."
+agent-browser wait --url "**/authenticated"
+agent-browser state save "$STATE_FILE"
+chmod 600 "$STATE_FILE"
+
+# Detect expired sessions and re-authenticate
+CURRENT_URL=$(agent-browser get url)
+[[ "$CURRENT_URL" == *"/login"* ]] && rm -f "$STATE_FILE"  # Re-trigger login
+```
+
+**Key rules:**
+- Never hardcode passwords, API keys, or tokens in scripts -- always use environment variables
+- Never log, echo, or print auth tokens, cookies, or session data to stdout/stderr
+- Set `chmod 600` on all saved state files immediately after creation
+- Store state files in a secure directory (`$HOME/.config/`) rather than world-readable `/tmp/`
+- Use `trap 'rm -f "$STATE_FILE"' EXIT` to clean up auth artifacts when the script exits
+- Use headed mode (`AGENT_BROWSER_HEADED=1`) for 2FA/MFA flows that require manual interaction
+
+Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
+
+
+</Accordion>
+
+<Accordion title="Browser: Rate Limiting — HIGH">
+
+
+## Browser: Rate Limiting
+
+Add delays between requests, implement exponential backoff on rate-limit responses (429/503), and limit concurrent connections to avoid overwhelming target servers.
+
+**Incorrect:**
+```bash
+# Rapid-fire requests with no delay
+for url in "${URLS[@]}"; do
+    agent-browser open "$url"
+    agent-browser get text body > "/tmp/$(basename "$url").txt"
+done
+# No delay, no wait, no rate-limit detection — will trigger 429 blocks
+```
+
+**Correct:**
+```bash
+# Adaptive rate limiting with exponential backoff
+DELAY=1
+
+for url in "${URLS[@]}"; do
+    agent-browser open "$url"
+    agent-browser wait --load networkidle
+
+    STATUS=$(agent-browser eval "
+        const h1 = document.querySelector('h1');
+        if (h1 && (h1.innerText.includes('429') || h1.innerText.includes('Too Many'))) {
+            'rate-limited';
+        } else if (document.title.includes('Access Denied')) {
+            'blocked';
+        } else { 'ok'; }
+    ")
+
+    case "$STATUS" in
+        "rate-limited")
+            DELAY=$((DELAY * 2)); sleep $DELAY; continue ;;
+        "blocked")
+            echo "Access denied: $url"; continue ;;
+        *)
+            agent-browser get text body > "/tmp/$(basename "$url").txt"
+            DELAY=1 ;;  # Reset delay on success
+    esac
+    sleep $DELAY
+done
+```
+
+```bash
+# Retry with exponential backoff (max 3 attempts)
+fetch_with_retry() {
+    local url="$1" output="$2" max_retries=3 retry=0 delay=1
+    while [[ $retry -lt $max_retries ]]; do
+        if agent-browser open "$url" 2>/dev/null; then
+            agent-browser wait --load networkidle
+            agent-browser get text body > "$output"
+            [[ -s "$output" ]] && return 0
+        fi
+        ((retry++))
+        echo "Retry $retry/$max_retries for: $url (waiting ${delay}s)"
+        sleep $delay
+        delay=$((delay * 2))
+    done
+    echo "Failed after $max_retries retries: $url" >> /tmp/failed-urls.txt
+    return 1
+}
+```
+
+**Key rules:**
+- Always add at least a 1-second delay between consecutive page requests
+- Detect rate-limit responses (429, "Too Many Requests", "Access Denied") and back off exponentially
+- Reset the backoff delay to baseline after a successful request
+- Use a retry function with a max retry count and exponential backoff for failed pages
+- Log failed URLs to a separate file instead of silently skipping them
+Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
+
+
+</Accordion>
+
+<Accordion title="Browser: Scraping Ethics — CRITICAL">
+
+
+## Browser: Scraping Ethics
+
+Always scrape responsibly: check robots.txt, comply with Terms of Service, identify yourself as an automated agent, and never scrape personal or auth-gated data without explicit permission.
+
+**Incorrect:**
+```bash
+# Ignoring robots.txt entirely
+agent-browser open https://example.com/private-api/users
+agent-browser get text body > /tmp/users.txt
+
+# Spoofing user-agent to appear as a real browser
+agent-browser eval "
+  Object.defineProperty(navigator, 'userAgent', {
+    get: () => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120'
+  });
+"
+
+# Scraping auth-gated content without permission
+agent-browser state load /tmp/stolen-session.json
+agent-browser open https://app.example.com/admin/user-data
+agent-browser get text body > /tmp/scraped-pii.txt
+```
+
+**Correct:**
+```bash
+# 1. Check robots.txt BEFORE crawling any site
+ROBOTS=$(curl -s "https://docs.example.com/robots.txt")
+
+if echo "$ROBOTS" | grep -q "Disallow: /docs"; then
+    echo "Crawling /docs is disallowed by robots.txt"
+    exit 1
+fi
+
+# 2. Parse and respect crawl-delay directives
+CRAWL_DELAY=$(echo "$ROBOTS" | grep -i "Crawl-delay" | head -1 | awk '{print $2}')
+DELAY=${CRAWL_DELAY:-1}  # Default to 1 second if not specified
+
+# 3. Use an identifiable user-agent string
+# (agent-browser identifies itself by default — do NOT override it)
+
+# 4. Only scrape publicly accessible, non-personal content
+agent-browser open "https://docs.example.com/public/guide"
+agent-browser wait --load networkidle
+agent-browser get text @e5  # Extract specific content area, not full page
+```
+
+**Key rules:**
+- Always check `robots.txt` before crawling any domain and honor `Disallow` directives
+- Respect `Crawl-delay` values; default to at least 1 second between requests
+- Never spoof user-agent strings to bypass bot detection -- identify as an automated tool
+- Do not scrape personal data, auth-gated content, or content behind paywalls without explicit authorization
+- Comply with the site's Terms of Service; when in doubt, do not scrape
+- Use targeted extraction (`get text @e#`) instead of full-page dumps to minimize data collection
+
+Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
+
+
+</Accordion>
+
+<Accordion title="Browser: Snapshot Workflow — HIGH">
+
+
+## Browser: Snapshot Workflow
+
+Always follow the wait-then-snapshot-then-extract pattern: wait for the page to fully load, take an accessibility snapshot to discover element refs, then extract targeted content using those refs. Re-snapshot after any navigation or significant DOM change.
+
+**Incorrect:**
+```bash
+# Extracting immediately without waiting — content may be empty or partial
+agent-browser open https://docs.example.com/article
+agent-browser get text body > /tmp/article.txt
+
+# Using stale refs after navigating — @e5 refers to the OLD page
+agent-browser snapshot -i
+agent-browser click @e3
+agent-browser get text @e5
+
+# Full-page dump captures nav, header, footer, ads — massive noise
+agent-browser wait --load networkidle
+agent-browser get text body > /tmp/article.txt
+```
+
+**Correct:**
+```bash
+# 1. Navigate and wait for full page load
+agent-browser open https://docs.example.com/article
+agent-browser wait --load networkidle
+
+# 2. Snapshot to discover element refs (93% less context than full DOM)
+agent-browser snapshot -i
+# Output: @e1 [nav] "Navigation", @e5 [article] "Main Content Area"
+
+# 3. Extract targeted content using refs
+agent-browser get text @e5  # Only the article, not the full page
+```
+
+```bash
+# Re-snapshot after navigation or DOM changes
+agent-browser snapshot -i
+agent-browser fill @e1 "search query"
+agent-browser click @e2
+
+agent-browser wait --load networkidle
+agent-browser snapshot -i          # NEW refs after page change
+agent-browser get text @e1         # Extract from updated page
+```
+
+```bash
+# Extraction preference order (lowest to highest context cost):
+agent-browser get text @e5           # 1. Targeted ref (best)
+agent-browser get html @e5           # 2. HTML when formatting matters
+agent-browser eval "JSON.stringify(  # 3. Custom JS for structured data
+  Array.from(document.querySelectorAll('h2')).map(h => h.innerText))"
+agent-browser get text body          # 4. Full body (last resort)
+```
+
+**Key rules:**
+- Always `wait --load networkidle` after `open` before any extraction or snapshotting
+- Always `snapshot -i` before interacting with elements -- refs are only valid within their snapshot
+- Re-snapshot after every navigation, form submission, or significant DOM change
+- Use `get text @e#` for targeted extraction instead of `get text body` -- 93% less context
+- Prefer semantic wait strategies (`--text`, `--url`, `@e#`) over fixed `wait` delays
+- Verify extracted content is non-empty before saving to avoid capturing blank pages
+
+Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (8)
 
 <Accordions type="multiple">

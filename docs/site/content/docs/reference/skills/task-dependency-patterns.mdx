@@ -185,6 +185,211 @@ SendMessage(type: "broadcast",
 
 ---
 
+## Rules (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Tasks: Agent Coordination — HIGH">
+
+
+## Tasks: Agent Coordination
+
+In multi-agent workflows, every in-progress task must have a clear owner, and agents must coordinate through the task list and messaging tools. Without ownership, two agents may silently work on the same task, causing merge conflicts and wasted effort.
+
+**Incorrect:**
+```json
+// Two agents both start the same task without claiming ownership
+// Agent-A:
+TaskUpdate(taskId: "5", status: "in_progress")  // No owner set
+// Agent-B (simultaneously):
+TaskUpdate(taskId: "5", status: "in_progress")  // No owner set
+// Both agents now work on #5 — duplicate effort, likely merge conflict
+```
+
+**Correct:**
+```json
+// Agent-A claims the task atomically with owner field
+TaskList  // Review available tasks
+// Found #5: pending, no owner, blockedBy: []
+TaskUpdate(taskId: "5", status: "in_progress", owner: "agent-a")
+
+// Agent-B sees #5 is owned
+TaskList  // #5 shows owner: "agent-a", in_progress
+// Agent-B picks a different unblocked, unowned task instead
+TaskUpdate(taskId: "6", status: "in_progress", owner: "agent-b")
+```
+
+**Incorrect:**
+```json
+// Agent completes work silently — no one knows the output or context
+TaskUpdate(taskId: "5", status: "completed")
+// Downstream agent starts #7 (blocked by #5) with no context about what was done
+```
+
+**Correct:**
+```json
+// Agent communicates completion context to dependent agent
+TaskUpdate(taskId: "5", status: "completed")
+SendMessage(
+  type: "message",
+  recipient: "frontend-dev",
+  content: "Task #5 done: API returns { users: User[], total: number }. Schema in src/types/user.ts.",
+  summary: "API contract ready for frontend"
+)
+// Downstream agent has full context to start dependent work
+```
+
+**Key rules:**
+- Always set `owner` when transitioning a task to `in_progress` — this prevents duplicate work
+- Use `TaskList` to find unblocked, unowned tasks before claiming one
+- Design tasks to be completable by a single agent — avoid tasks that require two agents to collaborate mid-execution
+- Use `SendMessage` to share completion context (output formats, file locations, decisions made) with agents who own dependent tasks
+- Mark tasks `completed` promptly after finishing — delayed completion blocks dependent agents unnecessarily
+- Release ownership (`owner: ""`) if you cannot finish a task, reverting it to `pending` so another agent can pick it up
+
+Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md) — Best Practices (lines 110-116), Agent Workflow (lines 47-70)
+
+
+</Accordion>
+
+<Accordion title="Tasks: Completion Criteria — HIGH">
+
+
+## Tasks: Completion Criteria
+
+A task must only be marked `completed` when all implementation is done, tests pass, and nothing blocks dependent tasks from proceeding safely. Premature completion cascades errors: downstream agents start work assuming a solid foundation that does not exist.
+
+**Incorrect:**
+```json
+// Marking complete when tests are failing
+// Agent implements feature but 2 of 8 tests fail
+TaskUpdate(taskId: "3", status: "completed")  // BAD: tests not passing
+// Dependent task #4 starts, builds on broken code — compounds the failure
+```
+
+**Correct:**
+```json
+// Verify all criteria before marking complete
+// 1. Implementation done — all code changes committed
+// 2. Tests passing — ran test suite, all green
+// 3. No blockers for dependents — output matches expected interface
+// 4. Documentation updated (if applicable)
+TaskUpdate(taskId: "3", status: "completed")  // GOOD: fully verified
+TaskList  // Check if #4 is now unblocked and ready
+```
+
+**Incorrect:**
+```json
+// Leaving a task in_progress when blocked by a discovered issue
+// Agent hits unexpected blocker mid-work
+// Task sits as in_progress indefinitely — no one else can pick it up
+// Other agents wait for dependent tasks that will never unblock
+```
+
+**Correct:**
+```json
+// Revert to pending and create a blocker task for the discovered issue
+TaskUpdate(taskId: "3", status: "pending")  // Revert — not abandonable as in_progress
+TaskCreate(
+  subject: "Fix database connection pooling",
+  description: "Discovered during #3: pool exhaustion under load. Must fix before #3 can proceed.",
+  activeForm: "Fixing connection pooling"
+)
+// New task #7 created
+TaskUpdate(taskId: "3", addBlockedBy: ["7"])  // #3 now properly blocked
+```
+
+**Incorrect:**
+```json
+// Skipping in_progress — going directly from pending to completed
+TaskUpdate(taskId: "1", status: "completed")  // BAD: skipped in_progress
+// No visibility that work was happening; no activeForm spinner shown
+```
+
+**Correct:**
+```json
+// Always transition through in_progress for visibility
+TaskUpdate(taskId: "1", status: "in_progress", activeForm: "Creating user model")
+// ... do work, verify results ...
+TaskUpdate(taskId: "1", status: "completed")
+```
+
+**Key rules:**
+- Verify all four completion criteria before marking done: implementation complete, tests passing, no blockers for dependents, documentation updated if applicable
+- Never skip `in_progress` — always transition `pending` to `in_progress` to `completed` for proper visibility
+- If blocked mid-work, revert to `pending` and create a new blocker task with `addBlockedBy` linking
+- When partial work is done but scope remains, create follow-up tasks for the remaining items rather than leaving one large task incomplete
+- After completing a task, run `TaskList` to identify newly unblocked dependents
+
+Reference: [Status Workflow](../references/status-workflow.md) — Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
+
+
+</Accordion>
+
+<Accordion title="Tasks: Dependency Validation — HIGH">
+
+
+## Tasks: Dependency Validation
+
+Always validate that a task's dependencies are fully resolved before transitioning it to `in_progress`. Skipping validation leads to wasted effort, incorrect assumptions about system state, and potential circular dependency deadlocks.
+
+**Incorrect:**
+```json
+// Starting a task without checking if blockers are resolved
+TaskList  // shows #3 has blockedBy: ["1", "2"]
+// Task #1 is completed but #2 is still in_progress
+TaskUpdate(taskId: "3", status: "in_progress")  // BAD: #2 not done yet
+// Agent now works against incomplete prerequisite state
+```
+
+**Correct:**
+```json
+// Always verify blockedBy is empty before starting work
+TaskGet(taskId: "3")
+// Returns: blockedBy: ["1", "2"], status: "pending"
+// Check: #1 = completed, #2 = completed? No — #2 still in_progress
+// Result: Do NOT start #3. Pick a different unblocked task instead.
+
+// Later, when #2 completes:
+TaskGet(taskId: "3")
+// Returns: blockedBy: [] (all resolved), status: "pending"
+TaskUpdate(taskId: "3", status: "in_progress", owner: "my-agent")  // GOOD
+```
+
+**Incorrect:**
+```json
+// Creating circular dependencies
+TaskUpdate(taskId: "2", addBlockedBy: ["3"])
+TaskUpdate(taskId: "3", addBlockedBy: ["2"])
+// Deadlock: neither task can ever start
+```
+
+**Correct:**
+```json
+// Keep dependency chains acyclic — review the full chain before adding
+// If #2 depends on #3 output, restructure:
+TaskCreate(subject: "Extract shared interface", ...)  // New task #6
+TaskUpdate(taskId: "2", addBlockedBy: ["6"])
+TaskUpdate(taskId: "3", addBlockedBy: ["6"])
+// Both #2 and #3 depend on #6, no cycle
+```
+
+**Key rules:**
+- Call `TaskGet` and verify `blockedBy` is empty before setting any task to `in_progress`
+- Never add a dependency that creates a cycle (A blocks B blocks A); restructure with a shared prerequisite task instead
+- Keep dependency chains shallow (3-4 levels max) to avoid long critical paths
+- When completing a task, call `TaskList` to check if dependent tasks are now unblocked
+- Document why each dependency exists in the task description so future agents understand the ordering
+
+Reference: [Dependency Tracking](../references/dependency-tracking.md) — Validation Rules (lines 72-77), Best Practices (lines 89-94)
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (3)
 
 <Accordions type="multiple">

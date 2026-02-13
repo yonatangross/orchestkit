@@ -385,6 +385,388 @@ After mastering React Server Components:
 
 ---
 
+## Rules (5)
+
+<Accordions type="multiple">
+
+<Accordion title="RSC: Cache Safety — CRITICAL">
+
+
+## RSC: Cache Safety
+
+The `"use cache"` directive in Next.js 16 Cache Components generates cache keys from arguments, closures, and build ID. If user-specific data is fetched inside a cached function without a user-distinguishing key, the first user's response is served to every subsequent user. Runtime APIs (`cookies()`, `headers()`) cannot be called directly inside `"use cache"` blocks.
+
+**Incorrect — runtime API inside cache:**
+```tsx
+async function CachedDashboard() {
+  'use cache'
+  const token = cookies().get('token') // Error: cookies() cannot be used inside 'use cache'
+  const data = await fetchUserData(token)
+  return <Dashboard data={data} />
+}
+```
+
+**Correct — read runtime values outside, pass as arguments:**
+```tsx
+async function DashboardPage() {
+  const token = (await cookies()).get('token')?.value ?? ''
+  return <CachedDashboard token={token} />
+}
+
+async function CachedDashboard({ token }: { token: string }) {
+  'use cache'
+  // token is now part of the cache key — each user gets their own entry
+  const data = await fetchUserData(token)
+  return <Dashboard data={data} />
+}
+```
+
+**Incorrect — awaiting dynamic promises inside cache:**
+```tsx
+async function Cached({ promise }: { promise: Promise<unknown> }) {
+  'use cache'
+  const data = await promise // Causes build hang — promise is not serializable
+  return <div>{data}</div>
+}
+```
+
+**Correct — resolve outside, pass the value:**
+```tsx
+async function Parent() {
+  const value = await getDynamicValue()
+  return <Cached value={value} />
+}
+
+async function Cached({ value }: { value: string }) {
+  'use cache'
+  return <div>{value}</div>
+}
+```
+
+**Key rules:**
+- Never call `cookies()`, `headers()`, or read `searchParams` inside a `"use cache"` block — read them in a parent component and pass as serializable arguments.
+- Every argument passed to a cached function becomes part of the cache key. Include user-identifying values (userId, token) to prevent cross-user data leaks.
+- Do not `await` dynamic Promises inside `"use cache"` — resolve them outside and pass the result.
+- Nested `"use cache"` functions have isolated scopes; `React.cache` values from an outer function are not visible in an inner one. Cache at the appropriate level and compose via `children`.
+- Use `cacheTag()` with user-scoped tags (e.g., `user-$\{userId\}`) to enable targeted invalidation.
+
+Reference: `references/cache-components.md` (Constraints, Common Pitfalls)
+
+
+</Accordion>
+
+<Accordion title="RSC: Client Boundaries — CRITICAL">
+
+
+## RSC: Client Boundaries
+
+The `'use client'` directive marks the boundary between Server and Client component trees. Every component imported by a Client Component becomes a Client Component too. Push `'use client'` to the smallest interactive leaf components to keep the server-rendered surface area as large as possible.
+
+**Incorrect:**
+```tsx
+// app/products/page.tsx
+'use client' // Entire page is now a client component
+
+import { useState, useEffect } from 'react'
+
+export default function ProductsPage() {
+  const [products, setProducts] = useState([])
+
+  useEffect(() => {
+    fetch('/api/products').then(r => r.json()).then(setProducts)
+  }, [])
+
+  return (
+    <div>
+      <h1>Products</h1>
+      <ProductFilters />
+      <ProductList products={products} />
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+// app/products/page.tsx — Server Component (default, no directive)
+import { db } from '@/lib/database'
+import { ProductFilters } from '@/components/ProductFilters'
+
+export default async function ProductsPage() {
+  const products = await db.product.findMany()
+
+  return (
+    <div>
+      <h1>Products</h1>
+      <ProductFilters />             {/* Client Component — leaf */}
+      <ProductList products={products} /> {/* Server Component */}
+    </div>
+  )
+}
+
+// components/ProductFilters.tsx — only the interactive leaf is 'use client'
+'use client'
+
+import { useState } from 'react'
+
+export function ProductFilters() {
+  const [filter, setFilter] = useState('')
+  return (
+    <input
+      value={filter}
+      onChange={(e) => setFilter(e.target.value)}
+      placeholder="Filter..."
+    />
+  )
+}
+```
+
+**Key rules:**
+- Never add `'use client'` to page or layout files; extract interactive parts into dedicated leaf components.
+- Server Components can render Client Components, but Client Components **cannot** directly import Server Components — use the `children` prop pattern instead.
+- Pass Server Components into Client Components via `children` or render-prop slots so they stay server-rendered.
+- Every module imported by a `'use client'` file is pulled into the client bundle — keep imports minimal.
+
+Reference: `references/client-components.md` (Common Mistakes), `references/component-patterns.md` (Composition Rules)
+
+
+</Accordion>
+
+<Accordion title="RSC: Component Types — MEDIUM">
+
+
+## RSC: Component Types
+
+React 19 deprecates `React.FC`. It previously added implicit `children` to all component props, which caused incorrect type-checking. Use function declarations (preferred) or typed arrow functions with explicit `React.ReactNode` return types.
+
+**Incorrect:**
+```tsx
+'use client'
+
+import React from 'react'
+
+// DEPRECATED: React.FC adds implicit children and is removed from React 19 best practices
+export const Button: React.FC<ButtonProps> = ({ children, onClick }) => {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// Also problematic: no return type annotation
+export const Card = ({ title, body }: CardProps) => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </div>
+  )
+}
+```
+
+**Correct:**
+```tsx
+'use client'
+
+// PREFERRED: Function declaration with explicit return type
+export function Button({ children, onClick }: ButtonProps): React.ReactNode {
+  return <button onClick={onClick}>{children}</button>
+}
+
+// ALSO VALID: Arrow function without React.FC, with explicit return type
+export const Card = ({ title, body }: CardProps): React.ReactNode => {
+  return (
+    <div>
+      <h2>{title}</h2>
+      <p>{body}</p>
+    </div>
+  )
+}
+```
+
+**React 19 ref handling:**
+```tsx
+'use client'
+
+// React 19: ref is a regular prop — no forwardRef needed
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  ref?: React.Ref<HTMLInputElement>
+}
+
+export function Input({ ref, ...props }: InputProps): React.ReactNode {
+  return <input ref={ref} {...props} />
+}
+
+// Usage
+const inputRef = useRef<HTMLInputElement>(null)
+<Input ref={inputRef} placeholder="Enter text..." />
+```
+
+**Key rules:**
+- Use function declarations for components; they are hoisted and consistently identifiable in stack traces.
+- Always annotate the return type as `React.ReactNode` for clarity and type safety.
+- Do not use `React.FC` or `React.FunctionComponent` in React 19 projects.
+- In React 19, pass `ref` as a regular prop — `forwardRef` is no longer required.
+
+Reference: `references/client-components.md` (React 19 Component Patterns, Ref as Prop)
+
+
+</Accordion>
+
+<Accordion title="RSC: Hydration — HIGH">
+
+
+## RSC: Hydration
+
+Hydration attaches event listeners to server-rendered HTML. If the client render produces different output than the server render, React throws a hydration mismatch warning and falls back to client-side rendering. Common causes: accessing browser APIs during render, using non-deterministic values (`Date.now()`, `Math.random()`), and conditional rendering based on client-only state.
+
+**Incorrect — non-deterministic value in render:**
+```tsx
+'use client'
+
+function TimestampBadge() {
+  // Server renders one value, client renders another → mismatch
+  return <span>{Date.now()}</span>
+}
+```
+
+**Correct — defer to useEffect:**
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+function TimestampBadge() {
+  const [time, setTime] = useState<number | null>(null)
+
+  useEffect(() => {
+    setTime(Date.now())
+  }, [])
+
+  return <span>{time ?? 'Loading...'}</span>
+}
+```
+
+**Incorrect — browser API access during render:**
+```tsx
+'use client'
+
+function ScreenWidth() {
+  // window is undefined on the server → crash or mismatch
+  const width = window.innerWidth
+  return <p>Width: {width}px</p>
+}
+```
+
+**Correct — browser API in useEffect with state:**
+```tsx
+'use client'
+
+import { useState, useEffect } from 'react'
+
+function ScreenWidth() {
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const handleResize = () => setWidth(window.innerWidth)
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return <p>Width: {width}px</p>
+}
+```
+
+**Key rules:**
+- Never access `window`, `document`, `navigator`, `localStorage`, or other browser APIs during render — always use `useEffect`.
+- Avoid non-deterministic expressions (`Date.now()`, `Math.random()`, `crypto.randomUUID()`) in JSX — initialize as `null` and set in `useEffect`.
+- Use `suppressHydrationWarning` only for intentional, harmless mismatches — never to silence bugs.
+- For components that depend entirely on browser APIs, use a `ClientOnly` wrapper (mount guard via `useEffect`) or `next/dynamic` with `ssr: false`.
+
+Reference: `references/client-components.md` (Avoiding Hydration Mismatches, Client-Only Rendering)
+
+
+</Accordion>
+
+<Accordion title="RSC: Serialization — CRITICAL">
+
+
+## RSC: Serialization
+
+Only serializable data can cross the Server-to-Client Component boundary. React must serialize props into the RSC payload sent over the wire. Passing non-serializable values causes build or runtime errors.
+
+**Incorrect:**
+```tsx
+// app/dashboard/page.tsx — Server Component
+export default async function Dashboard() {
+  const data = await getData()
+  return (
+    <ClientCard
+      item={data}
+      onClick={() => console.log('clicked')} // Functions cannot be serialized
+      formatter={new Intl.NumberFormat('en-US')} // Class instances cannot be serialized
+      icon={Symbol('star')} // Symbols cannot be serialized
+    />
+  )
+}
+```
+
+**Correct:**
+```tsx
+// app/dashboard/page.tsx — Server Component
+import { handleClick } from '@/app/actions' // Server Action
+
+export default async function Dashboard() {
+  const data = await getData()
+  return (
+    <ClientCard
+      item={{ id: data.id, name: data.name, price: data.price }} // Plain object
+      tags={['featured', 'sale']}  // Array of primitives
+      isActive={true}              // Boolean
+      onAction={handleClick}       // Server Actions ARE serializable
+    />
+  )
+}
+
+// components/ClientCard.tsx
+'use client'
+
+export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) {
+  const handleLocalClick = () => onAction(item.id) // Call server action
+
+  return (
+    <div onClick={handleLocalClick}>
+      <h2>{item.name}</h2>
+      <p>{isActive ? 'Active' : 'Inactive'}</p>
+    </div>
+  )
+}
+```
+
+**Serializable types** (safe to pass as props):
+- Primitives: `string`, `number`, `bigint`, `boolean`, `null`, `undefined`
+- Plain objects and arrays containing serializable values
+- Server Actions (functions defined with `'use server'`)
+- `Date`, `Map`, `Set`, `TypedArray`, `ArrayBuffer`
+
+**Non-serializable types** (will error at the boundary):
+- Regular functions and closures
+- Class instances (`new Intl.NumberFormat()`, `new URL()`, custom classes)
+- Symbols, `WeakMap`, `WeakSet`
+
+**Key rules:**
+- Define event handlers (`onClick`, `onChange`) inside the Client Component, not in the Server Component.
+- Use Server Actions (`'use server'`) when you need to pass callable behavior from server to client.
+- Convert class instances to plain objects before passing: `\{ url: myUrl.toString() \}` instead of `myUrl`.
+- When in doubt, check if `JSON.stringify(prop)` would succeed — that is a reasonable (though not exact) heuristic.
+
+Reference: `references/component-patterns.md` (Serializable Props Only)
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (12)
 
 <Accordions type="multiple">

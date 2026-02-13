@@ -340,6 +340,230 @@ function Dashboard() {
 
 ---
 
+## Rules (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Zustand: Middleware Order — CRITICAL">
+
+
+## Zustand: Middleware Order
+
+Zustand middleware wraps from inside out. The innermost middleware executes first, and the outermost middleware executes last. Getting this order wrong silently breaks persistence, devtools recording, and immutable updates.
+
+**Incorrect:**
+```typescript
+// WRONG: immer outermost — draft mutations leak to devtools and persist
+const useStore = create<AppState>()(
+  immer(devtools(persist((set) => ({
+    count: 0,
+    increment: () => set((state) => { state.count += 1; }),
+  }), { name: 'app-storage' }), { name: 'AppStore' }))
+);
+
+// WRONG: devtools inside persist — devtools won't see persist rehydration
+devtools(persist(immer((set) => ({ /* ... */ })), { name: 'storage' }), { name: 'Store' });
+```
+
+**Correct:**
+```typescript
+import { create } from 'zustand';
+import { devtools, persist, subscribeWithSelector } from 'zustand/middleware';
+import { immer } from 'zustand/middleware/immer';
+import type {} from '@redux-devtools/extension';
+
+// Correct order: persist > devtools > subscribeWithSelector > immer
+const useStore = create<AppState>()(
+  persist(
+    devtools(
+      subscribeWithSelector(
+        immer((set) => ({
+          count: 0,
+          increment: () =>
+            set(
+              (state) => { state.count += 1; },
+              undefined,
+              'counter/increment'
+            ),
+        }))
+      ),
+      { name: 'AppStore', enabled: process.env.NODE_ENV === 'development' }
+    ),
+    {
+      name: 'app-storage',
+      partialize: (state) => ({ count: state.count }),
+    }
+  )
+);
+```
+
+**Key rules:**
+- **Immer** is always innermost -- transforms draft mutations into immutable updates first
+- **subscribeWithSelector** wraps immer -- needs transformed (immutable) state for granular subscriptions
+- **devtools** wraps subscribeWithSelector -- records actions after immer transforms them
+- **persist** is always outermost -- serializes the final, fully transformed state to storage
+- When using a subset, preserve relative order (e.g., `devtools(immer(...))` not `immer(devtools(...))`)
+
+Reference: `references/middleware-composition.md` (Middleware Execution Order, Why Order Matters)
+
+
+</Accordion>
+
+<Accordion title="Zustand: Middleware Pitfalls — HIGH">
+
+
+## Zustand: Middleware Pitfalls
+
+Four common middleware mistakes that cause silent bugs in Zustand stores.
+
+### Pitfall 1: Mutating State Without Immer
+
+**Incorrect:**
+```typescript
+set((state) => { state.items.push(item); return state; }); // Mutates in place, no re-render
+```
+
+**Correct:**
+```typescript
+set((state) => ({ items: [...state.items, item] }));           // Immutable update
+immer((set) => ({ addItem: (item) => set((s) => { s.items.push(item); }) })) // With immer
+```
+
+### Pitfall 2: Duplicate Middleware / Wrong Nesting
+
+**Incorrect:**
+```typescript
+persist(persist((set) => ({ /* ... */ }), { name: 'a' }), { name: 'b' }) // Double-wrap
+```
+
+**Correct:**
+```typescript
+persist((set) => ({ /* ... */ }), { name: 'app-storage', partialize: (s) => ({ theme: s.theme }) })
+```
+
+### Pitfall 3: Missing DevTools Type Import
+
+**Incorrect:**
+```typescript
+import { devtools } from 'zustand/middleware'; // TS errors — types not augmented
+```
+
+**Correct:**
+```typescript
+import { devtools } from 'zustand/middleware';
+import type {} from '@redux-devtools/extension'; // Required type augmentation
+```
+
+### Pitfall 4: Missing Persist Version Migrations
+
+**Incorrect:**
+```typescript
+persist((set) => ({ theme: 'light', fontSize: 14 }), { name: 'settings', version: 2 })
+// Was version 1 — no migrate function, old state silently dropped
+```
+
+**Correct:**
+```typescript
+persist((set) => ({ theme: 'light', fontSize: 14 }), {
+  name: 'settings',
+  version: 2,
+  migrate: (persisted: unknown, version: number) => {
+    const state = persisted as Record<string, unknown>;
+    if (version === 1) return { ...state, fontSize: 14 }; // v1->v2: added fontSize
+    return state;
+  },
+})
+```
+
+**Key rules:**
+- Never use mutable methods (`push`, `splice`, property assignment) in `set()` without `immer` middleware
+- Never double-wrap the same middleware -- each should appear exactly once
+- Always `import type \{\} from '@redux-devtools/extension'` when using `devtools`
+- Always provide a `migrate` function when bumping persist `version`
+
+Reference: `references/middleware-composition.md` (Common Pitfalls)
+
+
+</Accordion>
+
+<Accordion title="Zustand: Slice Pattern — HIGH">
+
+
+## Zustand: Slice Pattern
+
+Split large stores into typed slices using `StateCreator`. Each slice owns a domain of state and actions, combined into a single store at creation time.
+
+**Incorrect:**
+```typescript
+// Monolithic store — all domains in one create() call
+const useStore = create<AllState>()((set, get) => ({
+  user: null, token: null,
+  login: async (creds) => { /* ... */ },
+  logout: () => set({ user: null, token: null }),
+  items: [], addItem: (item) => set((s) => ({ items: [...s.items, item] })),
+  sidebarOpen: false, theme: 'light',
+  toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
+  // ... 20 more fields — unmaintainable
+}));
+```
+
+**Correct:**
+```typescript
+import { create, StateCreator } from 'zustand';
+import { immer } from 'zustand/middleware/immer';
+
+type AppStore = AuthSlice & CartSlice & UISlice;
+
+// --- Auth Slice (store/auth-slice.ts) ---
+interface AuthSlice { user: User | null; login: (creds: Credentials) => Promise<void>; logout: () => void; }
+
+const createAuthSlice: StateCreator<
+  AppStore, [['zustand/immer', never]], [], AuthSlice
+> = (set) => ({
+  user: null,
+  login: async (creds) => { set({ user: await api.login(creds) }, undefined, 'auth/login'); },
+  logout: () => set((s) => { s.user = null; }, undefined, 'auth/logout'),
+});
+
+// --- Cart Slice (cross-slice access via get()) ---
+interface CartSlice { items: CartItem[]; addItem: (item: CartItem) => void; }
+
+const createCartSlice: StateCreator<
+  AppStore, [['zustand/immer', never]], [], CartSlice
+> = (set, get) => ({
+  items: [],
+  addItem: (item) => {
+    if (!get().user) return; // Cross-slice access via get()
+    set((s) => { s.items.push(item); }, undefined, 'cart/addItem');
+  },
+});
+
+// --- Combined Store ---
+const useStore = create<AppStore>()(
+  immer((...a) => ({
+    ...createAuthSlice(...a),
+    ...createCartSlice(...a),
+    ...createUISlice(...a),
+  }))
+);
+```
+
+**Key rules:**
+- Type each slice as `StateCreator&lt;CombinedStore, MiddlewareMutators, [], SliceInterface&gt;` for full store type inference
+- Combine with spread: `create&lt;Store&gt;()((...a) => (\{ ...createSliceA(...a), ...createSliceB(...a) \}))` -- `...a` forwards `set`, `get`, `store`
+- Access other slices via `get()` inside actions, never by importing state directly -- avoids circular dependencies
+- Keep each slice in its own file, export only the creator function and interface
+- Declare middleware mutator types in the `StateCreator` generic so TypeScript knows available features
+
+Reference: `references/middleware-composition.md` (TypeScript Typing for Middleware)
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (1)
 
 <Accordions type="multiple">

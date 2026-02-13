@@ -300,6 +300,365 @@ Use Opus 4.6 adaptive thinking for:
 
 ---
 
+## Rules (5)
+
+<Accordions type="multiple">
+
+<Accordion title="CI/CD: Branch Protection — HIGH">
+
+
+## CI/CD: Branch Protection
+
+Configure branch protection rules to enforce code review, passing CI checks, and linear history on critical branches. This prevents untested or unreviewed code from reaching production.
+
+**Incorrect:**
+```bash
+# Direct push to main — no review, no CI checks
+git checkout main
+git commit -m "quick fix"
+git push origin main
+
+# Force push overwrites history
+git push --force origin main
+```
+
+```yaml
+# CI workflow with no branch restrictions
+on:
+  push:
+    branches: ['*']
+```
+
+**Correct:**
+```
+Branch strategy with protection rules:
+
+main (production) ─────●────────●──────>
+                       |        |
+dev (staging)  ─────●──●────●──●──────>
+                    |        |
+feature/*  ─────────●────────┘
+                    ^
+                    └─ PR required, CI checks, code review
+```
+
+**GitHub branch protection settings:**
+```
+main branch:
+  - Require pull request before merging
+  - Required approving reviews: 2
+  - Require status checks to pass (lint, test, security)
+  - Require branches to be up to date before merging
+  - Do not allow force pushes
+  - Do not allow deletions
+
+dev branch:
+  - Require pull request before merging
+  - Required approving reviews: 1
+  - Require status checks to pass (lint, test)
+```
+
+**Key rules:**
+- `main` requires PR + 2 approvals + all status checks passing before merge
+- `dev` requires PR + 1 approval + all status checks passing
+- Never allow direct commits or force pushes to `main` or `dev`
+- Feature branches must be created from `dev` and merged back via PR
+- Require branches to be up-to-date before merging to prevent integration gaps
+- Enable "Require linear history" to keep the commit graph clean and auditable
+
+Reference: `references/ci-cd-pipelines.md` (lines 5-21)
+
+
+</Accordion>
+
+<Accordion title="CI/CD: Pipeline Caching — HIGH">
+
+
+## CI/CD: Pipeline Caching
+
+Cache dependencies in CI pipelines using lockfile-based cache keys. Proper caching reduces dependency installation from 2-3 minutes to 10-20 seconds (~85% time savings).
+
+**Incorrect:**
+```yaml
+# No caching: re-downloads everything on every run
+steps:
+  - uses: actions/checkout@v3
+  - run: npm install
+  - run: npm test
+```
+
+```yaml
+# Bad cache key: no lockfile hash, stale deps served indefinitely
+- uses: actions/cache@v3
+  with:
+    path: node_modules
+    key: ${{ runner.os }}-modules
+```
+
+**Correct:**
+```yaml
+- name: Cache Dependencies
+  uses: actions/cache@v3
+  with:
+    path: |
+      ~/.npm
+      node_modules
+      backend/.venv
+    key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/poetry.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-deps-
+
+- name: Install Dependencies
+  run: npm ci
+
+- name: Run Tests
+  run: npm test
+```
+
+```yaml
+# Python example with Poetry
+- name: Cache Poetry Dependencies
+  uses: actions/cache@v3
+  with:
+    path: ~/.cache/pypoetry
+    key: ${{ runner.os }}-poetry-${{ hashFiles('backend/poetry.lock') }}
+
+- name: Install Dependencies
+  run: poetry install
+```
+
+**Key rules:**
+- Always include `hashFiles()` of the lockfile in the cache key so caches invalidate when dependencies change
+- Use `restore-keys` as a fallback prefix to get a partial cache hit when the exact key misses
+- Cache the package manager cache directory (`~/.npm`, `~/.cache/pypoetry`), not just `node_modules`
+- Use `npm ci` (not `npm install`) after cache restore for reproducible installs
+- Cache multiple dependency directories in a single step when possible (npm + pip + venv)
+- Set artifact retention policies (`retention-days: 7`) to prevent storage bloat
+
+Reference: `references/ci-cd-pipelines.md` (lines 23-68)
+
+
+</Accordion>
+
+<Accordion title="DevOps: Database Migrations — CRITICAL">
+
+
+## DevOps: Database Migrations
+
+All schema changes must be backward-compatible with the currently running application version. Destructive changes require a multi-phase migration to achieve zero-downtime deployments.
+
+**Incorrect:**
+```sql
+-- Destructive: renames column while old code still references 'name'
+ALTER TABLE users RENAME COLUMN name TO full_name;
+
+-- Destructive: adds NOT NULL column, old inserts fail immediately
+ALTER TABLE users ADD COLUMN email VARCHAR(255) NOT NULL;
+
+-- Destructive: drops column while old code still reads it
+ALTER TABLE users DROP COLUMN legacy_field;
+```
+
+**Correct (3-phase zero-downtime migration):**
+```sql
+-- Phase 1: Add nullable column (safe with old code running)
+ALTER TABLE users ADD COLUMN email VARCHAR(255);
+```
+
+```python
+# Phase 2: Deploy new code that writes to both + backfill
+def create_user(name: str, email: str):
+    db.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s)",
+        (name, email),
+    )
+
+async def backfill_emails():
+    users = await db.fetch("SELECT id FROM users WHERE email IS NULL")
+    for user in users:
+        email = generate_email(user.id)
+        await db.execute(
+            "UPDATE users SET email = %s WHERE id = %s",
+            (email, user.id),
+        )
+```
+
+```sql
+-- Phase 3: Add constraint after backfill is verified complete
+ALTER TABLE users ALTER COLUMN email SET NOT NULL;
+```
+
+**Backward-compatible changes (safe to deploy directly):**
+- Add nullable column
+- Add new table
+- Add index
+- Rename column with a view alias
+
+**Backward-incompatible changes (require 3-phase migration):**
+- Remove column
+- Rename column without alias
+- Add NOT NULL column
+- Change column type
+
+**Deploy order:** migrate (phase 1) --> deploy new code (phase 2) --> migrate (phase 3)
+
+**Key rules:**
+- Always deploy migrations before the application code that depends on them
+- Never add a NOT NULL column in a single step — use the 3-phase pattern (add nullable, backfill, add constraint)
+- Always write a `downgrade()` function so migrations can be rolled back (`alembic downgrade -1`)
+- Always review auto-generated migrations before applying (`alembic revision --autogenerate`)
+- Test rollback procedures regularly — do not assume `downgrade()` works without verification
+- Column renames require a view alias to maintain backward compatibility during rollout
+
+Reference: `references/environment-management.md` (lines 115-162)
+
+
+</Accordion>
+
+<Accordion title="Docker: Layer Security — CRITICAL">
+
+
+## Docker: Layer Security
+
+Every Docker image layer is immutable and inspectable. Running as root or embedding secrets in layers creates critical security vulnerabilities that persist even if later layers attempt to remove them.
+
+**Incorrect:**
+```dockerfile
+FROM node:20
+WORKDIR /app
+
+# BAD: Copies .env, .git, node_modules, and everything else
+COPY . .
+RUN npm install
+
+# BAD: Secret baked into image layer (visible via docker history)
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+# BAD: Running as root (default)
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+```
+
+**Correct:**
+```dockerfile
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# GOOD: Create and use non-root user (uid 1001)
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# GOOD: Copy only what's needed with explicit ownership
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --chown=nodejs:nodejs package*.json ./
+
+# GOOD: Run as non-root
+USER nodejs
+
+# GOOD: Secrets injected at runtime, never in image
+# Use: docker run -e DATABASE_URL=... or Kubernetes secrets
+ENV NODE_ENV=production
+EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s CMD node healthcheck.js || exit 1
+CMD ["node", "dist/main.js"]
+```
+
+**Required `.dockerignore`:**
+```
+.git
+.env
+.env.*
+node_modules
+*.md
+tests/
+.vscode/
+```
+
+**Key rules:**
+- Never run containers as root — always create a non-root user with `USER` directive
+- Never pass secrets via `ARG` or `ENV` in the Dockerfile — they are visible in `docker history`
+- Always use a `.dockerignore` to exclude `.env`, `.git`, `node_modules`, and test files
+- Use `COPY --chown` to set file ownership without a separate `chown` layer
+- Prefer minimal base images (`-alpine`) to reduce the CVE surface area
+- Enable read-only root filesystem in Kubernetes (`readOnlyRootFilesystem: true`)
+- Add health checks so orchestrators can detect and restart unhealthy containers
+
+Reference: `references/docker-patterns.md` (lines 52-85)
+
+
+</Accordion>
+
+<Accordion title="Docker: Multi-Stage Builds — HIGH">
+
+
+## Docker: Multi-Stage Builds
+
+Separate build-time concerns from runtime to produce minimal, secure production images. A well-structured multi-stage build can reduce image size by 78% or more.
+
+**Incorrect:**
+```dockerfile
+# Single-stage: build tools and dev deps ship to production
+FROM node:20
+WORKDIR /app
+COPY . .
+RUN npm install
+RUN npm run build
+EXPOSE 3000
+CMD ["node", "dist/main.js"]
+# Result: ~850 MB image with dev dependencies, source files, build tools
+```
+
+**Correct:**
+```dockerfile
+# Stage 1: Install production dependencies only
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+# Stage 2: Build with dev dependencies
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build && npm run test
+
+# Stage 3: Minimal production runtime
+FROM node:20-alpine AS runner
+WORKDIR /app
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --chown=nodejs:nodejs package*.json ./
+USER nodejs
+EXPOSE 3000
+ENV NODE_ENV=production
+HEALTHCHECK --interval=30s --timeout=3s CMD node healthcheck.js || exit 1
+CMD ["node", "dist/main.js"]
+# Result: ~180 MB image with only production runtime
+```
+
+**Key rules:**
+- Use separate stages for dependency installation, building, and runtime
+- Copy only production `node_modules` and compiled artifacts into the final stage
+- Use `-alpine` base images to minimize base layer size
+- Run `npm ci` (not `npm install`) for reproducible, lockfile-exact installs
+- Clean caches (`npm cache clean --force`) in the same layer as install to avoid bloating layers
+- Always include a `HEALTHCHECK` in the production stage for orchestrator integration
+- Run tests in the builder stage so test failures prevent image creation
+
+Reference: `references/docker-patterns.md` (lines 7-50)
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (6)
 
 <Accordions type="multiple">

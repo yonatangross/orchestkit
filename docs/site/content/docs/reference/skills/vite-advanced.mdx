@@ -332,6 +332,321 @@ export default defineConfig({
 
 ---
 
+## Rules (4)
+
+<Accordions type="multiple">
+
+<Accordion title="Vite: Chunk Optimization — HIGH">
+
+
+## Vite: Chunk Optimization
+
+Use `advancedChunks` (Vite 8+) or `manualChunks` (Vite 7) to split vendor and application code into separate, cacheable chunks. Assign priorities to resolve conflicts and use `maxSize` to prevent oversized bundles.
+
+**Incorrect:**
+```typescript
+// No chunk config — everything in a single monolithic bundle
+export default defineConfig({
+  build: { rollupOptions: {} },  // No advancedChunks or manualChunks
+})
+```
+
+**Correct (Vite 8+ — advancedChunks):**
+```typescript
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        advancedChunks: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              priority: 30,
+              minSize: 20000,
+              maxSize: 200000,
+            },
+            {
+              name: 'router',
+              test: /[\\/]node_modules[\\/](react-router|react-router-dom)[\\/]/,
+              priority: 25,
+            },
+            {
+              name: 'vendor',
+              test: /[\\/]node_modules[\\/]/,
+              priority: 5,
+              maxSize: 500000,  // Auto-splits into vendor, vendor-1, etc.
+            },
+          ],
+        },
+      },
+    },
+  },
+})
+```
+
+**Correct (Vite 7 — manualChunks):**
+```typescript
+export default defineConfig({
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'router': ['react-router-dom'],
+        },
+      },
+    },
+  },
+})
+```
+
+**Key rules:**
+- Separate framework deps into a dedicated vendor chunk with the highest priority so it caches independently from app code.
+- Add a catch-all `vendor` group at lowest priority with `maxSize` to prevent oversized bundles.
+- Use `minShareCount` for shared UI libraries — only extract when imported by 2+ routes.
+- When migrating Vite 7 to 8, convert package arrays to regex and make implicit ordering explicit via `priority`.
+- `manualChunks` is deprecated in Vite 8 — prefer `advancedChunks` for new projects.
+
+Reference: `references/chunk-optimization.md`
+
+
+</Accordion>
+
+<Accordion title="Vite: Environment API — MEDIUM">
+
+
+## Vite: Environment API
+
+Vite 6+ treats environments (client, SSR, edge) as first-class concepts, each with its own module graph, config, plugin pipeline, and build output. Use `environments` config instead of mixing targets in top-level config.
+
+**Incorrect:**
+```typescript
+// Flat config — SSR and client share the same target and externals
+export default defineConfig({
+  build: {
+    outDir: 'dist',
+    target: 'node20',                            // Wrong for client!
+    rollupOptions: { external: ['cloudflare:workers'] },  // Wrong for client!
+  },
+  ssr: { noExternal: ['some-package'] },  // Legacy SSR config
+})
+```
+
+**Correct:**
+```typescript
+export default defineConfig({
+  build: { sourcemap: false },  // Shared config
+
+  environments: {
+    client: {
+      build: { outDir: 'dist/client', manifest: true },
+    },
+    ssr: {
+      build: {
+        outDir: 'dist/server',
+        target: 'node20',
+        rollupOptions: { output: { format: 'esm' } },
+      },
+    },
+    edge: {
+      resolve: { noExternal: true, conditions: ['edge', 'worker'] },
+      build: {
+        outDir: 'dist/edge',
+        rollupOptions: { external: ['cloudflare:workers'] },
+      },
+    },
+  },
+})
+```
+
+**Correct — environment-aware plugins:**
+```typescript
+export function envAwarePlugin(): Plugin {
+  return {
+    name: 'env-aware',
+    transform(code, id) {
+      const env = this.environment  // Available in Vite 6+
+      if (env.name === 'ssr') return transformForSSR(code)
+      if (env.name === 'edge') return transformForEdge(code)
+      return transformForClient(code)
+    },
+  }
+}
+```
+
+**Key rules:**
+- Put only shared settings at the top level; environment-specific settings go under `environments.client`, `environments.ssr`, etc.
+- Each environment gets its own module graph and build output — never share `outDir` between environments.
+- Use `this.environment` in hooks to branch per environment; use `perEnvironmentPlugin()` to skip environments entirely.
+- For edge runtimes, set `resolve.noExternal: true` and `resolve.conditions` for edge-specific package exports.
+- Vite 7 requires Node.js 20.19+ or 22.12+ for `require(esm)` support.
+
+Reference: `references/environment-api.md`
+
+
+</Accordion>
+
+<Accordion title="Vite: Library Mode — HIGH">
+
+
+## Vite: Library Mode
+
+Configure `build.lib` with proper entry points, externalize peer dependencies, and provide dual ESM/CJS output with TypeScript declarations.
+
+**Incorrect:**
+```typescript
+// Bundles React into the library — consumers get duplicate React
+export default defineConfig({
+  build: {
+    lib: { entry: resolve(__dirname, 'src/index.ts'), formats: ['es'] },
+    // Missing rollupOptions.external — peer deps are bundled
+  },
+})
+```
+
+**Correct:**
+```typescript
+import { defineConfig } from 'vite'
+import { resolve } from 'path'
+import dts from 'vite-plugin-dts'
+
+export default defineConfig({
+  plugins: [dts({ include: ['src'], rollupTypes: true })],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'MyLib',
+      fileName: (format) => `my-lib.${format}.js`,
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom'],
+      output: {
+        globals: { react: 'React', 'react-dom': 'ReactDOM' },
+      },
+    },
+  },
+})
+```
+
+```json
+{
+  "name": "my-lib",
+  "type": "module",
+  "main": "./dist/my-lib.umd.js",
+  "module": "./dist/my-lib.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/my-lib.es.js",
+      "require": "./dist/my-lib.umd.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles.css": "./dist/style.css"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "sideEffects": ["**/*.css"]
+}
+```
+
+**Key rules:**
+- Always externalize peer dependencies via `rollupOptions.external` — never bundle them.
+- Provide dual formats: ESM (`module`) for bundlers and UMD/CJS (`main`) for legacy consumers; use `exports` map.
+- Generate TypeScript declarations with `vite-plugin-dts`; set `"types"` in top-level and each `exports` entry.
+- Mark CSS in `"sideEffects"` so bundlers preserve styles during tree-shaking.
+- For multi-entry libraries, use an object `entry` and match keys to `exports` subpaths.
+
+Reference: `references/library-mode.md`
+
+
+</Accordion>
+
+<Accordion title="Vite: Plugin Hooks — MEDIUM">
+
+
+## Vite: Plugin Hooks
+
+Vite plugins follow a strict hook execution order inherited from Rollup. Choose the correct hook for each task and use `enforce`/`apply` to control when a plugin runs.
+
+**Hook execution order:**
+```
+1. config          — Modify config before resolution
+2. configResolved  — Access final config (read-only)
+3. configureServer — Dev server setup (dev only)
+4. buildStart      — Build begins
+5. resolveId       — Resolve import paths to module IDs
+6. load            — Provide module content for a resolved ID
+7. transform       — Transform loaded module source code
+8. buildEnd / closeBundle — Cleanup
+```
+
+**Incorrect:**
+```typescript
+// Wrong: transform can't create modules — virtual modules need resolveId + load
+export function brokenVirtualPlugin(): Plugin {
+  return {
+    name: 'broken-virtual',
+    transform(code, id) {
+      if (id === 'virtual:my-data') {
+        return `export default ${JSON.stringify({ key: 'value' })}`
+      }
+    },
+  }
+}
+```
+
+**Correct:**
+```typescript
+const VIRTUAL_ID = 'virtual:my-data'
+const RESOLVED_ID = '\0' + VIRTUAL_ID
+
+export function virtualDataPlugin(data: Record<string, unknown>): Plugin {
+  return {
+    name: 'virtual-data',
+    resolveId(id) {
+      if (id === VIRTUAL_ID) return RESOLVED_ID
+    },
+    load(id) {
+      if (id === RESOLVED_ID) return `export default ${JSON.stringify(data)}`
+    },
+  }
+}
+```
+
+**Correct — enforce and apply modifiers:**
+```typescript
+export function preProcessPlugin(): Plugin {
+  return {
+    name: 'pre-process',
+    enforce: 'pre',    // Run BEFORE core Vite plugins
+    apply: 'build',    // Only during vite build (not dev)
+    transform(code, id) {
+      if (!id.endsWith('.special.ts')) return null
+      return { code: code.replace(/PLACEHOLDER/g, 'REPLACED'), map: null }
+    },
+  }
+}
+```
+
+**Key rules:**
+- Use `resolveId` + `load` for virtual modules; `transform` only modifies already-loaded source.
+- Prefix resolved virtual IDs with `\0` to exclude them from other plugins and filesystem resolution.
+- Set `enforce: 'pre'` to run before core plugins, `enforce: 'post'` to run after.
+- Set `apply: 'build'` or `apply: 'serve'` to restrict a plugin to one mode.
+- Access `this.environment` in hooks (Vite 6+) for environment-specific transforms.
+
+Reference: `references/plugin-development.md`
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
 ## References (5)
 
 <Accordions type="multiple">
