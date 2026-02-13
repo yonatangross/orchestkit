@@ -22,15 +22,12 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - asyncio-advanced
-  - connection-pooling
+  - python-backend
   - caching
   - testing-patterns
-  - observability-monitoring
-  - database-schema-designer
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - celery-advanced
+  - monitoring-observability
+  - database-patterns
+  - async-jobs
   - task-dependency-patterns
   - remember
   - memory
@@ -353,7 +350,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** asyncio-advanced, connection-pooling, caching, testing-patterns, observability-monitoring
+- **Skill references:** python-backend, caching, testing-patterns, monitoring-observability
 
 ## Profiling Tools Reference
 
@@ -398,15 +395,12 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|asyncio-advanced:{SKILL.md,references/{semaphore-patterns.md,taskgroup-patterns.md}}|asyncio,python,concurrency,taskgroup,structured-concurrency
-|connection-pooling:{SKILL.md,references/{pool-sizing.md}}|connection-pool,asyncpg,aiohttp,database,http,performance
+|python-backend:{SKILL.md,references/{eager-loading.md,fastapi-integration.md,middleware-stack.md,pool-sizing.md,semaphore-patterns.md,taskgroup-patterns.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
 |caching:{SKILL.md,references/{cache-patterns.md,semantic-cache-strategies.md}}|caching,redis,performance,llm,prompt-caching,semantic,cost,langfuse
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations
-|sqlalchemy-2-async:{SKILL.md,references/{eager-loading.md,fastapi-integration.md}}|sqlalchemy,async,database,orm,fastapi,python
-|fastapi-advanced:{SKILL.md,references/{middleware-stack.md}}|fastapi,python,async,middleware,dependencies
-|celery-advanced:{SKILL.md,references/{canvas-workflows.md,celery-beat-scheduling.md,priority-queue-setup.md,rate-limiting-patterns.md}}|celery,canvas,workflow,priority-queue,rate-limiting,task-routing,flower
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|database-patterns:{SKILL.md,references/{alembic-advanced.md,audit-trails.md,environment-coordination.md,migration-patterns.md,migration-testing.md,normalization-patterns.md,object-versioning.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
+|async-jobs:{SKILL.md,references/{arq-patterns.md,canvas-workflows.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

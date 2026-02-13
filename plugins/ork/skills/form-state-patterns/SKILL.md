@@ -437,7 +437,7 @@ const schema = z.object({
 
 - `tanstack-query-advanced` - Combine form mutations with TanStack Query
 - `zustand-patterns` - Form wizard state with multi-step persistence
-- `input-validation` - Server-side validation and sanitization
+- `security-patterns` - Server-side validation and sanitization
 - `accessibility-specialist` - WCAG compliance for forms
 
 ## Capability Details

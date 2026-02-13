@@ -1,0 +1,105 @@
+{
+  "skill": "golden-dataset",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "curation-collection",
+      "rule": "curation-collection",
+      "query": "How do I add new documents to the golden dataset with quality checks?",
+      "expectedBehavior": [
+        "Classifies content type (article, tutorial, research_paper, etc.)",
+        "Applies quality thresholds (minimum 0.70 quality score)",
+        "Checks URL against source_url_map.json for duplicates",
+        "Requires at least 2 domain tags and 3 test queries"
+      ]
+    },
+    {
+      "id": "curation-annotation",
+      "rule": "curation-annotation",
+      "query": "Set up a multi-agent pipeline to evaluate golden dataset entries",
+      "expectedBehavior": [
+        "Runs parallel analysis agents (Quality, Difficulty, Domain, Query Gen)",
+        "Aggregates consensus with weighted quality score",
+        "Uses decision thresholds (>=0.75 include, >=0.55 review, <0.55 exclude)",
+        "Integrates with Langfuse for trace logging"
+      ]
+    },
+    {
+      "id": "curation-diversity",
+      "rule": "curation-diversity",
+      "query": "Ensure the golden dataset has balanced coverage across difficulty levels",
+      "expectedBehavior": [
+        "Stratifies entries into trivial/easy/medium/hard/adversarial levels",
+        "Enforces minimum counts per difficulty level",
+        "Checks domain coverage across AI/ML, backend, frontend, DevOps",
+        "Flags over-representation of specific content types"
+      ]
+    },
+    {
+      "id": "management-versioning",
+      "rule": "management-versioning",
+      "query": "Backup the golden dataset to JSON and restore it in a new environment",
+      "expectedBehavior": [
+        "Exports analyses, chunks, and artifacts to JSON (excluding embeddings)",
+        "Validates backup structure with required keys",
+        "Regenerates embeddings using current model on restore",
+        "Verifies counts match metadata after restore"
+      ]
+    },
+    {
+      "id": "management-storage",
+      "rule": "management-storage",
+      "query": "What storage format should I use for golden dataset backups?",
+      "expectedBehavior": [
+        "Recommends JSON over SQL dump for version control",
+        "Enforces URL contract (no placeholder URLs)",
+        "Validates data integrity (counts, embeddings, orphaned chunks)",
+        "Stores metadata for quick stats and validation"
+      ]
+    },
+    {
+      "id": "management-ci",
+      "rule": "management-ci",
+      "query": "Automate golden dataset backups with GitHub Actions",
+      "expectedBehavior": [
+        "Sets up weekly scheduled backup (Sunday 2am UTC)",
+        "Includes manual workflow_dispatch trigger",
+        "Commits backup files to git automatically",
+        "Runs verification after backup creation"
+      ]
+    },
+    {
+      "id": "validation-quality",
+      "rule": "validation-quality",
+      "query": "Validate golden dataset entries against the document schema",
+      "expectedBehavior": [
+        "Validates required fields (id, title, source_url, content_type, sections)",
+        "Enforces kebab-case ID pattern and title length constraints",
+        "Checks section content minimums (50 chars)",
+        "Validates tag count (2-10 tags per document)"
+      ]
+    },
+    {
+      "id": "validation-drift",
+      "rule": "validation-drift",
+      "query": "Detect duplicate content in the golden dataset",
+      "expectedBehavior": [
+        "Runs semantic similarity check against existing embeddings",
+        "Blocks entries with >=0.90 similarity",
+        "Warns on >=0.85 similarity",
+        "Normalizes URLs for exact duplicate detection"
+      ]
+    },
+    {
+      "id": "validation-regression",
+      "rule": "validation-regression",
+      "query": "Run full validation on the golden dataset before deployment",
+      "expectedBehavior": [
+        "Validates schema for all documents",
+        "Checks unique IDs and referential integrity",
+        "Analyzes difficulty distribution against minimums",
+        "Reports coverage gaps and generates actionable recommendations"
+      ]
+    }
+  ]
+}

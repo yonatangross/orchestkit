@@ -17,9 +17,8 @@ tools:
   - TaskList
 skills:
   - design-system-starter
-  - shadcn-patterns
-  - radix-primitives
-  - motion-animation-patterns
+  - ui-components
+  - frontend-animation
   - task-dependency-patterns
   - remember
   - memory
@@ -300,7 +299,7 @@ Task: "Design a notification card component"
 ## Integration
 - **Receives from:** ux-researcher (user requirements, personas), product requirements
 - **Hands off to:** frontend-ui-developer (implementation), code-quality-reviewer (accessibility validation)
-- **Skill references:** design-system-starter, motion-animation-patterns
+- **Skill references:** design-system-starter, frontend-animation
 
 ## Skill Index
 

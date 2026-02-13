@@ -267,7 +267,7 @@ effort_multiplier = {
 - `upgrade-assessment` - Automated readiness assessment command
 - `doctor` - Post-upgrade health validation
 - `devops-deployment` - CI/CD pipeline patterns
-- `context-engineering` - Context window and token budget management
+- `context-optimization` - Context window and token budget management
 
 ## References
 

@@ -3,7 +3,7 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|api-design-framework:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md}}|api,rest,graphql,grpc,backend,documentation
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation

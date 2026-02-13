@@ -147,9 +147,9 @@ export default async function Page() {
 - `react-server-components-framework` - Server-first rendering
 - `vite-advanced` - Build optimization
 - `caching` - Cache strategies for responses
-- `observability-monitoring` - Production monitoring and alerting
-- `database-schema-designer` - Query and index optimization
-- `ollama-local` - Local inference with Ollama
+- `monitoring-observability` - Production monitoring and alerting
+- `database-patterns` - Query and index optimization
+- `llm-integration` - Local inference with Ollama
 
 ## Capability Details
 

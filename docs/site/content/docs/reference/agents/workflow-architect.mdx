@@ -31,13 +31,10 @@ This agent activates for: LangGraph, workflow, supervisor, state, checkpoint, RA
 ## Skills Used
 
 - [langgraph](/docs/reference/skills/langgraph)
-- [multi-agent-orchestration](/docs/reference/skills/multi-agent-orchestration)
-- [agent-loops](/docs/reference/skills/agent-loops)
-- [alternative-agent-frameworks](/docs/reference/skills/alternative-agent-frameworks)
+- [agent-orchestration](/docs/reference/skills/agent-orchestration)
 - [temporal-io](/docs/reference/skills/temporal-io)
-- [langfuse-observability](/docs/reference/skills/langfuse-observability)
-- [observability-monitoring](/docs/reference/skills/observability-monitoring)
-- [context-compression](/docs/reference/skills/context-compression)
+- [monitoring-observability](/docs/reference/skills/monitoring-observability)
+- [context-optimization](/docs/reference/skills/context-optimization)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -293,7 +290,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

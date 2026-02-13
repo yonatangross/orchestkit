@@ -5,7 +5,7 @@
 |
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
 |system-design-interrogation:{SKILL.md,references/{coherence-questions.md,scale-questions.md,security-questions.md}}|architecture,design,review,questions
-|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

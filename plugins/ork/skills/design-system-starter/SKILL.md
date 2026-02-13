@@ -232,7 +232,7 @@ When creating a new design system:
 ## Related Skills
 
 - `testing-patterns` - Comprehensive testing patterns including accessibility testing for design system components
-- `focus-management` - Keyboard focus patterns for accessible interactive widgets in design systems
+- `accessibility` - Keyboard focus patterns for accessible interactive widgets in design systems
 - `type-safety-validation` - End-to-end type safety with Zod for design token schemas and component props
 - `react-server-components-framework` - React 19 patterns for server-rendered design system components
 

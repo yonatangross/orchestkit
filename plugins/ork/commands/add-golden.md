@@ -179,7 +179,7 @@ See [Silver-Gold Promotion](references/silver-gold-promotion.md) for criteria.
 
 ## Related Skills
 
-- `golden-dataset-validation` - Validate existing datasets
+- `golden-dataset` - Validate existing datasets
 - `llm-evaluation` - LLM output evaluation patterns
 - `testing-patterns` - Comprehensive testing patterns including test data strategies
 

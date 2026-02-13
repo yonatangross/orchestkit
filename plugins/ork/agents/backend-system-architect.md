@@ -22,20 +22,16 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - api-design-framework
-  - api-versioning
-  - database-schema-designer
-  - error-handling-rfc9457
-  - rate-limiting
+  - api-design
+  - database-patterns
+  - distributed-systems
   - architecture-decision-record
-  - backend-architecture-enforcer
-  - owasp-top-10
-  - observability-monitoring
+  - architecture-patterns
+  - security-patterns
+  - monitoring-observability
   - caching
-  - auth-patterns
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - idempotency-patterns
+  - python-backend
+  - async-jobs
   - domain-driven-design
   - aggregate-patterns
   - task-dependency-patterns
@@ -288,7 +284,7 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching, background-jobs, api-versioning, fastapi-advanced, mcp-server-building
+- **Skill references:** api-design, database-patterns, streaming-api-patterns, architecture-patterns, distributed-systems, caching, async-jobs, python-backend, mcp-server-building
 
 ## Skill Index
 
@@ -300,20 +296,16 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|api-design-framework:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md}}|api,rest,graphql,grpc,backend,documentation
-|api-versioning:{SKILL.md,references/{versioning-strategies.md}}|api,versioning,rest,fastapi,backward-compatibility
-|database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations
-|error-handling-rfc9457:{SKILL.md,references/{rfc9457-spec.md}}|error-handling,rfc9457,problem-details,fastapi,api
-|rate-limiting:{SKILL.md,references/{token-bucket-algorithm.md}}|rate-limiting,redis,token-bucket,fastapi,security
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
+|database-patterns:{SKILL.md,references/{alembic-advanced.md,audit-trails.md,environment-coordination.md,migration-patterns.md,migration-testing.md,normalization-patterns.md,object-versioning.md}}|database,migrations,alembic,schema-design,versioning,postgresql,sql,nosql
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
-|backend-architecture-enforcer:{SKILL.md,references/{dependency-injection.md,layer-rules.md,violation-examples.md}}|backend,fastapi,architecture,enforcement,blocking,clean-architecture,di
-|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|architecture-patterns:{SKILL.md,references/{backend-dependency-injection.md,backend-layer-separation.md,backend-naming-exceptions.md,clean-ddd-tactical-patterns.md,clean-hexagonal-ports-adapters.md,clean-solid-dependency-rule.md,dependency-injection.md,hexagonal-architecture.md,layer-rules.md,naming-conventions.md,structure-folder-conventions.md,structure-import-direction.md,testing-aaa-isolation.md,testing-coverage-location.md,testing-naming-conventions.md,violation-examples.md}}|architecture,clean-architecture,validation,structure,enforcement,testing-standards
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |caching:{SKILL.md,references/{cache-patterns.md,semantic-cache-strategies.md}}|caching,redis,performance,llm,prompt-caching,semantic,cost,langfuse
-|auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys
-|sqlalchemy-2-async:{SKILL.md,references/{eager-loading.md,fastapi-integration.md}}|sqlalchemy,async,database,orm,fastapi,python
-|fastapi-advanced:{SKILL.md,references/{middleware-stack.md}}|fastapi,python,async,middleware,dependencies
-|idempotency-patterns:{SKILL.md,references/{stripe-pattern.md}}|idempotency,deduplication,exactly-once,distributed-systems,api
+|python-backend:{SKILL.md,references/{eager-loading.md,fastapi-integration.md,middleware-stack.md,pool-sizing.md,semaphore-patterns.md,taskgroup-patterns.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
+|async-jobs:{SKILL.md,references/{arq-patterns.md,canvas-workflows.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
 |domain-driven-design:{SKILL.md,references/{bounded-contexts.md,domain-events.md,entities-value-objects.md,repositories.md}}|ddd,domain-modeling,entities,value-objects,bounded-contexts,python
 |aggregate-patterns:{SKILL.md,references/{aggregate-sizing.md,eventual-consistency.md,invariant-enforcement.md}}|ddd,aggregate,consistency,invariants,domain-modeling,python
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination

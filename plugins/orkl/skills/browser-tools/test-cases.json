@@ -1,0 +1,94 @@
+{
+  "skill": "browser-tools",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "playwright-setup",
+      "rule": "playwright-setup",
+      "query": "Set up agent-browser for headless browser automation",
+      "expectedBehavior": [
+        "Installs agent-browser globally via npm",
+        "Runs agent-browser install for Chromium",
+        "Configures environment variables for session management",
+        "Mentions cloud providers (browserbase, kernel) as options"
+      ]
+    },
+    {
+      "id": "page-interaction",
+      "rule": "page-interaction",
+      "query": "Fill out a multi-step form and submit it using agent-browser",
+      "expectedBehavior": [
+        "Uses snapshot -i to discover interactive elements",
+        "References elements by @e# refs, not CSS selectors",
+        "Re-snapshots after each navigation or significant DOM change",
+        "Waits for networkidle after form submission"
+      ]
+    },
+    {
+      "id": "content-extraction",
+      "rule": "content-extraction",
+      "query": "Extract the main article text from a web page",
+      "expectedBehavior": [
+        "Uses targeted ref extraction (get text @e#) over full body",
+        "Removes noise elements (nav, header, footer, ads) before extraction",
+        "Falls back to eval with querySelector for custom extraction",
+        "Caches extracted content to avoid re-scraping"
+      ]
+    },
+    {
+      "id": "spa-extraction",
+      "rule": "spa-extraction",
+      "query": "Extract content from a React SPA that WebFetch returns empty for",
+      "expectedBehavior": [
+        "Uses wait --load networkidle for SPA hydration",
+        "Detects React via __REACT_DEVTOOLS_GLOBAL_HOOK__",
+        "Waits for framework-specific markers before extraction",
+        "Handles infinite scroll with scrollToBottom pattern"
+      ]
+    },
+    {
+      "id": "scraping-strategies",
+      "rule": "scraping-strategies",
+      "query": "Crawl an entire documentation site with pagination",
+      "expectedBehavior": [
+        "Extracts navigation links first, then visits each",
+        "Handles both click-based and URL-based pagination",
+        "Implements depth-limited recursive crawling",
+        "Uses parallel sessions for throughput"
+      ]
+    },
+    {
+      "id": "anti-bot-handling",
+      "rule": "anti-bot-handling",
+      "query": "Scrape a site that blocks automated requests",
+      "expectedBehavior": [
+        "Checks robots.txt before crawling",
+        "Adds delays between page navigations",
+        "Uses headed mode for CAPTCHA challenges",
+        "Implements resume capability for interrupted crawls"
+      ]
+    },
+    {
+      "id": "auth-flows",
+      "rule": "auth-flows",
+      "query": "Capture content from a login-protected documentation site",
+      "expectedBehavior": [
+        "Navigates to login page and discovers form with snapshot",
+        "Fills credentials from environment variables, never hardcoded",
+        "Saves authenticated state with state save for reuse",
+        "Uses headed mode for OAuth/SSO flows requiring user interaction"
+      ]
+    },
+    {
+      "id": "structured-output",
+      "rule": "structured-output",
+      "query": "Convert scraped web pages to clean markdown with metadata",
+      "expectedBehavior": [
+        "Removes noise elements before extraction",
+        "Preserves metadata (title, URL, crawled_at timestamp)",
+        "Outputs clean markdown suitable for downstream processing",
+        "Validates extracted data structure before saving"
+      ]
+    }
+  ]
+}

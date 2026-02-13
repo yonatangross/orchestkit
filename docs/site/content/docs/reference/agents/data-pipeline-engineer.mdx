@@ -30,12 +30,10 @@ This agent activates for: embeddings, chunking, vector index, data pipeline, bat
 ## Skills Used
 
 - [rag-retrieval](/docs/reference/skills/rag-retrieval)
-- [golden-dataset-management](/docs/reference/skills/golden-dataset-management)
-- [golden-dataset-curation](/docs/reference/skills/golden-dataset-curation)
-- [golden-dataset-validation](/docs/reference/skills/golden-dataset-validation)
+- [golden-dataset](/docs/reference/skills/golden-dataset)
 - [caching](/docs/reference/skills/caching)
-- [background-jobs](/docs/reference/skills/background-jobs)
-- [browser-content-capture](/docs/reference/skills/browser-content-capture)
+- [async-jobs](/docs/reference/skills/async-jobs)
+- [browser-tools](/docs/reference/skills/browser-tools)
 - [devops-deployment](/docs/reference/skills/devops-deployment)
 - [memory-fabric](/docs/reference/skills/memory-fabric)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
@@ -212,4 +210,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** rag-retrieval, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset, context-optimization

@@ -5,9 +5,9 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 151,
+  "skills": 103,
   "agents": 36,
-  "hooks": 95,
+  "hooks": 90,
   "commands": 27,
   "compositions": 14
 };
@@ -438,12 +438,7 @@ export const SKILLS_SUMMARY = {
       "memory-fabric"
     ],
     "product": [
-      "product-strategy-frameworks",
-      "business-case-analysis",
-      "market-analysis-patterns",
-      "okr-kpi-patterns",
-      "prioritization-frameworks",
-      "requirements-engineering"
+      "product-frameworks"
     ],
     "git": [
       "review-pr",
@@ -458,90 +453,82 @@ export const SKILLS_SUMMARY = {
     "accessibility": [
       "aggregate-patterns",
       "testing-patterns",
-      "wcag-compliance",
-      "focus-management"
+      "accessibility"
     ],
     "devops": [
       "devops-deployment",
-      "observability-monitoring",
+      "monitoring-observability",
       "competitive-monitoring"
     ],
     "testing": [
       "verify",
       "review-pr",
+      "architecture-patterns",
       "testing-patterns",
-      "test-standards-enforcer",
-      "golden-dataset-management",
+      "golden-dataset",
       "evidence-verification"
     ],
     "security": [
       "review-pr",
-      "owasp-top-10",
-      "auth-patterns",
-      "defense-in-depth",
-      "security-scanning",
-      "browser-content-capture"
+      "security-patterns",
+      "security-scanning"
     ],
     "python": [
-      "clean-architecture",
       "domain-driven-design",
       "aggregate-patterns",
       "testing-patterns"
     ],
     "react": [
+      "accessibility",
       "performance"
     ],
     "llm": [
       "streaming-api-patterns",
+      "security-patterns",
       "testing-patterns",
+      "golden-dataset",
       "performance"
-    ],
-    "rag": [
-      "test-standards-enforcer"
     ],
     "backend": [
       "explore",
       "plan-viz",
-      "api-design-framework",
-      "clean-architecture",
+      "api-design",
+      "architecture-patterns",
       "domain-driven-design",
-      "cqrs-patterns",
-      "event-sourcing",
-      "saga-patterns"
+      "event-driven",
+      "aggregate-patterns",
+      "streaming-api-patterns"
     ]
   },
   "ork-creative": {},
   "ork": {
     "includesAllOrkLite": true,
     "python": [
-      "alembic-migrations",
-      "api-versioning",
-      "asyncio-advanced",
-      "backend-architecture-enforcer",
-      "background-jobs",
-      "celery-advanced",
-      "error-handling-rfc9457",
-      "fastapi-advanced"
+      "async-jobs",
+      "grpc-python",
+      "python-backend",
+      "run-tests",
+      "strawberry-graphql"
     ],
     "react": [
-      "agent-loops",
       "biome-linting",
-      "dashboard-patterns",
       "design-system-starter",
       "form-state-patterns",
+      "frontend-animation",
       "i18n-date-patterns",
-      "motion-animation-patterns",
-      "react-aria-patterns"
+      "react-server-components-framework",
+      "tanstack-query-advanced",
+      "type-safety-validation"
     ],
     "llm": [
-      "agent-loops",
-      "alternative-agent-frameworks",
       "caching",
-      "context-engineering",
-      "function-calling",
+      "context-optimization",
       "grpc-python",
-      "langfuse-observability",
-      "langgraph"
+      "langgraph",
+      "llm-evaluation",
+      "llm-integration",
+      "mcp-security-hardening",
+      "prompt-engineering-suite"
     ],
     "rag": [
       "llm-evaluation",
@@ -550,14 +537,14 @@ export const SKILLS_SUMMARY = {
       "run-tests"
     ],
     "backend": [
-      "api-versioning",
       "audit-full",
-      "backend-architecture-enforcer",
-      "error-handling-rfc9457",
-      "fastapi-advanced",
       "grpc-python",
-      "project-structure-enforcer",
-      "pwa-patterns"
+      "pwa-patterns",
+      "python-backend",
+      "right-sized-backend",
+      "strawberry-graphql",
+      "temporal-io",
+      "vite-advanced"
     ]
   }
 };

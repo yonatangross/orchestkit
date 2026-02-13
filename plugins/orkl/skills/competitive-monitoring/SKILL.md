@@ -337,8 +337,8 @@ jobs:
 ## Related Skills
 
 - `web-research-workflow` - Decides WebFetch vs browser
-- `browser-content-capture` - Detailed capture patterns
-- `market-analysis-patterns` - Analysis frameworks
+- `browser-tools` - Detailed capture patterns
+- `product-frameworks` - Analysis frameworks
 
 ---
 

@@ -377,9 +377,9 @@ Reconstruct sequence of events to identify causation.
 
 ## Related Skills
 
-- `observability-monitoring` - Gathering data for RCA
+- `monitoring-observability` - Gathering data for RCA
 - `errors` - Error pattern analysis
-- `resilience-patterns` - Preventing future incidents
+- `distributed-systems` - Preventing future incidents
 
 ## References
 

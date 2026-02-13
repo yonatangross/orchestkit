@@ -210,7 +210,7 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 - `testing-patterns` - Comprehensive testing patterns including accessibility testing for i18n
 - `type-safety-validation` - Zod schemas for validating translation key structures and locale configs
 - `react-server-components-framework` - Server-side locale detection and RSC i18n patterns
-- `focus-management` - RTL-aware focus management for bidirectional UI navigation
+- `accessibility` - RTL-aware focus management for bidirectional UI navigation
 
 ## Key Decisions
 

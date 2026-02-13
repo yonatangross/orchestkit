@@ -23,7 +23,7 @@ skills:
   - audio-language-models
   - rag-retrieval
   - streaming-api-patterns
-  - llm-streaming
+  - llm-integration
   - task-dependency-patterns
   - memory
   - remember

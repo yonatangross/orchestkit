@@ -19,18 +19,16 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - function-calling
-  - llm-streaming
+  - llm-integration
   - streaming-api-patterns
   - caching
-  - langfuse-observability
-  - resilience-patterns
-  - llm-safety-patterns
+  - monitoring-observability
+  - distributed-systems
+  - security-patterns
   - llm-evaluation
-  - fine-tuning-customization
   - performance
   - mcp-advanced-patterns
-  - ollama-local
+  - context-optimization
   - task-dependency-patterns
   - remember
   - memory
@@ -257,7 +255,7 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 ## Integration
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
-- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, monitoring-observability, context-optimization (attention positioning, token budgeting, long conversation management)
 
 ## Skill Index
 
@@ -270,7 +268,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
-|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

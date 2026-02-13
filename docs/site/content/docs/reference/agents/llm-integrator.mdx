@@ -28,18 +28,16 @@ This agent activates for: LLM, OpenAI, Anthropic, Ollama, prompt, function calli
 
 ## Skills Used
 
-- [function-calling](/docs/reference/skills/function-calling)
-- [llm-streaming](/docs/reference/skills/llm-streaming)
+- [llm-integration](/docs/reference/skills/llm-integration)
 - [streaming-api-patterns](/docs/reference/skills/streaming-api-patterns)
 - [caching](/docs/reference/skills/caching)
-- [langfuse-observability](/docs/reference/skills/langfuse-observability)
-- [resilience-patterns](/docs/reference/skills/resilience-patterns)
-- [llm-safety-patterns](/docs/reference/skills/llm-safety-patterns)
+- [monitoring-observability](/docs/reference/skills/monitoring-observability)
+- [distributed-systems](/docs/reference/skills/distributed-systems)
+- [security-patterns](/docs/reference/skills/security-patterns)
 - [llm-evaluation](/docs/reference/skills/llm-evaluation)
-- [fine-tuning-customization](/docs/reference/skills/fine-tuning-customization)
 - [performance](/docs/reference/skills/performance)
 - [mcp-advanced-patterns](/docs/reference/skills/mcp-advanced-patterns)
-- [ollama-local](/docs/reference/skills/ollama-local)
+- [context-optimization](/docs/reference/skills/context-optimization)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -266,4 +264,4 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 ## Integration
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
-- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, monitoring-observability, context-optimization (attention positioning, token budgeting, long conversation management)

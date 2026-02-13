@@ -22,13 +22,10 @@ tools:
   - TaskList
 skills:
   - langgraph
-  - multi-agent-orchestration
-  - agent-loops
-  - alternative-agent-frameworks
+  - agent-orchestration
   - temporal-io
-  - langfuse-observability
-  - observability-monitoring
-  - context-compression
+  - monitoring-observability
+  - context-optimization
   - task-dependency-patterns
   - remember
   - memory
@@ -284,7 +281,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning
@@ -301,7 +298,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

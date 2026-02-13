@@ -252,6 +252,6 @@ def ListUsers(self, request, context):
 
 ## Related Skills
 
-- `api-design-framework` - REST/OpenAPI patterns
+- `api-design` - REST/OpenAPI patterns
 - `strawberry-graphql` - GraphQL alternative
 - `streaming-api-patterns` - SSE/WebSocket patterns

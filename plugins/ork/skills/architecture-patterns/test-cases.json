@@ -1,0 +1,116 @@
+{
+  "skill": "architecture-patterns",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "clean-hexagonal",
+      "rule": "clean-hexagonal",
+      "query": "Structure a FastAPI app with hexagonal architecture",
+      "expectedBehavior": [
+        "Creates domain layer with entities and value objects",
+        "Defines output port Protocols for repositories",
+        "Separates driving adapters (routes) from driven adapters (DB)"
+      ]
+    },
+    {
+      "id": "clean-dependency-rule",
+      "rule": "clean-dependency-rule",
+      "query": "Apply SOLID dependency inversion in Python",
+      "expectedBehavior": [
+        "Uses Protocol for interface segregation",
+        "Services depend on abstractions not concretions",
+        "Uses FastAPI Depends() for injection"
+      ]
+    },
+    {
+      "id": "clean-ports-adapters",
+      "rule": "clean-ports-adapters",
+      "query": "Implement DDD entities and aggregate roots",
+      "expectedBehavior": [
+        "Uses dataclass for entities with identity equality",
+        "Creates frozen dataclass for value objects",
+        "Implements aggregate root with domain events"
+      ]
+    },
+    {
+      "id": "structure-folders",
+      "rule": "structure-folders",
+      "query": "Organize a React/Next.js project with proper folder structure",
+      "expectedBehavior": [
+        "Uses feature-based organization",
+        "Limits nesting to 4 levels from src/",
+        "Avoids barrel files (index.ts re-exports)"
+      ]
+    },
+    {
+      "id": "structure-conventions",
+      "rule": "structure-conventions",
+      "query": "Enforce unidirectional import architecture",
+      "expectedBehavior": [
+        "Imports flow: shared -> components -> features -> app",
+        "Blocks cross-feature imports",
+        "Allows type-only imports across features"
+      ]
+    },
+    {
+      "id": "backend-layers",
+      "rule": "backend-layers",
+      "query": "Validate FastAPI layer separation",
+      "expectedBehavior": [
+        "Blocks database operations in routers",
+        "Blocks HTTPException in services",
+        "Enforces Depends() for dependency injection"
+      ]
+    },
+    {
+      "id": "backend-di",
+      "rule": "backend-di",
+      "query": "Set up dependency injection for a FastAPI service",
+      "expectedBehavior": [
+        "Creates dependency chain: DB -> Repository -> Service",
+        "Uses Depends() in route handlers",
+        "Blocks direct instantiation of services"
+      ]
+    },
+    {
+      "id": "backend-repository",
+      "rule": "backend-repository",
+      "query": "Enforce file naming conventions for backend",
+      "expectedBehavior": [
+        "Validates router_*.py, *_service.py, *_repository.py patterns",
+        "Blocks incorrect naming like UserService.py",
+        "Separates domain exceptions from HTTP exceptions"
+      ]
+    },
+    {
+      "id": "testing-aaa",
+      "rule": "testing-aaa",
+      "query": "Write tests following AAA pattern",
+      "expectedBehavior": [
+        "Uses Arrange-Act-Assert structure",
+        "Includes clear section comments",
+        "Tests behavior not implementation"
+      ]
+    },
+    {
+      "id": "testing-naming",
+      "rule": "testing-naming",
+      "query": "Apply test naming conventions",
+      "expectedBehavior": [
+        "Uses descriptive behavior-focused names",
+        "Blocks generic names like test1 or test",
+        "Follows snake_case for Python, descriptive strings for TS"
+      ]
+    },
+    {
+      "id": "testing-coverage",
+      "rule": "testing-coverage",
+      "query": "Enforce test coverage thresholds",
+      "expectedBehavior": [
+        "Requires minimum 80% overall coverage",
+        "Requires 90%+ for business logic",
+        "Shows coverage commands for pytest and vitest"
+      ]
+    }
+  ]
+}

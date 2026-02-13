@@ -17,7 +17,7 @@ tools:
   - TaskList
 skills:
   - root-cause-analysis
-  - observability-monitoring
+  - monitoring-observability
   - errors
   - remember
   - memory
@@ -264,7 +264,7 @@ The debug-investigator agent complements `/debug` by:
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
-- **Skill references:** observability-monitoring
+- **Skill references:** monitoring-observability
 
 ## Skill Index
 
@@ -277,7 +277,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |root-cause-analysis:{SKILL.md,references/{5-whys-workshop.md,fishbone-template.md}}|debugging,rca,5-whys,fishbone,fault-tree,incident
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |errors:{SKILL.md}|errors,debugging,troubleshooting,patterns
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

@@ -16,11 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - owasp-top-10
+  - security-patterns
   - security-scanning
-  - defense-in-depth
-  - auth-patterns
-  - input-validation
   - remember
   - memory
 hooks:
@@ -383,9 +380,8 @@ async def test_search_is_tenant_isolated(tenant_a_ctx, tenant_b_ctx):
 ## Integration
 
 This agent uses:
-- `defense-in-depth` skill for layer definitions
-- `llm-safety-patterns` skill for Layer 5/6 checks
-- `security-checklist` skill for OWASP compliance
+- `security-patterns` skill for layer definitions, Layer 5/6 checks, and OWASP compliance
+- `security-checklist` skill for additional OWASP compliance checks
 
 ## Task Boundaries
 
@@ -426,10 +422,8 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
-|defense-in-depth:{SKILL.md,references/{audit-logging.md,request-context-pattern.md,tenant-isolation.md}}|security,validation,layers,hardening
-|auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

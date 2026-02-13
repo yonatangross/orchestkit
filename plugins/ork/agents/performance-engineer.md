@@ -20,7 +20,7 @@ tools:
 skills:
   - performance
   - vite-advanced
-  - observability-monitoring
+  - monitoring-observability
   - caching
   - task-dependency-patterns
   - remember
@@ -296,7 +296,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |vite-advanced:{SKILL.md,references/{chunk-optimization.md,environment-api.md,library-mode.md,plugin-development.md,ssr-configuration.md}}|vite,build,bundler,plugins,ssr,library-mode,environment-api,optimization
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |caching:{SKILL.md,references/{cache-patterns.md,semantic-cache-strategies.md}}|caching,redis,performance,llm,prompt-caching,semantic,cost,langfuse
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -212,9 +212,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Related Skills
 
-- `multi-agent-orchestration` - Higher-level multi-agent coordination
-- `agent-loops` - ReAct loop patterns
-- `alternative-agent-frameworks` - CrewAI, AutoGen comparisons
+- `agent-orchestration` - Higher-level multi-agent coordination, ReAct loop patterns, and framework comparisons
 - `temporal-io` - Durable execution alternative
-- `function-calling` - General LLM function calling
+- `llm-integration` - General LLM function calling
 - `type-safety-validation` - Pydantic model patterns

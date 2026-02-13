@@ -1,0 +1,160 @@
+{
+  "skill": "event-driven",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "sourcing-event-store",
+      "rule": "sourcing-event-store",
+      "query": "Design an event store for an order management system",
+      "expectedBehavior": [
+        "Uses append-only storage with immutable events",
+        "Implements optimistic concurrency with version checking",
+        "Uses past-tense event naming (OrderPlaced, not PlaceOrder)",
+        "Includes event versioning for schema evolution"
+      ]
+    },
+    {
+      "id": "sourcing-aggregates",
+      "rule": "sourcing-aggregates",
+      "query": "Implement an event-sourced aggregate for a bank account",
+      "expectedBehavior": [
+        "Separates command methods from apply methods",
+        "Rebuilds state from event history via load_from_history",
+        "Raises domain events through _raise_event pattern",
+        "Tracks pending uncommitted events for persistence"
+      ]
+    },
+    {
+      "id": "sourcing-projections",
+      "rule": "sourcing-projections",
+      "query": "Create projections and snapshots for an event-sourced system",
+      "expectedBehavior": [
+        "Projects events to denormalized read models asynchronously",
+        "Uses idempotent upserts (ON CONFLICT DO UPDATE)",
+        "Implements snapshots every 100-500 events for large aggregates",
+        "Supports schema upcasting for event version evolution"
+      ]
+    },
+    {
+      "id": "cqrs-commands",
+      "rule": "cqrs-commands",
+      "query": "Build a command bus with handlers for an order system",
+      "expectedBehavior": [
+        "Defines Command base class with metadata (command_id, timestamp)",
+        "Implements CommandHandler ABC with handle method returning events",
+        "Uses CommandBus to dispatch commands to registered handlers",
+        "Validates business rules before raising domain events"
+      ]
+    },
+    {
+      "id": "cqrs-read-models",
+      "rule": "cqrs-read-models",
+      "query": "Create read models and projections for order queries",
+      "expectedBehavior": [
+        "Defines denormalized OrderView with pre-joined data",
+        "Implements QueryHandler for optimized read access",
+        "Projects events to read models with match/case dispatch",
+        "Uses idempotent projection updates with ON CONFLICT"
+      ]
+    },
+    {
+      "id": "cqrs-api-integration",
+      "rule": "cqrs-api-integration",
+      "query": "Integrate CQRS with FastAPI endpoints",
+      "expectedBehavior": [
+        "Separates POST (command) and GET (query) endpoints",
+        "Dispatches commands through CommandBus in write endpoints",
+        "Dispatches queries through QueryBus in read endpoints",
+        "Handles eventual consistency between write and read models"
+      ]
+    },
+    {
+      "id": "saga-orchestration",
+      "rule": "saga-orchestration",
+      "query": "Implement a saga orchestrator for an order fulfillment flow",
+      "expectedBehavior": [
+        "Defines SagaStep with action and compensation callbacks",
+        "Executes steps sequentially with SagaOrchestrator",
+        "Compensates completed steps in reverse order on failure",
+        "Persists saga state to durable storage (not in-memory)"
+      ]
+    },
+    {
+      "id": "saga-choreography",
+      "rule": "saga-choreography",
+      "query": "Design an event-driven choreography for order processing",
+      "expectedBehavior": [
+        "Uses event bus to publish and subscribe to domain events",
+        "Each service reacts to events independently",
+        "Publishes compensation events on failure (inventory.release.requested)",
+        "Maintains loose coupling between participating services"
+      ]
+    },
+    {
+      "id": "saga-recovery",
+      "rule": "saga-recovery",
+      "query": "Handle saga timeouts and implement idempotent retry",
+      "expectedBehavior": [
+        "Detects stuck sagas by age and status with timeout cutoff",
+        "Retries failed steps with exponential backoff",
+        "Uses idempotency keys to prevent duplicate step execution",
+        "Falls back to compensation after max retries exceeded"
+      ]
+    },
+    {
+      "id": "outbox-polling",
+      "rule": "outbox-polling",
+      "query": "Implement a transactional outbox with polling publisher",
+      "expectedBehavior": [
+        "Creates outbox table with idempotency_key and retry tracking",
+        "Writes domain entity and outbox message in same transaction",
+        "Uses FOR UPDATE SKIP LOCKED for concurrent publisher safety",
+        "Indexes unpublished messages for efficient polling"
+      ]
+    },
+    {
+      "id": "outbox-cdc",
+      "rule": "outbox-cdc",
+      "query": "Set up CDC with Debezium and implement idempotent consumers",
+      "expectedBehavior": [
+        "Configures Debezium PostgresConnector with outbox EventRouter",
+        "Implements two-tier deduplication (Redis cache + DB processed_events)",
+        "Uses idempotency_key for deterministic duplicate detection",
+        "Routes events to topic based on aggregate type"
+      ]
+    },
+    {
+      "id": "queues-kafka",
+      "rule": "queues-kafka",
+      "query": "Set up Kafka producer and consumer with exactly-once semantics",
+      "expectedBehavior": [
+        "Configures AIOKafkaProducer with acks=all and enable_idempotence=True",
+        "Uses consumer groups with manual offset commit",
+        "Sends failed messages to dead letter queue",
+        "Uses partition key for ordering guarantees"
+      ]
+    },
+    {
+      "id": "queues-rabbitmq",
+      "rule": "queues-rabbitmq",
+      "query": "Implement RabbitMQ pub/sub with retry and dead letter",
+      "expectedBehavior": [
+        "Uses aio-pika with persistent delivery mode",
+        "Implements retry with x-retry-count header tracking",
+        "Routes exhausted retries to dead letter exchange",
+        "Sets QoS prefetch for flow control"
+      ]
+    },
+    {
+      "id": "queues-redis-postgres",
+      "rule": "queues-redis-postgres",
+      "query": "Use Redis Streams or Postgres as a simple message queue",
+      "expectedBehavior": [
+        "Creates consumer group with XGROUP CREATE and mkstream",
+        "Acknowledges messages with XACK after processing",
+        "Uses Postgres LISTEN/NOTIFY for simple pub/sub",
+        "Implements FOR UPDATE SKIP LOCKED for Postgres job queue"
+      ]
+    }
+  ]
+}

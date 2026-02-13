@@ -20,10 +20,9 @@ tools:
 skills:
   - prompt-engineering-suite
   - llm-evaluation
-  - observability-monitoring
-  - context-engineering
-  - function-calling
-  - llm-streaming
+  - monitoring-observability
+  - context-optimization
+  - llm-integration
   - task-dependency-patterns
   - remember
   - memory
@@ -294,7 +293,7 @@ When designing or optimizing a prompt, provide:
 
 - **Receives from:** workflow-architect (prompt requirements), llm-integrator (integration needs)
 - **Hands off to:** llm-integrator (prompt implementation), test-generator (prompt tests)
-- **Skill references:** prompt-engineering-suite, llm-evaluation, observability-monitoring, context-engineering, function-calling, llm-streaming
+- **Skill references:** prompt-engineering-suite, llm-evaluation, monitoring-observability, context-optimization, llm-integration
 
 ## Example
 
@@ -323,10 +322,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |prompt-engineering-suite:{SKILL.md,references/{chain-of-thought.md,few-shot-patterns.md,prompt-optimization.md,prompt-versioning.md}}|prompts,cot,few-shot,versioning,optimization,langfuse,dspy
 |llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|context-engineering:{SKILL.md,references/{attention-mechanics.md,context-layers.md}}|context,attention,optimization,llm,performance
-|function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
-|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|context-optimization:{SKILL.md,references/{anchored-summarization.md,attention-mechanics.md,compression-strategies.md,compression-triggers.md,context-layers.md,context-positioning.md,token-budget-management.md}}|context,optimization,tokens,compression,prompt-engineering,context-window
+|llm-integration:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,model-selection.md,synthetic-data.md,tool-schema.md,when-to-finetune.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
