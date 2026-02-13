@@ -44,6 +44,8 @@ for plugin_dir in "$PROJECT_ROOT"/plugins/*/skills; do
 
     for skill_link in "$plugin_dir"/*; do
         [[ -e "$skill_link" || -L "$skill_link" ]] || continue
+        # Skip non-directory files (e.g. CONTRIBUTING-SKILLS.md)
+        [[ -d "$skill_link" || -L "$skill_link" ]] || continue
         skill_name=$(basename "$skill_link")
         checked=$((checked + 1))
 
