@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Skill Consolidation Batches 1-6** (#536): Restructured 56 skills into 6 unified skills with rules-based architecture
+  - LangGraph: 10 → 1 (`langgraph`) with 20 rules across 7 categories
+  - RAG: 9 → 1 (`rag-retrieval`) with 15 rules across 5 categories
+  - Testing: 13 → 1 (`testing-patterns`) with 26 rules across 7 categories
+  - Caching: 4 → 1 (`caching`) with 12 rules across 4 categories
+  - Performance: 6 → 1 (`performance`) with 18 rules across 6 categories
+  - Video: 14 → 1 (`video-production`) with 21 rules across 6 categories
+  - Total skills: 200 → 151 (124 internal, 27 user-invocable)
+  - ork-creative: 16 → 3 skills (demo-producer, video-production, ascii-visualizer)
+  - Updated 11 agents, 3 hooks, 3 manifests, ~40 cross-references
+
 ### Added
 
 - **TLDR-Lite File Summaries** (#463): New `PreToolUse[Read]` hook injects structural summaries for large files (>500 lines or >2000 tokens)
