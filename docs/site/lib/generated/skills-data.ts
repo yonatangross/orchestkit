@@ -630,38 +630,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "multimodal-specialist"
     ]
   },
-  "audio-mixing-patterns": {
-    "name": "audio-mixing-patterns",
-    "description": "ffmpeg audio mixing patterns for video production. Use when mixing narration with music, implementing ducking, or balancing volume levels for demos",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "audio",
-      "ffmpeg",
-      "mixing",
-      "ducking",
-      "narration",
-      "music"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "ducking-patterns.md",
-        "ffmpeg-filters.md",
-        "volume-balancing.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "audit-full": {
     "name": "audit-full",
     "description": "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis.",
@@ -1094,46 +1062,20 @@ export const SKILLS: Record<string, SkillMeta> = {
       "business-case-builder"
     ]
   },
-  "cache-cost-tracking": {
-    "name": "cache-cost-tracking",
-    "description": "LLM cost tracking with Langfuse for cached responses. Use when monitoring cache effectiveness, tracking cost savings, or attributing costs to agents in multi-agent systems.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "llm",
-      "cost",
-      "caching",
-      "langfuse",
-      "observability"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "metrics-architect",
-    "structure": {
-      "checklists": [
-        "cache-cost-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "metrics-architect"
-    ]
-  },
-  "caching-strategies": {
-    "name": "caching-strategies",
-    "description": "Backend caching patterns with Redis including write-through, write-behind, cache-aside, and invalidation strategies. Use when implementing Redis cache, managing TTL/expiration, preventing cache stampede, or optimizing cache hit rates.",
-    "version": "1.0.0",
+  "caching": {
+    "name": "caching",
+    "description": "Caching patterns for backend, LLM prompt, semantic similarity, and cost tracking. Use when implementing Redis cache, prompt caching, semantic caching, cache cost monitoring, or optimizing cache hit rates.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "caching",
       "redis",
       "performance",
-      "fastapi",
-      "python"
+      "llm",
+      "prompt-caching",
+      "semantic",
+      "cost",
+      "langfuse"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -1142,13 +1084,17 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "data-pipeline-engineer",
     "structure": {
       "references": [
-        "cache-patterns.md"
+        "cache-patterns.md",
+        "semantic-cache-strategies.md"
       ],
       "scripts": [
-        "__pycache__",
-        "redis-cache-service.py"
+        "prompt-cache-wrapper.py",
+        "redis-cache-service.py",
+        "redis-cache.py",
+        "semantic-cache-service.py"
       ],
       "checklists": [
+        "cache-cost-checklist.md",
         "caching-checklist.md"
       ]
     },
@@ -1159,41 +1105,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "data-pipeline-engineer",
       "database-engineer",
+      "llm-integrator",
+      "metrics-architect",
       "performance-engineer",
       "python-performance-engineer"
     ]
-  },
-  "callout-positioning": {
-    "name": "callout-positioning",
-    "description": "Debug grids and coordinate systems for video annotations. Use when positioning callouts, arrows, or debugging coordinate misalignment in Remotion",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "remotion",
-      "callout",
-      "annotation",
-      "debug",
-      "coordinates",
-      "arrows"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "calibration-workflow.md",
-        "coordinate-systems.md",
-        "debug-grid-component.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "celery-advanced": {
     "name": "celery-advanced",
@@ -1461,38 +1377,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer"
     ]
   },
-  "content-type-recipes": {
-    "name": "content-type-recipes",
-    "description": "Step-by-step recipes for demo videos. Use when creating skill demos, agent showcases, plugin installs, or tutorial walkthroughs with precise timing",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "recipes",
-      "demos",
-      "templates",
-      "timing",
-      "production"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "agent-demo-recipe.md",
-        "plugin-demo-recipe.md",
-        "skill-demo-recipe.md",
-        "tutorial-recipe.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "context-compression": {
     "name": "context-compression",
     "description": "Use when conversation context is too long, hitting token limits, or responses are degrading. Compresses history while preserving critical information using anchored summarization and probe-based validation.",
@@ -1561,52 +1445,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "prompt-engineer"
-    ]
-  },
-  "core-web-vitals": {
-    "name": "core-web-vitals",
-    "description": "Core Web Vitals optimization for LCP, INP, CLS with 2026 thresholds, performance budgets, and RUM. Use when improving page performance, diagnosing CWV regressions, or setting performance budgets.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "performance",
-      "core-web-vitals",
-      "lcp",
-      "inp",
-      "cls",
-      "lighthouse",
-      "rum",
-      "web-vitals"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Grep",
-      "Glob",
-      "Bash"
-    ],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "rum-setup.md"
-      ],
-      "scripts": [
-        "performance-monitoring.ts"
-      ],
-      "checklists": [
-        "cwv-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer",
-      "monitoring-engineer",
-      "performance-engineer"
     ]
   },
   "cqrs-patterns": {
@@ -2162,38 +2000,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork",
       "orkl"
-    ],
-    "relatedAgents": []
-  },
-  "elevenlabs-narration": {
-    "name": "elevenlabs-narration",
-    "description": "ElevenLabs TTS integration for video narration. Use when generating voiceover audio, selecting voices, or building script-to-audio pipelines",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "audio",
-      "narration",
-      "tts",
-      "elevenlabs",
-      "voice",
-      "speech"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "api-integration.md",
-        "timing-calculation.md",
-        "voice-selection.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
     ],
     "relatedAgents": []
   },
@@ -2997,78 +2803,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "high-performance-inference": {
-    "name": "high-performance-inference",
-    "description": "High-performance LLM inference with vLLM, quantization (AWQ, GPTQ, FP8), speculative decoding, and edge deployment. Use when optimizing inference latency, throughput, or memory.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "vllm",
-      "quantization",
-      "inference",
-      "performance",
-      "edge",
-      "speculative"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "llm-integrator",
-    "structure": {
-      "references": [
-        "edge-deployment.md",
-        "quantization-guide.md",
-        "speculative-decoding.md",
-        "vllm-deployment.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "quantization-config.py",
-        "vllm-server.py"
-      ],
-      "checklists": [
-        "inference-optimization.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "llm-integrator"
-    ]
-  },
-  "hook-formulas": {
-    "name": "hook-formulas",
-    "description": "Proven formulas for video hooks that stop the scroll. Use when writing opening lines, creating attention-grabbing intros, or optimizing first 3 seconds",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "hooks",
-      "marketing",
-      "attention",
-      "copywriting",
-      "social-media"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "hook-patterns.md",
-        "platform-specific-hooks.md",
-        "testing-hooks.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "i18n-date-patterns": {
     "name": "i18n-date-patterns",
     "description": "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency.",
@@ -3152,49 +2886,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "backend-system-architect",
       "event-driven-architect"
-    ]
-  },
-  "image-optimization": {
-    "name": "image-optimization",
-    "description": "Image optimization with Next.js 16 Image, AVIF/WebP formats, blur placeholders, responsive sizes, and CDN loaders. Use when improving image performance, responsive sizing, or Next.js image pipelines.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "images",
-      "next-image",
-      "avif",
-      "webp",
-      "responsive",
-      "lazy-loading",
-      "blur-placeholder",
-      "lcp"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "cdn-setup.md"
-      ],
-      "scripts": [
-        "image-component.tsx"
-      ],
-      "checklists": [
-        "image-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "performance-engineer"
     ]
   },
   "implement": {
@@ -3424,41 +3115,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "lazy-loading-patterns": {
-    "name": "lazy-loading-patterns",
-    "description": "Code splitting and lazy loading with React.lazy, Suspense, route-based splitting, intersection observer, and preload strategies for optimal bundle performance. Use when implementing lazy loading or preloading.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "lazy-loading",
-      "code-splitting",
-      "suspense",
-      "dynamic-import",
-      "intersection-observer",
-      "preload",
-      "react-19",
-      "performance"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "route-splitting.md"
-      ],
-      "scripts": [
-        "lazy-component.tsx"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "performance-engineer"
-    ]
-  },
   "llm-evaluation": {
     "name": "llm-evaluation",
     "description": "LLM output evaluation and quality assessment. Use when implementing LLM-as-judge patterns, quality gates for AI outputs, or automated evaluation pipelines.",
@@ -3568,44 +3224,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "llm-integrator",
       "multimodal-specialist",
       "prompt-engineer"
-    ]
-  },
-  "manim-visualizer": {
-    "name": "manim-visualizer",
-    "description": "Create Manim animations for demo videos. Use when visualizing agent workflows, skill pipelines, or architecture diagrams as animated MP4 overlays",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "manim",
-      "animation",
-      "visualization",
-      "diagram",
-      "video"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "agent-spawning.md",
-        "workflow-animation.md"
-      ],
-      "scripts": [
-        "__init__.py",
-        "agent_spawning.py",
-        "base.py",
-        "generate.py",
-        "task_dependency.py"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": [
-      "demo-producer"
     ]
   },
   "market-analysis-patterns": {
@@ -4049,68 +3667,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "music-sfx-selection": {
-    "name": "music-sfx-selection",
-    "description": "Audio selection for tech demo videos. Use when choosing background music, timing SFX, setting volume levels, or matching mood to content",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "audio",
-      "music",
-      "sfx",
-      "sound-design",
-      "mixing"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "audio-mixing.md",
-        "music-matching-guide.md",
-        "sfx-library.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
-  "narration-scripting": {
-    "name": "narration-scripting",
-    "description": "Scene-by-scene narration scripts for videos. Use when writing voiceover scripts, adding timing markers, or creating CTA patterns for demos",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "narration",
-      "script",
-      "timing",
-      "pacing",
-      "copywriting"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "pacing-guidelines.md",
-        "script-templates.md",
-        "timing-markers.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "observability-monitoring": {
     "name": "observability-monitoring",
     "description": "Use when adding logging, metrics, tracing, or alerting to applications. Observability & Monitoring covers structured logging, Prometheus metrics, OpenTelemetry tracing, and alerting strategies.",
@@ -4321,39 +3877,73 @@ export const SKILLS: Record<string, SkillMeta> = {
       "system-design-reviewer"
     ]
   },
-  "performance-optimization": {
-    "name": "performance-optimization",
-    "description": "Use when application is slow, bundle is too large, or investigating performance issues. Performance optimization covers profiling, React concurrent features, bundle analysis, and optimization patterns.",
-    "version": "1.2.0",
+  "performance": {
+    "name": "performance",
+    "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "performance",
-      "optimization",
+      "core-web-vitals",
+      "lcp",
+      "inp",
+      "cls",
+      "react-compiler",
+      "virtualization",
+      "lazy-loading",
+      "code-splitting",
+      "image-optimization",
+      "avif",
       "profiling",
-      "caching"
+      "vllm",
+      "quantization",
+      "inference"
     ],
     "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
-    "agent": null,
+    "agent": "frontend-ui-developer",
     "structure": {
       "references": [
         "caching-strategies.md",
+        "cdn-setup.md",
         "core-web-vitals.md",
         "database-optimization.md",
+        "devtools-profiler-workflow.md",
+        "edge-deployment.md",
         "frontend-performance.md",
-        "profiling.md"
+        "memoization-escape-hatches.md",
+        "profiling.md",
+        "quantization-guide.md",
+        "react-compiler-migration.md",
+        "route-splitting.md",
+        "rum-setup.md",
+        "speculative-decoding.md",
+        "state-colocation.md",
+        "tanstack-virtual-patterns.md",
+        "vllm-deployment.md"
       ],
       "scripts": [
         "api-optimization.ts",
         "caching-patterns.ts",
         "database-optimization.ts",
         "frontend-optimization.tsx",
-        "performance-metrics.ts"
+        "image-component.tsx",
+        "lazy-component.tsx",
+        "optimized-context.tsx",
+        "performance-metrics.ts",
+        "performance-monitoring.ts",
+        "quantization-config.py",
+        "virtualized-list.tsx",
+        "vllm-server.py"
       ],
       "checklists": [
-        "performance-audit-checklist.md"
+        "cwv-checklist.md",
+        "image-checklist.md",
+        "inference-optimization.md",
+        "performance-audit-checklist.md",
+        "render-audit.md"
       ]
     },
     "plugins": [
@@ -4363,6 +3953,9 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "database-engineer",
       "frontend-ui-developer",
+      "llm-integrator",
+      "monitoring-engineer",
+      "performance-engineer",
       "system-design-reviewer"
     ]
   },
@@ -4625,35 +4218,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "code-quality-reviewer",
       "frontend-ui-developer"
-    ]
-  },
-  "prompt-caching": {
-    "name": "prompt-caching",
-    "description": "Provider-native prompt caching for Claude and OpenAI. Use when optimizing LLM costs with cache breakpoints, caching system prompts, or reducing token costs for repeated prefixes.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "llm",
-      "caching",
-      "cost-optimization",
-      "anthropic"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "llm-integrator",
-    "structure": {
-      "scripts": [
-        "__pycache__",
-        "prompt-cache-wrapper.py"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "llm-integrator"
     ]
   },
   "prompt-engineering-suite": {
@@ -5138,92 +4702,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "remotion-composer": {
-    "name": "remotion-composer",
-    "description": "Compose final demo videos using Remotion. Use when combining terminal recordings with animations, adding branded overlays, or rendering multi-format video exports",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "remotion",
-      "video",
-      "composition",
-      "marketing",
-      "demo",
-      "animation",
-      "data-viz",
-      "charts"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "3d-graphics.md",
-        "animation-presets.md",
-        "audio-layer.md",
-        "captions-subtitles.md",
-        "cinematic-scenes.md",
-        "composition-patterns.md",
-        "data-viz-patterns.md",
-        "effects-library.md",
-        "folder-organization.md",
-        "lottie-animations.md",
-        "showcase-templates.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": [
-      "demo-producer"
-    ]
-  },
-  "render-optimization": {
-    "name": "render-optimization",
-    "description": "React render performance patterns including React Compiler integration, memoization strategies, TanStack Virtual, and DevTools profiling. Use when debugging slow renders, optimizing large lists, or reducing unnecessary re-renders.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "react",
-      "performance",
-      "optimization",
-      "react-compiler",
-      "virtualization",
-      "memo",
-      "profiler"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "devtools-profiler-workflow.md",
-        "memoization-escape-hatches.md",
-        "react-compiler-migration.md",
-        "state-colocation.md",
-        "tanstack-virtual-patterns.md"
-      ],
-      "scripts": [
-        "optimized-context.tsx",
-        "virtualized-list.tsx"
-      ],
-      "checklists": [
-        "performance-audit.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer",
-      "performance-engineer"
-    ]
-  },
   "requirements-engineering": {
     "name": "requirements-engineering",
     "description": "User stories, acceptance criteria, PRDs, and requirements documentation patterns. Use when translating product vision to engineering specs, writing user stories, or creating requirements documents.",
@@ -5531,37 +5009,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "event-driven-architect"
     ]
   },
-  "scene-intro-cards": {
-    "name": "scene-intro-cards",
-    "description": "Transitional intro cards between video scenes. Use when adding \"Coming Up Next\" cards, scene transitions, or visual breathing room in demos",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "remotion",
-      "transitions",
-      "cards",
-      "animation",
-      "scenes"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "animation-presets.md",
-        "card-templates.md",
-        "timing-patterns.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "scroll-driven-animations": {
     "name": "scroll-driven-animations",
     "description": "CSS Scroll-Driven Animations with ScrollTimeline, ViewTimeline, parallax effects, and progressive enhancement for performant scroll effects. Use when implementing scroll-linked animations or parallax.",
@@ -5631,41 +5078,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "security-auditor",
       "security-layer-auditor",
       "system-design-reviewer"
-    ]
-  },
-  "semantic-caching": {
-    "name": "semantic-caching",
-    "description": "Redis semantic caching for LLM applications. Use when implementing vector similarity caching, optimizing LLM costs through cached responses, or building multi-level cache hierarchies.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "caching",
-      "semantic",
-      "redis",
-      "llm",
-      "cost"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {
-      "references": [
-        "cache-strategies.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "redis-cache.py",
-        "semantic-cache-service.py"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "data-pipeline-engineer",
-      "llm-integrator"
     ]
   },
   "shadcn-patterns": {
@@ -6150,40 +5562,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "terminal-demo-generator": {
-    "name": "terminal-demo-generator",
-    "description": "Terminal recording for demo videos. Use when recording CLI sessions with VHS or asciinema, simulating Claude Code output, or converting casts to MP4",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "demo",
-      "video",
-      "vhs",
-      "asciinema",
-      "terminal",
-      "recording",
-      "cli"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "asciinema-recording.md",
-        "cc-simulation.md",
-        "vhs-tape-format.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": [
-      "demo-producer"
-    ]
-  },
   "test-standards-enforcer": {
     "name": "test-standards-enforcer",
     "description": "Enforce testing best practices - AAA pattern, naming conventions, isolation, coverage thresholds. Blocks non-compliant tests. Use when writing or reviewing tests.",
@@ -6312,37 +5690,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "python-performance-engineer",
       "test-generator"
     ]
-  },
-  "thumbnail-first-frame": {
-    "name": "thumbnail-first-frame",
-    "description": "Thumbnail and first-frame optimization for CTR. Use when designing thumbnails, fixing frame-0 visibility issues, or optimizing for platform requirements",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "thumbnail",
-      "first-frame",
-      "ctr",
-      "design",
-      "marketing"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "first-frame-optimization.md",
-        "platform-requirements.md",
-        "thumbnail-formulas.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "type-safety-validation": {
     "name": "type-safety-validation",
@@ -6525,49 +5872,22 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "video-pacing": {
-    "name": "video-pacing",
-    "description": "Video rhythm and timing for maximum engagement. Use when planning cut frequency, optimizing retention, or adapting pacing for different platforms",
-    "version": "1.0.0",
+  "video-production": {
+    "name": "video-production",
+    "description": "Video production pipeline for tech demos covering pre-production, recording, composition, and audio. Use when creating demo videos, terminal recordings, Remotion compositions, narration scripts, or audio mixing.",
+    "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
       "video",
-      "pacing",
-      "rhythm",
-      "editing",
-      "attention",
-      "engagement"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "attention-curves.md",
-        "platform-pacing-rules.md",
-        "rhythm-patterns.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": []
-  },
-  "video-storyboarding": {
-    "name": "video-storyboarding",
-    "description": "Pre-production planning for tech demo videos. Use when planning scenes, structuring narrative flow, or applying AIDA framework to video content",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
+      "demo",
+      "remotion",
+      "vhs",
+      "narration",
+      "audio",
       "storyboard",
-      "pre-production",
-      "planning",
-      "narrative",
-      "remotion"
+      "manim",
+      "thumbnail",
+      "pacing"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -6576,16 +5896,72 @@ export const SKILLS: Record<string, SkillMeta> = {
     "agent": "demo-producer",
     "structure": {
       "references": [
+        "3d-graphics.md",
+        "agent-demo-recipe.md",
+        "agent-spawning.md",
         "aida-framework.md",
+        "animation-presets.md",
+        "asciinema-recording.md",
+        "attention-curves.md",
+        "audio-layer.md",
+        "audio-mixing-guide.md",
+        "calibration-workflow.md",
+        "captions-subtitles.md",
+        "card-templates.md",
+        "cc-simulation.md",
+        "cinematic-scenes.md",
+        "composition-patterns.md",
+        "coordinate-systems.md",
+        "data-viz-patterns.md",
+        "debug-grid-component.md",
+        "ducking-patterns.md",
+        "effects-library.md",
+        "elevenlabs-api-integration.md",
+        "ffmpeg-filters.md",
+        "first-frame-optimization.md",
+        "folder-organization.md",
+        "hook-patterns.md",
+        "lottie-animations.md",
+        "music-matching-guide.md",
+        "pacing-guidelines.md",
+        "platform-pacing-rules.md",
+        "platform-requirements.md",
+        "platform-specific-hooks.md",
+        "plugin-demo-recipe.md",
         "pre-production-checklist.md",
-        "scene-templates.md"
+        "rhythm-patterns.md",
+        "scene-animation-presets.md",
+        "scene-templates.md",
+        "script-templates.md",
+        "sfx-library.md",
+        "showcase-templates.md",
+        "skill-demo-recipe.md",
+        "testing-hooks.md",
+        "thumbnail-formulas.md",
+        "timing-calculation.md",
+        "timing-markers.md",
+        "timing-patterns.md",
+        "tutorial-recipe.md",
+        "vhs-tape-format.md",
+        "voice-selection.md",
+        "volume-balancing.md",
+        "workflow-animation.md"
+      ],
+      "scripts": [
+        "__init__.py",
+        "agent_spawning.py",
+        "base.py",
+        "generate.py",
+        "task_dependency.py"
       ]
     },
     "plugins": [
       "ork-creative",
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "demo-producer"
+    ]
   },
   "view-transitions": {
     "name": "view-transitions",

@@ -22,7 +22,7 @@ tools:
 skills:
   - observability-monitoring
   - langfuse-observability
-  - core-web-vitals
+  - performance
   - testing-patterns
   - task-dependency-patterns
   - remember
@@ -343,7 +343,7 @@ When creating monitoring configuration, provide:
 
 - **Receives from:** backend-system-architect (instrumentation points), infrastructure-architect (infrastructure metrics)
 - **Hands off to:** deployment-manager (deploy configs), ci-cd-engineer (pipeline alerts)
-- **Skill references:** observability-monitoring, langfuse-observability, core-web-vitals, testing-patterns
+- **Skill references:** observability-monitoring, langfuse-observability, performance, testing-patterns
 
 ## Example
 
@@ -372,7 +372,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |langfuse-observability:{SKILL.md,references/{agent-observability.md,cost-tracking.md,evaluation-scores.md,experiments-api.md,framework-integrations.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts,opentelemetry,agent-graphs
-|core-web-vitals:{SKILL.md,references/{rum-setup.md}}|performance,core-web-vitals,lcp,inp,cls,lighthouse,rum,web-vitals
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

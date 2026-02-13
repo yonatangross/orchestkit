@@ -426,12 +426,7 @@ Rule: If content doesn't earn its screen time, cut it.
 
 ## Related Skills
 
-- `terminal-demo-generator`: VHS tape recording
-- `remotion-composer`: Video composition and effects
-- `hook-formulas`: Attention-grabbing openings
-- `video-pacing`: Timing and rhythm patterns
-- `music-sfx-selection`: Audio selection and mixing
-- `thumbnail-first-frame`: CTR optimization
+- `video-production`: Full video production pipeline (recording, composition, audio, pacing)
 
 ## References
 

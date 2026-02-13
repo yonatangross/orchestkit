@@ -234,7 +234,7 @@ Key topics covered:
 - `observability-monitoring` - General observability patterns for metrics, logging, and alerting
 - `llm-evaluation` - Evaluation patterns that integrate with Langfuse scoring
 - `llm-streaming` - Streaming response patterns with trace instrumentation
-- `prompt-caching` - Caching strategies that reduce costs tracked by Langfuse
+- `caching` - Caching strategies that reduce costs tracked by Langfuse
 
 ## Key Decisions
 

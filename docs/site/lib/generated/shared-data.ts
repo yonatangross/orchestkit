@@ -5,7 +5,7 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 172,
+  "skills": 151,
   "agents": 36,
   "hooks": 95,
   "commands": 27,
@@ -488,9 +488,13 @@ export const SKILLS_SUMMARY = {
       "aggregate-patterns",
       "testing-patterns"
     ],
+    "react": [
+      "performance"
+    ],
     "llm": [
       "streaming-api-patterns",
-      "testing-patterns"
+      "testing-patterns",
+      "performance"
     ],
     "rag": [
       "test-standards-enforcer"
@@ -515,9 +519,9 @@ export const SKILLS_SUMMARY = {
       "asyncio-advanced",
       "backend-architecture-enforcer",
       "background-jobs",
-      "caching-strategies",
       "celery-advanced",
-      "error-handling-rfc9457"
+      "error-handling-rfc9457",
+      "fastapi-advanced"
     ],
     "react": [
       "agent-loops",
@@ -526,18 +530,18 @@ export const SKILLS_SUMMARY = {
       "design-system-starter",
       "form-state-patterns",
       "i18n-date-patterns",
-      "lazy-loading-patterns",
-      "motion-animation-patterns"
+      "motion-animation-patterns",
+      "react-aria-patterns"
     ],
     "llm": [
       "agent-loops",
       "alternative-agent-frameworks",
-      "cache-cost-tracking",
+      "caching",
       "context-engineering",
       "function-calling",
       "grpc-python",
-      "high-performance-inference",
-      "langfuse-observability"
+      "langfuse-observability",
+      "langgraph"
     ],
     "rag": [
       "llm-evaluation",
@@ -549,11 +553,11 @@ export const SKILLS_SUMMARY = {
       "api-versioning",
       "audit-full",
       "backend-architecture-enforcer",
-      "caching-strategies",
       "error-handling-rfc9457",
       "fastapi-advanced",
       "grpc-python",
-      "project-structure-enforcer"
+      "project-structure-enforcer",
+      "pwa-patterns"
     ]
   }
 };

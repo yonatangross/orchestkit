@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Full Demo Production Pipeline
-# Uses ALL skills: terminal-demo-generator, manim-visualizer, remotion-composer
+# Uses skills: video-production (recording, composition, animation)
 #
 # Usage:
 #   ./full-pipeline.sh --skill verify --mode real
@@ -63,7 +63,7 @@ log "Starting full demo pipeline for '${SKILL_NAME}'"
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════
-# PHASE 1: Terminal Recording (terminal-demo-generator skill)
+# PHASE 1: Terminal Recording (video-production/recording-terminal)
 # ═══════════════════════════════════════════════════════════════════
 log "PHASE 1: Terminal Recording"
 
@@ -137,12 +137,12 @@ success "Copied to public/"
 echo ""
 
 # ═══════════════════════════════════════════════════════════════════
-# PHASE 2: Manim Animations (manim-visualizer skill)
+# PHASE 2: Manim Animations (video-production/recording-manim)
 # ═══════════════════════════════════════════════════════════════════
 if [[ "$RENDER_MANIM" == "true" ]]; then
     log "PHASE 2: Manim Animations"
 
-    MANIM_DIR="${PROJECT_ROOT}/skills/manim-visualizer/scripts"
+    MANIM_DIR="${PROJECT_ROOT}/skills/video-production/scripts"
 
     if command -v manim &> /dev/null; then
         cd "$MANIM_DIR"
@@ -168,7 +168,7 @@ if [[ "$RENDER_MANIM" == "true" ]]; then
 fi
 
 # ═══════════════════════════════════════════════════════════════════
-# PHASE 3: Remotion Composition (remotion-composer skill)
+# PHASE 3: Remotion Composition (video-production/composition-remotion)
 # ═══════════════════════════════════════════════════════════════════
 if [[ "$RENDER_FINAL" == "true" ]]; then
     log "PHASE 3: Remotion Composition"

@@ -409,8 +409,7 @@ font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
 ## Related Skills
 
 - `design-system-starter` - Building responsive design systems
-- `core-web-vitals` - CLS and responsive images
-- `image-optimization` - Responsive image strategies
+- `performance` - CLS, responsive images, and image optimization
 - `i18n-date-patterns` - RTL/LTR responsive considerations
 
 ## Capability Details

@@ -24,15 +24,13 @@ skills:
   - type-safety-validation
   - testing-patterns
   - focus-management
-  - render-optimization
+  - performance
   - biome-linting
   - zustand-patterns
   - tanstack-query-advanced
   - form-state-patterns
-  - core-web-vitals
   - wcag-compliance
   - project-structure-enforcer
-  - performance-optimization
   - stacked-prs
   - task-dependency-patterns
   - remember
@@ -439,7 +437,7 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, motion-animation-patterns
 
 ## Skill Index
 
@@ -456,15 +454,13 @@ Read the specific file before advising. Do NOT rely on training data.
 |type-safety-validation:{SKILL.md,references/{prisma-types.md,trpc-setup.md,ty-type-checker-patterns.md,typescript-5-features.md,typescript-advanced.md,zod-patterns.md}}|typescript,zod,trpc,prisma,type-safety,validation,exhaustive-types,branded-types
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |focus-management:{SKILL.md,references/{focus-patterns.md}}|accessibility,focus,keyboard,a11y,trap
-|render-optimization:{SKILL.md,references/{devtools-profiler-workflow.md,memoization-escape-hatches.md,react-compiler-migration.md,state-colocation.md,tanstack-virtual-patterns.md}}|react,performance,optimization,react-compiler,virtualization,memo,profiler
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |biome-linting:{SKILL.md,references/{biome-json-config.md,ci-integration.md,eslint-migration.md,type-aware-rules.md}}|biome,linting,formatting,eslint-migration,ci,code-quality,typescript
 |zustand-patterns:{SKILL.md,references/{middleware-composition.md}}|zustand,state-management,react,immer,middleware,persistence,slices
 |tanstack-query-advanced:{SKILL.md,references/{cache-strategies.md}}|tanstack-query,react-query,caching,infinite-scroll,optimistic-updates,prefetching,suspense
 |form-state-patterns:{SKILL.md,references/{validation-patterns.md}}|react-hook-form,zod,forms,validation,server-actions,field-arrays,useActionState
-|core-web-vitals:{SKILL.md,references/{rum-setup.md}}|performance,core-web-vitals,lcp,inp,cls,lighthouse,rum,web-vitals
 |wcag-compliance:{SKILL.md,references/{wcag-criteria.md}}|accessibility,wcag,a11y,aria,screen-reader,compliance
 |project-structure-enforcer:{SKILL.md,references/{violation-examples.md}}|structure,architecture,enforcement,blocking,imports,organization
-|performance-optimization:{SKILL.md,references/{caching-strategies.md,core-web-vitals.md,database-optimization.md,frontend-performance.md,profiling.md}}|performance,optimization,profiling,caching
 |stacked-prs:{SKILL.md,references/{stack-management.md}}|git,pull-request,stacked,workflow,code-review
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -122,7 +122,7 @@ Access request.cf.country (Cloudflare) or request.geo (Vercel) for location-base
 
 ## Related Skills
 
-- `caching-strategies` - Redis caching patterns that complement edge KV storage and CDN caching
+- `caching` - Redis caching patterns that complement edge KV storage and CDN caching
 - `react-server-components-framework` - Next.js App Router patterns for edge-rendered React components
 - `streaming-api-patterns` - SSE and streaming responses for edge function output
 - `api-design-framework` - REST API patterns for edge-deployed endpoints

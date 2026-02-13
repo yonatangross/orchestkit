@@ -22,7 +22,7 @@ skills:
   - ascii-visualizer
   - owasp-top-10
   - security-scanning
-  - performance-optimization
+  - performance
   - remember
   - memory
 hooks:
@@ -390,7 +390,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |system-design-interrogation:{SKILL.md,references/{coherence-questions.md,scale-questions.md,security-questions.md}}|architecture,design,review,questions
 |owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
 |security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
-|performance-optimization:{SKILL.md,references/{caching-strategies.md,core-web-vitals.md,database-optimization.md,frontend-performance.md,profiling.md}}|performance,optimization,profiling,caching
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

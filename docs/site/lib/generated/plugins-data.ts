@@ -109,11 +109,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork-creative",
-    "description": "Video production add-on — 16 skills, 1 agent. Demo recording, Remotion, storyboarding.",
+    "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion, storyboarding.",
     "fullDescription": "Video production toolkit for OrchestKit. Includes demo recording, Remotion composition, storyboarding, narration scripting, content recipes, and visual effects skills. Adds the demo-producer agent.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 16,
+    "skillCount": 3,
     "agentCount": 1,
     "hooks": 95,
     "commandCount": 1,
@@ -122,21 +122,8 @@ export const PLUGINS: Plugin[] = [
     "recommended": false,
     "skills": [
       "demo-producer",
-      "terminal-demo-generator",
-      "remotion-composer",
-      "manim-visualizer",
-      "video-storyboarding",
-      "video-pacing",
-      "narration-scripting",
-      "content-type-recipes",
-      "hook-formulas",
-      "scene-intro-cards",
-      "callout-positioning",
-      "thumbnail-first-frame",
-      "ascii-visualizer",
-      "audio-mixing-patterns",
-      "music-sfx-selection",
-      "elevenlabs-narration"
+      "video-production",
+      "ascii-visualizer"
     ],
     "agents": [
       "demo-producer"
@@ -147,11 +134,11 @@ export const PLUGINS: Plugin[] = [
   },
   {
     "name": "ork",
-    "description": "Full specialized toolkit — 172 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
+    "description": "Full specialized toolkit — 151 skills, 36 agents, 95 hooks. Adds Python, React, LLM/RAG patterns.",
     "fullDescription": "The complete OrchestKit toolkit. Everything in orkl PLUS specialized patterns for Python (FastAPI, SQLAlchemy, Celery), React (RSC, TanStack, Zustand), LLM integration (function calling, streaming, fine-tuning), RAG retrieval, LangGraph workflows, and MCP server patterns.",
     "category": "development",
     "version": "6.0.3",
-    "skillCount": 172,
+    "skillCount": 151,
     "agentCount": 36,
     "hooks": 95,
     "commandCount": 27,
@@ -174,7 +161,6 @@ export const PLUGINS: Plugin[] = [
       "assess-complexity",
       "asyncio-advanced",
       "audio-language-models",
-      "audio-mixing-patterns",
       "audit-full",
       "auth-patterns",
       "backend-architecture-enforcer",
@@ -182,7 +168,8 @@ export const PLUGINS: Plugin[] = [
       "best-practices",
       "biome-linting",
       "brainstorming",
-      "browser-automation"
+      "browser-automation",
+      "browser-content-capture"
     ],
     "agents": [
       "accessibility-specialist",

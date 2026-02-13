@@ -257,7 +257,7 @@ async def with_retry(session, operation, max_retries=3):
 - `sqlalchemy-2-async` - SQLAlchemy async session patterns
 - `asyncio-advanced` - Async concurrency patterns
 - `observability-monitoring` - Metrics and alerting
-- `caching-strategies` - Redis connection pooling
+- `caching` - Redis connection pooling
 
 ## Capability Details
 

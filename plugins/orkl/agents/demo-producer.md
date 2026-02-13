@@ -23,9 +23,7 @@ tools:
   - AskUserQuestion
 skills:
   - demo-producer
-  - terminal-demo-generator
-  - manim-visualizer
-  - remotion-composer
+  - video-production
   - task-dependency-patterns
   - remember
   - memory

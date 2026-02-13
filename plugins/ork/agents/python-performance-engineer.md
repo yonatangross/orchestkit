@@ -24,7 +24,7 @@ tools:
 skills:
   - asyncio-advanced
   - connection-pooling
-  - caching-strategies
+  - caching
   - testing-patterns
   - observability-monitoring
   - database-schema-designer
@@ -353,7 +353,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** asyncio-advanced, connection-pooling, caching-strategies, testing-patterns, observability-monitoring
+- **Skill references:** asyncio-advanced, connection-pooling, caching, testing-patterns, observability-monitoring
 
 ## Profiling Tools Reference
 
@@ -400,7 +400,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |
 |asyncio-advanced:{SKILL.md,references/{semaphore-patterns.md,taskgroup-patterns.md}}|asyncio,python,concurrency,taskgroup,structured-concurrency
 |connection-pooling:{SKILL.md,references/{pool-sizing.md}}|connection-pool,asyncpg,aiohttp,database,http,performance
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
+|caching:{SKILL.md,references/{cache-patterns.md,semantic-cache-strategies.md}}|caching,redis,performance,llm,prompt-caching,semantic,cost,langfuse
 |testing-patterns:{SKILL.md,references/{a11y-testing-tools.md,aaa-pattern.md,consumer-tests.md,custom-plugins.md,deepeval-ragas-api.md,factory-patterns.md,generator-agent.md,healer-agent.md,k6-patterns.md,msw-2x-api.md,pact-broker.md,planner-agent.md,playwright-1.57-api.md,playwright-setup.md,provider-verification.md,stateful-testing.md,strategies-guide.md,visual-regression.md,xdist-parallel.md}}|testing,unit,integration,e2e,pytest,msw,vcr,property,contract,performance,llm,a11y
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
 |database-schema-designer:{SKILL.md,references/{migration-patterns.md,normalization-patterns.md}}|database,schema-design,sql,nosql,performance,migrations

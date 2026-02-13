@@ -12,7 +12,7 @@
 |backend-architecture-enforcer:{SKILL.md,references/{dependency-injection.md,layer-rules.md,violation-examples.md}}|backend,fastapi,architecture,enforcement,blocking,clean-architecture,di
 |owasp-top-10:{SKILL.md,references/{vulnerability-demos.md}}|security,owasp,vulnerabilities,audit
 |observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
+|caching:{SKILL.md,references/{cache-patterns.md,semantic-cache-strategies.md}}|caching,redis,performance,llm,prompt-caching,semantic,cost,langfuse
 |auth-patterns:{SKILL.md,references/{oauth-2.1-passkeys.md}}|security,authentication,oauth,passkeys
 |sqlalchemy-2-async:{SKILL.md,references/{eager-loading.md,fastapi-integration.md}}|sqlalchemy,async,database,orm,fastapi,python
 |fastapi-advanced:{SKILL.md,references/{middleware-stack.md}}|fastapi,python,async,middleware,dependencies

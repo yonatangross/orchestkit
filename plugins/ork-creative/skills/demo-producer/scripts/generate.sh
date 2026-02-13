@@ -950,7 +950,7 @@ main() {
         echo "  1. cd ${OUTPUT_DIR}/tapes"
         echo "  2. vhs sim-${demo_name}-cinematic.tape"
         echo "  3. (Optional) Generate Manim animation:"
-        echo "     cd ${PROJECT_ROOT}/skills/manim-visualizer/scripts"
+        echo "     cd ${PROJECT_ROOT}/skills/video-production/scripts"
         echo "     python generate.py agent-spawning --preset verify"
         echo "  4. Copy outputs to public/ folder"
         echo "  5. Preview: cd ${OUTPUT_DIR} && npm run preview"
