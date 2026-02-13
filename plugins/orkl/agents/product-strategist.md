@@ -2,7 +2,7 @@
 name: product-strategist
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go
 category: product
-model: inherit
+model: sonnet
 context: fork
 color: purple
 memory: project
@@ -14,14 +14,15 @@ tools:
   - Grep
   - Glob
   - Bash
+  - Task(market-intelligence)
+  - Task(ux-researcher)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - product-strategy-frameworks
-  - market-analysis-patterns
+  - product-frameworks
   - brainstorming
   - github-operations
   - remember
@@ -232,8 +233,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|product-strategy-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,value-prop-canvas-guide.md}}|product,strategy,jtbd,value-proposition,build-buy-partner
-|market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot
+|product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
 |brainstorming:{SKILL.md,references/{common-pitfalls.md,devils-advocate-prompts.md,divergent-techniques.md,evaluation-rubric.md,example-session-auth.md,example-session-dashboard.md,phase-workflow.md,socratic-questions.md}}|planning,ideation,creativity,design
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

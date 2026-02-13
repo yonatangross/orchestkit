@@ -351,7 +351,8 @@ describe('Issue #245: User Tracking Wiring', () => {
   });
 
   describe('Issue #245 GAP-001 & GAP-002: Stop Dispatcher Wiring', () => {
-    test('stop dispatcher includes graph-queue-sync hook (GAP-001)', async () => {
+    // graph-queue-sync removed in v7 memory simplification (mem0 removal)
+    test.skip('stop dispatcher includes graph-queue-sync hook (GAP-001)', async () => {
       const { registeredHookNames } = await import(
         '../../stop/unified-dispatcher.js'
       );
@@ -389,7 +390,8 @@ describe('Issue #245: User Tracking Wiring', () => {
       expect(content).toContain('GAP-002');
     });
 
-    test('graphQueueSync is exported from graph-queue-sync', async () => {
+    // graph-queue-sync removed in v7 memory simplification (mem0 removal)
+    test.skip('graphQueueSync is exported from graph-queue-sync', async () => {
       const { graphQueueSync } = await import('../../stop/graph-queue-sync.js');
       expect(typeof graphQueueSync).toBe('function');
     });

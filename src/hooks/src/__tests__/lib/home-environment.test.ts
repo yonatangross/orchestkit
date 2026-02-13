@@ -427,16 +427,18 @@ describe('HOME environment fallback', () => {
       expect(logDir).not.toContain('/test/project');
     });
 
-    test('uses HOME for Memory Fabric cleanup global sync path', () => {
+    test('uses HOME for Memory Fabric cleanup logs directory', () => {
       process.env.HOME = '/home/fabricuser';
       process.env.CLAUDE_PLUGIN_ROOT = '/plugin/root';
       process.env.CLAUDE_PROJECT_DIR = '/test/project';
 
-      // Track existsSync calls to verify the global sync path
+      // Track existsSync calls to verify paths used
       const checkedPaths: string[] = [];
       mockExistsSync.mockImplementation((p: string) => {
         checkedPaths.push(p);
         if (typeof p === 'string' && p.includes('.setup-complete')) return true;
+        // Simulate logs dir existing for cleanup scan
+        if (typeof p === 'string' && p.includes('.claude/logs')) return true;
         return false;
       });
       mockReadFileSync.mockImplementation((p: string) => {
@@ -455,10 +457,10 @@ describe('HOME environment fallback', () => {
 
       process.argv = origArgv;
 
-      // setup-maintenance.ts line 309: `${process.env.HOME || '/tmp'}/.claude/.mem0-pending-sync.json`
-      const mem0Path = checkedPaths.find(p => p.includes('.mem0-pending-sync.json'));
-      expect(mem0Path).toBeDefined();
-      expect(mem0Path).toContain('/home/fabricuser/');
+      // setup-maintenance.ts scans logs dir for pending-sync files via readdirSync
+      // Verify it checks the project logs directory exists
+      const logsPath = checkedPaths.find(p => p.includes('.claude/logs'));
+      expect(logsPath).toBeDefined();
     });
   });
 

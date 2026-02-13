@@ -290,7 +290,7 @@ function taskMemoryFabricCleanup(projectDir: string): void {
     try {
       const files = readdirSync(logsDir);
       for (const file of files) {
-        if (!file.startsWith('.mem0-pending-sync-')) continue;
+        if (!file.startsWith('.pending-sync-')) continue;
 
         const fullPath = `${logsDir}/${file}`;
         try {
@@ -303,21 +303,6 @@ function taskMemoryFabricCleanup(projectDir: string): void {
         } catch {
           // Ignore
         }
-      }
-    } catch {
-      // Ignore
-    }
-  }
-
-  // Clean up global pending sync if stale
-  const globalSync = `${getHomeDir()}/.claude/.mem0-pending-sync.json`;
-  if (existsSync(globalSync)) {
-    try {
-      const stats = statSync(globalSync);
-      const ageHours = (Date.now() - stats.mtimeMs) / (1000 * 60 * 60);
-      if (ageHours > 24) {
-        unlinkSync(globalSync);
-        cleaned++;
       }
     } catch {
       // Ignore

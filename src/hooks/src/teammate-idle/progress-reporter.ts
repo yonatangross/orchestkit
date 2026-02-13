@@ -11,6 +11,7 @@
 import type { HookInput, HookResult } from '../types.js';
 import { getProjectDir } from '../lib/common.js';
 import { appendEventLog } from '../lib/event-logger.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 export async function progressReporter(input: HookInput): Promise<HookResult> {
   if (!getProjectDir()) {
@@ -28,6 +29,16 @@ export async function progressReporter(input: HookInput): Promise<HookResult> {
     teammate_type: teammateType,
     idle_duration_ms: idleDuration,
     session_id: input.session_id,
+  });
+
+  // Cross-project team activity analytics (Issue #459)
+  appendAnalytics('team-activity.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+    event: 'idle',
+    agent: teammateType,
+    idle_ms: idleDuration,
+    ...getTeamContext(),
   });
 
   // Surface long idle durations (>30s) as context for work reassignment

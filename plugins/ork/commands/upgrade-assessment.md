@@ -402,6 +402,13 @@ Focus on plugin structure:
 - Hook source reorganization
 
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [knowledge-evaluation](rules/knowledge-evaluation.md) | HIGH | 6-dimension scoring rubric, severity classification |
+| [knowledge-compatibility](rules/knowledge-compatibility.md) | HIGH | Version compatibility matrix, breaking change detection |
+
 ## Related Skills
 
 - `platform-upgrade-knowledge` - Scoring rubric details and compatibility matrix

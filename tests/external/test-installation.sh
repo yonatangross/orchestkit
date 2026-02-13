@@ -49,26 +49,26 @@ trap teardown EXIT
 test_start() {
     local name="$1"
     echo -n "  ○ $name... "
-    ((TESTS_RUN++)) || true
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 test_pass() {
     echo -e "\033[0;32mPASS\033[0m"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 test_fail() {
     local reason="${1:-}"
     echo -e "\033[0;31mFAIL\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_FAILED++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 test_skip() {
     local reason="${1:-}"
     echo -e "\033[1;33mSKIP\033[0m"
     [[ -n "$reason" ]] && echo "    └─ $reason"
-    ((TESTS_SKIPPED++)) || true
+    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
 }
 
 # Create a minimal test repo
@@ -128,16 +128,16 @@ test_empty_repo_skills_discoverable() {
     for path in "$PLUGIN_ROOT/src/skills" "$PLUGIN_ROOT/plugins/ork/skills" "$PLUGIN_ROOT/skills"; do
         if [[ -d "$path" ]]; then
             skill_count=$(find "$path" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-            if [[ "$skill_count" -gt 90 ]]; then
+            if [[ "$skill_count" -gt 55 ]]; then
                 break
             fi
         fi
     done
 
-    if [[ "$skill_count" -gt 90 ]]; then
+    if [[ "$skill_count" -gt 55 ]]; then
         test_pass
     else
-        test_fail "Expected 90+ skills, found $skill_count"
+        test_fail "Expected 55+ skills, found $skill_count"
     fi
 }
 

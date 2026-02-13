@@ -3,13 +3,7 @@
 # Specific Skill Tests
 # ============================================================================
 # Per-skill validation for script-enhanced skills.
-#
-# Tests specific patterns for each category of script-enhanced skills:
-# - Markdown (5 skills): ADR, PR review, design docs, complexity, evidence
-# - Python (5 skills): FastAPI, migrations, backups, fixtures, integration tests
-# - Shell (5 skills): Releases, stacked PRs, browser capture, crawl, form automation
-# - TypeScript (5 skills): Page objects, forms, test cases, MSW handlers, server components
-# - YAML (5 skills): OpenAPI, CI pipelines, Docker Compose, guardrails, LoRA config
+# Updated after skill consolidation (#536) to use consolidated paths.
 #
 # Usage: ./test-specific-skills.sh [--verbose]
 # Exit codes: 0 = all pass, 1 = failures found
@@ -47,17 +41,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -82,31 +76,26 @@ echo ""
 echo -e "${CYAN}Test: Script-Enhanced Skills Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
-# Expected script-enhanced skills (the 25 we created)
+# Expected script-enhanced skills (updated after skill consolidation #536)
 EXPECTED_SCRIPTS=(
     "architecture-decision-record/scripts/create-adr.md"
     "code-review-playbook/scripts/review-pr.md"
     "brainstorming/scripts/create-design-doc.md"
     "quality-gates/scripts/assess-complexity.md"
-    "evidence-verification/scripts/generate-test-evidence.md"
-    "fastapi-advanced/scripts/create-fastapi-app.md"
-    "alembic-migrations/scripts/create-migration.md"
-    "golden-dataset-management/scripts/backup-golden-dataset.md"
-    "unit-testing/scripts/create-test-fixture.md"
-    "integration-testing/scripts/create-integration-test.md"
+    "python-backend/scripts/create-fastapi-app.md"
+    "database-patterns/scripts/create-migration.md"
+    "golden-dataset/scripts/backup-golden-dataset.md"
+    "testing-patterns/scripts/create-test-fixture.md"
+    "testing-patterns/scripts/create-integration-test.md"
     "release-management/scripts/create-release.md"
-    "stacked-prs/scripts/create-stacked-pr.md"
-    "browser-content-capture/scripts/multi-page-crawl.md"
-    "e2e-testing/scripts/create-page-object.md"
-    "form-state-patterns/scripts/create-form.md"
-    "unit-testing/scripts/create-test-case.md"
-    "msw-mocking/scripts/create-msw-handler.md"
+    "testing-patterns/scripts/create-page-object.md"
+    "testing-patterns/scripts/create-test-case.md"
+    "testing-patterns/scripts/create-msw-handler.md"
     "react-server-components-framework/scripts/create-server-component.md"
-    "api-design-framework/scripts/create-openapi-spec.md"
+    "api-design/scripts/create-openapi-spec.md"
     "devops-deployment/scripts/create-ci-pipeline.md"
     "devops-deployment/scripts/create-docker-compose.md"
-    "advanced-guardrails/scripts/create-guardrails-config.md"
-    "fine-tuning-customization/scripts/create-lora-config.md"
+    "llm-integration/scripts/create-lora-config.md"
 )
 
 FOUND_SCRIPTS=0
@@ -115,7 +104,7 @@ MISSING_SCRIPTS=()
 for script_path in "${EXPECTED_SCRIPTS[@]}"; do
     full_path="$SKILLS_DIR/$script_path"
     if [[ -f "$full_path" ]]; then
-        ((FOUND_SCRIPTS++)) || true
+        FOUND_SCRIPTS=$((FOUND_SCRIPTS + 1))
         skill_name=$(echo "$script_path" | cut -d'/' -f1)
         info "$skill_name: Script exists"
     else
@@ -143,7 +132,6 @@ MARKDOWN_SCRIPTS=(
     "code-review-playbook/scripts/review-pr.md"
     "brainstorming/scripts/create-design-doc.md"
     "quality-gates/scripts/assess-complexity.md"
-    "evidence-verification/scripts/generate-test-evidence.md"
 )
 
 MARKDOWN_VALID=0
@@ -151,7 +139,7 @@ for script_path in "${MARKDOWN_SCRIPTS[@]}"; do
     full_path="$SKILLS_DIR/$script_path"
     if [[ -f "$full_path" ]]; then
         if ! check_arguments_in_command "$full_path"; then
-            ((MARKDOWN_VALID++)) || true
+            MARKDOWN_VALID=$((MARKDOWN_VALID + 1))
         fi
     fi
 done

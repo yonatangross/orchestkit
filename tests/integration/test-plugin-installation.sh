@@ -23,12 +23,12 @@ NC=$'\033[0m'
 
 pass() {
   echo -e "${GREEN}PASS${NC}: $1"
-  ((TESTS_PASSED++)) || true
+  TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 fail() {
   echo -e "${RED}FAIL${NC}: $1"
-  ((TESTS_FAILED++)) || true
+  TESTS_FAILED=$((TESTS_FAILED + 1))
 }
 
 warn() {
@@ -182,9 +182,9 @@ HOOK_COUNT=0
 NON_EXEC_COUNT=0
 
 while IFS= read -r hook; do
-  ((HOOK_COUNT++)) || true
+  HOOK_COUNT=$((HOOK_COUNT + 1))
   if [[ ! -x "$hook" ]]; then
-    ((NON_EXEC_COUNT++)) || true
+    NON_EXEC_COUNT=$((NON_EXEC_COUNT + 1))
     warn "Hook not executable: $(basename "$hook")"
   fi
 done < <(find -L "$SRC_ROOT/hooks" -name "*.sh" -type f 2>/dev/null)

@@ -293,46 +293,6 @@ describe('prompt/antipattern-warning', () => {
     });
   });
 
-  describe('mem0 CLI search hints', () => {
-    test('includes mem0 CLI search hints for implementation prompts', () => {
-      const input = createPromptInput('Implement user authentication');
-      const result = antipatternWarning(input);
-
-      expect(result.continue).toBe(true);
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('search-memories.py');
-        expect(result.hookSpecificOutput.additionalContext).toContain('python3');
-      }
-    });
-
-    test('includes project anti-patterns search hint', () => {
-      const input = createPromptInput('Build a new API endpoint');
-      const result = antipatternWarning(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('anti-patterns');
-      }
-    });
-
-    test('includes best practices search hint', () => {
-      const input = createPromptInput('Develop a caching solution');
-      const result = antipatternWarning(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('best practices');
-      }
-    });
-
-    test('includes cross-project failures search hint', () => {
-      const input = createPromptInput('Create a database migration');
-      const result = antipatternWarning(input);
-
-      if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('Cross-project');
-      }
-    });
-  });
-
   describe('learned patterns file', () => {
     let tempDir: string;
 
@@ -484,7 +444,7 @@ describe('prompt/antipattern-warning', () => {
       const result = antipatternWarning(input);
 
       expect(result.continue).toBe(true);
-      // Should not contain anti-pattern warnings (only mem0 hints)
+      // Should not contain anti-pattern warnings
       if (result.hookSpecificOutput?.additionalContext) {
         expect(result.hookSpecificOutput.additionalContext).not.toContain('offset pagination');
       }

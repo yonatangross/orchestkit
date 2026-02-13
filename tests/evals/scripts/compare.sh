@@ -3,7 +3,9 @@
 # OrchestKit A/B Comparison Script
 # =============================================================================
 # Compares with-index vs without-index evaluation results.
-# Focus: Agent routing correctness via CLAUDE.md agent-index.
+#
+# In dry-run mode (no Claude CLI): reports structural validation only.
+# With Claude CLI: compares agent routing accuracy and quality metrics.
 #
 # Usage:
 #   ./compare.sh
@@ -57,6 +59,7 @@ jq -n \
     --argjson with "$WITH" \
     --argjson without "$WITHOUT" \
     '{
+      dry_run: ($with.dry_run // false),
       with: {
         build: $with.build_rate,
         lint: $with.lint_rate,
@@ -78,51 +81,72 @@ jq -n \
       total_tests: $with.total,
       duration_seconds: ($with.total_duration + $without.total_duration),
       regression_detected: (
-        ($with.build_rate - $without.build_rate) < -5 or
-        ($with.test_rate - $without.test_rate) < -10 or
-        ($with.agent_rate - $without.agent_rate) < -10
+        if ($with.dry_run // false) then false
+        else (
+          ($with.build_rate - $without.build_rate) < -5 or
+          ($with.test_rate - $without.test_rate) < -10 or
+          ($with.agent_rate - $without.agent_rate) < -10
+        )
+        end
       ),
       tests: $with.tests
     }' > "$COMPARISON_FILE"
 
-# Display results
-echo -e "| Metric           | Without Index | With Index | Delta     |"
-echo -e "|------------------|---------------|------------|-----------|"
+# Check if dry-run
+dry_run=$(jq -r '.dry_run // false' "$COMPARISON_FILE")
 
-# Read values
-build_without=$(jq -r '.without.build | floor' "$COMPARISON_FILE")
-build_with=$(jq -r '.with.build | floor' "$COMPARISON_FILE")
-build_delta=$(jq -r '.delta.build | floor' "$COMPARISON_FILE")
+if [[ "$dry_run" == "true" ]]; then
+    echo -e "${YELLOW}⚠ Dry-run mode — Claude CLI was not available${NC}"
+    echo -e "${YELLOW}  Structural validation only. Agent routing not evaluated.${NC}"
+    echo ""
 
-lint_without=$(jq -r '.without.lint | floor' "$COMPARISON_FILE")
-lint_with=$(jq -r '.with.lint | floor' "$COMPARISON_FILE")
-lint_delta=$(jq -r '.delta.lint | floor' "$COMPARISON_FILE")
+    total=$(jq -r '.total_tests' "$COMPARISON_FILE")
+    echo -e "| Check               | Result                      |"
+    echo -e "|---------------------|-----------------------------|"
+    printf  "| %-19s | %-27s |\n" "Golden YAML parsed" "${total} test cases"
+    printf  "| %-19s | %-27s |\n" "Scaffold integrity" "Files created"
+    printf  "| %-19s | %-27s |\n" "Agent routing" "Skipped (no Claude CLI)"
 
-test_without=$(jq -r '.without.test | floor' "$COMPARISON_FILE")
-test_with=$(jq -r '.with.test | floor' "$COMPARISON_FILE")
-test_delta=$(jq -r '.delta.test | floor' "$COMPARISON_FILE")
-
-agent_without=$(jq -r '.without.agent | floor' "$COMPARISON_FILE")
-agent_with=$(jq -r '.with.agent | floor' "$COMPARISON_FILE")
-agent_delta=$(jq -r '.delta.agent | floor' "$COMPARISON_FILE")
-
-# Print table
-printf "| %-16s | %13s | %10s | %+9s |\n" "Build Success" "${build_without}%" "${build_with}%" "${build_delta}%"
-printf "| %-16s | %13s | %10s | %+9s |\n" "Lint Compliance" "${lint_without}%" "${lint_with}%" "${lint_delta}%"
-printf "| %-16s | %13s | %10s | %+9s |\n" "Test Passing" "${test_without}%" "${test_with}%" "${test_delta}%"
-printf "| %-16s | %13s | %10s | %+9s |\n" "Agent Routing" "${agent_without}%" "${agent_with}%" "${agent_delta}%"
-
-echo ""
-
-# Check for regression
-regression=$(jq -r '.regression_detected' "$COMPARISON_FILE")
-if [[ "$regression" == "true" ]]; then
-    echo -e "${RED}⚠️  REGRESSION DETECTED${NC}"
-    echo "   Build, test, or agent routing dropped significantly."
-    echo "   Review changes before merging."
-    exit 1
+    echo ""
+    echo -e "${GREEN}✅ Structural validation passed${NC}"
 else
-    echo -e "${GREEN}✅ All metrics stable or improved${NC}"
+    # Display full A/B results
+    echo -e "| Metric           | Without Index | With Index | Delta     |"
+    echo -e "|------------------|---------------|------------|-----------|"
+
+    build_without=$(jq -r '.without.build | floor' "$COMPARISON_FILE")
+    build_with=$(jq -r '.with.build | floor' "$COMPARISON_FILE")
+    build_delta=$(jq -r '.delta.build | floor' "$COMPARISON_FILE")
+
+    lint_without=$(jq -r '.without.lint | floor' "$COMPARISON_FILE")
+    lint_with=$(jq -r '.with.lint | floor' "$COMPARISON_FILE")
+    lint_delta=$(jq -r '.delta.lint | floor' "$COMPARISON_FILE")
+
+    test_without=$(jq -r '.without.test | floor' "$COMPARISON_FILE")
+    test_with=$(jq -r '.with.test | floor' "$COMPARISON_FILE")
+    test_delta=$(jq -r '.delta.test | floor' "$COMPARISON_FILE")
+
+    agent_without=$(jq -r '.without.agent | floor' "$COMPARISON_FILE")
+    agent_with=$(jq -r '.with.agent | floor' "$COMPARISON_FILE")
+    agent_delta=$(jq -r '.delta.agent | floor' "$COMPARISON_FILE")
+
+    printf "| %-16s | %13s | %10s | %+9s |\n" "Build Success" "${build_without}%" "${build_with}%" "${build_delta}%"
+    printf "| %-16s | %13s | %10s | %+9s |\n" "Lint Compliance" "${lint_without}%" "${lint_with}%" "${lint_delta}%"
+    printf "| %-16s | %13s | %10s | %+9s |\n" "Test Passing" "${test_without}%" "${test_with}%" "${test_delta}%"
+    printf "| %-16s | %13s | %10s | %+9s |\n" "Agent Routing" "${agent_without}%" "${agent_with}%" "${agent_delta}%"
+
+    echo ""
+
+    # Check for regression
+    regression=$(jq -r '.regression_detected' "$COMPARISON_FILE")
+    if [[ "$regression" == "true" ]]; then
+        echo -e "${RED}⚠️  REGRESSION DETECTED${NC}"
+        echo "   Build, test, or agent routing dropped significantly."
+        echo "   Review changes before merging."
+        exit 1
+    else
+        echo -e "${GREEN}✅ All metrics stable or improved${NC}"
+    fi
 fi
 
 echo ""

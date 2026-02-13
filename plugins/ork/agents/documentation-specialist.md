@@ -2,7 +2,7 @@
 name: documentation-specialist
 description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.
 category: docs
-model: inherit
+model: haiku
 context: fork
 color: gray
 memory: project
@@ -19,7 +19,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - api-design-framework
+  - api-design
   - architecture-decision-record
   - git-workflow
   - release-management
@@ -269,7 +269,7 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 
 **DON'T:**
 - Implement new features (that's backend-system-architect)
-- Design APIs (that's backend-system-architect with api-design-framework)
+- Design APIs (that's backend-system-architect with api-design)
 - Make architectural decisions (that's system-design-reviewer)
 - Modify application code (that's the appropriate domain agent)
 
@@ -293,7 +293,7 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 
 - **Receives from:** backend-system-architect (API specs), system-design-reviewer (architecture decisions)
 - **Hands off to:** code-quality-reviewer (doc review), release-engineer (changelog)
-- **Skill references:** api-design-framework, architecture-decision-record, git-workflow, release-management
+- **Skill references:** api-design, architecture-decision-record, git-workflow, release-management
 
 ## Example
 
@@ -318,9 +318,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|api-design-framework:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md}}|api,rest,graphql,grpc,backend,documentation
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |architecture-decision-record:{SKILL.md,references/{adr-best-practices.md}}|architecture,documentation,decision-making,backend
-|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging
+|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging,stacked-prs,monorepo,add-dir,code-review
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

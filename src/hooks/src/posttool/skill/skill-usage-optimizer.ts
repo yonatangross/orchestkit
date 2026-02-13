@@ -24,11 +24,9 @@ interface SkillUsageFile {
 
 // Skill overlap definitions for consolidation suggestions
 const SKILL_OVERLAPS: Record<string, string> = {
-  'api-design-framework|fastapi-advanced': 'Both relate to API design. Consider using api-design-framework for patterns, fastapi-advanced for implementation.',
-  'sqlalchemy-2-async|database-schema-designer': 'Both relate to database. Use database-schema-designer for schema design, sqlalchemy-2-async for async patterns.',
-  'caching-strategies|performance-optimization': 'Both optimize performance. Consider consolidating caching queries.',
-  'auth-patterns|owasp-top-10': 'Both relate to security. auth-patterns for implementation, owasp-top-10 for validation.',
-  'asyncio-advanced|connection-pooling': 'Both relate to async. asyncio-advanced for patterns, connection-pooling for specific optimization.',
+  'api-design|python-backend': 'Both relate to API design. Consider using api-design for patterns, python-backend for implementation.',
+  'python-backend|database-patterns': 'Both relate to database. Use database-patterns for schema design, python-backend for async patterns.',
+  'caching|performance': 'Both optimize performance. Consider consolidating caching queries.',
 };
 
 /**

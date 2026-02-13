@@ -2,7 +2,7 @@
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC
 category: devops
-model: opus
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -13,6 +13,8 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(ci-cd-engineer)
+  - Task(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -20,9 +22,9 @@ tools:
   - TaskList
 skills:
   - devops-deployment
-  - observability-monitoring
-  - security-scanning
-  - resilience-patterns
+  - monitoring-observability
+  - security-patterns
+  - distributed-systems
   - task-dependency-patterns
   - remember
   - memory
@@ -219,7 +221,7 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 ## Integration
 - **Receives from:** backend-system-architect (resource requirements), security-auditor (compliance needs)
 - **Hands off to:** ci-cd-engineer (deployment targets), deployment-manager (production setup)
-- **Skill references:** devops-deployment, observability-monitoring
+- **Skill references:** devops-deployment, monitoring-observability
 
 ## Skill Index
 
@@ -232,9 +234,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |Do NOT rely on training data for framework patterns.
 |
 |devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|security-scanning:{SKILL.md,references/{tool-configs.md}}|security,scanning,vulnerabilities,audit
-|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

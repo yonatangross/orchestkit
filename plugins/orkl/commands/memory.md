@@ -16,7 +16,6 @@ Unified read-side memory skill with subcommands for searching, loading, syncing,
 ```bash
 /ork:memory search <query>  # Search knowledge graph
 /ork:memory load             # Load context at session start
-/ork:memory sync             # Sync to mem0 cloud
 /ork:memory history          # View decision timeline
 /ork:memory viz              # Visualize knowledge graph
 /ork:memory status           # Show memory system health
@@ -35,7 +34,6 @@ AskUserQuestion(
     "options": [
       {"label": "search", "description": "Search decisions and patterns in knowledge graph"},
       {"label": "load", "description": "Load relevant context for this session"},
-      {"label": "sync", "description": "Sync decisions to mem0 cloud"},
       {"label": "history", "description": "View decision timeline"},
       {"label": "viz", "description": "Visualize knowledge graph as Mermaid"},
       {"label": "status", "description": "Check memory system health"}
@@ -50,14 +48,13 @@ AskUserQuestion(
 
 ### `search` - Search Knowledge Graph
 
-Search past decisions, patterns, and entities from the knowledge graph with optional cloud semantic search.
+Search past decisions, patterns, and entities from the knowledge graph.
 
 **Usage:**
 ```bash
 /ork:memory search <query>                    # Search knowledge graph
 /ork:memory search --category <cat> <query>   # Filter by category
 /ork:memory search --limit <n> <query>        # Limit results (default: 10)
-/ork:memory search --mem0 <query>             # Search BOTH graph AND mem0 cloud
 /ork:memory search --agent <agent-id> <query> # Filter by agent scope
 /ork:memory search --global <query>           # Search cross-project best practices
 ```
@@ -66,8 +63,7 @@ Search past decisions, patterns, and entities from the knowledge graph with opti
 
 | Flag | Behavior |
 |------|----------|
-| (default) | Search graph only |
-| `--mem0` | Search BOTH graph and mem0 cloud |
+| (default) | Search graph |
 | `--limit <n>` | Max results (default: 10) |
 | `--category <cat>` | Filter by category |
 | `--agent <agent-id>` | Filter results to a specific agent's memories |
@@ -85,7 +81,7 @@ Result limits automatically adjust based on `context_window.used_percentage`:
 
 **Search Workflow:**
 
-1. Parse flags (--category, --limit, --mem0, --agent, --global)
+1. Parse flags (--category, --limit, --agent, --global)
 2. Build filters from flags:
    ```
    Check for --category <cat> flag → metadata.category: "<cat>"
@@ -96,18 +92,6 @@ Result limits automatically adjust based on `context_window.used_percentage`:
    ```json
    { "query": "user's search query" }
    ```
-4. If `--mem0` flag set and MEM0_API_KEY configured, search mem0 in parallel:
-   ```bash
-   !bash skills/mem0-memory/scripts/crud/search-memories.py \
-     --query "user's search query" \
-     --user-id "orchestkit-{project-name}-decisions" \
-     --limit 10 \
-     --enable-graph
-   ```
-5. Merge and deduplicate results (if --mem0):
-   - Graph results first, then mem0 results
-   - Mark cross-references as `[CROSS-REF]`
-   - Remove pure duplicates
 
 **Entity Types to Look For:**
 - `Technology`: Tools, frameworks, databases (pgvector, PostgreSQL, React)
@@ -119,25 +103,12 @@ Result limits automatically adjust based on `context_window.used_percentage`:
 
 **Result Formats:**
 
-Graph-Only (default):
 ```
 Found {count} results matching "{query}":
 
 [GRAPH] {entity_name} ({entity_type})
    -> {relation1} -> {target1}
    Observations: {observation1}, {observation2}
-```
-
-With --mem0 (combined):
-```
-Found {count} results matching "{query}":
-
-[GRAPH] {entity_name} ({entity_type})
-   -> {relation} -> {target}
-
-[MEM0] [{time ago}] ({category}) {memory text}
-
-[CROSS-REF] {memory text} (linked to {N} graph entities)
 ```
 
 No results:
@@ -148,13 +119,12 @@ Try:
 - Broader search terms
 - /ork:remember to store new decisions
 - --global flag to search cross-project best practices
-- --mem0 flag to include cloud semantic search
 ```
 
 
 ### `load` - Load Session Context
 
-Auto-load relevant memories at session start from knowledge graph (always) and mem0 (if configured).
+Auto-load relevant memories at session start from knowledge graph.
 
 **Usage:**
 ```bash
@@ -168,25 +138,6 @@ Auto-load relevant memories at session start from knowledge graph (always) and m
 2. Active project context
 3. Agent-specific memories (if in agent context)
 4. Global best practices (if --global)
-
-
-### `sync` - Sync to Mem0 Cloud
-
-Sync session context, decisions, and patterns to Mem0 for cross-session continuity.
-
-**Usage:**
-```bash
-/ork:memory sync              # Sync pending changes
-/ork:memory sync --force      # Force full sync
-/ork:memory sync --dry-run    # Preview what would sync
-```
-
-**Requirements:** `MEM0_API_KEY` environment variable
-
-**What it syncs:**
-1. New decisions from current session
-2. Pattern updates
-3. Agent-scoped memories
 
 
 ### `history` - Decision Timeline
@@ -240,8 +191,6 @@ Show memory system status and health.
 Memory System Status:
   Graph Memory:  healthy (42 decisions, 0 corrupt)
   Queue Depth:   3 pending
-  Mem0 Cloud:    connected (API key configured)
-  Last Sync:     2 hours ago
 ```
 
 
@@ -251,7 +200,7 @@ Memory System Status:
 ```
 Extract first argument as subcommand
 If no subcommand -> AskUserQuestion
-Validate subcommand is one of: search, load, sync, history, viz, status
+Validate subcommand is one of: search, load, history, viz, status
 Parse remaining flags
 ```
 
@@ -279,9 +228,6 @@ At session end, Claude shows resume hints. To maximize resume effectiveness:
   - Decision 1: [brief]
   - Decision 2: [brief]
   - Next steps: [what remains]
-
-# Sync to mem0 if configured
-/ork:memory sync
 ```
 
 ### Resume Patterns
@@ -315,10 +261,8 @@ Always store investigation findings before session end:
 
 ## Error Handling
 
-- If MEM0_API_KEY not set for sync: Notify user, skip cloud sync
 - If graph empty for viz: Show helpful message about using /ork:remember
 - If subcommand invalid: Show usage help
 - If memory files corrupt: Report and offer repair
 - If search query empty: Show recent entities instead
-- If --mem0 requested without MEM0_API_KEY: Proceed with graph-only and notify user
 - If no search results: Suggest alternatives

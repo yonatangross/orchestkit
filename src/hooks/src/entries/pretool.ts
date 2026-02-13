@@ -39,9 +39,8 @@ import { codeQualityGate } from '../pretool/Write/code-quality-gate.js';
 import { docstringEnforcer } from '../pretool/Write/docstring-enforcer.js';
 import { securityPatternValidator } from '../pretool/Write/security-pattern-validator.js';
 
-// PreTool/MCP hooks (3)
+// PreTool/MCP hooks (2)
 import { context7Tracker } from '../pretool/mcp/context7-tracker.js';
-import { memoryFabricInit } from '../pretool/mcp/memory-fabric-init.js';
 import { memoryValidator } from '../pretool/mcp/memory-validator.js';
 
 // PreTool/InputMod hooks (1)
@@ -50,8 +49,16 @@ import { writeHeaders } from '../pretool/input-mod/write-headers.js';
 // PreTool/Skill hooks (1)
 import { skillTracker } from '../pretool/skill/skill-tracker.js';
 
+// PreTool/Read hooks (1)
+import { tldrSummary } from '../pretool/read/tldr-summary.js';
+
 // PreTool/Task hooks (1) — Agent Teams
 import { teamSizeGate } from '../pretool/task/team-size-gate.js';
+
+// Unified dispatchers (3) — consolidate sequential hooks into single process
+import { unifiedBashAdvisoryDispatcher } from '../pretool/bash/unified-advisory-dispatcher.js';
+import { unifiedWriteEditQualityDispatcher } from '../pretool/write-edit/unified-quality-dispatcher.js';
+import { unifiedAgentSafetyDispatcher } from '../pretool/task/unified-agent-safety-dispatcher.js';
 
 import type { HookFn } from '../types.js';
 
@@ -87,9 +94,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (3)
+  // PreTool/MCP hooks (2)
   'pretool/mcp/context7-tracker': context7Tracker,
-  'pretool/mcp/memory-fabric-init': memoryFabricInit,
   'pretool/mcp/memory-validator': memoryValidator,
 
   // PreTool/InputMod hooks (1)
@@ -98,8 +104,16 @@ export const hooks: Record<string, HookFn> = {
   // PreTool/Skill hooks (1)
   'pretool/skill/skill-tracker': skillTracker,
 
+  // PreTool/Read hooks (1)
+  'pretool/read/tldr-summary': tldrSummary,
+
   // PreTool/Task hooks (1) — Agent Teams
   'pretool/task/team-size-gate': teamSizeGate,
+
+  // Unified dispatchers (3) — consolidate sequential hooks into single process
+  'pretool/bash/unified-advisory-dispatcher': unifiedBashAdvisoryDispatcher,
+  'pretool/write-edit/unified-quality-dispatcher': unifiedWriteEditQualityDispatcher,
+  'pretool/task/unified-agent-safety-dispatcher': unifiedAgentSafetyDispatcher,
 };
 
 export function getHook(name: string): HookFn | undefined {

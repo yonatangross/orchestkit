@@ -90,7 +90,7 @@ hooks/
 ├── tsconfig.json           # TypeScript configuration
 └── esbuild.config.mjs      # Build configuration (split bundles)
 
-**Total:** 119 hooks (all TypeScript, 6 async via fire-and-forget)
+**Total:** 93 hooks (all TypeScript, 7 fire-and-forget dispatchers)
 ```
 
 ---
@@ -435,7 +435,7 @@ All stop hooks run in a single detached background process:
 
 **Core Session (6):** auto-save-context, session-patterns, issue-work-summary, calibration-persist, session-profile-aggregator, session-end-tracking
 
-**Memory Sync (4):** graph-queue-sync, workflow-preference-learner, mem0-queue-sync, mem0-pre-compaction-sync
+**Memory Sync (2):** graph-queue-sync, workflow-preference-learner
 
 **Instance Management (3):** multi-instance-cleanup, cleanup-instance, task-completion-check
 
@@ -504,7 +504,7 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 **Use async for:**
 - Session metrics and audit logging
 - Pattern extraction and learning
-- External API calls (GitHub, mem0, webhooks)
+- External API calls (GitHub, webhooks)
 - Non-critical sync operations
 - Any hook that doesn't need to block execution
 
@@ -514,12 +514,9 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - Context injection (must add context before tool runs)
 - Quality gates (must validate before allowing writes)
 
-### Current Async Hooks (6 hooks.json entries dispatching 20 individual hooks)
+### Current Async Hooks (6 hooks.json entries dispatching individual hooks)
 
-**SessionStart (7 hooks)** - Startup optimization:
-- `mem0-context-retrieval` - Load context from cloud memory
-- `mem0-webhook-setup` - Configure memory webhooks
-- `mem0-analytics-tracker` - Initialize analytics
+**SessionStart (4 hooks)** - Startup optimization:
 - `pattern-sync-pull` - Pull learned patterns
 - `coordination-init` - Multi-instance coordination
 - `decision-sync-pull` - Pull decision history
@@ -534,11 +531,10 @@ Add `async: true` and `timeout` to hook definitions in `hooks.json`:
 - `skill-usage-optimizer` - Track skill patterns
 - `realtime-sync` - Real-time state sync
 
-**Network I/O (6 hooks)** - External API calls:
+**Network I/O (5 hooks)** - External API calls:
 - `pattern-extractor` - Extract patterns from git
 - `issue-progress-commenter` - Comment on GitHub issues
 - `issue-subtask-updater` - Update subtask checkboxes
-- `mem0-webhook-handler` - Process memory webhooks
 - `coordination-heartbeat` - Multi-instance heartbeat
 - `memory-bridge` - Sync to knowledge graph
 

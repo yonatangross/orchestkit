@@ -2,7 +2,7 @@
 name: rapid-ui-designer
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -16,10 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - design-system-starter
-  - shadcn-patterns
-  - radix-primitives
-  - motion-animation-patterns
+  - ui-components
+  - responsive-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -300,4 +298,4 @@ Task: "Design a notification card component"
 ## Integration
 - **Receives from:** ux-researcher (user requirements, personas), product requirements
 - **Hands off to:** frontend-ui-developer (implementation), code-quality-reviewer (accessibility validation)
-- **Skill references:** design-system-starter, motion-animation-patterns
+- **Skill references:** design-system-starter, frontend-animation

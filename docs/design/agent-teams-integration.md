@@ -428,7 +428,7 @@ When the Task tool spawns a subagent with `subagent_type="frontend-ui-developer"
 
 Teammates are full CC sessions. They load project context (CLAUDE.md, MCP, plugins) at startup. **This means:**
 
-- OrchestKit plugin is already installed → teammates get all 199 skills
+- OrchestKit plugin is already installed → teammates get all 60 skills
 - Agent-scoped hooks fire based on teammate behavior
 - Skills auto-suggest via UserPromptSubmit hooks
 

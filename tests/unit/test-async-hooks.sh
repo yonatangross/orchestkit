@@ -69,7 +69,7 @@ fi
 
 # Test 4: PreToolUse hooks are NOT async (critical path) - no silent/fire-and-forget runners
 echo -n "  PreToolUse hooks are NOT async... "
-PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+PRETOOL_ASYNC=$(jq '[.hooks.PreToolUse[]?.hooks[]?.command // empty | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $PRETOOL_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))
@@ -80,7 +80,7 @@ fi
 
 # Test 5: PermissionRequest hooks are NOT async (critical path)
 echo -n "  PermissionRequest hooks are NOT async... "
-PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]?.command | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
+PERMISSION_ASYNC=$(jq '[.hooks.PermissionRequest[]?.hooks[]?.command // empty | select(test("run-hook-silent\\.mjs|fire-and-forget\\.mjs"))] | length' "$HOOKS_JSON")
 if [[ $PERMISSION_ASYNC -eq 0 ]]; then
     echo -e "${GREEN}PASS${NC}"
     PASSED=$((PASSED + 1))

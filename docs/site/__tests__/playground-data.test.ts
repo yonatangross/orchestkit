@@ -34,7 +34,7 @@ describe("playground-data", () => {
     });
 
     it("matches expected counts", () => {
-      expect(TOTALS.skills).toBe(200);
+      expect(TOTALS.skills).toBe(199);
       expect(TOTALS.agents).toBe(36);
       expect(TOTALS.hooks).toBe(119);
     });
@@ -47,9 +47,10 @@ describe("playground-data", () => {
       expect(Array.isArray(PLUGINS)).toBe(true);
     });
 
-    it("contains orkl and ork plugins", () => {
+    it("contains orkl, ork-creative, and ork plugins", () => {
       const names = PLUGINS.map((p) => p.name);
       expect(names).toContain("orkl");
+      expect(names).toContain("ork-creative");
       expect(names).toContain("ork");
     });
 
@@ -65,10 +66,16 @@ describe("playground-data", () => {
       expect(Array.isArray(plugin.agents)).toBe(true);
     });
 
-    it("orkl has 109 skills", () => {
+    it("orkl has 88 skills", () => {
       const orkl = PLUGINS.find((p) => p.name === "orkl");
       expect(orkl).toBeDefined();
-      expect(orkl!.skillCount).toBe(109);
+      expect(orkl!.skillCount).toBe(88);
+    });
+
+    it("ork-creative has 16 skills", () => {
+      const orkCreative = PLUGINS.find((p) => p.name === "ork-creative");
+      expect(orkCreative).toBeDefined();
+      expect(orkCreative!.skillCount).toBe(16);
     });
 
     it("ork has 200 skills", () => {
@@ -145,6 +152,29 @@ describe("playground-data", () => {
         expect(validFormats).toContain(comp.format);
       }
     });
+
+    it("CDN thumbnail URLs point to Sanity CDN", () => {
+      const withThumb = COMPOSITIONS.filter((c) => c.thumbnailCdn);
+      expect(withThumb.length).toBeGreaterThan(0);
+      for (const comp of withThumb) {
+        expect(comp.thumbnailCdn).toMatch(/^https:\/\/cdn\.sanity\.io\//);
+      }
+    });
+
+    it("CDN video URLs point to Sanity CDN mp4 files", () => {
+      const withVideo = COMPOSITIONS.filter((c) => c.videoCdn);
+      // At least some compositions should have videos
+      for (const comp of withVideo) {
+        expect(comp.videoCdn).toMatch(/^https:\/\/cdn\.sanity\.io\/.*\.mp4$/);
+      }
+    });
+
+    it("every composition with videoCdn also has thumbnailCdn", () => {
+      const withVideo = COMPOSITIONS.filter((c) => c.videoCdn);
+      for (const comp of withVideo) {
+        expect(comp.thumbnailCdn).toBeTruthy();
+      }
+    });
   });
 
   // ── SKILLS ────────────────────────────────────────────────
@@ -177,7 +207,7 @@ describe("playground-data", () => {
     });
 
     it("every skill has valid plugins array", () => {
-      const validPlugins = ["orkl", "ork"];
+      const validPlugins = ["orkl", "ork", "ork-creative"];
       for (const skill of Object.values(SKILLS)) {
         expect(skill.plugins.length).toBeGreaterThan(0);
         for (const plugin of skill.plugins) {

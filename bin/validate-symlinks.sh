@@ -21,9 +21,9 @@ ERRORS=0
 WARNINGS=0
 VALID=0
 
-log_error() { echo -e "${RED}[ERROR]${NC} $1"; ((ERRORS++)) || true; }
-log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; ((WARNINGS++)) || true; }
-log_ok() { echo -e "${GREEN}[OK]${NC} $1"; ((VALID++)) || true; }
+log_error() { echo -e "${RED}[ERROR]${NC} $1"; ERRORS=$((ERRORS + 1)); }
+log_warn() { echo -e "${YELLOW}[WARN]${NC} $1"; WARNINGS=$((WARNINGS + 1)); }
+log_ok() { echo -e "${GREEN}[OK]${NC} $1"; VALID=$((VALID + 1)); }
 
 echo ""
 echo "╔════════════════════════════════════════════════════════════╗"

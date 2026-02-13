@@ -12,6 +12,8 @@
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { createHash } from 'node:crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -230,6 +232,14 @@ function trackHookTriggered(trackedHookName, success, durationMs, projectDir) {
     };
 
     appendFileSync(eventsPath, JSON.stringify(event) + '\n');
+
+    // Cross-project analytics (Issue #459)
+    const analyticsDir = join(homedir(), '.claude', 'analytics');
+    mkdirSync(analyticsDir, { recursive: true });
+    const pid = createHash('sha256').update(projectDir).digest('hex').slice(0, 12);
+    const team = process.env.CLAUDE_CODE_TEAM_NAME || undefined;
+    appendFileSync(join(analyticsDir, 'hook-timing.jsonl'),
+      JSON.stringify({ ts: new Date().toISOString(), hook: trackedHookName, duration_ms: durationMs, ok: success, pid, ...(team ? { team } : {}) }) + '\n');
   } catch {
     // Silent failure - tracking should never break hooks
   }

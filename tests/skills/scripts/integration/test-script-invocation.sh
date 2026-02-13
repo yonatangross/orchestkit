@@ -52,17 +52,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -124,7 +124,7 @@ test_skill_invocation() {
     local script_name
     script_name=$(basename "$script_file")
     
-    ((TOTAL_TESTED++)) || true
+    TOTAL_TESTED=$((TOTAL_TESTED + 1))
     
     info "Testing: $skill_name/scripts/$script_name with args: $test_args"
     
@@ -232,24 +232,20 @@ TEST_SKILLS=(
     "code-review-playbook/scripts/review-pr.md:123"
     "brainstorming/scripts/create-design-doc.md:user-profile"
     "quality-gates/scripts/assess-complexity.md:src/components"
-    "evidence-verification/scripts/generate-test-evidence.md:pytest tests/"
     "fastapi-advanced/scripts/create-fastapi-app.md:my-api"
     "alembic-migrations/scripts/create-migration.md:add_user_table"
     "golden-dataset-management/scripts/backup-golden-dataset.md:dataset-v1"
     "unit-testing/scripts/create-test-fixture.md:User"
     "integration-testing/scripts/create-integration-test.md:auth-flow"
     "release-management/scripts/create-release.md:1.2.3"
-    "stacked-prs/scripts/create-stacked-pr.md:feature-branch"
     "browser-content-capture/scripts/multi-page-crawl.md:https://example.com/docs"
     "e2e-testing/scripts/create-page-object.md:LoginPage"
-    "form-state-patterns/scripts/create-form.md:UserForm"
     "unit-testing/scripts/create-test-case.md:calculateTotal"
     "msw-mocking/scripts/create-msw-handler.md:/api/users"
     "react-server-components-framework/scripts/create-server-component.md:UserProfile"
     "api-design-framework/scripts/create-openapi-spec.md:/users"
     "devops-deployment/scripts/create-ci-pipeline.md:backend"
     "devops-deployment/scripts/create-docker-compose.md:webapp"
-    "advanced-guardrails/scripts/create-guardrails-config.md:openai"
     "fine-tuning-customization/scripts/create-lora-config.md:gpt-3.5-turbo"
 )
 
@@ -311,10 +307,10 @@ for skill_entry in "${TEST_SKILLS[@]}"; do
     if [[ $has_command -gt 0 ]] && [[ $has_args -eq 1 ]]; then
         # Verify $ARGUMENTS is NOT in !command (would break execution order)
         if ! check_arguments_in_command "$skill_file"; then
-            ((EXECUTION_ORDER_CORRECT++)) || true
+            EXECUTION_ORDER_CORRECT=$((EXECUTION_ORDER_CORRECT + 1))
             info "$skill_path: Execution order correct (!command before \$ARGUMENTS)"
         else
-            ((EXECUTION_ORDER_WRONG++)) || true
+            EXECUTION_ORDER_WRONG=$((EXECUTION_ORDER_WRONG + 1))
             fail "$skill_path: Execution order WRONG (\$ARGUMENTS in !command)"
         fi
     fi

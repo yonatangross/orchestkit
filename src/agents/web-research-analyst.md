@@ -2,7 +2,7 @@
 name: web-research-analyst
 description: Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily
 category: research
-model: inherit
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -20,10 +20,8 @@ tools:
   - TaskList
 skills:
   - web-research-workflow
-  - browser-content-capture
-  - browser-automation
-  - competitive-monitoring
-  - market-analysis-patterns
+  - browser-tools
+  - product-frameworks
   - rag-retrieval
   - remember
   - memory
@@ -287,7 +285,7 @@ cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
 
 - **Receives from:** User requests, `market-intelligence` (research tasks)
 - **Hands off to:** `product-strategist` (strategic analysis), `documentation-specialist` (doc formatting)
-- **Skill references:** web-research-workflow, browser-content-capture, competitive-monitoring
+- **Skill references:** web-research-workflow, browser-tools
 
 ## Notes
 

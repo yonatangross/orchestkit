@@ -104,19 +104,19 @@ if command -v jq >/dev/null 2>&1; then
             if [[ -n "$hook_cmd" ]]; then
                 # Check if this looks like a hook path (contains / or .sh)
                 if is_hook_path "$hook_cmd"; then
-                    ((TOTAL_HOOKS++)) || true
+                    TOTAL_HOOKS=$((TOTAL_HOOKS + 1))
 
                     # First check if it's a run-hook.mjs command
                     if validate_run_hook_command "$hook_cmd"; then
-                        ((VALID_HOOKS++)) || true
-                        ((EXECUTABLE_HOOKS++)) || true
+                        VALID_HOOKS=$((VALID_HOOKS + 1))
+                        EXECUTABLE_HOOKS=$((EXECUTABLE_HOOKS + 1))
                     else
                         resolved_path=$(resolve_hook_path "$hook_cmd")
 
                         if [[ -f "$resolved_path" ]]; then
-                            ((VALID_HOOKS++)) || true
+                            VALID_HOOKS=$((VALID_HOOKS + 1))
                             if [[ -x "$resolved_path" ]]; then
-                                ((EXECUTABLE_HOOKS++)) || true
+                                EXECUTABLE_HOOKS=$((EXECUTABLE_HOOKS + 1))
                             else
                                 echo "WARN: Hook exists but not executable: $resolved_path"
                             fi
@@ -175,22 +175,22 @@ for agent_file in "$AGENTS_DIR"/*.md; do
 
                 # Only validate if it looks like a hook path
                 if is_hook_path "$hook_cmd"; then
-                    ((AGENT_HOOKS++)) || true
-                    ((TOTAL_HOOKS++)) || true
+                    AGENT_HOOKS=$((AGENT_HOOKS + 1))
+                    TOTAL_HOOKS=$((TOTAL_HOOKS + 1))
 
                     # Check if this is a run-hook.mjs command
                     if validate_run_hook_command "$hook_cmd"; then
-                        ((AGENT_VALID++)) || true
-                        ((VALID_HOOKS++)) || true
-                        ((EXECUTABLE_HOOKS++)) || true
+                        AGENT_VALID=$((AGENT_VALID + 1))
+                        VALID_HOOKS=$((VALID_HOOKS + 1))
+                        EXECUTABLE_HOOKS=$((EXECUTABLE_HOOKS + 1))
                     else
                         resolved_path=$(resolve_hook_path "$hook_cmd")
 
                         if [[ -f "$resolved_path" ]]; then
-                            ((AGENT_VALID++)) || true
-                            ((VALID_HOOKS++)) || true
+                            AGENT_VALID=$((AGENT_VALID + 1))
+                            VALID_HOOKS=$((VALID_HOOKS + 1))
                             if [[ -x "$resolved_path" ]]; then
-                                ((EXECUTABLE_HOOKS++)) || true
+                                EXECUTABLE_HOOKS=$((EXECUTABLE_HOOKS + 1))
                             fi
                         else
                             echo "FAIL: $agent_name - Hook path not found: $hook_cmd"

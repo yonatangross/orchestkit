@@ -1,8 +1,7 @@
 /**
  * Memory Usage Metrics - Collect and persist memory system metrics
  *
- * Collects metrics from all memory tiers regardless of MEM0_API_KEY.
- * Graph-only users get full analytics coverage.
+ * Collects metrics from graph memory tier and CC Native MEMORY.md.
  */
 
 import { existsSync, readFileSync, appendFileSync, mkdirSync } from 'node:fs';
@@ -30,11 +29,9 @@ export interface MemoryMetrics {
   };
   queues: {
     graphQueueDepth: number;
-    mem0QueueDepth: number;
   };
   completedFlows: number;
   sessionCount: number;
-  mem0Available: boolean;
 }
 
 // =============================================================================
@@ -121,26 +118,22 @@ export function collectMemoryMetrics(projectDir?: string): MemoryMetrics {
   const memoryDir = join(dir, '.claude', 'memory');
   const logsDir = join(dir, '.claude', 'logs');
 
-  const decisionsPath = join(memoryDir, 'decisions.jsonl');
   const graphQueuePath = join(memoryDir, 'graph-queue.jsonl');
-  const mem0QueuePath = join(memoryDir, 'mem0-queue.jsonl');
   const completedFlowsPath = join(memoryDir, 'completed-flows.jsonl');
-  const analyticsPath = join(logsDir, 'mem0-analytics.jsonl');
+  const analyticsPath = join(logsDir, 'analytics.jsonl');
 
   return {
     timestamp: new Date().toISOString(),
     decisions: {
-      total: countJsonlLines(decisionsPath),
-      byCategory: countByField(decisionsPath, 'metadata.category'),
-      byType: countByField(decisionsPath, 'type'),
+      total: 0,
+      byCategory: {},
+      byType: {},
     },
     queues: {
       graphQueueDepth: countJsonlLines(graphQueuePath),
-      mem0QueueDepth: countJsonlLines(mem0QueuePath),
     },
     completedFlows: countJsonlLines(completedFlowsPath),
     sessionCount: countSessions(analyticsPath),
-    mem0Available: !!process.env.MEM0_API_KEY,
   };
 }
 

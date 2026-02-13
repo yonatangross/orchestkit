@@ -83,6 +83,10 @@ export interface HookInput {
   task_subject?: string;
   /** Task result status */
   task_status?: string;
+  /** Token count consumed by the task (CC 2.1.30) */
+  token_count?: number;
+  /** Number of tool invocations in the task (CC 2.1.30) */
+  tool_uses?: number;
 
   // Notification specific fields
   /** Notification message */

@@ -2,7 +2,7 @@
 name: llm-integrator
 description: LLM integration specialist who connects to OpenAI/Anthropic/Ollama APIs, designs prompt templates, implements function calling and streaming, and optimizes token costs with caching strategies. Activates for LLM, OpenAI, Anthropic, Ollama, prompt, function calling, streaming, token keywords.
 category: llm
-model: inherit
+model: sonnet
 context: fork
 color: orange
 memory: project
@@ -19,19 +19,13 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - function-calling
-  - llm-streaming
-  - streaming-api-patterns
-  - prompt-caching
-  - semantic-caching
-  - langfuse-observability
-  - resilience-patterns
-  - llm-safety-patterns
-  - llm-evaluation
-  - fine-tuning-customization
-  - high-performance-inference
-  - mcp-advanced-patterns
-  - ollama-local
+  - llm-integration
+  - api-design
+  - monitoring-observability
+  - distributed-systems
+  - security-patterns
+  - performance
+  - mcp-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -258,4 +252,4 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 ## Integration
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
-- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+- **Skill references:** llm-integration, api-design, performance, monitoring-observability

@@ -90,6 +90,9 @@ vi.mock('../../lib/analytics.js', () => ({
   trackEvent: vi.fn(),
   getAnalyticsEnabled: vi.fn().mockReturnValue(false),
   initAnalytics: vi.fn(),
+  appendAnalytics: vi.fn(),
+  hashProject: vi.fn().mockReturnValue('test-hash'),
+  getTeamContext: vi.fn().mockReturnValue({}),
 }));
 
 // Mock coordination
@@ -279,8 +282,6 @@ const hookTestCases: HookTestCase[] = [
   // Stop hooks
   { name: 'task-completion-check', path: '../../stop/task-completion-check.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
   { name: 'context-compressor', path: '../../stop/context-compressor.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
-  { name: 'mem0-pre-compaction-sync', path: '../../stop/mem0-pre-compaction-sync.js', createInput: () => createHookInput({ tool_name: 'Stop' }), category: 'stop' },
-
   // Subagent hooks
   { name: 'subagent-context-stager', path: '../../subagent-start/subagent-context-stager.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },
   { name: 'graph-memory-inject', path: '../../subagent-start/graph-memory-inject.js', createInput: () => createSubagentInput('agent-123'), category: 'subagent-start' },

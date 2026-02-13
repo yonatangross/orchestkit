@@ -287,10 +287,9 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 
 ## Related Skills
 
-- `test-standards-enforcer` - Enforce testing best practices during code review
+- `architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
-- `unit-testing` - Unit test patterns to verify during review
-- `a11y-testing` - Accessibility testing requirements for UI code reviews
+- `testing-patterns` - Comprehensive testing patterns to verify during review
 
 ## Capability Details
 
@@ -328,6 +327,20 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 - PR description format
 - Review checklist
 
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| TypeScript Quality | `rules/typescript-quality.md` | HIGH | No `any`, Zod validation, exhaustive switches, React 19 |
+| Python Quality | `rules/python-quality.md` | HIGH | Pydantic v2, ruff, mypy strict, async timeouts |
+| Security Baseline | `rules/security-baseline.md` | CRITICAL | No secrets, auth on endpoints, input validation |
+| Linting | `rules/linting-biome-setup.md` | HIGH | Biome setup, ESLint migration, gradual adoption |
+| Linting | `rules/linting-biome-rules.md` | HIGH | Biome config, type-aware rules, CI integration |
+
+**Total: 5 rules across 4 categories**
+
 ## Available Scripts
 
 - **`scripts/review-pr.md`** - Dynamic PR review with auto-fetched GitHub data
@@ -335,6 +348,6 @@ cache.set(key, value, CACHE_TTL_SECONDS);
   - Usage: `/review-pr [PR-number]`
   - Requires: GitHub CLI (`gh`)
   - Uses `$ARGUMENTS` and `!command` for live PR data
-  
+
 - **`assets/review-feedback-template.md`** - Static review feedback template
 - **`assets/pr-template.md`** - PR description template

@@ -10,7 +10,6 @@ export { auditLogger } from './audit-logger.js';
 export { autoLint } from './auto-lint.js';
 export { calibrationTracker } from './calibration-tracker.js';
 export { contextBudgetMonitor } from './context-budget-monitor.js';
-export { mem0WebhookHandler } from './mem0-webhook-handler.js';
 export { memoryBridge } from './memory-bridge.js';
 export { realtimeSync } from './realtime-sync.js';
 export { sessionMetrics } from './session-metrics.js';

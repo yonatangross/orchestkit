@@ -3,19 +3,13 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|function-calling:{SKILL.md,references/{tool-schema.md}}|llm,tools,function-calling,structured-output
-|llm-streaming:{SKILL.md}|llm,streaming,sse,real-time
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
-|prompt-caching:{SKILL.md}|llm,caching,cost-optimization,anthropic
-|semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
-|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
-|llm-safety-patterns:{SKILL.md,references/{context-separation.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,prompt-audit.md}}|ai,safety,guardrails,security,llm
-|llm-evaluation:{SKILL.md,references/{evaluation-metrics.md}}|evaluation,llm,quality,ragas,langfuse
-|fine-tuning-customization:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,synthetic-data.md,when-to-finetune.md}}|fine-tuning,lora,qlora,dpo,synthetic-data,rlhf
-|high-performance-inference:{SKILL.md,references/{edge-deployment.md,quantization-guide.md,speculative-decoding.md,vllm-deployment.md}}|vllm,quantization,inference,performance,edge,speculative
-|mcp-advanced-patterns:{SKILL.md,references/{resource-management.md,scaling-strategies.md,server-building-advanced.md,tool-composition.md}}|mcp,tools,resources,scaling,servers,composition
-|ollama-local:{SKILL.md,references/{model-selection.md}}|llm,ollama,local,self-hosted
+|llm-integration:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,model-selection.md,synthetic-data.md,tool-schema.md,when-to-finetune.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
+|security-patterns:{SKILL.md,references/{audit-logging.md,context-separation.md,langfuse-mask-callback.md,llm-guard-sanitization.md,logging-redaction.md,oauth-2.1-passkeys.md,output-guardrails.md,post-llm-attribution.md,pre-llm-filtering.md,presidio-integration.md,prompt-audit.md,request-context-pattern.md,tenant-isolation.md,vulnerability-demos.md,zod-v4-api.md}}|security,authentication,authorization,defense-in-depth,owasp,input-validation,llm-safety,pii-masking,jwt,oauth
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates
+|mcp-patterns:{SKILL.md}|mcp,server,tools,resources,security,prompt-injection
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

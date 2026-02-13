@@ -18,11 +18,9 @@ tools:
   - TaskList
 skills:
   - architecture-decision-record
-  - system-design-interrogation
-  - ascii-visualizer
-  - owasp-top-10
-  - security-scanning
-  - performance-optimization
+  - plan-viz
+  - security-patterns
+  - performance
   - remember
   - memory
 hooks:
@@ -343,9 +341,8 @@ No blockers. Well-designed feature.
 ## Integration
 
 This agent integrates with:
-- `system-design-interrogation` skill for question frameworks
-- `defense-in-depth` skill for security layers
-- `llm-safety-patterns` skill for LLM-specific checks
+- `architecture-decision-record` skill for question frameworks and decision documentation
+- `security-patterns` skill for security layers and LLM-specific checks
 
 ## Task Boundaries
 

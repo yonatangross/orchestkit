@@ -15,6 +15,7 @@
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, logHook } from '../lib/common.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 // Import individual hook implementations
 import { sessionMetrics } from './session-metrics.js';
@@ -29,7 +30,6 @@ import { memoryBridge } from './memory-bridge.js';
 import { realtimeSync } from './realtime-sync.js';
 import { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 import { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
-import { mem0WebhookHandler } from './mem0-webhook-handler.js';
 import { userTracking } from './user-tracking.js';
 // GAP-011: Wire solution-detector to enable problem-tracker functionality
 import { solutionDetector } from './solution-detector.js';
@@ -66,7 +66,6 @@ const HOOKS: HookConfig[] = [
   { name: 'pattern-extractor', fn: patternExtractor, matcher: 'Bash' },
   { name: 'issue-progress-commenter', fn: issueProgressCommenter, matcher: 'Bash' },
   { name: 'issue-subtask-updater', fn: issueSubtaskUpdater, matcher: 'Bash' },
-  { name: 'mem0-webhook-handler', fn: mem0WebhookHandler, matcher: 'Bash' },
 
   // Write/Edit-specific
   { name: 'code-style-learner', fn: codeStyleLearner, matcher: ['Write', 'Edit'] },
@@ -76,7 +75,7 @@ const HOOKS: HookConfig[] = [
   // Skill-specific
   { name: 'skill-usage-optimizer', fn: skillUsageOptimizer, matcher: 'Skill' },
 
-  // MCP memory-specific (mem0 uses CLI scripts now, not MCP)
+  // MCP memory-specific (graph memory)
   { name: 'memory-bridge', fn: memoryBridge, matcher: ['mcp__memory__create_entities'] },
 
   // Multi-tool matcher
@@ -131,6 +130,19 @@ export function matchesTool(toolName: string, matcher: string | string[]): boole
  */
 export async function unifiedDispatcher(input: HookInput): Promise<HookResult> {
   const toolName = input.tool_name || '';
+
+  // Cross-project skill tracking (Issue #459)
+  if (toolName === 'Skill') {
+    const skillName = (input.tool_input?.skill as string) || '';
+    if (skillName) {
+      appendAnalytics('skill-usage.jsonl', {
+        ts: new Date().toISOString(),
+        pid: hashProject(process.env.CLAUDE_PROJECT_DIR || ''),
+        skill: skillName,
+        ...getTeamContext(),
+      });
+    }
+  }
 
   // Filter hooks that match this tool
   const matchingHooks = HOOKS.filter(h => matchesTool(toolName, h.matcher));

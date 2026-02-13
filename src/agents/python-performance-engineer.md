@@ -2,7 +2,7 @@
 name: python-performance-engineer
 description: Python performance specialist who profiles, optimizes, and benchmarks Python applications. Focuses on memory optimization, async performance, database query optimization, caching strategies, and load testing. Activates for performance, profiling, memory leak, slow query, optimization, bottleneck, benchmark, latency, throughput, cProfile, memory_profiler, scalability, connection pool, cache, N+1
 category: backend
-model: opus
+model: sonnet
 context: fork
 color: orange
 memory: project
@@ -22,15 +22,12 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - asyncio-advanced
-  - connection-pooling
-  - caching-strategies
-  - performance-testing
-  - observability-monitoring
-  - database-schema-designer
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - celery-advanced
+  - python-backend
+  - performance
+  - testing-patterns
+  - monitoring-observability
+  - database-patterns
+  - async-jobs
   - task-dependency-patterns
   - remember
   - memory
@@ -353,7 +350,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** asyncio-advanced, connection-pooling, caching-strategies, performance-testing, observability-monitoring
+- **Skill references:** python-backend, performance, testing-patterns, monitoring-observability
 
 ## Profiling Tools Reference
 

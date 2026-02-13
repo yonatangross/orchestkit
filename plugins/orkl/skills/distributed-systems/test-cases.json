@@ -1,0 +1,138 @@
+{
+  "skill": "distributed-systems",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "locks-redis-redlock",
+      "rule": "locks-redis-redlock",
+      "query": "Implement a distributed lock using Redis for payment processing",
+      "expectedBehavior": [
+        "Uses Lua scripts for atomic acquire/release",
+        "Includes SET NX with PX expiry",
+        "Validates owner ID before release",
+        "Describes Redlock quorum for HA"
+      ]
+    },
+    {
+      "id": "locks-postgres-advisory",
+      "rule": "locks-postgres-advisory",
+      "query": "Use PostgreSQL advisory locks for a singleton cron job",
+      "expectedBehavior": [
+        "Uses pg_try_advisory_lock for non-blocking acquire",
+        "Distinguishes session-level vs transaction-level locks",
+        "Converts string names to bigint lock IDs via hash",
+        "Shows monitoring query with pg_locks"
+      ]
+    },
+    {
+      "id": "locks-fencing-tokens",
+      "rule": "locks-fencing-tokens",
+      "query": "Add heartbeat extension and fencing to a distributed lock",
+      "expectedBehavior": [
+        "Sets TTL on lock to prevent deadlocks",
+        "Includes background heartbeat/extend task",
+        "Validates owner ID on all operations",
+        "Uses retry with exponential backoff on acquire"
+      ]
+    },
+    {
+      "id": "resilience-circuit-breaker",
+      "rule": "resilience-circuit-breaker",
+      "query": "Add a circuit breaker to an external API integration",
+      "expectedBehavior": [
+        "Implements CLOSED/OPEN/HALF_OPEN state machine",
+        "Uses sliding window for failure tracking",
+        "Provides fallback response when circuit is open",
+        "Includes state change observability callbacks"
+      ]
+    },
+    {
+      "id": "resilience-retry-backoff",
+      "rule": "resilience-retry-backoff",
+      "query": "Implement retry with exponential backoff for an HTTP client",
+      "expectedBehavior": [
+        "Uses exponential backoff with full jitter",
+        "Classifies errors as retryable vs non-retryable",
+        "Sets max attempts and max delay cap",
+        "Places retry inside circuit breaker, not outside"
+      ]
+    },
+    {
+      "id": "resilience-bulkhead",
+      "rule": "resilience-bulkhead",
+      "query": "Isolate critical and optional operations with bulkheads",
+      "expectedBehavior": [
+        "Uses semaphore-based concurrency control",
+        "Defines tiers: Critical, Standard, Optional",
+        "Configures queue size and timeout per tier",
+        "Includes rejection policy handling"
+      ]
+    },
+    {
+      "id": "idempotency-keys",
+      "rule": "idempotency-keys",
+      "query": "Make a POST payment endpoint idempotent",
+      "expectedBehavior": [
+        "Accepts Idempotency-Key header from client",
+        "Generates deterministic keys via SHA-256 hash",
+        "Caches successful responses in Redis",
+        "Returns cached response with X-Idempotent-Replayed header"
+      ]
+    },
+    {
+      "id": "idempotency-dedup",
+      "rule": "idempotency-dedup",
+      "query": "Deduplicate event processing in a Kafka consumer",
+      "expectedBehavior": [
+        "Checks Redis cache for fast dedup",
+        "Falls back to database for durability",
+        "Uses database unique constraint to prevent races",
+        "Tracks processed events with idempotency keys"
+      ]
+    },
+    {
+      "id": "idempotency-database",
+      "rule": "idempotency-database",
+      "query": "Implement database-backed idempotency with TTL cleanup",
+      "expectedBehavior": [
+        "Creates idempotency_records table with unique key",
+        "Uses ON CONFLICT DO NOTHING for upsert",
+        "Sets expires_at for TTL-based cleanup",
+        "Validates request body hash to detect misuse"
+      ]
+    },
+    {
+      "id": "ratelimit-token-bucket",
+      "rule": "ratelimit-token-bucket",
+      "query": "Implement token bucket rate limiting with Redis",
+      "expectedBehavior": [
+        "Uses atomic Lua script for check-and-consume",
+        "Calculates token refill based on elapsed time",
+        "Returns allowed status and retry_after seconds",
+        "Sets appropriate EXPIRE on bucket key"
+      ]
+    },
+    {
+      "id": "ratelimit-sliding-window",
+      "rule": "ratelimit-sliding-window",
+      "query": "Implement precise sliding window rate limiting",
+      "expectedBehavior": [
+        "Uses Redis sorted sets with timestamps as scores",
+        "Removes expired entries with ZREMRANGEBYSCORE",
+        "Counts current window with ZCARD",
+        "Avoids fixed window boundary spike issues"
+      ]
+    },
+    {
+      "id": "ratelimit-distributed",
+      "rule": "ratelimit-distributed",
+      "query": "Add tiered rate limiting to a FastAPI application",
+      "expectedBehavior": [
+        "Configures SlowAPI with Redis backend",
+        "Defines per-tier limits (free/pro/enterprise)",
+        "Returns standard rate limit headers (X-RateLimit-*)",
+        "Returns 429 with Retry-After header when exceeded"
+      ]
+    }
+  ]
+}

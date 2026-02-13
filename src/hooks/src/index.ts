@@ -61,7 +61,6 @@ import { securityPatternValidator } from './pretool/Write/security-pattern-valid
 
 // PreTool/MCP hooks
 import { context7Tracker } from './pretool/mcp/context7-tracker.js';
-import { memoryFabricInit } from './pretool/mcp/memory-fabric-init.js';
 import { memoryValidator } from './pretool/mcp/memory-validator.js';
 
 // PreTool/InputMod hooks
@@ -109,9 +108,8 @@ import { todoEnforcer } from './prompt/todo-enforcer.js';
 // Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from './prompt/pipeline-detector.js';
 
-// SubagentStart hooks (7)
+// SubagentStart hooks (6)
 import { graphMemoryInject } from './subagent-start/graph-memory-inject.js';
-import { mem0MemoryInject } from './subagent-start/mem0-memory-inject.js';
 import { contextGate } from './subagent-start/context-gate.js';
 import { subagentContextStager } from './subagent-start/subagent-context-stager.js';
 import { subagentValidator } from './subagent-start/subagent-validator.js';
@@ -134,23 +132,19 @@ import { retryHandler } from './subagent-stop/retry-handler.js';
 import { desktopNotification } from './notification/desktop.js';
 import { soundNotification } from './notification/sound.js';
 
-// Stop hooks (10)
+// Stop hooks (9)
 import { autoRememberContinuity } from './stop/auto-remember-continuity.js';
 import { autoSaveContext } from './stop/auto-save-context.js';
 import { contextCompressor } from './stop/context-compressor.js';
 import { fullTestSuite } from './stop/full-test-suite.js';
 import { issueWorkSummary } from './stop/issue-work-summary.js';
-import { mem0PreCompactionSync } from './stop/mem0-pre-compaction-sync.js';
 import { securityScanAggregator } from './stop/security-scan-aggregator.js';
 import { sessionPatterns } from './stop/session-patterns.js';
 import { taskCompletionCheck } from './stop/task-completion-check.js';
 import { calibrationPersist } from './stop/calibration-persist.js';
 
-// Setup hooks (7)
+// Setup hooks (4)
 import { firstRunSetup } from './setup/first-run-setup.js';
-import { mem0AnalyticsDashboard } from './setup/mem0-analytics-dashboard.js';
-import { mem0BackupSetup } from './setup/mem0-backup-setup.js';
-import { mem0Cleanup } from './setup/mem0-cleanup.js';
 import { setupCheck } from './setup/setup-check.js';
 import { setupMaintenance } from './setup/setup-maintenance.js';
 import { setupRepair } from './setup/setup-repair.js';
@@ -162,12 +156,11 @@ import { deploymentSafetyCheck } from './agent/deployment-safety-check.js';
 import { migrationSafetyCheck } from './agent/migration-safety-check.js';
 import { securityCommandAudit } from './agent/security-command-audit.js';
 
-// PostTool hooks - Root (13)
+// PostTool hooks - Root (12)
 import { auditLogger } from './posttool/audit-logger.js';
 import { unifiedErrorHandler } from './posttool/unified-error-handler.js';
 import { autoLint } from './posttool/auto-lint.js';
 import { contextBudgetMonitor } from './posttool/context-budget-monitor.js';
-import { mem0WebhookHandler } from './posttool/mem0-webhook-handler.js';
 import { memoryBridge } from './posttool/memory-bridge.js';
 import { realtimeSync } from './posttool/realtime-sync.js';
 import { sessionMetrics } from './posttool/session-metrics.js';
@@ -190,11 +183,8 @@ import { skillUsageOptimizer } from './posttool/skill/skill-usage-optimizer.js';
 // PostTool/Task hooks — Agent Teams
 import { teamMemberStart } from './posttool/task/team-member-start.js';
 
-// Lifecycle hooks (15) - SessionStart/SessionEnd
+// Lifecycle hooks (12) - SessionStart/SessionEnd
 import { analyticsConsentCheck } from './lifecycle/analytics-consent-check.js';
-import { mem0AnalyticsTracker } from './lifecycle/mem0-analytics-tracker.js';
-import { mem0ContextRetrieval } from './lifecycle/mem0-context-retrieval.js';
-import { mem0WebhookSetup } from './lifecycle/mem0-webhook-setup.js';
 import { patternSyncPull } from './lifecycle/pattern-sync-pull.js';
 import { patternSyncPush } from './lifecycle/pattern-sync-push.js';
 import { sessionCleanup } from './lifecycle/session-cleanup.js';
@@ -254,9 +244,8 @@ export const hooks: Record<string, HookFn> = {
   'pretool/Write/docstring-enforcer': docstringEnforcer,
   'pretool/Write/security-pattern-validator': securityPatternValidator,
 
-  // PreTool/MCP hooks (3)
+  // PreTool/MCP hooks (2)
   'pretool/mcp/context7-tracker': context7Tracker,
-  'pretool/mcp/memory-fabric-init': memoryFabricInit,
   'pretool/mcp/memory-validator': memoryValidator,
 
   // PreTool/InputMod hooks (1)
@@ -279,9 +268,8 @@ export const hooks: Record<string, HookFn> = {
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
 
-  // SubagentStart hooks (7)
+  // SubagentStart hooks (6)
   'subagent-start/graph-memory-inject': graphMemoryInject,
-  'subagent-start/mem0-memory-inject': mem0MemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,
@@ -328,23 +316,19 @@ export const hooks: Record<string, HookFn> = {
   'skill/test-pattern-validator': testPatternValidator,
   'skill/test-runner': testRunner,
 
-  // Stop hooks (11)
+  // Stop hooks (10)
   'stop/auto-remember-continuity': autoRememberContinuity,
   'stop/auto-save-context': autoSaveContext,
   'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
-  'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
   'stop/calibration-persist': calibrationPersist,
 
-  // Setup hooks (7)
+  // Setup hooks (4)
   'setup/first-run-setup': firstRunSetup,
-  'setup/mem0-analytics-dashboard': mem0AnalyticsDashboard,
-  'setup/mem0-backup-setup': mem0BackupSetup,
-  'setup/mem0-cleanup': mem0Cleanup,
   'setup/setup-check': setupCheck,
   'setup/setup-maintenance': setupMaintenance,
   'setup/setup-repair': setupRepair,
@@ -356,12 +340,11 @@ export const hooks: Record<string, HookFn> = {
   'agent/migration-safety-check': migrationSafetyCheck,
   'agent/security-command-audit': securityCommandAudit,
 
-  // PostTool hooks - Root (12)
+  // PostTool hooks - Root (11)
   'posttool/audit-logger': auditLogger,
   'posttool/unified-error-handler': unifiedErrorHandler,
   'posttool/auto-lint': autoLint,
   'posttool/context-budget-monitor': contextBudgetMonitor,
-  'posttool/mem0-webhook-handler': mem0WebhookHandler,
   'posttool/memory-bridge': memoryBridge,
   'posttool/realtime-sync': realtimeSync,
   'posttool/session-metrics': sessionMetrics,
@@ -385,11 +368,8 @@ export const hooks: Record<string, HookFn> = {
   // PostTool/Task hooks (1) — Agent Teams
   'posttool/task/team-member-start': teamMemberStart,
 
-  // Lifecycle hooks (13) - SessionStart/SessionEnd
+  // Lifecycle hooks (10) - SessionStart/SessionEnd
   'lifecycle/analytics-consent-check': analyticsConsentCheck,
-  'lifecycle/mem0-analytics-tracker': mem0AnalyticsTracker,
-  'lifecycle/mem0-context-retrieval': mem0ContextRetrieval,
-  'lifecycle/mem0-webhook-setup': mem0WebhookSetup,
   'lifecycle/pattern-sync-pull': patternSyncPull,
   'lifecycle/pattern-sync-push': patternSyncPush,
   'lifecycle/session-cleanup': sessionCleanup,

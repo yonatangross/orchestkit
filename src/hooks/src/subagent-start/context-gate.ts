@@ -194,7 +194,7 @@ Too many agents spawned in a single response (${responseCount} agents).
 Maximum allowed: ${MAX_AGENTS_PER_RESPONSE} per response
 
 SOLUTION: Split into multiple responses or use sequential execution.
-Consider using the /context-compression skill first.
+Consider using the /context-optimization skill first.
 
 Attempted: ${subagentType} - ${description}`);
   }
@@ -214,7 +214,7 @@ Maximum allowed: ${MAX_CONCURRENT_BACKGROUND} concurrent background agents
 SOLUTION:
 1. Wait for existing agents to complete
 2. Run this agent in foreground (remove run_in_background)
-3. Use /context-compression to free up context
+3. Use /context-optimization to free up context
 
 Attempted: ${subagentType} - ${description}`);
   }
@@ -232,7 +232,7 @@ ${activeCount} background agents active (limit: ${MAX_CONCURRENT_BACKGROUND}).
 
 Consider:
 - Running remaining agents sequentially
-- Using /context-compression skill
+- Using /context-optimization skill
 - Waiting for current agents to complete
 
 Proceeding with: ${subagentType} - ${description}`);

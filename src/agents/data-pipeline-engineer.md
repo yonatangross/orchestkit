@@ -2,7 +2,7 @@
 name: data-pipeline-engineer
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
 category: data
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project
@@ -13,29 +13,19 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - embeddings
   - rag-retrieval
-  - hyde-retrieval
-  - query-decomposition
-  - reranking-patterns
-  - contextual-retrieval
-  - agentic-rag-patterns
-  - pgvector-search
-  - golden-dataset-management
-  - golden-dataset-curation
-  - golden-dataset-validation
-  - semantic-caching
-  - caching-strategies
-  - background-jobs
-  - browser-content-capture
+  - golden-dataset
+  - performance
+  - async-jobs
+  - browser-tools
   - devops-deployment
-  - mem0-memory
   - memory-fabric
   - task-dependency-patterns
   - remember
@@ -211,4 +201,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset, context-optimization

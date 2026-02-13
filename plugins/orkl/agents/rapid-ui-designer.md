@@ -2,7 +2,7 @@
 name: rapid-ui-designer
 description: UI/UX designer specializing in rapid prototyping with Tailwind CSS. Creates design systems, component specifications, responsive layouts, and accessibility-compliant mockups that bridge design and implementation. Activates for UI, UX, prototype, Tailwind, design system, component, mockup
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -16,10 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - design-system-starter
-  - shadcn-patterns
-  - radix-primitives
-  - motion-animation-patterns
+  - ui-components
+  - responsive-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -300,7 +298,7 @@ Task: "Design a notification card component"
 ## Integration
 - **Receives from:** ux-researcher (user requirements, personas), product requirements
 - **Hands off to:** frontend-ui-developer (implementation), code-quality-reviewer (accessibility validation)
-- **Skill references:** design-system-starter, motion-animation-patterns
+- **Skill references:** design-system-starter, frontend-animation
 
 ## Skill Index
 
@@ -312,6 +310,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
+|responsive-patterns:{SKILL.md,references/{container-queries.md,fluid-typography.md}}|responsive,container-queries,fluid-typography,mobile-first,css-grid,clamp,cqi,breakpoints,pwa,service-worker,workbox,offline-first,animation,motion,framer-motion,scroll-driven,view-transitions
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

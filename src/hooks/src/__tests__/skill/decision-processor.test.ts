@@ -3,7 +3,7 @@
  * Tests decision extraction, entity detection, and enriched metadata generation
  *
  * Focus: Decision detection, rationale extraction, entity extraction,
- * category detection, importance classification, mem0 suggestion output
+ * category detection, importance classification, suggestion output
  */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -543,7 +543,7 @@ describe('decision-processor', () => {
       expect(result.systemMessage).toContain('[Entities]');
     });
 
-    test('includes mem0 script suggestion', () => {
+    test('includes graph memory suggestion', () => {
       // Arrange
       const input = createSkillCompleteInput(
         createDecisionText('to use Redis', 'caching performance'),
@@ -552,11 +552,11 @@ describe('decision-processor', () => {
       // Act
       const result = decisionProcessor(input);
 
-      // Assert
-      expect(result.systemMessage).toContain('add-memory.py');
+      // Assert — v7: uses MCP graph memory instead of add-memory.py
+      expect(result.systemMessage).toContain('mcp__memory__create_entities');
     });
 
-    test('includes metadata JSON in suggestion', () => {
+    test('includes category in decision summary', () => {
       // Arrange
       const input = createSkillCompleteInput(
         createDecisionText('to use TypeScript', 'type safety'),
@@ -566,7 +566,6 @@ describe('decision-processor', () => {
       const result = decisionProcessor(input);
 
       // Assert
-      expect(result.systemMessage).toContain('--metadata');
       expect(result.systemMessage).toContain('category');
     });
 
@@ -600,8 +599,9 @@ describe('decision-processor', () => {
       // Act
       const result = decisionProcessor(input);
 
-      // Assert
-      expect(result.systemMessage).toContain('cc_version');
+      // Assert — v7: cc_version is in internal metadata, output contains decision summary
+      expect(result.systemMessage).toBeDefined();
+      expect(result.continue).toBe(true);
 
       // Cleanup
       delete process.env.CLAUDE_CODE_VERSION;
@@ -655,8 +655,9 @@ describe('decision-processor', () => {
       // Act
       const result = decisionProcessor(input);
 
-      // Assert
-      expect(result.systemMessage).toContain('plugin_version');
+      // Assert — v7: plugin_version is in internal metadata, not in systemMessage
+      expect(result.systemMessage).toBeDefined();
+      expect(result.continue).toBe(true);
     });
 
     test('handles missing plugin.json gracefully', async () => {
@@ -796,9 +797,8 @@ describe('decision-processor', () => {
   // ---------------------------------------------------------------------------
 
   describe('integration with common utilities', () => {
-    test('uses getPluginRoot for script path', () => {
-      // Arrange
-      vi.mocked(getPluginRoot).mockReturnValue('/custom/plugin/path');
+    test('produces valid output with decision content', () => {
+      // Arrange — v7: no longer uses getPluginRoot for script paths (uses MCP graph)
       const input = createSkillCompleteInput(
         createDecisionText('to use FastAPI', 'async support'),
       );
@@ -807,7 +807,8 @@ describe('decision-processor', () => {
       const result = decisionProcessor(input);
 
       // Assert
-      expect(result.systemMessage).toContain('/custom/plugin/path');
+      expect(result.systemMessage).toBeDefined();
+      expect(result.systemMessage).toContain('mcp__memory__create_entities');
     });
   });
 });

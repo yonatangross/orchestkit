@@ -15,9 +15,8 @@ export * from '../lib/orchestration-state.js';
 export * from '../lib/retry-manager.js';
 export * from '../lib/calibration-engine.js';
 
-// SubagentStart hooks (7)
+// SubagentStart hooks (6)
 import { graphMemoryInject } from '../subagent-start/graph-memory-inject.js';
-import { mem0MemoryInject } from '../subagent-start/mem0-memory-inject.js';
 import { contextGate } from '../subagent-start/context-gate.js';
 import { subagentContextStager } from '../subagent-start/subagent-context-stager.js';
 import { subagentValidator } from '../subagent-start/subagent-validator.js';
@@ -43,9 +42,8 @@ import type { HookFn } from '../types.js';
  * Subagent hooks registry
  */
 export const hooks: Record<string, HookFn> = {
-  // SubagentStart hooks (7)
+  // SubagentStart hooks (6)
   'subagent-start/graph-memory-inject': graphMemoryInject,
-  'subagent-start/mem0-memory-inject': mem0MemoryInject,
   'subagent-start/context-gate': contextGate,
   'subagent-start/subagent-context-stager': subagentContextStager,
   'subagent-start/subagent-validator': subagentValidator,

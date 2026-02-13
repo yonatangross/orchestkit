@@ -77,7 +77,7 @@ export interface Decision {
   category: string;
   impact: 'high' | 'medium' | 'low';
   status: 'proposed' | 'implemented' | 'deprecated' | 'superseded';
-  source: 'changelog' | 'session' | 'coordination' | 'mem0';
+  source: 'changelog' | 'session' | 'coordination';
   bestPractice?: string;
   entities?: string[];
 }
@@ -124,7 +124,7 @@ export function hashString(content: string): string {
 
 /**
  * Detect decision category from entry text
- * Reused pattern from mem0-decision-saver
+ * Reused pattern from decision-saver
  */
 export function detectDecisionCategory(text: string): string {
   const lowerText = text.toLowerCase();
@@ -138,7 +138,7 @@ export function detectDecisionCategory(text: string): string {
     ['api', /\b(api|endpoint|rest|graphql|grpc|webhook|route)\b/],
     ['database', /\b(database|schema|migration|query|postgres|sqlalchemy|alembic)\b/],
     ['frontend', /\b(react|frontend|component|ui|ux|css|tailwind|vite)\b/],
-    ['ai', /\b(ai|llm|rag|embedding|langraph|agent|mem0|mcp)\b/],
+    ['ai', /\b(ai|llm|rag|embedding|langraph|agent|mcp)\b/],
     ['hooks', /\b(hook|pretool|posttool|lifecycle|permission)\b/],
     ['skills', /\b(skill|skill\.md|knowledge|pattern)\b/],
     ['agents', /\b(agent|subagent|specialist|architect)\b/],

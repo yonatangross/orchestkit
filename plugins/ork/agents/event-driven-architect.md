@@ -13,22 +13,18 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - event-sourcing
-  - message-queues
-  - outbox-pattern
-  - saga-patterns
-  - cqrs-patterns
-  - streaming-api-patterns
-  - background-jobs
-  - resilience-patterns
-  - asyncio-advanced
-  - idempotency-patterns
+  - distributed-systems
+  - api-design
+  - async-jobs
+  - distributed-systems
+  - python-backend
   - task-dependency-patterns
   - remember
   - memory
@@ -219,7 +215,7 @@ Task: "Design event-driven order system"
 ## Integration
 - **Receives from:** backend-system-architect (domain requirements), database-engineer (storage needs)
 - **Hands off to:** data-pipeline-engineer (event processing), code-quality-reviewer (validation)
-- **Skill references:** event-sourcing, message-queues, streaming-api-patterns
+- **Skill references:** event-driven, streaming-api-patterns
 
 ## Skill Index
 
@@ -231,16 +227,11 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|event-sourcing:{SKILL.md,references/{event-store-patterns.md}}|event-sourcing,cqrs,events,audit-trail,domain-events
-|message-queues:{SKILL.md,references/{faststream-patterns.md,kafka-patterns.md,rabbitmq-patterns.md}}|message-queue,rabbitmq,redis-streams,kafka,faststream,pub-sub,async,event-driven
-|outbox-pattern:{SKILL.md,references/{cdc-debezium.md,idempotency-patterns.md,outbox-delivery-patterns.md}}|event-driven,outbox,transactions,reliability,microservices,cdc,idempotency
-|saga-patterns:{SKILL.md,references/{choreography-deep-dive.md,compensation-strategies.md,orchestration-deep-dive.md,state-machine-saga.md}}|saga,distributed-transactions,orchestration,choreography,compensation,microservices
-|cqrs-patterns:{SKILL.md,references/{command-handlers.md,event-store-setup.md,projection-patterns.md,query-handlers.md}}|cqrs,command-query,read-model,write-model,projection,event-sourcing
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
-|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
-|resilience-patterns:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,retry-strategies.md}}|resilience,circuit-breaker,bulkhead,retry,fault-tolerance
-|asyncio-advanced:{SKILL.md,references/{semaphore-patterns.md,taskgroup-patterns.md}}|asyncio,python,concurrency,taskgroup,structured-concurrency
-|idempotency-patterns:{SKILL.md,references/{stripe-pattern.md}}|idempotency,deduplication,exactly-once,distributed-systems,api
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
+|async-jobs:{SKILL.md,references/{arq-patterns.md,canvas-workflows.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
+|distributed-systems:{SKILL.md,references/{bulkhead-pattern.md,circuit-breaker.md,error-classification.md,llm-resilience.md,postgres-advisory-locks.md,redis-locks.md,redlock-algorithm.md,retry-strategies.md,stripe-pattern.md,token-bucket-algorithm.md}}|distributed-systems,distributed-locks,resilience,circuit-breaker,idempotency,rate-limiting,retry,fault-tolerance,edge-computing,cloudflare-workers,vercel-edge,event-sourcing,cqrs,saga,outbox,message-queue,kafka
+|python-backend:{SKILL.md,references/{eager-loading.md,fastapi-integration.md,middleware-stack.md,pool-sizing.md,semaphore-patterns.md,taskgroup-patterns.md}}|python,asyncio,fastapi,sqlalchemy,connection-pooling,async,postgresql
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

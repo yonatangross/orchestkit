@@ -1,0 +1,176 @@
+{
+  "skill": "security-patterns",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "auth-jwt",
+      "rule": "auth-jwt",
+      "query": "Implement JWT authentication with access and refresh tokens",
+      "expectedBehavior": [
+        "Uses Argon2id for password hashing",
+        "Access token expires in 15 minutes",
+        "Refresh token stored in HTTPOnly cookie",
+        "Hardcodes algorithm (HS256), never reads from header",
+        "Validates required claims (exp, iat, sub)"
+      ]
+    },
+    {
+      "id": "auth-oauth",
+      "rule": "auth-oauth",
+      "query": "Implement OAuth 2.1 login flow for a SPA",
+      "expectedBehavior": [
+        "Uses PKCE with S256 code challenge method",
+        "No implicit grant (OAuth 2.1 requirement)",
+        "Includes state parameter for CSRF protection",
+        "Implements refresh token rotation"
+      ]
+    },
+    {
+      "id": "auth-rbac",
+      "rule": "auth-rbac",
+      "query": "Add role-based access control to API endpoints",
+      "expectedBehavior": [
+        "Uses decorator pattern (require_role, require_permission)",
+        "Checks authorization on every endpoint",
+        "Returns 403 for insufficient permissions",
+        "Uses generic error messages"
+      ]
+    },
+    {
+      "id": "defense-layers",
+      "rule": "defense-layers",
+      "query": "Design a security architecture for an AI application",
+      "expectedBehavior": [
+        "Includes all 8 layers (edge to observability)",
+        "Rate limiting at edge layer",
+        "JWT validation at gateway layer",
+        "Schema validation at input layer",
+        "No IDs in LLM prompts at layer 5"
+      ]
+    },
+    {
+      "id": "defense-zero-trust",
+      "rule": "defense-zero-trust",
+      "query": "Implement tenant isolation for a multi-tenant SaaS",
+      "expectedBehavior": [
+        "Creates immutable RequestContext from JWT",
+        "Every query includes tenant_id filter",
+        "Tenant filter is mandatory, not optional",
+        "Cache keys include tenant_id",
+        "Audit logging with sanitization"
+      ]
+    },
+    {
+      "id": "validation-input",
+      "rule": "validation-input",
+      "query": "Validate API request body with Zod",
+      "expectedBehavior": [
+        "Uses z.object with typed fields",
+        "Includes min/max length constraints",
+        "Uses z.enum for fixed value sets",
+        "Returns structured error with safeParse",
+        "Validates server-side, not just client"
+      ]
+    },
+    {
+      "id": "validation-output",
+      "rule": "validation-output",
+      "query": "Sanitize user-provided HTML content",
+      "expectedBehavior": [
+        "Uses DOMPurify or markupsafe for escaping",
+        "Restricts allowed HTML tags",
+        "Prevents XSS via output encoding",
+        "Sets Content-Security-Policy header"
+      ]
+    },
+    {
+      "id": "validation-schemas",
+      "rule": "validation-schemas",
+      "query": "Validate file uploads and URL inputs",
+      "expectedBehavior": [
+        "Checks file magic bytes, not just extension",
+        "Enforces file size limits",
+        "Validates URLs against domain allowlist",
+        "Requires HTTPS for URL inputs"
+      ]
+    },
+    {
+      "id": "owasp-injection",
+      "rule": "owasp-injection",
+      "query": "Fix SQL injection vulnerability in a search endpoint",
+      "expectedBehavior": [
+        "Uses parameterized queries or ORM",
+        "Never concatenates user input into SQL",
+        "Uses subprocess with list args for commands",
+        "Validates URL against domain allowlist for SSRF"
+      ]
+    },
+    {
+      "id": "owasp-broken-auth",
+      "rule": "owasp-broken-auth",
+      "query": "Fix authentication bypass vulnerability",
+      "expectedBehavior": [
+        "Hardcodes JWT algorithm (never reads from header)",
+        "Implements CSRF protection with tokens or SameSite cookies",
+        "Uses constant-time comparison for secrets",
+        "Authorization check on every endpoint"
+      ]
+    },
+    {
+      "id": "llm-prompt-injection",
+      "rule": "llm-prompt-injection",
+      "query": "Implement context separation for LLM prompts",
+      "expectedBehavior": [
+        "No user_id, tenant_id, or UUIDs in prompts",
+        "Uses SafePromptBuilder with audit",
+        "Stores context IDs separately for attribution",
+        "Runs audit_prompt() before every LLM call"
+      ]
+    },
+    {
+      "id": "llm-guardrails",
+      "rule": "llm-guardrails",
+      "query": "Validate LLM output before using it",
+      "expectedBehavior": [
+        "Schema validation with Pydantic",
+        "Checks for hallucinated UUIDs",
+        "Grounding validation against context",
+        "Content safety check (toxic/PII)",
+        "Size limit enforcement"
+      ]
+    },
+    {
+      "id": "llm-content-filtering",
+      "rule": "llm-content-filtering",
+      "query": "Implement the three-phase LLM call pattern",
+      "expectedBehavior": [
+        "Pre-LLM: tenant-scoped retrieval, content extraction",
+        "LLM Call: content-only prompt, no identifiers",
+        "Post-LLM: deterministic attribution from RequestContext",
+        "Source references captured for attribution"
+      ]
+    },
+    {
+      "id": "pii-detection",
+      "rule": "pii-detection",
+      "query": "Detect PII in user-provided text",
+      "expectedBehavior": [
+        "Uses Presidio or regex patterns for detection",
+        "Detects email, phone, SSN, credit card",
+        "Supports custom entity recognizers",
+        "Returns entity type and location"
+      ]
+    },
+    {
+      "id": "pii-redaction",
+      "rule": "pii-redaction",
+      "query": "Mask PII before sending to Langfuse",
+      "expectedBehavior": [
+        "Uses Langfuse mask callback at initialization",
+        "Replaces PII with typed tokens like [REDACTED_EMAIL]",
+        "Applies to both input and output traces",
+        "Supports reversible anonymization with LLM Guard Vault"
+      ]
+    }
+  ]
+}

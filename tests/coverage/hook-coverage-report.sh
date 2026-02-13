@@ -78,13 +78,13 @@ report_category() {
             fi
 
             ((category_total++)) || true
-            ((TOTAL_HOOKS++)) || true
+            TOTAL_HOOKS=$((TOTAL_HOOKS + 1))
 
             if is_hook_tested "$hook_name" "$relative_path"; then
                 ((category_tested++)) || true
-                ((TESTED_HOOKS++)) || true
+                TESTED_HOOKS=$((TESTED_HOOKS + 1))
             else
-                ((UNTESTED_HOOKS++)) || true
+                UNTESTED_HOOKS=$((UNTESTED_HOOKS + 1))
                 untested_list+=("$relative_path")
             fi
         fi

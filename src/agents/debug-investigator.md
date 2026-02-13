@@ -2,7 +2,7 @@
 name: debug-investigator
 description: Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces. Use when investigating broken functionality, debugging regressions, or analyzing flaky tests.
 category: testing
-model: inherit
+model: sonnet
 context: inherit
 color: orange
 memory: local
@@ -16,8 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - root-cause-analysis
-  - observability-monitoring
+  - fix-issue
+  - monitoring-observability
   - errors
   - remember
   - memory
@@ -255,7 +255,7 @@ The debug-investigator agent complements `/debug` by:
 1. Reviewing debug session output for patterns
 2. Applying systematic RCA methodology to session errors
 3. Suggesting `/ork:fix-issue` workflow if applicable
-4. Using root-cause-analysis skill patterns for deep investigation
+4. Using fix-issue skill patterns for deep investigation
 
 **Differences:**
 - `/debug` - Real-time diagnostics for current CC session state
@@ -264,4 +264,4 @@ The debug-investigator agent complements `/debug` by:
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
-- **Skill references:** observability-monitoring
+- **Skill references:** monitoring-observability

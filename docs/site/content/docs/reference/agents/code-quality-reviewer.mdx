@@ -3,7 +3,7 @@ title: "Code Quality Reviewer"
 description: "Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check"
 ---
 
-<span className="badge badge-gray">inherit</span>
+<span className="badge badge-blue">sonnet</span>
  <span className="badge badge-gray">testing</span>
 
 > Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check
@@ -14,6 +14,8 @@ description: "Quality assurance expert who reviews code for bugs, security vulne
 - `Bash`
 - `Grep`
 - `Glob`
+- `Task(test-generator)`
+- `Task(security-auditor)`
 - `TeamCreate`
 - `SendMessage`
 - `TaskCreate`
@@ -23,19 +25,11 @@ description: "Quality assurance expert who reviews code for bugs, security vulne
 ## Skills Used
 
 - [code-review-playbook](/docs/reference/skills/code-review-playbook)
-- [owasp-top-10](/docs/reference/skills/owasp-top-10)
-- [unit-testing](/docs/reference/skills/unit-testing)
-- [integration-testing](/docs/reference/skills/integration-testing)
-- [evidence-verification](/docs/reference/skills/evidence-verification)
-- [webapp-testing](/docs/reference/skills/webapp-testing)
-- [resilience-patterns](/docs/reference/skills/resilience-patterns)
-- [test-standards-enforcer](/docs/reference/skills/test-standards-enforcer)
-- [security-scanning](/docs/reference/skills/security-scanning)
+- [security-patterns](/docs/reference/skills/security-patterns)
+- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [distributed-systems](/docs/reference/skills/distributed-systems)
+- [architecture-patterns](/docs/reference/skills/architecture-patterns)
 - [quality-gates](/docs/reference/skills/quality-gates)
-- [biome-linting](/docs/reference/skills/biome-linting)
-- [clean-architecture](/docs/reference/skills/clean-architecture)
-- [project-structure-enforcer](/docs/reference/skills/project-structure-enforcer)
-- [best-practices](/docs/reference/skills/best-practices)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
 
@@ -63,6 +57,13 @@ Focus on actual issues, not hypothetical improvements.
 Prioritize blockers (security, correctness) over style preferences.
 Don't flag code that works correctly just because it could be "cleaner".
 &lt;/avoid_overengineering&gt;
+
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Review code as it lands from other teammates — don't wait for all implementation to finish.
+- Use `SendMessage` to flag issues directly to the author (e.g., `backend-architect` or `frontend-dev`).
+- Produce a final APPROVE/REJECT verdict when the lead requests integration review.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
 ## MCP Tools
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
@@ -390,4 +391,4 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 ## Integration
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
-- **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook, i18n-date-patterns
+- **Skill references:** security-checklist, testing-patterns, code-review-playbook, i18n-date-patterns

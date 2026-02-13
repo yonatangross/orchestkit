@@ -30,9 +30,6 @@ const HOOK_PRIORITIES: Record<string, HookPriority> = {
   // P1: Core memory injection
   'subagent-start/graph-memory-inject': 'P1',
 
-  // P2: Supplementary context
-  'subagent-start/mem0-memory-inject': 'P2',
-
   // P3: Monitoring and analytics
   'posttool/context-budget-monitor': 'P3',
   'prompt/context-pruning-advisor': 'P3',

@@ -20,6 +20,8 @@ This agent activates for: LangGraph, workflow, supervisor, state, checkpoint, RA
 - `Edit`
 - `Grep`
 - `Glob`
+- `Task(llm-integrator)`
+- `Task(data-pipeline-engineer)`
 - `TeamCreate`
 - `SendMessage`
 - `TaskCreate`
@@ -28,23 +30,11 @@ This agent activates for: LangGraph, workflow, supervisor, state, checkpoint, RA
 
 ## Skills Used
 
-- [langgraph-supervisor](/docs/reference/skills/langgraph-supervisor)
-- [langgraph-routing](/docs/reference/skills/langgraph-routing)
-- [langgraph-parallel](/docs/reference/skills/langgraph-parallel)
-- [langgraph-state](/docs/reference/skills/langgraph-state)
-- [langgraph-checkpoints](/docs/reference/skills/langgraph-checkpoints)
-- [langgraph-human-in-loop](/docs/reference/skills/langgraph-human-in-loop)
-- [langgraph-functional](/docs/reference/skills/langgraph-functional)
-- [langgraph-streaming](/docs/reference/skills/langgraph-streaming)
-- [langgraph-subgraphs](/docs/reference/skills/langgraph-subgraphs)
-- [langgraph-tools](/docs/reference/skills/langgraph-tools)
-- [multi-agent-orchestration](/docs/reference/skills/multi-agent-orchestration)
-- [agent-loops](/docs/reference/skills/agent-loops)
-- [alternative-agent-frameworks](/docs/reference/skills/alternative-agent-frameworks)
-- [temporal-io](/docs/reference/skills/temporal-io)
-- [langfuse-observability](/docs/reference/skills/langfuse-observability)
-- [observability-monitoring](/docs/reference/skills/observability-monitoring)
-- [context-compression](/docs/reference/skills/context-compression)
+- [langgraph](/docs/reference/skills/langgraph)
+- [agent-orchestration](/docs/reference/skills/agent-orchestration)
+- [async-jobs](/docs/reference/skills/async-jobs)
+- [monitoring-observability](/docs/reference/skills/monitoring-observability)
+- [llm-integration](/docs/reference/skills/llm-integration)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -300,7 +290,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph-supervisor, langgraph-routing, langgraph-parallel, langgraph-state, langgraph-checkpoints, langgraph-human-in-loop, langgraph-functional, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

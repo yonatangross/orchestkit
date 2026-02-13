@@ -16,13 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - owasp-top-10
-  - security-scanning
-  - defense-in-depth
-  - auth-patterns
-  - input-validation
-  - llm-safety-patterns
-  - mcp-security-hardening
+  - security-patterns
+  - mcp-patterns
   - task-dependency-patterns
   - remember
   - memory

@@ -113,6 +113,19 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - review-pr: Review changes before committing
 - fix-issue: Fix issues and commit the fixes
 - issue-progress-tracking: Auto-updates GitHub issues with commit progress
+
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Atomic Commits | `rules/atomic-commit.md` | CRITICAL | One logical change per commit, atomicity test |
+| Commit Splitting | `rules/commit-splitting.md` | HIGH | `git add -p`, interactive staging, separation strategies |
+| Conventional Format | `rules/conventional-format.md` | HIGH | type(scope): description, breaking changes |
+
+**Total: 3 rules across 3 categories**
+
 ## References
 
 - [Conventional Commits](references/conventional-commits.md)

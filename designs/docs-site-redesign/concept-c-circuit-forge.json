@@ -1,0 +1,307 @@
+{
+  "concept": {
+    "id": "C",
+    "codename": "circuit-forge",
+    "tagline": "Built to orchestrate.",
+    "philosophy": "Industrial technical aesthetic. OrchestKit is infrastructure — it wires skills, agents, and hooks into circuits. The visual metaphor is a circuit board / blueprint: dark slate background with a subtle dot-grid pattern, single electric accent color (emerald), connector lines between components. Monochrome with strategic color. Feels like opening the hood of a powerful machine.",
+    "distinctive_features": [
+      "Dot-grid background pattern (SVG) reminiscent of circuit board / engineering paper",
+      "Single primary accent: emerald green (#10b981) — used sparingly for maximum impact",
+      "Connector lines between hero stats (SVG paths that look like circuit traces)",
+      "Blueprint-style section headers with thin horizontal rules and monospace labels",
+      "Cards with left accent border (2px emerald) instead of full border glow",
+      "Technical 'schematic' illustrations instead of icons (SVG line drawings)",
+      "Monospace used more aggressively: stat labels, section overlines, badge text",
+      "Extremely clean grid layout with mathematical precision — no rounded corners larger than 8px",
+      "Minimal color: only emerald and white against dark slate. Red only for errors."
+    ]
+  },
+
+  "color_palette": {
+    "backgrounds": {
+      "base": { "hex": "#0c0f14", "oklch": "oklch(0.08 0.01 250)", "role": "Page background" },
+      "surface": { "hex": "#111621", "oklch": "oklch(0.11 0.01 240)", "role": "Card backgrounds" },
+      "surface_elevated": { "hex": "#171d2b", "oklch": "oklch(0.14 0.015 240)", "role": "Elevated panels" },
+      "surface_hover": { "hex": "#1c2436", "oklch": "oklch(0.17 0.015 240)", "role": "Hover backgrounds" },
+      "grid_dot": { "hex": "#1e293b", "role": "Dot-grid pattern color" },
+      "overlay": { "hex": "#0c0f14e6", "role": "Modal overlay" }
+    },
+    "borders": {
+      "default": { "hex": "#1e293b", "oklch": "oklch(0.21 0.02 250)", "role": "Default borders" },
+      "strong": { "hex": "#334155", "oklch": "oklch(0.30 0.02 250)", "role": "Active borders, emphasis" },
+      "accent": { "hex": "#10b981", "role": "Left accent borders on active items" },
+      "accent_muted": { "hex": "#10b98140", "role": "Subtle accent borders" }
+    },
+    "text": {
+      "primary": { "hex": "#e2e8f0", "oklch": "oklch(0.92 0.01 250)", "contrast_on_base": "14.8:1", "role": "Headings, key values" },
+      "secondary": { "hex": "#94a3b8", "oklch": "oklch(0.68 0.02 250)", "contrast_on_base": "7.4:1", "role": "Body text" },
+      "muted": { "hex": "#64748b", "oklch": "oklch(0.52 0.02 250)", "contrast_on_base": "4.6:1", "role": "Labels, captions" },
+      "inverse": { "hex": "#0c0f14", "role": "Text on emerald buttons" }
+    },
+    "accent": {
+      "name": "Emerald",
+      "base": { "hex": "#10b981", "oklch": "oklch(0.70 0.17 165)" },
+      "hover": { "hex": "#34d399", "oklch": "oklch(0.78 0.15 165)" },
+      "muted": { "hex": "#10b98115", "role": "Badge backgrounds, subtle fills" },
+      "bright": { "hex": "#6ee7b7", "oklch": "oklch(0.87 0.14 165)", "role": "Highlighted code tokens, active indicators" },
+      "contrast_on_base": "8.3:1"
+    },
+    "semantic": {
+      "success": { "hex": "#10b981", "note": "Same as accent — emerald IS success" },
+      "warning": { "hex": "#f59e0b", "oklch": "oklch(0.80 0.17 80)" },
+      "error": { "hex": "#ef4444", "oklch": "oklch(0.63 0.24 27)" },
+      "info": { "hex": "#94a3b8", "note": "Muted blue-gray for info, not blue — stays monochrome" }
+    },
+    "category_colors": {
+      "note": "In this concept, all categories share the emerald accent with varying opacity. Differentiation through position and label, not color.",
+      "skills": "#10b981",
+      "agents": "#10b981",
+      "hooks": "#10b981",
+      "secondary_palette_for_data_viz": {
+        "note": "Only used in interactive visualizations like charts, not in UI chrome",
+        "a": "#10b981",
+        "b": "#06b6d4",
+        "c": "#f59e0b",
+        "d": "#ef4444",
+        "e": "#8b5cf6"
+      }
+    }
+  },
+
+  "typography": {
+    "fonts": {
+      "heading": {
+        "family": "Geist",
+        "variable": "--font-geist",
+        "rationale": "Clean geometric pairs with blueprint aesthetic"
+      },
+      "body": {
+        "family": "Geist",
+        "variable": "--font-geist"
+      },
+      "mono": {
+        "family": "Geist Mono",
+        "variable": "--font-geist-mono",
+        "rationale": "Primary differentiator. Used for section overlines, stat labels, badge text, all technical values. Much more prominent than in A or B."
+      }
+    },
+    "scale": {
+      "hero_title": { "size": "3.75rem", "tailwind": "text-6xl", "weight": "700", "tracking": "-0.03em", "line_height": "1.1", "mobile": "text-4xl" },
+      "section_title": { "size": "1.5rem", "tailwind": "text-2xl", "weight": "600", "tracking": "-0.015em", "line_height": "1.3" },
+      "card_title": { "size": "1rem", "tailwind": "text-base", "weight": "600", "line_height": "1.5" },
+      "body": { "size": "0.9375rem", "tailwind": "text-[15px]", "weight": "400", "line_height": "1.7" },
+      "body_small": { "size": "0.8125rem", "tailwind": "text-[13px]", "weight": "400", "line_height": "1.625" },
+      "caption": { "size": "0.6875rem", "tailwind": "text-[11px]", "weight": "500", "line_height": "1.5" },
+      "overline": { "size": "0.6875rem", "tailwind": "text-[11px]", "weight": "600", "tracking": "0.12em", "transform": "uppercase", "font": "mono" },
+      "stat_number": { "size": "2.5rem", "tailwind": "text-[40px]", "weight": "700", "font": "mono", "tracking": "-0.02em" },
+      "stat_label": { "size": "0.6875rem", "tailwind": "text-[11px]", "weight": "500", "font": "mono", "tracking": "0.08em", "transform": "uppercase" }
+    }
+  },
+
+  "spacing": {
+    "system": "8px grid, strictly enforced",
+    "page_max_width": "1024px",
+    "note": "Narrower max-width than A and B — tighter, more focused reading column. Blueprint precision.",
+    "page_padding_x": { "mobile": "1rem", "tablet": "2rem", "desktop": "2rem" },
+    "section_padding_y": { "mobile": "3rem", "tablet": "4rem", "desktop": "5rem" },
+    "card_padding": { "mobile": "1rem", "default": "1.25rem" },
+    "card_gap": "1px",
+    "note_card_gap": "1px gap between cards creates a 'grid of cells' look, with the border color filling the gap",
+    "component_gap": { "tight": "0.5rem", "default": "1rem", "loose": "1.5rem" }
+  },
+
+  "components": {
+    "hero_section": {
+      "layout": "Left-aligned (NOT centered). Dot-grid background. Overline in mono, title, subtitle, single CTA + install command. Stats embedded inline below as a horizontal 'circuit trace' diagram.",
+      "tailwind": {
+        "wrapper": "relative min-h-[70vh] flex items-center overflow-hidden",
+        "dot_grid": "absolute inset-0 -z-10 bg-[#0c0f14] bg-[radial-gradient(#1e293b_1px,transparent_1px)] bg-[size:24px_24px]",
+        "content": "relative z-10 mx-auto w-full max-w-[1024px] px-6 py-20",
+        "overline": "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#10b981]",
+        "title": "mt-4 max-w-3xl text-4xl font-bold tracking-tight text-[#e2e8f0] sm:text-5xl lg:text-6xl",
+        "title_accent": "text-[#10b981]",
+        "subtitle": "mt-6 max-w-lg text-[15px] text-[#94a3b8] leading-relaxed",
+        "cta_row": "mt-8 flex flex-col gap-3 sm:flex-row sm:items-center",
+        "cta_primary": "inline-flex h-10 items-center rounded-lg bg-[#10b981] px-6 text-sm font-semibold text-[#0c0f14] transition-colors hover:bg-[#34d399]",
+        "install_command": "inline-flex h-10 items-center gap-2 rounded-lg border border-[#1e293b] bg-[#111621] px-4 font-mono text-sm text-[#94a3b8]",
+        "install_copy": "ml-2 text-[#64748b] hover:text-[#e2e8f0] transition-colors"
+      }
+    },
+
+    "stat_bar": {
+      "layout": "Horizontal strip with three values connected by thin horizontal lines (circuit traces). Monospace labels and numbers.",
+      "tailwind": {
+        "wrapper": "mx-auto max-w-[1024px] px-6 mt-12",
+        "trace_container": "flex items-center justify-between border-t border-[#1e293b] pt-6",
+        "stat_node": "text-center",
+        "stat_value": "font-mono text-[40px] font-bold tabular-nums text-[#e2e8f0] leading-none",
+        "stat_label": "mt-1 font-mono text-[11px] font-medium uppercase tracking-[0.08em] text-[#64748b]",
+        "connector_line": "flex-1 mx-6 h-px bg-[#1e293b] relative",
+        "connector_dot": "absolute top-1/2 -translate-y-1/2 h-1.5 w-1.5 rounded-full bg-[#10b981]",
+        "connector_dot_left": "left-0 -translate-x-1/2",
+        "connector_dot_right": "right-0 translate-x-1/2"
+      }
+    },
+
+    "feature_card": {
+      "layout": "Minimal card with left emerald accent border. No rounded corners on left side (border-l-2). Tight padding. Blueprint precision.",
+      "tailwind": {
+        "card": "group border border-[#1e293b] border-l-2 border-l-[#10b981] bg-[#111621] p-5 transition-colors duration-200 hover:bg-[#171d2b] hover:border-l-[#34d399]",
+        "card_rounded": "rounded-r-lg",
+        "overline": "font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[#10b981]",
+        "title": "mt-2 text-base font-semibold text-[#e2e8f0]",
+        "description": "mt-2 text-[13px] leading-relaxed text-[#94a3b8]",
+        "link_row": "mt-3 inline-flex items-center gap-1 font-mono text-[11px] font-medium text-[#10b981] opacity-0 transition-all duration-200 group-hover:opacity-100"
+      }
+    },
+
+    "navigation": {
+      "layout": "Fixed top bar, monochrome. Logo left with emerald dot indicator. Minimal links. Search right.",
+      "tailwind": {
+        "nav": "fixed top-0 z-50 w-full border-b border-[#1e293b] bg-[#0c0f14]/90 backdrop-blur-lg",
+        "inner": "mx-auto flex h-12 max-w-[1024px] items-center justify-between px-6",
+        "logo": "flex items-center gap-2 font-mono text-sm font-bold text-[#e2e8f0]",
+        "logo_dot": "h-2 w-2 rounded-full bg-[#10b981]",
+        "links": "hidden items-center gap-6 md:flex",
+        "link": "font-mono text-[13px] text-[#64748b] transition-colors hover:text-[#e2e8f0]",
+        "link_active": "text-[#e2e8f0]"
+      }
+    },
+
+    "sidebar": {
+      "tailwind": {
+        "wrapper": "w-56 border-r border-[#1e293b] bg-[#0c0f14] py-4",
+        "section_label": "px-4 py-1 font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748b]",
+        "link": "flex items-center gap-2 px-4 py-1.5 font-mono text-[13px] text-[#64748b] transition-colors hover:text-[#e2e8f0] hover:bg-[#1e293b30]",
+        "link_active": "text-[#10b981] border-l-2 border-[#10b981] -ml-px pl-[14px]",
+        "divider": "my-3 mx-4 h-px bg-[#1e293b]"
+      }
+    },
+
+    "badge": {
+      "tailwind": {
+        "base": "inline-flex items-center rounded px-2 py-0.5 font-mono text-[11px] font-medium",
+        "emerald": "bg-[#10b98115] text-[#34d399] border border-[#10b98130]",
+        "neutral": "bg-[#1e293b] text-[#94a3b8]",
+        "count": "bg-transparent text-[#64748b] border border-[#1e293b]"
+      },
+      "note": "Badges use sharp corners (rounded, not rounded-full). Mono font always. Minimal."
+    },
+
+    "code_block": {
+      "layout": "No chrome — just a bordered rectangle. Filename as monospace comment at top. Green accent for strings and keywords.",
+      "tailwind": {
+        "wrapper": "border border-[#1e293b] bg-[#0c0f14] overflow-hidden rounded-lg",
+        "header": "flex items-center justify-between border-b border-[#1e293b] px-4 py-2",
+        "filename": "font-mono text-[11px] text-[#64748b]",
+        "lang_badge": "font-mono text-[10px] text-[#10b981] uppercase tracking-wider",
+        "code_area": "p-4 font-mono text-[13px] leading-relaxed text-[#94a3b8]",
+        "line_number": "inline-block w-6 text-right text-[#1e293b] select-none mr-4 font-mono",
+        "token_keyword": "text-[#10b981]",
+        "token_string": "text-[#6ee7b7]",
+        "token_comment": "text-[#334155] italic",
+        "token_function": "text-[#e2e8f0]"
+      }
+    },
+
+    "search": {
+      "tailwind": {
+        "trigger": "flex h-8 w-48 items-center gap-2 rounded border border-[#1e293b] bg-[#111621] px-3 font-mono text-[11px] text-[#64748b] transition-colors hover:border-[#334155]",
+        "kbd": "ml-auto rounded border border-[#1e293b] px-1 py-0.5 font-mono text-[10px] text-[#64748b]"
+      }
+    },
+
+    "section_header": {
+      "layout": "Blueprint-style: thin horizontal rule, monospace overline label, then heading. No decorative elements.",
+      "tailwind": {
+        "wrapper": "border-t border-[#1e293b] pt-6",
+        "overline": "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#10b981] mb-2",
+        "title": "text-2xl font-semibold tracking-tight text-[#e2e8f0]",
+        "subtitle": "mt-2 max-w-lg text-[15px] text-[#94a3b8]"
+      }
+    },
+
+    "table_of_contents": {
+      "tailwind": {
+        "wrapper": "sticky top-16 hidden xl:block",
+        "title": "font-mono text-[11px] font-semibold uppercase tracking-[0.08em] text-[#64748b] mb-3",
+        "link": "block py-1 font-mono text-[12px] text-[#64748b] transition-colors hover:text-[#e2e8f0]",
+        "link_active": "text-[#10b981]"
+      }
+    }
+  },
+
+  "states": {
+    "default": "border-[#1e293b] bg-[#111621]",
+    "hover": "hover:bg-[#171d2b] hover:border-[#334155] transition-colors duration-200",
+    "focus": "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#10b981] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0f14]",
+    "active": "active:bg-[#1c2436]",
+    "disabled": "opacity-30 cursor-not-allowed pointer-events-none",
+    "loading": "animate-pulse bg-[#1e293b]"
+  },
+
+  "animations": {
+    "philosophy": "Minimal. This concept favors instant response over theatrical entrance. Only the hero has a load animation. Everything else is CSS transitions only.",
+    "hero_entrance": {
+      "type": "stagger",
+      "description": "Overline, title, subtitle, CTAs fade in with 100ms stagger. 300ms each. No vertical translation — pure opacity fade.",
+      "presets": ["fadeIn"]
+    },
+    "card_hover": {
+      "type": "css_transition",
+      "description": "200ms background-color and border-color transition. No scale, no shadow, no glow. Crisp.",
+      "duration": "200ms"
+    },
+    "stat_counter": {
+      "type": "custom",
+      "description": "Numbers rendered static. No counting animation. The numbers ARE the animation — they are big and bold enough."
+    },
+    "connector_pulse": {
+      "type": "css_keyframe",
+      "description": "The emerald dots on circuit-trace connector lines pulse subtly: opacity 0.5 to 1 over 2s infinite.",
+      "keyframes": "@keyframes circuit-pulse { 0%, 100% { opacity: 0.5 } 50% { opacity: 1 } }",
+      "duration": "2s"
+    },
+    "reduced_motion": "Connector pulse stops. Hero shows content immediately. All CSS transitions set to 0ms."
+  },
+
+  "responsive": {
+    "breakpoints": {
+      "sm": "640px",
+      "md": "768px",
+      "lg": "1024px",
+      "xl": "1280px"
+    },
+    "hero": {
+      "mobile": "text-4xl, left-aligned, stats stack vertically, no connector lines",
+      "tablet": "text-5xl, horizontal stats with connectors",
+      "desktop": "text-6xl, full layout"
+    },
+    "cards": {
+      "mobile": "single column, 1px gap stacking creates continuous bordered list",
+      "tablet": "2-column grid with 1px gap",
+      "desktop": "3-column grid with 1px gap"
+    },
+    "sidebar": {
+      "mobile": "hidden, slide-in drawer",
+      "desktop": "visible, w-56"
+    }
+  },
+
+  "accessibility": {
+    "wcag_level": "AA",
+    "contrast_ratios": {
+      "primary_text_on_base": "14.8:1 (#e2e8f0 on #0c0f14)",
+      "secondary_text_on_base": "7.4:1 (#94a3b8 on #0c0f14)",
+      "muted_text_on_base": "4.6:1 (#64748b on #0c0f14)",
+      "emerald_on_base": "8.3:1 (#10b981 on #0c0f14)",
+      "emerald_bright_on_base": "12.1:1 (#6ee7b7 on #0c0f14)"
+    },
+    "focus_visible": true,
+    "skip_link": true,
+    "keyboard_navigable": true,
+    "reduced_motion": true,
+    "dot_grid": "Pure CSS background-image, no DOM elements, no a11y impact",
+    "monospace_readability": "All mono text at 11px+ for readability. Never below 10px."
+  }
+}

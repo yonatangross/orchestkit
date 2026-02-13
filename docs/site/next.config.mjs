@@ -4,6 +4,12 @@ const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const config = {
+  images: {
+    formats: ["image/avif", "image/webp"],
+    remotePatterns: [
+      { protocol: "https", hostname: "cdn.sanity.io", pathname: "/images/**" },
+    ],
+  },
   redirects: async () => [
     {
       source: "/docs",
@@ -32,6 +38,7 @@ const config = {
             "img-src 'self' data: https:",
             "font-src 'self' data:",
             "connect-src 'self' https:",
+            "media-src 'self' https://cdn.sanity.io",
             "frame-ancestors 'none'",
           ].join("; "),
         },

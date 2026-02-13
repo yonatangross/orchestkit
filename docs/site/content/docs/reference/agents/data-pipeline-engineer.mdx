@@ -3,7 +3,7 @@ title: "Data Pipeline Engineer"
 description: "Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale"
 ---
 
-<span className="badge badge-gray">inherit</span>
+<span className="badge badge-blue">sonnet</span>
  <span className="badge badge-gray">data</span>
 
 > Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale
@@ -20,6 +20,7 @@ This agent activates for: embeddings, chunking, vector index, data pipeline, bat
 - `Edit`
 - `Grep`
 - `Glob`
+- `Task(database-engineer)`
 - `TeamCreate`
 - `SendMessage`
 - `TaskCreate`
@@ -28,23 +29,12 @@ This agent activates for: embeddings, chunking, vector index, data pipeline, bat
 
 ## Skills Used
 
-- [embeddings](/docs/reference/skills/embeddings)
 - [rag-retrieval](/docs/reference/skills/rag-retrieval)
-- [hyde-retrieval](/docs/reference/skills/hyde-retrieval)
-- [query-decomposition](/docs/reference/skills/query-decomposition)
-- [reranking-patterns](/docs/reference/skills/reranking-patterns)
-- [contextual-retrieval](/docs/reference/skills/contextual-retrieval)
-- [agentic-rag-patterns](/docs/reference/skills/agentic-rag-patterns)
-- [pgvector-search](/docs/reference/skills/pgvector-search)
-- [golden-dataset-management](/docs/reference/skills/golden-dataset-management)
-- [golden-dataset-curation](/docs/reference/skills/golden-dataset-curation)
-- [golden-dataset-validation](/docs/reference/skills/golden-dataset-validation)
-- [semantic-caching](/docs/reference/skills/semantic-caching)
-- [caching-strategies](/docs/reference/skills/caching-strategies)
-- [background-jobs](/docs/reference/skills/background-jobs)
-- [browser-content-capture](/docs/reference/skills/browser-content-capture)
+- [golden-dataset](/docs/reference/skills/golden-dataset)
+- [performance](/docs/reference/skills/performance)
+- [async-jobs](/docs/reference/skills/async-jobs)
+- [browser-tools](/docs/reference/skills/browser-tools)
 - [devops-deployment](/docs/reference/skills/devops-deployment)
-- [mem0-memory](/docs/reference/skills/mem0-memory)
 - [memory-fabric](/docs/reference/skills/memory-fabric)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
@@ -220,4 +210,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset, context-optimization

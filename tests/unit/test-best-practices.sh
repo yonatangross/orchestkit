@@ -30,7 +30,7 @@ MEM0_VALID_SCOPES=("continuity" "decisions" "agents" "patterns" "best-practices"
 # Skill paths (CC 2.1.6 nested structure)
 REMEMBER_SKILL="$PROJECT_ROOT/src/skills/remember"
 MEMORY_SKILL_DIR="$PROJECT_ROOT/src/skills/memory"
-BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/best-practices"
+BEST_PRACTICES_SKILL="$PROJECT_ROOT/src/skills/quality-gates"
 FEEDBACK_SKILL="$PROJECT_ROOT/src/skills/feedback"
 
 # Helper to set up clean test environment
@@ -412,17 +412,20 @@ test_best_practices_skill_has_capabilities() {
 }
 
 test_best_practices_skill_has_categories() {
-    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "pagination"
-    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "authentication"
-    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "database"
+    # best-practices absorbed into quality-gates; validate quality-gates content
+    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "complexity"
+    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "blocking"
+    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "escalation"
 }
 
 test_best_practices_skill_has_stats_flag() {
-    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "--stats"
+    # best-practices --stats absorbed into quality-gates complexity scoring
+    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "Complexity Scoring"
 }
 
 test_best_practices_skill_has_warnings_flag() {
-    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "--warnings"
+    # best-practices --warnings absorbed into quality-gates WARNING conditions
+    assert_file_contains "$BEST_PRACTICES_SKILL/SKILL.md" "WARNING"
 }
 
 test_feedback_skill_exists() {

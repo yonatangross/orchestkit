@@ -2,7 +2,7 @@
 name: test-generator
 description: Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions. Activates for test, coverage, unit test, integration test, MSW, VCR, fixture
 category: testing
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project
@@ -18,21 +18,9 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - unit-testing
-  - integration-testing
-  - e2e-testing
-  - msw-mocking
-  - vcr-http-recording
-  - webapp-testing
-  - performance-testing
-  - a11y-testing
-  - test-data-management
-  - pytest-advanced
-  - property-based-testing
-  - contract-testing
-  - llm-testing
-  - test-standards-enforcer
-  - run-tests
+  - testing-patterns
+  - architecture-patterns
+  - browser-tools
   - task-dependency-patterns
   - remember
   - memory
@@ -286,4 +274,4 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-strategy-builder, webapp-testing
+- **Skill references:** testing-patterns

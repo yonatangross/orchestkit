@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-# Test suite for AI/ML Roadmap 2026 skills
-# Tests: mcp-security-hardening, advanced-guardrails, agentic-rag-patterns,
-#        prompt-engineering-suite, alternative-agent-frameworks, mcp-advanced-patterns,
-#        high-performance-inference, fine-tuning-customization
+# Test suite for AI/ML Roadmap 2026 skills (updated after consolidation #536)
+# Tests: mcp-patterns, security-patterns, rag-retrieval,
+#        agent-orchestration, llm-integration
 
 set -euo pipefail
 
@@ -21,31 +20,28 @@ TESTS_FAILED=0
 
 pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 warn() {
     echo -e "${YELLOW}!${NC} $1"
-    ((TESTS_RUN++)) || true
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
-# AI/ML skills to test
+# AI/ML skills to test (updated after batch 18 consolidation #555)
 AI_ML_SKILLS=(
-    "mcp-security-hardening"
-    "advanced-guardrails"
-    "agentic-rag-patterns"
-    "prompt-engineering-suite"
-    "alternative-agent-frameworks"
-    "mcp-advanced-patterns"
-    "high-performance-inference"
-    "fine-tuning-customization"
+    "mcp-patterns"
+    "security-patterns"
+    "rag-retrieval"
+    "agent-orchestration"
+    "llm-integration"
 )
 
 echo "=== AI/ML Roadmap 2026 Skills Test Suite ==="
@@ -81,11 +77,12 @@ for skill in "${AI_ML_SKILLS[@]}"; do
     fi
 done
 
-# Test 3: All skills have references directory with content
+# Test 3: All skills have references or rules directory with content
 echo ""
-echo "Test 3: References directory validation"
+echo "Test 3: References/rules directory validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
     refs_dir="$PROJECT_ROOT/src/skills/$skill/references"
+    rules_dir="$PROJECT_ROOT/src/skills/$skill/rules"
     if [[ -d "$refs_dir" ]]; then
         ref_count=$(find "$refs_dir" -type f -name "*.md" | wc -l | tr -d ' ')
         if [[ $ref_count -ge 2 ]]; then
@@ -93,8 +90,15 @@ for skill in "${AI_ML_SKILLS[@]}"; do
         else
             fail "$skill has only $ref_count reference files (need >=2)"
         fi
+    elif [[ -d "$rules_dir" ]]; then
+        rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        if [[ $rule_count -ge 2 ]]; then
+            pass "$skill has $rule_count rule files"
+        else
+            fail "$skill has only $rule_count rule files (need >=2)"
+        fi
     else
-        fail "$skill missing references directory"
+        fail "$skill missing references/rules directory"
     fi
 done
 
@@ -182,8 +186,8 @@ for skill in "${AI_ML_SKILLS[@]}"; do
             pass "$skill SKILL.md ~$estimated_tokens tokens (budget OK)"
         else
             echo -e "${YELLOW}!${NC} $skill SKILL.md ~$estimated_tokens tokens (over budget, but acceptable for comprehensive skill)"
-            ((TESTS_RUN++)) || true
-            ((TESTS_PASSED++)) || true
+            TESTS_RUN=$((TESTS_RUN + 1))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         fi
     fi
 done

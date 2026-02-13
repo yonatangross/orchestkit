@@ -79,7 +79,7 @@ describe('skill-tracker', () => {
   });
 
   it('always returns silent success after logging', () => {
-    const input = createSkillInput('recall', '--mem0 database');
+    const input = createSkillInput('recall', '--graph database');
     const result = skillTracker(input);
 
     expect(result.continue).toBe(true);

@@ -329,42 +329,6 @@ jobs:
           bash scripts/ci/run-tests.sh tests/compliance --verbose
 
   # ============================================================================
-  # STAGE 6b: Mem0 Integration Tests
-  # Cross-platform: ubuntu + macos + windows
-  # Uses dynamic test discovery
-  # ============================================================================
-  mem0-tests:
-    name: Mem0 Integration (${{ matrix.os }})
-    needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
-
-      - name: Download built plugins
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
-        with:
-          name: built-plugins
-          path: plugins/
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          build-plugins: 'false'
-
-      - name: Run mem0 tests
-        shell: bash
-        env:
-          MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash scripts/ci/run-tests.sh tests/mem0 --verbose
-
-  # ============================================================================
   # STAGE 7: Agent & Skill Validation
   # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
@@ -501,7 +465,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -518,7 +482,6 @@ jobs:
           echo "Integration Tests: ${{ needs.integration-tests.result }}"
           echo "Performance Tests: ${{ needs.performance-tests.result }}"
           echo "Compliance Tests: ${{ needs.compliance-tests.result }}"
-          echo "Mem0 Tests: ${{ needs.mem0-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
           echo "System Tests: ${{ needs.system-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
@@ -535,7 +498,6 @@ jobs:
             "${{ needs.integration-tests.result }}" \
             "${{ needs.performance-tests.result }}" \
             "${{ needs.compliance-tests.result }}" \
-            "${{ needs.mem0-tests.result }}" \
             "${{ needs.agent-skill-tests.result }}" \
             "${{ needs.system-tests.result }}"; do
             if [[ "$result" == "failure" || "$result" == "cancelled" ]]; then

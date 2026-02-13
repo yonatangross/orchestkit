@@ -2,7 +2,7 @@
 name: prioritization-analyst
 description: Prioritization specialist who scores features using RICE/ICE/WSJF frameworks, analyzes opportunity costs, manages backlog ranking, and recommends what to build next based on value and effort. Activates for RICE, ICE, WSJF, prioritization, backlog, opportunity cost keywords.
 category: product
-model: inherit
+model: haiku
 context: fork
 color: plum
 memory: project
@@ -16,7 +16,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - prioritization-frameworks
+  - product-frameworks
   - github-operations
   - remember
   - memory

@@ -1,11 +1,11 @@
 /**
  * Unit tests for antipattern-detector hook
- * Tests UserPromptSubmit hook that suggests checking mem0 for known failed patterns
+ * Tests UserPromptSubmit hook that suggests checking memory for known failed patterns
  *
  * Features tested:
  * - Implementation keyword detection
  * - Category auto-detection
- * - Mem0 search suggestion generation
+ * - Search suggestion generation
  * - CC 2.1.7 compliance
  */
 
@@ -19,6 +19,7 @@ import type { HookInput } from '../../types.js';
 vi.mock('../../lib/common.js', () => ({
   logHook: vi.fn(),
   outputSilentSuccess: vi.fn(() => ({ continue: true, suppressOutput: true })),
+  outputPromptContext: vi.fn((ctx: string) => ({ continue: true, systemMessage: ctx })),
   getProjectDir: vi.fn(() => '/test/project'),
   getSessionId: vi.fn(() => 'test-session-123'),
 }));
@@ -216,69 +217,6 @@ describe('prompt/antipattern-detector', () => {
   });
 
   // ---------------------------------------------------------------------------
-  // Mem0 CLI search suggestion format
-  // ---------------------------------------------------------------------------
-
-  describe('mem0 CLI search suggestion format', () => {
-    test('includes CLI script path in suggestion', () => {
-      // Arrange
-      const input = createPromptInput('implement pagination for the user list API');
-
-      // Act
-      const result = antipatternDetector(input);
-
-      // Assert
-      expect(result.systemMessage).toContain('search-memories.py');
-      expect(result.systemMessage).toContain('python3');
-    });
-
-    test('includes project-specific user_id in suggestion', () => {
-      // Arrange
-      const input = createPromptInput('implement authentication for the application');
-
-      // Act
-      const result = antipatternDetector(input);
-
-      // Assert
-      expect(result.systemMessage).toContain('project:project:best-practices');
-    });
-
-    test('includes global user_id option in suggestion', () => {
-      // Arrange
-      const input = createPromptInput('implement database caching strategy');
-
-      // Act
-      const result = antipatternDetector(input);
-
-      // Assert
-      expect(result.systemMessage).toContain('global:best-practices');
-    });
-
-    test('includes "failed" keyword in search query', () => {
-      // Arrange
-      const input = createPromptInput('implement api endpoint for user registration');
-
-      // Act
-      const result = antipatternDetector(input);
-
-      // Assert - "failed" is embedded in the search query itself
-      expect(result.systemMessage).toContain('--query');
-      expect(result.systemMessage).toContain('failed');
-    });
-
-    test('includes keyword in search query', () => {
-      // Arrange
-      const input = createPromptInput('create a new database connection pool');
-
-      // Act
-      const result = antipatternDetector(input);
-
-      // Assert
-      expect(result.systemMessage).toContain('--query "create failed"');
-    });
-  });
-
-  // ---------------------------------------------------------------------------
   // Project directory handling
   // ---------------------------------------------------------------------------
 
@@ -293,7 +231,7 @@ describe('prompt/antipattern-detector', () => {
       const result = antipatternDetector(input);
 
       // Assert
-      expect(result.systemMessage).toContain('project:path:best-practices');
+      expect(result.systemMessage).toContain('mcp__memory__search_nodes');
     });
 
     test('falls back to getProjectDir when project_dir not in input', () => {
@@ -412,7 +350,7 @@ describe('prompt/antipattern-detector', () => {
 
       // Assert
       // "implement" comes before "create" in IMPLEMENTATION_KEYWORDS array
-      expect(result.systemMessage).toContain('--query "implement failed"');
+      expect(result.systemMessage).toContain('implement failed');
     });
 
     test('handles multiple matching categories in prompt', () => {

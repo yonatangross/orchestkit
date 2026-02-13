@@ -1,0 +1,72 @@
+{
+  "skill": "ui-components",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "shadcn-customization",
+      "rule": "shadcn-customization",
+      "query": "Create a custom button component with CVA variants and OKLCH theming",
+      "expectedBehavior": [
+        "Uses CVA for type-safe variant definitions",
+        "Uses cn() utility for class merging without Tailwind conflicts",
+        "OKLCH color variables for perceptually uniform theming",
+        "Component extension wraps original without modifying source"
+      ]
+    },
+    {
+      "id": "shadcn-forms",
+      "rule": "shadcn-forms",
+      "query": "Build a form with shadcn Input, Label, and validation error states",
+      "expectedBehavior": [
+        "FormField wrapper associates Label with Input via htmlFor",
+        "Error state uses aria-invalid and aria-describedby",
+        "Uses cn() for conditional error border styling",
+        "Integrates with react-hook-form Controller or register"
+      ]
+    },
+    {
+      "id": "shadcn-data-table",
+      "rule": "shadcn-data-table",
+      "query": "Create a sortable data table with shadcn and TanStack Table",
+      "expectedBehavior": [
+        "Uses TanStack Table useReactTable for state management",
+        "Column definitions use accessorKey with header render functions",
+        "Sorting toggles via header click with visual indicator",
+        "Pagination controls use shadcn Button components"
+      ]
+    },
+    {
+      "id": "radix-dialog",
+      "rule": "radix-dialog",
+      "query": "Implement a confirmation dialog for a destructive action",
+      "expectedBehavior": [
+        "Uses AlertDialog (not Dialog) for destructive confirmations",
+        "Has Dialog.Title and Dialog.Description for accessibility",
+        "Cancel and Action buttons with proper variant styling",
+        "Focus trapped within dialog, returns to trigger on close"
+      ]
+    },
+    {
+      "id": "radix-composition",
+      "rule": "radix-composition",
+      "query": "Create a button that is also a link using asChild composition",
+      "expectedBehavior": [
+        "Uses asChild prop to render Link as the button element",
+        "Child component forwards refs with React.forwardRef",
+        "Props and event handlers merge correctly via Slot",
+        "No extra wrapper div in the DOM output"
+      ]
+    },
+    {
+      "id": "radix-styling",
+      "rule": "radix-styling",
+      "query": "Style a dropdown menu with Tailwind data-attribute variants",
+      "expectedBehavior": [
+        "Uses data-[state=open] for open/close animations",
+        "Uses data-[side=*] for position-aware slide animations",
+        "Focus styles use data-[highlighted] or focus:bg-accent",
+        "Disabled items use data-[disabled]:pointer-events-none"
+      ]
+    }
+  ]
+}

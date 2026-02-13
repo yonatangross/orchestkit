@@ -2,7 +2,7 @@
 name: data-pipeline-engineer
 description: Data pipeline specialist who generates embeddings, implements chunking strategies, manages vector indexes, and transforms raw data for AI consumption. Ensures data quality and optimizes batch processing for production scale. Activates for embeddings, chunking, vector index, data pipeline, batch processing, ETL, regenerate embeddings, cache warming, data transformation, data quality, vector rebuild, embedding cache
 category: data
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project
@@ -13,29 +13,19 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(database-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - embeddings
   - rag-retrieval
-  - hyde-retrieval
-  - query-decomposition
-  - reranking-patterns
-  - contextual-retrieval
-  - agentic-rag-patterns
-  - pgvector-search
-  - golden-dataset-management
-  - golden-dataset-curation
-  - golden-dataset-validation
-  - semantic-caching
-  - caching-strategies
-  - background-jobs
-  - browser-content-capture
+  - golden-dataset
+  - performance
+  - async-jobs
+  - browser-tools
   - devops-deployment
-  - mem0-memory
   - memory-fabric
   - task-dependency-patterns
   - remember
@@ -211,7 +201,7 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** embeddings, rag-retrieval, hyde-retrieval, query-decomposition, reranking-patterns, contextual-retrieval, pgvector-search, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset, context-optimization
 
 ## Skill Index
 
@@ -223,23 +213,12 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|embeddings:{SKILL.md,references/{advanced-patterns.md,chunking-strategies.md}}|ai,embeddings,vectors,semantic-search,similarity
-|rag-retrieval:{SKILL.md,references/{advanced-rag.md}}|rag,retrieval,llm,context,grounding
-|hyde-retrieval:{SKILL.md}|rag,retrieval,hyde,semantic-search
-|query-decomposition:{SKILL.md}|rag,retrieval,query,decomposition
-|reranking-patterns:{SKILL.md}|rag,retrieval,reranking,relevance
-|contextual-retrieval:{SKILL.md}|rag,retrieval,anthropic,bm25,vector-search
-|agentic-rag-patterns:{SKILL.md,references/{adaptive-retrieval.md,corrective-rag.md,knowledge-graph-rag.md,self-rag.md}}|rag,self-rag,crag,knowledge-graph,langgraph,agentic
-|pgvector-search:{SKILL.md,references/{hybrid-search-rrf.md,indexing-strategies.md,metadata-filtering.md}}|pgvector-0.8,hybrid-search,bm25,rrf,semantic-search,retrieval
-|golden-dataset-management:{SKILL.md,references/{backup-restore.md,storage-patterns.md,validation-contracts.md,versioning.md}}|golden-dataset,backup,data-protection,testing,regression
-|golden-dataset-curation:{SKILL.md,references/{annotation-patterns.md,selection-criteria.md}}|golden-dataset,curation,quality,multi-agent,langfuse,2025
-|golden-dataset-validation:{SKILL.md,references/{quality-metrics.md,validation-rules.md}}|golden-dataset,validation,integrity,schema,duplicate-detection,2025
-|semantic-caching:{SKILL.md,references/{cache-strategies.md}}|caching,semantic,redis,llm,cost
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
-|background-jobs:{SKILL.md,references/{task-queue-patterns.md}}|background-jobs,celery,arq,redis,async,python
-|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
+|rag-retrieval:{SKILL.md}|rag,retrieval,llm,context,grounding,embeddings,hyde,reranking,pgvector,multimodal
+|golden-dataset:{SKILL.md,references/{annotation-patterns.md,backup-restore.md,quality-metrics.md,selection-criteria.md,storage-patterns.md,validation-contracts.md,validation-rules.md,versioning.md}}|golden-dataset,evaluation,dataset-curation,dataset-validation,quality,llm-testing
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates
+|async-jobs:{SKILL.md,references/{arq-patterns.md,canvas-workflows.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
+|browser-tools:{SKILL.md,references/{anti-bot-handling.md,auth-flows.md,content-extraction.md,page-interaction.md,playwright-setup.md,scraping-strategies.md,spa-extraction.md,structured-output.md}}|browser,automation,playwright,puppeteer,scraping,content-capture
 |devops-deployment:{SKILL.md,references/{ci-cd-pipelines.md,deployment-strategies.md,docker-patterns.md,environment-management.md,kubernetes-basics.md,observability.md}}|devops,ci-cd,docker,kubernetes,terraform
-|mem0-memory:{SKILL.md,references/{agent-user-architecture.md,data-structure.md,metadata-filtered-architecture.md,visualization.md}}|memory,mem0,persistence,context
 |memory-fabric:{SKILL.md,references/{entity-extraction.md,query-merging.md}}|memory,orchestration,graph-first,graph,unified-search,deduplication,cross-reference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

@@ -2,7 +2,7 @@
 name: web-research-analyst
 description: Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily
 category: research
-model: inherit
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -20,10 +20,8 @@ tools:
   - TaskList
 skills:
   - web-research-workflow
-  - browser-content-capture
-  - browser-automation
-  - competitive-monitoring
-  - market-analysis-patterns
+  - browser-tools
+  - product-frameworks
   - rag-retrieval
   - remember
   - memory
@@ -287,7 +285,7 @@ cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
 
 - **Receives from:** User requests, `market-intelligence` (research tasks)
 - **Hands off to:** `product-strategist` (strategic analysis), `documentation-specialist` (doc formatting)
-- **Skill references:** web-research-workflow, browser-content-capture, competitive-monitoring
+- **Skill references:** web-research-workflow, browser-tools
 
 ## Notes
 
@@ -307,11 +305,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|web-research-workflow:{SKILL.md}|research,browser,webfetch,tavily,automation,scraping,content-extraction
-|browser-content-capture:{SKILL.md,references/{agent-browser-commands.md,auth-handling.md,multi-page-crawl.md,spa-extraction.md}}|browser,agent-browser,scraping,spa,authentication
-|browser-automation:{SKILL.md}|browser,automation,headless,scraping,vercel,agent-browser
-|competitive-monitoring:{SKILL.md}|competitive-intelligence,monitoring,diff,tracking,pricing,tavily
-|market-analysis-patterns:{SKILL.md,references/{competitive-analysis-guide.md,tam-sam-som-guide.md}}|product,market,tam,sam,som,porter,competitive,swot
+|web-research-workflow:{SKILL.md}|research,browser,webfetch,tavily,automation,scraping,content-extraction,competitive-intelligence,monitoring
+|browser-tools:{SKILL.md,references/{anti-bot-handling.md,auth-flows.md,content-extraction.md,page-interaction.md,playwright-setup.md,scraping-strategies.md,spa-extraction.md,structured-output.md}}|browser,automation,playwright,puppeteer,scraping,content-capture
+|product-frameworks:{SKILL.md,references/{build-buy-partner-decision.md,competitive-analysis-guide.md,interview-guide-template.md,journey-map-workshop.md,okr-workshop-guide.md,rice-scoring-guide.md,roi-calculation-guide.md,tam-sam-som-guide.md,user-story-workshop-guide.md,value-prop-canvas-guide.md,wsjf-guide.md}}|product,strategy,business-case,market-analysis,prioritization,okr,kpi,persona,requirements,user-research,rice,prd
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 ```

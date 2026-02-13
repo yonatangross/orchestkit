@@ -1,0 +1,105 @@
+{
+  "skill": "monitoring-observability",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "monitoring-prometheus",
+      "rule": "monitoring-prometheus",
+      "query": "Add Prometheus metrics to my FastAPI application",
+      "expectedBehavior": [
+        "Uses RED method (Rate, Errors, Duration)",
+        "Defines Counter for requests and Histogram for latency",
+        "Configures appropriate histogram buckets",
+        "Manages label cardinality to avoid explosions"
+      ]
+    },
+    {
+      "id": "monitoring-grafana",
+      "rule": "monitoring-grafana",
+      "query": "Create a Grafana dashboard for my service",
+      "expectedBehavior": [
+        "Includes Golden Signals panels (latency, traffic, errors, saturation)",
+        "Defines SLO/SLI targets with error budgets",
+        "Adds health check endpoints (liveness, readiness, startup)",
+        "Shows RED method metrics in dashboard layout"
+      ]
+    },
+    {
+      "id": "monitoring-alerting",
+      "rule": "monitoring-alerting",
+      "query": "Set up alerting rules for production monitoring",
+      "expectedBehavior": [
+        "Defines severity levels (Critical, High, Medium, Low)",
+        "Includes alert grouping and inhibition rules",
+        "Configures escalation policies with runbook links",
+        "Addresses alert fatigue prevention strategies"
+      ]
+    },
+    {
+      "id": "llm-langfuse-traces",
+      "rule": "llm-langfuse-traces",
+      "query": "Set up Langfuse tracing for my LLM application",
+      "expectedBehavior": [
+        "Uses @observe decorator with get_client() API",
+        "Sets user_id and session_id via update_current_trace",
+        "Configures OpenTelemetry SpanProcessor",
+        "Uses observation types for Agent Graph rendering"
+      ]
+    },
+    {
+      "id": "llm-cost-tracking",
+      "rule": "llm-cost-tracking",
+      "query": "Track LLM token usage and costs",
+      "expectedBehavior": [
+        "Configures automatic token counting with Langfuse",
+        "Sets up spend alerts with threshold rules",
+        "Uses Metrics API for programmatic cost queries",
+        "Supports custom model pricing configuration"
+      ]
+    },
+    {
+      "id": "llm-eval-scoring",
+      "rule": "llm-eval-scoring",
+      "query": "Evaluate and score LLM output quality with Langfuse",
+      "expectedBehavior": [
+        "Creates custom scoring with numeric/categorical values",
+        "Configures evaluator execution tracing",
+        "Uses multi-judge evaluation with ensemble scoring",
+        "Filters traces by score thresholds"
+      ]
+    },
+    {
+      "id": "drift-statistical",
+      "rule": "drift-statistical",
+      "query": "Detect distribution drift in LLM inputs",
+      "expectedBehavior": [
+        "Implements PSI (Population Stability Index) calculation",
+        "Applies correct PSI thresholds (<0.1 no drift, 0.1-0.25 moderate, >=0.25 significant)",
+        "Uses EWMA for dynamic threshold detection",
+        "Compares PSI vs KS test for different sample sizes"
+      ]
+    },
+    {
+      "id": "drift-quality",
+      "rule": "drift-quality",
+      "query": "Monitor LLM quality degradation over time",
+      "expectedBehavior": [
+        "Compares current scores against rolling baseline window",
+        "Integrates Langfuse score trends for drift analysis",
+        "Uses canary prompts for behavioral regression testing",
+        "Tracks embedding drift with centroid monitoring"
+      ]
+    },
+    {
+      "id": "drift-alerting",
+      "rule": "drift-alerting",
+      "query": "Set up drift detection alerts for my LLM system",
+      "expectedBehavior": [
+        "Uses dynamic thresholds (95th percentile of historical PSI)",
+        "Correlates drift metrics with performance metrics before alerting",
+        "Avoids anti-patterns like static thresholds without context",
+        "Triggers evaluation only when drift AND quality drop confirmed"
+      ]
+    }
+  ]
+}

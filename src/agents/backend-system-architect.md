@@ -2,7 +2,7 @@
 name: backend-system-architect
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection
 category: backend
-model: opus
+model: sonnet
 context: fork
 color: yellow
 memory: project
@@ -14,42 +14,25 @@ tools:
   - Bash
   - Grep
   - Glob
+  - Task(database-engineer)
+  - Task(test-generator)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - api-design-framework
-  - api-versioning
-  - database-schema-designer
-  - grpc-python
-  - strawberry-graphql
-  - error-handling-rfc9457
-  - rate-limiting
+  - api-design
+  - database-patterns
+  - distributed-systems
   - architecture-decision-record
-  - backend-architecture-enforcer
-  - owasp-top-10
-  - streaming-api-patterns
-  - observability-monitoring
-  - performance-optimization
-  - devops-deployment
-  - golden-dataset-management
-  - edge-computing-patterns
-  - github-operations
-  - resilience-patterns
-  - langgraph-supervisor
-  - mcp-server-building
-  - caching-strategies
-  - auth-patterns
-  - asyncio-advanced
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - connection-pooling
-  - idempotency-patterns
+  - architecture-patterns
+  - security-patterns
+  - monitoring-observability
+  - performance
+  - python-backend
+  - async-jobs
   - domain-driven-design
-  - aggregate-patterns
-  - distributed-locks
   - task-dependency-patterns
   - remember
   - memory
@@ -300,4 +283,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching-strategies, background-jobs, api-versioning, fastapi-advanced, mcp-server-building
+- **Skill references:** api-design, database-patterns, architecture-patterns, distributed-systems, performance, async-jobs, python-backend, mcp-patterns

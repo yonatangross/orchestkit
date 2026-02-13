@@ -1,11 +1,11 @@
 ---
-title: "176 Skills That Power Agents"
+title: "175 Skills That Power Agents"
 description: "Reference skills are the knowledge library behind OrchestKit agents -- auto-injected patterns for backend, frontend, databases, security, testing, LLM/RAG, and more."
 ---
 
 ## What Are Reference Skills?
 
-Reference skills are the 176 skills with `user-invocable: false` in their frontmatter. You never invoke them directly. Instead, they are automatically injected into agent context through three paths:
+Reference skills are the 175 skills with `user-invocable: false` in their frontmatter. You never invoke them directly. Instead, they are automatically injected into agent context through three paths:
 
 1. **Agent frontmatter** -- Each agent declares which skills it needs. When the agent spawns, those skills load automatically.
 2. **Command skill composition** -- When you run `/ork:implement`, its `skills:` field pulls in reference skills like `api-design-framework` and `unit-testing`.
@@ -261,7 +261,6 @@ Skills for building stateful, multi-step AI workflows with LangGraph.
 | `audio-mixing-patterns` | Audio mixing, ducking, and soundtrack composition |
 | `content-type-recipes` | Video content type templates: tutorials, demos, showcases |
 | `elevenlabs-narration` | ElevenLabs text-to-speech narration generation |
-| `heygen-avatars` | HeyGen AI avatar video generation (deprecated) |
 | `hook-formulas` | Video hook formulas for viewer retention |
 | `music-sfx-selection` | Music and sound effect selection for video |
 | `narration-scripting` | Narration script writing and pacing |
@@ -332,6 +331,6 @@ When the `database-engineer` agent spawns, Claude Code reads its frontmatter, fi
 
 ## What's Next
 
-- [23 Command Skills](/docs/skills/command-skills) -- The commands that orchestrate these reference skills.
+- [24 Command Skills](/docs/skills/command-skills) -- The commands that orchestrate these reference skills.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How everything fits together.
 - [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Add reference skills for your own domain.

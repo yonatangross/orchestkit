@@ -2,7 +2,7 @@
 name: multimodal-specialist
 description: Vision, audio, and video processing specialist who integrates GPT-5, Claude 4.5, Gemini 3, and Grok 4 for image analysis, transcription, and multimodal RAG. Activates for vision, image, audio, video, multimodal, whisper, tts, transcription, speech-to-text, document vision, OCR, captioning, CLIP, visual keywords.
 category: llm
-model: inherit
+model: sonnet
 context: fork
 color: magenta
 memory: project
@@ -19,12 +19,10 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - vision-language-models
-  - audio-language-models
-  - multimodal-rag
-  - streaming-api-patterns
-  - llm-streaming
-  - embeddings
+  - multimodal-llm
+  - rag-retrieval
+  - api-design
+  - llm-integration
   - task-dependency-patterns
   - memory
   - remember
@@ -238,7 +236,7 @@ Task: "Add image analysis endpoint with document OCR"
 
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
-- **Skill references:** vision-language-models, audio-language-models, multimodal-rag, streaming-api-patterns
+- **Skill references:** multimodal-llm, rag-retrieval, api-design
 
 ## Skill Index
 
@@ -250,7 +248,7 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|streaming-api-patterns:{SKILL.md,references/{sse-deep-dive.md}}|streaming,sse,websocket,real-time,api
+|api-design:{SKILL.md,references/{frontend-integration.md,graphql-api.md,grpc-api.md,rest-api.md,rest-patterns.md,rfc9457-spec.md,versioning-strategies.md}}|api-design,rest,graphql,versioning,error-handling,rfc9457,openapi,problem-details
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory

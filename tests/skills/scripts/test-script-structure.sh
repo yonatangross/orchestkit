@@ -50,17 +50,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -91,7 +91,7 @@ SCRIPT_FILES=()
 while IFS= read -r script_file; do
     if [[ -f "$script_file" ]]; then
         SCRIPT_FILES+=("$script_file")
-        ((TOTAL_SCRIPTS++)) || true
+        TOTAL_SCRIPTS=$((TOTAL_SCRIPTS + 1))
         
         if validate_script_structure "$script_file"; then
             skill_name=$(echo "$script_file" | sed "s|$SKILLS_DIR/||" | sed 's|/scripts/.*||')
@@ -124,7 +124,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     script_name=$(basename "$script_file")
     
     if has_required_frontmatter "$script_file"; then
-        ((VALID_FRONTMATTER++)) || true
+        VALID_FRONTMATTER=$((VALID_FRONTMATTER + 1))
         info "$skill_name/scripts/$script_name: Has required frontmatter"
     else
         MISSING_FIELDS+=("$skill_name/scripts/$script_name")
@@ -157,10 +157,10 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     user_invocable=$(get_frontmatter_field "$frontmatter" "user-invocable")
     
     if [[ "$user_invocable" == "true" ]]; then
-        ((USER_INVOCABLE_TRUE++)) || true
+        USER_INVOCABLE_TRUE=$((USER_INVOCABLE_TRUE + 1))
         info "$skill_name/scripts/$script_name: user-invocable: true"
     elif [[ "$user_invocable" == "false" ]]; then
-        ((USER_INVOCABLE_FALSE++)) || true
+        USER_INVOCABLE_FALSE=$((USER_INVOCABLE_FALSE + 1))
         warn "$skill_name/scripts/$script_name: user-invocable: false (scripts should be commands)"
     else
         INVALID_USER_INVOCABLE+=("$skill_name/scripts/$script_name")
@@ -198,10 +198,10 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     argument_hint=$(get_frontmatter_field "$frontmatter" "argument-hint")
     
     if [[ -n "$argument_hint" ]]; then
-        ((WITH_HINT++)) || true
+        WITH_HINT=$((WITH_HINT + 1))
         info "$skill_name/scripts/$script_name: Has argument-hint: $argument_hint"
     else
-        ((WITHOUT_HINT++)) || true
+        WITHOUT_HINT=$((WITHOUT_HINT + 1))
         # Not a failure - some scripts may not need arguments
     fi
 done
@@ -227,7 +227,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     content_after_frontmatter=$(sed '/^---$/,/^---$/d' "$script_file" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
     
     if [[ "$content_after_frontmatter" -gt 0 ]]; then
-        ((NON_EMPTY++)) || true
+        NON_EMPTY=$((NON_EMPTY + 1))
         info "$skill_name/scripts/$script_name: Has content ($content_after_frontmatter lines)"
     else
         EMPTY_SCRIPTS+=("$skill_name/scripts/$script_name")

@@ -278,9 +278,8 @@ Before finalizing the report, verify with `checklists/audit-completion.md`.
 ## Related Skills
 
 - `security-scanning` — Automated scanner integration (npm audit, Semgrep, etc.)
-- `defense-in-depth` — 8-layer security architecture patterns
-- `owasp-top-10` — OWASP vulnerability classification
-- `clean-architecture` — Architectural pattern reference
+- `security-patterns` — Security architecture patterns and OWASP vulnerability classification
+- `architecture-patterns` — Architectural pattern reference
 - `quality-gates` — Quality assessment criteria
 - `verify` — Chunked multi-agent verification (fallback for large codebases)
 

@@ -221,18 +221,15 @@ describe('E2E: Priority Throttling', () => {
     // Phase 1: under 50% - nothing throttled
     trackTokenUsage('fill', 'skill-injection', 1200); // 46% < 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(false); // P3
-    expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1
 
     // Phase 2: above 50% - P3 throttled
     trackTokenUsage('fill', 'skill-injection', 200); // total 1400 = 54% > 50%
     expect(shouldThrottle('posttool/context-budget-monitor')).toBe(true); // P3 throttled
-    expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(false); // P2 OK
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1 OK
 
     // Phase 3: above 70% - P2 throttled too
     trackTokenUsage('fill', 'skill-injection', 500); // total 1900 = 73% > 70%
-    expect(shouldThrottle('subagent-start/mem0-memory-inject')).toBe(true); // P2 throttled
     expect(shouldThrottle('subagent-start/graph-memory-inject')).toBe(false); // P1 OK
 
     // Phase 4: above 90% - P1 throttled
@@ -255,7 +252,7 @@ describe('E2E: Full Session Lifecycle', () => {
     writeFileSync(graphFile, 'x'.repeat(200));
 
     // 1. First prompt triggers skill resolver
-    const prompt1Content = 'Suggested: api-design-framework (80% confidence)';
+    const prompt1Content = 'Suggested: api-design (80% confidence)';
     const tokens1 = estimateTokenCount(prompt1Content);
     trackTokenUsage('skill-resolver', 'skill-injection', tokens1);
 
@@ -273,7 +270,7 @@ describe('E2E: Full Session Lifecycle', () => {
     expect(getTotalUsage()).toBe(tokens1 + memTokens);
 
     // 3. Second prompt - more skill suggestions
-    const prompt2Content = 'Hint: auth-patterns';
+    const prompt2Content = 'Hint: security-patterns';
     const tokens2 = estimateTokenCount(prompt2Content);
     trackTokenUsage('skill-resolver', 'skill-injection', tokens2);
 

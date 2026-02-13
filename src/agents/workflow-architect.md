@@ -13,29 +13,19 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(llm-integrator)
+  - Task(data-pipeline-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - langgraph-supervisor
-  - langgraph-routing
-  - langgraph-parallel
-  - langgraph-state
-  - langgraph-checkpoints
-  - langgraph-human-in-loop
-  - langgraph-functional
-  - langgraph-streaming
-  - langgraph-subgraphs
-  - langgraph-tools
-  - multi-agent-orchestration
-  - agent-loops
-  - alternative-agent-frameworks
-  - temporal-io
-  - langfuse-observability
-  - observability-monitoring
-  - context-compression
+  - langgraph
+  - agent-orchestration
+  - async-jobs
+  - monitoring-observability
+  - llm-integration
   - task-dependency-patterns
   - remember
   - memory
@@ -291,7 +281,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph-supervisor, langgraph-routing, langgraph-parallel, langgraph-state, langgraph-checkpoints, langgraph-human-in-loop, langgraph-functional, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

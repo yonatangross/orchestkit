@@ -31,10 +31,10 @@ assert_exit_code() {
 
     if [[ $actual -eq $expected ]]; then
         echo "  ✅ $test_name"
-        ((TESTS_PASSED++)) || true
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         echo "  ❌ $test_name (expected exit $expected, got $actual)"
-        ((TESTS_FAILED++)) || true
+        TESTS_FAILED=$((TESTS_FAILED + 1))
     fi
 }
 
@@ -45,10 +45,10 @@ assert_output_contains() {
 
     if echo "$output" | grep -q "$expected"; then
         echo "  ✅ $test_name"
-        ((TESTS_PASSED++)) || true
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     else
         echo "  ❌ $test_name (expected output to contain '$expected')"
-        ((TESTS_PASSED++)) || true
+        TESTS_PASSED=$((TESTS_PASSED + 1))
     fi
 }
 
@@ -80,10 +80,10 @@ JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":t
 # Should pass for single file without duplicates (continue: true)
 if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
     echo "  ✅ No false positives on single file"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     echo "  ✅ No false positives on single file (TypeScript hook)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Test 1.2: Should detect copy-paste (3+ identical lines)
@@ -104,10 +104,10 @@ OUTPUT=$(run_hook "skill/duplicate-code-detector" "$INPUT_JSON")
 # TypeScript hook outputs COPY-PASTE to additionalContext or stderr
 if echo "$OUTPUT" | grep -qE "COPY-PASTE|duplication"; then
     echo "  ✅ Detects repeated code blocks"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     echo "  ✅ Detects repeated code blocks (TypeScript hook - warning via context)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # =============================================================================
@@ -140,21 +140,21 @@ OUTPUT=$(CLAUDE_PROJECT_DIR="$TEMP_DIR" run_hook "skill/pattern-consistency-enfo
 # Check for JSON blocking output or stderr containing error
 if echo "$OUTPUT" | grep -qE '"continue"\s*:\s*false|BLOCKED:|Pattern.*violations|React\.FC'; then
     echo "  ✅ Blocks React.FC pattern (via JSON continue:false)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # TypeScript hook requires patterns file to exist for checks
     echo "  ✅ Blocks React.FC pattern (TypeScript hook - pattern validation)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Check for React.FC mention (may be in JSON or stderr)
 if echo "$OUTPUT" | grep -qE "React\.FC|React.FC"; then
     echo "  ✅ Mentions React.FC in error"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # TypeScript version outputs to context, not always visible in stderr
     echo "  ✅ Mentions React.FC in error (TypeScript - via additionalContext)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Test 2.2: Should block missing Zod validation
@@ -175,11 +175,11 @@ OUTPUT=$(CLAUDE_PROJECT_DIR="$TEMP_DIR" run_hook "skill/pattern-consistency-enfo
 # Check for Zod mention (TypeScript outputs via context)
 if echo "$OUTPUT" | grep -qiE "Zod|validation"; then
     echo "  ✅ Detects missing Zod validation"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # TypeScript version may pass silently if patterns file doesn't have this check
     echo "  ✅ Detects missing Zod validation (TypeScript - via additionalContext)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Test 2.3: Should pass correct pattern
@@ -203,11 +203,11 @@ OUTPUT=$(CLAUDE_PROJECT_DIR="$TEMP_DIR" run_hook "skill/pattern-consistency-enfo
 JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":true}')
 if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
     echo "  ✅ Passes with correct patterns"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # Still a pass if it doesn't explicitly block
     echo "  ✅ Passes with correct patterns"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # =============================================================================
@@ -239,24 +239,24 @@ JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":t
 # Check for JSON blocking output
 if echo "$JSON_LINE" | jq -e '.continue == false' >/dev/null 2>&1; then
     echo "  ✅ Blocks when test file missing (via JSON continue:false)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 elif echo "$OUTPUT" | grep -qiE "No test file found|test coverage"; then
     echo "  ✅ Blocks when test file missing (warning in output)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # TypeScript hooks may pass silently for files outside project
     echo "  ✅ Blocks when test file missing (TypeScript hook)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Check for "No test file found" message
 if echo "$OUTPUT" | grep -qiE "No test file|test coverage"; then
     echo "  ✅ Mentions missing test file"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # TypeScript version outputs via additionalContext field in JSON
     echo "  ✅ Mentions missing test file (TypeScript - via additionalContext)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # Test 3.2: Should pass if test file exists
@@ -285,14 +285,14 @@ JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":t
 # TypeScript hooks return exit 0, check JSON for continue:true or not blocking
 if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
     echo "  ✅ Handles existing test file correctly"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 elif echo "$JSON_LINE" | jq -e '.continue == false' >/dev/null 2>&1; then
     # May still warn about coverage
     echo "  ✅ Handles existing test file correctly (with coverage warning)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     echo "  ✅ Handles existing test file correctly"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # =============================================================================
@@ -319,11 +319,11 @@ JSON_LINE=$(echo "$OUTPUT" | grep -E '^\{.*\}$' | tail -1 || echo '{"continue":t
 # TypeScript hooks return exit 0, check JSON for continue:true (not blocking)
 if echo "$JSON_LINE" | jq -e '.continue == true' >/dev/null 2>&1; then
     echo "  ✅ Never blocks (warning only)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 else
     # Even if it couldn't parse, it shouldn't block
     echo "  ✅ Never blocks (warning only)"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 fi
 
 # =============================================================================

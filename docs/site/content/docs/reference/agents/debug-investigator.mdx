@@ -3,7 +3,7 @@ title: "Debug Investigator"
 description: "Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces"
 ---
 
-<span className="badge badge-gray">inherit</span>
+<span className="badge badge-blue">sonnet</span>
  <span className="badge badge-gray">testing</span>
 
 > Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces
@@ -25,8 +25,8 @@ This agent activates for: investigating broken functionality, debugging regressi
 
 ## Skills Used
 
-- [root-cause-analysis](/docs/reference/skills/root-cause-analysis)
-- [observability-monitoring](/docs/reference/skills/observability-monitoring)
+- [fix-issue](/docs/reference/skills/fix-issue)
+- [monitoring-observability](/docs/reference/skills/monitoring-observability)
 - [errors](/docs/reference/skills/errors)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -260,7 +260,7 @@ The debug-investigator agent complements `/debug` by:
 1. Reviewing debug session output for patterns
 2. Applying systematic RCA methodology to session errors
 3. Suggesting `/ork:fix-issue` workflow if applicable
-4. Using root-cause-analysis skill patterns for deep investigation
+4. Using fix-issue skill patterns for deep investigation
 
 **Differences:**
 - `/debug` - Real-time diagnostics for current CC session state
@@ -269,4 +269,4 @@ The debug-investigator agent complements `/debug` by:
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
-- **Skill references:** observability-monitoring
+- **Skill references:** monitoring-observability

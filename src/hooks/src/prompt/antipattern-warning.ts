@@ -3,14 +3,14 @@
  * Proactive anti-pattern detection and warning injection
  * CC 2.1.9 Compliant: Uses hookSpecificOutput.additionalContext for warnings
  *
- * Enhanced with Mem0 semantic search hints for project/global anti-patterns.
+ * Uses local pattern files and knowledge graph for anti-pattern detection.
  */
 
 import type { HookInput, HookResult } from '../types.js';
 import { outputSilentSuccess, outputPromptContext, logHook, getProjectDir } from '../lib/common.js';
 import { getHomeDir } from '../lib/paths.js';
 import { existsSync, readFileSync } from 'node:fs';
-import { join, basename } from 'node:path';
+import { join } from 'node:path';
 
 // Keywords that indicate implementation intent
 const IMPLEMENTATION_KEYWORDS = [
@@ -96,21 +96,6 @@ function isImplementationPrompt(prompt: string): boolean {
 }
 
 /**
- * Detect best practice category from prompt
- */
-function detectCategory(prompt: string): string {
-  const promptLower = prompt.toLowerCase();
-
-  if (/pagination|cursor|offset|page/i.test(promptLower)) return 'pagination';
-  if (/auth|jwt|oauth|login|session/i.test(promptLower)) return 'authentication';
-  if (/cache|redis|memo/i.test(promptLower)) return 'caching';
-  if (/database|sql|postgres|query/i.test(promptLower)) return 'database';
-  if (/api|endpoint|rest|graphql/i.test(promptLower)) return 'api';
-
-  return 'general';
-}
-
-/**
  * Search local patterns for anti-patterns
  */
 function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
@@ -164,43 +149,6 @@ function searchLocalAntipatterns(prompt: string, projectDir: string): string[] {
 }
 
 /**
- * Generate mem0 user ID for a scope
- */
-function getMem0UserId(scope: string, projectDir: string): string {
-  const projectName = basename(projectDir) || 'unknown';
-  return `project:${projectName}:${scope}`;
-}
-
-/**
- * Build mem0 search hint for the prompt using CLI scripts
- */
-function buildMem0SearchHint(prompt: string, projectDir: string): string {
-  const category = detectCategory(prompt);
-  const userId = getMem0UserId('best-practices', projectDir);
-  const globalUserId = `global:best-practices`;
-  const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || '${CLAUDE_PLUGIN_ROOT}';
-  const scriptPath = `${pluginRoot}/src/skills/mem0-memory/scripts/crud/search-memories.py`;
-  const querySnippet = prompt.slice(0, 50).replace(/"/g, '\\"');
-
-  return `Before implementing, search Mem0 for relevant patterns:
-
-1. Project anti-patterns (category: ${category}):
-   \`\`\`bash
-   python3 ${scriptPath} --query "${querySnippet} failed" --user-id "${userId}" --limit 5
-   \`\`\`
-
-2. Project best practices:
-   \`\`\`bash
-   python3 ${scriptPath} --query "${querySnippet} success" --user-id "${userId}" --limit 5
-   \`\`\`
-
-3. Cross-project failures:
-   \`\`\`bash
-   python3 ${scriptPath} --query "${querySnippet} failed" --user-id "${globalUserId}" --limit 5
-   \`\`\``;
-}
-
-/**
  * Antipattern warning hook - detects and warns about known anti-patterns
  */
 export function antipatternWarning(input: HookInput): HookResult {
@@ -221,13 +169,9 @@ export function antipatternWarning(input: HookInput): HookResult {
   // Search for matching anti-patterns
   const warnings = searchLocalAntipatterns(prompt, projectDir);
 
-  // Build mem0 search hints
-  const mem0SearchHints = buildMem0SearchHint(prompt, projectDir);
-
   if (warnings.length > 0) {
     logHook('antipattern-warning', `Found anti-pattern warnings: ${warnings.join(', ')}`);
 
-    // Build warning message with mem0 search hints
     const warningMessage = `## Anti-Pattern Warning
 
 The following patterns have previously caused issues:
@@ -236,14 +180,9 @@ ${warnings.map((w) => `- ${w}`).join('\n')}
 
 Consider alternative approaches before proceeding.
 
-${mem0SearchHints}`;
+Search knowledge graph for more context: mcp__memory__search_nodes with query="${prompt.slice(0, 50)}"`;
 
     return outputPromptContext(warningMessage);
-  }
-
-  // No local warnings - provide mem0 search hints for significant implementation tasks
-  if (/implement|build|create|develop/.test(prompt.toLowerCase())) {
-    return outputPromptContext(mem0SearchHints);
   }
 
   return outputSilentSuccess();

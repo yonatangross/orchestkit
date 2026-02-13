@@ -69,6 +69,5 @@ describe('memoryBridge', () => {
     expect(result.suppressOutput).toBe(true);
   });
 
-  // Note: mcp__mem0__add_memory tests removed - mem0 now uses CLI scripts
-  // CLI scripts don't trigger PostToolUse hooks
+  // Note: cloud memory tests removed in v7
 });

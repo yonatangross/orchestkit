@@ -2,7 +2,7 @@
 name: documentation-specialist
 description: Technical writing and documentation expert. API docs, READMEs, technical guides, ADRs, changelogs, OpenAPI specs. Use for documentation, readme, api-docs, technical-writing, adr, changelog, openapi, swagger, doc-generation.
 category: docs
-model: inherit
+model: haiku
 context: fork
 color: gray
 memory: project
@@ -19,7 +19,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - api-design-framework
+  - api-design
   - architecture-decision-record
   - git-workflow
   - release-management
@@ -269,7 +269,7 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 
 **DON'T:**
 - Implement new features (that's backend-system-architect)
-- Design APIs (that's backend-system-architect with api-design-framework)
+- Design APIs (that's backend-system-architect with api-design)
 - Make architectural decisions (that's system-design-reviewer)
 - Modify application code (that's the appropriate domain agent)
 
@@ -293,7 +293,7 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 
 - **Receives from:** backend-system-architect (API specs), system-design-reviewer (architecture decisions)
 - **Hands off to:** code-quality-reviewer (doc review), release-engineer (changelog)
-- **Skill references:** api-design-framework, architecture-decision-record, git-workflow, release-management
+- **Skill references:** api-design, architecture-decision-record, git-workflow, release-management
 
 ## Example
 

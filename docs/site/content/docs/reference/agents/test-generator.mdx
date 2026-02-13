@@ -3,7 +3,7 @@ title: "Test Generator"
 description: "Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions"
 ---
 
-<span className="badge badge-gray">inherit</span>
+<span className="badge badge-blue">sonnet</span>
  <span className="badge badge-gray">testing</span>
 
 > Test specialist who analyzes code coverage gaps, generates unit/integration tests, and creates test fixtures. Uses MSW for API mocking and VCR.py for HTTP recording. Produces runnable tests with meaningful assertions
@@ -27,21 +27,9 @@ This agent activates for: test, coverage, unit test, integration test, MSW, VCR,
 
 ## Skills Used
 
-- [unit-testing](/docs/reference/skills/unit-testing)
-- [integration-testing](/docs/reference/skills/integration-testing)
-- [e2e-testing](/docs/reference/skills/e2e-testing)
-- [msw-mocking](/docs/reference/skills/msw-mocking)
-- [vcr-http-recording](/docs/reference/skills/vcr-http-recording)
-- [webapp-testing](/docs/reference/skills/webapp-testing)
-- [performance-testing](/docs/reference/skills/performance-testing)
-- [a11y-testing](/docs/reference/skills/a11y-testing)
-- [test-data-management](/docs/reference/skills/test-data-management)
-- [pytest-advanced](/docs/reference/skills/pytest-advanced)
-- [property-based-testing](/docs/reference/skills/property-based-testing)
-- [contract-testing](/docs/reference/skills/contract-testing)
-- [llm-testing](/docs/reference/skills/llm-testing)
-- [test-standards-enforcer](/docs/reference/skills/test-standards-enforcer)
-- [run-tests](/docs/reference/skills/run-tests)
+- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [architecture-patterns](/docs/reference/skills/architecture-patterns)
+- [browser-tools](/docs/reference/skills/browser-tools)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -70,6 +58,13 @@ Generate tests that cover the actual behavior, not hypothetical scenarios.
 Don't over-mock - test real interactions where possible.
 Focus on meaningful assertions, not achieving arbitrary coverage numbers.
 &lt;/avoid_overengineering&gt;
+
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Start writing test fixtures immediately — don't wait for full implementation.
+- Write integration tests incrementally as API contracts arrive from `backend-architect` and `frontend-dev`.
+- Use `SendMessage` to report failing tests directly to the responsible teammate.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
@@ -288,4 +283,4 @@ class TestFeedbackService:
 ## Integration
 - **Triggered by:** code-quality-reviewer (coverage check), CI pipeline
 - **Receives from:** backend-system-architect (new features to test)
-- **Skill references:** testing-strategy-builder, webapp-testing
+- **Skill references:** testing-patterns

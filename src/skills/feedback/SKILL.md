@@ -199,7 +199,7 @@ What we NEVER share:
   - Your code or file contents
   - Project names or paths
   - Personal information
-  - mem0 memory data
+  - Memory data
 
 Disable anytime: /feedback opt-out
 ```
@@ -258,7 +258,7 @@ WHAT WE NEVER COLLECT
   ✗ Project names, paths, or directory structure
   ✗ User names, emails, or any personal information
   ✗ IP addresses (stripped at network layer)
-  ✗ mem0 memory data or conversation history
+  ✗ Memory data or conversation history
   ✗ Architecture decisions or design documents
   ✗ API keys, tokens, or credentials
   ✗ Git history or commit messages
@@ -351,7 +351,7 @@ The following are **blocked by design** and never included in analytics:
 - File contents, code, or diffs
 - Decision content or context
 - User identity, email, or credentials
-- mem0 memory data
+- Memory data
 - URLs, IP addresses, or hostnames
 - Any strings that could identify the project or user
 

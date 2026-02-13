@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference.",
+  "ruleCount": 18,
+  "categories": 6,
+  "consolidatedFrom": [
+    "performance-optimization",
+    "core-web-vitals",
+    "render-optimization",
+    "lazy-loading-patterns",
+    "image-optimization",
+    "high-performance-inference"
+  ]
+}

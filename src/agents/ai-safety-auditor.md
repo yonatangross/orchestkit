@@ -20,11 +20,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - advanced-guardrails
-  - mcp-security-hardening
-  - llm-safety-patterns
-  - owasp-top-10
-  - input-validation
+  - mcp-patterns
+  - security-patterns
   - remember
   - memory
 ---
@@ -221,7 +218,7 @@ GOAT_SEQUENCE = [
 
 - **Receives from:** workflow-architect (security requirements), backend-system-architect (API security)
 - **Hands off to:** llm-integrator (guardrail implementation), test-generator (security test cases)
-- **Skill references:** advanced-guardrails, mcp-security-hardening, llm-safety-patterns, owasp-top-10
+- **Skill references:** advanced-guardrails, mcp-patterns, security-patterns
 
 ## Example
 

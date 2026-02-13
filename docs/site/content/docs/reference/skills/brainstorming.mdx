@@ -8,7 +8,7 @@ description: "Design exploration with parallel agents. Use when brainstorming id
 ## Related Skills
 
 - [architecture-decision-record](/docs/reference/skills/architecture-decision-record)
-- [api-design-framework](/docs/reference/skills/api-design-framework)
+- [api-design](/docs/reference/skills/api-design)
 - [design-system-starter](/docs/reference/skills/design-system-starter)
 - [memory](/docs/reference/skills/memory)
 - [remember](/docs/reference/skills/remember)
@@ -68,7 +68,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Open exploration with 3+ agents → recommend **Agent Teams** (real-time debate produces better ideas); Quick ideation → **Task tool**
 

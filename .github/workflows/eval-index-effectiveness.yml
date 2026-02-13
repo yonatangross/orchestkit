@@ -1,17 +1,23 @@
 # =============================================================================
-# OrchestKit Index Effectiveness Evaluation
+# OrchestKit Golden Test Structural Validation
 # =============================================================================
-# Compares with-index vs without-index performance using golden test cases.
-# Runs on PR to main/dev and weekly for regression detection.
+# Validates golden test YAML schemas, scaffold integrity, and file expectations.
+# Runs on PR to main/dev. Manual trigger available.
 #
-# Metrics tracked:
-#   - Build success rate
-#   - Lint compliance rate
-#   - Test pass rate
-#   - Agent routing accuracy (via CLAUDE.md agent-index)
+# NOTE: Agent routing evaluation requires Claude CLI on the runner.
+# Without Claude CLI (GitHub Actions default), this runs in dry-run mode
+# and only validates structural correctness — NOT agent behavior.
+#
+# Metrics tracked (dry-run):
+#   - Golden YAML schema validity
+#   - Scaffold file integrity
+#   - Build/lint command allowlist compliance
+#
+# Metrics tracked (with Claude CLI):
+#   - All above + agent routing accuracy, build/lint/test pass rates
 # =============================================================================
 
-name: Eval: Agent Routing
+name: "Eval: Golden Tests"
 
 on:
   # Run on PRs that touch index-related files
@@ -23,10 +29,6 @@ on:
       - 'src/agents/*.md'
       - 'manifests/*.json'
       - 'tests/evals/**'
-
-  # Weekly regression check
-  schedule:
-    - cron: '0 6 * * 1'  # Monday 6 AM UTC
 
   # Manual trigger
   workflow_dispatch:
@@ -50,10 +52,10 @@ jobs:
       has_claude: ${{ steps.check-claude.outputs.has_claude }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
           node-version: '20'
 
@@ -85,7 +87,7 @@ jobs:
           # jq is pre-installed on GitHub runners
 
       - name: Upload prepared workspace
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: prepared-workspace
           path: |
@@ -103,15 +105,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download prepared workspace
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: prepared-workspace
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
           node-version: '20'
 
@@ -134,7 +136,7 @@ jobs:
         timeout-minutes: 30
 
       - name: Upload with-index results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: results-with-index
           path: tests/evals/results/with-index/
@@ -149,15 +151,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download prepared workspace
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: prepared-workspace
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238  # v6
         with:
           node-version: '20'
 
@@ -188,7 +190,7 @@ jobs:
         timeout-minutes: 30
 
       - name: Upload without-index results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: results-without-index
           path: tests/evals/results/without-index/
@@ -232,27 +234,43 @@ jobs:
 
       - name: Generate summary
         run: |
-          echo "## Index Effectiveness Evaluation" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-
           if [[ -f tests/evals/comparison.json ]]; then
-            # Extract values
-            build_delta=$(jq -r '.delta.build | floor' tests/evals/comparison.json)
-            test_delta=$(jq -r '.delta.test | floor' tests/evals/comparison.json)
-            agent_delta=$(jq -r '.delta.agent | floor' tests/evals/comparison.json)
-            regression=$(jq -r '.regression_detected' tests/evals/comparison.json)
+            dry_run=$(jq -r '.dry_run // false' tests/evals/comparison.json)
 
-            echo "| Metric | Delta |" >> $GITHUB_STEP_SUMMARY
-            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Build Success | ${build_delta:+$build_delta}% |" >> $GITHUB_STEP_SUMMARY
-            echo "| Test Pass | ${test_delta:+$test_delta}% |" >> $GITHUB_STEP_SUMMARY
-            echo "| Agent Routing | ${agent_delta:+$agent_delta}% |" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
+            if [[ "$dry_run" == "true" ]]; then
+              echo "## Golden Test Structural Validation (dry-run)" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "> Claude CLI not available — validating golden YAML schema and scaffold integrity only." >> $GITHUB_STEP_SUMMARY
+              echo "> Agent routing accuracy requires Claude CLI on the runner." >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
 
-            if [[ "$regression" == "true" ]]; then
-              echo ":warning: **Regression detected!** Review changes before merging." >> $GITHUB_STEP_SUMMARY
+              total=$(jq -r '.total_tests' tests/evals/comparison.json)
+              echo "| Check | Result |" >> $GITHUB_STEP_SUMMARY
+              echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Golden YAML parsed | :white_check_mark: ${total} test cases |" >> $GITHUB_STEP_SUMMARY
+              echo "| Scaffold integrity | :white_check_mark: files created |" >> $GITHUB_STEP_SUMMARY
+              echo "| Agent routing | :grey_question: skipped (no Claude CLI) |" >> $GITHUB_STEP_SUMMARY
             else
-              echo ":white_check_mark: All metrics stable or improved." >> $GITHUB_STEP_SUMMARY
+              echo "## Index Effectiveness Evaluation" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              build_delta=$(jq -r '.delta.build | floor' tests/evals/comparison.json)
+              test_delta=$(jq -r '.delta.test | floor' tests/evals/comparison.json)
+              agent_delta=$(jq -r '.delta.agent | floor' tests/evals/comparison.json)
+              regression=$(jq -r '.regression_detected' tests/evals/comparison.json)
+
+              echo "| Metric | Delta |" >> $GITHUB_STEP_SUMMARY
+              echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| Build Success | ${build_delta:+$build_delta}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| Test Pass | ${test_delta:+$test_delta}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| Agent Routing | ${agent_delta:+$agent_delta}% |" >> $GITHUB_STEP_SUMMARY
+              echo "" >> $GITHUB_STEP_SUMMARY
+
+              if [[ "$regression" == "true" ]]; then
+                echo ":warning: **Regression detected!** Review changes before merging." >> $GITHUB_STEP_SUMMARY
+              else
+                echo ":white_check_mark: All metrics stable or improved." >> $GITHUB_STEP_SUMMARY
+              fi
             fi
           else
             echo ":x: Comparison failed - check logs for details" >> $GITHUB_STEP_SUMMARY
@@ -298,16 +316,41 @@ jobs:
               return;
             }
 
-            const delta = comparison.delta || {};
-            const regression = comparison.regression_detected;
+            const isDryRun = comparison.dry_run === true;
 
-            const formatDelta = (val) => {
-              if (val > 0) return `+${Math.floor(val)}% :arrow_up:`;
-              if (val < 0) return `${Math.floor(val)}% :arrow_down:`;
-              return `${Math.floor(val)}%`;
-            };
+            let body;
+            if (isDryRun) {
+              body = `## Golden Test Structural Validation
 
-            const body = `## Index Effectiveness Evaluation Results
+            > **Dry-run mode** — Claude CLI not available on this runner.
+            > Only golden YAML schema and scaffold integrity are validated.
+            > Agent routing evaluation requires Claude CLI (run locally or on a self-hosted runner).
+
+            | Check | Result |
+            |-------|--------|
+            | Golden YAML parsed | :white_check_mark: ${comparison.total_tests} test cases |
+            | Scaffold integrity | :white_check_mark: Simulated files created |
+            | Agent routing | :grey_question: Skipped (no Claude CLI) |
+
+            <details>
+            <summary>View raw data</summary>
+
+            \`\`\`json
+            ${JSON.stringify(comparison, null, 2)}
+            \`\`\`
+            </details>
+            `;
+            } else {
+              const delta = comparison.delta || {};
+              const regression = comparison.regression_detected;
+
+              const formatDelta = (val) => {
+                if (val > 0) return `+${Math.floor(val)}% :arrow_up:`;
+                if (val < 0) return `${Math.floor(val)}% :arrow_down:`;
+                return `${Math.floor(val)}%`;
+              };
+
+              body = `## Index Effectiveness Evaluation Results
 
             | Metric | Without Index | With Index | Delta |
             |--------|---------------|------------|-------|
@@ -326,6 +369,7 @@ jobs:
             \`\`\`
             </details>
             `;
+            }
 
             await github.rest.issues.createComment({
               owner: context.repo.owner,

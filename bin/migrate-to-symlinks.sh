@@ -45,7 +45,7 @@ convert_to_symlink() {
   # Check if root source exists
   if [[ ! -e "$root_path" ]]; then
     log_warn "Root source not found: $root_path (skipping)"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
     return 0
   fi
 
@@ -58,7 +58,7 @@ convert_to_symlink() {
   # Check if plugin copy exists
   if [[ ! -e "$plugin_path" ]]; then
     log_warn "Plugin path not found: $plugin_path (skipping)"
-    ((SKIPPED++))
+    SKIPPED=$((SKIPPED + 1))
     return 0
   fi
 
@@ -86,7 +86,7 @@ process_plugins() {
         if [[ -d "$skill_dir" ]]; then
           local skill_name=$(basename "$skill_dir")
           convert_to_symlink "$plugin_name" "skills" "$skill_name"
-          ((SKILLS_CONVERTED++)) || true
+          SKILLS_CONVERTED=$((SKILLS_CONVERTED + 1))
         fi
       done
     fi
@@ -97,7 +97,7 @@ process_plugins() {
         if [[ -f "$agent_file" ]]; then
           local agent_name=$(basename "$agent_file")
           convert_to_symlink "$plugin_name" "agents" "$agent_name"
-          ((AGENTS_CONVERTED++)) || true
+          AGENTS_CONVERTED=$((AGENTS_CONVERTED + 1))
         fi
       done
     fi
@@ -108,7 +108,7 @@ process_plugins() {
         if [[ -f "$command_file" ]]; then
           local command_name=$(basename "$command_file")
           convert_to_symlink "$plugin_name" "commands" "$command_name"
-          ((COMMANDS_CONVERTED++)) || true
+          COMMANDS_CONVERTED=$((COMMANDS_CONVERTED + 1))
         fi
       done
     fi

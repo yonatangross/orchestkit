@@ -30,18 +30,18 @@ declare -a FAILED_TESTS=()
 
 log_pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
 }
 
 log_fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
     FAILED_TESTS+=("$1")
 }
 
 log_skip() {
     echo -e "${YELLOW}⊘${NC} $1 (skipped)"
-    ((TESTS_SKIPPED++)) || true
+    TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
 }
 
 log_section() {

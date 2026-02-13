@@ -95,6 +95,14 @@ See [entities-value-objects.md](references/entities-value-objects.md) for Addres
 | Domain events | Collect in entity, publish after persist |
 | Context boundaries | By business capability, not technical |
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [aggregate-boundaries](rules/aggregate-boundaries.md) | HIGH | Aggregate root design, reference by ID, one-per-transaction |
+| [aggregate-invariants](rules/aggregate-invariants.md) | HIGH | Business rule enforcement, specification pattern |
+| [aggregate-sizing](rules/aggregate-sizing.md) | HIGH | Right-sizing, when to split, eventual consistency |
+
 ## Anti-Patterns (FORBIDDEN)
 
 ```python
@@ -120,8 +128,8 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 ## Related Skills
 
 - `aggregate-patterns` - Deep dive on aggregate design
-- `distributed-locks` - Cross-aggregate coordination
-- `database-schema-designer` - Schema design for DDD
+- `distributed-systems` - Cross-aggregate coordination
+- `database-patterns` - Schema design for DDD
 
 ## References
 

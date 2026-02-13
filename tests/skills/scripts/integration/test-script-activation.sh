@@ -61,17 +61,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -105,7 +105,7 @@ SCRIPT_FILES=()
 while IFS= read -r script_file; do
     if [[ -f "$script_file" ]]; then
         SCRIPT_FILES+=("$script_file")
-        ((TOTAL_SCRIPTS++)) || true
+        TOTAL_SCRIPTS=$((TOTAL_SCRIPTS + 1))
         
         # Claude Code discovers skills in skills/<skill-name>/scripts/*.md
         skill_name=$(echo "$script_file" | sed "s|$SKILLS_DIR/||" | sed 's|/scripts/.*||')
@@ -161,7 +161,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     user_invocable=$(get_frontmatter_field "$frontmatter" "user-invocable" 2>/dev/null || echo "")
     
     if [[ "$user_invocable" == "true" ]]; then
-        ((ACTIVATABLE_SCRIPTS++)) || true
+        ACTIVATABLE_SCRIPTS=$((ACTIVATABLE_SCRIPTS + 1))
         info "$skill_name/scripts/$script_name: user-invocable: true (will appear in / menu)"
     elif [[ "$user_invocable" == "false" ]]; then
         NOT_INVOCABLE+=("$skill_name/scripts/$script_name")
@@ -230,7 +230,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     fi
     
     if [[ "$has_error" == "false" ]]; then
-        ((VALID_FRONTMATTER++)) || true
+        VALID_FRONTMATTER=$((VALID_FRONTMATTER + 1))
         info "$skill_name/scripts/$script_name: Has required frontmatter (name, description)"
     fi
 done
@@ -277,15 +277,15 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     fi
     
     if [[ -n "$argument_hint" ]]; then
-        ((WITH_HINT++)) || true
+        WITH_HINT=$((WITH_HINT + 1))
         if [[ "$uses_args" == "true" ]]; then
             info "$skill_name/scripts/$script_name: Has argument-hint and uses \$ARGUMENTS (correct)"
         else
-            ((HINT_MISMATCH++)) || true
+            HINT_MISMATCH=$((HINT_MISMATCH + 1))
             warn "$skill_name/scripts/$script_name: Has argument-hint but doesn't use \$ARGUMENTS"
         fi
     else
-        ((WITHOUT_HINT++)) || true
+        WITHOUT_HINT=$((WITHOUT_HINT + 1))
         if [[ "$uses_args" == "true" ]]; then
             warn "$skill_name/scripts/$script_name: Uses \$ARGUMENTS but no argument-hint (recommended)"
         fi
@@ -315,9 +315,9 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     
     # Check for common prefixes
     if [[ "$script_name" =~ ^(create|review|assess|generate|backup|automate|capture|multi|test)- ]]; then
-        ((CONVENTIONAL++)) || true
+        CONVENTIONAL=$((CONVENTIONAL + 1))
     else
-        ((UNCONVENTIONAL++)) || true
+        UNCONVENTIONAL=$((UNCONVENTIONAL + 1))
         # Not a failure, just informational
     fi
 done
@@ -352,7 +352,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     content_after_frontmatter=$(sed '/^---$/,/^---$/d' "$script_file" 2>/dev/null | sed '/^$/d' | wc -l | tr -d ' ')
     
     if [[ "$content_after_frontmatter" -gt 0 ]]; then
-        ((READABLE++)) || true
+        READABLE=$((READABLE + 1))
         info "$skill_name/scripts/$script_name: Readable with content ($content_after_frontmatter lines)"
     else
         EMPTY_SCRIPTS+=("$skill_name/scripts/$script_name")

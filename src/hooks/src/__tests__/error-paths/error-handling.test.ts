@@ -343,19 +343,6 @@ describe('Error Path Coverage', () => {
     });
   });
 
-  describe('Network/External Service Error Handling', () => {
-    test('mem0-pre-compaction-sync handles network timeout', async () => {
-      // mem0 calls should fail gracefully when network is unavailable
-      mockExistsSync.mockReturnValue(false);
-
-      const { mem0PreCompactionSync } = await import('../../stop/mem0-pre-compaction-sync.js');
-      const input = createHookInput({ tool_name: 'Stop' });
-      const result = mem0PreCompactionSync(input);
-
-      expectGracefulDegradation(result);
-    });
-  });
-
   describe('Edge Case Input Handling', () => {
     const edgeCases = [
       { name: 'null project_dir', input: { project_dir: null as unknown as string } },

@@ -28,7 +28,7 @@ Detailed instructions for the 7-phase brainstorming process.
 | Database | `backend-system-architect` | database-schema-designer |
 | Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
-| Performance | `performance-engineer` | core-web-vitals |
+| Performance | `performance-engineer` | performance |
 
 **Always include:** `workflow-architect` (system design perspective)
 

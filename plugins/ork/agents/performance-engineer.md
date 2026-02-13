@@ -2,7 +2,7 @@
 name: performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project
@@ -18,13 +18,9 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - core-web-vitals
-  - lazy-loading-patterns
-  - image-optimization
-  - render-optimization
+  - performance
   - vite-advanced
-  - observability-monitoring
-  - caching-strategies
+  - monitoring-observability
   - task-dependency-patterns
   - remember
   - memory
@@ -244,7 +240,7 @@ Return structured performance report:
 
 - **Receives from:** frontend-ui-developer (component for optimization), backend-system-architect (API response times)
 - **Hands off to:** frontend-ui-developer (implementation of suggested patterns), devops-deployment (CI configuration)
-- **Skill references:** core-web-vitals, lazy-loading-patterns, image-optimization, vite-advanced
+- **Skill references:** performance, vite-advanced
 
 ## Quick Commands
 
@@ -297,13 +293,9 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|core-web-vitals:{SKILL.md,references/{rum-setup.md}}|performance,core-web-vitals,lcp,inp,cls,lighthouse,rum,web-vitals
-|lazy-loading-patterns:{SKILL.md,references/{route-splitting.md}}|lazy-loading,code-splitting,suspense,dynamic-import,intersection-observer,preload,react-19,performance
-|image-optimization:{SKILL.md,references/{cdn-setup.md}}|images,next-image,avif,webp,responsive,lazy-loading,blur-placeholder,lcp
-|render-optimization:{SKILL.md,references/{devtools-profiler-workflow.md,memoization-escape-hatches.md,react-compiler-migration.md,state-colocation.md,tanstack-virtual-patterns.md}}|react,performance,optimization,react-compiler,virtualization,memo,profiler
+|performance:{SKILL.md,references/{caching-strategies.md,cdn-setup.md,core-web-vitals.md,database-optimization.md,devtools-profiler-workflow.md,edge-deployment.md,frontend-performance.md,memoization-escape-hatches.md,profiling.md,quantization-guide.md,react-compiler-migration.md,route-splitting.md,rum-setup.md,speculative-decoding.md,state-colocation.md,tanstack-virtual-patterns.md,vllm-deployment.md}}|performance,core-web-vitals,lcp,inp,cls,react-compiler,virtualization,lazy-loading,code-splitting,image-optimization,avif,profiling,vllm,quantization,inference,caching,redis,prompt-caching,tanstack-query,prefetching,optimistic-updates
 |vite-advanced:{SKILL.md,references/{chunk-optimization.md,environment-api.md,library-mode.md,plugin-development.md,ssr-configuration.md}}|vite,build,bundler,plugins,ssr,library-mode,environment-api,optimization
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|caching-strategies:{SKILL.md,references/{cache-patterns.md}}|caching,redis,performance,fastapi,python
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

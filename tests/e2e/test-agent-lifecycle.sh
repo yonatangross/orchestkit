@@ -26,8 +26,8 @@ NC='\033[0m'
 PASS_COUNT=0
 FAIL_COUNT=0
 
-pass() { echo -e "  ${GREEN}✓${NC} $1"; ((PASS_COUNT++)) || true; }
-fail() { echo -e "  ${RED}✗${NC} $1"; ((FAIL_COUNT++)) || true; }
+pass() { echo -e "  ${GREEN}✓${NC} $1"; PASS_COUNT=$((PASS_COUNT + 1)); }
+fail() { echo -e "  ${RED}✗${NC} $1"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

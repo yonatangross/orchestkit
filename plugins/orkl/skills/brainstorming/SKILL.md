@@ -7,7 +7,7 @@ version: 4.2.0
 author: OrchestKit
 user-invocable: true
 allowedTools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design-framework, design-system-starter, memory, remember, assess-complexity]
+skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity]
 complexity: medium
 ---
 
@@ -64,7 +64,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — agents debate and challenge ideas) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Open exploration with 3+ agents → recommend **Agent Teams** (real-time debate produces better ideas); Quick ideation → **Task tool**
 

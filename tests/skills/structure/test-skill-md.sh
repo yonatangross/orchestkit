@@ -49,17 +49,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -219,7 +219,7 @@ echo "────────────────────────�
 missing_files=()
 for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]]; then
-        ((TOTAL_SKILLS++)) || true
+        TOTAL_SKILLS=$((TOTAL_SKILLS + 1))
         skill_name=$(basename "$skill_dir")
 
         if [[ ! -f "$skill_dir/SKILL.md" ]]; then
@@ -507,8 +507,8 @@ echo -e "${CYAN}Test 10: user-invocable Field Validation${NC}"
 echo "────────────────────────────────────────────────────────────────────────────"
 
 # Expected counts
-EXPECTED_USER_INVOCABLE=24
-EXPECTED_INTERNAL=176
+EXPECTED_USER_INVOCABLE=23
+EXPECTED_INTERNAL=37
 
 missing_user_invocable=()
 user_invocable_true=()

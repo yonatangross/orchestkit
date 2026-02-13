@@ -2,7 +2,7 @@
 name: ci-cd-engineer
 description: CI/CD specialist who designs and implements GitHub Actions workflows, GitLab CI pipelines, and automated deployment strategies. Focuses on build optimization, caching, matrix testing, and security scanning integration. Auto Mode keywords - CI/CD, pipeline, GitHub Actions, GitLab CI, workflow, build, deploy, artifact, cache, matrix testing, release automation
 category: devops
-model: inherit
+model: haiku
 context: fork
 color: orange
 memory: project
@@ -13,6 +13,7 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -20,10 +21,10 @@ tools:
   - TaskList
 skills:
   - devops-deployment
-  - security-scanning
+  - security-patterns
   - github-operations
-  - observability-monitoring
-  - biome-linting
+  - monitoring-observability
+  - code-review-playbook
   - vite-advanced
   - task-dependency-patterns
   - remember
@@ -204,4 +205,4 @@ Task: "Set up CI/CD for FastAPI backend"
 ## Integration
 - **Receives from:** backend-system-architect (build requirements), infrastructure-architect (deployment targets)
 - **Hands off to:** deployment-manager (for releases), security-auditor (scan results)
-- **Skill references:** devops-deployment, security-scanning, github-operations
+- **Skill references:** devops-deployment, security-patterns, github-operations

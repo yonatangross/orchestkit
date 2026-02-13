@@ -2,7 +2,7 @@
 name: infrastructure-architect
 description: Infrastructure as Code specialist who designs Terraform modules, Kubernetes manifests, and cloud architecture. Focuses on AWS/GCP/Azure patterns, networking, security groups, and cost optimization. Auto Mode keywords - infrastructure, Terraform, Kubernetes, AWS, GCP, Azure, VPC, EKS, RDS, cloud architecture, IaC
 category: devops
-model: opus
+model: sonnet
 context: fork
 color: cyan
 memory: project
@@ -13,6 +13,8 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(ci-cd-engineer)
+  - Task(deployment-manager)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -20,9 +22,9 @@ tools:
   - TaskList
 skills:
   - devops-deployment
-  - observability-monitoring
-  - security-scanning
-  - resilience-patterns
+  - monitoring-observability
+  - security-patterns
+  - distributed-systems
   - task-dependency-patterns
   - remember
   - memory
@@ -219,4 +221,4 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 ## Integration
 - **Receives from:** backend-system-architect (resource requirements), security-auditor (compliance needs)
 - **Hands off to:** ci-cd-engineer (deployment targets), deployment-manager (production setup)
-- **Skill references:** devops-deployment, observability-monitoring
+- **Skill references:** devops-deployment, monitoring-observability

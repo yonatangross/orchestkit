@@ -28,7 +28,7 @@ find_skill_dir() {
 
 
 # Token budget: Based on skill files (SKILL.md ~100 tokens each)
-# Updated to 420000 for upgrade-assessment skills expansion (199 skills)
+# Updated to 420000 for upgrade-assessment skills expansion (200 skills)
 MAX_SKILL_TOKEN_BUDGET=420000
 
 # Verbose mode

@@ -1,7 +1,7 @@
 ---
 name: responsive-patterns
 description: Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries.
-tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints]
+tags: [responsive, container-queries, fluid-typography, mobile-first, css-grid, clamp, cqi, breakpoints, pwa, service-worker, workbox, offline-first, animation, motion, framer-motion, scroll-driven, view-transitions]
 context: fork
 agent: frontend-ui-developer
 version: 1.0.0
@@ -396,6 +396,19 @@ font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
 | clamp() | 79+ | 13.1+ | 75+ | 79+ |
 | Subgrid | 117+ | 16+ | 71+ | 117+ |
 
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| PWA | `rules/pwa-service-worker.md` | HIGH | Workbox caching strategies, VitePWA, update management |
+| PWA | `rules/pwa-offline.md` | HIGH | Offline hooks, background sync, install prompts |
+| Animation | `rules/animation-motion.md` | HIGH | Motion presets, AnimatePresence, View Transitions |
+| Animation | `rules/animation-scroll.md` | MEDIUM | CSS scroll-driven animations, parallax, progressive enhancement |
+
+**Total: 4 rules across 2 categories**
+
 ## Key Decisions
 
 | Decision | Option A | Option B | Recommendation |
@@ -409,8 +422,7 @@ font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
 ## Related Skills
 
 - `design-system-starter` - Building responsive design systems
-- `core-web-vitals` - CLS and responsive images
-- `image-optimization` - Responsive image strategies
+- `performance` - CLS, responsive images, and image optimization
 - `i18n-date-patterns` - RTL/LTR responsive considerations
 
 ## Capability Details

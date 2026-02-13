@@ -61,7 +61,12 @@ fi
 # ===== Changelog Check =====
 echo -n "  Checking CHANGELOG.md... "
 
-if ! git diff origin/main --name-only 2>/dev/null | grep -q "CHANGELOG.md"; then
+# Note: git diff exits 1 when differences exist; pipefail would break the pipe.
+# Capture output first to avoid pipefail interaction.
+# Note: pipefail + "echo $big_var | grep -q" causes SIGPIPE when grep exits early.
+# Use bash pattern matching instead.
+_CL_FILES=$(git diff origin/main --name-only 2>/dev/null </dev/null || true)
+if [[ "$_CL_FILES" != *"CHANGELOG.md"* ]]; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
@@ -120,8 +125,11 @@ run_with_timeout() {
   elif command -v gtimeout &>/dev/null; then
     gtimeout "$timeout_secs" "$@"
   else
-    # Fallback: use perl alarm (works on macOS)
-    perl -e "alarm $timeout_secs; exec @ARGV" "$@"
+    # No timeout command available (macOS without coreutils).
+    # Both perl alarm and background-process watchdog produce unreliable exit
+    # codes with npm on macOS. Run directly — timeout protection is only
+    # critical on CI where Linux `timeout` is available.
+    "$@"
   fi
 }
 
@@ -230,6 +238,8 @@ CI_UNIT_TESTS=(
   tests/unit/test-pii-validation.sh
   tests/unit/test-evolution-engine.sh
   tests/unit/test-version-manager.sh
+  # Pre-push hook tests
+  tests/unit/test-pre-push-hook.sh
 )
 
 UNIT_TEST_ERRORS=0

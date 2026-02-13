@@ -426,14 +426,17 @@ TERMINAL TEXT DENSITY
 Rule: If content doesn't earn its screen time, cut it.
 ```
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [analyzer-patterns](rules/analyzer-patterns.md) | MEDIUM | Frontmatter parsing, phase detection, example extraction |
+| [production-pipeline](rules/production-pipeline.md) | HIGH | Pre-production, storyboarding, recording, VHS, manim |
+| [production-composition](rules/production-composition.md) | HIGH | Remotion composition, audio mixing, thumbnails, captions |
+
 ## Related Skills
 
-- `terminal-demo-generator`: VHS tape recording
-- `remotion-composer`: Video composition and effects
-- `hook-formulas`: Attention-grabbing openings
-- `video-pacing`: Timing and rhythm patterns
-- `music-sfx-selection`: Audio selection and mixing
-- `thumbnail-first-frame`: CTR optimization
+- `video-production`: Full video production pipeline (recording, composition, audio, pacing)
 
 ## References
 

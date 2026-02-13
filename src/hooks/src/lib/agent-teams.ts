@@ -12,7 +12,7 @@
  * should yield to CC's native implementation to avoid duplication.
  */
 
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -75,4 +75,45 @@ export function getTeamMembers(): TeamMember[] {
 /** Count current team members */
 export function getTeamSize(): number {
   return getTeamMembers().length;
+}
+
+/** List all team directories */
+export function listAllTeams(): string[] {
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  if (!homeDir) return [];
+  const teamsDir = join(homeDir, '.claude', 'teams');
+  if (!existsSync(teamsDir)) return [];
+  try {
+    return readdirSync(teamsDir).filter(name => {
+      try { return statSync(join(teamsDir, name)).isDirectory(); } catch { return false; }
+    });
+  } catch { return []; }
+}
+
+/** Check if team is stale (no config, or dir older than maxAgeHours) */
+export function isStaleTeam(teamName: string, maxAgeHours: number = 4): boolean {
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  if (!homeDir) return false;
+  const teamPath = join(homeDir, '.claude', 'teams', teamName);
+  if (!existsSync(teamPath)) return false;
+  const configPath = join(teamPath, 'config.json');
+  if (!existsSync(configPath)) return true;  // no config = orphaned
+  try {
+    const ageMs = Date.now() - statSync(teamPath).mtimeMs;
+    return ageMs > maxAgeHours * 3600_000;
+  } catch { return true; }
+}
+
+/** Remove team + task directories */
+export function cleanupTeam(teamName: string): boolean {
+  const homeDir = process.env.HOME || process.env.USERPROFILE || '';
+  if (!homeDir) return false;
+  let ok = true;
+  for (const sub of ['teams', 'tasks']) {
+    const dir = join(homeDir, '.claude', sub, teamName);
+    if (existsSync(dir)) {
+      try { rmSync(dir, { recursive: true, force: true }); } catch { ok = false; }
+    }
+  }
+  return ok;
 }

@@ -52,7 +52,7 @@ AskUserQuestion(
 
 Choose **Agent Teams** (mesh — RCA agents share hypotheses) or **Task tool** (star — all report to lead):
 
-1. `ORCHESTKIT_PREFER_TEAMS=1` → **Agent Teams mode**
+1. `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1` → **Agent Teams mode**
 2. Agent Teams unavailable → **Task tool mode** (default)
 3. Otherwise: Complex cross-cutting bugs (backend + frontend + tests involved) → recommend **Agent Teams**; Focused bugs (single domain) → **Task tool**
 
@@ -149,7 +149,7 @@ See [Hypothesis-Based RCA](references/hypothesis-rca.md) for confidence scoring.
 
 ## Phase 4: Root Cause Analysis (5 Agents)
 
-Launch ALL 5 agents in parallel with `run_in_background=True`:
+Launch ALL 5 agents in parallel with `run_in_background=True` and `max_turns=25`:
 
 1. **debug-investigator**: Root cause tracing
 2. **debug-investigator**: Impact analysis
@@ -166,7 +166,7 @@ In Agent Teams mode, form an investigation team where RCA agents share hypothese
 ```python
 TeamCreate(team_name="fix-issue-{number}", description="RCA for issue #{number}")
 
-Task(subagent_type="ork:debug-investigator", name="root-cause-tracer",
+Task(subagent_type="debug-investigator", name="root-cause-tracer",
      team_name="fix-issue-{number}",
      prompt="""Trace the root cause for issue #{number}: {issue description}
      Hypotheses: {hypothesis list from Phase 3}
@@ -174,7 +174,7 @@ Task(subagent_type="ork:debug-investigator", name="root-cause-tracer",
      message impact-analyst and the relevant domain expert (backend-expert or frontend-expert).
      If you find conflicting evidence, share it with ALL teammates for debate.""")
 
-Task(subagent_type="ork:debug-investigator", name="impact-analyst",
+Task(subagent_type="debug-investigator", name="impact-analyst",
      team_name="fix-issue-{number}",
      prompt="""Analyze the impact and blast radius for issue #{number}.
      When root-cause-tracer shares evidence, assess how many code paths are affected.
@@ -419,6 +419,14 @@ claude                              # Shows resume hint
 /ork:memory search "issue $ARGUMENTS"  # Loads your findings
 ```
 
+
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [rca-five-whys](rules/rca-five-whys.md) | HIGH | 5 Whys iterative causal analysis |
+| [rca-fishbone](rules/rca-fishbone.md) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| [rca-fault-tree](rules/rca-fault-tree.md) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
 
 ## Related Skills
 

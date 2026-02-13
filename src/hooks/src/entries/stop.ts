@@ -12,13 +12,12 @@ export * from '../lib/common.js';
 // Re-export calibration engine for stop hooks
 export * from '../lib/calibration-engine.js';
 
-// Stop hooks (10)
+// Stop hooks (9)
 import { autoRememberContinuity } from '../stop/auto-remember-continuity.js';
 import { autoSaveContext } from '../stop/auto-save-context.js';
 import { contextCompressor } from '../stop/context-compressor.js';
 import { fullTestSuite } from '../stop/full-test-suite.js';
 import { issueWorkSummary } from '../stop/issue-work-summary.js';
-import { mem0PreCompactionSync } from '../stop/mem0-pre-compaction-sync.js';
 import { securityScanAggregator } from '../stop/security-scan-aggregator.js';
 import { sessionPatterns } from '../stop/session-patterns.js';
 import { taskCompletionCheck } from '../stop/task-completion-check.js';
@@ -27,7 +26,6 @@ import { unifiedStopDispatcher } from '../stop/unified-dispatcher.js';
 
 // Intelligent Decision Capture System
 import { workflowPreferenceLearner } from '../stop/workflow-preference-learner.js';
-import { graphQueueSync } from '../stop/graph-queue-sync.js';
 import { sessionEndTracking } from '../stop/session-end-tracking.js';
 
 import type { HookFn } from '../types.js';
@@ -41,7 +39,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/context-compressor': contextCompressor,
   'stop/full-test-suite': fullTestSuite,
   'stop/issue-work-summary': issueWorkSummary,
-  'stop/mem0-pre-compaction-sync': mem0PreCompactionSync,
   'stop/security-scan-aggregator': securityScanAggregator,
   'stop/session-patterns': sessionPatterns,
   'stop/task-completion-check': taskCompletionCheck,
@@ -49,7 +46,6 @@ export const hooks: Record<string, HookFn> = {
   'stop/unified-dispatcher': unifiedStopDispatcher,
   // Intelligent Decision Capture System
   'stop/workflow-preference-learner': workflowPreferenceLearner,
-  'stop/graph-queue-sync': graphQueueSync,
   'stop/session-end-tracking': sessionEndTracking,
 };
 

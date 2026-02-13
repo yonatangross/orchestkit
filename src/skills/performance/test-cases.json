@@ -1,0 +1,204 @@
+{
+  "skill": "performance",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "cwv-lcp",
+      "rule": "cwv-lcp",
+      "query": "My hero image loads slowly and LCP is above 4 seconds",
+      "expectedBehavior": [
+        "Adds fetchpriority='high' and loading='eager' to LCP image",
+        "Preloads critical resources with link rel='preload'",
+        "Server-renders LCP content instead of client-side fetch",
+        "References 2026 threshold of 2.0s"
+      ]
+    },
+    {
+      "id": "cwv-inp",
+      "rule": "cwv-inp",
+      "query": "Button clicks feel sluggish and INP exceeds 200ms",
+      "expectedBehavior": [
+        "Breaks long tasks with scheduler.yield",
+        "Uses useTransition for non-urgent state updates",
+        "Defers heavy computation with requestIdleCallback",
+        "References 2026 threshold of 150ms"
+      ]
+    },
+    {
+      "id": "cwv-cls",
+      "rule": "cwv-cls",
+      "query": "Page content jumps around during load causing layout shifts",
+      "expectedBehavior": [
+        "Sets explicit width/height on images",
+        "Uses aspect-ratio for responsive containers",
+        "Configures font-display: optional for non-critical fonts",
+        "Uses transform instead of layout-shifting animations"
+      ]
+    },
+    {
+      "id": "render-compiler",
+      "rule": "render-compiler",
+      "query": "Should I use React.memo everywhere in my React 19 app?",
+      "expectedBehavior": [
+        "Recommends React Compiler as primary approach",
+        "Shows how to enable in Next.js 16+ and Expo SDK 54+",
+        "Explains Memo badge verification in DevTools",
+        "Notes compiler handles components, values, callbacks, and JSX"
+      ]
+    },
+    {
+      "id": "render-memo",
+      "rule": "render-memo",
+      "query": "When do I still need useMemo and useCallback with React Compiler?",
+      "expectedBehavior": [
+        "Lists escape hatches: effect deps, third-party libs, precise control",
+        "Shows state colocation to minimize re-renders",
+        "Recommends profiling before manual optimization",
+        "Explains splitting state/dispatch in context"
+      ]
+    },
+    {
+      "id": "render-virtual",
+      "rule": "render-virtual",
+      "query": "My list of 1000 items renders slowly",
+      "expectedBehavior": [
+        "Recommends TanStack Virtual for 100+ items",
+        "Shows useVirtualizer setup with estimateSize and overscan",
+        "Covers dynamic height measurement",
+        "Lists virtualization thresholds: <100 fine, 100-500 consider, 500+ required"
+      ]
+    },
+    {
+      "id": "loading-lazy",
+      "rule": "loading-lazy",
+      "query": "How do I lazy load a heavy chart component?",
+      "expectedBehavior": [
+        "Uses React.lazy with dynamic import",
+        "Wraps in Suspense with skeleton fallback",
+        "Adds error boundary for network failures",
+        "Warns against lazy loading above-fold or tiny components"
+      ]
+    },
+    {
+      "id": "loading-splitting",
+      "rule": "loading-splitting",
+      "query": "How do I code-split my routes in a React SPA?",
+      "expectedBehavior": [
+        "Shows React Router 7.x lazy route pattern",
+        "Configures Vite manualChunks for vendor splitting",
+        "Uses granular Suspense boundaries",
+        "Recommends per-route splitting for most apps"
+      ]
+    },
+    {
+      "id": "loading-preload",
+      "rule": "loading-preload",
+      "query": "How do I preload the next page before the user clicks?",
+      "expectedBehavior": [
+        "Prefetches on hover/focus with onMouseEnter",
+        "Uses link rel='modulepreload' for critical chunks",
+        "Shows intersection observer for viewport-based loading",
+        "Prefetches data with TanStack Query prefetchQuery"
+      ]
+    },
+    {
+      "id": "images-nextjs",
+      "rule": "images-nextjs",
+      "query": "How do I optimize images in my Next.js app?",
+      "expectedBehavior": [
+        "Uses next/image with priority for LCP images",
+        "Adds blur placeholder via static import",
+        "Sets quality to 75-85 for optimal size/quality",
+        "Configures remotePatterns for external images"
+      ]
+    },
+    {
+      "id": "images-formats",
+      "rule": "images-formats",
+      "query": "Should I use AVIF or WebP for my images?",
+      "expectedBehavior": [
+        "Recommends AVIF as primary (30-50% smaller)",
+        "Uses WebP as fallback for broader support",
+        "Shows picture element for non-Next.js",
+        "Configures formats in next.config.js"
+      ]
+    },
+    {
+      "id": "images-responsive",
+      "rule": "images-responsive",
+      "query": "How do I serve different image sizes for mobile vs desktop?",
+      "expectedBehavior": [
+        "Uses sizes prop with breakpoint-based values",
+        "Shows art direction with different images per breakpoint",
+        "Configures CDN loaders for Cloudinary/imgix",
+        "Sets deviceSizes and imageSizes in next.config.js"
+      ]
+    },
+    {
+      "id": "profiling-react",
+      "rule": "profiling-react",
+      "query": "How do I find which React components are re-rendering too often?",
+      "expectedBehavior": [
+        "Uses React DevTools Profiler to record interactions",
+        "Identifies high render count and duration in flamegraph",
+        "Checks for unnecessary re-renders before optimizing",
+        "Measures improvement after applying fix"
+      ]
+    },
+    {
+      "id": "profiling-backend",
+      "rule": "profiling-backend",
+      "query": "My FastAPI server has slow endpoints, how do I profile?",
+      "expectedBehavior": [
+        "Uses py-spy for live profiling without restart",
+        "Generates flame graph SVG for visualization",
+        "Shows cProfile for detailed function-level analysis",
+        "Covers memory_profiler for leak detection"
+      ]
+    },
+    {
+      "id": "profiling-bundle",
+      "rule": "profiling-bundle",
+      "query": "My frontend bundle is too large, how do I analyze it?",
+      "expectedBehavior": [
+        "Uses vite-bundle-visualizer or webpack-bundle-analyzer",
+        "Identifies large dependencies for tree shaking",
+        "Sets performance budgets in build config",
+        "Shows bundlesize CI integration"
+      ]
+    },
+    {
+      "id": "inference-vllm",
+      "rule": "inference-vllm",
+      "query": "How do I deploy an LLM with vLLM for production?",
+      "expectedBehavior": [
+        "Configures vLLM with tensor parallelism",
+        "Enables PagedAttention and continuous batching",
+        "Sets gpu_memory_utilization to 0.85-0.95",
+        "Enables prefix caching for shared contexts"
+      ]
+    },
+    {
+      "id": "inference-quantization",
+      "rule": "inference-quantization",
+      "query": "How do I reduce GPU memory for a 70B parameter model?",
+      "expectedBehavior": [
+        "Recommends AWQ for best 4-bit quality",
+        "Shows memory savings: 75% for 4-bit, 50% for 8-bit",
+        "Recommends FP8 for H100/H200 GPUs",
+        "Warns about calibration data for GPTQ"
+      ]
+    },
+    {
+      "id": "inference-speculative",
+      "rule": "inference-speculative",
+      "query": "How do I speed up LLM text generation?",
+      "expectedBehavior": [
+        "Shows n-gram speculative decoding config",
+        "Shows draft model approach for higher quality",
+        "Notes 1.5-2.5x throughput improvement",
+        "Lists when speculative decoding helps vs hurts"
+      ]
+    }
+  ]
+}

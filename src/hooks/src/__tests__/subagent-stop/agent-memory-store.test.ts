@@ -3,7 +3,7 @@
  *
  * Tests the agent-memory-store hook which extracts and stores
  * successful patterns after agent completion. Writes patterns
- * to a JSONL log file with category detection and mem0 metadata.
+ * to a JSONL log file with category detection and metadata.
  *
  * All P2/P3 gaps resolved.
  */
@@ -564,7 +564,7 @@ describe('agentMemoryStore', () => {
       expect(result.systemMessage).toContain('frontend-ui-developer');
     });
 
-    test('systemMessage includes mem0 user_id suggestion', () => {
+    test('systemMessage includes memory script suggestion', () => {
       const input = makeInput({
         subagent_type: 'ci-cd-engineer',
         tool_result: makeOutputWithPattern('decided to use GitHub Actions for CI'),
@@ -572,8 +572,9 @@ describe('agentMemoryStore', () => {
 
       const result = agentMemoryStore(input);
 
-      expect(result.systemMessage).toContain('add-memory.py');
-      expect(result.systemMessage).toContain('decisions');
+      // v7: uses MCP graph memory instead of add-memory.py
+      expect(result.systemMessage).toContain('mcp__memory__create_entities');
+      expect(result.systemMessage).toContain('Pattern');
     });
 
     test('continue is always true', () => {
@@ -614,8 +615,7 @@ describe('agentMemoryStore', () => {
       expect(entry).toHaveProperty('project');
       expect(entry).toHaveProperty('timestamp');
       expect(entry).toHaveProperty('category');
-      expect(entry).toHaveProperty('enable_graph', true);
-      expect(entry).toHaveProperty('pending_sync', true);
+      expect(entry).toHaveProperty('pending_graph_sync', true);
     });
 
     test('mkdirSync is called for log directory', () => {

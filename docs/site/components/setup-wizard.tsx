@@ -17,7 +17,8 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import { PLUGINS, type Plugin } from "@/lib/playground-data";
+import type { Plugin } from "@/lib/generated/types";
+import { PLUGINS } from "@/lib/generated/plugins-data";
 
 // ── Types ────────────────────────────────────────────────────
 
@@ -291,10 +292,10 @@ export function SetupWizard() {
 
   return (
     <div className="not-prose">
-      <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
+      <div className="overflow-hidden rounded-xl border border-fd-border">
         {/* Presets bar */}
-        <div className="border-b border-gray-200 bg-gray-50/50 px-4 py-3 dark:border-gray-700 dark:bg-gray-800/50">
-          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+        <div className="border-b border-fd-border bg-fd-muted/50 px-4 py-3">
+          <p className="mb-2 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
             Quick presets
           </p>
           <div className="flex flex-wrap gap-2">
@@ -308,8 +309,8 @@ export function SetupWizard() {
                   aria-pressed={active}
                   className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
                     active
-                      ? "border-teal-300 bg-teal-50 text-teal-700 shadow-sm dark:border-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                      ? "border-fd-primary/40 bg-fd-primary/10 text-fd-primary shadow-sm"
+                      : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                   }`}
                 >
                   {PRESETS[key].label}
@@ -343,10 +344,10 @@ export function SetupWizard() {
                   <span
                     className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold transition-all ${
                       currentStep === i
-                        ? "bg-teal-500 text-white shadow-sm dark:bg-teal-600"
+                        ? "bg-fd-primary text-fd-primary-foreground shadow-sm"
                         : currentStep > i
-                          ? "bg-teal-100 text-teal-700 dark:bg-teal-500/20 dark:text-teal-300"
-                          : "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                          ? "bg-fd-primary/15 text-fd-primary"
+                          : "bg-fd-muted text-fd-muted-foreground"
                     }`}
                   >
                     {currentStep > i ? (
@@ -358,8 +359,8 @@ export function SetupWizard() {
                   <span
                     className={`hidden text-xs font-medium sm:inline ${
                       currentStep === i
-                        ? "text-gray-900 dark:text-gray-100"
-                        : "text-gray-500 dark:text-gray-400"
+                        ? "text-fd-foreground"
+                        : "text-fd-muted-foreground"
                     }`}
                   >
                     {i === 0
@@ -372,8 +373,8 @@ export function SetupWizard() {
                     <div
                       className={`mx-2 hidden h-px flex-1 sm:block ${
                         currentStep > i
-                          ? "bg-teal-300 dark:bg-teal-700"
-                          : "bg-gray-200 dark:bg-gray-700"
+                          ? "bg-fd-primary/40"
+                          : "bg-fd-border"
                       }`}
                     />
                   )}
@@ -384,7 +385,7 @@ export function SetupWizard() {
             {/* Step 0: Stack Selection */}
             {currentStep === 0 && (
               <div>
-                <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-3 text-sm font-medium text-fd-foreground">
                   What is your primary stack?
                 </p>
                 <div className="grid grid-cols-2 gap-3">
@@ -399,28 +400,28 @@ export function SetupWizard() {
                         aria-pressed={active}
                         className={`flex flex-col items-center gap-2 rounded-lg border p-4 text-center transition-all ${
                           active
-                            ? "border-teal-300 bg-teal-50 shadow-sm dark:border-teal-700 dark:bg-teal-500/15"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                            ? "border-fd-primary/40 bg-fd-primary/10 shadow-sm"
+                            : "border-fd-border hover:border-fd-border hover:bg-fd-muted"
                         }`}
                       >
                         <Icon
                           className={`h-6 w-6 ${
                             active
-                              ? "text-teal-600 dark:text-teal-400"
-                              : "text-gray-500 dark:text-gray-400"
+                              ? "text-fd-primary"
+                              : "text-fd-muted-foreground"
                           }`}
                         />
                         <div>
                           <p
                             className={`text-sm font-medium ${
                               active
-                                ? "text-teal-700 dark:text-teal-300"
-                                : "text-gray-700 dark:text-gray-200"
+                                ? "text-fd-primary"
+                                : "text-fd-foreground"
                             }`}
                           >
                             {opt.label}
                           </p>
-                          <p className="mt-0.5 text-[11px] text-gray-500 dark:text-gray-400">
+                          <p className="mt-0.5 text-[11px] text-fd-muted-foreground">
                             {opt.description}
                           </p>
                         </div>
@@ -434,7 +435,7 @@ export function SetupWizard() {
             {/* Step 1: Focus Area */}
             {currentStep === 1 && (
               <div>
-                <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-3 text-sm font-medium text-fd-foreground">
                   What is your primary focus area?
                 </p>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -449,28 +450,28 @@ export function SetupWizard() {
                         aria-pressed={active}
                         className={`flex flex-col items-center gap-2 rounded-lg border p-3 text-center transition-all ${
                           active
-                            ? "border-teal-300 bg-teal-50 shadow-sm dark:border-teal-700 dark:bg-teal-500/15"
-                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                            ? "border-fd-primary/40 bg-fd-primary/10 shadow-sm"
+                            : "border-fd-border hover:border-fd-border hover:bg-fd-muted"
                         }`}
                       >
                         <Icon
                           className={`h-5 w-5 ${
                             active
-                              ? "text-teal-600 dark:text-teal-400"
-                              : "text-gray-500 dark:text-gray-400"
+                              ? "text-fd-primary"
+                              : "text-fd-muted-foreground"
                           }`}
                         />
                         <div>
                           <p
                             className={`text-xs font-medium ${
                               active
-                                ? "text-teal-700 dark:text-teal-300"
-                                : "text-gray-700 dark:text-gray-200"
+                                ? "text-fd-primary"
+                                : "text-fd-foreground"
                             }`}
                           >
                             {opt.label}
                           </p>
-                          <p className="mt-0.5 text-[10px] leading-tight text-gray-500 dark:text-gray-400">
+                          <p className="mt-0.5 text-[10px] leading-tight text-fd-muted-foreground">
                             {opt.description}
                           </p>
                         </div>
@@ -484,7 +485,7 @@ export function SetupWizard() {
             {/* Step 2: Feature Toggles */}
             {currentStep === 2 && (
               <div>
-                <p className="mb-3 text-sm font-medium text-gray-700 dark:text-gray-200">
+                <p className="mb-3 text-sm font-medium text-fd-foreground">
                   Optional features
                 </p>
                 <div className="space-y-3">
@@ -493,13 +494,13 @@ export function SetupWizard() {
                     return (
                       <div
                         key={opt.id}
-                        className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3 dark:border-gray-700"
+                        className="flex items-center justify-between rounded-lg border border-fd-border px-4 py-3"
                       >
                         <div>
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                          <p className="text-sm font-medium text-fd-foreground">
                             {opt.label}
                           </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-fd-muted-foreground">
                             {opt.description}
                           </p>
                         </div>
@@ -511,8 +512,8 @@ export function SetupWizard() {
                           onClick={() => toggleFeature(opt.id)}
                           className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
                             enabled
-                              ? "bg-teal-500 dark:bg-teal-600"
-                              : "bg-gray-300 dark:bg-gray-600"
+                              ? "bg-fd-primary"
+                              : "bg-fd-border"
                           }`}
                         >
                           <span
@@ -536,8 +537,8 @@ export function SetupWizard() {
                 disabled={currentStep === 0}
                 className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-all ${
                   currentStep === 0
-                    ? "cursor-not-allowed border-gray-100 text-gray-300 dark:border-gray-800 dark:text-gray-600"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:border-gray-600 dark:hover:bg-gray-800"
+                    ? "cursor-not-allowed border-fd-border/50 text-fd-muted-foreground/30"
+                    : "border-fd-border text-fd-muted-foreground hover:border-fd-border hover:bg-fd-muted"
                 }`}
               >
                 <ChevronLeft className="h-3.5 w-3.5" />
@@ -549,8 +550,8 @@ export function SetupWizard() {
                 disabled={currentStep === 2}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
                   currentStep === 2
-                    ? "cursor-not-allowed bg-gray-100 text-gray-300 dark:bg-gray-800 dark:text-gray-600"
-                    : "bg-gradient-to-r from-teal-500 to-emerald-500 text-white shadow-sm hover:from-teal-600 hover:to-emerald-600 hover:shadow dark:from-teal-600 dark:to-emerald-600 dark:hover:from-teal-700 dark:hover:to-emerald-700"
+                    ? "cursor-not-allowed bg-fd-muted text-fd-muted-foreground/30"
+                    : "bg-fd-primary text-fd-primary-foreground shadow-sm hover:bg-fd-primary/90 hover:shadow"
                 }`}
               >
                 Next
@@ -561,11 +562,11 @@ export function SetupWizard() {
 
           {/* Preview panel */}
           <div
-            className="border-t border-gray-200 bg-gray-50/50 p-5 lg:w-[40%] lg:border-l lg:border-t-0 dark:border-gray-700 dark:bg-gray-800/30"
+            className="border-t border-fd-border bg-fd-muted/50 p-5 lg:w-[40%] lg:border-l lg:border-t-0"
             role="status"
             aria-live="polite"
           >
-            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <p className="mb-3 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
               Recommendation
             </p>
 
@@ -580,17 +581,17 @@ export function SetupWizard() {
               >
                 {recommended}
               </span>
-              <span className="text-sm text-gray-600 dark:text-gray-300">
+              <span className="text-sm text-fd-muted-foreground">
                 {recommended === "ork" ? "Full toolkit" : "Universal toolkit"}
               </span>
             </div>
 
             {/* Decision rationale */}
-            <div className="mb-4 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900">
-              <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <div className="mb-4 rounded-lg border border-fd-border bg-fd-background p-3">
+              <p className="mb-1 text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
                 Why?
               </p>
-              <p className="text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+              <p className="text-xs leading-relaxed text-fd-muted-foreground">
                 {recommended === "ork"
                   ? selectedStack === "python"
                     ? "Python stack requires specialized FastAPI, SQLAlchemy, and data science patterns available only in the full toolkit."
@@ -598,35 +599,35 @@ export function SetupWizard() {
                       ? "AI/LLM focus requires RAG, LangGraph, embeddings, and function calling patterns available only in the full toolkit."
                       : selectedFocus === "security"
                         ? "Security focus benefits from advanced guardrails, OWASP patterns, and AI safety auditing in the full toolkit."
-                        : "Your configuration benefits from the full 200-skill toolkit with specialized patterns."
-                  : "The universal toolkit covers your needs with 109 language-agnostic skills. Lighter weight, works for any stack."}
+                        : "Your configuration benefits from the full 199-skill toolkit with specialized patterns."
+                  : "The universal toolkit covers your needs with 88 language-agnostic skills. Lighter weight, works for any stack."}
               </p>
             </div>
 
             {/* Stats */}
             {plugin && (
               <div className="mb-4 grid grid-cols-3 gap-2">
-                <div className="rounded-lg border border-gray-200 bg-white p-2.5 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <div className="rounded-lg border border-fd-border bg-fd-background p-2.5 text-center">
+                  <p className="text-lg font-bold text-fd-foreground">
                     {plugin.skillCount}
                   </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] text-fd-muted-foreground">
                     Skills
                   </p>
                 </div>
-                <div className="rounded-lg border border-gray-200 bg-white p-2.5 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <div className="rounded-lg border border-fd-border bg-fd-background p-2.5 text-center">
+                  <p className="text-lg font-bold text-fd-foreground">
                     {plugin.agentCount}
                   </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] text-fd-muted-foreground">
                     Agents
                   </p>
                 </div>
-                <div className="rounded-lg border border-gray-200 bg-white p-2.5 text-center dark:border-gray-700 dark:bg-gray-900">
-                  <p className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                <div className="rounded-lg border border-fd-border bg-fd-background p-2.5 text-center">
+                  <p className="text-lg font-bold text-fd-foreground">
                     {plugin.hooks}
                   </p>
-                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                  <p className="text-[10px] text-fd-muted-foreground">
                     Hooks
                   </p>
                 </div>
@@ -634,9 +635,9 @@ export function SetupWizard() {
             )}
 
             {/* Install command */}
-            <div className="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+            <div className="rounded-lg border border-fd-border bg-fd-background">
               <div className="flex items-center justify-between px-3 py-2">
-                <p className="text-[11px] font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                <p className="text-[11px] font-medium uppercase tracking-wider text-fd-muted-foreground">
                   Install
                 </p>
                 <button
@@ -647,11 +648,11 @@ export function SetupWizard() {
                       ? "Copied install command to clipboard"
                       : "Copy install command to clipboard"
                   }
-                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                  className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] text-fd-muted-foreground transition-colors hover:bg-fd-muted hover:text-fd-foreground"
                 >
                   {copied ? (
                     <>
-                      <Check className="h-3 w-3 text-teal-500" />
+                      <Check className="h-3 w-3 text-fd-primary" />
                       Copied
                     </>
                   ) : (
@@ -662,9 +663,9 @@ export function SetupWizard() {
                   )}
                 </button>
               </div>
-              <div className="border-t border-gray-200 px-3 py-2.5 dark:border-gray-700">
-                <code className="text-xs font-mono text-gray-700 dark:text-gray-300">
-                  <span className="text-gray-400 dark:text-gray-500">$ </span>
+              <div className="border-t border-fd-border px-3 py-2.5">
+                <code className="text-xs font-mono text-fd-foreground">
+                  <span className="text-fd-muted-foreground">$ </span>
                   {installCommand}
                 </code>
               </div>
@@ -673,22 +674,22 @@ export function SetupWizard() {
             {/* Summary of selections */}
             <div className="mt-4 space-y-1.5">
               {selectedStack && (
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <Check className="h-3 w-3 text-teal-500" />
+                <div className="flex items-center gap-2 text-xs text-fd-muted-foreground">
+                  <Check className="h-3 w-3 text-fd-primary" />
                   <span>
                     Stack:{" "}
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                    <span className="font-medium text-fd-foreground">
                       {STACK_OPTIONS.find((s) => s.id === selectedStack)?.label}
                     </span>
                   </span>
                 </div>
               )}
               {selectedFocus && (
-                <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                  <Check className="h-3 w-3 text-teal-500" />
+                <div className="flex items-center gap-2 text-xs text-fd-muted-foreground">
+                  <Check className="h-3 w-3 text-fd-primary" />
                   <span>
                     Focus:{" "}
-                    <span className="font-medium text-gray-700 dark:text-gray-200">
+                    <span className="font-medium text-fd-foreground">
                       {FOCUS_OPTIONS.find((f) => f.id === selectedFocus)?.label}
                     </span>
                   </span>
@@ -699,9 +700,9 @@ export function SetupWizard() {
                 .map(([id]) => (
                   <div
                     key={id}
-                    className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400"
+                    className="flex items-center gap-2 text-xs text-fd-muted-foreground"
                   >
-                    <Check className="h-3 w-3 text-teal-500" />
+                    <Check className="h-3 w-3 text-fd-primary" />
                     <span>
                       {
                         FEATURE_OPTIONS.find(

@@ -19,14 +19,14 @@ TESTS_FAILED=0
 
 pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((TESTS_PASSED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_PASSED=$((TESTS_PASSED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 fail() {
     echo -e "${RED}✗${NC} $1"
-    ((TESTS_FAILED++)) || true
-    ((TESTS_RUN++)) || true
+    TESTS_FAILED=$((TESTS_FAILED + 1))
+    TESTS_RUN=$((TESTS_RUN + 1))
 }
 
 # New AI/ML agents to test
@@ -84,8 +84,8 @@ for agent in "${AI_ML_AGENTS[@]}"; do
             pass "$agent uses sonnet (appropriate for prompt design)"
         else
             echo -e "${YELLOW}!${NC} $agent uses $model (review if appropriate)"
-            ((TESTS_RUN++)) || true
-            ((TESTS_PASSED++)) || true
+            TESTS_RUN=$((TESTS_RUN + 1))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         fi
     fi
 done
@@ -197,8 +197,8 @@ for agent in "${AI_ML_AGENTS[@]}"; do
             pass "$agent has MCP integration"
         else
             echo -e "${YELLOW}!${NC} $agent may be missing MCP integration"
-            ((TESTS_RUN++)) || true
-            ((TESTS_PASSED++)) || true
+            TESTS_RUN=$((TESTS_RUN + 1))
+            TESTS_PASSED=$((TESTS_PASSED + 1))
         fi
     fi
 done
@@ -223,8 +223,8 @@ for agent in "${AI_ML_AGENTS[@]}"; do
         if [[ $all_exist -eq 1 ]]; then
             pass "$agent: all referenced skills exist"
         else
-            ((TESTS_FAILED++)) || true
-            ((TESTS_RUN++)) || true
+            TESTS_FAILED=$((TESTS_FAILED + 1))
+            TESTS_RUN=$((TESTS_RUN + 1))
         fi
     fi
 done

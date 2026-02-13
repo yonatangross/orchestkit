@@ -114,33 +114,7 @@ export async function issueProgressCommenter(input: HookInput): Promise<HookResu
 }
 ```
 
-### 3. Session Startup
-
-Heavy initialization that can run in background:
-
-```typescript
-// lifecycle/mem0-context-retrieval.ts
-export async function mem0ContextRetrieval(input: HookInput): Promise<HookResult> {
-  try {
-    // This can take 2-5 seconds - fine because async
-    const memories = await mem0Client.search({
-      query: `project:${projectName}`,
-      limit: 20
-    });
-
-    // Write to local cache for later use
-    writeContextCache(memories);
-
-  } catch (err) {
-    // Cloud unavailable - OK, continue without
-    logHook('mem0-retrieval', `Skipping mem0: ${err.message}`);
-  }
-
-  return outputSilentSuccess();
-}
-```
-
-### 4. Pattern Learning
+### 3. Pattern Learning
 
 Extract patterns from operations:
 

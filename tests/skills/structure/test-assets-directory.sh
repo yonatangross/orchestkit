@@ -43,17 +43,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -85,7 +85,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     if [[ -d "$skill_dir" ]] && [[ -d "$skill_dir/assets" ]]; then
         skill_name=$(basename "$skill_dir")
         ASSETS_DIRS+=("$skill_name")
-        ((SKILLS_WITH_ASSETS++)) || true
+        SKILLS_WITH_ASSETS=$((SKILLS_WITH_ASSETS + 1))
         
         # Check if assets/ is empty
         if [[ -z "$(ls -A "$skill_dir/assets" 2>/dev/null)" ]]; then
@@ -149,7 +149,7 @@ for skill_dir in "$SKILLS_DIR"/*/; do
         fi
         
         if [[ -n "$(ls -A "$assets_dir" 2>/dev/null)" ]] && [[ "$has_bundled_resources" == "false" ]] && [[ "$has_any_docs" == "false" ]]; then
-            ((MISSING_DOCS++)) || true
+            MISSING_DOCS=$((MISSING_DOCS + 1))
             warn "$skill_name: Has assets/ but no 'Bundled Resources' section in SKILL.md"
         fi
     fi

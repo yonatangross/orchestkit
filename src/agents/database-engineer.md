@@ -2,7 +2,7 @@
 name: database-engineer
 description: PostgreSQL specialist who designs schemas, creates migrations, optimizes queries, and configures pgvector/full-text search. Uses pg-aiguide MCP for best practices and produces Alembic migrations with proper constraints and indexes. Auto Mode keywords: database, schema, migration, PostgreSQL, pgvector, SQL, Alembic, index, constraint
 category: backend
-model: inherit
+model: sonnet
 context: fork
 color: green
 memory: project
@@ -19,14 +19,10 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - database-schema-designer
-  - pgvector-search
-  - performance-optimization
-  - alembic-migrations
-  - database-versioning
-  - zero-downtime-migration
-  - sqlalchemy-2-async
-  - caching-strategies
+  - database-patterns
+  - rag-retrieval
+  - performance
+  - python-backend
   - task-dependency-patterns
   - remember
   - memory
@@ -199,4 +195,4 @@ def downgrade():
 ## Integration
 - **Receives from:** backend-system-architect (model requirements)
 - **Hands off to:** code-quality-reviewer (migration review)
-- **Skill references:** database-schema-designer, pgvector-search
+- **Skill references:** database-patterns, rag-retrieval

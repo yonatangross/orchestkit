@@ -1,0 +1,105 @@
+{
+  "skill": "accessibility",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "wcag-color-contrast",
+      "rule": "wcag-color-contrast",
+      "query": "Set up color contrast tokens for a design system",
+      "expectedBehavior": [
+        "Uses 4.5:1 ratio for normal text",
+        "Uses 3:1 ratio for large text and UI components",
+        "Focus indicator has 3:1 contrast against background",
+        "Includes CSS custom properties with documented contrast ratios"
+      ]
+    },
+    {
+      "id": "wcag-semantic-html",
+      "rule": "wcag-semantic-html",
+      "query": "Build an accessible page layout with navigation",
+      "expectedBehavior": [
+        "Uses semantic landmarks (main, nav, header, footer, article)",
+        "Heading hierarchy follows h1-h6 order without skipping",
+        "Form inputs have associated labels with htmlFor",
+        "ARIA attributes used only when semantic HTML is insufficient"
+      ]
+    },
+    {
+      "id": "wcag-testing",
+      "rule": "wcag-testing",
+      "query": "Add accessibility testing to a React application",
+      "expectedBehavior": [
+        "Includes jest-axe for component-level testing",
+        "Includes Playwright axe-core for page-level scanning",
+        "Tests keyboard navigation programmatically",
+        "Includes screen reader testing checklist"
+      ]
+    },
+    {
+      "id": "focus-trap",
+      "rule": "focus-trap",
+      "query": "Implement focus trapping for a modal dialog",
+      "expectedBehavior": [
+        "Focus is trapped within modal using Tab/Shift+Tab wrapping",
+        "First focusable element receives focus on open",
+        "Escape key closes modal and releases trap",
+        "Uses role=dialog and aria-modal=true"
+      ]
+    },
+    {
+      "id": "focus-restoration",
+      "rule": "focus-restoration",
+      "query": "Restore focus after closing a confirmation dialog",
+      "expectedBehavior": [
+        "Stores trigger element reference before opening",
+        "Returns focus to trigger element on close",
+        "Handles case where trigger element is removed from DOM",
+        "Focuses first error field after form validation failure"
+      ]
+    },
+    {
+      "id": "focus-keyboard-nav",
+      "rule": "focus-keyboard-nav",
+      "query": "Add keyboard navigation to a toolbar component",
+      "expectedBehavior": [
+        "Uses roving tabindex pattern (active=0, others=-1)",
+        "Arrow keys navigate between items",
+        "Home/End keys jump to first/last item",
+        "Includes skip link for bypassing navigation"
+      ]
+    },
+    {
+      "id": "aria-components",
+      "rule": "aria-components",
+      "query": "Build an accessible button with React Aria",
+      "expectedBehavior": [
+        "Uses useButton hook instead of div+onClick",
+        "Includes useFocusRing for keyboard focus indicator",
+        "Uses mergeProps to combine props safely",
+        "Supports onPress for click/tap/Enter/Space"
+      ]
+    },
+    {
+      "id": "aria-forms",
+      "rule": "aria-forms",
+      "query": "Create an accessible combobox/autocomplete component",
+      "expectedBehavior": [
+        "Uses useComboBox + useComboBoxState from React Aria",
+        "Label properly associated with input via labelProps",
+        "Arrow keys navigate options, Enter selects",
+        "Uses useFilter for type-ahead filtering"
+      ]
+    },
+    {
+      "id": "aria-overlays",
+      "rule": "aria-overlays",
+      "query": "Build a modal dialog with React Aria overlay hooks",
+      "expectedBehavior": [
+        "Uses useDialog + useModalOverlay hooks",
+        "Wrapped in FocusScope with contain, restoreFocus, autoFocus",
+        "Uses useOverlayTriggerState for open/close state",
+        "Escape key closes, click outside dismisses if isDismissable"
+      ]
+    }
+  ]
+}

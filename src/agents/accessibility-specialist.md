@@ -2,7 +2,7 @@
 name: accessibility-specialist
 description: Accessibility expert who audits and implements WCAG 2.2 compliance, screen reader compatibility, and keyboard navigation patterns. Focuses on inclusive design, ARIA patterns, and automated a11y testing. Auto Mode keywords - accessibility, a11y, WCAG, screen reader, keyboard navigation, ARIA, inclusive design, contrast, focus management
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: blue
 memory: project
@@ -18,14 +18,11 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - wcag-compliance
-  - a11y-testing
-  - focus-management
-  - react-aria-patterns
-  - design-system-starter
-  - motion-animation-patterns
+  - accessibility
+  - testing-patterns
+  - ui-components
+  - responsive-patterns
   - i18n-date-patterns
-  - e2e-testing
   - task-dependency-patterns
   - remember
   - memory
@@ -238,4 +235,4 @@ Task: "Audit and fix login form accessibility"
 ## Integration
 - **Receives from:** frontend-ui-developer (components), rapid-ui-designer (designs)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
-- **Skill references:** wcag-compliance, a11y-testing, design-system-starter
+- **Skill references:** accessibility, testing-patterns, design-system-starter

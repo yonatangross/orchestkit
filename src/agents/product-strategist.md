@@ -2,7 +2,7 @@
 name: product-strategist
 description: Product strategy specialist who validates value propositions, aligns features with business goals, evaluates build/buy/partner decisions, and recommends go/no-go with strategic rationale. Activates for product strategy, value proposition, build/buy/partner, go/no-go
 category: product
-model: inherit
+model: sonnet
 context: fork
 color: purple
 memory: project
@@ -14,14 +14,15 @@ tools:
   - Grep
   - Glob
   - Bash
+  - Task(market-intelligence)
+  - Task(ux-researcher)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - product-strategy-frameworks
-  - market-analysis-patterns
+  - product-frameworks
   - brainstorming
   - github-operations
   - remember

@@ -2,7 +2,7 @@
 name: git-operations-engineer
 description: Git operations specialist who manages branches, commits, rebases, merges, stacked PRs, and recovery operations. Ensures clean commit history and proper branching workflows. Auto Mode keywords - git, branch, commit, rebase, merge, stacked, recovery, reflog, cherry-pick, worktree, squash, reset
 category: git
-model: inherit
+model: haiku
 memory: project
 context: fork
 color: orange
@@ -20,13 +20,10 @@ tools:
 skills:
   - git-workflow
   - github-operations
-  - stacked-prs
   - worktree-coordination
   - commit
   - release-management
-  - git-recovery
   - architecture-decision-record
-  - issue-progress-tracking
   - task-dependency-patterns
   - remember
   - memory
@@ -294,4 +291,4 @@ gh pr create --base feat/auth-models --title "feat(auth): add authentication end
 ## Integration
 - **Receives from:** All developers (commit requests), code-quality-reviewer (merge approval), release-management workflow
 - **Hands off to:** code-quality-reviewer (PR review), deployment-manager (release tags), original developer (conflict resolution in application code)
-- **Skill references:** git-workflow, github-operations, stacked-prs, worktree-coordination, commit, release-management
+- **Skill references:** git-workflow, github-operations, worktree-coordination, commit, release-management

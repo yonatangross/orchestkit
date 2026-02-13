@@ -1,0 +1,150 @@
+---
+title: "/ork:implement"
+description: Full-power feature implementation with parallel agents, scope control, and post-implementation reflection.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+The `/ork:implement` command is the most ambitious skill in OrchestKit. It turns a one-line feature description into a complete implementation: architecture design, backend and frontend code, tests, security review, scope creep detection, and a reflection phase that captures lessons learned. It does this by orchestrating up to 14 parallel agents across 10 phases. This page explains what happens at each phase, when to use it, and how to get the best results.
+
+## Why This Skill
+
+Building a feature end-to-end involves many steps that are independent of each other: the API design does not depend on the UI mockup, the database schema does not depend on the test fixtures. Yet developers typically work through these sequentially because context-switching between domains is expensive. The `/ork:implement` skill exploits this independence by running specialized agents in parallel -- an architect designs the API while a frontend developer builds the components while a test generator writes fixtures, all simultaneously.
+
+The result is a complete, tested implementation in a fraction of the time, with built-in quality gates that catch scope creep and security issues before they reach code review.
+
+## Quick Start
+
+```bash
+/ork:implement user authentication with OAuth
+/ork:implement real-time notifications
+/ork:implement dashboard analytics
+```
+
+After invocation, OrchestKit asks two clarifying questions before doing any work:
+
+1. **Scope**: Full-stack, backend-only, frontend-only, or quick prototype
+2. **Constraints**: None, match existing patterns, minimal dependencies, or specific tech stack
+
+Your answers determine which phases run and which agents are spawned.
+
+## How It Works
+
+### Phase 1: Discovery and Planning
+
+OrchestKit breaks the feature into small, testable tasks grouped by domain (frontend, backend, AI, shared). It runs parallel web searches for current best practices and queries library documentation via Context7. The output is a structured task list with dependencies.
+
+### Phase 2: Micro-Planning
+
+Each task gets a detailed mini-plan: scope boundaries, file list, and acceptance criteria. This happens before any code is written. The goal is to prevent the "I'll figure it out as I go" pattern that leads to scope creep and rework.
+
+### Phase 3: Worktree Isolation (Optional)
+
+For large features touching 5+ files, OrchestKit can set up a git worktree to isolate the work. This keeps your main working tree clean and allows parallel development on other branches.
+
+### Phase 4: Architecture Design (5 Parallel Agents)
+
+Five specialized agents run simultaneously:
+
+| Agent | Focus |
+|-------|-------|
+| `workflow-architect` | Architecture planning, dependency graph |
+| `backend-system-architect` | API, services, database schema |
+| `frontend-ui-developer` | Components, state management, hooks |
+| `llm-integrator` | LLM integration (if the feature involves AI) |
+| `ux-researcher` | User experience, accessibility |
+
+Each agent produces a design spec. The specs are synthesized into a coherent architecture before implementation begins.
+
+### Phase 5: Implementation (5 Parallel Agents)
+
+With Opus 4.6's 128K output tokens, each agent can produce complete artifacts in a single pass:
+
+| Agent | Deliverable |
+|-------|-------------|
+| `backend-system-architect` | Complete backend: API + service layer + DB models |
+| `frontend-ui-developer` | Complete frontend: components + state + API hooks + styling |
+| `llm-integrator` | AI integration (if needed) |
+| `test-generator` | Complete test suite: unit + integration + fixtures |
+| `rapid-ui-designer` | Design system specs + tokens (if new design) |
+
+### Phase 6: Integration and Validation (4 Agents)
+
+Backend and frontend are integrated, the full test suite runs, and a security audit validates the implementation against OWASP patterns.
+
+### Phase 7: Scope Creep Detection
+
+A `workflow-architect` agent compares the actual implementation against the original scope. It produces a 0-10 score:
+
+| Score | Action |
+|-------|--------|
+| 0-2 | Proceed -- minimal drift |
+| 3-5 | Document and justify unplanned changes |
+| 6-8 | Review with user, potentially split PR |
+| 9-10 | Stop and reassess |
+
+### Phase 8-10: Verification, Documentation, Reflection
+
+E2E verification (including browser testing if UI changed), decision persistence to memory, and a structured reflection on what worked and what to improve.
+
+## Common Patterns
+
+### Pattern 1: Full-Stack Feature
+
+```bash
+/ork:implement user profile with avatar upload
+> Scope: Full-stack (Recommended)
+> Constraints: None
+```
+
+All 10 phases run. Backend gets an upload endpoint with S3 storage, frontend gets a profile page with drag-and-drop upload, tests cover both, and the security audit validates file type restrictions.
+
+### Pattern 2: Backend-Only API
+
+```bash
+/ork:implement cursor-based pagination for all list endpoints
+> Scope: Backend only
+> Constraints: Match existing patterns
+```
+
+Frontend agents are skipped. The `backend-system-architect` studies existing pagination code and produces a consistent implementation across all endpoints.
+
+### Pattern 3: Quick Prototype
+
+```bash
+/ork:implement AI-powered search
+> Scope: Quick prototype
+> Constraints: Minimal dependencies
+```
+
+Phases 7-10 (scope check, verification, docs, reflection) are skipped. You get a working prototype fast, with the understanding that it needs hardening before production.
+
+### Pattern 4: Worktree Isolation for Large Features
+
+For a feature that touches 15+ files across multiple domains, the worktree phase isolates work in a dedicated directory. This is valuable when you need to switch branches mid-implementation without stashing.
+
+## Tips and Tricks
+
+<Callout type="info">
+**Always answer the scope question honestly.** If you only need a backend API, say "backend only." The skill will skip frontend agents entirely, saving tokens and time. Choosing "full-stack" when you only need half the stack wastes resources on code you will delete.
+</Callout>
+
+<Callout type="warn">
+**Scope creep detection is not optional.** Phase 7 exists because it is easy for agents working in parallel to each add "one more thing" that was not in the original plan. The detection phase catches this before you commit. If the score is above 5, take a hard look at what was added.
+</Callout>
+
+<Callout type="info">
+**The reflection phase pays off over time.** Phase 10 captures lessons learned and stores them in memory. The next time you run `/ork:implement` on a similar feature, the planning phase can draw on those lessons. Teams that skip reflection repeat the same mistakes.
+</Callout>
+
+<Callout type="info">
+**Pair with `/ork:verify` for extra confidence.** After implementation, running `/ork:verify` gives you an independent assessment with its own grading rubric. The two skills complement each other: `/ork:implement` builds with quality gates, `/ork:verify` validates from the outside.
+</Callout>
+
+## Related Skills
+
+- [/ork:verify](/docs/skills/spotlights/verify) -- Independent verification after implementation
+- [/ork:commit](/docs/skills/spotlights/commit) -- Commit the implemented changes
+- [/ork:review-pr](/docs/skills/spotlights/review-pr) -- Review the implementation as a PR
+- [/ork:memory](/docs/skills/spotlights/memory) -- Search past implementation decisions
+- [Command Skills Reference](/docs/skills/command-skills) -- All 24 command skills

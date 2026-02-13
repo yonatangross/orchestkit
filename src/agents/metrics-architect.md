@@ -2,7 +2,7 @@
 name: metrics-architect
 description: Metrics specialist who designs OKRs, KPIs, success criteria, and instrumentation plans to measure product outcomes and validate hypotheses. Activates for OKR, KPI, metrics, success criteria, instrumentation keywords.
 category: product
-model: opus
+model: sonnet
 context: fork
 color: orchid
 memory: project
@@ -17,11 +17,10 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - okr-kpi-patterns
-  - langfuse-observability
-  - observability-monitoring
-  - cache-cost-tracking
-  - performance-testing
+  - product-frameworks
+  - monitoring-observability
+  - performance
+  - testing-patterns
   - remember
   - memory
 ---
@@ -306,7 +305,7 @@ Task: "Define success metrics for the workflow builder"
 ## Integration
 - **Receives from:** `requirements-translator` (requirements for metrics definition)
 - **Hands off to:** Technical implementation agents (`ux-researcher`, `backend-system-architect`)
-- **Skill references:** langfuse-observability (for LLM-specific metrics)
+- **Skill references:** monitoring-observability (for LLM-specific metrics)
 
 ## Task Tool Metrics (CC 2.1.32+)
 

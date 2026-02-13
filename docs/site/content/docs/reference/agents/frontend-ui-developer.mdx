@@ -3,7 +3,7 @@ title: "Frontend Ui Developer"
 description: "Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns"
 ---
 
-<span className="badge badge-gray">inherit</span>
+<span className="badge badge-blue">sonnet</span>
  <span className="badge badge-gray">frontend</span>
 
 > Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns
@@ -29,36 +29,14 @@ This agent activates for: React, TypeScript, component, UI, frontend, optimistic
 ## Skills Used
 
 - [react-server-components-framework](/docs/reference/skills/react-server-components-framework)
-- [design-system-starter](/docs/reference/skills/design-system-starter)
-- [type-safety-validation](/docs/reference/skills/type-safety-validation)
-- [unit-testing](/docs/reference/skills/unit-testing)
-- [e2e-testing](/docs/reference/skills/e2e-testing)
-- [webapp-testing](/docs/reference/skills/webapp-testing)
-- [i18n-date-patterns](/docs/reference/skills/i18n-date-patterns)
-- [motion-animation-patterns](/docs/reference/skills/motion-animation-patterns)
-- [a11y-testing](/docs/reference/skills/a11y-testing)
-- [focus-management](/docs/reference/skills/focus-management)
-- [render-optimization](/docs/reference/skills/render-optimization)
-- [shadcn-patterns](/docs/reference/skills/shadcn-patterns)
-- [radix-primitives](/docs/reference/skills/radix-primitives)
-- [biome-linting](/docs/reference/skills/biome-linting)
-- [vite-advanced](/docs/reference/skills/vite-advanced)
+- [ui-components](/docs/reference/skills/ui-components)
+- [testing-patterns](/docs/reference/skills/testing-patterns)
+- [accessibility](/docs/reference/skills/accessibility)
+- [performance](/docs/reference/skills/performance)
+- [code-review-playbook](/docs/reference/skills/code-review-playbook)
 - [zustand-patterns](/docs/reference/skills/zustand-patterns)
-- [tanstack-query-advanced](/docs/reference/skills/tanstack-query-advanced)
-- [form-state-patterns](/docs/reference/skills/form-state-patterns)
-- [core-web-vitals](/docs/reference/skills/core-web-vitals)
-- [image-optimization](/docs/reference/skills/image-optimization)
-- [react-aria-patterns](/docs/reference/skills/react-aria-patterns)
-- [wcag-compliance](/docs/reference/skills/wcag-compliance)
-- [lazy-loading-patterns](/docs/reference/skills/lazy-loading-patterns)
-- [view-transitions](/docs/reference/skills/view-transitions)
-- [scroll-driven-animations](/docs/reference/skills/scroll-driven-animations)
-- [responsive-patterns](/docs/reference/skills/responsive-patterns)
-- [pwa-patterns](/docs/reference/skills/pwa-patterns)
-- [recharts-patterns](/docs/reference/skills/recharts-patterns)
-- [dashboard-patterns](/docs/reference/skills/dashboard-patterns)
-- [edge-computing-patterns](/docs/reference/skills/edge-computing-patterns)
-- [streaming-api-patterns](/docs/reference/skills/streaming-api-patterns)
+- [architecture-patterns](/docs/reference/skills/architecture-patterns)
+- [git-workflow](/docs/reference/skills/git-workflow)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -86,6 +64,13 @@ Only make changes that are directly requested or clearly necessary.
 Don't add extra features, abstractions, or "improvements" beyond what was asked.
 A simple component doesn't need extra configurability or pre-built variants.
 &lt;/avoid_overengineering&gt;
+
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Wait for API contract messages from `backend-architect` before integrating API hooks — start layout work immediately.
+- Use `SendMessage` to share component specs and state needs with `test-engineer` directly.
+- Message `code-reviewer` when components are ready for review.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
 ## Task Management
 For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
@@ -457,4 +442,4 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation

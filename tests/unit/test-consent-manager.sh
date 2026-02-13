@@ -49,13 +49,13 @@ log_test() {
     local status="$2"
     local message="${3:-}"
 
-    ((TOTAL++)) || true
+    TOTAL=$((TOTAL + 1))
 
     if [[ "$status" == "PASS" ]]; then
-        ((PASSED++)) || true
+        PASSED=$((PASSED + 1))
         echo "${GREEN}✓${RESET} $name"
     else
-        ((FAILED++)) || true
+        FAILED=$((FAILED + 1))
         echo "${RED}✗${RESET} $name"
         if [[ -n "$message" ]]; then
             echo "  ${YELLOW}→ $message${RESET}"

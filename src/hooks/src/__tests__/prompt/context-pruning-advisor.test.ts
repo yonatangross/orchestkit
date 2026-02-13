@@ -243,7 +243,7 @@ describe('prompt/context-pruning-advisor', () => {
       expect(contextArg).toContain('CRITICAL');
     });
 
-    test('critical warning suggests context-compression skill', () => {
+    test('critical warning suggests context-optimization skill', () => {
       // Arrange
       process.env.CLAUDE_CONTEXT_USAGE_PERCENT = '0.96';
       vi.mocked(existsSync).mockReturnValue(true);
@@ -255,7 +255,7 @@ describe('prompt/context-pruning-advisor', () => {
 
       // Assert
       const contextArg = vi.mocked(outputPromptContext).mock.calls[0][0];
-      expect(contextArg).toContain('context-compression');
+      expect(contextArg).toContain('context-optimization');
     });
   });
 

@@ -1,41 +1,20 @@
 # Query Merging Algorithm
 
-Detailed algorithm for merging results from mem0 CLI and mcp__memory.
+Algorithm for querying and ranking results from the knowledge graph via mcp__memory.
 
-## Sequential Query Execution
+## Query Execution
 
-Execute graph query via MCP, then mem0 via CLI:
+Execute graph query via MCP:
 
 ```bash
-# 1. Query knowledge graph (MCP)
+# Query knowledge graph (MCP)
 mcp__memory__search_nodes({ query })
-
-# 2. Query mem0 cloud (CLI)
-python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/search-memories.py \
-  --query "${query}" \
-  --user-id "project-decisions" \
-  --limit 10 \
-  --enable-graph
 ```
 
 ## Result Normalization
 
-Transform each source to unified format:
+Transform graph results to unified format:
 
-**From mem0:**
-```json
-{
-  "id": "mem0:{memory_id}",
-  "text": "{memory text}",
-  "source": "mem0",
-  "timestamp": "{created_at}",
-  "relevance": "{score / 100}",
-  "entities": "[extracted from text]",
-  "metadata": "{original metadata}"
-}
-```
-
-**From graph:**
 ```json
 {
   "id": "graph:{entity_name}",
@@ -71,20 +50,20 @@ if similarity(result_a.text, result_b.text) > DEDUP_THRESHOLD:
 **Merge Strategy:**
 1. Keep text from higher-relevance result
 2. Combine entities from both
-3. Preserve metadata from both with `source_*` prefix
+3. Preserve metadata with `source_*` prefix
 4. Set `cross_validated: true`
 
-## Cross-System Boosting
+## Cross-Reference Boosting
 
-When mem0 result mentions a graph entity:
+When a result mentions a graph entity found elsewhere in the graph:
 
 ```python
-for mem0_result in mem0_results:
-    for entity in graph_entities:
-        if entity.name.lower() in mem0_result.text.lower():
-            mem0_result.relevance *= BOOST_FACTOR  # 1.2x
-            mem0_result.graph_relations = entity.relations
-            mem0_result.cross_referenced = True
+for result in graph_results:
+    for entity in all_graph_entities:
+        if entity.name.lower() in result.text.lower():
+            result.relevance *= BOOST_FACTOR  # 1.2x
+            result.graph_relations = entity.relations
+            result.cross_referenced = True
 ```
 
 ## Final Ranking Formula
@@ -99,7 +78,7 @@ def compute_score(result):
     authority = 1.0
     if result.cross_validated:
         authority = 1.3
-    elif result.source == "graph":
+    else:
         authority = 1.1
 
     # Final score
@@ -111,8 +90,8 @@ def compute_score(result):
 ```json
 {
   "query": "original query",
-  "total_results": 8,
-  "sources": { "mem0": 5, "graph": 4, "merged": 1 },
+  "total_results": 4,
+  "sources": { "graph": 4 },
   "results": "[sorted by score descending]"
 }
 ```

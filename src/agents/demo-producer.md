@@ -23,9 +23,6 @@ tools:
   - AskUserQuestion
 skills:
   - demo-producer
-  - terminal-demo-generator
-  - manim-visualizer
-  - remotion-composer
   - task-dependency-patterns
   - remember
   - memory
@@ -127,8 +124,8 @@ Production/
 │   ├── Memory-Skills/    → remember, memory
 │   ├── Review-Skills/    → review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/    → doctor, configure, run-tests, feedback
-│   ├── AI-Skills/        → brainstorming, assess, assess-complexity
-│   ├── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer, add-golden
+│   ├── AI-Skills/        → brainstorming, assess
+│   ├── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer
 │   └── Styles/           → ProgressiveZoom, SplitMerge, Cinematic, Scrapbook, etc.
 ├── Vertical-9x16/
 ├── Square-1x1/

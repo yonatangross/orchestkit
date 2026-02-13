@@ -297,7 +297,7 @@ export function contextPruningAdvisor(input: HookInput): HookResult {
   // Critical path: Context usage at critical level (>95%)
   if (contextUsage >= CONTEXT_CRITICAL) {
     logHook('context-pruning-advisor', `CRITICAL: Context usage at ${contextUsage * 100}% (>95%)`);
-    const criticalMsg = `CRITICAL: Context usage at ${Math.round(contextUsage * 100)}% (>95%). Use /ork:context-compression immediately or manually archive old decisions and patterns.`;
+    const criticalMsg = `CRITICAL: Context usage at ${Math.round(contextUsage * 100)}% (>95%). Use /ork:context-optimization immediately or manually archive old decisions and patterns.`;
     return outputPromptContext(criticalMsg);
   }
 

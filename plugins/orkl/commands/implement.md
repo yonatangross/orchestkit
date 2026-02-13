@@ -186,7 +186,7 @@ Launch ALL 5 agents in ONE Task message with `run_in_background: true`:
 | llm-integrator | LLM integration (if needed) |
 | ux-researcher | User experience, accessibility |
 
-Launch all 5 agents with `run_in_background=True`. Each agent returns a SUMMARY line.
+Launch all 5 agents with `run_in_background=True` and `max_turns=25`. Each agent returns a SUMMARY line.
 
 > In Agent Teams mode, form a persistent team with teammates messaging each other. See [Agent Teams Phases](references/agent-teams-phases.md#phase-4--agent-teams-architecture-design) for spawn templates.
 
@@ -248,14 +248,7 @@ agent-browser close
 
 ## Phase 9: Documentation
 
-Save implementation decisions to mem0 for future reference:
-
-```bash
-python3 ${CLAUDE_PLUGIN_ROOT}/src/skills/mem0-memory/scripts/crud/add-memory.py \
-  --text "Implementation decisions..." \
-  --user-id "project-decisions" \
-  --metadata '{"scope":"project-decisions","category":"implementation"}'
-```
+Save implementation decisions to memory for future reference. Use the knowledge graph (`mcp__memory__*`) to persist decisions, patterns, and architectural choices.
 
 
 ## Phase 10: Post-Implementation Reflection
@@ -314,7 +307,7 @@ TaskUpdate(taskId=task_id, status="completed")
 
 **Tools Used:**
 - context7 MCP (library documentation)
-- mem0 MCP (decision persistence)
+- mcp__memory__* (decision persistence)
 - agent-browser CLI (E2E verification)
 
 **Key Principles:**

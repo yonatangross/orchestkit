@@ -29,7 +29,7 @@ The following are **explicitly blocked** from collection:
 - Project names, paths, or directory structure
 - User names, emails, or personal information
 - IP addresses (stripped at network layer)
-- mem0 memory data or conversation history
+- Memory data or conversation history
 - Architecture decisions or design documents
 - API keys, tokens, or credentials
 - Git history or commit messages

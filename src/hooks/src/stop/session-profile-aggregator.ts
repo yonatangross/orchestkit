@@ -82,7 +82,6 @@ export function sessionProfileAggregator(input: HookInput): HookResult {
           `${generalizableDecisions.length} decisions eligible for global sharing`,
           'info'
         );
-        // Note: Actual export to mem0 happens via batch-sync.py or mem0-pre-compaction-sync
       }
     }
 

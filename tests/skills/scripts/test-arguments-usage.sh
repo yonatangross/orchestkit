@@ -51,17 +51,17 @@ fi
 # Test output functions
 pass() {
     echo -e "  ${GREEN}PASS${NC} $1"
-    ((PASS_COUNT++)) || true
+    PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 fail() {
     echo -e "  ${RED}FAIL${NC} $1"
-    ((FAIL_COUNT++)) || true
+    FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 warn() {
     echo -e "  ${YELLOW}WARN${NC} $1"
-    ((WARN_COUNT++)) || true
+    WARN_COUNT=$((WARN_COUNT + 1))
 }
 
 info() {
@@ -93,7 +93,7 @@ SCRIPT_FILES=()
 while IFS= read -r script_file; do
     if [[ -f "$script_file" ]]; then
         SCRIPT_FILES+=("$script_file")
-        ((TOTAL_SCRIPTS++)) || true
+        TOTAL_SCRIPTS=$((TOTAL_SCRIPTS + 1))
         
         skill_name=$(echo "$script_file" | sed "s|$SKILLS_DIR/||" | sed 's|/scripts/.*||')
         script_name=$(basename "$script_file")
@@ -138,7 +138,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     script_name=$(basename "$script_file")
     
     if check_arguments_in_markdown "$script_file"; then
-        ((MARKDOWN_USAGE_COUNT++)) || true
+        MARKDOWN_USAGE_COUNT=$((MARKDOWN_USAGE_COUNT + 1))
         info "$skill_name/scripts/$script_name: Uses \$ARGUMENTS in markdown (correct)"
     else
         NO_MARKDOWN_USAGE+=("$skill_name/scripts/$script_name")
@@ -168,7 +168,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     script_name=$(basename "$script_file")
     
     if check_arguments_in_code_blocks "$script_file"; then
-        ((CODE_BLOCK_USAGE_COUNT++)) || true
+        CODE_BLOCK_USAGE_COUNT=$((CODE_BLOCK_USAGE_COUNT + 1))
         info "$skill_name/scripts/$script_name: Uses \$ARGUMENTS in code blocks (correct)"
     fi
 done
@@ -194,7 +194,7 @@ for script_file in "${SCRIPT_FILES[@]}"; do
     script_name=$(basename "$script_file")
     
     if validate_argument_hint "$script_file"; then
-        ((HINT_MATCH++)) || true
+        HINT_MATCH=$((HINT_MATCH + 1))
         info "$skill_name/scripts/$script_name: argument-hint matches \$ARGUMENTS usage"
     else
         HINT_MISMATCH+=("$skill_name/scripts/$script_name")

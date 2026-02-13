@@ -20,25 +20,27 @@ const mocks = vi.hoisted(() => {
   const fn = () => vi.fn(() => s);
   return {
     logHook: vi.fn(),
-    // posttool (16) - Issue #361/#362: removed coordinationHeartbeat
+    // posttool (15) - Issue #361/#362: removed coordinationHeartbeat; v7: removed cloud memory hooks
     sessionMetrics: fn(), auditLogger: fn(), calibrationTracker: fn(),
     patternExtractor: fn(), issueProgressCommenter: fn(), issueSubtaskUpdater: fn(),
-    mem0WebhookHandler: fn(), codeStyleLearner: fn(), namingConventionLearner: fn(),
+    codeStyleLearner: fn(), namingConventionLearner: fn(),
     skillEditTracker: fn(), skillUsageOptimizer: fn(),
     memoryBridge: fn(), realtimeSync: fn(), userTracking: fn(), solutionDetector: fn(),
     toolPreferenceLearner: fn(),
-    // lifecycle (5) - Issue #362: removed instanceHeartbeat, multiInstanceInit
-    mem0ContextRetrieval: fn(), mem0AnalyticsTracker: fn(), patternSyncPull: fn(),
+    // lifecycle (5) - Issue #362: removed instanceHeartbeat, multiInstanceInit; v7: removed cloud memory hooks
+    patternSyncPull: fn(),
     sessionEnvSetup: fn(),
+    sessionTracking: fn(),
     memoryMetricsCollector: fn(),
+    staleTeamCleanup: fn(),
     // stop (4)
     autoSaveContext: fn(), sessionPatterns: fn(), issueWorkSummary: fn(), calibrationPersist: fn(),
     // subagent-stop (4)
     contextPublisher: fn(), handoffPreparer: fn(), feedbackLoop: fn(), agentMemoryStore: fn(),
     // notification (2)
     desktopNotification: fn(), soundNotification: fn(),
-    // setup (2) — implementations live in lifecycle/
-    dependencyVersionCheck: fn(), mem0WebhookSetup: fn(),
+    // setup (1) — implementations live in lifecycle/
+    dependencyVersionCheck: fn(),
   };
 });
 
@@ -58,7 +60,6 @@ vi.mock('../../posttool/calibration-tracker.js', () => ({ calibrationTracker: mo
 vi.mock('../../posttool/bash/pattern-extractor.js', () => ({ patternExtractor: mocks.patternExtractor }));
 vi.mock('../../posttool/bash/issue-progress-commenter.js', () => ({ issueProgressCommenter: mocks.issueProgressCommenter }));
 vi.mock('../../posttool/bash/issue-subtask-updater.js', () => ({ issueSubtaskUpdater: mocks.issueSubtaskUpdater }));
-vi.mock('../../posttool/mem0-webhook-handler.js', () => ({ mem0WebhookHandler: mocks.mem0WebhookHandler }));
 vi.mock('../../posttool/write/code-style-learner.js', () => ({ codeStyleLearner: mocks.codeStyleLearner }));
 vi.mock('../../posttool/write/naming-convention-learner.js', () => ({ namingConventionLearner: mocks.namingConventionLearner }));
 vi.mock('../../posttool/skill-edit-tracker.js', () => ({ skillEditTracker: mocks.skillEditTracker }));
@@ -70,11 +71,11 @@ vi.mock('../../posttool/solution-detector.js', () => ({ solutionDetector: mocks.
 vi.mock('../../posttool/tool-preference-learner.js', () => ({ toolPreferenceLearner: mocks.toolPreferenceLearner }));
 
 // lifecycle hooks
-vi.mock('../../lifecycle/mem0-context-retrieval.js', () => ({ mem0ContextRetrieval: mocks.mem0ContextRetrieval }));
-vi.mock('../../lifecycle/mem0-analytics-tracker.js', () => ({ mem0AnalyticsTracker: mocks.mem0AnalyticsTracker }));
 vi.mock('../../lifecycle/pattern-sync-pull.js', () => ({ patternSyncPull: mocks.patternSyncPull }));
 vi.mock('../../lifecycle/session-env-setup.js', () => ({ sessionEnvSetup: mocks.sessionEnvSetup }));
+vi.mock('../../lifecycle/session-tracking.js', () => ({ sessionTracking: mocks.sessionTracking }));
 vi.mock('../../lifecycle/memory-metrics-collector.js', () => ({ memoryMetricsCollector: mocks.memoryMetricsCollector }));
+vi.mock('../../lifecycle/stale-team-cleanup.js', () => ({ staleTeamCleanup: mocks.staleTeamCleanup }));
 
 // stop hooks
 vi.mock('../../stop/auto-save-context.js', () => ({ autoSaveContext: mocks.autoSaveContext }));
@@ -94,7 +95,6 @@ vi.mock('../../notification/sound.js', () => ({ soundNotification: mocks.soundNo
 
 // setup hooks (source files live in lifecycle/)
 vi.mock('../../lifecycle/dependency-version-check.js', () => ({ dependencyVersionCheck: mocks.dependencyVersionCheck }));
-vi.mock('../../lifecycle/mem0-webhook-setup.js', () => ({ mem0WebhookSetup: mocks.mem0WebhookSetup }));
 
 // ---------------------------------------------------------------------------
 // Dispatcher imports (AFTER mocks so vitest intercepts)
@@ -116,7 +116,6 @@ import { auditLogger } from '../../posttool/audit-logger.js';
 import { patternExtractor } from '../../posttool/bash/pattern-extractor.js';
 import { codeStyleLearner } from '../../posttool/write/code-style-learner.js';
 import { memoryBridge } from '../../posttool/memory-bridge.js';
-import { mem0ContextRetrieval } from '../../lifecycle/mem0-context-retrieval.js';
 import { autoSaveContext } from '../../stop/auto-save-context.js';
 import { contextPublisher } from '../../subagent-stop/context-publisher.js';
 import { desktopNotification } from '../../notification/desktop.js';
@@ -150,7 +149,6 @@ const posttoolMap: Record<string, ReturnType<typeof vi.fn>> = {
   'pattern-extractor': mocks.patternExtractor,
   'issue-progress-commenter': mocks.issueProgressCommenter,
   'issue-subtask-updater': mocks.issueSubtaskUpdater,
-  'mem0-webhook-handler': mocks.mem0WebhookHandler,
   'code-style-learner': mocks.codeStyleLearner,
   'naming-convention-learner': mocks.namingConventionLearner,
   'skill-edit-tracker': mocks.skillEditTracker,
@@ -160,11 +158,11 @@ const posttoolMap: Record<string, ReturnType<typeof vi.fn>> = {
 };
 
 const lifecycleMap: Record<string, ReturnType<typeof vi.fn>> = {
-  'mem0-context-retrieval': mocks.mem0ContextRetrieval,
-  'mem0-analytics-tracker': mocks.mem0AnalyticsTracker,
   'pattern-sync-pull': mocks.patternSyncPull,
   'session-env-setup': mocks.sessionEnvSetup,
+  'session-tracking': mocks.sessionTracking,
   'memory-metrics-collector': mocks.memoryMetricsCollector,
+  'stale-team-cleanup': mocks.staleTeamCleanup,
 };
 
 const stopMap: Record<string, ReturnType<typeof vi.fn>> = {
@@ -188,7 +186,6 @@ const notificationMap: Record<string, ReturnType<typeof vi.fn>> = {
 
 const setupMap: Record<string, ReturnType<typeof vi.fn>> = {
   'dependency-version-check': mocks.dependencyVersionCheck,
-  'mem0-webhook-setup': mocks.mem0WebhookSetup,
 };
 
 // ---------------------------------------------------------------------------
@@ -214,7 +211,6 @@ describe('Dispatcher Functional Tests', () => {
       expect(vi.isMockFunction(patternExtractor)).toBe(true);
       expect(vi.isMockFunction(codeStyleLearner)).toBe(true);
       expect(vi.isMockFunction(memoryBridge)).toBe(true);
-      expect(vi.isMockFunction(mem0ContextRetrieval)).toBe(true);
       expect(vi.isMockFunction(autoSaveContext)).toBe(true);
       expect(vi.isMockFunction(contextPublisher)).toBe(true);
       expect(vi.isMockFunction(desktopNotification)).toBe(true);
@@ -232,7 +228,7 @@ describe('Dispatcher Functional Tests', () => {
         await unifiedDispatcher(input('Bash'));
         expect(called(posttoolMap)).toEqual([
           'audit-logger', 'calibration-tracker', 'issue-progress-commenter',
-          'issue-subtask-updater', 'mem0-webhook-handler', 'pattern-extractor',
+          'issue-subtask-updater', 'pattern-extractor',
           'realtime-sync', 'session-metrics',
         ].sort());
         // Write/Edit hooks must NOT fire for Bash
@@ -268,7 +264,6 @@ describe('Dispatcher Functional Tests', () => {
         ].sort());
         // Bash hooks must NOT fire for Edit
         expect(mocks.patternExtractor).not.toHaveBeenCalled();
-        expect(mocks.mem0WebhookHandler).not.toHaveBeenCalled();
 
       });
 
@@ -389,10 +384,10 @@ describe('Dispatcher Functional Tests', () => {
 
         await unifiedDispatcher(input('Bash'));
 
-        // Issue #243: Now 11 hooks for Bash (was 10) after adding tool-preference-learner
+        // Issue #243: Now 10 hooks for Bash after v7 cloud memory hook removal
         expect(mocks.logHook).toHaveBeenCalledWith(
           'posttool-dispatcher',
-          expect.stringMatching(/2\/11 hooks failed.*audit-logger.*session-metrics|2\/11 hooks failed.*session-metrics.*audit-logger/),
+          expect.stringMatching(/2\/10 hooks failed.*audit-logger.*session-metrics|2\/10 hooks failed.*session-metrics.*audit-logger/),
         );
       });
 
@@ -411,19 +406,18 @@ describe('Dispatcher Functional Tests', () => {
   // =========================================================================
 
   describe('lifecycle/unified-dispatcher', () => {
-    it('calls all 6 registered hooks', async () => {
+    it('calls all 5 registered hooks', async () => {
       await unifiedSessionStartDispatcher(input());
       expect(called(lifecycleMap)).toEqual(Object.keys(lifecycleMap).sort());
     });
 
     it('isolates errors — other hooks run when one throws', async () => {
-      mocks.mem0ContextRetrieval.mockImplementationOnce(() => { throw new Error('fail'); });
+      mocks.patternSyncPull.mockImplementationOnce(() => { throw new Error('fail'); });
 
       await unifiedSessionStartDispatcher(input());
 
-      expect(mocks.mem0AnalyticsTracker).toHaveBeenCalled();
-      expect(mocks.patternSyncPull).toHaveBeenCalled();
       expect(mocks.sessionEnvSetup).toHaveBeenCalled();
+      expect(mocks.memoryMetricsCollector).toHaveBeenCalled();
     });
 
     it('logs failure summary on error', async () => {
@@ -433,7 +427,7 @@ describe('Dispatcher Functional Tests', () => {
 
       expect(mocks.logHook).toHaveBeenCalledWith(
         'session-start-dispatcher',
-        expect.stringContaining('1/6 hooks failed'),
+        expect.stringContaining('1/5 hooks failed'),
       );
     });
 
@@ -528,7 +522,7 @@ describe('Dispatcher Functional Tests', () => {
   // =========================================================================
 
   describe('setup/unified-dispatcher', () => {
-    it('calls all 2 registered hooks', async () => {
+    it('calls all 1 registered hooks', async () => {
       await unifiedSetupDispatcher(input());
       expect(called(setupMap)).toEqual(Object.keys(setupMap).sort());
     });
@@ -537,7 +531,7 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSetupDispatcher(input());
       expect(mocks.logHook).toHaveBeenCalledWith(
         'setup-dispatcher',
-        expect.stringContaining('Running 2 Setup hooks'),
+        expect.stringContaining('Running 1 Setup hooks'),
       );
     });
 
@@ -545,20 +539,12 @@ describe('Dispatcher Functional Tests', () => {
       await unifiedSetupDispatcher(input());
       expect(mocks.logHook).toHaveBeenCalledWith(
         'setup-dispatcher',
-        expect.stringContaining('All 2 Setup hooks completed successfully'),
+        expect.stringContaining('All 1 Setup hooks completed successfully'),
       );
     });
 
-    it('isolates errors — other hooks run when one throws', async () => {
-      mocks.dependencyVersionCheck.mockImplementationOnce(() => { throw new Error('outdated'); });
-
-      await unifiedSetupDispatcher(input());
-
-      expect(mocks.mem0WebhookSetup).toHaveBeenCalled();
-    });
-
     it('returns silent success even on errors', async () => {
-      mocks.mem0WebhookSetup.mockImplementationOnce(() => { throw new Error('locked'); });
+      mocks.dependencyVersionCheck.mockImplementationOnce(() => { throw new Error('outdated'); });
       const result = await unifiedSetupDispatcher(input());
       expect(result).toEqual(SILENT_SUCCESS);
     });

@@ -2,8 +2,17 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 import { DemoGallery } from "@/components/demo-gallery";
 
-// ── Mock playground data ────────────────────────────────────
-vi.mock("@/lib/playground-data", () => {
+// ── Mock next/image to render plain <img> in tests ──────────
+vi.mock("next/image", () => ({
+  default: (props: Record<string, unknown>) => {
+    const { fill, ...rest } = props;
+    return <img {...rest} />;
+  },
+}));
+
+// ── Mock generated compositions data ────────────────────────
+vi.mock("@/lib/generated/types", () => ({}));
+vi.mock("@/lib/generated/compositions-data", () => {
   const mockCompositions = [
     {
       id: "ScrapbookDemo",
@@ -21,6 +30,9 @@ vi.mock("@/lib/playground-data", () => {
       primaryColor: "#0d9488",
       relatedPlugin: "ork",
       tags: ["marketing", "demo", "scrapbook"],
+      // Has both CDN thumbnail and video
+      thumbnailCdn: "https://cdn.sanity.io/images/test/production/scrapbook-thumb.png",
+      videoCdn: "https://cdn.sanity.io/files/test/production/scrapbook-video.mp4",
     },
     {
       id: "ReleaseNotesLandscape",
@@ -38,6 +50,8 @@ vi.mock("@/lib/playground-data", () => {
       primaryColor: "#7c3aed",
       relatedPlugin: "orkl",
       tags: ["release", "changelog"],
+      // Has CDN thumbnail only — no video
+      thumbnailCdn: "https://cdn.sanity.io/images/test/production/release-thumb.png",
     },
     {
       id: "MemoryFabricVertical",
@@ -55,6 +69,7 @@ vi.mock("@/lib/playground-data", () => {
       primaryColor: "#06b6d4",
       relatedPlugin: "ork",
       tags: ["memory", "graph", "visualization"],
+      // No CDN fields — local fallback
     },
     {
       id: "AgentSelectorSquare",
@@ -72,6 +87,7 @@ vi.mock("@/lib/playground-data", () => {
       primaryColor: "#059669",
       relatedPlugin: "ork",
       tags: ["agents", "interactive"],
+      // No CDN fields — local fallback
     },
   ];
 
@@ -422,10 +438,14 @@ describe("DemoGallery", () => {
     render(<DemoGallery />);
 
     const images = screen.getAllByRole("img");
+    // ScrapbookDemo has thumbnailCdn — should use CDN URL
     const scrapbookImg = images.find((img) =>
       img.getAttribute("alt")?.includes("Scrapbook Demo"),
     );
-    expect(scrapbookImg).toHaveAttribute("src", "/thumbnails/ScrapbookDemo.png");
+    expect(scrapbookImg).toHaveAttribute(
+      "src",
+      "https://cdn.sanity.io/images/test/production/scrapbook-thumb.png",
+    );
   });
 
   it("renders duration badge on cards", () => {
@@ -434,5 +454,166 @@ describe("DemoGallery", () => {
     expect(screen.getByText("45s")).toBeInTheDocument();
     expect(screen.getByText("30s")).toBeInTheDocument();
     expect(screen.getByText("15s")).toBeInTheDocument();
+  });
+
+  // ── CDN thumbnail fallback ────────────────────────────────
+
+  it("uses CDN thumbnail when available", () => {
+    render(<DemoGallery />);
+
+    const images = screen.getAllByRole("img");
+    // ReleaseNotesLandscape has thumbnailCdn
+    const releaseImg = images.find((img) =>
+      img.getAttribute("alt")?.includes("Release Notes Landscape"),
+    );
+    expect(releaseImg).toHaveAttribute(
+      "src",
+      "https://cdn.sanity.io/images/test/production/release-thumb.png",
+    );
+  });
+
+  it("falls back to local thumbnail when no CDN URL", () => {
+    render(<DemoGallery />);
+
+    const images = screen.getAllByRole("img");
+    // MemoryFabricVertical has no thumbnailCdn
+    const memoryImg = images.find((img) =>
+      img.getAttribute("alt")?.includes("Memory Fabric Vertical"),
+    );
+    expect(memoryImg).toHaveAttribute(
+      "src",
+      "/thumbnails/MemoryFabricVertical.png",
+    );
+  });
+
+  // ── Video playback in modal ─────────────────────────────
+
+  it("renders video player in modal when videoCdn exists", () => {
+    render(<DemoGallery />);
+
+    // ScrapbookDemo has videoCdn
+    fireEvent.click(
+      screen.getByLabelText("View details for Scrapbook Demo"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+
+    // happy-dom may not support getByRole("video"), so query by tag
+    const videoEl = dialog.querySelector("video");
+    expect(videoEl).not.toBeNull();
+    expect(videoEl!.getAttribute("src")).toBe(
+      "https://cdn.sanity.io/files/test/production/scrapbook-video.mp4",
+    );
+    expect(videoEl!.hasAttribute("controls")).toBe(true);
+    expect(videoEl!.hasAttribute("autoplay")).toBe(true);
+    expect(videoEl!.getAttribute("poster")).toBe(
+      "https://cdn.sanity.io/images/test/production/scrapbook-thumb.png",
+    );
+  });
+
+  it("shows thumbnail with 'coming soon' badge when no videoCdn", () => {
+    render(<DemoGallery />);
+
+    // ReleaseNotesLandscape has thumbnailCdn but no videoCdn
+    fireEvent.click(
+      screen.getByLabelText("View details for Release Notes Landscape"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+
+    // Should NOT have a video element
+    expect(dialog.querySelector("video")).toBeNull();
+
+    // Should show an img with CDN thumbnail
+    const images = within(dialog).getAllByRole("img");
+    const previewImg = images.find((img) =>
+      img.getAttribute("alt")?.includes("Preview"),
+    );
+    expect(previewImg).toHaveAttribute(
+      "src",
+      "https://cdn.sanity.io/images/test/production/release-thumb.png",
+    );
+
+    // Should show "Video in production" badge
+    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
+  });
+
+  it("shows local thumbnail fallback in modal when no CDN fields", () => {
+    render(<DemoGallery />);
+
+    // MemoryFabricVertical has no CDN fields at all
+    fireEvent.click(
+      screen.getByLabelText("View details for Memory Fabric Vertical"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+
+    // No video element
+    expect(dialog.querySelector("video")).toBeNull();
+
+    // Local fallback thumbnail
+    const images = within(dialog).getAllByRole("img");
+    const previewImg = images.find((img) =>
+      img.getAttribute("alt")?.includes("Preview"),
+    );
+    expect(previewImg).toHaveAttribute(
+      "src",
+      "/thumbnails/MemoryFabricVertical.png",
+    );
+
+    // "Coming soon" badge
+    expect(within(dialog).getByText("Video in production")).toBeInTheDocument();
+  });
+
+  it("video element has playsInline attribute", () => {
+    render(<DemoGallery />);
+
+    fireEvent.click(
+      screen.getByLabelText("View details for Scrapbook Demo"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const videoEl = dialog.querySelector("video");
+    expect(videoEl).not.toBeNull();
+    // React renders playsInline as playsinline attribute
+    expect(
+      videoEl!.hasAttribute("playsinline") || videoEl!.hasAttribute("playsInline"),
+    ).toBe(true);
+  });
+
+  // ── Card status indicators ──────────────────────────────
+
+  it("shows 'In production' on hover for cards without video", () => {
+    render(<DemoGallery />);
+
+    // MemoryFabricVertical has no videoCdn
+    const card = screen.getByLabelText(
+      "View details for Memory Fabric Vertical",
+    );
+    // The "In production" text should exist in the card (visible on hover via CSS)
+    expect(within(card).getByText("In production")).toBeInTheDocument();
+  });
+
+  it("does not show 'In production' on cards with video", () => {
+    render(<DemoGallery />);
+
+    // ScrapbookDemo has videoCdn
+    const card = screen.getByLabelText("View details for Scrapbook Demo");
+    expect(within(card).queryByText("In production")).not.toBeInTheDocument();
+  });
+
+  it("dims thumbnail in modal when no video available", () => {
+    render(<DemoGallery />);
+
+    fireEvent.click(
+      screen.getByLabelText("View details for Release Notes Landscape"),
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const previewImg = within(dialog)
+      .getAllByRole("img")
+      .find((img) => img.getAttribute("alt")?.includes("Preview"));
+    // Thumbnail should have opacity-60 class to indicate non-playable state
+    expect(previewImg?.className).toContain("opacity-60");
   });
 });

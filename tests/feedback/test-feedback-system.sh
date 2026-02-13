@@ -15,6 +15,8 @@ set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+# Save real root before setup() overwrites PROJECT_ROOT via sourced scripts
+readonly REAL_PROJECT_ROOT="$PROJECT_ROOT"
 
 # Export for hooks
 export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
@@ -189,86 +191,67 @@ test_consent_log_created() {
 # Test: PII Validation
 # =============================================================================
 
+# analytics-lib sourced lazily before PII tests (has readonly vars + side effects)
+_PII_AVAILABLE=false
+_source_analytics_lib() {
+    if [[ "$_PII_AVAILABLE" == "true" ]]; then return 0; fi
+    local lib="$REAL_PROJECT_ROOT/.claude/scripts/analytics-lib.sh"
+    if [[ -f "$lib" ]]; then
+        source "$lib" 2>/dev/null && _PII_AVAILABLE=true
+    fi
+}
+
 test_pii_detection_email() {
     test_start "PII detection catches email addresses"
+    _source_analytics_lib
 
-    local pii_validator="$PROJECT_ROOT/.claude/scripts/pii-validator.sh"
-
-    if [[ ! -f "$pii_validator" ]]; then
-        # Check if function exists in feedback lib
-        local feedback_lib="$PROJECT_ROOT/.claude/scripts/feedback-lib.sh"
-        if [[ -f "$feedback_lib" ]]; then
-            source "$feedback_lib"
-            if type contains_pii &>/dev/null; then
-                local test_text="Contact me at user@example.com for details"
-                if contains_pii "$test_text" 2>/dev/null; then
-                    test_pass
-                    return
-                else
-                    test_fail "Should detect email as PII"
-                    return
-                fi
-            fi
-        fi
-        test_skip "PII validator not found"
+    if [[ "$_PII_AVAILABLE" != "true" ]] || ! type validate_no_pii &>/dev/null; then
+        test_skip "analytics-lib.sh not available"
         return
     fi
 
-    source "$pii_validator"
-
     local test_text="Contact me at user@example.com for details"
-    if contains_pii "$test_text" 2>/dev/null; then
+    # validate_no_pii returns 1 when PII IS detected
+    if ! validate_no_pii "$test_text" 2>/dev/null; then
         test_pass
     else
         test_fail "Should detect email as PII"
     fi
 }
 
-test_pii_detection_phone() {
-    test_start "PII detection catches phone numbers"
+test_pii_detection_ip_address() {
+    test_start "PII detection catches IP addresses"
+    _source_analytics_lib
 
-    local feedback_lib="$PROJECT_ROOT/.claude/scripts/feedback-lib.sh"
-
-    if [[ ! -f "$feedback_lib" ]]; then
-        test_skip "feedback-lib.sh not found"
+    if [[ "$_PII_AVAILABLE" != "true" ]] || ! type validate_no_pii &>/dev/null; then
+        test_skip "analytics-lib.sh not available"
         return
     fi
 
-    source "$feedback_lib"
-
-    if type contains_pii &>/dev/null; then
-        local test_text="Call me at 555-123-4567"
-        if contains_pii "$test_text" 2>/dev/null; then
-            test_pass
-        else
-            test_fail "Should detect phone as PII"
-        fi
+    local test_text="Server at 192.168.1.100 responded"
+    # validate_no_pii returns 1 when PII IS detected
+    if ! validate_no_pii "$test_text" 2>/dev/null; then
+        test_pass
     else
-        test_skip "contains_pii function not found"
+        test_fail "Should detect IP address as PII"
     fi
 }
 
 test_pii_safe_text() {
     test_start "PII detection allows safe text"
+    _source_analytics_lib
 
-    local feedback_lib="$PROJECT_ROOT/.claude/scripts/feedback-lib.sh"
-
-    if [[ ! -f "$feedback_lib" ]]; then
-        test_skip "feedback-lib.sh not found"
+    if [[ "$_PII_AVAILABLE" != "true" ]] || ! type validate_no_pii &>/dev/null; then
+        test_skip "analytics-lib.sh not available"
         return
     fi
 
-    source "$feedback_lib"
-
-    if type contains_pii &>/dev/null; then
-        local test_text="User completed task successfully with 95% coverage"
-        if ! contains_pii "$test_text" 2>/dev/null; then
-            test_pass
-        else
-            test_fail "Should not flag safe text as PII"
-        fi
+    local test_text="User completed task successfully with 95 percent coverage"
+    # validate_no_pii returns 0 when text is clean
+    if validate_no_pii "$test_text" 2>/dev/null; then
+        test_pass
     else
-        test_skip "contains_pii function not found"
+        test_fail "Should not flag safe text as PII"
     fi
 }
 
@@ -333,7 +316,7 @@ test_satisfaction_negative_detection() {
 # =============================================================================
 
 test_agent_performance_logging() {
-    test_start "agent performance logging works"
+    test_start "agent performance tracks agent spawns in metrics"
 
     local feedback_lib="$PROJECT_ROOT/.claude/scripts/feedback-lib.sh"
 
@@ -345,18 +328,20 @@ test_agent_performance_logging() {
     source "$feedback_lib"
 
     if type log_agent_performance &>/dev/null; then
+        # Enable feedback and set up metrics file
         mkdir -p "$CLAUDE_PROJECT_DIR/.claude/feedback" 2>/dev/null || true
+        export FEEDBACK_ENABLED="true"
+        local metrics="$CLAUDE_PROJECT_DIR/.claude/feedback/metrics.json"
+        export METRICS_FILE="$metrics"
+        echo '{"agents":{}}' > "$metrics"
 
         log_agent_performance "test-agent" "true" "5000" 2>/dev/null || true
 
-        # Check if performance was logged
-        local perf_file="$CLAUDE_PROJECT_DIR/.claude/feedback/agent-performance.jsonl"
-
-        if [[ -f "$perf_file" ]]; then
+        # Verify the agent was tracked in the metrics file
+        if jq -e '.agents["test-agent"].spawns >= 1' "$metrics" >/dev/null 2>&1; then
             test_pass
         else
-            # May log elsewhere
-            test_pass
+            test_fail "log_agent_performance did not write agent spawn to metrics"
         fi
     else
         test_skip "log_agent_performance function not found"
@@ -364,7 +349,7 @@ test_agent_performance_logging() {
 }
 
 test_agent_performance_metrics() {
-    test_start "agent performance calculates metrics"
+    test_start "skill tracking writes session state"
 
     local feedback_lib="$PROJECT_ROOT/.claude/scripts/feedback-lib.sh"
 
@@ -375,68 +360,22 @@ test_agent_performance_metrics() {
 
     source "$feedback_lib"
 
-    if type get_agent_stats &>/dev/null; then
-        local stats
-        stats=$(get_agent_stats "backend-system-architect" 2>/dev/null || echo '{}')
+    if type track_skill_for_evolution &>/dev/null; then
+        # Set up feedback dir for session file
+        export FEEDBACK_DIR="$CLAUDE_PROJECT_DIR/.claude/feedback"
+        mkdir -p "$FEEDBACK_DIR/../session" 2>/dev/null || true
 
-        if echo "$stats" | jq -e '.' >/dev/null 2>&1; then
+        track_skill_for_evolution "backend-system-architect" 2>/dev/null || true
+
+        # Verify the session state file was created with the skill entry
+        local session_file="$FEEDBACK_DIR/../session/state.json"
+        if [[ -f "$session_file" ]] && jq -e '.recentSkills | length > 0' "$session_file" >/dev/null 2>&1; then
             test_pass
         else
-            test_fail "Invalid stats JSON"
+            test_fail "track_skill_for_evolution did not write session state"
         fi
     else
-        test_skip "get_agent_stats function not found"
-    fi
-}
-
-# =============================================================================
-# Test: Skill Evolution
-# =============================================================================
-
-test_skill_evolution_tracking() {
-    test_start "skill evolution tracks usage"
-
-    local evolution_script="$PROJECT_ROOT/.claude/scripts/evolution-engine.sh"
-
-    if [[ ! -f "$evolution_script" ]]; then
-        test_skip "evolution-engine.sh not found"
-        return
-    fi
-
-    source "$evolution_script"
-
-    if type track_skill_usage &>/dev/null; then
-        track_skill_usage "api-design-framework" "positive" 2>/dev/null || true
-        test_pass
-    else
-        test_skip "track_skill_usage function not found"
-    fi
-}
-
-test_skill_version_bumping() {
-    test_start "skill evolution version bumping"
-
-    local evolution_script="$PROJECT_ROOT/.claude/scripts/evolution-engine.sh"
-
-    if [[ ! -f "$evolution_script" ]]; then
-        test_skip "evolution-engine.sh not found"
-        return
-    fi
-
-    source "$evolution_script"
-
-    if type suggest_version_bump &>/dev/null; then
-        local suggestion
-        suggestion=$(suggest_version_bump "test-skill" 2>/dev/null || echo "none")
-
-        # Should return a valid suggestion or none
-        if [[ "$suggestion" == "none" || "$suggestion" == "patch" || "$suggestion" == "minor" || "$suggestion" == "major" ]]; then
-            test_pass
-        else
-            test_pass  # Any valid response is OK
-        fi
-    else
-        test_skip "suggest_version_bump function not found"
+        test_skip "track_skill_for_evolution function not found"
     fi
 }
 
@@ -511,45 +450,6 @@ test_metrics_with_consent() {
 }
 
 # =============================================================================
-# Test: Analytics Hooks
-# =============================================================================
-
-test_analytics_consent_check_hook() {
-    test_start "analytics consent check hook runs"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-
-    local output
-    output=$(bash "$PROJECT_ROOT/src/hooks/lifecycle/analytics-consent-check.sh" 2>/dev/null || echo '{"continue":true}')
-
-    local has_continue
-    has_continue=$(echo "$output" | jq -r '.continue // "false"' 2>/dev/null || echo "false")
-
-    if [[ "$has_continue" == "true" ]]; then
-        test_pass
-    else
-        test_fail "Hook should continue"
-    fi
-}
-
-test_learning_tracker_hook() {
-    test_start "learning tracker permission hook"
-
-    export CLAUDE_PROJECT_DIR="$PROJECT_ROOT"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"npm test"}}'
-    local output
-    output=$(echo "$input" | bash "$PROJECT_ROOT/src/hooks/permission/learning-tracker.sh" 2>/dev/null || echo '{"decision":"approve"}')
-
-    # Should return valid JSON
-    if echo "$output" | jq -e '.' >/dev/null 2>&1; then
-        test_pass
-    else
-        test_fail "Invalid JSON output"
-    fi
-}
-
-# =============================================================================
 # Run All Tests
 # =============================================================================
 
@@ -573,7 +473,7 @@ echo ""
 echo "▶ PII Validation"
 echo "────────────────────────────────────────"
 test_pii_detection_email
-test_pii_detection_phone
+test_pii_detection_ip_address
 test_pii_safe_text
 
 echo ""
@@ -589,22 +489,10 @@ test_agent_performance_logging
 test_agent_performance_metrics
 
 echo ""
-echo "▶ Skill Evolution"
-echo "────────────────────────────────────────"
-test_skill_evolution_tracking
-test_skill_version_bumping
-
-echo ""
 echo "▶ Privacy Compliance"
 echo "────────────────────────────────────────"
 test_no_metrics_without_consent
 test_metrics_with_consent
-
-echo ""
-echo "▶ Analytics Hooks"
-echo "────────────────────────────────────────"
-test_analytics_consent_check_hook
-test_learning_tracker_hook
 
 echo ""
 echo "════════════════════════════════════════════════════════════════════════════════"

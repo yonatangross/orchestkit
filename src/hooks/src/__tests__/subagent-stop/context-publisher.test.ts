@@ -59,13 +59,11 @@ describe('context-publisher', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.CLAUDE_PROJECT_DIR = '/test/project';
-    process.env.CLAUDE_AGENT_NAME = 'test-agent';
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     delete process.env.CLAUDE_PROJECT_DIR;
-    delete process.env.CLAUDE_AGENT_NAME;
   });
 
   // ---------------------------------------------------------------------------
@@ -159,9 +157,8 @@ describe('context-publisher', () => {
 
     test('writes decision entry with agent name', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'backend-system-architect';
       vi.mocked(existsSync).mockReturnValue(false);
-      const input = createSubagentStopInput({ agent_output: 'Implemented API' });
+      const input = createSubagentStopInput({ agent_output: 'Implemented API', subagent_type: 'backend-system-architect' });
 
       // Act
       contextPublisher(input);
@@ -194,8 +191,7 @@ describe('context-publisher', () => {
         },
       }));
 
-      process.env.CLAUDE_AGENT_NAME = 'new-agent';
-      const input = createSubagentStopInput({ agent_output: 'New result' });
+      const input = createSubagentStopInput({ agent_output: 'New result', subagent_type: 'new-agent' });
 
       // Act
       contextPublisher(input);
@@ -236,9 +232,8 @@ describe('context-publisher', () => {
 
     test('replaces hyphens with underscores in agent key', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'my-special-agent';
       vi.mocked(existsSync).mockReturnValue(false);
-      const input = createSubagentStopInput();
+      const input = createSubagentStopInput({ subagent_type: 'my-special-agent' });
 
       // Act
       contextPublisher(input);
@@ -294,8 +289,7 @@ describe('context-publisher', () => {
         return '{}';
       });
 
-      process.env.CLAUDE_AGENT_NAME = 'test-agent';
-      const input = createSubagentStopInput({ agent_output: 'Task done' });
+      const input = createSubagentStopInput({ agent_output: 'Task done', subagent_type: 'test-agent' });
 
       // Act
       contextPublisher(input);
@@ -396,8 +390,7 @@ describe('context-publisher', () => {
 
     test('log content includes agent name', () => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = 'my-agent';
-      const input = createSubagentStopInput({ agent_output: 'Output text' });
+      const input = createSubagentStopInput({ agent_output: 'Output text', subagent_type: 'my-agent' });
 
       // Act
       contextPublisher(input);
@@ -459,11 +452,10 @@ describe('context-publisher', () => {
       expect(result.continue).toBe(true);
     });
 
-    test('handles missing CLAUDE_AGENT_NAME by using unknown', () => {
+    test('handles missing subagent_type by using unknown', () => {
       // Arrange
-      delete process.env.CLAUDE_AGENT_NAME;
       vi.mocked(existsSync).mockReturnValue(false);
-      const input = createSubagentStopInput();
+      const input = createSubagentStopInput({ subagent_type: undefined, agent_type: undefined });
 
       // Act
       contextPublisher(input);
@@ -558,9 +550,8 @@ describe('context-publisher', () => {
       ['backend-system-architect', 'backend_system_architect'],
     ])('normalizes agent name %s to key %s', (agentName, expectedKey) => {
       // Arrange
-      process.env.CLAUDE_AGENT_NAME = agentName;
       vi.mocked(existsSync).mockReturnValue(false);
-      const input = createSubagentStopInput();
+      const input = createSubagentStopInput({ subagent_type: agentName });
 
       // Act
       contextPublisher(input);

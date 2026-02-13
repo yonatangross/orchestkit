@@ -18,15 +18,6 @@
       "args": ["-y", "@modelcontextprotocol/server-memory"],
       "description": "Knowledge graph memory (PRIMARY) - zero-config, always available",
       "auto": "90"
-    },
-    "mem0": {
-      "command": "uvx",
-      "args": ["mem0-mcp-server"],
-      "description": "Cloud semantic search (OPTIONAL enhancement) - requires MEM0_API_KEY",
-      "env": {
-        "MEM0_API_KEY": "YOUR_MEM0_API_KEY_HERE"
-      },
-      "auto": "85"
     }
   }
 }

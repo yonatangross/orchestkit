@@ -3,7 +3,7 @@
  *
  * Tests session continuity prompt generation at session end.
  * Covers: return values, suppress output, logging, project dir resolution,
- * MEM0_API_KEY detection, and edge cases.
+ * and edge cases.
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -42,7 +42,6 @@ describe('Auto-Remember Continuity Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
-    delete process.env.MEM0_API_KEY;
   });
 
   // ===========================================================================
@@ -143,37 +142,4 @@ describe('Auto-Remember Continuity Hook', () => {
     });
   });
 
-  // ===========================================================================
-  // SECTION 4: MEM0_API_KEY Detection
-  // ===========================================================================
-  describe('MEM0_API_KEY Detection', () => {
-    it('should not throw when MEM0_API_KEY is not set', () => {
-      // Arrange
-      delete process.env.MEM0_API_KEY;
-
-      // Act & Assert
-      expect(() => autoRememberContinuity(defaultInput)).not.toThrow();
-    });
-
-    it('should not throw when MEM0_API_KEY is set', () => {
-      // Arrange
-      process.env.MEM0_API_KEY = 'test-key-123';
-
-      // Act & Assert
-      expect(() => autoRememberContinuity(defaultInput)).not.toThrow();
-      const result = autoRememberContinuity(defaultInput);
-      expect(result.continue).toBe(true);
-    });
-
-    it('should handle MEM0_API_KEY being empty string', () => {
-      // Arrange
-      process.env.MEM0_API_KEY = '';
-
-      // Act
-      const result = autoRememberContinuity(defaultInput);
-
-      // Assert
-      expect(result.continue).toBe(true);
-    });
-  });
 });

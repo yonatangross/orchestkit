@@ -2,7 +2,7 @@
 name: frontend-ui-developer
 description: Frontend developer who builds React 19/TypeScript components with optimistic updates, concurrent features, Zod-validated APIs, exhaustive type safety, and modern 2026 patterns. Activates for React, TypeScript, component, UI, frontend, optimistic updates, Zod, concurrent, TSX, hook, TanStack, Suspense, skeleton, form, validation, mutation, lazy loading, view transitions, scroll animations, PWA, charts, dashboard
 category: frontend
-model: inherit
+model: sonnet
 context: fork
 color: purple
 memory: project
@@ -20,36 +20,14 @@ tools:
   - TaskList
 skills:
   - react-server-components-framework
-  - design-system-starter
-  - type-safety-validation
-  - unit-testing
-  - e2e-testing
-  - webapp-testing
-  - i18n-date-patterns
-  - motion-animation-patterns
-  - a11y-testing
-  - focus-management
-  - render-optimization
-  - shadcn-patterns
-  - radix-primitives
-  - biome-linting
-  - vite-advanced
+  - ui-components
+  - testing-patterns
+  - accessibility
+  - performance
+  - code-review-playbook
   - zustand-patterns
-  - tanstack-query-advanced
-  - form-state-patterns
-  - core-web-vitals
-  - image-optimization
-  - react-aria-patterns
-  - wcag-compliance
-  - lazy-loading-patterns
-  - view-transitions
-  - scroll-driven-animations
-  - responsive-patterns
-  - pwa-patterns
-  - recharts-patterns
-  - dashboard-patterns
-  - edge-computing-patterns
-  - streaming-api-patterns
+  - architecture-patterns
+  - git-workflow
   - task-dependency-patterns
   - remember
   - memory
@@ -455,4 +433,4 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, render-optimization, i18n-date-patterns, motion-animation-patterns
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation

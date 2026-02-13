@@ -80,7 +80,6 @@ AskUserQuestion(
 **Subcommands for `/ork:memory`:**
 - `search` - Search decisions and patterns
 - `load` - Load session context
-- `sync` - Sync to mem0 cloud
 - `history` - View decision timeline
 - `viz` - Visualize knowledge graph
 

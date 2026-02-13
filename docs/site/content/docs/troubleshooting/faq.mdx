@@ -1,0 +1,177 @@
+---
+title: FAQ
+description: Frequently asked questions about OrchestKit.
+---
+
+import { Callout } from 'fumadocs-ui/components/callout';
+
+## General
+
+### What version of Claude Code do I need?
+
+OrchestKit requires Claude Code 2.1.34 or later. Check your version:
+
+```bash
+claude --version
+```
+
+Upgrade if needed:
+
+```bash
+npm install -g @anthropic-ai/claude-code@latest
+```
+
+### What is the difference between `ork` and `orkl`?
+
+OrchestKit ships three plugin tiers:
+
+| Plugin | Skills | Description |
+|--------|--------|-------------|
+| `orkl` | 88 | Universal toolkit -- works for any stack |
+| `ork-creative` | 16 | Video production add-on -- demo recording, Remotion, storyboarding |
+| `ork` | 200 | Full specialized -- includes orkl + creative + Python, React, LLM/RAG, LangGraph, MCP skills |
+
+Both tiers include all 36 agents, 93 hooks, and all memory skills. The difference is only in specialized reference skills. If you work with Python, React, or LLM pipelines, use `ork`. If you want a lighter install for general development, use `orkl`.
+
+### Can I use OrchestKit with other Claude Code plugins?
+
+Yes. OrchestKit is designed to coexist with other plugins. Skills, agents, and hooks are namespaced under `ork:` to avoid conflicts. If you encounter a naming collision, [open an issue](https://github.com/yonatangross/orchestkit/issues).
+
+### Does OrchestKit send data externally?
+
+No data is sent externally by default. The only optional external services are:
+
+- **Mem0 Cloud**: If you set `MEM0_API_KEY`, memory sync sends decisions to Mem0's API
+- **Tavily**: If you set `TAVILY_API_KEY`, web research skills use Tavily's search API
+- **BrightData**: If you set `BRIGHTDATA_API_TOKEN`, web scraping uses BrightData's MCP
+
+All three are opt-in via environment variables. Without them, OrchestKit operates entirely locally.
+
+---
+
+## Skills
+
+### How many skills are there?
+
+200 total: 24 command skills (user-invocable via `/ork:skillname`) and 175 reference skills (knowledge modules auto-injected by agents and hooks).
+
+### What does `complexity: low|medium|high|max` mean?
+
+The complexity field in skill frontmatter aligns with Opus 4.6's adaptive thinking system. Higher complexity skills get more compute budget for reasoning:
+
+| Level | Thinking Budget | Use Case |
+|-------|----------------|----------|
+| `low` | Minimal | Simple workflows like `/ork:commit` |
+| `medium` | Moderate | Multi-agent workflows like `/ork:implement` |
+| `high` | Extended | Deep analysis like `/ork:audit-full` |
+| `max` | Maximum | Exhaustive evaluation like `/ork:upgrade-assessment` |
+
+### Can I write my own skills?
+
+Yes. Create a directory in `src/skills/your-skill/` with a `SKILL.md` file containing YAML frontmatter. See [Writing Skills](/docs/skills/writing-skills) for the full guide.
+
+### Why do some skills have `context: fork` and others `context: inherit`?
+
+- `context: fork` -- The skill runs in an isolated context. This is the default for most skills and prevents one skill's state from leaking into another.
+- `context: inherit` -- The skill shares the parent context. Used by `/ork:commit` because it needs access to the current git state.
+- `context: none` -- The skill does not need conversation context. Used by `/ork:remember` which only writes to the knowledge graph.
+
+---
+
+## Agents
+
+### How do agents get their skills?
+
+Agents list skills in their frontmatter `skills:` field. When an agent is spawned, Claude Code 2.1.6+ automatically loads those skills into the agent's context. You do not need to manually inject skills.
+
+```yaml
+# Example: backend-system-architect.md
+skills:
+  - api-design-framework
+  - database-schema-designer
+  - clean-architecture
+```
+
+### What is the difference between Agent Teams and Task tool?
+
+| Aspect | Task Tool (Star) | Agent Teams (Mesh) |
+|--------|------------------|--------------------|
+| Communication | All agents report to lead | Agents message each other |
+| Coordination | Lead synthesizes results | Agents cross-reference directly |
+| Cost | ~200K tokens | ~500K tokens |
+| Best for | Focused, independent tasks | Complex tasks with cross-cutting concerns |
+
+Agent Teams requires `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS=1`. When not set, OrchestKit falls back to the Task tool automatically.
+
+### Can I create my own agents?
+
+Yes. Create a markdown file in `src/agents/your-agent.md` with YAML frontmatter. See [Writing Agents](/docs/agents/writing-agents) for the format.
+
+---
+
+## Hooks
+
+### How many hooks are there?
+
+98 total: 69 global hooks, 22 agent-scoped hooks, and 6 skill-scoped hooks. They are compiled into 11 split bundles for faster loading.
+
+### What are fire-and-forget hooks?
+
+Six hooks use an async dispatch pattern where they start background work (analytics, network requests, startup tasks) and immediately return `{"continue": true}` without waiting for the background work to complete. This prevents slow operations from blocking the user's workflow.
+
+### Can I disable a specific hook?
+
+Yes. Edit `src/hooks/hooks.json` and set `"enabled": false` on the hook entry. This is useful for debugging or when a hook conflicts with your workflow. Remember to rebuild after editing: `cd src/hooks && npm run build`.
+
+---
+
+## Memory
+
+### How does memory work without any configuration?
+
+Tier 1 (Graph Memory) and Tier 2 (Local Memory) work out of the box with zero configuration. Decisions are stored in the MCP knowledge graph and backed up to `.claude/memory/*.jsonl` files. You only need configuration for Tier 3 (Mem0 Cloud), which requires `MEM0_API_KEY`.
+
+### What gets stored automatically?
+
+OrchestKit's `auto-remember-continuity` hook automatically stores high-confidence decisions at session end. Manually, you control what gets stored with `/ork:remember`. Nothing is stored without your action or the automatic hook's confidence threshold (0.7 or above).
+
+### Can I delete memories?
+
+Yes. Memories in the knowledge graph can be managed via the MCP memory tools. Local memory files (`.claude/memory/*.jsonl`) can be edited or deleted directly. Mem0 cloud memories can be managed through the Mem0 API.
+
+### Does memory work across different projects?
+
+By default, memory is project-scoped. Use `/ork:remember --global` to store patterns that should be available across all projects. Search with `/ork:memory search --global` to find them.
+
+---
+
+## Environment Variables
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `CLAUDE_PROJECT_DIR` | Auto-set | User's project directory |
+| `CLAUDE_PLUGIN_ROOT` | Auto-set | Plugin installation directory |
+| `CLAUDE_SESSION_ID` | Auto-set | Current session UUID |
+| `MEM0_API_KEY` | Optional | Enables Mem0 cloud memory (Tier 3) |
+| `TAVILY_API_KEY` | Optional | Enables Tavily search in web research skills |
+| `BRIGHTDATA_API_TOKEN` | Optional | Enables BrightData web scraping MCP |
+| `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | Optional | Enables Agent Teams coordination mode |
+
+---
+
+## Compatibility
+
+### Does OrchestKit work on Windows?
+
+OrchestKit is developed and tested on macOS and Linux. Windows support is best-effort. Known issues:
+
+- `memory-writer.test.ts` fails on Windows due to path separator differences
+- Some shell scripts assume Bash
+
+### Does OrchestKit work with models other than Claude?
+
+No. OrchestKit is a Claude Code plugin and requires Claude models. The skill complexity levels are calibrated for Opus 4.6's adaptive thinking system.
+
+### Can I use OrchestKit in a CI/CD pipeline?
+
+OrchestKit is designed for interactive development sessions, not headless CI. However, the validation scripts (`npm test`, `npm run test:security`) can run in CI to enforce skill and hook quality.

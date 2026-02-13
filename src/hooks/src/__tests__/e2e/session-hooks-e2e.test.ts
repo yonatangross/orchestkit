@@ -777,7 +777,7 @@ describe('C. Stop Dispatcher E2E', () => {
       // Issue #245 hooks should be registered
       expect(names).toContain('session-profile-aggregator');
       expect(names).toContain('session-end-tracking');
-      expect(names).toContain('graph-queue-sync');
+      // v7: graph-queue-sync removed (mem0 cloud removed)
       expect(names).toContain('workflow-preference-learner');
     });
 

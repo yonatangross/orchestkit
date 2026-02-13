@@ -2,7 +2,10 @@
  * Prompt Hooks Entry Point
  *
  * Hooks that run on user prompt submission (UserPromptSubmit)
- * Bundle: prompt.mjs (~35 KB estimated)
+ * Bundle: prompt.mjs
+ *
+ * Issue #448: Consolidated 9 every-turn hooks into unified-dispatcher.
+ * Remaining separate entries: 3 once-only + 1 background + 1 dispatcher.
  */
 
 // Re-export types and utilities
@@ -18,7 +21,22 @@ export * from '../lib/retry-manager.js';
 export * from '../lib/calibration-engine.js';
 export * from '../lib/multi-agent-coordinator.js';
 
-// Prompt hooks (10) - UserPromptSubmit
+// --- Individual hooks still registered separately in hooks.json ---
+
+// Once-only hooks (once: true)
+import { profileInjector } from '../prompt/profile-injector.js';
+import { memoryContextLoader } from '../prompt/memory-context-loader.js';
+
+// Background hook (uses run-hook-silent.mjs)
+import { captureUserIntent } from '../prompt/capture-user-intent.js';
+
+// --- Unified dispatcher (Issue #448) ---
+// Consolidates: context-injector, todo-enforcer, satisfaction-detector,
+// communication-style-tracker, antipattern-detector, antipattern-warning,
+// memory-context, context-pruning-advisor, pipeline-detector
+import { unifiedPromptDispatcher } from '../prompt/unified-dispatcher.js';
+
+// --- Legacy hooks kept in bundle for backward compat (not in hooks.json) ---
 import { antipatternDetector } from '../prompt/antipattern-detector.js';
 import { antipatternWarning } from '../prompt/antipattern-warning.js';
 import { contextInjector } from '../prompt/context-injector.js';
@@ -26,31 +44,25 @@ import { contextPruningAdvisor } from '../prompt/context-pruning-advisor.js';
 import { memoryContext } from '../prompt/memory-context.js';
 import { satisfactionDetector } from '../prompt/satisfaction-detector.js';
 import { todoEnforcer } from '../prompt/todo-enforcer.js';
-// Routing hooks removed — replaced by passive index (passive-index-migration)
 import { pipelineDetector } from '../prompt/pipeline-detector.js';
-
-// NOTE: skill-resolver removed - Claude Code natively auto-injects skills
-// from agent frontmatter when agents are spawned via Task tool.
-// See: docs/passive-index-migration.md
-
-// Intelligent Decision Capture System (Issue #245)
-import { captureUserIntent } from '../prompt/capture-user-intent.js';
-
-// Memory Context Loader (Issue #245 - session-start memory loading)
-import { memoryContextLoader } from '../prompt/memory-context-loader.js';
-
-// Profile Injection (Issue #245 Phase 6.1)
-import { profileInjector } from '../prompt/profile-injector.js';
-
-// Communication Style Tracker (Issue #245 Phase 2.2)
 import { communicationStyleTracker } from '../prompt/communication-style-tracker.js';
 
 import type { HookFn } from '../types.js';
 
 /**
  * Prompt hooks registry
+ *
+ * Issue #448: Only 5 hooks are registered in hooks.json now.
+ * The remaining 9 are consolidated into unified-dispatcher.
+ * Legacy entries kept for backward compat if users reference them in overrides.
  */
 export const hooks: Record<string, HookFn> = {
+  // Active hooks (registered in hooks.json)
+  'prompt/unified-dispatcher': unifiedPromptDispatcher,
+  'prompt/profile-injector': profileInjector,
+  'prompt/memory-context-loader': memoryContextLoader,
+  'prompt/capture-user-intent': captureUserIntent,
+  // Legacy hooks (consolidated into unified-dispatcher, kept for override compat)
   'prompt/antipattern-detector': antipatternDetector,
   'prompt/antipattern-warning': antipatternWarning,
   'prompt/context-injector': contextInjector,
@@ -59,13 +71,6 @@ export const hooks: Record<string, HookFn> = {
   'prompt/satisfaction-detector': satisfactionDetector,
   'prompt/todo-enforcer': todoEnforcer,
   'prompt/pipeline-detector': pipelineDetector,
-  // Intelligent Decision Capture System
-  'prompt/capture-user-intent': captureUserIntent,
-  // Memory Context Loader (Issue #245 - session-start memory loading)
-  'prompt/memory-context-loader': memoryContextLoader,
-  // Profile Injection (Issue #245 Phase 6.1)
-  'prompt/profile-injector': profileInjector,
-  // Communication Style Tracker (Issue #245 Phase 2.2)
   'prompt/communication-style-tracker': communicationStyleTracker,
 };
 

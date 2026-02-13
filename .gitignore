@@ -64,6 +64,9 @@ HOOK_SECURITY_*.txt
 # Hook logs (generated at runtime)
 .claude/hooks/logs/
 
+# Agent memory (runtime, per-agent)
+.claude/agent-memory/
+
 # All runtime logs
 .claude/logs/
 

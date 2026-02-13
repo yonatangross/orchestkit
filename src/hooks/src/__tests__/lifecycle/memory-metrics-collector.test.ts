@@ -20,10 +20,9 @@ vi.mock('../../lib/memory-metrics.js', () => ({
   collectMemoryMetrics: vi.fn(() => ({
     timestamp: '2025-01-15T10:00:00Z',
     decisions: { total: 5, byCategory: {}, byType: {} },
-    queues: { graphQueueDepth: 0, mem0QueueDepth: 0 },
+    queues: { graphQueueDepth: 0 },
     completedFlows: 0,
     sessionCount: 1,
-    mem0Available: false,
   })),
   appendMetricSnapshot: vi.fn(),
 }));
@@ -67,11 +66,10 @@ describe('memoryMetricsCollector', () => {
     const mockMetrics = {
       timestamp: '2025-01-15T10:00:00Z',
       decisions: { total: 5, byCategory: {}, byType: {} },
-      queues: { graphQueueDepth: 0, mem0QueueDepth: 0 },
+      queues: { graphQueueDepth: 0 },
       completedFlows: 0,
       sessionCount: 1,
-      mem0Available: false,
-    };
+      };
     mockCollectMemoryMetrics.mockReturnValue(mockMetrics);
 
     memoryMetricsCollector(createInput({ project_dir: '/my/project' }));
@@ -106,11 +104,10 @@ describe('memoryMetricsCollector', () => {
     mockCollectMemoryMetrics.mockReturnValue({
       timestamp: '2025-01-15T10:00:00Z',
       decisions: { total: 0, byCategory: {}, byType: {} },
-      queues: { graphQueueDepth: 0, mem0QueueDepth: 0 },
+      queues: { graphQueueDepth: 0 },
       completedFlows: 0,
       sessionCount: 0,
-      mem0Available: false,
-    });
+      });
     mockAppendMetricSnapshot.mockImplementation(() => {
       throw new Error('write failed');
     });

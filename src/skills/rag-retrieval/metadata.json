@@ -1,0 +1,19 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Retrieval-Augmented Generation patterns covering core RAG, embeddings, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, and pgvector hybrid search.",
+  "ruleCount": 30,
+  "categories": 9,
+  "consolidatedFrom": [
+    "rag-retrieval",
+    "embeddings",
+    "contextual-retrieval",
+    "hyde-retrieval",
+    "agentic-rag-patterns",
+    "multimodal-rag",
+    "query-decomposition",
+    "reranking-patterns",
+    "pgvector-search"
+  ]
+}

@@ -203,10 +203,10 @@ describe('updateState - atomic updates', () => {
 
   test('returns updated state', () => {
     const updatedState = updateState(state => {
-      state.injectedSkills.push('api-design-framework');
+      state.injectedSkills.push('api-design');
     });
 
-    expect(updatedState.injectedSkills).toContain('api-design-framework');
+    expect(updatedState.injectedSkills).toContain('api-design');
   });
 
   test('saves state after mutation', () => {
@@ -424,43 +424,43 @@ describe('isAgentDispatched - dispatch check', () => {
 
 describe('trackInjectedSkill - skill injection tracking', () => {
   test('adds skill to injected list', () => {
-    trackInjectedSkill('api-design-framework');
+    trackInjectedSkill('api-design');
 
     const state = loadState();
-    expect(state.injectedSkills).toContain('api-design-framework');
+    expect(state.injectedSkills).toContain('api-design');
   });
 
   test('does not duplicate skills', () => {
-    trackInjectedSkill('api-design-framework');
-    trackInjectedSkill('api-design-framework');
+    trackInjectedSkill('api-design');
+    trackInjectedSkill('api-design');
 
     const state = loadState();
-    const count = state.injectedSkills.filter(s => s === 'api-design-framework').length;
+    const count = state.injectedSkills.filter(s => s === 'api-design').length;
     expect(count).toBe(1);
   });
 
   test('tracks multiple different skills', () => {
-    trackInjectedSkill('api-design-framework');
-    trackInjectedSkill('database-schema-designer');
+    trackInjectedSkill('api-design');
+    trackInjectedSkill('database-patterns');
     trackInjectedSkill('integration-testing');
 
     const skills = getInjectedSkills();
     expect(skills.length).toBe(3);
-    expect(skills).toContain('api-design-framework');
-    expect(skills).toContain('database-schema-designer');
+    expect(skills).toContain('api-design');
+    expect(skills).toContain('database-patterns');
     expect(skills).toContain('integration-testing');
   });
 });
 
 describe('isSkillInjected - skill injection check', () => {
   test('returns true for injected skill', () => {
-    trackInjectedSkill('api-design-framework');
+    trackInjectedSkill('api-design');
 
-    expect(isSkillInjected('api-design-framework')).toBe(true);
+    expect(isSkillInjected('api-design')).toBe(true);
   });
 
   test('returns false for non-injected skill', () => {
-    expect(isSkillInjected('api-design-framework')).toBe(false);
+    expect(isSkillInjected('api-design')).toBe(false);
   });
 });
 

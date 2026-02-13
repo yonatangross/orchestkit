@@ -10,6 +10,8 @@ import { join } from 'node:path';
 import { homedir } from 'node:os';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, outputSilentSuccess } from '../lib/common.js';
+import { cleanupTeam } from '../lib/agent-teams.js';
+import { appendAnalytics, hashProject, getTeamContext } from '../lib/analytics.js';
 
 interface SessionMetrics {
   tools?: Record<string, number>;
@@ -294,6 +296,24 @@ export function sessionCleanup(input: HookInput): HookResult {
 
   // Clean up old rotated log files (keep last 5)
   cleanupRotatedLogs(logDir);
+
+  // Clean up team directories if this session was a team lead
+  const teamName = process.env.CLAUDE_CODE_TEAM_NAME;
+  if (teamName) {
+    const cleaned = cleanupTeam(teamName);
+    logHook('session-cleanup', cleaned
+      ? `Cleaned team "${teamName}" directories`
+      : `Warning: partial cleanup for team "${teamName}"`);
+  }
+
+  // Cross-project session summary (Issue #459)
+  const totalTools = getTotalTools(metricsFile);
+  appendAnalytics('session-summary.jsonl', {
+    ts: new Date().toISOString(),
+    pid: hashProject(projectDir),
+    total_tools: totalTools,
+    ...getTeamContext(),
+  });
 
   logHook('session-cleanup', 'Session cleanup complete');
 

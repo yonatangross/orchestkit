@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**200 skills · 36 agents · 119 hooks · 2 plugins**
+**60 skills · 36 agents · 88 hooks · 3 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.34-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -59,8 +59,8 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |-----------|-------|----------|
 | **Skills** | 200 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 118 | Pre-commit checks, git protection, quality gates |
-| **Plugins** | 2 | `orkl` (universal) or `ork` (full specialized) |
+| **Hooks** | 98 | Pre-commit checks, git protection, quality gates |
+| **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
 
 **[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
 
@@ -89,9 +89,11 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 /plugin install ork
 ```
 
-**orkl** (109 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, video, memory.
+**orkl** (43 skills) — All workflows, agents, hooks. Architecture, security, product, accessibility, memory.
 
-**ork** (200 skills) — Everything in lite + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
+**ork-creative** (3 skills) — Video production add-on. Demo recording, Remotion, storyboarding, content creation.
+
+**ork** (60 skills) — Everything in lite + creative + Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, MCP.
 
 ---
 
@@ -107,13 +109,11 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 |--------|---------|
 | Context7 | Up-to-date library docs |
 | Memory | Knowledge graph |
-| Mem0 | Semantic search (needs API key) |
 
 ### Environment
 
 ```bash
 CLAUDE_PROJECT_DIR    # Your project
-MEM0_API_KEY          # Optional: Mem0 cloud
 ```
 
 ---
@@ -158,12 +158,13 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## What's New
 
-**v6.0.0** — Two-tier plugin architecture
+**v6.0.0** — Three-tier plugin architecture
 
-- **Breaking**: Simplified from 26 plugins to 2 (`orkl` and `ork`)
-- `orkl` (109 skills) — Universal toolkit, all workflows work out of the box
-- `ork` (200 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 119 hooks included in both plugins
+- **Breaking**: Simplified from 26 plugins to 3 (`orkl`, `ork-creative`, and `ork`)
+- `orkl` (43 skills) — Universal toolkit, all workflows work out of the box
+- `ork-creative` (3 skills) — Video production add-on for demo recording and content creation
+- `ork` (60 skills) — Full specialized with Python, React, LLM/RAG patterns
+- All 36 agents and 88 hooks included in orkl and ork
 
 [Full Changelog →](./CHANGELOG.md)
 

@@ -2,7 +2,7 @@
 name: monitoring-engineer
 description: Observability and monitoring specialist. Prometheus metrics, Grafana dashboards, alerting rules, distributed tracing, log aggregation, SLOs/SLIs. Use for monitoring, prometheus, grafana, alerting, tracing, opentelemetry, metrics, observability, logs, slo, sli.
 category: devops
-model: inherit
+model: sonnet
 context: fork
 color: orange
 memory: project
@@ -20,10 +20,9 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - observability-monitoring
-  - langfuse-observability
-  - core-web-vitals
-  - performance-testing
+  - monitoring-observability
+  - performance
+  - testing-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -343,7 +342,7 @@ When creating monitoring configuration, provide:
 
 - **Receives from:** backend-system-architect (instrumentation points), infrastructure-architect (infrastructure metrics)
 - **Hands off to:** deployment-manager (deploy configs), ci-cd-engineer (pipeline alerts)
-- **Skill references:** observability-monitoring, langfuse-observability, core-web-vitals, performance-testing
+- **Skill references:** monitoring-observability, performance, testing-patterns
 
 ## Example
 

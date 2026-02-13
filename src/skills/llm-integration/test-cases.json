@@ -1,0 +1,138 @@
+{
+  "skill": "llm-integration",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "calling-tool-definition",
+      "rule": "calling-tool-definition",
+      "query": "Define a tool schema for a document search function",
+      "expectedBehavior": [
+        "Uses strict: true for schema validation",
+        "Sets additionalProperties: false",
+        "All properties listed in required array",
+        "Includes clear 1-2 sentence description"
+      ]
+    },
+    {
+      "id": "calling-parallel",
+      "rule": "calling-parallel",
+      "query": "Execute multiple LLM tool calls concurrently",
+      "expectedBehavior": [
+        "Uses asyncio.gather for parallel execution",
+        "Disables parallel_tool_calls with strict mode",
+        "Handles partial failures gracefully",
+        "Collects results from all tool calls"
+      ]
+    },
+    {
+      "id": "calling-validation",
+      "rule": "calling-validation",
+      "query": "Implement a tool execution loop with error handling",
+      "expectedBehavior": [
+        "Validates input parameters with Pydantic",
+        "Returns errors as tool results instead of crashing",
+        "Implements max iteration guard",
+        "Routes to appropriate tool by name"
+      ]
+    },
+    {
+      "id": "streaming-sse",
+      "rule": "streaming-sse",
+      "query": "Create a FastAPI SSE endpoint for streaming LLM responses",
+      "expectedBehavior": [
+        "Uses EventSourceResponse from sse-starlette",
+        "Yields event/data pairs for each token",
+        "Sends done event on completion",
+        "Uses async iterator for token generation"
+      ]
+    },
+    {
+      "id": "streaming-structured",
+      "rule": "streaming-structured",
+      "query": "Stream an LLM response that includes tool calls",
+      "expectedBehavior": [
+        "Accumulates tool call chunks by index",
+        "Separates content tokens from tool call data",
+        "Executes tools after full accumulation",
+        "Handles multiple concurrent tool calls in stream"
+      ]
+    },
+    {
+      "id": "streaming-backpressure",
+      "rule": "streaming-backpressure",
+      "query": "Handle slow consumers in an LLM streaming pipeline",
+      "expectedBehavior": [
+        "Uses asyncio.Queue with maxsize for bounded buffer",
+        "Producer blocks when buffer is full",
+        "Consumer yields control with asyncio.sleep(0)",
+        "Signals completion with None sentinel"
+      ]
+    },
+    {
+      "id": "local-ollama-setup",
+      "rule": "local-ollama-setup",
+      "query": "Set up Ollama for local LLM inference in a Python project",
+      "expectedBehavior": [
+        "Installs Ollama via official script",
+        "Pulls recommended models for task types",
+        "Configures environment variables for host and models",
+        "Integrates with LangChain via ChatOllama"
+      ]
+    },
+    {
+      "id": "local-model-selection",
+      "rule": "local-model-selection",
+      "query": "Choose the right Ollama model for my hardware and task",
+      "expectedBehavior": [
+        "Matches model to hardware profile (M4 Max, M3 Pro, CI)",
+        "Recommends task-specific models (reasoning, coding, embeddings)",
+        "Covers quantization options (q4_K_M, q4_0)",
+        "Includes VRAM requirements per model"
+      ]
+    },
+    {
+      "id": "local-gpu-optimization",
+      "rule": "local-gpu-optimization",
+      "query": "Optimize Ollama performance on Apple Silicon for CI",
+      "expectedBehavior": [
+        "Sets num_ctx=32768 for Apple Silicon",
+        "Uses keep_alive=5m for CI to avoid cold starts",
+        "Pre-warms models before first call",
+        "Implements provider factory for cloud/local switching"
+      ]
+    },
+    {
+      "id": "tuning-lora",
+      "rule": "tuning-lora",
+      "query": "Fine-tune a Llama model with QLoRA using Unsloth",
+      "expectedBehavior": [
+        "Loads model with load_in_4bit=True for QLoRA",
+        "Configures LoRA with r=16, alpha=32, dropout=0.05",
+        "Targets attention and MLP projection modules",
+        "Uses SFTTrainer from TRL for training"
+      ]
+    },
+    {
+      "id": "tuning-dataset-prep",
+      "rule": "tuning-dataset-prep",
+      "query": "Generate synthetic training data for fine-tuning",
+      "expectedBehavior": [
+        "Uses teacher model (GPT-5.2) to generate examples",
+        "Validates examples with separate validator model",
+        "Deduplicates using embedding similarity",
+        "Formats as Alpaca or ChatML"
+      ]
+    },
+    {
+      "id": "tuning-evaluation",
+      "rule": "tuning-evaluation",
+      "query": "Align a fine-tuned model with DPO and evaluate it",
+      "expectedBehavior": [
+        "Uses DPOTrainer with preference dataset (chosen/rejected)",
+        "Sets beta=0.1 as KL penalty coefficient",
+        "Evaluates with LLM judge scoring",
+        "Compares against baseline before deployment"
+      ]
+    }
+  ]
+}

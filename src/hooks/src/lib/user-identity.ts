@@ -412,7 +412,7 @@ export function getIdentityContext(): IdentityContext {
 }
 
 /**
- * Get project-scoped user ID for mem0 storage
+ * Get project-scoped user ID for memory storage
  * Format: {project}-{scope} (e.g., "my-app-decisions")
  */
 export function getProjectUserId(scope: string): string {
@@ -424,7 +424,7 @@ export function getProjectUserId(scope: string): string {
 }
 
 /**
- * Get user-scoped ID for mem0 storage
+ * Get user-scoped ID for memory storage
  * Format: {user_id}-{scope} (e.g., "alice@company.com-preferences")
  */
 export function getUserScopedId(scope: string): string {

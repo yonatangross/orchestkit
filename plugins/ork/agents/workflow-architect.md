@@ -13,29 +13,19 @@ tools:
   - Edit
   - Grep
   - Glob
+  - Task(llm-integrator)
+  - Task(data-pipeline-engineer)
   - TeamCreate
   - SendMessage
   - TaskCreate
   - TaskUpdate
   - TaskList
 skills:
-  - langgraph-supervisor
-  - langgraph-routing
-  - langgraph-parallel
-  - langgraph-state
-  - langgraph-checkpoints
-  - langgraph-human-in-loop
-  - langgraph-functional
-  - langgraph-streaming
-  - langgraph-subgraphs
-  - langgraph-tools
-  - multi-agent-orchestration
-  - agent-loops
-  - alternative-agent-frameworks
-  - temporal-io
-  - langfuse-observability
-  - observability-monitoring
-  - context-compression
+  - langgraph
+  - agent-orchestration
+  - async-jobs
+  - monitoring-observability
+  - llm-integration
   - task-dependency-patterns
   - remember
   - memory
@@ -291,7 +281,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph-supervisor, langgraph-routing, langgraph-parallel, langgraph-state, langgraph-checkpoints, langgraph-human-in-loop, langgraph-functional, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning
@@ -308,23 +298,11 @@ Read the specific file before advising. Do NOT rely on training data.
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|langgraph-supervisor:{SKILL.md,references/{evaluations.md,llm-supervisor.md,priority-routing.md,round-robin.md}}|langgraph,supervisor,multi-agent,orchestration
-|langgraph-routing:{SKILL.md,references/{conditional-edges.md,evaluations.md,retry-loops.md,semantic-routing.md}}|langgraph,routing,conditional,branching
-|langgraph-parallel:{SKILL.md,references/{error-isolation.md,evaluations.md,fanout-fanin.md,map-reduce.md}}|langgraph,parallel,concurrency,fan-out
-|langgraph-state:{SKILL.md,references/{custom-reducers.md,evaluations.md,messages-state.md,pydantic-state.md,typeddict-state.md}}|langgraph,state,management,graphs
-|langgraph-checkpoints:{SKILL.md,references/{evaluations.md,postgres-checkpointer.md,state-inspection.md,state-recovery.md,store-memory.md}}|langgraph,checkpoints,state,persistence
-|langgraph-human-in-loop:{SKILL.md,references/{api-integration.md,approval-gate.md,evaluations.md,feedback-loop.md,interrupt-resume.md}}|langgraph,human-in-loop,review,approval
-|langgraph-functional:{SKILL.md,references/{determinism-rules.md,evaluations.md,injectable-parameters.md,migration-guide.md,side-effects.md}}|langgraph,functional,api,patterns
-|langgraph-streaming:{SKILL.md,references/{custom-events.md,evaluations.md,llm-token-streaming.md,stream-modes.md,subgraph-streaming.md}}|langgraph,streaming,real-time,events
-|langgraph-subgraphs:{SKILL.md,references/{add-as-node-pattern.md,checkpointing-subgraphs.md,evaluations.md,invoke-pattern.md,state-mapping.md}}|langgraph,subgraphs,modular,composition
-|langgraph-tools:{SKILL.md,references/{bind-tools.md,dynamic-tools.md,evaluations.md,tool-interrupts.md,toolnode.md}}|langgraph,tools,function-calling,agents
-|multi-agent-orchestration:{SKILL.md,references/{coordination-patterns.md}}|ai,agents,orchestration,multi-agent
-|agent-loops:{SKILL.md}|ai,llm,agents,react,reasoning,autonomous
-|alternative-agent-frameworks:{SKILL.md,references/{crewai-patterns.md,framework-comparison.md,gpt-5-2-codex.md,microsoft-agent-framework.md,openai-agents-sdk.md}}|crewai,autogen,openai-agents,microsoft,multi-agent,orchestration,gpt-5.2-codex
-|temporal-io:{SKILL.md,references/{activity-best-practices.md,signals-queries-updates.md,versioning-strategies.md,workflow-patterns.md}}|temporal,workflow,orchestration,durable-execution,saga,microservices
-|langfuse-observability:{SKILL.md,references/{cost-tracking.md,evaluation-scores.md,experiments-api.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,tracing-setup.md}}|langfuse,llm,observability,tracing,evaluation,prompts
-|observability-monitoring:{SKILL.md,references/{alerting-dashboards.md,alerting-strategies.md,dashboards.md,distributed-tracing.md,logging-patterns.md,metrics-collection.md,structured-logging.md}}|observability,monitoring,metrics,logging,tracing
-|context-compression:{SKILL.md,references/{compression-strategies.md,priority-management.md}}|context,compression,summarization,memory,optimization
+|langgraph:{SKILL.md}|langgraph,workflow,state,routing,parallel,supervisor,tools,checkpoints,streaming,subgraphs,functional
+|agent-orchestration:{SKILL.md,references/{architectural-patterns.md,claude-code-instance-management.md,coordination-patterns.md,crewai-patterns.md,framework-comparison.md,gpt-5-2-codex.md,langgraph-implementation.md,microsoft-agent-framework.md,openai-agents-sdk.md,skill-agnostic-template.md,state-machine-design.md}}|agents,orchestration,multi-agent,agent-loops,crewai,autogen,swarm,coordination
+|async-jobs:{SKILL.md,references/{arq-patterns.md,canvas-workflows.md,celery-config.md,monitoring-health.md,result-backends.md,retry-strategies.md,scheduled-tasks.md,task-routing.md}}|async,jobs,celery,background-tasks,scheduling,queues
+|monitoring-observability:{SKILL.md,references/{agent-observability.md,alerting-dashboards.md,alerting-strategies.md,cost-tracking.md,dashboards.md,distributed-tracing.md,embedding-drift.md,evaluation-scores.md,ewma-baselines.md,experiments-api.md,framework-integrations.md,langfuse-evidently-integration.md,logging-patterns.md,metrics-collection.md,migration-v2-v3.md,multi-judge-evaluation.md,prompt-management.md,session-tracking.md,statistical-methods.md,structured-logging.md,tracing-setup.md}}|monitoring,observability,prometheus,grafana,langfuse,tracing,metrics,drift-detection,logging
+|llm-integration:{SKILL.md,references/{dpo-alignment.md,lora-qlora.md,model-selection.md,synthetic-data.md,tool-schema.md,when-to-finetune.md}}|llm,function-calling,streaming,ollama,fine-tuning,lora,tool-use,local-inference
 |task-dependency-patterns:{SKILL.md,references/{dependency-tracking.md,multi-agent-coordination.md,status-workflow.md}}|task-management,dependencies,orchestration,cc-2.1.16,workflow,coordination
 |remember:{SKILL.md,references/{category-detection.md}}|memory,decisions,patterns,best-practices,graph-memory
 |memory:{SKILL.md,references/{mermaid-patterns.md}}|memory,graph,session,context,sync,visualization,history,search

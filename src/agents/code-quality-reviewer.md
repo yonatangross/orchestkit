@@ -2,7 +2,7 @@
 name: code-quality-reviewer
 description: Quality assurance expert who reviews code for bugs, security vulnerabilities, performance issues, and compliance with best practices. Runs linting, type checking, ensures test coverage, and validates architectural patterns. Auto Mode keywords: test, review, quality, lint, security, coverage, audit, validate, CI, pipeline, check, verify, type-check
 category: testing
-model: inherit
+model: sonnet
 context: inherit
 color: green
 memory: project
@@ -11,6 +11,8 @@ tools:
   - Bash
   - Grep
   - Glob
+  - Task(test-generator)
+  - Task(security-auditor)
   - TeamCreate
   - SendMessage
   - TaskCreate
@@ -18,19 +20,11 @@ tools:
   - TaskList
 skills:
   - code-review-playbook
-  - owasp-top-10
-  - unit-testing
-  - integration-testing
-  - evidence-verification
-  - webapp-testing
-  - resilience-patterns
-  - test-standards-enforcer
-  - security-scanning
+  - security-patterns
+  - testing-patterns
+  - distributed-systems
+  - architecture-patterns
   - quality-gates
-  - biome-linting
-  - clean-architecture
-  - project-structure-enforcer
-  - best-practices
   - remember
   - memory
 hooks:
@@ -396,4 +390,4 @@ Report: Missing useOptimistic for form submission, raw fetch without Zod validat
 ## Integration
 - **Receives from:** frontend-ui-developer (component implementation), backend-system-architect (API implementation), all developers after code changes
 - **Hands off to:** Original developer (for fixes), debug-investigator (for complex bugs)
-- **Skill references:** security-checklist, testing-strategy-builder, code-review-playbook, i18n-date-patterns
+- **Skill references:** security-checklist, testing-patterns, code-review-playbook, i18n-date-patterns

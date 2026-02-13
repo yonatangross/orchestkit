@@ -1,13 +1,13 @@
 /**
  * Unified Decision Processor Hook
- * Consolidates: mem0-decision-saver + decision-entity-extractor
+ * Consolidates: decision-saver + decision-entity-extractor
  *
  * Hook: SkillComplete
  *
  * Purpose:
  * 1. Extract decisions from skill output
  * 2. Extract entities (Agent, Technology, Pattern) for graph memory
- * 3. Suggest mem0 storage with enriched metadata
+ * 3. Suggest graph storage with enriched metadata
  *
  * CC 2.1.16 Compliant - Enriched metadata for memory history
  * Version: 2.0.0 - Consolidated from 2 hooks (~520 LOC → ~250 LOC)
@@ -469,9 +469,6 @@ export function decisionProcessor(input: HookInput): HookResult {
     if (firstDecision?.constraints?.length) metadata.constraints = firstDecision.constraints;
     if (firstDecision?.tradeoffs?.length) metadata.tradeoffs = firstDecision.tradeoffs;
 
-    const pluginRoot = getPluginRoot();
-    const scriptPath = `${pluginRoot}/skills/mem0-memory/scripts/crud/add-memory.py`;
-
     // Build detailed decision summary
     let decisionSummary = `[Decisions] Found ${enrichedDecisions.length} decision(s) (category: ${category}, importance: ${importance})`;
 
@@ -492,8 +489,8 @@ export function decisionProcessor(input: HookInput): HookResult {
       decisionSummary += `\nConfidence: ${(firstDecision.confidence * 100).toFixed(0)}%`;
     }
 
-    decisionSummary += `\n\nTo persist to mem0:
-bash ${scriptPath} --text "<decision>" --user-id "orchestkit:all-agents" --metadata '${JSON.stringify(metadata)}' --enable-graph`;
+    decisionSummary += `\n\nTo persist to knowledge graph:
+mcp__memory__create_entities with entities: [{"name": "${category}-decision", "entityType": "Decision", "observations": ["<decision>"]}]`;
 
     parts.push(decisionSummary);
 

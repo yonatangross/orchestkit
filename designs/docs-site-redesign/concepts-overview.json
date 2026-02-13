@@ -1,0 +1,42 @@
+{
+  "project": "orchestkit-docs-redesign",
+  "version": "1.0.0",
+  "date": "2026-02-08",
+  "inspiration": "https://claude-code-presentation-black.vercel.app/",
+  "target_stack": {
+    "framework": "Next.js 16",
+    "docs_framework": "Fumadocs v16.5",
+    "css": "Tailwind CSS v4",
+    "font_loading": "next/font/google",
+    "theming": "Fumadocs RootProvider + custom @theme overrides"
+  },
+  "concepts": [
+    {
+      "id": "A",
+      "codename": "neon-command-center",
+      "summary": "Full dark cyberpunk: particle backgrounds, neon glow borders, terminal aesthetic"
+    },
+    {
+      "id": "B",
+      "codename": "obsidian-studio",
+      "summary": "Dark premium SaaS: warm grays, gradient accents, frosted glass, editorial polish"
+    },
+    {
+      "id": "C",
+      "codename": "circuit-forge",
+      "summary": "Dark industrial: circuit-board motifs, monochrome with single accent, blueprint energy"
+    }
+  ],
+  "shared_constraints": {
+    "wcag_aa_compliant": true,
+    "dark_mode_primary": true,
+    "light_mode_optional": true,
+    "fumadocs_compatible": true,
+    "tailwind_v4_theme_directive": true,
+    "reduced_motion_respected": true,
+    "keyboard_navigable": true,
+    "min_contrast_body_text": "4.5:1",
+    "min_contrast_large_text": "3:1",
+    "min_contrast_ui_components": "3:1"
+  }
+}

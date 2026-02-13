@@ -10,16 +10,17 @@ Object.defineProperty(navigator, "clipboard", {
   configurable: true,
 });
 
-// ── Mock playground data ────────────────────────────────────
-vi.mock("@/lib/playground-data", () => {
+// ── Mock generated plugins data ─────────────────────────────
+vi.mock("@/lib/generated/types", () => ({}));
+vi.mock("@/lib/generated/plugins-data", () => {
   const mockPlugins = [
     {
       name: "orkl",
       description: "Universal toolkit",
       fullDescription: "Language-agnostic toolkit",
       category: "universal",
-      version: "6.0.2",
-      skillCount: 109,
+      version: "6.0.3",
+      skillCount: 88,
       agentCount: 36,
       hooks: 119,
       commandCount: 24,
@@ -35,8 +36,8 @@ vi.mock("@/lib/playground-data", () => {
       description: "Full toolkit",
       fullDescription: "Full specialized toolkit",
       category: "specialized",
-      version: "6.0.2",
-      skillCount: 200,
+      version: "6.0.3",
+      skillCount: 199,
       agentCount: 36,
       hooks: 119,
       commandCount: 24,
@@ -266,8 +267,8 @@ describe("SetupWizard", () => {
   it("shows plugin skill count in stats", () => {
     render(<SetupWizard />);
 
-    // orkl has 109 skills
-    expect(screen.getByText("109")).toBeInTheDocument();
+    // orkl has 88 skills
+    expect(screen.getByText("88")).toBeInTheDocument();
   });
 
   // ── Install command and copy ──────────────────────────────

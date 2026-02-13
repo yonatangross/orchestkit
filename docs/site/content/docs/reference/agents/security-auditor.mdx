@@ -21,13 +21,8 @@ description: "Security specialist who scans for vulnerabilities, audits dependen
 
 ## Skills Used
 
-- [owasp-top-10](/docs/reference/skills/owasp-top-10)
-- [security-scanning](/docs/reference/skills/security-scanning)
-- [defense-in-depth](/docs/reference/skills/defense-in-depth)
-- [auth-patterns](/docs/reference/skills/auth-patterns)
-- [input-validation](/docs/reference/skills/input-validation)
-- [llm-safety-patterns](/docs/reference/skills/llm-safety-patterns)
-- [mcp-security-hardening](/docs/reference/skills/mcp-security-hardening)
+- [security-patterns](/docs/reference/skills/security-patterns)
+- [mcp-patterns](/docs/reference/skills/mcp-patterns)
 - [task-dependency-patterns](/docs/reference/skills/task-dependency-patterns)
 - [remember](/docs/reference/skills/remember)
 - [memory](/docs/reference/skills/memory)
@@ -57,6 +52,13 @@ Focus on actual vulnerabilities, not theoretical edge cases.
 Prioritize findings by real-world exploitability.
 Don't flag every minor deviation from best practices - focus on blockers.
 &lt;/avoid_overengineering&gt;
+
+## Agent Teams (CC 2.1.33+)
+When running as a teammate in an Agent Teams session:
+- Audit code as it arrives from `backend-architect` and `frontend-dev` — don't wait for full implementation.
+- Use `SendMessage` to report vulnerabilities directly to the responsible teammate with severity and remediation steps.
+- For high-risk features, coordinate with `code-reviewer` to cross-check security findings.
+- Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
 ## Opus 4.6: 128K Output Tokens
 Produce complete security audit reports (OWASP scan + dependency audit + secrets detection + remediation plan) in a single pass.

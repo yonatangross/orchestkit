@@ -53,6 +53,15 @@ runs:
       with:
         node-version: ${{ inputs.node-version }}
 
+    - name: Clean stale agent team directories
+      shell: bash
+      run: |
+        for dir in "$HOME/.claude/teams" "$HOME/.claude/tasks"; do
+          if [ -d "$dir" ]; then
+            find "$dir" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} + 2>/dev/null || true
+          fi
+        done
+
     - name: Cache npm dependencies
       if: inputs.use-cache == 'true'
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306  # v5

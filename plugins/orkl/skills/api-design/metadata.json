@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "API design patterns covering REST/GraphQL framework design, versioning strategies (URL path, header, content negotiation), and RFC 9457 Problem Details error handling.",
+  "ruleCount": 9,
+  "categories": 3,
+  "consolidatedFrom": [
+    "api-design-framework",
+    "api-versioning",
+    "error-handling-rfc9457"
+  ]
+}
