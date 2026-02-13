@@ -2,9 +2,9 @@
 # ============================================================================
 # MCP PreToolUse Hooks Unit Tests
 # ============================================================================
-# Tests for MCP hook validation: context7, memory, sequential-thinking
-# Also tests agent-browser safety (Bash hook)
-# CC 2.1.7 Compliant
+# Tests TypeScript hooks via run-hook.mjs: context7-tracker, memory-validator
+# Also validates hook registration in hooks.json
+# CC 2.1.34 Compliant — TypeScript hooks only (shell hooks removed in v6.0)
 # ============================================================================
 
 set -euo pipefail
@@ -12,167 +12,112 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/../fixtures/test-helpers.sh"
 
-MCP_HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/mcp"
+HOOKS_SRC_DIR="$PROJECT_ROOT/src/hooks/src"
+HOOKS_BIN="$PROJECT_ROOT/src/hooks/bin/run-hook.mjs"
+HOOKS_JSON="$PROJECT_ROOT/src/hooks/hooks.json"
 
 # ============================================================================
-# CONTEXT7 TRACKER TESTS
+# HOOK REGISTRATION TESTS
 # ============================================================================
 
-describe "MCP Hooks: Context7 Tracker"
+describe "MCP Hooks: Registration in hooks.json"
 
-test_context7_allows_valid_lookup() {
-    local hook="$MCP_HOOKS_DIR/context7-tracker.sh"
-    [[ ! -f "$hook" ]] && skip "context7-tracker.sh not found"
+test_context7_tracker_registered() {
+    assert_file_exists "$HOOKS_JSON"
+    assert_file_contains "$HOOKS_JSON" "pretool/mcp/context7-tracker"
+}
+
+test_memory_validator_registered() {
+    assert_file_exists "$HOOKS_JSON"
+    assert_file_contains "$HOOKS_JSON" "pretool/mcp/memory-validator"
+}
+
+test_agent_browser_safety_source_exists() {
+    assert_file_exists "$HOOKS_SRC_DIR/pretool/bash/agent-browser-safety.ts"
+}
+
+# ============================================================================
+# TYPESCRIPT SOURCE VALIDATION TESTS
+# ============================================================================
+
+describe "MCP Hooks: TypeScript Source Files"
+
+test_context7_tracker_ts_exists() {
+    assert_file_exists "$HOOKS_SRC_DIR/pretool/mcp/context7-tracker.ts"
+}
+
+test_memory_validator_ts_exists() {
+    assert_file_exists "$HOOKS_SRC_DIR/pretool/mcp/memory-validator.ts"
+}
+
+test_context7_tracker_exports_function() {
+    assert_file_contains "$HOOKS_SRC_DIR/pretool/mcp/context7-tracker.ts" "export function"
+}
+
+test_memory_validator_exports_function() {
+    assert_file_contains "$HOOKS_SRC_DIR/pretool/mcp/memory-validator.ts" "export function"
+}
+
+# ============================================================================
+# HOOK EXECUTION TESTS (via run-hook.mjs)
+# ============================================================================
+
+describe "MCP Hooks: Execution via run-hook.mjs"
+
+test_context7_tracker_executes() {
+    [[ ! -f "$HOOKS_BIN" ]] && skip "run-hook.mjs not found"
 
     local input='{"tool_name":"mcp__context7__query-docs","tool_input":{"libraryId":"/vercel/next.js","query":"routing"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
+    local result
+    result=$(echo "$input" | node "$HOOKS_BIN" pretool/mcp/context7-tracker 2>/dev/null) || true
 
-    assert_json_field "$result" ".continue" "true"
-}
-
-test_context7_ignores_non_context7_tools() {
-    local hook="$MCP_HOOKS_DIR/context7-tracker.sh"
-    [[ ! -f "$hook" ]] && skip "context7-tracker.sh not found"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"ls"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
-}
-
-# ============================================================================
-# AGENT-BROWSER SAFETY TESTS
-# ============================================================================
-
-describe "Bash Hooks: agent-browser Safety"
-
-BASH_HOOKS_DIR="$PROJECT_ROOT/src/hooks/pretool/bash"
-
-test_agent_browser_blocks_file_protocol() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open file:///etc/passwd"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "false"
-}
-
-test_agent_browser_blocks_localhost_by_default() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    unset ALLOW_LOCALHOST
-    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open http://localhost:3000"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    # Note: localhost blocking may vary based on TypeScript implementation
-    # Check that the hook produces valid JSON with continue field
+    # Should produce valid JSON output
     assert_valid_json "$result"
 }
 
-test_agent_browser_allows_localhost_when_enabled() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    export ALLOW_LOCALHOST=true
-    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open http://localhost:3000"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
-    unset ALLOW_LOCALHOST
-}
-
-test_agent_browser_blocks_auth_domains() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://accounts.google.com/signin"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "false"
-}
-
-test_agent_browser_allows_safe_urls() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"agent-browser open https://example.com/page"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
-}
-
-test_agent_browser_skips_non_browser_commands() {
-    local hook="$BASH_HOOKS_DIR/agent-browser-safety.sh"
-    [[ ! -f "$hook" ]] && skip "agent-browser-safety.sh not found"
-
-    local input='{"tool_name":"Bash","tool_input":{"command":"ls -la"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
-}
-
-# ============================================================================
-# MEMORY VALIDATOR TESTS
-# ============================================================================
-
-describe "MCP Hooks: Memory Validator"
-
-test_memory_warns_on_bulk_entity_delete() {
-    local hook="$MCP_HOOKS_DIR/memory-validator.sh"
-    [[ ! -f "$hook" ]] && skip "memory-validator.sh not found"
-
-    local input='{"tool_name":"mcp__memory__delete_entities","tool_input":{"entityNames":["a","b","c","d","e","f","g"]}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    # Should warn but allow (continue: true)
-    assert_json_field "$result" ".continue" "true"
-}
-
-test_memory_allows_small_entity_delete() {
-    local hook="$MCP_HOOKS_DIR/memory-validator.sh"
-    [[ ! -f "$hook" ]] && skip "memory-validator.sh not found"
-
-    local input='{"tool_name":"mcp__memory__delete_entities","tool_input":{"entityNames":["a","b"]}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
-}
-
-test_memory_validates_entity_creation() {
-    local hook="$MCP_HOOKS_DIR/memory-validator.sh"
-    [[ ! -f "$hook" ]] && skip "memory-validator.sh not found"
+test_memory_validator_executes() {
+    [[ ! -f "$HOOKS_BIN" ]] && skip "run-hook.mjs not found"
 
     local input='{"tool_name":"mcp__memory__create_entities","tool_input":{"entities":[{"name":"Test","entityType":"concept","observations":[]}]}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
+    local result
+    result=$(echo "$input" | node "$HOOKS_BIN" pretool/mcp/memory-validator 2>/dev/null) || true
 
+    assert_valid_json "$result"
+}
+
+test_memory_validator_allows_small_entity_delete() {
+    [[ ! -f "$HOOKS_BIN" ]] && skip "run-hook.mjs not found"
+
+    local input='{"tool_name":"mcp__memory__delete_entities","tool_input":{"entityNames":["a","b"]}}'
+    local result
+    result=$(echo "$input" | node "$HOOKS_BIN" pretool/mcp/memory-validator 2>/dev/null) || true
+
+    assert_valid_json "$result"
     assert_json_field "$result" ".continue" "true"
 }
 
 # ============================================================================
-# SEQUENTIAL THINKING TESTS
+# DANGEROUS COMMAND BLOCKER TESTS (TypeScript)
 # ============================================================================
 
-describe "MCP Hooks: Sequential Thinking Tracker"
+describe "Bash Hooks: Dangerous Command Blocker"
 
-test_sequential_thinking_tracks_first_thought() {
-    local hook="$MCP_HOOKS_DIR/sequential-thinking-auto.sh"
-    [[ ! -f "$hook" ]] && skip "sequential-thinking-auto.sh not found"
-
-    local input='{"tool_name":"mcp__sequential-thinking__sequentialthinking","tool_input":{"thought":"Starting analysis","thoughtNumber":1,"totalThoughts":5,"nextThoughtNeeded":true}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
-
-    assert_json_field "$result" ".continue" "true"
+test_dangerous_command_blocker_registered() {
+    assert_file_contains "$HOOKS_JSON" "pretool/bash/dangerous-command-blocker"
 }
 
-test_sequential_thinking_ignores_other_tools() {
-    local hook="$MCP_HOOKS_DIR/sequential-thinking-auto.sh"
-    [[ ! -f "$hook" ]] && skip "sequential-thinking-auto.sh not found"
+test_dangerous_command_blocker_ts_exists() {
+    assert_file_exists "$HOOKS_SRC_DIR/pretool/bash/dangerous-command-blocker.ts"
+}
 
-    local input='{"tool_name":"Read","tool_input":{"file_path":"/test.txt"}}'
-    local result=$(echo "$input" | bash "$hook" 2>/dev/null)
+test_dangerous_command_blocker_executes() {
+    [[ ! -f "$HOOKS_BIN" ]] && skip "run-hook.mjs not found"
 
+    local input='{"tool_name":"Bash","tool_input":{"command":"echo hello"}}'
+    local result
+    result=$(echo "$input" | node "$HOOKS_BIN" pretool/bash/dangerous-command-blocker 2>/dev/null) || true
+
+    assert_valid_json "$result"
     assert_json_field "$result" ".continue" "true"
 }
 

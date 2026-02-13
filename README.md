@@ -5,7 +5,7 @@
 
 ### Stop explaining your stack. Start shipping.
 
-**60 skills · 36 agents · 88 hooks · 3 plugins**
+**60 skills · 36 agents · 86 hooks · 3 plugins**
 
 [![Claude Code](https://img.shields.io/badge/Claude_Code-≥2.1.34-7C3AED?style=for-the-badge&logo=anthropic)](https://claude.ai/claude-code)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)](./LICENSE)
@@ -16,12 +16,8 @@
 ---
 
 <p align="center">
-  <a href="https://orchestkit.dev/">
-    <img src="docs/assets/playground-demo.gif" alt="OrchestKit Documentation" width="700">
-  </a>
-  <br>
-  <a href="https://orchestkit.dev/"><strong>Explore the Docs →</strong></a><br>
-  <sub>Interactive skill browser, demo gallery, setup wizard</sub>
+  <a href="https://orchestkit.vercel.app/"><strong>Explore the Docs →</strong></a><br>
+  <sub>Skill browser, demo gallery, setup wizard</sub>
 </p>
 
 ---
@@ -57,12 +53,12 @@ OrchestKit gives Claude **persistent knowledge** of production patterns that wor
 
 | Component | Count | Examples |
 |-----------|-------|----------|
-| **Skills** | 200 | RAG patterns, FastAPI, React 19, testing, security |
+| **Skills** | 60 | RAG patterns, FastAPI, React 19, testing, security |
 | **Agents** | 36 | backend-architect, frontend-dev, security-auditor |
-| **Hooks** | 98 | Pre-commit checks, git protection, quality gates |
+| **Hooks** | 86 | Pre-commit checks, git protection, quality gates |
 | **Plugins** | 3 | `orkl` (universal), `ork-creative` (video), `ork` (full) |
 
-**[Browse everything in the Docs →](https://orchestkit.dev/docs/skills/overview)**
+**[Browse everything in the Docs →](https://orchestkit.vercel.app/docs/skills/overview)**
 
 ---
 
@@ -164,7 +160,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 - `orkl` (43 skills) — Universal toolkit, all workflows work out of the box
 - `ork-creative` (3 skills) — Video production add-on for demo recording and content creation
 - `ork` (60 skills) — Full specialized with Python, React, LLM/RAG patterns
-- All 36 agents and 88 hooks included in orkl and ork
+- All 36 agents and 86 hooks included in orkl and ork
 
 [Full Changelog →](./CHANGELOG.md)
 
@@ -172,7 +168,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 <div align="center">
 
-**[Docs](https://orchestkit.dev/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
+**[Docs](https://orchestkit.vercel.app/)** · **[Issues](https://github.com/yonatangross/orchestkit/issues)** · **[Discussions](https://github.com/yonatangross/orchestkit/discussions)**
 
 MIT License · [@yonatangross](https://github.com/yonatangross)
 

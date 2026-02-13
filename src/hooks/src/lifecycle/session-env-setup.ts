@@ -8,6 +8,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import type { HookInput, HookResult } from '../types.js';
 import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../lib/common.js';
+import { getMetricsFile } from '../lib/paths.js';
 
 interface SessionState {
   agent_type?: string;
@@ -49,7 +50,7 @@ export function sessionEnvSetup(input: HookInput): HookResult {
 
   const projectDir = input.project_dir || getProjectDir();
   const sessionId = input.session_id || getSessionId();
-  const metricsFile = '/tmp/claude-session-metrics.json';
+  const metricsFile = getMetricsFile();
 
   // Create logs directory if needed
   try {

@@ -38,7 +38,7 @@ import { logHook, getProjectDir, getSessionId, outputSilentSuccess } from '../..
 // =============================================================================
 
 let TEST_PROJECT_DIR: string;
-const METRICS_FILE = '/tmp/claude-session-metrics.json';
+let METRICS_FILE: string;
 
 /**
  * Create realistic HookInput for testing
@@ -68,6 +68,7 @@ function createSessionState(state: Record<string, unknown> = {}): void {
 let originalEnv: {
   CLAUDE_PROJECT_DIR?: string;
   AGENT_TYPE?: string;
+  CLAUDE_METRICS_FILE?: string;
 };
 
 beforeEach(() => {
@@ -82,22 +83,18 @@ beforeEach(() => {
   originalEnv = {
     CLAUDE_PROJECT_DIR: process.env.CLAUDE_PROJECT_DIR,
     AGENT_TYPE: process.env.AGENT_TYPE,
+    CLAUDE_METRICS_FILE: process.env.CLAUDE_METRICS_FILE,
   };
 
   // Set environment
   process.env.CLAUDE_PROJECT_DIR = TEST_PROJECT_DIR;
 
+  // Use unique metrics file per test to avoid race conditions with parallel test files
+  METRICS_FILE = join(TEST_PROJECT_DIR, 'claude-session-metrics.json');
+  process.env.CLAUDE_METRICS_FILE = METRICS_FILE;
+
   // Create test directory
   mkdirSync(TEST_PROJECT_DIR, { recursive: true });
-
-  // IMPORTANT: Clean metrics file BEFORE each test to avoid pollution from other test files
-  // The source hook uses a hardcoded path /tmp/claude-session-metrics.json
-  // Multiple test files may write to this path concurrently
-  try {
-    rmSync(METRICS_FILE, { force: true });
-  } catch {
-    // Ignore removal errors
-  }
 
   // Reset agent type env
   delete process.env.AGENT_TYPE;
@@ -109,10 +106,7 @@ afterEach(() => {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });
   }
 
-  // Clean up metrics file
-  if (existsSync(METRICS_FILE)) {
-    rmSync(METRICS_FILE, { force: true });
-  }
+  // Metrics file is inside TEST_PROJECT_DIR, cleaned up with the directory above
 
   // Restore original environment
   for (const [key, value] of Object.entries(originalEnv)) {

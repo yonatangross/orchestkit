@@ -3,17 +3,17 @@
 
 export const SITE = {
   name: "OrchestKit",
-  version: "6.0.4",
-  domain: "https://orchestkit.dev",
+  version: "6.0.5",
+  domain: "https://orchestkit.vercel.app",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
   ccVersion: "2.1.34+",
 } as const;
 
 export const COUNTS = {
-  skills: 199,
+  skills: 60,
   agents: 36,
-  hooks: 119,
+  hooks: 86,
 } as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks with Opus 4.6 support`;

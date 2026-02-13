@@ -65,6 +65,14 @@ export function getCoordinationDir(): string {
 }
 
 /**
+ * Get the session metrics file path (cross-platform)
+ * Uses CLAUDE_METRICS_FILE env var if set (for test isolation), otherwise temp dir.
+ */
+export function getMetricsFile(): string {
+  return process.env.CLAUDE_METRICS_FILE || path.join(getTempDir(), 'claude-session-metrics.json');
+}
+
+/**
  * Normalize a path for consistent comparison
  * Converts backslashes to forward slashes and removes trailing slashes
  */

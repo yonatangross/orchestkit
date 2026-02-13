@@ -926,7 +926,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit health diagnostics for health diagnostics. Use when checking plugin health or troubleshooting issues.",
+    "description": "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues.",
     "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1040,7 +1040,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "explore": {
     "name": "explore",
-    "description": "Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture.",
+    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
