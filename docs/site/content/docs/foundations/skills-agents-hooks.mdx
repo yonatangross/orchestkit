@@ -13,14 +13,14 @@ A skill is a markdown file containing expert knowledge about a specific topic. T
 src/skills/fastapi-advanced/SKILL.md
 ```
 
-**200 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
+**60 skills** covering: FastAPI, React, SQLAlchemy, RAG, LangGraph, OWASP, Terraform, and more.
 
 ### Two Types
 
 | Type | Count | How It Works | Example |
 |---|---|---|---|
-| **Command** | 24 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
-| **Reference** | 175 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
+| **Command** | 23 | You invoke directly: `/ork:commit` | `/ork:verify`, `/ork:implement` |
+| **Reference** | 37 | Auto-injected into agents | `fastapi-advanced`, `owasp-top-10` |
 
 Command skills are what you type. Reference skills are what agents read. You never need to invoke a reference skill — the right agent loads the right skills automatically.
 
@@ -91,7 +91,7 @@ Some commands spawn **multiple agents in parallel**. When you run `/ork:review-p
 
 Hooks are TypeScript functions that **fire automatically** on lifecycle events. You never invoke them — they run in the background on every prompt, tool call, and session transition.
 
-**93 hooks** across 11 categories:
+**86 hooks** across 11 categories:
 
 | Category | Count | What It Does |
 |---|---|---|

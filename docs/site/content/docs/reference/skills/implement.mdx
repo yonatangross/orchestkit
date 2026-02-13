@@ -2,6 +2,7 @@
 title: "Implement"
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -364,3 +365,1693 @@ TaskUpdate(taskId=task_id, status="completed")
 - [Micro-Planning Guide](references/micro-planning-guide.md)
 - [Scope Creep Detection](references/scope-creep-detection.md)
 - [Worktree Workflow](references/worktree-workflow.md)
+
+
+---
+
+## References (10)
+
+<Accordions type="multiple">
+
+<Accordion title="Agent Phases">
+
+# Agent Phases Reference
+
+## 128K Output Token Strategy
+
+With Opus 4.6's 128K output tokens, each agent produces **complete artifacts in a single pass**. This reduces implementation from 17 agents across 4 phases to **14 agents across 3 phases**.
+
+| Metric | Before (64K) | After (128K) | Agent Teams Mode |
+|--------|-------------|--------------|-----------------|
+| Phase 4 agents | 5 | 5 (unchanged) | 4 teammates + lead |
+| Phase 5 agents | 8 | 5 | Same 4 teammates (persist) |
+| Phase 6 agents | 4 | 4 (unchanged) | 1 (code-reviewer verdict) + lead tests |
+| **Total agents** | **17** | **14** | **4 teammates** (reused across phases) |
+| Full API + models | 2 passes | 1 pass | 1 pass (same) |
+| Component + tests | 2 passes | 1 pass | 1 pass (same) |
+| Complete feature | 4-6 passes | 2-3 passes | 1-2 passes (overlapping) |
+| Communication | Lead relays | Lead relays | Peer-to-peer messaging |
+| Token cost | Baseline | ~Same | ~2.5x (full sessions) |
+
+**Key principle:** Prefer one comprehensive response over multiple incremental ones. Only split when scope genuinely exceeds 128K tokens.
+
+**Agent Teams advantage:** Teammates persist across phases 4→5→6, so context is preserved. No re-explaining architecture to implementation agents — they already know it because they designed it.
+
+---
+
+## Phase 4: Architecture Design (5 Agents)
+
+All 5 agents launch in ONE message with `run_in_background=true`.
+
+### Agent 1: Workflow Architect
+```python
+Task(
+  subagent_type="workflow-architect",
+  prompt="""ARCHITECTURE PLANNING — SINGLE-PASS OUTPUT
+
+  Feature: $ARGUMENTS
+
+  Produce a COMPLETE implementation roadmap in one response:
+
+  1. COMPONENT BREAKDOWN
+     - Frontend components needed (with file paths)
+     - Backend services/endpoints (with route paths)
+     - Database schema changes (with table/column names)
+     - AI/ML integrations (if any)
+
+  2. DEPENDENCY GRAPH
+     - What must be built first?
+     - What can be parallelized?
+     - Integration points between frontend/backend
+
+  3. RISK ASSESSMENT
+     - Technical challenges with mitigations
+     - Performance concerns with benchmarks
+     - Security considerations with OWASP mapping
+
+  4. TASK BREAKDOWN
+     - Concrete tasks for each agent
+     - Estimated tool calls per task
+     - Acceptance criteria per task
+
+  Output: Complete implementation roadmap with task dependencies.
+  Use full 128K output capacity — don't truncate or summarize.""",
+  run_in_background=true
+)
+```
+
+### Agent 2: Backend Architect
+```python
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""COMPLETE BACKEND ARCHITECTURE — SINGLE PASS
+
+  Feature: $ARGUMENTS
+  Standards: FastAPI, Pydantic v2, async/await, SQLAlchemy 2.0
+
+  Produce ALL of the following in one response:
+  1. API endpoint design (routes, methods, status codes, rate limits)
+  2. Pydantic v2 request/response schemas with Field constraints
+  3. SQLAlchemy 2.0 async model definitions with relationships
+  4. Service layer patterns (repository + unit of work)
+  5. Error handling (RFC 9457 Problem Details)
+  6. Database migration strategy (tables, indexes, constraints)
+  7. Testing strategy (unit + integration test outline)
+
+  Include file paths for every artifact.
+  Output: Complete backend implementation spec ready for coding.""",
+  run_in_background=true
+)
+```
+
+### Agent 3: Frontend Developer
+```python
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""COMPLETE FRONTEND ARCHITECTURE — SINGLE PASS
+
+  Feature: $ARGUMENTS
+  Standards: React 19, TypeScript strict, Zod, TanStack Query
+
+  Produce ALL of the following in one response:
+  1. Component hierarchy with file paths
+  2. Zod schemas for ALL API responses
+  3. State management approach (Zustand slices or React 19 hooks)
+  4. TanStack Query configuration (keys, stale time, prefetching)
+  5. Form handling with React Hook Form + Zod
+  6. Loading states (skeleton components, not spinners)
+  7. Error boundaries and fallback UI
+  8. Accessibility requirements (WCAG 2.1 AA)
+
+  Include Tailwind class specifications for key components.
+  Output: Complete frontend implementation spec ready for coding.""",
+  run_in_background=true
+)
+```
+
+### Agent 4: LLM Integrator
+```python
+Task(
+  subagent_type="llm-integrator",
+  prompt="""AI/ML INTEGRATION ANALYSIS — SINGLE PASS
+
+  Feature: $ARGUMENTS
+
+  Evaluate and design AI integration in one response:
+  1. Does this feature need LLM? (justify yes/no)
+  2. Provider selection (Anthropic/OpenAI/Ollama) with rationale
+  3. Prompt template design (versioned, with Langfuse tracking)
+  4. Function calling / tool definitions (if needed)
+  5. Streaming strategy (SSE endpoint design)
+  6. Caching strategy (prompt caching + semantic caching)
+  7. Cost estimation (tokens per request, monthly projection)
+  8. Fallback chain configuration
+
+  Output: Complete AI integration spec or "No AI needed" with justification.""",
+  run_in_background=true
+)
+```
+
+### Agent 5: UX Researcher
+```python
+Task(
+  subagent_type="ux-researcher",
+  prompt="""UX ANALYSIS — SINGLE PASS
+
+  Feature: $ARGUMENTS
+
+  Produce complete UX research in one response:
+  1. Primary persona with behavioral patterns
+  2. User journey map with friction points and opportunities
+  3. Accessibility requirements (WCAG 2.1 AA specific checks)
+  4. Loading state strategy (skeleton vs progressive)
+  5. Error messaging guidelines
+  6. Mobile responsiveness breakpoints
+  7. Success metrics (measurable KPIs)
+  8. User stories with acceptance criteria
+
+  Output: Complete UX requirements document.""",
+  run_in_background=true
+)
+```
+
+### Phase 4 — Teams Mode
+
+In Agent Teams mode, 4 teammates form a team (`implement-\{feature-slug\}`) instead of 5 independent Task spawns. The workflow-architect and ux-researcher roles are handled by the lead or omitted for simpler features. Teammates message architecture decisions to each other in real-time.
+
+See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for spawn prompts.
+
+---
+
+## Phase 5: Implementation (5 Agents)
+
+**128K consolidation:** Backend is 1 agent (was 2), frontend is 1 agent (was 3 incl. styling). Each produces complete working code in a single pass.
+
+All 5 agents launch in ONE message with `run_in_background=true`.
+
+### Agent 1: Backend — Complete Implementation
+```python
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""IMPLEMENT COMPLETE BACKEND — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 backend spec]
+
+  Generate ALL backend code in ONE response:
+
+  1. API ROUTES (backend/app/api/v1/routes/)
+     - All endpoints with full implementation
+     - Dependency injection
+     - Rate limiting decorators
+
+  2. SCHEMAS (backend/app/schemas/)
+     - Pydantic v2 request/response models
+     - Field constraints and validators
+
+  3. MODELS (backend/app/db/models/)
+     - SQLAlchemy 2.0 async models
+     - Relationships, constraints, indexes
+
+  4. SERVICES (backend/app/services/)
+     - Business logic with repository pattern
+     - Error handling (RFC 9457)
+
+  5. TESTS (backend/tests/)
+     - Unit tests for services
+     - Integration tests for endpoints
+     - Fixtures and factories
+
+  Write REAL code to disk using Write/Edit tools.
+  Every file must be complete and runnable.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 2: Frontend — Complete Implementation
+```python
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""IMPLEMENT COMPLETE FRONTEND — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 frontend spec]
+
+  Generate ALL frontend code in ONE response:
+
+  1. COMPONENTS (frontend/src/features/[feature]/components/)
+     - React 19 components with TypeScript strict
+     - useOptimistic for mutations
+     - Skeleton loading states
+     - Motion animation presets from @/lib/animations
+
+  2. API LAYER (frontend/src/features/[feature]/api/)
+     - Zod schemas for all API responses
+     - TanStack Query hooks with prefetching
+     - MSW handlers for testing
+
+  3. STATE (frontend/src/features/[feature]/store/)
+     - Zustand slices or React 19 state hooks
+     - Optimistic update reducers
+
+  4. STYLING
+     - Tailwind classes using @theme tokens
+     - Responsive breakpoints (mobile-first)
+     - Dark mode variants
+     - All component states (hover, focus, disabled, loading)
+
+  5. TESTS (frontend/src/features/[feature]/__tests__/)
+     - Component tests with MSW
+     - Hook tests
+     - Zod schema tests
+
+  Write REAL code to disk. Every file must be complete.
+  Include styling inline — no separate styling agent needed.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 3: AI Integration (if needed)
+```python
+Task(
+  subagent_type="llm-integrator",
+  prompt="""IMPLEMENT AI INTEGRATION — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+  Architecture: [paste Phase 4 AI spec]
+
+  Generate ALL AI integration code in ONE response:
+
+  1. Provider setup and configuration
+  2. Prompt templates (versioned)
+  3. Function calling / tool definitions
+  4. Streaming SSE endpoint
+  5. Prompt caching configuration
+  6. Fallback chain implementation
+  7. Langfuse tracing integration
+  8. Tests with VCR.py cassettes
+
+  Write REAL code to disk. Skip if AI spec says "No AI needed".""",
+  run_in_background=true
+)
+```
+
+### Agent 4: Test Suite — Complete Coverage
+```python
+Task(
+  subagent_type="test-generator",
+  prompt="""GENERATE COMPLETE TEST SUITE — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+
+  Generate ALL tests in ONE response:
+
+  1. UNIT TESTS
+     - Python: pytest with factories (not raw dicts)
+     - TypeScript: Vitest with meaningful assertions
+     - Cover edge cases: empty input, errors, timeouts, rate limits
+
+  2. INTEGRATION TESTS
+     - API endpoint tests with TestClient
+     - Database tests with fixtures
+     - VCR.py cassettes for external HTTP calls
+
+  3. FIXTURES & FACTORIES
+     - conftest.py with shared fixtures
+     - Factory classes for test data
+     - MSW handlers for frontend API mocking
+
+  4. COVERAGE ANALYSIS
+     - Run: poetry run pytest --cov=app --cov-report=term-missing
+     - Run: npm test -- --coverage
+     - Target: 80% minimum
+
+  Write REAL test files to disk.
+  Run tests after writing to verify they pass.
+  Do NOT split across responses — use full 128K output.""",
+  run_in_background=true
+)
+```
+
+### Agent 5: Design System (optional — skip if existing design)
+```python
+Task(
+  subagent_type="rapid-ui-designer",
+  prompt="""DESIGN SYSTEM SPECIFICATIONS — SINGLE PASS (128K output)
+
+  Feature: $ARGUMENTS
+
+  Produce complete design specs in ONE response:
+
+  1. Color tokens (@theme directive) for new components
+  2. Component specifications with all states
+  3. Responsive breakpoint strategy
+  4. Accessibility contrast ratios
+  5. Motion animation preset mapping
+  6. Tailwind class definitions for every component variant
+
+  Output: Design specification document.
+  Skip if feature uses existing design system without new components.""",
+  run_in_background=true
+)
+```
+
+### Phase 5 — Teams Mode
+
+In Agent Teams mode, the same 4 teammates from Phase 4 continue into implementation. Key difference: backend-architect messages the API contract to frontend-dev as soon as it's defined (not after full implementation), enabling overlapping work. Optionally, each teammate gets a dedicated worktree. See [Team Worktree Setup](team-worktree-setup.md).
+
+---
+
+## Phase 6: Integration & Validation (4 Agents)
+
+### Validation Commands
+
+**Backend:**
+```bash
+poetry run alembic upgrade head  # dry-run
+poetry run ruff check app/
+poetry run ty check app/
+poetry run pytest tests/unit/ -v --cov=app
+```
+
+**Frontend:**
+```bash
+npm run typecheck
+npm run lint
+npm run build
+npm test -- --coverage
+```
+
+### Agent 1: Backend Integration
+```python
+Task(
+  subagent_type="backend-system-architect",
+  prompt="""BACKEND INTEGRATION VERIFICATION
+
+  Verify all backend code works together:
+  1. Run alembic migrations (dry-run)
+  2. Run ruff/mypy type checking
+  3. Run full test suite with coverage
+  4. Verify API endpoints respond correctly
+  5. Fix any integration issues found
+
+  This is verification, not new implementation.""",
+  run_in_background=true
+)
+```
+
+### Agent 2: Frontend Integration
+```python
+Task(
+  subagent_type="frontend-ui-developer",
+  prompt="""FRONTEND INTEGRATION VERIFICATION
+
+  Verify all frontend code works together:
+  1. Run TypeScript type checking (tsc --noEmit)
+  2. Run linting (biome/eslint)
+  3. Run build (vite build)
+  4. Run test suite with coverage
+  5. Fix any integration issues found
+
+  This is verification, not new implementation.""",
+  run_in_background=true
+)
+```
+
+### Agent 3: Code Quality Review
+```python
+Task(
+  subagent_type="code-quality-reviewer",
+  prompt="""FULL QUALITY REVIEW — SINGLE PASS (128K output)
+
+  Review ALL new code in one comprehensive report:
+  1. Run all automated checks (lint, type, test, audit)
+  2. Verify React 19 patterns (useOptimistic, Zod, assertNever)
+  3. Check security (OWASP, secrets, input validation)
+  4. Verify test coverage meets 80% threshold
+  5. Check architectural compliance
+
+  Produce structured review with APPROVE/REJECT decision.""",
+  run_in_background=true
+)
+```
+
+### Agent 4: Security Audit
+```python
+Task(
+  subagent_type="security-auditor",
+  prompt="""SECURITY AUDIT — SINGLE PASS (128K output)
+
+  Audit ALL new code in one comprehensive report:
+  1. Run bandit/semgrep on Python code
+  2. Run npm audit on JavaScript dependencies
+  3. Run pip-audit on Python dependencies
+  4. Grep for secrets (API keys, passwords, tokens)
+  5. OWASP Top 10 verification
+  6. Input validation coverage
+
+  Produce structured security report with severity ratings.""",
+  run_in_background=true
+)
+```
+
+### Security Checks
+- No hardcoded secrets
+- SQL injection prevention
+- XSS prevention
+- Proper input validation
+- npm audit / pip-audit
+
+### Phase 6 — Teams Mode
+
+In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team (shutdown_request to all teammates + TeamDelete + worktree cleanup).
+
+
+</Accordion>
+
+<Accordion title="Agent Teams Full Stack">
+
+# Agent Teams: Full-Stack Feature Pipeline
+
+Team formation template for Pipeline 2 — Full-Stack Feature using CC Agent Teams.
+
+**Agents:** 4 teammates + lead
+**Topology:** Mesh — backend hands off API contract to frontend, test-engineer works incrementally
+**Lead mode:** Delegate (coordination only, no code)
+
+---
+
+## Team Formation
+
+### Team Name Pattern
+```
+implement-{feature-slug}
+```
+
+Example: `implement-user-auth`, `implement-dashboard-analytics`
+
+### Teammate Spawn Prompts
+
+#### 1. backend-architect (backend-system-architect)
+```
+You are the backend-architect specialist on this team.
+
+## Your Role
+Design and implement the complete backend: API routes, service layer, database models,
+schemas, and backend tests. You own the API contract.
+
+## Your Task
+Implement the backend for: {feature description}
+
+1. Define API endpoints (routes, methods, schemas, status codes)
+2. Create Pydantic v2 request/response models
+3. Implement service layer with repository pattern
+4. Create SQLAlchemy 2.0 async models + migrations
+5. Write backend unit and integration tests
+6. Handle errors with RFC 9457 Problem Details
+
+## Coordination Protocol
+- AS SOON AS your API contract is defined (routes + request/response types),
+  message frontend-dev with the contract. Don't wait for full implementation.
+- When database schema is ready, update the shared task list.
+- If you change the API contract after sharing it, message frontend-dev immediately.
+- If blocked, message the lead with what you need.
+
+## Quality Requirements
+- All code must pass ruff + type checking
+- Include tests for every endpoint (happy path + error cases)
+- Document API changes in OpenAPI format
+```
+
+#### 2. frontend-dev (frontend-ui-developer)
+```
+You are the frontend-dev specialist on this team.
+
+## Your Role
+Implement the complete frontend: React components, state management, API integration,
+styling, and frontend tests. You consume the API contract from backend-architect.
+
+## Your Task
+Implement the frontend for: {feature description}
+
+1. Wait for API contract from backend-architect (types + routes)
+2. Create Zod schemas matching the API contract
+3. Build React 19 components with TypeScript strict
+4. Implement TanStack Query hooks for data fetching
+5. Add form handling with React Hook Form + Zod
+6. Style with Tailwind (mobile-first, dark mode)
+7. Write component and hook tests with MSW
+
+## Coordination Protocol
+- WAIT for backend-architect to message you with the API contract before building
+  API integration. You CAN start on UI layout and component structure immediately.
+- When component interfaces (exports, props) are stable, message test-engineer
+  so they can write integration tests.
+- If the API contract changes, adapt and message test-engineer about the update.
+- If blocked, message the lead with what you need.
+
+## Quality Requirements
+- TypeScript strict mode, no `any` types
+- Skeleton loading states (not spinners)
+- WCAG 2.1 AA accessibility
+- All components tested with MSW mocking
+```
+
+#### 3. test-engineer (test-generator)
+```
+You are the test-engineer specialist on this team.
+
+## Your Role
+Write comprehensive tests incrementally as contracts stabilize. Don't wait for
+full implementation — test as soon as interfaces are defined.
+
+## Your Task
+Build the test suite for: {feature description}
+
+1. Start writing test fixtures and factories immediately
+2. When backend-architect shares API contract, write API integration tests
+3. When frontend-dev shares component interfaces, write component tests
+4. Add E2E test scenarios covering the full user flow
+5. Run all tests and report coverage
+
+## Coordination Protocol
+- You do NOT need to wait for anyone. Start with fixtures, factories, and test plans.
+- Monitor the shared task list for contract updates from backend-architect and frontend-dev.
+- When tests uncover issues, message the responsible teammate directly:
+  - API issues → message backend-architect
+  - UI issues → message frontend-dev
+- Update the shared task list with coverage metrics as tests pass.
+
+## Quality Requirements
+- 80% minimum coverage target
+- Use factories (not raw dicts) for test data
+- MSW handlers for frontend API mocking
+- VCR.py cassettes for external HTTP calls
+- Every edge case: empty input, errors, timeouts, rate limits
+```
+
+#### 4. code-reviewer (code-quality-reviewer)
+```
+You are the code-reviewer specialist on this team.
+
+## Your Role
+Review code as it lands. Don't wait for completion — review incrementally.
+Flag issues directly to the author. Require plan approval before making changes.
+
+## Your Task
+Review all code for: {feature description}
+
+1. Monitor files as they're written by backend-architect, frontend-dev, and test-engineer
+2. Run automated checks: lint, typecheck, security scan
+3. Verify architectural compliance (clean architecture, separation of concerns)
+4. Check for OWASP Top 10 vulnerabilities
+5. Verify test quality (meaningful assertions, not just coverage)
+
+## Coordination Protocol
+- Review continuously — don't wait for teammates to finish.
+- When you find issues, message the responsible teammate directly with:
+  - File path and line number
+  - What's wrong and why
+  - Suggested fix
+- For blocking issues (security vulnerabilities, architectural violations),
+  also message the lead.
+- Update the shared task list with review status per teammate.
+
+## Quality Requirements
+- Zero critical/high security findings
+- TypeScript strict compliance
+- No hardcoded secrets or credentials
+- Consistent error handling patterns
+- Produce final APPROVE/REJECT decision for the lead
+```
+
+---
+
+## Coordination Messaging Templates
+
+### Backend → Frontend: API Contract Handoff
+
+```
+Subject: API contract ready for {feature}
+
+Here are the endpoint definitions:
+
+## Endpoints
+- POST /api/v1/{resource} — Create
+  Request: { field1: string, field2: number }
+  Response: { id: string, ...fields, created_at: string }
+  Status: 201
+
+- GET /api/v1/{resource}/:id — Read
+  Response: { id: string, ...fields }
+  Status: 200
+
+- PUT /api/v1/{resource}/:id — Update
+  Request: { field1?: string, field2?: number }
+  Response: { id: string, ...fields, updated_at: string }
+  Status: 200
+
+## TypeScript Types (for your Zod schemas)
+[paste Pydantic models converted to TS interfaces]
+
+## Error Format
+RFC 9457: { type, title, status, detail, instance }
+
+You can start building API integration now.
+I'll message you if anything changes.
+```
+
+### Frontend → Test Engineer: Component Interface Handoff
+
+```
+Subject: Component interfaces ready for {feature}
+
+## Exported Components
+- <FeatureList /> — props: { items: Item[], onSelect: (id: string) => void }
+- <FeatureDetail /> — props: { id: string }
+- <FeatureForm /> — props: { onSubmit: (data: FormData) => Promise<void> }
+
+## Query Hooks
+- useFeatures() → { data: Item[], isLoading, error }
+- useFeature(id) → { data: Item, isLoading, error }
+- useCreateFeature() → { mutate, isPending }
+
+## MSW Handlers
+Located at: src/features/{feature}/__tests__/handlers.ts
+
+You can start writing component and integration tests now.
+```
+
+### Any → Lead: Blocked Notification
+
+```
+Subject: BLOCKED — {brief description}
+
+I'm blocked on: {what's blocking}
+Waiting for: {who/what}
+Impact: {what can't proceed}
+Suggested resolution: {what would unblock}
+```
+
+---
+
+## Per-Teammate Worktree Setup
+
+See [Team Worktree Setup](team-worktree-setup.md) for detailed instructions.
+
+**Quick summary:**
+
+```bash
+# Lead creates branches and worktrees
+git branch feat/{feature}/backend
+git branch feat/{feature}/frontend
+git branch feat/{feature}/tests
+
+git worktree add ../{project}-backend feat/{feature}/backend
+git worktree add ../{project}-frontend feat/{feature}/frontend
+git worktree add ../{project}-tests feat/{feature}/tests
+
+# Assignment
+backend-architect  → ../{project}-backend/
+frontend-dev       → ../{project}-frontend/
+test-engineer      → ../{project}-tests/
+code-reviewer      → Main worktree (read-only, reviews all)
+```
+
+**When to skip worktrees:** Small features (&lt; 5 files), or when teammates work on non-overlapping directories.
+
+---
+
+## Lead Synthesis Protocol
+
+After all teammates complete (or when all tasks are done):
+
+1. **Merge worktrees** (if used):
+   ```bash
+   git checkout feat/{feature}
+   git merge --squash feat/{feature}/backend
+   git commit -m "feat({feature}): backend implementation"
+   git merge --squash feat/{feature}/frontend
+   git commit -m "feat({feature}): frontend implementation"
+   git merge --squash feat/{feature}/tests
+   git commit -m "test({feature}): complete test suite"
+   ```
+
+2. **Resolve conflicts** — typically in shared types/interfaces
+
+3. **Run integration tests** from the merged branch:
+   ```bash
+   npm test
+   npm run typecheck
+   npm run lint
+   ```
+
+4. **Collect code-reviewer verdict** — APPROVE or REJECT with findings
+
+5. **Shut down team:**
+   ```
+   SendMessage(type="shutdown_request", recipient="backend-architect")
+   SendMessage(type="shutdown_request", recipient="frontend-dev")
+   SendMessage(type="shutdown_request", recipient="test-engineer")
+   SendMessage(type="shutdown_request", recipient="code-reviewer")
+   TeamDelete()
+   ```
+
+6. **Clean up worktrees:**
+   ```bash
+   git worktree remove ../{project}-backend
+   git worktree remove ../{project}-frontend
+   git worktree remove ../{project}-tests
+   git branch -d feat/{feature}/backend
+   git branch -d feat/{feature}/frontend
+   git branch -d feat/{feature}/tests
+   ```
+
+---
+
+## Cost Comparison
+
+| Metric | Task Tool (5 sequential) | Agent Teams (4 mesh) |
+|--------|-------------------------|---------------------|
+| Expected tokens | ~500K | ~1.2M |
+| Wall-clock time | Sequential phases | Overlapping (30-40% faster) |
+| API contract handoff | Lead relays | Peer-to-peer (immediate) |
+| Cross-agent rework | ~15% (wrong API shapes) | &lt; 5% (contract shared early) |
+| Quality gate | After all complete | Continuous (reviewer on team) |
+
+**When Teams is worth the cost:**
+- Frontend and backend need to agree on API shape
+- Feature has > 5 files across both stacks
+- Complexity score >= 3.0
+
+**When Task tool is cheaper and sufficient:**
+- Backend-only or frontend-only scope
+- Independent tasks (audit, test generation)
+- Simple CRUD with clear schema
+
+---
+
+## When to Use
+
+- **Use Agent Teams** for cross-cutting full-stack features where API contract coordination matters
+- **Use Task Tool** for simpler features where agents work independently
+- **Complexity threshold:** Average score >= 3.0 across 7 dimensions (use `/ork:assess-complexity`)
+- **Override:** Set `ORCHESTKIT_PREFER_TEAMS=1` to always use Agent Teams
+
+
+</Accordion>
+
+<Accordion title="Agent Teams Phases">
+
+# Agent Teams Phase Alternatives
+
+This reference consolidates Agent Teams mode instructions for Phases 4, 5, 6, and 6b of the implement workflow.
+
+## Phase 4 — Agent Teams Architecture Design
+
+In Agent Teams mode, form a team instead of spawning 5 independent Tasks. Teammates message architecture decisions to each other in real-time:
+
+```python
+TeamCreate(team_name="implement-{feature-slug}", description="Architecture for {feature}")
+
+# Spawn 4 teammates (5th role — UX — is lead-managed or optional)
+Task(subagent_type="backend-system-architect", name="backend-architect",
+     team_name="implement-{feature-slug}",
+     prompt="Design backend architecture. Message frontend-dev when API contract ready.")
+
+Task(subagent_type="frontend-ui-developer", name="frontend-dev",
+     team_name="implement-{feature-slug}",
+     prompt="Design frontend architecture. Wait for API contract from backend-architect.")
+
+Task(subagent_type="test-generator", name="test-engineer",
+     team_name="implement-{feature-slug}",
+     prompt="Plan test strategy. Start fixtures immediately, tests as contracts stabilize.")
+
+Task(subagent_type="code-quality-reviewer", name="code-reviewer",
+     team_name="implement-{feature-slug}",
+     prompt="Review architecture decisions as they're shared. Flag issues to author directly.")
+```
+
+See [Agent Teams Full-Stack Pipeline](agent-teams-full-stack.md) for complete spawn prompts and messaging templates.
+
+> **Fallback:** If team formation fails, fall back to 5 independent Task spawns (standard Phase 4).
+
+---
+
+## Phase 5 — Agent Teams Implementation
+
+In Agent Teams mode, teammates are already formed from Phase 4. They transition from architecture to implementation and message contracts to each other:
+
+- **backend-architect** implements the API and messages `frontend-dev` with the contract (types + routes) as soon as endpoints are defined — not after full implementation.
+- **frontend-dev** starts building UI layout immediately, then integrates API hooks once the contract arrives.
+- **test-engineer** writes tests incrementally as contracts stabilize. Reports failing tests directly to the responsible teammate.
+- **code-reviewer** reviews code as it lands. Flags issues to the author directly.
+
+Optionally set up per-teammate worktrees to prevent file conflicts:
+
+```python
+# Lead sets up worktrees (for features with > 5 files)
+Bash("git worktree add ../{project}-backend feat/{feature}/backend")
+Bash("git worktree add ../{project}-frontend feat/{feature}/frontend")
+Bash("git worktree add ../{project}-tests feat/{feature}/tests")
+
+# Include worktree path in teammate messages
+SendMessage(type="message", recipient="backend-architect",
+    content="Work in ../{project}-backend/. Commit to feat/{feature}/backend.")
+```
+
+See [Team Worktree Setup](team-worktree-setup.md) for complete worktree guide.
+
+> **Fallback:** If teammate coordination breaks down, shut down the team and fall back to 5 independent Task spawns (standard Phase 5).
+
+---
+
+## Phase 6 — Agent Teams Integration
+
+In Agent Teams mode, the code-reviewer teammate has already been reviewing code during implementation (Phase 5). Integration verification is lighter:
+
+- **code-reviewer** produces final APPROVE/REJECT verdict based on cumulative review.
+- **Lead** runs integration tests across the merged codebase (or merged worktrees).
+- No need for separate security-auditor spawn — code-reviewer covers security checks. For high-risk features, spawn a `security-auditor` teammate in Phase 4.
+
+```python
+# Lead runs integration after merging worktrees
+Bash("npm test && npm run typecheck && npm run lint")
+
+# Collect code-reviewer verdict
+SendMessage(type="message", recipient="code-reviewer",
+    content="All code merged. Please provide final APPROVE/REJECT verdict.")
+```
+
+> **Fallback:** If code-reviewer verdict is unclear, fall back to 4 independent Task spawns (standard Phase 6).
+
+---
+
+## Phase 6b — Team Teardown (Agent Teams Only)
+
+After Phase 6 completes in Agent Teams mode, tear down the team:
+
+### 1. Merge Worktrees (if used)
+
+```bash
+git checkout feat/{feature}
+git merge --squash feat/{feature}/backend && git commit -m "feat({feature}): backend"
+git merge --squash feat/{feature}/frontend && git commit -m "feat({feature}): frontend"
+git merge --squash feat/{feature}/tests && git commit -m "test({feature}): test suite"
+```
+
+### 2. Shut Down Teammates
+
+```python
+SendMessage(type="shutdown_request", recipient="backend-architect",
+    content="Implementation complete, shutting down team.")
+SendMessage(type="shutdown_request", recipient="frontend-dev",
+    content="Implementation complete, shutting down team.")
+SendMessage(type="shutdown_request", recipient="test-engineer",
+    content="Implementation complete, shutting down team.")
+SendMessage(type="shutdown_request", recipient="code-reviewer",
+    content="Implementation complete, shutting down team.")
+```
+
+### 3. Clean Up
+
+```python
+TeamDelete()  # Remove team and shared task list
+
+# Clean up worktrees (if used)
+Bash("git worktree remove ../{project}-backend")
+Bash("git worktree remove ../{project}-frontend")
+Bash("git worktree remove ../{project}-tests")
+Bash("git branch -d feat/{feature}/backend feat/{feature}/frontend feat/{feature}/tests")
+```
+
+> Phases 7-10 (Scope Creep, E2E Verification, Documentation, Reflection) are the same in both modes — the team is already disbanded.
+
+
+</Accordion>
+
+<Accordion title="Agent Teams Security Audit">
+
+# Agent Teams: Security Audit Pipeline
+
+Team formation template for Pipeline 4 — Security Audit using CC Agent Teams.
+
+**Agents:** 3 (all read-only, no file conflicts)
+**Topology:** Mesh — auditors share findings with each other
+**Lead mode:** Delegate (coordination only)
+
+---
+
+## Team Formation
+
+### Team Name Pattern
+```
+security-audit-{timestamp}
+```
+
+### Teammate Spawn Prompts
+
+#### 1. security-auditor (OWASP + Dependencies)
+```
+You are the security-auditor specialist on this team.
+
+## Your Role
+Scan codebase for vulnerabilities, audit dependencies, and verify OWASP Top 10 compliance.
+Focus on: dependency CVEs, hardcoded secrets, injection patterns, auth weaknesses.
+
+## Your Task
+Run a security audit on the hooks subsystem (src/hooks/). Focus on:
+1. Dependency vulnerabilities (npm audit)
+2. Secret/credential patterns in source
+3. Injection risks (eval, exec, command injection)
+4. Input validation on hook inputs
+5. OWASP Top 10 applicability
+
+## Coordination Protocol
+- When you find critical/high findings, message security-layer-auditor to verify
+  which defense layer is affected
+- When you find LLM-related issues, message ai-safety-auditor for cross-reference
+- Update the shared task list when you complete each scan area
+- If blocked, message the lead
+
+## Output
+Return findings as structured JSON with severity, location, and remediation.
+```
+
+#### 2. security-layer-auditor (Defense-in-Depth)
+```
+You are the security-layer-auditor specialist on this team.
+
+## Your Role
+Verify defense-in-depth implementation across 8 security layers (edge to storage).
+Map every finding to a specific layer and assess coverage gaps.
+
+## Your Task
+Audit the hooks subsystem (src/hooks/) across all applicable security layers:
+1. Layer 2 (Input): How are hook inputs validated?
+2. Layer 3 (Authorization): How are tool permissions enforced?
+3. Layer 4 (Data Access): How is file system access controlled?
+4. Layer 5 (LLM): How is prompt content handled in hooks?
+5. Layer 7 (Storage): How are lock files and coordination data stored?
+
+## Coordination Protocol
+- When security-auditor shares findings, map them to specific layers
+- Validate whether existing controls contain the identified threats
+- Share layer gap analysis with ai-safety-auditor for LLM-specific layers
+- Update the shared task list when you complete each layer
+
+## Output
+Return an 8-layer audit matrix with status (pass/fail/partial) per layer.
+```
+
+#### 3. ai-safety-auditor (LLM Security)
+```
+You are the ai-safety-auditor specialist on this team.
+
+## Your Role
+Audit LLM integration security. Focus on prompt injection, tool poisoning,
+excessive agency, and OWASP LLM Top 10 compliance.
+
+## Your Task
+Audit the hooks subsystem (src/hooks/) for AI safety:
+1. Prompt injection risks in context-injection hooks
+2. Tool poisoning vectors in MCP integration
+3. Excessive agency in automated hook actions
+4. Data leakage through hook outputs
+5. OWASP LLM Top 10 applicability
+
+## Coordination Protocol
+- Cross-reference with security-auditor findings for injection risks
+- Cross-reference with security-layer-auditor for Layer 5/6 gaps
+- If you find a finding that contradicts another auditor, flag the disagreement
+- Update the shared task list when you complete each assessment area
+
+## Output
+Return OWASP LLM Top 10 compliance matrix plus specific findings.
+```
+
+---
+
+## Lead Synthesis Protocol
+
+After all teammates complete:
+
+1. **Collect** all three audit reports
+2. **Cross-reference** findings — same issue found by multiple auditors = higher confidence
+3. **Highlight disagreements** — auditors may rate severity differently
+4. **Deduplicate** — merge equivalent findings
+5. **Produce unified report** with:
+   - Combined findings sorted by severity
+   - Layer coverage matrix
+   - OWASP compliance summary
+   - Prioritized remediation plan
+
+---
+
+## Cost Comparison Baseline
+
+| Metric | Task Tool (3 sequential) | Agent Teams (3 mesh) |
+|--------|-------------------------|---------------------|
+| Expected tokens | ~150K | ~400K |
+| Wall-clock time | Sequential (3x) | Parallel (1x) |
+| Cross-reference | Manual by lead | Peer-to-peer |
+| Finding quality | Independent | Corroborated |
+
+Track actual values to validate.
+
+---
+
+## When to Use
+
+- **Use Agent Teams** when auditors need to cross-reference findings in real-time
+- **Use Task Tool** for quick, independent audits (single agent sufficient)
+- **Complexity threshold:** Average score >= 3.0 across 7 dimensions
+
+
+</Accordion>
+
+<Accordion title="Cc Enhancements">
+
+# CC 2.1.30+ Enhancements
+
+## Task Metrics
+
+Task tool results now include `token_count`, `tool_uses`, and `duration_ms`. Use for scope monitoring:
+
+```markdown
+## Phase 5 Metrics (Implementation)
+| Agent | Tokens | Tools | Duration |
+|-------|--------|-------|----------|
+| backend-system-architect #1 | 680 | 15 | 25s |
+| backend-system-architect #2 | 540 | 12 | 20s |
+| frontend-ui-developer #1 | 720 | 18 | 30s |
+
+**Scope Check:** If token_count > 80% of budget, flag scope creep
+```
+
+## Tool Usage Guidance (CC 2.1.31)
+
+Use the right tools for each operation:
+
+| Task | Use | Avoid |
+|------|-----|-------|
+| Find files by pattern | `Glob("**/*.ts")` | `bash find` |
+| Search code | `Grep(pattern="...", glob="*.ts")` | `bash grep` |
+| Read specific file | `Read(file_path="/abs/path")` | `bash cat` |
+| Edit/modify code | `Edit(file_path=...)` | `bash sed/awk` |
+| Parse file contents | `Read` with limit/offset | `bash head/tail` |
+| Git operations | `Bash git ...` | (git needs bash) |
+| Run tests/build | `Bash npm/poetry ...` | (CLIs need bash) |
+
+## Session Resume Hints (CC 2.1.31)
+
+Before ending implementation sessions, capture context:
+
+```bash
+/ork:remember Implementation of {feature}:
+  Completed: phases 1-6
+  Remaining: verification, docs
+  Key decisions: [list]
+  Blockers: [if any]
+```
+
+Resume later with full context preserved.
+
+
+</Accordion>
+
+<Accordion title="Micro Planning Guide">
+
+# Micro-Planning Guide
+
+Create detailed task-level plans before writing code to prevent scope creep and improve estimates.
+
+## What to Include
+
+| Section | Purpose |
+|---------|---------|
+| **Scope (IN)** | Explicit list of what will change |
+| **Out of Scope** | What NOT to touch (prevents creep) |
+| **Files to Touch** | Exact files, change type, description |
+| **Acceptance Criteria** | How to know it's done |
+| **Estimated Time** | Realistic time budget |
+
+## Planning Process
+
+### Step 1: Define Scope Boundaries
+
+```markdown
+### IN Scope
+- Add User model with email, password_hash
+- Add /register endpoint
+- Add validation for email format
+
+### OUT of Scope
+- Password reset (separate task)
+- OAuth providers (future task)
+- Email verification (future task)
+```
+
+### Step 2: List Files Explicitly
+
+```markdown
+### Files to Touch
+| File | Action | Description |
+|------|--------|-------------|
+| models/user.py | CREATE | User SQLAlchemy model |
+| api/auth.py | CREATE | Register endpoint |
+| tests/test_auth.py | CREATE | Registration tests |
+| alembic/versions/xxx.py | CREATE | Migration |
+```
+
+### Step 3: Set Acceptance Criteria
+
+```markdown
+### Acceptance Criteria
+- [ ] POST /register creates user
+- [ ] Duplicate email returns 409
+- [ ] Invalid email returns 422
+- [ ] Password is hashed (not plaintext)
+- [ ] Tests pass
+- [ ] Types check
+```
+
+## Time-Boxing Techniques
+
+| Task Size | Time Box | Break Point |
+|-----------|----------|-------------|
+| Small (1-3 files) | 30 min | 45 min |
+| Medium (4-8 files) | 2 hours | 3 hours |
+| Large (9+ files) | 4 hours | Split task |
+
+### At Break Point
+
+1. Stop and assess progress
+2. If not 50%+ done, re-estimate
+3. If blocked, create blocker task
+4. Consider splitting remaining work
+
+## When to Break Down Further
+
+Split the task if:
+- More than 8 files to modify
+- Estimate exceeds 4 hours
+- Multiple unrelated changes
+- Requires learning new technology
+- Has uncertain requirements
+
+## Anti-Patterns
+
+| Anti-Pattern | Fix |
+|--------------|-----|
+| Vague scope: "Add auth" | Specific: "Add /register endpoint" |
+| No out-of-scope section | Always list what's excluded |
+| Missing time estimate | Always estimate, even if rough |
+| No acceptance criteria | Define "done" before starting |
+
+
+</Accordion>
+
+<Accordion title="Orchestration Modes">
+
+# Orchestration Mode Selection
+
+## Decision Logic
+
+```python
+# Check mode — Agent Teams is default when available (Issue #362)
+import os
+teams_available = os.environ.get("CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS") is not None
+force_task_tool = os.environ.get("ORCHESTKIT_FORCE_TASK_TOOL") == "1"
+
+if force_task_tool or not teams_available:
+    mode = "task_tool"
+else:
+    # Teams available — use it for non-trivial work
+    mode = "agent_teams" if avg_complexity >= 2.5 else "task_tool"
+```
+
+## Comparison Table
+
+| Aspect | Task Tool (star) | Agent Teams (mesh) |
+|--------|------------------|--------------------|
+| Communication | All agents report to lead only | Teammates message each other |
+| API contract | Lead relays between agents | Backend messages frontend directly |
+| Cost | ~500K tokens (full-stack) | ~1.2M tokens (full-stack) |
+| Wall-clock | Sequential phases | Overlapping (30-40% faster) |
+| Quality review | After all agents complete | Continuous (reviewer on team) |
+| Best for | Independent tasks, low complexity | Cross-cutting features, high complexity |
+
+## Fallback
+
+If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Task tool mode for remaining phases. The approaches are compatible — work done in Teams mode transfers to Task tool continuation.
+
+
+</Accordion>
+
+<Accordion title="Scope Creep Detection">
+
+# Scope Creep Detection
+
+Identify when implementation exceeds original scope and take corrective action.
+
+## Warning Signs
+
+| Indicator | Example |
+|-----------|---------|
+| "While I'm here..." | Refactoring unrelated code |
+| Premature optimization | Adding caching before measuring |
+| Goldplating | Extra UI polish not requested |
+| Future-proofing | "We might need this later" |
+| Rabbit holes | Deep debugging unrelated issues |
+
+## Detection Checklist
+
+### Files Changed vs Planned
+
+```
+[ ] List files in original micro-plan
+[ ] List files actually modified (git diff --name-only)
+[ ] Flag any file not in original plan
+[ ] Each unplanned file needs justification
+```
+
+### Features Added vs Planned
+
+```
+[ ] Compare implemented features to acceptance criteria
+[ ] Identify features not in original scope
+[ ] Mark as: necessary dependency / nice-to-have / out-of-scope
+```
+
+### Time Spent vs Estimated
+
+```
+[ ] Original estimate: ___ hours
+[ ] Actual time: ___ hours
+[ ] If >1.5x estimate, identify cause
+```
+
+## Quick Audit Command
+
+```bash
+# Compare planned vs actual files
+git diff --name-only main...HEAD | sort > /tmp/actual.txt
+# Compare against micro-plan's "Files to Touch" section
+diff /tmp/planned.txt /tmp/actual.txt
+```
+
+## Scope Creep Score
+
+| Score | Level | Action |
+|-------|-------|--------|
+| 0-2 | Minimal | Proceed normally |
+| 3-5 | Moderate | Document, justify each addition |
+| 6-8 | Significant | Discuss with user, consider splitting |
+| 9-10 | Major | Stop, split into separate PR |
+
+## Recovery Strategies
+
+### If Score 3-5 (Moderate)
+1. Document unplanned changes in PR description
+2. Add "bonus" label to extra features
+3. Ensure tests cover additions
+
+### If Score 6-8 (Significant)
+1. Revert unplanned changes to separate branch
+2. Create follow-up issue for extras
+3. Submit minimal PR matching original scope
+
+### If Score 9-10 (Major)
+1. Stop implementation
+2. Split into multiple PRs
+3. Re-scope with user before continuing
+
+## Prevention Tips
+
+- Review micro-plan before starting each file
+- Time-box exploration (15 min max)
+- Ask "Is this in scope?" before each change
+- Use TODO comments for out-of-scope ideas
+
+
+</Accordion>
+
+<Accordion title="Team Worktree Setup">
+
+# Team Worktree Setup
+
+Per-teammate git worktree management for Agent Teams. Extends the general [Worktree Workflow](worktree-workflow.md) with team-specific patterns.
+
+---
+
+## Branch Naming Convention
+
+```
+feat/{feature}/{role}
+```
+
+Examples:
+- `feat/user-auth/backend`
+- `feat/user-auth/frontend`
+- `feat/user-auth/tests`
+- `feat/dashboard/backend`
+- `feat/dashboard/frontend`
+
+All branches are created from the feature branch (not main):
+
+```bash
+# Start from the feature branch
+git checkout feat/{feature}
+
+# Create role branches
+git branch feat/{feature}/backend
+git branch feat/{feature}/frontend
+git branch feat/{feature}/tests
+```
+
+---
+
+## Worktree Setup Commands
+
+The **lead** creates worktrees before spawning teammates:
+
+```bash
+# Create worktrees — one per implementing teammate
+git worktree add ../{project}-backend feat/{feature}/backend
+git worktree add ../{project}-frontend feat/{feature}/frontend
+git worktree add ../{project}-tests feat/{feature}/tests
+
+# Verify
+git worktree list
+```
+
+**Directory layout after setup:**
+
+```
+../
+├── {project}/              ← Main worktree (lead + code-reviewer)
+├── {project}-backend/      ← backend-architect works here
+├── {project}-frontend/     ← frontend-dev works here
+└── {project}-tests/        ← test-engineer works here
+```
+
+---
+
+## Teammate Assignment
+
+Include the worktree path in each teammate's spawn prompt:
+
+| Teammate | Worktree | Working Directory |
+|----------|----------|-------------------|
+| backend-architect | `../\{project\}-backend/` | Full project access, writes to backend dirs |
+| frontend-dev | `../\{project\}-frontend/` | Full project access, writes to frontend dirs |
+| test-engineer | `../\{project\}-tests/` | Full project access, writes to test dirs |
+| code-reviewer | Main worktree | Read-only, reviews across all worktrees |
+
+**Spawn prompt addition:**
+
+```
+## Your Working Directory
+Work EXCLUSIVELY in: /path/to/{project}-backend/
+Do NOT modify files in other worktrees.
+Commit your changes to the feat/{feature}/backend branch.
+```
+
+---
+
+## Merge Strategy
+
+After all teammates complete, the lead merges each role branch:
+
+### Squash Merge Per Role (Recommended)
+
+```bash
+# Switch to feature branch
+git checkout feat/{feature}
+
+# Merge each role as a single commit
+git merge --squash feat/{feature}/backend
+git commit -m "feat({feature}): backend implementation"
+
+git merge --squash feat/{feature}/frontend
+git commit -m "feat({feature}): frontend implementation"
+
+git merge --squash feat/{feature}/tests
+git commit -m "test({feature}): complete test suite"
+```
+
+### Handling Merge Conflicts
+
+Conflicts typically occur in shared files:
+- **Type definitions** — backend and frontend may define overlapping types
+- **Package files** — both may add dependencies
+- **Config files** — shared configuration
+
+Resolution priority:
+1. Backend types are authoritative (they own the API contract)
+2. For package conflicts, combine both additions
+3. For config conflicts, merge manually
+
+---
+
+## Cleanup
+
+After successful merge and verification:
+
+```bash
+# Remove worktrees
+git worktree remove ../{project}-backend
+git worktree remove ../{project}-frontend
+git worktree remove ../{project}-tests
+
+# Delete role branches
+git branch -d feat/{feature}/backend
+git branch -d feat/{feature}/frontend
+git branch -d feat/{feature}/tests
+
+# Verify cleanup
+git worktree list
+git branch --list "feat/{feature}/*"
+```
+
+---
+
+## When to Skip Worktrees
+
+Not every Agent Teams session needs worktrees. Skip when:
+
+| Condition | Skip Worktrees? | Reason |
+|-----------|-----------------|--------|
+| Read-only roles only (audit, review) | Yes | No file writes = no conflicts |
+| Small feature (&lt; 5 files) | Yes | File overlap unlikely |
+| Teammates work in non-overlapping directories | Yes | Natural isolation |
+| Single-stack scope (backend-only or frontend-only) | Yes | One writer, others are reviewers |
+| Research/debugging task | Yes | Exploration, not implementation |
+
+When skipping worktrees, teammates work in the same directory. The lead should assign **clear file ownership** in spawn prompts to prevent conflicts:
+
+```
+## File Ownership
+You own: src/api/, src/models/, src/services/
+Do NOT modify: src/components/, src/features/, src/hooks/
+```
+
+---
+
+## Worktree + Agent Teams Checklist
+
+Before spawning teammates:
+
+- [ ] Feature branch exists (`feat/\{feature\}`)
+- [ ] Role branches created from feature branch
+- [ ] Worktrees added for each implementing teammate
+- [ ] Each teammate's spawn prompt includes worktree path
+- [ ] Code-reviewer assigned to main worktree (read-only)
+
+After all teammates complete:
+
+- [ ] All role branches have commits
+- [ ] Squash merge each role into feature branch
+- [ ] Merge conflicts resolved
+- [ ] Integration tests pass on merged branch
+- [ ] Worktrees removed
+- [ ] Role branches deleted
+
+
+</Accordion>
+
+<Accordion title="Worktree Workflow">
+
+# Git Worktree Workflow
+
+Isolate feature work in dedicated worktrees for clean development and easy rollback.
+
+## When to Use Worktrees
+
+| Scenario | Worktree? | Reason |
+|----------|-----------|--------|
+| Large feature (5+ files) | YES | Isolation prevents pollution |
+| Experimental/risky changes | YES | Easy to discard entirely |
+| Parallel feature development | YES | Work on multiple features |
+| Hotfix while mid-feature | YES | Don't stash incomplete work |
+| Quick bug fix (1-2 files) | No | Overhead not worth it |
+
+## Setup Commands
+
+```bash
+# Create worktree with new branch
+git worktree add ../project-feature feature/feature-name
+
+# Create worktree from existing branch
+git worktree add ../project-feature existing-branch
+
+# List all worktrees
+git worktree list
+
+# Navigate to worktree
+cd ../project-feature
+```
+
+## Workflow
+
+```bash
+# 1. Create worktree
+git worktree add ../myapp-auth feature/user-auth
+
+# 2. Work in isolation
+cd ../myapp-auth
+# ... make changes, commit normally ...
+
+# 3. Merge back (from main worktree)
+cd ../myapp
+git checkout main
+git merge feature/user-auth
+
+# 4. Cleanup
+git worktree remove ../myapp-auth
+git branch -d feature/user-auth
+```
+
+## Merge Strategies
+
+| Strategy | When to Use |
+|----------|-------------|
+| **Merge commit** | Default, preserves history |
+| **Squash merge** | Many small commits, clean history wanted |
+| **Rebase first** | Linear history preferred |
+
+```bash
+# Squash merge (single commit)
+git merge --squash feature/user-auth
+git commit -m "feat: Add user authentication"
+
+# Rebase then merge (linear)
+cd ../myapp-auth
+git rebase main
+cd ../myapp
+git merge feature/user-auth
+```
+
+## Cleanup with Uncommitted Changes
+
+```bash
+# Check for uncommitted changes
+cd ../myapp-auth
+git status
+
+# If changes exist, either:
+# Option A: Commit them
+git add . && git commit -m "WIP: save progress"
+
+# Option B: Stash them
+git stash push -m "feature-auth-wip"
+
+# Option C: Discard (CAREFUL!)
+git checkout -- .
+
+# Then remove worktree
+cd ../myapp
+git worktree remove ../myapp-auth
+```
+
+## Best Practices
+
+1. **Naming:** Use `../project-featurename` pattern
+2. **Short-lived:** Merge within 1-3 days
+3. **One feature per worktree:** Don't mix concerns
+4. **Regular sync:** Rebase from main frequently
+5. **Clean before remove:** Always check `git status`
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Implementation Review">
+
+# Implementation Review Checklist
+
+Use this checklist before marking implementation as complete.
+
+## Scope Verification
+
+- [ ] All acceptance criteria from micro-plan are met
+- [ ] No unplanned files were modified
+- [ ] No features were added beyond original scope
+- [ ] If scope changed, it was documented and justified
+
+## Code Quality
+
+- [ ] All tests pass
+- [ ] Type checking passes (mypy/tsc)
+- [ ] Linting passes (no warnings)
+- [ ] No TODO/FIXME left behind (or tracked in issues)
+
+## Testing Coverage
+
+- [ ] Unit tests for new functions/methods
+- [ ] Integration tests for API endpoints
+- [ ] Edge cases covered
+- [ ] Error paths tested
+
+## Documentation
+
+- [ ] Code comments for complex logic
+- [ ] API documentation updated (if endpoints added)
+- [ ] README updated (if setup changed)
+
+## Scope Creep Score
+
+- [ ] Score 0-2: Proceed
+- [ ] Score 3-5: Document additions in PR
+- [ ] Score 6+: Split into separate PR
+
+## Final Checks
+
+- [ ] PR description matches implementation
+- [ ] Commit messages are clear
+- [ ] No sensitive data committed
+- [ ] Works in development environment
+
+## Sign-off
+
+```
+Reviewer: _______________
+Date: _______________
+Scope Creep Score: ___/10
+Ready to merge: [ ] Yes [ ] No - needs: _______________
+```
+
+
+</Accordion>
+
+</Accordions>

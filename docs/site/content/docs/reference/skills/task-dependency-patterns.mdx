@@ -2,6 +2,7 @@
 title: "Task Dependency Patterns"
 description: "CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -180,3 +181,586 @@ SendMessage(type: "broadcast",
 - [Dependency Tracking](references/dependency-tracking.md)
 - [Status Workflow](references/status-workflow.md)
 - [Multi-Agent Coordination](references/multi-agent-coordination.md)
+
+
+---
+
+## References (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Dependency Tracking">
+
+# Dependency Tracking
+
+## Overview
+
+Task dependencies ensure correct execution order through `blocks` and `blockedBy` relationships.
+
+## Dependency Fields
+
+| Field | Description |
+|-------|-------------|
+| `blocks` | Tasks that cannot start until this task completes |
+| `blockedBy` | Tasks that must complete before this task can start |
+
+## Creating Dependencies
+
+```json
+// During task update
+{
+  "taskId": "3",
+  "addBlockedBy": ["1", "2"],
+  "addBlocks": ["4", "5"]
+}
+```
+
+## Dependency Patterns
+
+### Sequential Chain
+
+```
+#1 → #2 → #3 → #4
+```
+
+```json
+// Task #2 blocked by #1
+{"taskId": "2", "addBlockedBy": ["1"]}
+// Task #3 blocked by #2
+{"taskId": "3", "addBlockedBy": ["2"]}
+```
+
+### Fan-Out Pattern
+
+```
+     ┌→ #2
+#1 ──┼→ #3
+     └→ #4
+```
+
+All depend on #1, but can run in parallel after #1 completes.
+
+### Fan-In Pattern
+
+```
+#1 ──┐
+#2 ──┼→ #4
+#3 ──┘
+```
+
+```json
+{"taskId": "4", "addBlockedBy": ["1", "2", "3"]}
+```
+
+### Diamond Pattern
+
+```
+     #1
+    ↙  ↘
+  #2    #3
+    ↘  ↙
+     #4
+```
+
+## Validation Rules
+
+1. **No circular dependencies**: A → B → A is invalid
+2. **Blocked tasks cannot start**: Check `blockedBy` before setting `in_progress`
+3. **Completing unblocks dependents**: When #1 completes, #2 becomes available
+
+## Querying Dependencies
+
+```bash
+# List tasks to see blockedBy summary
+TaskList
+
+# Get full dependency details
+TaskGet taskId="3"
+# Returns: blockedBy: ["1", "2"], blocks: ["4"]
+```
+
+## Best Practices
+
+- Keep dependency chains shallow (3-4 levels max)
+- Use fan-out for parallelizable work
+- Document why dependencies exist in task description
+- Review blocked tasks when completing work
+
+
+</Accordion>
+
+<Accordion title="Multi Agent Coordination">
+
+# Multi-Agent Task Coordination
+
+## Overview
+
+When multiple Claude Code instances or agents work on a shared codebase, the Task system provides coordination primitives.
+
+## Coordination Patterns
+
+### Task Assignment
+
+Use `owner` field to track which agent owns a task:
+
+```json
+// Claim a task
+{"taskId": "3", "owner": "backend-agent"}
+
+// Release task
+{"taskId": "3", "owner": ""}
+```
+
+### Finding Available Work
+
+```python
+# Pseudo-code for agent task selection
+tasks = TaskList()
+available = [t for t in tasks
+             if t.status == "pending"
+             and not t.owner
+             and not t.blockedBy]
+next_task = available[0] if available else None
+```
+
+### Work Distribution
+
+```
+┌─────────────────────────────────────────┐
+│           Task Board                     │
+├──────────────┬──────────────┬───────────┤
+│   pending    │ in_progress  │ completed │
+├──────────────┼──────────────┼───────────┤
+│ #4 (blocked) │ #2 (agent-A) │ #1        │
+│ #5 (ready)   │ #3 (agent-B) │           │
+│ #6 (ready)   │              │           │
+└──────────────┴──────────────┴───────────┘
+```
+
+## Agent Workflow
+
+### 1. Check for Work
+
+```json
+// Agent startup: list all tasks
+TaskList
+```
+
+### 2. Claim Task
+
+```json
+// Found unblocked, unowned task
+{"taskId": "5", "status": "in_progress", "owner": "my-agent"}
+```
+
+### 3. Complete Work
+
+```json
+// After finishing work
+{"taskId": "5", "status": "completed"}
+// Check for newly unblocked tasks
+TaskList
+```
+
+## Coordination with Worktrees
+
+When using OrchestKit's worktree-coordination:
+
+```bash
+# Check coordination status
+.claude/coordination/lib/coordination.sh status
+
+# Task management complements file locks
+# - Tasks track WHAT work is being done
+# - Locks track WHICH files are being modified
+```
+
+## Handoff Patterns
+
+### Sequential Handoff
+
+```
+Agent-A completes #1 → Agent-B unblocked for #2
+```
+
+### Parallel Fork
+
+```
+Agent-A completes #1
+├→ Agent-B can start #2
+├→ Agent-C can start #3
+└→ Agent-D can start #4
+```
+
+### Merge Point
+
+```
+Agent-A completes #2 ─┐
+Agent-B completes #3 ─┼→ Any agent can start #5
+Agent-C completes #4 ─┘
+```
+
+## Best Practices
+
+1. **Atomic task design**: Tasks should be completable by single agent
+2. **Clear ownership**: Always set owner when starting work
+3. **Timely completion**: Mark completed as soon as work is done
+4. **Dependency awareness**: Check blockedBy before starting
+5. **Communication via tasks**: Use description for context handoff
+
+## Integration with OrchestKit
+
+The task system integrates with:
+
+- **worktree-coordination**: File-level locking
+- **context-compression**: Task context in compressed summaries
+- **agent handoff hooks**: Auto-document in decision log
+
+
+</Accordion>
+
+<Accordion title="Status Workflow">
+
+# Status Workflow
+
+## Overview
+
+Tasks progress through a defined state machine: `pending` → `in_progress` → `completed`.
+
+## Status States
+
+### pending
+
+- Task created but not started
+- May be blocked by other tasks
+- Available for claiming if no blockers
+
+### in_progress
+
+- Actively being worked on
+- Only one task should typically be in_progress per worker
+- Mark immediately when starting work
+
+### completed
+
+- Work finished and verified
+- Unblocks dependent tasks
+- Cannot be modified further
+
+### deleted (CC 2.1.20)
+
+- Task permanently removed
+- Use for orphaned, superseded, or duplicate tasks
+- Cannot be recovered after deletion
+
+## State Transitions
+
+```
+┌─────────┐     start     ┌─────────────┐    finish    ┌───────────┐
+│ pending │ ────────────→ │ in_progress │ ───────────→ │ completed │
+└─────────┘               └─────────────┘              └───────────┘
+     ↑  │                       │  │
+     │  └───────────────────────│──│──→ ┌─────────┐
+     └───── revert ─────────────┘  └──→ │ deleted │ (CC 2.1.20)
+           (if blocked)                  └─────────┘
+```
+
+## Valid Transitions
+
+| From | To | When |
+|------|-----|------|
+| pending | in_progress | Starting work, no blockers |
+| in_progress | completed | Work verified complete |
+| in_progress | pending | Discovered blocker, need to wait |
+| pending | deleted | Orphaned, superseded, or duplicate (CC 2.1.20) |
+| in_progress | deleted | Cancelled or superseded (CC 2.1.20) |
+
+## Status Update Examples
+
+```json
+// Start work
+{"taskId": "1", "status": "in_progress"}
+
+// Mark complete
+{"taskId": "1", "status": "completed"}
+
+// Revert if blocked
+{"taskId": "1", "status": "pending"}
+
+// Delete orphaned task (CC 2.1.20)
+{"taskId": "1", "status": "deleted"}
+```
+
+## Completion Criteria
+
+Before marking completed, verify:
+
+1. **Implementation done**: All code changes complete
+2. **Tests passing**: Related tests succeed
+3. **No blockers**: Nothing prevents dependent tasks
+4. **Documentation updated**: If applicable
+
+## Anti-Patterns
+
+### Premature Completion
+
+```json
+// DON'T: Mark complete with failing tests
+{"taskId": "1", "status": "completed"}
+```
+
+### Abandoned in_progress
+
+```json
+// DON'T: Leave task in_progress when blocked
+// DO: Revert to pending, create blocker task
+{"taskId": "1", "status": "pending"}
+```
+
+### Skipping States
+
+```json
+// DON'T: Go directly from pending to completed
+// DO: Always transition through in_progress
+{"taskId": "1", "status": "in_progress"}
+// ... do work ...
+{"taskId": "1", "status": "completed"}
+```
+
+## activeForm Display
+
+The `activeForm` field displays during in_progress status:
+
+```
+[#1 in_progress] Running tests... ⣾
+```
+
+Provide meaningful present-continuous descriptions:
+- "Creating database schema"
+- "Updating API endpoints"
+- "Writing integration tests"
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Dependency Checklist">
+
+# Dependency Validation Checklist
+
+## Before Adding Dependencies
+
+- [ ] Is there a true execution order requirement?
+- [ ] Would parallel execution cause conflicts?
+- [ ] Is the dependency on task completion (not just start)?
+
+## Dependency Types
+
+### Code Dependencies
+
+- [ ] Task B modifies files created by Task A
+- [ ] Task B imports modules defined in Task A
+- [ ] Task B extends patterns established in Task A
+
+### Schema Dependencies
+
+- [ ] Task B uses database schema from Task A
+- [ ] Task B consumes API contracts from Task A
+- [ ] Task B references types defined in Task A
+
+### Test Dependencies
+
+- [ ] Task B tests functionality from Task A
+- [ ] Task B requires fixtures from Task A
+- [ ] Task B extends test suites from Task A
+
+## Dependency Anti-Patterns
+
+### Circular Dependencies
+
+```
+Task A blockedBy [B]
+Task B blockedBy [A]
+```
+
+**Fix:** Identify shared prerequisite, extract to Task C
+
+### Over-Specification
+
+```
+Task D blockedBy [A, B, C]
+# But really only needs C
+```
+
+**Fix:** Remove unnecessary dependencies, rely on transitive blocking
+
+### Under-Specification
+
+```
+Task B has no blockedBy
+# But actually needs Task A's output
+```
+
+**Fix:** Add explicit dependency to prevent race conditions
+
+## Validation Steps
+
+### 1. Trace Dependency Chain
+
+```
+For each task with blockedBy:
+  - Can the blocking task(s) actually complete?
+  - Is there a path from START to this task?
+  - Is there a path from this task to END?
+```
+
+### 2. Check for Cycles
+
+```
+For each task T:
+  visited = {}
+  queue = [T.blockedBy]
+  while queue:
+    current = queue.pop()
+    if current == T: ERROR: Cycle detected
+    if current in visited: continue
+    visited.add(current)
+    queue.extend(current.blockedBy)
+```
+
+### 3. Verify Parallelism
+
+```
+Tasks without mutual dependencies CAN run in parallel.
+Verify: No shared file writes, no ordering requirement.
+```
+
+## Updating Dependencies
+
+When modifying existing dependencies:
+
+- [ ] Reviewed impact on blocked tasks
+- [ ] No orphaned tasks (tasks that can never unblock)
+- [ ] Critical path still reasonable
+- [ ] Notified other agents/workers if relevant
+
+## Documentation
+
+For complex dependency chains:
+
+- [ ] Diagram in task description or PR
+- [ ] Rationale for non-obvious dependencies
+- [ ] Expected execution order documented
+
+
+</Accordion>
+
+<Accordion title="Task Design Checklist">
+
+# Task Design Checklist
+
+## Before Creating Tasks
+
+- [ ] Is this work complex enough to need task tracking? (3+ steps)
+- [ ] Have you identified the natural work boundaries?
+- [ ] Can each task be completed independently once unblocked?
+
+## Task Structure
+
+### Subject (required)
+
+- [ ] Uses imperative form ("Add", "Fix", "Update", not "Adding", "Fixed")
+- [ ] Describes the outcome, not the process
+- [ ] Concise but descriptive (5-10 words max)
+
+**Good examples:**
+- "Create User model with validation"
+- "Add JWT authentication endpoint"
+- "Fix pagination in search results"
+
+**Bad examples:**
+- "Work on the feature" (too vague)
+- "Adding stuff to the database" (wrong tense, vague)
+- "Implement the new user authentication system with JWT tokens and refresh token rotation including rate limiting" (too long)
+
+### Description (required)
+
+- [ ] Explains what needs to be done
+- [ ] Includes acceptance criteria
+- [ ] Notes any constraints or considerations
+- [ ] References relevant files or patterns
+
+**Template:**
+```
+Implement [specific thing] that:
+- [Requirement 1]
+- [Requirement 2]
+
+Acceptance criteria:
+- [ ] Tests pass
+- [ ] Documentation updated
+- [ ] No type errors
+```
+
+### activeForm (recommended)
+
+- [ ] Uses present continuous tense
+- [ ] Matches the subject semantically
+- [ ] Reads naturally as spinner text
+
+| Subject | activeForm |
+|---------|-----------|
+| Add user validation | Adding user validation |
+| Fix broken tests | Fixing broken tests |
+| Update API schema | Updating API schema |
+
+## Dependency Design
+
+- [ ] Dependencies represent real execution order requirements
+- [ ] No circular dependency chains
+- [ ] Parallel work identified and unblocked appropriately
+- [ ] Critical path minimized
+
+## Task Granularity
+
+### Too Large
+
+Signs your task is too large:
+- Description exceeds 200 words
+- Estimated to touch 5+ files
+- Multiple distinct outcomes combined
+
+**Split strategy:**
+1. Identify sub-outcomes
+2. Create task per outcome
+3. Link with dependencies
+
+### Too Small
+
+Signs your task is too small:
+- Single line change
+- Pure refactoring without behavior change
+- Part of another task's natural work
+
+**Merge strategy:**
+1. Combine with related task
+2. Add to description as sub-item
+
+## Review Before Submitting
+
+- [ ] Each task has clear completion criteria
+- [ ] Dependencies are minimal but sufficient
+- [ ] Task can be understood without external context
+- [ ] activeForm provides useful progress feedback
+
+
+</Accordion>
+
+</Accordions>

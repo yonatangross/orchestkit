@@ -2,6 +2,7 @@
 title: "Mcp Patterns"
 description: "MCP server building, advanced patterns, and security hardening"
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -67,3 +68,696 @@ async def search(query: str) -> str:
 - `llm-integration` - LLM function calling patterns
 - `security-patterns` - General input sanitization and layered security
 - `streaming-api-patterns` - Real-time streaming patterns
+
+
+---
+
+## Rules (6)
+
+<Accordions type="multiple">
+
+<Accordion title="Advanced Composition — MEDIUM">
+
+
+## Advanced Composition
+
+Compose multiple MCP tools into pipelines, parallel fans, or conditional branches.
+
+**Incorrect -- manual sequential calls with no error handling:**
+```python
+result1 = await tool_a(data)
+result2 = await tool_b(result1)  # Crashes if tool_a fails
+result3 = await tool_c(result2)  # No way to recover
+```
+
+**Correct -- pipeline composition with error propagation:**
+```python
+from dataclasses import dataclass, field
+from typing import Any, Callable, Awaitable
+
+@dataclass
+class ToolResult:
+    success: bool
+    data: Any
+    error: str | None = None
+
+@dataclass
+class ComposedTool:
+    name: str
+    tools: dict[str, Callable[..., Awaitable[ToolResult]]]
+    pipeline: list[str]
+
+    async def execute(self, input_data: dict[str, Any]) -> ToolResult:
+        result = ToolResult(success=True, data=input_data)
+        for tool_name in self.pipeline:
+            if not result.success:
+                break
+            try:
+                result = await self.tools[tool_name](result.data)
+            except Exception as e:
+                result = ToolResult(success=False, data=None,
+                                    error=f"'{tool_name}' failed: {e}")
+        return result
+
+# Usage: search then summarize
+search_summarize = ComposedTool(
+    name="search_and_summarize",
+    tools={"search": search_docs, "summarize": summarize_content},
+    pipeline=["search", "summarize"],
+)
+```
+
+**Correct -- parallel composition with error isolation:**
+```python
+import asyncio
+
+async def parallel_execute(
+    tools: dict[str, Callable],
+    input_data: dict,
+) -> list[ToolResult]:
+    tasks = [
+        asyncio.create_task(tool(input_data))
+        for tool in tools.values()
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+
+    return [
+        ToolResult(success=False, data=None, error=str(r))
+        if isinstance(r, Exception) else r
+        for r in results
+    ]
+```
+
+**Correct -- conditional branching:**
+```python
+def content_router(data: dict) -> str:
+    return {
+        "text": "text_processor",
+        "image": "image_analyzer",
+        "audio": "audio_transcriber",
+    }.get(data.get("type", "text"), "text_processor")
+
+# Route to the right tool based on input
+tool_name = content_router(input_data)
+result = await tools[tool_name](input_data)
+```
+
+**Key rules:**
+- Pipeline: stop on first failure, propagate error context
+- Parallel: use `return_exceptions=True` to isolate failures
+- Branching: always include a default/fallback route
+- Keep composition depth shallow (3-4 steps max)
+
+
+</Accordion>
+
+<Accordion title="Advanced Resources — MEDIUM">
+
+
+## Advanced Resources
+
+Cache MCP resources with TTL and LRU eviction. Always track memory usage and clean up expired entries.
+
+**Incorrect -- no caching, no cleanup:**
+```python
+@mcp.resource("user://{id}/profile")
+async def get_profile(id: str) -> dict:
+    return await db.query(f"SELECT * FROM users WHERE id = {id}")  # SQL injection + no cache
+```
+
+**Correct -- resource manager with TTL and LRU eviction:**
+```python
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any
+import asyncio
+
+@dataclass
+class CachedResource:
+    data: Any
+    created_at: datetime
+    last_accessed: datetime
+    size_bytes: int = 0
+
+    def touch(self) -> None:
+        self.last_accessed = datetime.now()
+
+class MCPResourceManager:
+    def __init__(
+        self,
+        cache_ttl: timedelta = timedelta(minutes=15),
+        max_cache_size: int = 100,
+        max_memory_bytes: int = 100 * 1024 * 1024,  # 100MB
+    ):
+        self.cache_ttl = cache_ttl
+        self.max_cache_size = max_cache_size
+        self.max_memory_bytes = max_memory_bytes
+        self._cache: dict[str, CachedResource] = {}
+        self._lock = asyncio.Lock()
+
+    async def get(self, uri: str, loader: callable) -> Any:
+        async with self._lock:
+            if uri in self._cache:
+                resource = self._cache[uri]
+                if datetime.now() - resource.created_at <= self.cache_ttl:
+                    resource.touch()
+                    return resource.data
+                del self._cache[uri]  # Expired
+
+            data = await loader(uri)
+            await self._store(uri, data)
+            return data
+
+    async def _store(self, uri: str, data: Any) -> None:
+        import sys
+        size = sys.getsizeof(data)
+        # Evict LRU entries if needed
+        while (len(self._cache) >= self.max_cache_size
+               or self._total_size() + size > self.max_memory_bytes):
+            if not self._cache:
+                break
+            lru_uri = min(self._cache, key=lambda k: self._cache[k].last_accessed)
+            del self._cache[lru_uri]
+
+        now = datetime.now()
+        self._cache[uri] = CachedResource(
+            data=data, created_at=now, last_accessed=now, size_bytes=size,
+        )
+
+    def _total_size(self) -> int:
+        return sum(r.size_bytes for r in self._cache.values())
+
+    async def cleanup_expired(self) -> int:
+        async with self._lock:
+            now = datetime.now()
+            expired = [
+                uri for uri, r in self._cache.items()
+                if now - r.created_at > self.cache_ttl
+            ]
+            for uri in expired:
+                del self._cache[uri]
+            return len(expired)
+```
+
+**Correct -- FastMCP lifespan with resource lifecycle:**
+```python
+from contextlib import asynccontextmanager
+from mcp.server.fastmcp import FastMCP
+
+@asynccontextmanager
+async def app_lifespan(server: FastMCP):
+    resources = MCPResourceManager(
+        cache_ttl=timedelta(minutes=10),
+        max_memory_bytes=50 * 1024 * 1024,
+    )
+    try:
+        yield {"resources": resources}
+    finally:
+        await resources.cleanup_expired()  # Final cleanup
+
+mcp = FastMCP("cached-server", lifespan=app_lifespan)
+```
+
+**Key rules:**
+- Always set `max_cache_size` and `max_memory_bytes` caps
+- Use `asyncio.Lock` for thread-safe cache access
+- Run `cleanup_expired()` on shutdown and periodically
+- Parameterize queries -- never interpolate user input into SQL
+
+
+</Accordion>
+
+<Accordion title="Security Hardening — HIGH">
+
+
+## Security Hardening
+
+Verify every tool with hash-based integrity checks. Use zero-trust allowlists, capability enforcement, and secure sessions.
+
+**Incorrect -- trust all tools without verification:**
+```python
+tools = await mcp.list_tools()       # No vetting!
+result = await mcp.call_tool(name, args)  # No integrity check!
+session_id = f"{user_id}:{auth_token}"    # CREDENTIAL LEAK in session ID!
+```
+
+**Correct -- zero-trust tool allowlist with hash verification:**
+```python
+from hashlib import sha256
+from dataclasses import dataclass
+from datetime import datetime, timezone
+
+@dataclass
+class AllowedTool:
+    name: str
+    description_hash: str
+    capabilities: list[str]
+    approved_by: str
+    max_calls_per_minute: int = 60
+
+class MCPToolAllowlist:
+    def __init__(self):
+        self._allowed: dict[str, AllowedTool] = {}
+        self._call_counts: dict[str, list[datetime]] = {}
+
+    def register(self, tool: AllowedTool) -> None:
+        self._allowed[tool.name] = tool
+        self._call_counts[tool.name] = []
+
+    def validate(self, name: str, description: str) -> tuple[bool, str]:
+        if name not in self._allowed:
+            return False, f"Tool '{name}' not in allowlist"
+
+        expected = self._allowed[name]
+        actual_hash = sha256(description.encode('utf-8')).hexdigest()
+        if actual_hash != expected.description_hash:
+            return False, "Description changed (possible rug pull)"
+
+        # Rate limit
+        now = datetime.now(timezone.utc)
+        recent = [t for t in self._call_counts[name]
+                  if (now - t).total_seconds() < 60]
+        if len(recent) >= expected.max_calls_per_minute:
+            return False, "Rate limit exceeded"
+
+        self._call_counts[name] = recent + [now]
+        return True, "OK"
+```
+
+**Correct -- capability enforcement (least privilege):**
+```python
+from enum import Enum
+
+class ToolCapability(Enum):
+    READ_FILE = "read:file"
+    WRITE_FILE = "write:file"
+    EXECUTE_COMMAND = "execute:command"
+    NETWORK_REQUEST = "network:request"
+
+SENSITIVE_PATHS = ["/etc/passwd", "~/.ssh", ".env", "credentials"]
+
+class CapabilityEnforcer:
+    def __init__(self):
+        self._declarations: dict[str, set[ToolCapability]] = {}
+
+    def register(self, tool_name: str, caps: set[ToolCapability]) -> None:
+        self._declarations[tool_name] = caps
+
+    def check(self, tool_name: str, cap: ToolCapability, resource: str = "") -> tuple[bool, str]:
+        if tool_name not in self._declarations:
+            return False, "No capability declaration"
+        if cap not in self._declarations[tool_name]:
+            return False, f"Capability {cap.value} not allowed"
+        if cap in (ToolCapability.READ_FILE, ToolCapability.WRITE_FILE):
+            if any(s in resource for s in SENSITIVE_PATHS):
+                return False, "Sensitive path denied"
+        return True, "Allowed"
+```
+
+**Correct -- secure session management:**
+```python
+import secrets
+
+def generate_session_id() -> str:
+    return secrets.token_urlsafe(32)  # 256 bits of entropy
+
+# NEVER: session_id = f"{user_id}:{auth_token}"
+# ALWAYS: session_id = secrets.token_urlsafe(32)
+```
+
+**Rug pull detection -- hash comparison on every call:**
+```python
+class ToolIntegrityMonitor:
+    def __init__(self):
+        self._fingerprints: dict[str, str] = {}
+
+    def register(self, tool: dict) -> None:
+        desc = tool.get("description", "")
+        params = json.dumps(tool.get("parameters", {}), sort_keys=True)
+        combined = sha256(f"{desc}:{params}".encode()).hexdigest()
+        self._fingerprints[tool["name"]] = combined
+
+    def verify(self, tool: dict) -> tuple[bool, str | None]:
+        name = tool["name"]
+        if name not in self._fingerprints:
+            return False, "Tool not registered"
+        desc = tool.get("description", "")
+        params = json.dumps(tool.get("parameters", {}), sort_keys=True)
+        current = sha256(f"{desc}:{params}".encode()).hexdigest()
+        if current != self._fingerprints[name]:
+            return False, f"Tool '{name}' modified since registration"
+        return True, None
+```
+
+**Key rules:**
+- Every tool must be explicitly vetted before use (zero-trust)
+- Hash-verify description + parameters on every invocation
+- Use `secrets.token_urlsafe(32)` for session IDs, never embed auth tokens
+- Enforce least-privilege capabilities per tool
+- Rate limit tool calls (per-tool and per-session)
+- Auto-suspend tools that fail integrity checks
+
+
+</Accordion>
+
+<Accordion title="Security Injection Defense — HIGH">
+
+
+## Security Injection Defense
+
+Treat ALL tool descriptions as untrusted input. Normalize encodings, detect injection patterns, and sanitize before LLM exposure.
+
+**Incorrect -- raw tool description passed to LLM:**
+```python
+# INJECTION RISK: description may contain "ignore previous instructions..."
+prompt = f"Use this tool: {tool.description}"
+tools = await mcp.list_tools()  # No validation!
+```
+
+**Correct -- sanitize tool descriptions before use:**
+```python
+import re
+
+FORBIDDEN_PATTERNS = {
+    "critical": [
+        (r"ignore\s+(all\s+)?previous", "instruction_override"),
+        (r"you\s+are\s+now", "role_hijack"),
+        (r"forget\s+(everything|all|above)", "context_wipe"),
+        (r"system\s*prompt", "system_access"),
+    ],
+    "high": [
+        (r"IMPORTANT\s*:", "attention_hijack"),
+        (r"override\s+(all\s+)?settings", "config_override"),
+        (r"<\|.*?\|>", "delimiter_attack"),
+        (r"reveal\s+(your|the)\s+(prompt|instructions)", "prompt_extraction"),
+    ],
+}
+
+def sanitize_description(description: str) -> tuple[str, list[str]]:
+    """Sanitize tool description. Returns (sanitized, detected_threats)."""
+    if not description:
+        return "", []
+
+    threats = []
+    sanitized = normalize_encodings(description)
+
+    for level in ["critical", "high"]:
+        for pattern, name in FORBIDDEN_PATTERNS[level]:
+            if re.search(pattern, sanitized, re.I):
+                threats.append(f"{level}:{name}")
+                sanitized = re.sub(pattern, "[REDACTED]", sanitized, flags=re.I)
+
+    return sanitized.strip(), threats
+```
+
+**Correct -- normalize encodings to reveal hidden attacks:**
+```python
+import html
+import urllib.parse
+import unicodedata
+
+HOMOGLYPHS = {
+    '\u0430': 'a', '\u0435': 'e', '\u043e': 'o',
+    '\u0440': 'p', '\u0441': 'c', '\u0443': 'y',
+}
+
+def normalize_encodings(text: str) -> str:
+    """Decode HTML entities, URL encoding, hex escapes, homoglyphs."""
+    result = html.unescape(text)                          # &#73; -> I
+    result = urllib.parse.unquote(result)                  # %69 -> i
+    result = re.sub(                                       # \x69 -> i
+        r'\\x([0-9a-fA-F]{2})',
+        lambda m: chr(int(m.group(1), 16)),
+        result,
+    )
+    result = unicodedata.normalize('NFKC', result)        # Unicode normalization
+    for glyph, latin in HOMOGLYPHS.items():               # Cyrillic -> Latin
+        result = result.replace(glyph, latin)
+    return result
+```
+
+**Correct -- filter sensitive data from tool responses:**
+```python
+RESPONSE_FILTERS = [
+    (r"api[_-]?key\s*[:=]\s*\S+", "[API_KEY_REDACTED]"),
+    (r"password\s*[:=]\s*\S+", "[PASSWORD_REDACTED]"),
+    (r"bearer\s+\S+", "[TOKEN_REDACTED]"),
+    (r"-----BEGIN.*KEY-----[\s\S]*-----END.*KEY-----", "[PRIVATE_KEY_REDACTED]"),
+]
+
+def filter_tool_response(response: str) -> str:
+    for pattern, replacement in RESPONSE_FILTERS:
+        response = re.sub(pattern, replacement, response, flags=re.I)
+    return response
+```
+
+**Key rules:**
+- Always normalize encodings BEFORE pattern matching
+- Block on critical threats (instruction override, role hijack)
+- Redact high-severity patterns but allow the tool through
+- Filter tool responses for secrets before they reach the LLM
+- Test with known attack payloads: base64, homoglyphs, HTML entities
+
+
+</Accordion>
+
+<Accordion title="Server Setup — HIGH">
+
+
+## Server Setup
+
+Use FastMCP with lifespan context for shared resources. Define tools with explicit schemas and return errors as text content.
+
+**Incorrect -- no lifecycle, raw exception:**
+```python
+from mcp.server.fastmcp import FastMCP
+
+mcp = FastMCP("my-server")
+db = Database.connect()  # Global -- never cleaned up
+
+@mcp.tool()
+def query(sql: str) -> str:
+    return db.query(sql)  # Crashes on connection failure
+```
+
+**Correct -- FastMCP with lifespan and error handling:**
+```python
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from dataclasses import dataclass
+from mcp.server.fastmcp import Context, FastMCP
+
+@dataclass
+class AppContext:
+    db: Database
+    cache: CacheService
+
+@asynccontextmanager
+async def app_lifespan(server: FastMCP) -> AsyncIterator[AppContext]:
+    db = await Database.connect()
+    cache = await CacheService.connect()
+    try:
+        yield AppContext(db=db, cache=cache)
+    finally:
+        await cache.disconnect()
+        await db.disconnect()
+
+mcp = FastMCP("my-server", lifespan=app_lifespan)
+
+@mcp.tool()
+def query(sql: str, ctx: Context) -> str:
+    """Execute a read-only SQL query. Returns up to 100 rows."""
+    try:
+        app = ctx.request_context.lifespan_context
+        return app.db.query(sql)
+    except DatabaseError as e:
+        return f"Error: {e}"  # Claude sees and can retry
+```
+
+**Tool definition best practices:**
+```python
+from mcp.types import Tool
+
+Tool(
+    name="search_products",
+    description="Search product catalog. Returns up to 10 results.",
+    inputSchema={
+        "type": "object",
+        "properties": {
+            "query": {"type": "string", "description": "Search terms"},
+            "category": {
+                "type": "string",
+                "enum": ["electronics", "clothing", "books"],
+            },
+            "max_results": {
+                "type": "integer", "minimum": 1, "maximum": 50, "default": 10,
+            },
+        },
+        "required": ["query"],
+    },
+)
+```
+
+**Key rules:**
+- Always use lifespan for database connections, caches, HTTP clients
+- Return errors as `TextContent` -- never raise unhandled exceptions
+- Include `description` for every schema property
+- Use `enum` for fixed option sets, `minimum`/`maximum` for numbers
+- Use `asyncio.to_thread()` for blocking synchronous operations
+- Limit response sizes (Claude has context limits)
+
+
+</Accordion>
+
+<Accordion title="Server Transport — HIGH">
+
+
+## Server Transport
+
+Choose stdio for CLI/Desktop, SSE for browsers, Streamable HTTP for production multi-client.
+
+**Transport decision matrix:**
+
+| Transport | Use Case | Pros | Cons |
+|-----------|----------|------|------|
+| stdio | CLI, Claude Desktop | Simple, no network | Single client only |
+| SSE | Web apps, browsers | Browser-compatible | HTTP overhead |
+| Streamable HTTP | Production APIs | Multi-client, scalable | More setup |
+
+**Incorrect -- hardcoded transport, no configuration:**
+```python
+# Forces stdio -- can't switch to web deployment
+from mcp.server.stdio import stdio_server
+
+async def main():
+    async with stdio_server() as (read, write):
+        await server.run(read, write, server.create_initialization_options())
+```
+
+**Correct -- Python stdio server:**
+```python
+from mcp.server import Server
+from mcp.server.stdio import stdio_server
+
+server = Server("my-tools")
+
+# Register handlers...
+
+async def main():
+    async with stdio_server() as (read, write):
+        await server.run(read, write, server.create_initialization_options())
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())
+```
+
+**Correct -- TypeScript stdio server:**
+```typescript
+import { Server } from "@modelcontextprotocol/sdk/server/index.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+
+const server = new Server(
+  { name: "my-tools", version: "1.0.0" },
+  { capabilities: { tools: {} } }
+);
+
+// Register handlers...
+
+await server.connect(new StdioServerTransport());
+```
+
+**Correct -- SSE for web deployment:**
+```python
+from mcp.server.sse import SseServerTransport
+from starlette.applications import Starlette
+from starlette.routing import Route
+
+sse = SseServerTransport("/messages")
+
+async def handle_sse(request):
+    async with sse.connect_sse(
+        request.scope, request.receive, request._send
+    ) as streams:
+        await server.run(
+            streams[0], streams[1],
+            server.create_initialization_options()
+        )
+
+app = Starlette(routes=[
+    Route("/sse", endpoint=handle_sse),
+    Route("/messages", endpoint=sse.handle_post_message, methods=["POST"]),
+])
+```
+
+**Claude Desktop configuration:**
+```json
+{
+  "mcpServers": {
+    "my-tools": {
+      "command": "npx",
+      "args": ["-y", "@myorg/my-tools"],
+      "env": { "DATABASE_URL": "postgres://..." }
+    },
+    "python-tools": {
+      "command": "uv",
+      "args": ["run", "python", "-m", "my_mcp_server"],
+      "cwd": "/path/to/project"
+    }
+  }
+}
+```
+
+**Key rules:**
+- Use `uv` (not `pip`) for Python MCP server commands in Claude Desktop config
+- Set `cwd` when the server needs access to project files
+- Pass secrets via `env`, never hardcode in args
+- TypeScript servers: use `npx -y` for zero-install execution
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Mcp Server Checklist">
+
+# MCP Server Pre-Deployment Checklist
+
+## Server Setup
+- [ ] FastMCP lifespan used for resource management
+- [ ] Transport selected (stdio for CLI, SSE for web, Streamable HTTP for production)
+- [ ] All tools have descriptive docstrings
+- [ ] Input validation on all tool arguments
+- [ ] Error responses return text content (not exceptions)
+
+## Security Hardening
+- [ ] Zero-trust tool allowlist configured
+- [ ] Tool description sanitization enabled
+- [ ] Hash verification on tool invocations
+- [ ] No secrets in tool output (API keys, credentials)
+- [ ] Human-in-the-loop for high-risk operations
+- [ ] Encoding normalization applied to inputs
+- [ ] Injection pattern detection active
+
+## Resource Management
+- [ ] Response sizes bounded (Claude context limits)
+- [ ] Resource caching with TTL and LRU eviction
+- [ ] Memory cap configured for resource cache
+- [ ] No blocking synchronous code in async server
+
+## Testing
+- [ ] Tool invocations tested with valid and invalid inputs
+- [ ] Security rules validated against injection payloads
+- [ ] Transport failover tested (reconnect behavior)
+- [ ] Lifecycle cleanup verified (no leaked connections)
+
+
+</Accordion>
+
+</Accordions>

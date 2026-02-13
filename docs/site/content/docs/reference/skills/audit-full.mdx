@@ -2,6 +2,7 @@
 title: "Audit Full"
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-red">max</span>
 
@@ -307,3 +308,573 @@ Before finalizing the report, verify with `checklists/audit-completion.md`.
 - [Severity Matrix](assets/severity-matrix.md) — Finding classification criteria
 - [Audit Completion Checklist](checklists/audit-completion.md) — Pre-report verification
 - [Token Estimation Script](scripts/estimate-tokens.sh) — Automated LOC → token estimation
+
+
+---
+
+## References (4)
+
+<Accordions type="multiple">
+
+<Accordion title="Architecture Review Guide">
+
+# Architecture Review Guide
+
+Pattern consistency, coupling analysis, and structural health assessment.
+
+## Dependency Direction Analysis
+
+### Clean Architecture Layers
+
+```
+┌─────────────────────────────┐
+│  Presentation (routes, UI)  │  ← Outermost
+├─────────────────────────────┤
+│  Application (use cases)    │
+├─────────────────────────────┤
+│  Domain (entities, rules)   │
+├─────────────────────────────┤
+│  Infrastructure (DB, APIs)  │  ← Outermost
+└─────────────────────────────┘
+
+Rule: Dependencies point INWARD only.
+Violation: Domain importing from Infrastructure.
+```
+
+### Detection Method
+
+1. Map each file to a layer based on directory structure
+2. Parse imports/requires in each file
+3. Flag imports that point outward (wrong direction)
+
+```
+# VIOLATION EXAMPLE:
+# src/domain/user.ts imports from src/infrastructure/db.ts
+import { dbPool } from '../infrastructure/db'  // Wrong direction!
+
+# CORRECT:
+# src/domain/user.ts defines interface
+# src/infrastructure/db.ts implements it
+```
+
+## Circular Dependency Detection
+
+### What to Look For
+
+```
+# File A imports File B, File B imports File A
+// src/auth/service.ts
+import { UserRepo } from '../users/repo'
+
+// src/users/repo.ts
+import { AuthService } from '../auth/service'  // Circular!
+```
+
+### Resolution Patterns
+
+| Pattern | When to Use |
+|---------|-------------|
+| Extract interface | Both modules depend on abstraction |
+| Merge modules | Modules are conceptually one unit |
+| Event-based | Decouple with pub/sub or event emitter |
+| Dependency injection | Inject at runtime, not import time |
+
+## Pattern Consistency Check
+
+Look for the same problem solved differently across the codebase:
+
+| Area | Inconsistency Example |
+|------|----------------------|
+| Error handling | Some files throw, others return Result, others use callbacks |
+| Validation | Zod in some files, Joi in others, manual checks elsewhere |
+| Data access | Raw SQL in some, ORM in others, mixed in same file |
+| Logging | console.log, winston, pino, custom logger all present |
+| Config | env vars, config files, hardcoded, mixed approaches |
+| HTTP clients | fetch, axios, got, node-fetch all imported |
+
+### Scoring
+
+| Consistency | Score |
+|-------------|-------|
+| Single pattern everywhere | 10/10 |
+| Primary + 1 legacy pattern | 7/10 |
+| 2-3 competing patterns | 4/10 |
+| No discernible pattern | 1/10 |
+
+## Coupling Analysis
+
+### Metrics to Calculate
+
+| Metric | Formula | Healthy Range |
+|--------|---------|---------------|
+| Afferent coupling (Ca) | Modules that depend ON this module | &lt; 10 |
+| Efferent coupling (Ce) | Modules this module depends ON | &lt; 8 |
+| Instability (I) | Ce / (Ca + Ce) | Varies by layer |
+| Abstractness (A) | Interfaces / Total types | > 0.3 for core |
+
+### Module Boundary Health
+
+```
+# Count imports between directories:
+src/auth/ → src/users/    : 5 imports (acceptable)
+src/auth/ → src/payments/  : 12 imports (high coupling!)
+src/utils/ → src/auth/     : 0 imports (good, utils is generic)
+```
+
+### Red Flags
+
+- Module with > 15 external dependents (God module)
+- Utility file with > 500 lines (needs splitting)
+- Circular import chains > 2 files deep
+- Config/env imported in > 20 files (use DI instead)
+
+## Layering Violations
+
+| Violation | Example | Fix |
+|-----------|---------|-----|
+| DB in route handler | `router.get('/', async (req, res) => \{ db.query(...) \})` | Extract to service layer |
+| Business logic in middleware | Auth middleware doing role-based access with complex rules | Move to use-case layer |
+| HTTP in domain | Domain entity calling external API | Inject via port/adapter |
+| UI logic in API | API returning HTML-formatted strings | Return data, format in frontend |
+
+## Architecture Diagram Output
+
+Generate ASCII diagram showing module dependencies:
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│  routes   │────▶│ services │────▶│  repos   │
+└──────────┘     └──────────┘     └──────────┘
+      │                │                │
+      ▼                ▼                ▼
+┌──────────┐     ┌──────────┐     ┌──────────┐
+│middleware│     │  domain  │     │    db     │
+└──────────┘     └──────────┘     └──────────┘
+
+Legend: ──▶ = imports from
+Violations marked with ✗
+```
+
+
+</Accordion>
+
+<Accordion title="Dependency Audit Guide">
+
+# Dependency Audit Guide
+
+License compliance, CVE checking, and version currency analysis.
+
+## CVE Checking
+
+### Automated Scanners
+
+```bash
+# JavaScript/TypeScript
+npm audit --json
+npx better-npm-audit audit
+
+# Python
+pip-audit --format=json
+safety check --json
+
+# Go
+govulncheck ./...
+
+# Rust
+cargo audit
+```
+
+### Manual CVE Check
+
+For dependencies without scanner coverage:
+1. Check version in `package.json` / `pyproject.toml` / `go.mod`
+2. Search [NVD](https://nvd.nist.gov/) or [OSV](https://osv.dev/) for package name
+3. Compare installed version against affected version ranges
+4. Classify by CVSS score
+
+| CVSS Score | Severity | Action |
+|-----------|----------|--------|
+| 9.0-10.0 | CRITICAL | Update immediately |
+| 7.0-8.9 | HIGH | Update within 1 week |
+| 4.0-6.9 | MEDIUM | Update within 1 month |
+| 0.1-3.9 | LOW | Track in backlog |
+
+## License Compliance
+
+### License Risk Tiers
+
+| Tier | Licenses | Risk in Proprietary Code |
+|------|----------|--------------------------|
+| Permissive | MIT, BSD-2, BSD-3, ISC, Apache-2.0 | Safe |
+| Weak copyleft | LGPL-2.1, LGPL-3.0, MPL-2.0 | Safe if dynamically linked |
+| Strong copyleft | GPL-2.0, GPL-3.0, AGPL-3.0 | Requires source disclosure |
+| Unknown | UNLICENSED, custom | Review manually |
+
+### Detection Method
+
+```bash
+# JavaScript
+npx license-checker --json --production
+
+# Python
+pip-licenses --format=json --with-urls
+
+# Check for problematic licenses
+npx license-checker --failOn "GPL-2.0;GPL-3.0;AGPL-3.0"
+```
+
+### What to Flag
+
+- Any GPL/AGPL dependency in proprietary codebase → CRITICAL
+- UNLICENSED dependencies → HIGH (legal risk)
+- Dependencies with no license file → MEDIUM
+- License changed between versions → LOW (track)
+
+## Version Currency
+
+### Currency Classification
+
+| Status | Definition | Example |
+|--------|-----------|---------|
+| Current | Within 1 minor version of latest | react 19.1 when 19.2 is latest |
+| Stale | 1+ major version behind | react 18.x when 19.x is latest |
+| Outdated | 2+ major versions behind | react 17.x when 19.x is latest |
+| EOL | No longer maintained | moment.js, request |
+
+### High-Risk Outdated Patterns
+
+| Pattern | Risk |
+|---------|------|
+| Framework 2+ majors behind | Missing security patches |
+| Auth library outdated | Known vulnerabilities |
+| TLS/crypto library outdated | Weak algorithms |
+| ORM/DB driver outdated | SQL injection patches missing |
+
+## Transitive Dependency Risk
+
+### Deep Chains
+
+```
+your-app
+  └── package-a@1.0.0
+       └── package-b@2.0.0
+            └── package-c@3.0.0  ← vulnerability here
+```
+
+**Risk**: You don't control `package-c`, and updating `package-a` may not update it.
+
+### Detection
+
+```bash
+# Show dependency tree
+npm ls --all --json | jq '.dependencies'
+
+# Find deep chains (>4 levels)
+npm ls --all 2>/dev/null | grep -E "^.{16,}" | head -20
+```
+
+### Mitigation
+
+| Strategy | When |
+|----------|------|
+| `overrides` (npm) / `resolutions` (yarn) | Force specific version |
+| Replace parent package | If parent is unmaintained |
+| Vendor and patch | Last resort for critical fixes |
+
+## Unused Dependencies
+
+### Detection
+
+```bash
+# JavaScript
+npx depcheck
+
+# Python
+pip-extra-reqs --ignore-module=tests .
+```
+
+### What to Flag
+
+- Installed but never imported → MEDIUM (bloat, attack surface)
+- Dev dependency in production deps → LOW (no runtime risk)
+- Multiple packages for same purpose → LOW (e.g., both lodash and underscore)
+
+
+</Accordion>
+
+<Accordion title="Security Audit Guide">
+
+# Security Audit Guide
+
+Cross-file vulnerability analysis patterns for whole-codebase audits.
+
+## Data Flow Tracing
+
+Trace user input from entry to storage across file boundaries:
+
+```
+Entry Point → Validation → Processing → Storage
+(route.ts)    (middleware)   (service.ts)  (repo.ts)
+```
+
+### What to Check at Each Stage
+
+| Stage | Check | Severity if Missing |
+|-------|-------|-------------------|
+| Entry | Input validation, type coercion | HIGH |
+| Validation | Schema validation, sanitization | CRITICAL |
+| Processing | Business logic auth checks | HIGH |
+| Storage | Parameterized queries, encoding | CRITICAL |
+
+## Cross-File Vulnerability Patterns
+
+### 1. Auth Bypass via Missing Middleware
+
+```
+# PATTERN: Route defined without auth middleware
+router.get('/admin/users', getUsersHandler)  # No authMiddleware!
+
+# Compare against protected routes:
+router.get('/admin/settings', authMiddleware, getSettingsHandler)
+```
+
+**Detection**: Glob all route files, check each handler has auth middleware.
+
+### 2. SQL Injection via String Interpolation
+
+```
+# PATTERN: Variable in SQL string (any file)
+query(`SELECT * FROM users WHERE id = '${userId}'`)
+
+# Safe pattern:
+query('SELECT * FROM users WHERE id = $1', [userId])
+```
+
+**Detection**: Grep for template literals containing SQL keywords.
+
+### 3. Command Injection via Shell Exec
+
+```
+# PATTERN: User input in exec/spawn
+exec(`git log --author="${username}"`)
+
+# Safe pattern:
+execFile('git', ['log', `--author=${username}`])
+```
+
+**Detection**: Grep for `exec(`, `execSync(`, `spawn(` with template literals.
+
+### 4. Secret Leakage
+
+```
+# PATTERN: Hardcoded secrets
+const API_KEY = 'sk-live-abc123...'
+const password = 'admin123'
+
+# PATTERN: Secrets in error messages
+throw new Error(`Auth failed for ${password}`)
+
+# PATTERN: Secrets in logs
+console.log(`Connecting with key: ${apiKey}`)
+```
+
+**Detection**: Grep for common secret patterns (`sk-`, `ghp_`, `Bearer `, password assignments).
+
+### 5. SSRF via Unvalidated URLs
+
+```
+# PATTERN: User-controlled URL in fetch/axios
+const response = await fetch(req.body.url)
+
+# Safe pattern:
+const url = new URL(req.body.url)
+if (!ALLOWED_HOSTS.includes(url.hostname)) throw new Error('Blocked')
+```
+
+### 6. Path Traversal
+
+```
+# PATTERN: User input in file path
+const filePath = path.join(uploadDir, req.params.filename)
+// filename could be '../../etc/passwd'
+
+# Safe pattern:
+const resolved = path.resolve(uploadDir, req.params.filename)
+if (!resolved.startsWith(uploadDir)) throw new Error('Blocked')
+```
+
+## OWASP Top 10 Mapping
+
+| OWASP | What to Look For |
+|-------|-----------------|
+| A01 Broken Access Control | Missing auth middleware, IDOR, privilege escalation |
+| A02 Cryptographic Failures | Weak hashing, HTTP for sensitive data, hardcoded keys |
+| A03 Injection | SQL, command, template injection across boundaries |
+| A04 Insecure Design | Missing rate limiting, no abuse prevention |
+| A05 Security Misconfiguration | Debug mode in prod, default credentials, CORS * |
+| A06 Vulnerable Components | Outdated deps with known CVEs |
+| A07 Auth Failures | Weak passwords, no MFA, session fixation |
+| A08 Data Integrity | Unsigned updates, CI/CD without verification |
+| A09 Logging Failures | Missing audit logs, secrets in logs |
+| A10 SSRF | Unvalidated URLs in server-side requests |
+
+## Severity Classification
+
+| Severity | Criteria |
+|----------|----------|
+| CRITICAL | Exploitable without authentication, data breach risk |
+| HIGH | Exploitable with low-privilege access, system compromise |
+| MEDIUM | Requires specific conditions, limited impact |
+| LOW | Informational, defense-in-depth improvement |
+
+
+</Accordion>
+
+<Accordion title="Token Estimation">
+
+# Token Estimation Guide
+
+Planning context budget for whole-codebase loading.
+
+## Token Ratios by File Type
+
+| File Type | Tokens/Line | Tokens/KB | Notes |
+|-----------|-------------|-----------|-------|
+| TypeScript/JavaScript | ~8 | ~320 | Variable names inflate count |
+| Python | ~7 | ~280 | Indentation is efficient |
+| Go | ~7 | ~280 | Verbose but predictable |
+| JSON | ~5 | ~200 | High repetition, low entropy |
+| YAML | ~5 | ~200 | Similar to JSON |
+| Markdown | ~6 | ~240 | Prose-heavy content |
+| CSS/SCSS | ~6 | ~240 | Property-value pairs |
+| SQL | ~6 | ~240 | Keyword-heavy |
+| HTML/JSX | ~9 | ~360 | Attribute-heavy markup |
+| Protobuf/GraphQL schema | ~5 | ~200 | Declarative, repetitive |
+
+## Quick Estimation Formula
+
+```
+Total tokens ≈ Total LOC × 7.5 (average)
+```
+
+For more precision:
+```
+Total tokens ≈ (TS lines × 8) + (Py lines × 7) + (Config lines × 5) + (Other × 7)
+```
+
+## Context Budget Planning
+
+| Context Size | Total | Reserved for Prompt | Available for Code | Max LOC |
+|-------------|-------|--------------------|--------------------|---------|
+| 200K | 200,000 | ~50,000 | ~150,000 | ~20,000 |
+| 500K | 500,000 | ~50,000 | ~450,000 | ~60,000 |
+| 1M | 1,000,000 | ~50,000 | ~950,000 | ~125,000 |
+
+**Reserved for prompt** includes: system prompt, skill content, analysis instructions, and output space.
+
+## Exclusion Priority
+
+When codebase exceeds budget, exclude in this order:
+
+1. **Always exclude**: `node_modules/`, `vendor/`, `.venv/`, `dist/`, `build/`, `.next/`
+2. **Exclude first**: Test fixtures, snapshots, migration files, generated code
+3. **Exclude second**: Test files (unless auditing test quality)
+4. **Exclude third**: Documentation, README files
+5. **Keep last**: Source files, config, entry points
+
+## Loading Priority
+
+When partially loading, prioritize in this order:
+
+1. **Entry points**: `index.ts`, `main.py`, `app.ts`, `server.ts`
+2. **Route definitions**: API routes, page routes
+3. **Middleware/interceptors**: Auth, validation, error handling
+4. **Business logic**: Services, use cases, domain models
+5. **Data access**: Repositories, ORM models, migrations
+6. **Config**: Environment config, feature flags, secrets management
+7. **Utilities**: Shared helpers, common functions
+
+## Real-World Sizing Examples
+
+| Project Type | Typical LOC | Estimated Tokens | Fits in |
+|-------------|-------------|-----------------|---------|
+| Microservice | 5-15K | 40-120K | 200K |
+| Small app | 15-30K | 120-240K | 500K |
+| Medium app | 30-60K | 240-480K | 1M |
+| Large monolith | 60-150K | 480K-1.2M | Partial load |
+| Monorepo | 150K+ | 1M+ | Directory-scoped only |
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Audit Completion">
+
+# Audit Completion Checklist
+
+Verify before finalizing the audit report.
+
+## Pre-Report Verification
+
+### Coverage
+
+- [ ] All source files in scope were loaded (check file count vs glob count)
+- [ ] Entry points identified and traced
+- [ ] Configuration files reviewed (env, docker, CI)
+- [ ] Lock files checked (package-lock.json, poetry.lock, go.sum)
+
+### Security (if applicable)
+
+- [ ] All public endpoints checked for auth middleware
+- [ ] Data flow traced from input → storage for at least 3 critical paths
+- [ ] Secret detection scan completed (grep for API keys, passwords, tokens)
+- [ ] OWASP Top 10 categories all considered (mark N/A if not applicable)
+- [ ] Third-party integrations checked for SSRF risk
+- [ ] File upload/download paths checked for traversal
+
+### Architecture (if applicable)
+
+- [ ] Dependency direction verified (imports flow inward)
+- [ ] Circular dependencies checked
+- [ ] Pattern consistency evaluated (error handling, validation, data access)
+- [ ] Module coupling analyzed (cross-directory import counts)
+- [ ] Layer violations identified
+- [ ] ASCII architecture diagram generated
+
+### Dependencies (if applicable)
+
+- [ ] `npm audit` / `pip-audit` / equivalent run
+- [ ] License compliance checked (no GPL in proprietary)
+- [ ] Outdated packages identified with severity
+- [ ] Unused dependencies flagged
+- [ ] Transitive dependency risks assessed
+
+### Report Quality
+
+- [ ] Every finding has specific file:line references
+- [ ] Every finding has a remediation suggestion with code
+- [ ] Severity classifications match the severity matrix
+- [ ] No duplicate findings (same root cause reported once)
+- [ ] False positives verified and removed
+- [ ] Recommendations prioritized by impact and effort
+- [ ] Executive summary accurately reflects findings
+- [ ] Health score calculated correctly
+
+### Completeness
+
+- [ ] All selected audit modes completed
+- [ ] Context utilization reported (tokens used / available)
+- [ ] Files list in appendix matches loaded files
+- [ ] Report follows the template structure
+
+
+</Accordion>
+
+</Accordions>

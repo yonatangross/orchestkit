@@ -2,6 +2,7 @@
 title: "Devops Deployment"
 description: "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -296,3 +297,1383 @@ Use Opus 4.6 adaptive thinking for:
 - Prometheus metrics exposition
 - Grafana dashboard queries
 - Alerting rules for SLOs
+
+---
+
+## References (6)
+
+<Accordions type="multiple">
+
+<Accordion title="Ci Cd Pipelines">
+
+# CI/CD Pipelines
+
+Comprehensive CI/CD patterns for GitHub Actions, caching, matrix testing, and artifact management.
+
+## Branch Strategy
+
+**Recommended: Git Flow with Feature Branches**
+```
+main (production) ─────●────────●──────>
+                       ┃        ┃
+dev (staging) ─────●───●────●───●──────>
+                   ┃        ┃
+feature/* ─────────●────────┘
+                   ▲
+                   └─ PR required, CI checks, code review
+```
+
+**Branch protection rules:**
+- `main`: Require PR + 2 approvals + all checks pass
+- `dev`: Require PR + 1 approval + all checks pass
+- Feature branches: No direct commits to main/dev
+
+## GitHub Actions Caching Strategy
+
+```yaml
+- name: Cache Dependencies
+  uses: actions/cache@v3
+  with:
+    path: |
+      ~/.npm
+      node_modules
+      backend/.venv
+    key: ${{ runner.os }}-deps-${{ hashFiles('**/package-lock.json', '**/poetry.lock') }}
+    restore-keys: |
+      ${{ runner.os }}-deps-
+```
+
+**Cache hit ratio impact:**
+- Without cache: 2-3 min install time
+- With cache: 10-20 sec install time
+- **~85% time savings** on typical workflows
+
+## Artifact Management
+
+```yaml
+# Build and upload artifact
+- name: Build Application
+  run: npm run build
+
+- name: Upload Build Artifact
+  uses: actions/upload-artifact@v3
+  with:
+    name: build-${{ github.sha }}
+    path: dist/
+    retention-days: 7
+
+# Download in deployment job
+- name: Download Build Artifact
+  uses: actions/download-artifact@v3
+  with:
+    name: build-${{ github.sha }}
+    path: dist/
+```
+
+**Benefits:**
+- Avoid rebuilding in deployment job
+- Deploy exact tested artifact (byte-for-byte match)
+- Retention policies prevent storage bloat
+
+## Matrix Testing
+
+```yaml
+strategy:
+  matrix:
+    node-version: [18, 20, 22]
+    os: [ubuntu-latest, windows-latest]
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm test
+```
+
+## Complete Backend CI/CD Example
+
+```yaml
+name: Backend CI/CD
+
+on:
+  push:
+    branches: [main, dev]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main, dev]
+    paths: ['backend/**']
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Cache Poetry Dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pypoetry
+          key: ${{ runner.os }}-poetry-${{ hashFiles('backend/poetry.lock') }}
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Install Dependencies
+        run: poetry install
+
+      - name: Run Ruff Format Check
+        run: poetry run ruff format --check app/
+
+      - name: Run Ruff Lint
+        run: poetry run ruff check app/
+
+      - name: Run Type Check
+        run: poetry run mypy app/ --ignore-missing-imports
+
+      - name: Run Tests
+        run: poetry run pytest tests/ --cov=app --cov-report=xml
+
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./backend/coverage.xml
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Trivy Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'backend/'
+          severity: 'CRITICAL,HIGH'
+```
+
+**Key features:**
+- Path filtering (only run on backend changes)
+- Poetry dependency caching
+- Comprehensive quality checks (format, lint, type, test)
+- Security scanning with Trivy
+
+## Pipeline Stages
+
+1. **Lint & Type Check** - Code quality gates
+2. **Unit Tests** - Test coverage with reporting
+3. **Security Scan** - npm audit + Trivy vulnerability scanner
+4. **Build & Push** - Docker image to container registry
+5. **Deploy Staging** - Environment-gated deployment
+6. **Deploy Production** - Manual approval or automated
+
+## Best Practices
+
+1. **Fast feedback** - tests complete in &lt; 5 min
+2. **Fail fast** - stop on first failure
+3. **Cache dependencies** - npm/pip cache
+4. **Matrix testing** - multiple Node/Python versions
+5. **Secrets management** - use GitHub Secrets
+6. **Branch protection** - require passing tests
+
+See `scripts/github-actions-pipeline.yml` for complete examples.
+
+</Accordion>
+
+<Accordion title="Deployment Strategies">
+
+# Deployment Strategies
+
+Blue-green, canary, and rolling deployment patterns.
+
+## Rolling Deployment (Default)
+
+Update pods gradually:
+
+```yaml
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+```
+
+- **Pros**: No downtime, gradual rollout
+- **Cons**: Mixed versions running simultaneously
+
+## Blue-Green Deployment
+
+Two identical environments, switch traffic:
+
+```bash
+# Deploy to green (inactive)
+kubectl apply -f green-deployment.yaml
+
+# Test green
+curl https://green.example.com/health
+
+# Switch traffic (update service selector)
+kubectl patch service myapp -p '{"spec":{"selector":{"version":"green"}}}'
+
+# Rollback if needed
+kubectl patch service myapp -p '{"spec":{"selector":{"version":"blue"}}}'
+```
+
+- **Pros**: Instant rollback, no mixed versions
+- **Cons**: 2x resources, database migrations tricky
+
+## Canary Deployment
+
+Gradually shift traffic:
+
+```yaml
+# 90% to stable
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-stable
+spec:
+  replicas: 9
+
+# 10% to canary
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-canary
+spec:
+  replicas: 1
+```
+
+- **Pros**: Limit blast radius, test with real traffic
+- **Cons**: Complex traffic management
+
+See `scripts/argocd-application.yaml` for GitOps patterns.
+
+
+</Accordion>
+
+<Accordion title="Docker Patterns">
+
+# Docker Patterns
+
+Best practices for Dockerfile optimization, multi-stage builds, and container security.
+
+## Multi-Stage Build Example
+
+```dockerfile
+# ============================================================
+# Stage 1: Dependencies (builder)
+# ============================================================
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+
+# ============================================================
+# Stage 2: Build (with dev dependencies)
+# ============================================================
+FROM node:20-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci  # Include dev dependencies
+COPY . .
+RUN npm run build && npm run test
+
+# ============================================================
+# Stage 3: Production runtime (minimal)
+# ============================================================
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Security: Non-root user
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Copy only production dependencies and built artifacts
+COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
+COPY --chown=nodejs:nodejs package*.json ./
+
+USER nodejs
+EXPOSE 3000
+ENV NODE_ENV=production
+HEALTHCHECK --interval=30s --timeout=3s CMD node healthcheck.js || exit 1
+CMD ["node", "dist/main.js"]
+```
+
+**Image size comparison:**
+- Single-stage: **850 MB** (includes dev dependencies, source files)
+- Multi-stage: **180 MB** (only runtime + production deps)
+- **78% reduction**
+
+## Layer Caching Optimization
+
+**Order matters for cache efficiency:**
+
+```dockerfile
+# BAD: Invalidates cache on any code change
+COPY . .
+RUN npm install
+
+# GOOD: Cache package.json layer separately
+COPY package*.json ./
+RUN npm ci  # Cached unless package.json changes
+COPY . .    # Source changes don't invalidate npm install
+```
+
+## Security Hardening
+
+**Non-root user (uid 1001):**
+```dockerfile
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+USER nodejs
+```
+
+**Read-only filesystem where possible:**
+```dockerfile
+# In K8s deployment
+securityContext:
+  readOnlyRootFilesystem: true
+```
+
+**Health checks for orchestrator integration:**
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=3s CMD node healthcheck.js || exit 1
+```
+
+## Security Scanning with Trivy
+
+```yaml
+- name: Build Docker Image
+  run: docker build -t myapp:${{ github.sha }} .
+
+- name: Scan for Vulnerabilities
+  uses: aquasecurity/trivy-action@master
+  with:
+    image-ref: 'myapp:${{ github.sha }}'
+    format: 'sarif'
+    output: 'trivy-results.sarif'
+    severity: 'CRITICAL,HIGH'
+
+- name: Upload Scan Results
+  uses: github/codeql-action/upload-sarif@v2
+  with:
+    sarif_file: 'trivy-results.sarif'
+
+- name: Fail on Critical Vulnerabilities
+  run: |
+    trivy image --severity CRITICAL --exit-code 1 myapp:${{ github.sha }}
+```
+
+## Docker Compose Development Setup
+
+```yaml
+version: '3.8'
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: orchestkit
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: orchestkit_dev
+    ports:
+      - "5437:5432"  # Avoid conflict with host postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U orchestkit"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8500:8500"
+    environment:
+      DATABASE_URL: postgresql://orchestkit:dev_password@postgres:5432/orchestkit_dev
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app  # Hot reload
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:8500
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules  # Avoid overwriting node_modules
+
+volumes:
+  pgdata:
+  redisdata:
+```
+
+**Key patterns:**
+- Port mapping to avoid host conflicts (5437:5432)
+- Health checks before dependent services start
+- Volume mounts for hot reload during development
+- Named volumes for data persistence
+
+See `scripts/Dockerfile` and `scripts/docker-compose.yml` for complete examples.
+
+</Accordion>
+
+<Accordion title="Environment Management">
+
+# Environment Management
+
+Secrets management, configuration, and environment variable patterns.
+
+## External Secrets Operator
+
+Sync secrets from cloud providers to Kubernetes:
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: app-secrets
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: aws-secrets-manager
+    kind: ClusterSecretStore
+  target:
+    name: app-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: database-url
+      remoteRef:
+        key: prod/app/database
+        property: url
+    - secretKey: api-key
+      remoteRef:
+        key: prod/app/api-keys
+        property: main
+```
+
+**Supported backends:**
+- AWS Secrets Manager
+- HashiCorp Vault
+- Azure Key Vault
+- GCP Secret Manager
+
+## GitOps with ArgoCD
+
+ArgoCD watches Git repository and syncs cluster state:
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/org/repo
+    targetRevision: HEAD
+    path: k8s/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: production
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m
+```
+
+**Features:**
+- Automated sync with pruning
+- Self-healing (drift detection)
+- Retry policies for transient failures
+
+## Infrastructure as Code (Terraform)
+
+**Remote state in S3 with DynamoDB locking:**
+
+```hcl
+terraform {
+  required_version = ">= 1.5"
+  backend "s3" {
+    bucket         = "terraform-state"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+  }
+}
+```
+
+**Module-based architecture:**
+```hcl
+module "vpc" {
+  source = "./modules/vpc"
+  cidr   = "10.0.0.0/16"
+}
+
+module "eks" {
+  source     = "./modules/eks"
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.private_subnets
+}
+
+module "rds" {
+  source     = "./modules/rds"
+  vpc_id     = module.vpc.vpc_id
+  subnet_ids = module.vpc.database_subnets
+}
+```
+
+**Environment-specific tfvars:**
+```bash
+terraform plan -var-file=environments/production.tfvars
+```
+
+## Database Migration Strategies
+
+### Zero-Downtime Migration Pattern
+
+**Problem:** Adding a NOT NULL column breaks old application versions
+
+**Solution: 3-phase migration**
+
+**Phase 1: Add nullable column**
+```sql
+-- Migration v1 (deploy with old code still running)
+ALTER TABLE users ADD COLUMN email VARCHAR(255);
+```
+
+**Phase 2: Deploy new code + backfill**
+```python
+# New code writes to both old and new schema
+def create_user(name: str, email: str):
+    db.execute("INSERT INTO users (name, email) VALUES (%s, %s)", (name, email))
+
+# Backfill existing rows
+async def backfill_emails():
+    users_without_email = await db.fetch("SELECT id FROM users WHERE email IS NULL")
+    for user in users_without_email:
+        email = generate_email(user.id)
+        await db.execute("UPDATE users SET email = %s WHERE id = %s", (email, user.id))
+```
+
+**Phase 3: Add constraint**
+```sql
+-- Migration v2 (after backfill complete)
+ALTER TABLE users ALTER COLUMN email SET NOT NULL;
+```
+
+### Backward/Forward Compatibility
+
+**Backward compatible changes (safe):**
+- Add nullable column
+- Add table
+- Add index
+- Rename column (with view alias)
+
+**Backward incompatible changes (requires 3-phase):**
+- Remove column
+- Rename column (no alias)
+- Add NOT NULL column
+- Change column type
+
+### Alembic Migration Pattern
+
+```python
+# backend/alembic/versions/2024_12_15_add_langfuse_trace_id.py
+"""Add Langfuse trace_id to analyses"""
+from alembic import op
+import sqlalchemy as sa
+
+def upgrade():
+    # Add nullable column first (backward compatible)
+    op.add_column('analyses',
+        sa.Column('langfuse_trace_id', sa.String(255), nullable=True)
+    )
+    # Index for lookup performance
+    op.create_index('idx_analyses_langfuse_trace',
+        'analyses', ['langfuse_trace_id']
+    )
+
+def downgrade():
+    op.drop_index('idx_analyses_langfuse_trace')
+    op.drop_column('analyses', 'langfuse_trace_id')
+```
+
+**Migration workflow:**
+```bash
+# Create new migration
+poetry run alembic revision --autogenerate -m "Add langfuse trace ID"
+
+# Review generated migration (ALWAYS review!)
+cat alembic/versions/abc123_add_langfuse_trace_id.py
+
+# Apply migration
+poetry run alembic upgrade head
+
+# Rollback if needed
+poetry run alembic downgrade -1
+```
+
+## Rollback Procedures
+
+```bash
+# Helm rollback to previous revision
+helm rollback myapp 3
+
+# Kubernetes rollback
+kubectl rollout undo deployment/myapp
+
+# Database migration rollback (Alembic)
+alembic downgrade -1
+```
+
+**Critical: Test rollback procedures regularly!**
+
+See `scripts/external-secrets.yaml` and `scripts/argocd-application.yaml` for complete examples.
+
+</Accordion>
+
+<Accordion title="Kubernetes Basics">
+
+# Kubernetes Basics
+
+K8s deployments, services, health probes, and production patterns.
+
+## Health Probes
+
+**Three probe types with distinct purposes:**
+
+```yaml
+spec:
+  containers:
+  - name: app
+    # Startup probe (gives slow-starting apps time to boot)
+    startupProbe:
+      httpGet:
+        path: /health/startup
+        port: 8080
+      initialDelaySeconds: 0
+      periodSeconds: 5
+      failureThreshold: 30  # 30 * 5s = 150s max startup time
+
+    # Liveness probe (restarts pod if failing)
+    livenessProbe:
+      httpGet:
+        path: /health/liveness
+        port: 8080
+      initialDelaySeconds: 60
+      periodSeconds: 10
+      failureThreshold: 3  # 3 failures = restart
+
+    # Readiness probe (removes from service if failing)
+    readinessProbe:
+      httpGet:
+        path: /health/readiness
+        port: 8080
+      initialDelaySeconds: 10
+      periodSeconds: 5
+      failureThreshold: 2  # 2 failures = remove from load balancer
+```
+
+**Probe implementation (FastAPI):**
+```python
+@app.get("/health/startup")
+async def startup_check():
+    # Check DB connection established
+    if not db.is_connected():
+        raise HTTPException(status_code=503, detail="DB not ready")
+    return {"status": "ok"}
+
+@app.get("/health/liveness")
+async def liveness_check():
+    # Basic "is process running" check
+    return {"status": "alive"}
+
+@app.get("/health/readiness")
+async def readiness_check():
+    # Check all dependencies healthy
+    if not redis.ping() or not db.health_check():
+        raise HTTPException(status_code=503, detail="Dependencies unhealthy")
+    return {"status": "ready"}
+```
+
+## Security Context
+
+```yaml
+spec:
+  securityContext:
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+```
+
+## Resource Management
+
+**Always set requests and limits:**
+```yaml
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "100m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+```
+
+- Use `requests` for scheduling
+- Use `limits` for throttling
+
+## PodDisruptionBudget
+
+Prevents too many pods from being evicted during node maintenance:
+
+```yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: app-pdb
+spec:
+  minAvailable: 2  # Always keep at least 2 pods running
+  selector:
+    matchLabels:
+      app: myapp
+```
+
+**Use cases:**
+- Cluster upgrades (node drains)
+- Autoscaler downscaling
+- Manual evictions
+
+## Resource Quotas
+
+```yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: team-quota
+  namespace: production
+spec:
+  hard:
+    requests.cpu: "10"      # Total CPU requests
+    requests.memory: 20Gi   # Total memory requests
+    limits.cpu: "20"        # Total CPU limits
+    limits.memory: 40Gi     # Total memory limits
+    pods: "50"              # Max pods
+```
+
+## StatefulSets for Databases
+
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  serviceName: postgres
+  replicas: 3
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    # Pod spec here
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
+```
+
+**Key differences from Deployment:**
+- Stable pod names (`postgres-0`, `postgres-1`, `postgres-2`)
+- Ordered deployment and scaling
+- Persistent storage per pod
+
+## Helm Chart Structure
+
+```
+charts/app/
+├── Chart.yaml
+├── values.yaml
+├── scripts/
+│   ├── deployment.yaml
+│   ├── service.yaml
+│   ├── ingress.yaml
+│   ├── configmap.yaml
+│   ├── secret.yaml
+│   ├── hpa.yaml
+│   └── _helpers.tpl
+└── values/
+    ├── staging.yaml
+    └── production.yaml
+```
+
+## Essential Manifests
+
+- Deployment with rolling update strategy
+- Service for internal routing
+- Ingress for external access with TLS
+- HorizontalPodAutoscaler for scaling
+
+See `scripts/k8s-manifests.yaml` and `scripts/helm-values.yaml` for complete examples.
+
+</Accordion>
+
+<Accordion title="Observability">
+
+# Observability & Monitoring
+
+Prometheus metrics, Grafana dashboards, and alerting patterns.
+
+## Prometheus Metrics Exposition
+
+```python
+from prometheus_client import Counter, Histogram, generate_latest
+
+# Define metrics
+http_requests_total = Counter(
+    'http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status']
+)
+
+http_request_duration_seconds = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration',
+    ['method', 'endpoint']
+)
+
+@app.middleware("http")
+async def prometheus_middleware(request: Request, call_next):
+    start_time = time.time()
+    response = await call_next(request)
+    duration = time.time() - start_time
+
+    # Record metrics
+    http_requests_total.labels(
+        method=request.method,
+        endpoint=request.url.path,
+        status=response.status_code
+    ).inc()
+
+    http_request_duration_seconds.labels(
+        method=request.method,
+        endpoint=request.url.path
+    ).observe(duration)
+
+    return response
+
+@app.get("/metrics")
+async def metrics():
+    return Response(content=generate_latest(), media_type="text/plain")
+```
+
+## Grafana Dashboard Queries
+
+```promql
+# Request rate (requests per second)
+rate(http_requests_total[5m])
+
+# Error rate (4xx/5xx as percentage)
+sum(rate(http_requests_total{status=~"4..|5.."}[5m])) /
+sum(rate(http_requests_total[5m])) * 100
+
+# p95 latency
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+
+# Pod CPU usage
+sum(rate(container_cpu_usage_seconds_total{pod=~"myapp-.*"}[5m])) by (pod)
+```
+
+## Alerting Rules
+
+```yaml
+groups:
+- name: app-alerts
+  rules:
+  - alert: HighErrorRate
+    expr: |
+      sum(rate(http_requests_total{status=~"5.."}[5m])) /
+      sum(rate(http_requests_total[5m])) > 0.05
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "High error rate detected"
+      description: "Error rate is {{ $value | humanizePercentage }}"
+
+  - alert: HighLatency
+    expr: |
+      histogram_quantile(0.95,
+        rate(http_request_duration_seconds_bucket[5m])
+      ) > 2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "High p95 latency detected"
+      description: "p95 latency is {{ $value }}s"
+
+  - alert: PodCrashLooping
+    expr: |
+      increase(kube_pod_container_status_restarts_total[1h]) > 5
+    for: 10m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Pod is crash looping"
+      description: "{{ $labels.pod }} has restarted {{ $value }} times"
+```
+
+## Key Metrics to Monitor
+
+| Metric | Purpose | Alert Threshold |
+|--------|---------|-----------------|
+| Request rate | Traffic volume | Anomaly detection |
+| Error rate | Service health | > 5% (critical) |
+| p95 latency | User experience | > 2s (warning) |
+| CPU usage | Resource utilization | > 80% sustained |
+| Memory usage | Resource utilization | > 85% sustained |
+| Pod restarts | Stability | > 3 in 1 hour |
+
+## Golden Signals (SRE)
+
+1. **Latency** - Time to serve a request
+2. **Traffic** - Requests per second
+3. **Errors** - Rate of failed requests
+4. **Saturation** - Resource utilization
+
+## Log Aggregation
+
+Structured logging for observability:
+
+```python
+import structlog
+
+logger = structlog.get_logger()
+
+@app.middleware("http")
+async def logging_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+
+    with structlog.contextvars.bound_contextvars(
+        request_id=request_id,
+        method=request.method,
+        path=request.url.path,
+    ):
+        logger.info("request_started")
+        response = await call_next(request)
+        logger.info("request_completed", status=response.status_code)
+
+    response.headers["X-Request-ID"] = request_id
+    return response
+```
+
+## Distributed Tracing
+
+OpenTelemetry integration:
+
+```python
+from opentelemetry import trace
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+
+# Auto-instrument FastAPI
+FastAPIInstrumentor.instrument_app(app)
+
+# Manual spans for business logic
+tracer = trace.get_tracer(__name__)
+
+async def process_order(order_id: str):
+    with tracer.start_as_current_span("process_order") as span:
+        span.set_attribute("order_id", order_id)
+        # Processing logic here
+```
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Production Readiness">
+
+# Production Readiness Checklist
+
+## 🔒 Security
+
+- [ ] Secrets in environment variables or vault (not in code/config)
+- [ ] HTTPS enforced (redirect HTTP → HTTPS)
+- [ ] Security headers configured (HSTS, CSP, X-Frame-Options)
+- [ ] CORS restricted to known origins
+- [ ] Rate limiting enabled
+- [ ] SQL injection prevention (parameterized queries)
+- [ ] XSS prevention (output encoding, CSP)
+- [ ] Dependencies scanned for vulnerabilities
+- [ ] Container images scanned (Trivy/Snyk)
+
+## 🧪 Testing
+
+- [ ] Unit tests passing (>80% coverage)
+- [ ] Integration tests passing
+- [ ] E2E tests for critical paths
+- [ ] Load testing completed (k6/Locust)
+- [ ] Security testing (OWASP ZAP)
+- [ ] Smoke tests for deployment verification
+
+## 📊 Observability
+
+- [ ] Structured logging (JSON format)
+- [ ] Log aggregation configured (ELK/Loki)
+- [ ] Metrics exported (Prometheus format)
+- [ ] Dashboards created (Grafana)
+- [ ] Distributed tracing enabled (Jaeger/Tempo)
+- [ ] Error tracking configured (Sentry)
+- [ ] Uptime monitoring (synthetic checks)
+- [ ] Alerting rules defined
+
+## 🚀 Deployment
+
+- [ ] CI/CD pipeline configured
+- [ ] Automated tests run on every PR
+- [ ] Blue-green or canary deployment ready
+- [ ] Rollback procedure documented and tested
+- [ ] Database migrations tested
+- [ ] Feature flags for risky changes
+- [ ] Deployment notifications (Slack/Teams)
+
+## 💾 Data
+
+- [ ] Database backups automated (daily)
+- [ ] Backup restoration tested
+- [ ] Point-in-time recovery enabled
+- [ ] Data retention policies defined
+- [ ] PII handling documented (GDPR/CCPA)
+- [ ] Encryption at rest enabled
+- [ ] Encryption in transit (TLS)
+
+## 🏗️ Infrastructure
+
+- [ ] Infrastructure as Code (Terraform/Pulumi)
+- [ ] Auto-scaling configured
+- [ ] Health checks defined
+- [ ] Resource limits set (CPU/memory)
+- [ ] Multi-AZ deployment
+- [ ] CDN for static assets
+- [ ] DDoS protection enabled
+
+## 📝 Documentation
+
+- [ ] API documentation (OpenAPI)
+- [ ] Architecture diagram
+- [ ] Runbook for common issues
+- [ ] Incident response playbook
+- [ ] On-call rotation defined
+- [ ] SLA/SLO documented
+
+## 🔄 Reliability
+
+- [ ] Graceful shutdown handling
+- [ ] Connection pooling configured
+- [ ] Circuit breakers for external calls
+- [ ] Retry with exponential backoff
+- [ ] Timeouts set on all external calls
+- [ ] Chaos engineering tests (optional)
+
+## Pre-Launch Final Checks
+
+```bash
+# Security scan
+npm audit --audit-level=high
+pip-audit
+
+# Performance baseline
+k6 run load-test.js
+
+# DNS and SSL
+curl -I https://api.example.com
+openssl s_client -connect api.example.com:443
+
+# Health endpoint
+curl https://api.example.com/health
+
+# Logs flowing
+docker logs -f backend
+
+# Metrics exposed
+curl http://localhost:9090/metrics
+```
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Examples (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Github Actions Cicd">
+
+# GitHub Actions CI/CD Example
+
+Complete pipeline for a Python FastAPI + React application.
+
+## Repository Structure
+
+```
+├── .github/workflows/
+│   ├── ci.yml          # Test on every PR
+│   ├── deploy.yml      # Deploy on main merge
+│   └── security.yml    # Weekly security scan
+├── backend/            # FastAPI
+├── frontend/           # React
+└── docker-compose.yml
+```
+
+## CI Pipeline (`ci.yml`)
+
+```yaml
+name: CI
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: backend/.venv
+          key: venv-${{ runner.os }}-${{ hashFiles('backend/poetry.lock') }}
+
+      - name: Install dependencies
+        working-directory: backend
+        run: poetry install --no-interaction
+
+      - name: Lint
+        working-directory: backend
+        run: |
+          poetry run ruff format --check app/
+          poetry run ruff check app/
+
+      - name: Type check
+        working-directory: backend
+        run: poetry run mypy app/ --ignore-missing-imports
+
+      - name: Test
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://postgres:test@localhost:5432/test
+        run: poetry run pytest --cov=app --cov-report=xml -v
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+
+  frontend-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Type check
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Test
+        working-directory: frontend
+        run: npm run test:coverage
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+```
+
+## Deploy Pipeline (`deploy.yml`)
+
+```yaml
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production  # Requires approval
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build & push backend
+        run: |
+          docker build -t $ECR_REGISTRY/backend:${{ github.sha }} ./backend
+          docker push $ECR_REGISTRY/backend:${{ github.sha }}
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster production \
+            --service backend \
+            --force-new-deployment
+
+      - name: Deploy frontend to S3
+        run: |
+          cd frontend && npm ci && npm run build
+          aws s3 sync dist/ s3://$S3_BUCKET --delete
+          aws cloudfront create-invalidation --distribution-id $CF_DIST --paths "/*"
+```
+
+## Security Scan (`security.yml`)
+
+```yaml
+name: Security
+
+on:
+  schedule:
+    - cron: "0 0 * * 0"  # Weekly Sunday midnight
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Python dependencies
+        run: |
+          pip install pip-audit
+          pip-audit -r backend/requirements.txt
+
+      - name: Node dependencies
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      - name: Docker scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: backend:latest
+          severity: HIGH,CRITICAL
+```
+
+## Key Patterns
+
+| Pattern | Implementation |
+|---------|---------------|
+| Caching | Poetry venv, npm cache |
+| Concurrency | Cancel in-progress on new push |
+| Services | Postgres container for tests |
+| Environments | Production requires approval |
+| Artifacts | Coverage reports to Codecov |
+
+
+</Accordion>
+
+</Accordions>

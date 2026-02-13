@@ -147,6 +147,7 @@ def sanitize_mdx_body(body: str) -> str:
             "code", "pre", "blockquote", "h1", "h2", "h3", "h4", "h5", "h6",
             "sup", "sub", "details", "summary", "Callout", "Card", "Tab",
             "Tabs", "Steps", "Step", "Accordion", "AccordionContent",
+            "Accordions",
         }
 
         def escape_angle(m):
@@ -183,6 +184,84 @@ def quote_yaml_value(val: str) -> str:
     """Ensure a string is safely quoted for YAML frontmatter."""
     val = val.replace('"', '\\"')
     return f'"{val}"'
+
+
+# ---------------------------------------------------------------------------
+# SKILL SUBDIRECTORY HELPERS
+# ---------------------------------------------------------------------------
+
+# Ordered list of subdirectory types to surface in skill pages
+SKILL_SUBDIRS = ["rules", "references", "checklists", "examples"]
+
+
+def read_subdirectory_files(skill_dir: Path, subdir_name: str) -> list[dict]:
+    """Read all .md files from a skill subdirectory.
+
+    Skips files starting with '_' (e.g. _sections.md).
+    Returns list of dicts with keys: filename, title, frontmatter, body.
+    """
+    subdir = skill_dir / subdir_name
+    if not subdir.is_dir():
+        return []
+
+    results = []
+    for md_file in sorted(subdir.glob("*.md")):
+        if md_file.name.startswith("_"):
+            continue
+        text = md_file.read_text(encoding="utf-8")
+        frontmatter, body = parse_frontmatter(text)
+        title = frontmatter.get("title", "") or title_case(md_file.stem)
+        results.append({
+            "filename": md_file.name,
+            "title": title,
+            "frontmatter": frontmatter,
+            "body": body,
+        })
+    return results
+
+
+def format_subdir_sections(skill_dir: Path) -> tuple[list[str], bool]:
+    """Generate MDX accordion sections for skill subdirectory content.
+
+    Returns (lines, needs_accordion_import).
+    """
+    all_lines: list[str] = []
+    needs_import = False
+
+    for subdir_name in SKILL_SUBDIRS:
+        files = read_subdirectory_files(skill_dir, subdir_name)
+        if not files:
+            continue
+
+        needs_import = True
+        heading = title_case(subdir_name)
+        count = len(files)
+
+        all_lines.append("")
+        all_lines.append("---")
+        all_lines.append("")
+        all_lines.append(f"## {heading} ({count})")
+        all_lines.append("")
+        all_lines.append('<Accordions type="multiple">')
+        all_lines.append("")
+
+        for entry in files:
+            # Build accordion title
+            acc_title = entry["title"]
+            impact = entry["frontmatter"].get("impact", "")
+            if impact:
+                acc_title = f"{acc_title} — {impact}"
+
+            all_lines.append(f'<Accordion title="{acc_title}">')
+            all_lines.append("")
+            all_lines.append(sanitize_mdx_body(entry["body"]))
+            all_lines.append("")
+            all_lines.append("</Accordion>")
+            all_lines.append("")
+
+        all_lines.append("</Accordions>")
+
+    return all_lines, needs_import
 
 
 # ---------------------------------------------------------------------------
@@ -264,6 +343,28 @@ def generate_skills(skills_src: str, skills_out: str) -> int:
             lines.append("")
 
         lines.append(sanitize_mdx_body(body))
+
+        # Surface subdirectory content (rules, references, checklists, examples)
+        subdir_lines, needs_accordion_import = format_subdir_sections(skill_dir)
+        if subdir_lines:
+            lines.extend(subdir_lines)
+
+        # Insert Fumadocs Accordion import after the frontmatter closing ---
+        if needs_accordion_import:
+            # Find the index of the second "---" (closing frontmatter)
+            fm_close_idx = None
+            dashes_seen = 0
+            for i, ln in enumerate(lines):
+                if ln == "---":
+                    dashes_seen += 1
+                    if dashes_seen == 2:
+                        fm_close_idx = i
+                        break
+            if fm_close_idx is not None:
+                lines.insert(
+                    fm_close_idx + 1,
+                    'import { Accordions, Accordion } from "fumadocs-ui/components/accordion";',
+                )
 
         out_file = out_dir / f"{slug}.mdx"
         out_file.write_text("\n".join(lines), encoding="utf-8")

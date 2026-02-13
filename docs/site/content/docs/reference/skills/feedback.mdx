@@ -2,6 +2,7 @@
 title: "Feedback"
 description: "Manages OrchestKit feedback system. Use when providing feedback or viewing usage analytics."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -388,3 +389,383 @@ See `references/file-locations.md` for storage details.
 ### Privacy Policy
 
 See `references/privacy-policy.md` for full privacy documentation.
+
+---
+
+## References (2)
+
+<Accordions type="multiple">
+
+<Accordion title="File Locations">
+
+# Feedback File Locations
+
+All feedback data is stored locally in the project.
+
+## Storage Paths
+
+```
+.claude/feedback/
+├── preferences.json       # User preferences and settings
+├── metrics.json           # Skill and agent usage metrics
+├── learned-patterns.json  # Auto-approve patterns and code style
+├── satisfaction.json      # Session satisfaction tracking
+├── consent-log.json       # GDPR consent audit trail (#59)
+├── analytics-sent.json    # Transmission history (if enabled)
+└── analytics-exports/     # Anonymous analytics exports for review
+    └── analytics-export-*.json
+```
+
+## File Descriptions
+
+### preferences.json
+```json
+{
+  "version": "1.0",
+  "enabled": true,
+  "learnFromEdits": true,
+  "learnFromApprovals": true,
+  "learnFromAgentOutcomes": true,
+  "shareAnonymized": false,
+  "consentedAt": null,
+  "consentVersion": null,
+  "syncGlobalPatterns": true,
+  "retentionDays": 90,
+  "pausedUntil": null
+}
+```
+
+### consent-log.json (GDPR Audit Trail)
+
+Records all consent actions for GDPR compliance. Created by `consent-manager.sh`.
+
+```json
+{
+  "version": "1.0",
+  "events": [
+    {
+      "action": "granted",
+      "version": "1.0",
+      "timestamp": "2026-01-14T10:00:00Z"
+    },
+    {
+      "action": "revoked",
+      "timestamp": "2026-01-15T14:00:00Z"
+    }
+  ]
+}
+```
+
+**Event Actions:**
+- `granted` - User opted in (includes policy version)
+- `declined` - User said "No Thanks" on first prompt
+- `revoked` - User opted out after previously opting in
+
+### metrics.json
+```json
+{
+  "version": "1.0",
+  "updated": "2026-01-14T10:00:00Z",
+  "skills": { ... },
+  "hooks": { ... },
+  "agents": { ... }
+}
+```
+
+### learned-patterns.json
+```json
+{
+  "version": "1.0",
+  "updated": "2026-01-14T10:00:00Z",
+  "permissions": { ... },
+  "codeStyle": { ... }
+}
+```
+
+### analytics-export-*.json
+
+Anonymous analytics exports for user review before sharing.
+
+```json
+{
+  "timestamp": "2026-01-14",
+  "plugin_version": "4.12.0",
+  "skill_usage": {
+    "<skill-id>": { "uses": 12, "success_rate": 0.92 }
+  },
+  "agent_performance": {
+    "<agent-id>": { "spawns": 8, "success_rate": 0.88 }
+  },
+  "hook_metrics": {
+    "<hook-name>": { "triggered": 45, "blocked": 3 }
+  },
+  "summary": {
+    "unique_skills_used": 8,
+    "unique_agents_used": 3,
+    "hooks_configured": 5,
+    "total_skill_invocations": 45,
+    "total_agent_spawns": 12
+  },
+  "metadata": {
+    "exported_at": "2026-01-14T12:00:00Z",
+    "format_version": "1.0",
+    "note": "Review before sharing"
+  }
+}
+```
+
+## Gitignore
+
+All files in `.claude/feedback/` are gitignored by default.
+
+Add to your `.gitignore`:
+```
+.claude/feedback/
+```
+
+## Global Patterns
+
+Cross-project patterns are stored at:
+```
+~/.claude/global-patterns.json
+```
+
+This file is shared across all projects when `syncGlobalPatterns` is enabled.
+
+## Scripts
+
+### consent-manager.sh (#59)
+
+Manages GDPR-compliant consent for anonymous analytics.
+
+```
+.claude/scripts/consent-manager.sh
+```
+
+Key functions:
+- `has_consent()` - Check if user has consented
+- `has_been_asked()` - Check if user was ever prompted
+- `record_consent()` - Record opt-in with timestamp
+- `record_decline()` - Record "No Thanks" response
+- `revoke_consent()` - Record opt-out (revocation)
+- `get_consent_status()` - Get full consent state as JSON
+- `show_opt_in_prompt()` - Display interactive prompt
+- `show_privacy_policy()` - Display full privacy policy
+- `show_consent_status()` - Display human-readable status
+
+### analytics-lib.sh
+
+Prepares anonymous analytics data.
+
+```
+.claude/scripts/analytics-lib.sh
+```
+
+Key functions:
+- `prepare_anonymous_report()` - Aggregate anonymized data
+- `get_shareable_metrics()` - Get only safe-to-share metrics
+- `validate_no_pii(data)` - Verify no PII in data
+- `export_analytics(filepath)` - Export to file for user review
+- `opt_in_analytics()` - Enable anonymous sharing
+- `opt_out_analytics()` - Disable anonymous sharing
+
+### analytics-sender.sh (#59 - Optional)
+
+Handles optional network transmission (disabled by default).
+
+```
+.claude/scripts/analytics-sender.sh
+```
+
+Key functions:
+- `is_transmission_enabled()` - Check if network send is enabled
+- `send_analytics_report()` - Send to configured endpoint
+- `show_transmission_status()` - Show send history
+
+**Note:** Network transmission requires:
+1. User consent (`has_consent()` = true)
+2. Endpoint configured (`ORCHESTKIT_ANALYTICS_ENDPOINT`)
+3. Network enabled (`enableNetworkTransmission` in preferences)
+
+## Schemas
+
+```
+.claude/schemas/
+├── feedback.schema.json   # Metrics, patterns, preferences schemas
+└── consent.schema.json    # Consent log schema (#59)
+```
+
+</Accordion>
+
+<Accordion title="Privacy Policy">
+
+# Privacy Policy Reference
+
+> Anonymous analytics privacy documentation for OrchestKit Claude Plugin
+
+## Overview
+
+OrchestKit offers **optional** anonymous analytics to help improve the plugin. This is strictly **opt-in** - no data is collected without explicit user consent.
+
+## What We Collect
+
+When you opt in, we collect only aggregated, non-identifiable metrics:
+
+| Data Type | Example | Purpose |
+|-----------|---------|---------|
+| Skill usage counts | "api-design: 45 uses" | Identify popular skills |
+| Skill success rates | "92% success" | Improve underperforming skills |
+| Agent spawn counts | "backend-architect: 8 spawns" | Agent utilization |
+| Agent success rates | "88% tasks completed" | Agent effectiveness |
+| Hook trigger counts | "git-branch-protection: 120 triggers" | Hook tuning |
+| Hook block counts | "5 commands blocked" | Security effectiveness |
+| Plugin version | "4.12.0" | Version adoption |
+| Report date | "2026-01-14" | Trend analysis |
+
+## What We Never Collect
+
+The following are **explicitly blocked** from collection:
+
+- Your code or file contents
+- Project names, paths, or directory structure
+- User names, emails, or personal information
+- IP addresses (stripped at network layer)
+- Memory data or conversation history
+- Architecture decisions or design documents
+- API keys, tokens, or credentials
+- Git history or commit messages
+- Session IDs or user identifiers
+- Any data that could identify you or your projects
+
+## PII Detection
+
+Before any data export, we scan for:
+
+```bash
+# Blocked patterns (excerpt from analytics-lib.sh)
+/Users/, /home/, /var/, /tmp/    # File paths
+@                                 # Email indicators
+http://, https://                 # URLs
+password, secret, token, api_key  # Credentials
+username, user_id, email          # Identifiers
+[0-9]{1,3}\.[0-9]{1,3}...        # IP addresses
+```
+
+If **any** PII pattern is detected, the export is **aborted**.
+
+## Consent Management
+
+### Granting Consent
+
+```bash
+# Via command
+/ork:feedback opt-in
+
+# What happens:
+# 1. consent-log.json records: {"action": "granted", "version": "1.0", "timestamp": "..."}
+# 2. preferences.json sets: shareAnonymized = true
+```
+
+### Revoking Consent
+
+```bash
+# Via command
+/ork:feedback opt-out
+
+# What happens:
+# 1. consent-log.json records: {"action": "revoked", "timestamp": "..."}
+# 2. preferences.json sets: shareAnonymized = false
+# 3. No further data collection occurs
+```
+
+### Checking Status
+
+```bash
+/ork:feedback status
+# Shows: consent state, timestamp, policy version
+```
+
+## Data Flow
+
+```
+Session Activity
+      │
+      ▼
+┌──────────────┐
+│ Local Metrics│ ← Stored in .claude/feedback/metrics.json
+│  (always)    │
+└──────┬───────┘
+       │
+       ▼
+┌──────────────────┐
+│ Consent Check    │ ← has_consent() must return true
+└──────┬───────────┘
+       │
+       ▼ (only if consented)
+┌──────────────────┐
+│ PII Validation   │ ← validate_no_pii() scans all data
+└──────┬───────────┘
+       │
+       ├── PII Found → ABORT
+       │
+       └── Clean → Export/Send
+```
+
+## Transmission (Optional)
+
+If network transmission is enabled:
+
+- **HTTPS only** - encrypted in transit
+- **No cookies** - no session tracking
+- **No IP logging** - server strips client IP
+- **Best effort** - no retries on failure
+- **Open source server** - auditable code
+
+Default behavior is **local export only** with no network calls.
+
+## Data Retention
+
+| Stage | Retention |
+|-------|-----------|
+| Local metrics | User-controlled (default 90 days) |
+| Server raw reports | Deleted after aggregation (max 30 days) |
+| Aggregate statistics | Indefinite (no PII) |
+
+## GDPR Compliance
+
+This implementation follows GDPR requirements:
+
+1. **Explicit consent** - opt-in only, no pre-checked boxes
+2. **Informed consent** - clear disclosure of what's collected
+3. **Easy withdrawal** - opt-out as easy as opt-in
+4. **Audit trail** - consent-log.json records all actions
+5. **Data minimization** - only collect what's needed
+6. **Purpose limitation** - only used for plugin improvement
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `.claude/feedback/preferences.json` | Contains `shareAnonymized` flag |
+| `.claude/feedback/consent-log.json` | Audit trail of consent actions |
+| `.claude/feedback/metrics.json` | Local metrics (always stored) |
+| `.claude/feedback/analytics-exports/` | Exported reports for review |
+
+## Commands Reference
+
+| Command | Description |
+|---------|-------------|
+| `/ork:feedback opt-in` | Enable anonymous sharing |
+| `/ork:feedback opt-out` | Disable sharing (revoke consent) |
+| `/ork:feedback status` | Show current consent status |
+| `/ork:feedback export` | Export data for review |
+| `/ork:feedback privacy` | Display full privacy policy |
+
+## Contact
+
+- **Repository**: https://github.com/yonatangross/orchestkit-claude-plugin
+- **Issues**: https://github.com/yonatangross/orchestkit-claude-plugin/issues
+
+</Accordion>
+
+</Accordions>

@@ -2,6 +2,7 @@
 title: "Architecture Decision Record"
 description: "Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -225,3 +226,2849 @@ Keep ADRs in version control alongside code:
 - What are the consequences of this decision?
 - Document decision impact
 - Risk and benefit analysis
+
+
+---
+
+## Rules (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Reliability Interrogation — HIGH">
+
+
+## Reliability Interrogation
+
+Questions covering data architecture, UX impact, and system coherence. Ensures decisions account for production failure modes.
+
+### Data Questions
+
+| Question | Red Flag Answer |
+|----------|-----------------|
+| Where does this data naturally belong? | "I'll figure it out" |
+| What's the primary access pattern? | "Both reads and writes" (too vague) |
+| Is it master data or transactional? | No distinction made |
+| What's the retention policy? | "Keep everything" |
+| Does it need to be searchable? How? | "We'll add search later" |
+
+### UX Impact Questions
+
+| Question | Red Flag Answer |
+|----------|-----------------|
+| What's the expected latency? | "It'll be fast" |
+| What feedback does the user get during operation? | "A spinner" |
+| What happens on failure? Can they retry? | "Show an error" |
+| Is optimistic UI possible? | Not considered |
+
+### Coherence Questions
+
+| Question | Red Flag Answer |
+|----------|-----------------|
+| Which layers does this touch? | "Just the backend" |
+| What contracts/interfaces change? | "No changes needed" |
+| Are types consistent frontend to backend? | Not checked |
+| Does this break existing clients? | "Shouldn't" |
+
+### Assessment Template
+
+```markdown
+### Reliability Assessment for: [Feature/Decision]
+
+**Data:**
+- Storage location: [DB table / cache / file]
+- Schema changes: [migration needed?]
+- Access pattern: [by ID / by query / full scan]
+- Retention: [days/months/forever]
+
+**UX:**
+- Target latency: [< Nms]
+- Feedback: [optimistic / spinner / progress]
+- Error handling: [retry / rollback / degrade]
+
+**Coherence:**
+- Affected layers: [DB, API, frontend, state]
+- Type changes: [new types / modified types]
+- API changes: [new endpoints / modified responses]
+- Breaking changes: [yes / no — if yes, migration plan]
+```
+
+### Anti-Patterns
+
+| Anti-Pattern | Better Approach |
+|-------------|-----------------|
+| "I'll add an index later" | Ask: what's the query pattern NOW? |
+| "The frontend can handle any shape" | Ask: what's the TypeScript type? |
+| "Users won't do that" | Ask: what if they DO? |
+| "It's just a small feature" | Ask: how does this grow with 100x users? |
+
+### Key Rules
+
+- Data decisions are **hard to change** — get storage right from the start
+- Define **target latency** before choosing implementation approach
+- Every API change needs a **type check** across the full stack
+- Failure handling must be **designed**, not discovered in production
+- Breaking changes require a **migration plan** before implementation
+
+
+</Accordion>
+
+<Accordion title="Scalability Interrogation — HIGH">
+
+
+## Scalability Interrogation
+
+Ask these questions before committing to any architectural decision. Prevents costly rework from underestimating scale.
+
+### Core Scale Questions
+
+| Question | Red Flag Answer |
+|----------|-----------------|
+| How many users/tenants will use this? | "All users" |
+| What's the expected data volume (now and in 1 year)? | "I'll figure it out" |
+| What's the request rate? Read-heavy or write-heavy? | "It'll be fast" |
+| Does complexity grow linearly or exponentially? | "It won't be a problem" |
+| What happens at 10x current load? 100x? | No answer |
+
+### Assessment Template
+
+```markdown
+### Scale Assessment for: [Feature/Decision]
+
+- **Users:** [number] active users
+- **Data volume now:** [size/count]
+- **Data volume in 1 year:** [projected size/count]
+- **Access pattern:** Read-heavy / Write-heavy / Mixed (ratio: N:1)
+- **Growth rate:** Linear / Exponential / Bounded
+- **10x scenario:** [What breaks at 10x?]
+- **100x scenario:** [What breaks at 100x?]
+```
+
+### Example Assessment
+
+```markdown
+### Scale Assessment for: Document Tagging
+
+- **Users:** 1,000 active users
+- **Data volume now:** 50,000 documents, ~200K tags
+- **Data volume in 1 year:** 500,000 documents, ~2M tags
+- **Access pattern:** Read-heavy (10:1 read:write)
+- **Growth rate:** Linear with user growth
+- **10x scenario:** Tag autocomplete needs index, current LIKE query won't scale
+- **100x scenario:** Need dedicated search (Elasticsearch) for tag filtering
+```
+
+### Key Rules
+
+- Answer **every** question with specifics — vague answers indicate insufficient analysis
+- Project growth to **1 year minimum** before deciding on storage and indexing
+- Identify the **10x breakpoint** — what component fails first under 10x load
+- Read/write ratio determines **caching strategy** and **consistency model**
+- Exponential growth requires **fundamentally different architecture** than linear
+
+
+</Accordion>
+
+<Accordion title="Security Interrogation — HIGH">
+
+
+## Security Interrogation
+
+Security questions to ask before any architectural decision. Prevents gaps from being discovered after deployment.
+
+### Core Security Questions
+
+| Question | Red Flag Answer |
+|----------|-----------------|
+| Who can access this data/feature? | "Everyone" |
+| How is tenant isolation enforced? | "We trust the frontend" |
+| What happens if authorization fails? | "Return 403" (no detail) |
+| What attack vectors does this introduce? | "None" |
+| Is there PII involved? | "I don't think so" |
+
+### Assessment Template
+
+```markdown
+### Security Assessment for: [Feature/Decision]
+
+- **Access control:** [Who can access? Role-based? Resource-based?]
+- **Tenant isolation:** [How is data scoped per tenant?]
+- **Authorization check:** [Where is authZ enforced? API layer? DB query?]
+- **Attack vectors:** [Injection? IDOR? Rate abuse? Privilege escalation?]
+- **PII handling:** [What PII exists? Encryption? Retention?]
+- **Audit trail:** [Are access/changes logged?]
+```
+
+### Example Assessment
+
+```markdown
+### Security Assessment for: Document Tagging
+
+- **Access control:** User can only see/manage their own tags
+- **Tenant isolation:** All tag queries MUST include tenant_id filter
+- **Authorization check:** Middleware verifies user owns document before tag CRUD
+- **Attack vectors:** Tag injection (limit length, sanitize), IDOR on document_id
+- **PII handling:** Tags might contain PII — treat as sensitive, encrypt at rest
+- **Audit trail:** Log tag creation/deletion with user_id and timestamp
+```
+
+### Security Enforcement Layers
+
+| Layer | Enforcement | Example |
+|-------|-------------|---------|
+| **API Gateway** | Rate limiting, auth token validation | JWT verification |
+| **Middleware** | Role/permission check | `require_permission("tag:write")` |
+| **Service** | Business rule authorization | Verify user owns document |
+| **Database** | Row-level security, tenant filter | `WHERE tenant_id = ?` |
+| **Query** | Parameterized queries | No string interpolation |
+
+### Anti-Patterns
+
+```python
+# NEVER trust frontend for authorization
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+    return db.query(f"SELECT * FROM tags WHERE doc_id = '{doc_id}'")
+    # WRONG: No auth check, SQL injection, no tenant filter
+
+# CORRECT
+def get_tags(request):
+    doc_id = request.params["doc_id"]
+    user = authenticate(request)
+    doc = db.get(Document, doc_id)
+    if doc.tenant_id != user.tenant_id:
+        raise ForbiddenError()
+    return db.query("SELECT * FROM tags WHERE doc_id = %s AND tenant_id = %s",
+                    [doc_id, user.tenant_id])
+```
+
+### Key Rules
+
+- Tenant isolation must be enforced at the **database query level**, not just UI
+- Authorization checks happen at **every layer**, not just the API gateway
+- Assume **every input is malicious** — validate at system boundaries
+- PII requires **encryption at rest** and **retention policy**
+- Every access control decision must be **auditable**
+- "Everyone can access" is almost always the **wrong answer**
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Adr Best Practices">
+
+# ADR Best Practices
+
+Complete reference guide for creating, managing, and evolving Architecture Decision Records following industry best practices and the Nygard format.
+
+---
+
+## Table of Contents
+
+1. [When to Write an ADR](#when-to-write-an-adr)
+2. [ADR Lifecycle Management](#adr-lifecycle-management)
+3. [Linking Related ADRs](#linking-related-adrs)
+4. [Review and Approval Process](#review-and-approval-process)
+5. [Common Anti-Patterns](#common-anti-patterns)
+6. [Integration with Git Workflow](#integration-with-git-workflow)
+7. [Good vs Bad ADR Titles](#good-vs-bad-adr-titles)
+8. [Quantifying Impact and Risk](#quantifying-impact-and-risk)
+
+---
+
+## When to Write an ADR
+
+### Decision Thresholds
+
+Not every decision requires an ADR. Use these criteria to determine when to write one:
+
+#### ALWAYS Write an ADR For:
+
+1. **Technology Selection**
+   - Choosing a database (PostgreSQL, MongoDB, Redis)
+   - Adopting a framework (React, Angular, Vue)
+   - Cloud provider selection (AWS, GCP, Azure)
+   - Programming language for new services
+
+2. **Architectural Patterns**
+   - Microservices vs monolith
+   - Event-driven architecture
+   - CQRS or Event Sourcing
+   - API Gateway implementation
+
+3. **Infrastructure Decisions**
+   - Kubernetes vs serverless
+   - CI/CD pipeline strategy
+   - Monitoring and observability stack
+   - Deployment topology
+
+4. **Cross-Cutting Concerns**
+   - Authentication/authorization strategy
+   - API versioning approach
+   - Data migration strategy
+   - Security architecture
+
+5. **Major Refactoring**
+   - Splitting a monolith
+   - Database migration
+   - Protocol changes (REST to GraphQL)
+   - Framework upgrade with breaking changes
+
+#### CONSIDER Writing an ADR For:
+
+1. **Team Conventions**
+   - Code style standards (if highly debated)
+   - Branching strategy (if complex)
+   - Testing approaches (if significant investment)
+
+2. **Tool Adoption**
+   - Development tools (if team-wide impact)
+   - Third-party services (if cost >$10k/year)
+   - Build systems (if affects all developers)
+
+#### SKIP ADR For:
+
+1. **Tactical Decisions**
+   - Variable naming
+   - Minor library updates
+   - Cosmetic code changes
+   - Temporary workarounds
+
+2. **Reversible Choices**
+   - CSS framework (easily swappable)
+   - Logging library (minimal coupling)
+   - Development IDE preferences
+
+3. **Implementation Details**
+   - Specific algorithm choice (unless performance-critical)
+   - File organization within a module
+   - Test fixture structure
+
+### Cost-Benefit Threshold
+
+**Rule of Thumb**: If reversing the decision would take >2 weeks of engineering effort, write an ADR.
+
+**Examples:**
+- Switching databases: 8 weeks → ✅ Write ADR
+- Changing CSS-in-JS library: 3 days → ❌ Skip ADR
+- Adopting GraphQL: 6 weeks → ✅ Write ADR
+- Updating linter config: 2 hours → ❌ Skip ADR
+
+### Impact Radius
+
+**Write ADR if decision affects:**
+- 3+ developers
+- 2+ teams
+- External stakeholders (customers, partners)
+- Compliance or security posture
+
+---
+
+## ADR Lifecycle Management
+
+### Status Values and Transitions
+
+```
+                    ┌──────────┐
+                    │ PROPOSED │
+                    └─────┬────┘
+                          │
+                ┌─────────┴─────────┐
+                │                   │
+                ▼                   ▼
+         ┌──────────┐        ┌──────────┐
+         │ ACCEPTED │        │ REJECTED │
+         └─────┬────┘        └──────────┘
+               │
+               ▼
+        ┌─────────────┐
+        │ IMPLEMENTED │
+        └──────┬──────┘
+               │
+        ┌──────┴──────────┐
+        │                 │
+        ▼                 ▼
+  ┌──────────┐      ┌────────────┐
+  │ SUPERSEDED│      │ DEPRECATED │
+  └──────────┘      └────────────┘
+```
+
+### 1. PROPOSED (Draft)
+
+**When**: ADR is written but not yet approved
+
+**Actions:**
+- Author creates ADR using template
+- Gathers feedback from stakeholders
+- Iterates on content based on questions
+- Schedules review meeting
+
+**Duration**: 3-14 days typically
+
+**Best Practices:**
+- Share early in Slack/email for async feedback
+- Keep status as "Proposed" until formal approval
+- Document questions/concerns in "Review Notes" section
+- Update ADR based on feedback before approval meeting
+
+**Example Header:**
+```markdown
+**Status**: Proposed
+**Date**: 2025-12-15
+**Authors**: Jane Smith (Backend Architect)
+**Reviewers**: Architecture Team, DevOps Lead
+```
+
+### 2. ACCEPTED (Approved)
+
+**When**: Team agrees to proceed with the decision
+
+**Actions:**
+- Change status from "Proposed" to "Accepted"
+- Add approval date and stakeholder sign-offs
+- Commit to main branch
+- Announce to relevant teams
+- Create implementation tickets/PRs
+
+**Best Practices:**
+- Document who approved and when
+- Link ADR in implementation PRs
+- Keep ADR immutable after acceptance (no edits)
+- Reference ADR number in related code comments
+
+**Example Header:**
+```markdown
+**Status**: Accepted
+**Date**: 2025-12-15
+**Accepted**: 2025-12-20
+**Authors**: Jane Smith (Backend Architect)
+**Approved By**: Architecture Team (2025-12-20), CTO (2025-12-20)
+```
+
+### 3. IMPLEMENTED (In Production)
+
+**When**: Decision is live in production
+
+**Actions:**
+- Update status to "Implemented"
+- Add implementation date
+- Link to relevant PRs/commits
+- Document actual vs expected outcomes (optional)
+
+**Best Practices:**
+- Wait for production deployment before marking implemented
+- Add "Lessons Learned" section if actual results differ from expected
+- Use this status to track completion of major initiatives
+- Schedule post-implementation review (3-6 months)
+
+**Example Header:**
+```markdown
+**Status**: Implemented
+**Date**: 2025-12-15
+**Accepted**: 2025-12-20
+**Implemented**: 2026-03-10
+**Implementation**: [PR #4567](https://github.com/org/repo/pull/4567)
+```
+
+### 4. SUPERSEDED (Replaced)
+
+**When**: A newer ADR replaces this decision
+
+**Actions:**
+- Change status to "Superseded"
+- Add reference to new ADR number
+- Explain why decision was revisited
+- Keep original ADR unchanged (historical record)
+
+**Best Practices:**
+- Don't delete superseded ADRs (architectural history)
+- Link both directions (old → new, new → old)
+- Explain what changed that necessitated new decision
+- Document migration timeline in new ADR
+
+**Example Header:**
+```markdown
+**Status**: Superseded by ADR-0042
+**Date**: 2025-12-15
+**Accepted**: 2025-12-20
+**Implemented**: 2026-03-10
+**Superseded**: 2026-11-15 - Migration to GraphQL required new API versioning strategy
+**See**: ADR-0042 - API Versioning for GraphQL Gateway
+```
+
+### 5. DEPRECATED (No Longer Recommended)
+
+**When**: Decision is discouraged but not yet replaced
+
+**Actions:**
+- Change status to "Deprecated"
+- Document why it's deprecated
+- Add migration path if available
+- Keep original ADR for historical context
+
+**Best Practices:**
+- Use when phasing out a practice (not immediate replacement)
+- Document timeline for deprecation (if known)
+- Provide alternative guidance
+- Don't mark as deprecated just because tech is old (if still works)
+
+**Example Header:**
+```markdown
+**Status**: Deprecated (as of 2026-10-01)
+**Date**: 2025-12-15
+**Accepted**: 2025-12-20
+**Implemented**: 2026-03-10
+**Deprecated**: 2026-10-01 - REST API v1 deprecated, migrate to v2 by 2027-01-01
+**Migration Guide**: [docs/api-v1-to-v2-migration.md](../migration/api-v1-to-v2.md)
+```
+
+### 6. REJECTED (Not Adopted)
+
+**When**: After review, team decides NOT to proceed
+
+**Actions:**
+- Change status to "Rejected"
+- Document why decision was rejected
+- Capture dissenting opinions if valuable
+- Keep ADR as record of what was considered
+
+**Best Practices:**
+- Don't delete rejected ADRs (prevents revisiting same debate)
+- Be specific about rejection reasons
+- Note if decision should be revisited later
+- Link to alternative approach if one exists
+
+**Example Header:**
+```markdown
+**Status**: Rejected
+**Date**: 2025-12-15
+**Rejected**: 2025-12-18 - Team voted 7-2 against due to operational complexity concerns
+**Rejection Reason**: Kubernetes migration deemed too risky given team's lack of container experience. Revisit in 12 months after hiring DevOps engineer.
+```
+
+### Lifecycle Best Practices
+
+1. **Immutability**: Once accepted, don't edit ADRs. Create new ones that supersede.
+2. **Atomic Status Changes**: Use git commits to track status changes
+3. **Timestamps**: Always include dates for status transitions
+4. **Bidirectional Links**: When superseding, update both old and new ADRs
+5. **Preserve History**: Never delete ADRs, even rejected or superseded ones
+
+---
+
+## Linking Related ADRs
+
+### Why Link ADRs?
+
+- Show architectural evolution over time
+- Prevent contradictory decisions
+- Help readers understand context and dependencies
+- Enable impact analysis when revisiting decisions
+
+### Types of ADR Relationships
+
+#### 1. Supersedes / Superseded By
+
+**Use when**: A new ADR replaces an old decision
+
+**Format:**
+```markdown
+# ADR-0015: Adopt GraphQL API Gateway
+
+**Status**: Accepted
+**Supersedes**: ADR-0003 (REST API Versioning Strategy)
+```
+
+```markdown
+# ADR-0003: REST API Versioning Strategy
+
+**Status**: Superseded by ADR-0015
+**Superseded by**: ADR-0015 - Adopt GraphQL API Gateway
+```
+
+**Best Practice**: Update both ADRs with bidirectional links
+
+#### 2. Depends On / Enables
+
+**Use when**: Decision relies on another ADR or enables future decisions
+
+**Format:**
+```markdown
+# ADR-0020: Implement CQRS Pattern
+
+**Depends On**:
+- ADR-0015 - Adopt GraphQL API Gateway (required for command mutations)
+- ADR-0012 - Event-Driven Architecture (required for event sourcing)
+
+## Context
+
+This ADR builds on our GraphQL adoption (ADR-0015) by separating
+read and write operations into distinct models...
+```
+
+**Best Practice**: Link in "References" section if dependency is strong
+
+#### 3. Related To / See Also
+
+**Use when**: Decisions are in same domain but not strictly dependent
+
+**Format:**
+```markdown
+# ADR-0025: Database Sharding Strategy
+
+**Related ADRs**:
+- ADR-0002 - Choose PostgreSQL (same database)
+- ADR-0018 - Caching Strategy (complementary performance approach)
+- ADR-0021 - Read Replica Configuration (alternative scaling strategy)
+
+## Context
+
+While ADR-0021 addressed read scaling via replicas, this ADR
+focuses on write scaling through sharding...
+```
+
+#### 4. Amends / Amended By
+
+**Use when**: ADR clarifies or extends (but doesn't replace) another ADR
+
+**Format:**
+```markdown
+# ADR-0030: API Rate Limiting Implementation
+
+**Amends**: ADR-0003 - REST API Versioning Strategy
+**Note**: Adds rate limiting requirement not addressed in original ADR
+
+## Context
+
+ADR-0003 established our API versioning approach but didn't
+address rate limiting. This ADR fills that gap...
+```
+
+**When to Amend vs Supersede:**
+- **Amend**: Adding new information, clarifying, extending scope
+- **Supersede**: Replacing the core decision entirely
+
+### Linking in Git
+
+**Directory Structure:**
+```
+docs/adr/
+├── README.md (ADR index with links)
+├── adr-0001-microservices.md
+├── adr-0002-postgresql.md
+├── adr-0003-api-versioning.md
+└── adr-0015-graphql-gateway.md
+```
+
+**ADR Index (README.md):**
+```markdown
+# Architecture Decision Records
+
+## Active Decisions
+- [ADR-0015](adr-0015-graphql-gateway.md) - GraphQL API Gateway
+- [ADR-0002](adr-0002-postgresql.md) - PostgreSQL for Data Persistence
+
+## Superseded
+- [ADR-0003](adr-0003-api-versioning.md) - REST API Versioning (→ ADR-0015)
+
+## Rejected
+- [ADR-0010](adr-0010-nosql-migration.md) - NoSQL Migration
+
+## By Topic
+### API Design
+- ADR-0003 (superseded), ADR-0015, ADR-0030
+
+### Data Storage
+- ADR-0002, ADR-0010 (rejected), ADR-0025
+```
+
+**Best Practice**: Maintain an index file for easy discovery
+
+### Linking Best Practices
+
+1. **Always Link Bidirectionally**: If A supersedes B, update both A and B
+2. **Use Relative Links**: `[ADR-0015](adr-0015-graphql-gateway.md)`
+3. **Link Early in ADR**: Reference related ADRs in Context or Decision sections
+4. **Explain Relationship**: Don't just link, explain why it's relevant
+5. **Update Index**: Keep README.md index current for discoverability
+
+---
+
+## Review and Approval Process
+
+### Pre-Review Phase (Author)
+
+**Timeline**: 1-3 days before review meeting
+
+**Actions:**
+1. **Self-Review** using `/checklists/adr-review-checklist.md`
+2. **Share Early**: Post ADR in Slack/Teams for async feedback
+3. **Identify Reviewers**: List required stakeholders
+4. **Schedule Meeting**: Book 30-60 minute review session
+5. **Share ADR**: Send at least 48 hours before meeting
+
+**Best Practices:**
+- Request specific feedback: "Focus on alternatives section"
+- Highlight areas of uncertainty: "Not sure about timeline"
+- Share related research or PoC results
+- Pre-address obvious questions in "Review Notes"
+
+### Review Meeting (Team)
+
+**Duration**: 30-60 minutes
+
+**Agenda:**
+1. **Context Presentation** (5-10 min): Author explains problem
+2. **Decision Walkthrough** (5 min): What we're choosing and why
+3. **Alternatives Discussion** (10-15 min): Why not other options?
+4. **Consequences Review** (10-15 min): Trade-offs and risks
+5. **Q&A** (10-20 min): Open discussion
+6. **Decision** (5 min): Approve, reject, or request changes
+
+**Participants:**
+
+| Role | Required? | Why |
+|------|-----------|-----|
+| **Author** | Yes | Presents and defends decision |
+| **Architect** | Yes | Technical viability, consistency |
+| **Tech Lead** | Yes | Implementation feasibility |
+| **DevOps/SRE** | Depends | If operational impact |
+| **Security** | Depends | If security implications |
+| **Product** | Depends | If business impact significant |
+| **Team Members** | Optional | Implementation team buy-in |
+
+**Meeting Facilitation:**
+- **Facilitator** (not author): Keeps discussion on track
+- **Timekeeper**: Ensures agenda stays on schedule
+- **Note-taker**: Documents questions, concerns, action items
+
+### Decision Outcomes
+
+#### 1. APPROVED (Best Case)
+
+**Criteria:**
+- ✅ All required stakeholders agree
+- ✅ No major concerns unresolved
+- ✅ Implementation path is clear
+
+**Actions:**
+- Update status to "Accepted"
+- Add approval signatures with dates
+- Commit ADR to main branch
+- Create implementation tickets
+- Announce to team
+
+#### 2. APPROVED WITH CHANGES (Common)
+
+**Criteria:**
+- ✅ Decision is sound but ADR needs minor updates
+- ✅ Questions raised but answerable
+- ✅ Consequences need clarification
+
+**Actions:**
+- Document required changes
+- Author updates ADR within 1 week
+- Re-share for final approval (async or brief meeting)
+- Mark as "Accepted" after changes incorporated
+
+**Example Changes:**
+- Add missing alternative
+- Clarify timeline
+- Expand consequences section
+- Add quantitative data
+
+#### 3. DEFERRED (Needs More Info)
+
+**Criteria:**
+- ❌ Insufficient information to decide
+- ❌ Proof of concept needed
+- ❌ Missing critical stakeholder input
+
+**Actions:**
+- Keep status as "Proposed"
+- Document blockers and information needed
+- Set timeline to gather info (2-4 weeks)
+- Schedule follow-up review
+
+**Example Blockers:**
+- "Need cost analysis from Finance"
+- "Requires PoC to validate performance claims"
+- "Security team needs to review first"
+
+#### 4. REJECTED
+
+**Criteria:**
+- ❌ Decision doesn't align with strategy
+- ❌ Risks outweigh benefits
+- ❌ Better alternative exists
+
+**Actions:**
+- Update status to "Rejected"
+- Document rejection reasons
+- Capture in git for historical record
+- If alternative chosen, create new ADR
+
+### Approval Signatures
+
+**Format:**
+```markdown
+## Review & Approval
+
+**Reviewers**: Architecture Team, DevOps, Security
+
+**Approval Status:**
+- ✅ Jane Smith (Chief Architect) - 2025-12-20
+- ✅ John Doe (Tech Lead) - 2025-12-20
+- ✅ Sarah Johnson (DevOps Lead) - 2025-12-21
+- ⏳ Mike Chen (Security) - Pending review
+```
+
+**Best Practices:**
+- Use real names and roles (for accountability)
+- Include approval dates (track decision timeline)
+- Require sign-off before implementation begins
+- Store signatures in git (immutable record)
+
+### Async Review (Alternative)
+
+For non-critical decisions, async review via GitHub PR:
+
+1. **Create PR** with ADR file
+2. **Request Reviews** from stakeholders
+3. **Discuss in Comments** (threaded conversations)
+4. **Approve PR** = Accept ADR
+5. **Merge to Main** = Officially accepted
+
+**Best for:**
+- Straightforward decisions
+- Distributed teams across timezones
+- Low-controversy choices
+- Well-documented alternatives
+
+---
+
+## Common Anti-Patterns
+
+### 1. The "Rubber Stamp" ADR
+
+**Problem**: ADR written AFTER decision is already made and implemented
+
+**Symptoms:**
+- Status jumps straight to "Implemented"
+- No alternatives considered (decision was foregone)
+- Written to satisfy process, not inform decision
+
+**Why It's Bad:**
+- Defeats purpose of ADRs (inform decisions, not document past)
+- Wastes time (no one reads post-facto justifications)
+- Builds cynicism about process
+
+**Fix:**
+✅ Write ADRs BEFORE implementation begins
+✅ If decision already made, be honest: "Status: Implemented (retrospective)"
+✅ Use retrospective ADRs sparingly, only for critical undocumented decisions
+
+**Example Anti-Pattern:**
+```markdown
+# ADR-0008: Use Redis for Caching
+
+Status: Implemented
+Date: 2025-12-01
+Implemented: 2025-11-15  ← Decision made 2 weeks before ADR!
+
+## Decision
+We already implemented Redis caching last month.
+```
+
+### 2. The "Novel" ADR
+
+**Problem**: ADR is 10+ pages of exhaustive detail
+
+**Symptoms:**
+- Includes implementation code samples
+- Documents every edge case
+- Contains architectural diagrams with 20+ components
+- Multiple pages of research citations
+
+**Why It's Bad:**
+- No one reads it (TL;DR effect)
+- Mixes decision rationale with implementation guide
+- Hard to maintain (becomes outdated quickly)
+
+**Fix:**
+✅ Keep ADRs to 2-4 pages (500-1500 words)
+✅ Focus on WHY, not HOW
+✅ Link to separate docs for implementation details
+✅ Use concise bullet points
+
+**Guideline**: If you need 30+ minutes to read the ADR, it's too long
+
+### 3. The "Vague" ADR
+
+**Problem**: Decision is too abstract to implement
+
+**Symptoms:**
+- "We will improve performance" (how?)
+- "We will adopt modern technologies" (which ones?)
+- "We will consider using microservices" (decide or don't!)
+
+**Why It's Bad:**
+- Can't implement from vague decision
+- Doesn't prevent future debates
+- Alternatives can't be evaluated
+
+**Fix:**
+✅ Be specific: versions, tools, technologies named
+✅ Use declarative language: "We WILL adopt X"
+✅ Include implementation strategy
+✅ Define success criteria
+
+**Example:**
+
+❌ **Vague**: "We will improve our API architecture"
+
+✅ **Specific**: "We will migrate from REST to GraphQL using Apollo Server 4+ by Q2 2026"
+
+### 4. The "No Alternatives" ADR
+
+**Problem**: Only documents chosen solution
+
+**Symptoms:**
+- Alternatives section has 1 option (status quo)
+- Alternatives are strawmen (clearly inferior)
+- No comparative analysis
+
+**Why It's Bad:**
+- Looks like decision was predetermined
+- Misses opportunity to learn from rejected options
+- Future team may revisit same debate
+
+**Fix:**
+✅ Document at least 2-3 real alternatives
+✅ Present alternatives fairly (with genuine pros)
+✅ Explain why each wasn't chosen
+✅ Include "do nothing" as valid alternative
+
+### 5. The "Positives Only" ADR
+
+**Problem**: Only lists benefits, ignores costs/risks
+
+**Symptoms:**
+- Consequences section has 10 pros, 1 con
+- Negatives are trivial: "Slight learning curve"
+- Operational complexity ignored
+
+**Why It's Bad:**
+- Unrealistic (every decision has trade-offs)
+- Team blindsided by downsides later
+- Erodes trust in ADR process
+
+**Fix:**
+✅ Be honest about costs and risks
+✅ Document operational complexity
+✅ Quantify negatives where possible
+✅ Include neutral consequences (not just pros/cons)
+
+**Example:**
+
+❌ **Positives Only**:
+```markdown
+### Positive
+- Faster performance
+- Better developer experience
+- Modern technology
+
+### Negative
+- Slight learning curve
+```
+
+✅ **Balanced**:
+```markdown
+### Positive
+- 50% faster response times (benchmarked)
+- Improved DX with TypeScript autocomplete
+
+### Negative
+- 2-3 month team ramp-up period
+- Adds 15% to infrastructure costs ($3k/month)
+- Debugging distributed systems harder
+- Need new monitoring tools (Jaeger)
+```
+
+### 6. The "Over-Engineered" Solution
+
+**Problem**: Choosing complex solution for simple problem
+
+**Symptoms:**
+- Microservices for 2-person team
+- Kubernetes for single service
+- Event sourcing for basic CRUD app
+
+**Why It's Bad:**
+- Operational burden exceeds benefits
+- Team overwhelmed by complexity
+- Slows development instead of speeding it
+
+**Fix:**
+✅ Match solution complexity to problem complexity
+✅ Consider team size and skills
+✅ Start simple, evolve as needed
+✅ Document when to revisit decision
+
+**YAGNI Principle**: You Aren't Gonna Need It (yet)
+
+### 7. The "Technology Resume Padding" ADR
+
+**Problem**: Choosing trendy tech for learning, not business value
+
+**Symptoms:**
+- Decision justified by "learning opportunity"
+- Latest JavaScript framework despite team experience in another
+- Technology choice driven by conference talks, not requirements
+
+**Why It's Bad:**
+- Puts engineer growth ahead of business needs
+- Increases risk and time-to-market
+- May leave technical debt when team members leave
+
+**Fix:**
+✅ Prioritize business value over technology trends
+✅ Separate learning projects from production systems
+✅ Choose boring technology for critical systems
+✅ Be honest if decision has learning component
+
+**Exception**: Early-stage startups optimizing for recruiting may choose trendy tech intentionally (but document this reasoning!)
+
+### 8. The "Missing Context" ADR
+
+**Problem**: Jumps straight to solution without explaining problem
+
+**Symptoms:**
+- Context section is 2 sentences
+- No quantitative data (users, load, costs)
+- Requirements and constraints missing
+
+**Why It's Bad:**
+- Readers don't understand why decision matters
+- Can't evaluate if solution fits problem
+- Future team may reverse decision unknowingly
+
+**Fix:**
+✅ Spend 30-40% of ADR on context
+✅ Include quantitative data (numbers!)
+✅ Document constraints and forces
+✅ Explain "why now?" timing
+
+### 9. The "Zombie" ADR
+
+**Problem**: Superseded ADR not marked as such
+
+**Symptoms:**
+- Old ADR still shows status "Accepted"
+- Team members reference outdated decisions
+- Contradictory ADRs both appear current
+
+**Why It's Bad:**
+- Creates confusion about current state
+- Wastes time following obsolete guidance
+- Degrades trust in ADR system
+
+**Fix:**
+✅ Update old ADRs when superseded
+✅ Add bidirectional links
+✅ Maintain ADR index/README
+✅ Periodic ADR audit (quarterly)
+
+---
+
+## Integration with Git Workflow
+
+### Repository Structure
+
+```
+repo/
+├── docs/
+│   ├── adr/
+│   │   ├── README.md (ADR index)
+│   │   ├── adr-0001-microservices.md
+│   │   ├── adr-0002-postgresql.md
+│   │   └── template.md
+│   ├── architecture/
+│   └── api/
+├── src/
+└── tests/
+```
+
+**Best Practices:**
+- ✅ Keep ADRs in `/docs/adr/` (discoverable location)
+- ✅ Name files: `adr-####-brief-title.md` (sortable, descriptive)
+- ✅ Store in same repo as code (version together)
+- ✅ Include README.md index for navigation
+
+### Branching Strategy
+
+#### Option 1: Feature Branch with Code
+
+**Use when**: ADR is tied to specific feature implementation
+
+```bash
+# Create feature branch
+git checkout -b feature/graphql-migration
+
+# Add ADR
+git add docs/adr/adr-0015-graphql-gateway.md
+git commit -m "docs: Add ADR-0015 for GraphQL migration"
+
+# Implement feature
+git add src/graphql/
+git commit -m "feat: Implement GraphQL gateway (ADR-0015)"
+
+# Create PR (includes ADR + implementation)
+gh pr create --base main
+```
+
+**Pros:**
+- ADR reviewed alongside implementation
+- Code and rationale versioned together
+- Clear connection between decision and code
+
+**Cons:**
+- ADR acceptance blocked by code review
+- Can't reference ADR until PR merged
+
+#### Option 2: Separate ADR Branch
+
+**Use when**: ADR needs approval before implementation begins
+
+```bash
+# Create ADR-only branch
+git checkout -b adr/adr-0015-graphql-gateway
+
+# Add ADR in "Proposed" status
+git add docs/adr/adr-0015-graphql-gateway.md
+git commit -m "docs: Propose ADR-0015 for GraphQL migration"
+
+# Create PR for review
+gh pr create --base main --title "ADR-0015: GraphQL Gateway"
+
+# After approval, update status to "Accepted"
+git add docs/adr/adr-0015-graphql-gateway.md
+git commit -m "docs: Accept ADR-0015 after architecture review"
+
+# Merge ADR
+gh pr merge
+
+# Later: Implement in separate feature branch
+git checkout -b feature/graphql-migration
+```
+
+**Pros:**
+- ADR reviewed independently of code
+- Can reference accepted ADR in implementation PR
+- Clear approval timeline
+
+**Cons:**
+- Extra PR overhead
+- ADR and code in separate PRs
+
+**Recommendation**: Use Option 2 for major decisions, Option 1 for smaller ones
+
+### Commit Messages
+
+**Format:**
+```
+docs(adr): [action] ADR-#### [title]
+
+[Optional body explaining changes]
+```
+
+**Actions:**
+- `Propose` - Initial ADR creation (status: Proposed)
+- `Accept` - Approval granted (status: Accepted)
+- `Implement` - Mark as implemented (status: Implemented)
+- `Supersede` - Replace with new ADR (status: Superseded)
+- `Deprecate` - Mark as deprecated (status: Deprecated)
+- `Reject` - Not adopted (status: Rejected)
+- `Update` - Changes to proposed ADR (before acceptance)
+
+**Examples:**
+```bash
+git commit -m "docs(adr): Propose ADR-0015 GraphQL Gateway"
+git commit -m "docs(adr): Accept ADR-0015 after architecture review"
+git commit -m "docs(adr): Implement ADR-0015 - GraphQL in production"
+git commit -m "docs(adr): Supersede ADR-0003 with ADR-0015"
+```
+
+### Pull Request Integration
+
+**PR Description Template:**
+```markdown
+## Overview
+[Brief description of changes]
+
+## Related ADR
+**Implements**: [ADR-0015](../docs/adr/adr-0015-graphql-gateway.md)
+
+## Changes
+- [Change 1]
+- [Change 2]
+
+## Testing
+- [Test approach]
+
+## Checklist
+- [ ] Implementation follows ADR-0015
+- [ ] ADR status updated to "Implemented"
+- [ ] Documentation updated
+```
+
+**Best Practices:**
+- Link ADR in every PR that implements it
+- Validate implementation matches ADR decision
+- Update ADR status when PR merges
+
+### Git Hooks (Optional)
+
+**Pre-commit hook** to enforce ADR formatting:
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+ADR_FILES=$(git diff --cached --name-only | grep "docs/adr/adr-.*\.md")
+
+for file in $ADR_FILES; do
+  # Check ADR number format
+  if ! echo "$file" | grep -qE "adr-[0-9]{4}-.*\.md"; then
+    echo "ERROR: $file doesn't follow naming convention"
+    echo "Expected: adr-####-brief-title.md"
+    exit 1
+  fi
+
+  # Check required sections exist
+  for section in "## Context" "## Decision" "## Consequences"; do
+    if ! grep -q "$section" "$file"; then
+      echo "ERROR: $file missing required section: $section"
+      exit 1
+    fi
+  done
+done
+
+exit 0
+```
+
+**Make executable:**
+```bash
+chmod +x .git/hooks/pre-commit
+```
+
+---
+
+## Good vs Bad ADR Titles
+
+### Title Format
+
+```
+ADR-####: [Verb] [Object] [Context]
+```
+
+**Length**: 3-8 words (short but descriptive)
+
+### Good Titles
+
+| Title | Why It's Good |
+|-------|---------------|
+| `ADR-0001: Adopt Microservices Architecture` | ✅ Action-oriented verb, clear scope |
+| `ADR-0015: Migrate from REST to GraphQL` | ✅ Shows transition, specific technologies |
+| `ADR-0023: Use PostgreSQL for Transactional Data` | ✅ Specifies use case (transactional) |
+| `ADR-0031: Implement JWT Authentication with Refresh Tokens` | ✅ Specific technology and pattern |
+| `ADR-0042: Shard User Database by Region` | ✅ Clear action and dimension |
+| `ADR-0050: Deprecate API v1 in Favor of v2` | ✅ Shows lifecycle action |
+
+### Bad Titles (and How to Fix)
+
+| Bad Title | Problem | Fixed Version |
+|-----------|---------|---------------|
+| `ADR-0008: Database` | ❌ Too vague | `ADR-0008: Choose PostgreSQL for Primary Database` |
+| `ADR-0012: Performance` | ❌ Topic, not decision | `ADR-0012: Implement Redis Caching for API Responses` |
+| `ADR-0019: We Should Probably Think About Using Microservices Maybe` | ❌ Wishy-washy, too long | `ADR-0019: Adopt Microservices Architecture` |
+| `ADR-0025: Technology Modernization Initiative` | ❌ Too broad | `ADR-0025: Upgrade React 16 to React 19` |
+| `ADR-0033: The Reasons Why We Decided to Choose Kubernetes Over AWS ECS After Extensive Evaluation` | ❌ Too long, wordy | `ADR-0033: Choose Kubernetes over AWS ECS` |
+| `ADR-0040: Fix the Authentication Problem` | ❌ Sounds like bug fix | `ADR-0040: Implement OAuth 2.0 Authentication` |
+
+### Title Patterns by Decision Type
+
+**Technology Selection:**
+- ✅ `Choose [Technology] for [Use Case]`
+- ✅ `Adopt [Technology] for [Purpose]`
+- Examples:
+  - `Choose PostgreSQL for Primary Database`
+  - `Adopt Kubernetes for Container Orchestration`
+
+**Architecture Patterns:**
+- ✅ `Implement [Pattern] for [Domain]`
+- ✅ `Adopt [Architectural Style]`
+- Examples:
+  - `Implement CQRS for Order Management`
+  - `Adopt Event-Driven Architecture`
+
+**Migrations:**
+- ✅ `Migrate from [Old] to [New]`
+- ✅ `Replace [Old] with [New]`
+- Examples:
+  - `Migrate from MongoDB to PostgreSQL`
+  - `Replace REST API with GraphQL Gateway`
+
+**Conventions/Standards:**
+- ✅ `Standardize [Aspect] using [Approach]`
+- ✅ `Enforce [Rule] via [Mechanism]`
+- Examples:
+  - `Standardize API Versioning using Semantic Versioning`
+  - `Enforce Code Style via Prettier and ESLint`
+
+**Lifecycle Actions:**
+- ✅ `Deprecate [Old Technology]`
+- ✅ `Retire [Old System] by [Date]`
+- Examples:
+  - `Deprecate API v1 in Favor of v2`
+  - `Retire Legacy Payment Service by Q2 2026`
+
+---
+
+## Quantifying Impact and Risk
+
+### Why Quantify?
+
+Quantitative data makes ADRs:
+- **More credible**: Numbers beat opinions
+- **More comparable**: Objective criteria for alternatives
+- **More trackable**: Measure actual vs predicted outcomes
+- **More accountable**: Clear success criteria
+
+### What to Quantify
+
+#### 1. Performance Impact
+
+**Metrics:**
+- Response time (ms, p50/p95/p99)
+- Throughput (requests/second)
+- Resource usage (CPU %, memory GB)
+- Database query time (ms)
+
+**Example:**
+```markdown
+## Consequences
+
+### Positive
+- **Response Time**: Reduce p95 latency from 250ms to 80ms (68% improvement)
+- **Throughput**: Increase from 1,000 to 5,000 req/sec (5x)
+- **Database Load**: Reduce queries by 70% via caching
+
+### Negative
+- **Memory Usage**: Increase from 2GB to 4GB per instance (+100%)
+- **Cold Start**: Add 500ms cold start time for Lambda functions
+```
+
+#### 2. Cost Impact
+
+**Metrics:**
+- Infrastructure cost ($USD/month)
+- Engineer time (person-weeks)
+- Opportunity cost (delayed features)
+- Operational overhead (on-call hours)
+
+**Example:**
+```markdown
+## Cost Analysis
+
+### Implementation Costs
+- **Engineering**: 8 weeks × 3 engineers = 24 person-weeks ($120k)
+- **Infrastructure**: New Kubernetes cluster = $5k/month
+- **Training**: 2-week ramp-up per team member = 10 person-weeks ($50k)
+- **Total**: $170k one-time + $5k/month recurring
+
+### Savings
+- **Developer Productivity**: 40% faster deployments = 5 hours/week saved
+- **Infrastructure**: Auto-scaling reduces over-provisioning by $3k/month
+- **Downtime**: Zero-downtime deploys save $10k/incident × 2 incidents/year
+
+### ROI
+- **Break-even**: 12 months
+- **5-year NPV**: $450k savings
+```
+
+#### 3. Scalability Impact
+
+**Metrics:**
+- Users supported (daily active users)
+- Data volume (GB, TB)
+- Geographic reach (regions, latency)
+- Concurrent connections
+
+**Example:**
+```markdown
+## Scalability Impact
+
+### Current State
+- **Users**: 100,000 DAU
+- **Data**: 500 GB database
+- **Regions**: US-East only
+- **Peak Load**: 2,000 concurrent users
+
+### After Implementation
+- **Users**: 1,000,000 DAU (10x) ✅
+- **Data**: 10 TB (20x) via sharding ✅
+- **Regions**: US-East, US-West, EU, Asia ✅
+- **Peak Load**: 50,000 concurrent (25x) ✅
+```
+
+#### 4. Risk Assessment
+
+**Metrics:**
+- Probability (0-100%)
+- Impact (1-5 scale: negligible to critical)
+- Risk Score (probability × impact)
+- Mitigation effort (person-weeks)
+
+**Example:**
+```markdown
+## Risk Assessment
+
+| Risk | Probability | Impact | Score | Mitigation |
+|------|-------------|--------|-------|------------|
+| Team lacks Kubernetes experience | 80% | High (4) | 3.2 | Hire DevOps engineer, 4-week training ($60k) |
+| Service mesh adds complexity | 60% | Medium (3) | 1.8 | Start with simple mesh, iterate |
+| Migration causes data loss | 10% | Critical (5) | 0.5 | Extensive testing, rollback plan |
+| Cost overruns by 50% | 40% | Medium (3) | 1.2 | Phased rollout, monthly cost review |
+
+**High-Risk Items** (score > 2.0):
+- Kubernetes learning curve: Mitigated via hiring and training
+```
+
+#### 5. Timeline Impact
+
+**Metrics:**
+- Implementation time (weeks)
+- Time to value (weeks until benefits realized)
+- Deployment frequency (deploys/day)
+- Lead time (commit to production)
+
+**Example:**
+```markdown
+## Timeline
+
+### Implementation
+- **Phase 1** (Weeks 1-4): Infrastructure setup, team training
+- **Phase 2** (Weeks 5-8): Service migration (Notification, Analytics)
+- **Phase 3** (Weeks 9-16): Core services (User, Order, Inventory)
+- **Total**: 16 weeks to full migration
+
+### Time to Value
+- **Week 6**: First services deployed (faster iteration begins)
+- **Week 10**: 50% traffic on microservices (partial scaling benefits)
+- **Week 16**: 100% migration (full benefits realized)
+
+### Metrics Improvement
+| Metric | Before | After | Timeline |
+|--------|--------|-------|----------|
+| Deploy frequency | 1/week | 10/day | Week 6 |
+| Build time | 45 min | 3 min | Week 6 |
+| Lead time | 2 weeks | 2 days | Week 10 |
+```
+
+#### 6. Team Impact
+
+**Metrics:**
+- Learning curve (weeks to productivity)
+- Team satisfaction (1-5 survey)
+- Onboarding time (days for new hires)
+- Cognitive load (technologies per developer)
+
+**Example:**
+```markdown
+## Team Impact
+
+### Learning Curve
+- **Kubernetes**: 2-3 weeks to basic proficiency, 3 months to mastery
+- **Service Mesh**: 1 week to understand, 1 month to debug confidently
+- **Distributed Systems**: 2-4 months to internalize patterns
+
+### Developer Experience
+- **Positive**: Faster feedback loops (3 min builds vs 45 min)
+- **Negative**: More complex debugging (distributed tracing required)
+- **Neutral**: Different tech stack (Node.js → potentially Python for some services)
+
+### Team Readiness
+| Team Member | Kubernetes | Service Mesh | Distributed Systems | Ready? |
+|-------------|------------|--------------|---------------------|--------|
+| Jane (Architect) | Expert | Intermediate | Expert | ✅ Yes |
+| John (Lead) | Beginner | None | Intermediate | ⚠️ Training needed |
+| Sarah (DevOps) | Expert | Expert | Expert | ✅ Yes |
+| Team (avg) | Beginner | None | Beginner | ❌ 3-month ramp-up |
+```
+
+### Quantification Best Practices
+
+1. **Use Ranges**: `50-100ms` instead of `75ms` (acknowledges uncertainty)
+2. **Show Baseline**: Always compare to current state
+3. **Source Your Numbers**: Link to benchmarks, PoCs, or research
+4. **Be Conservative**: Underestimate benefits, overestimate costs
+5. **Track Actuals**: Revisit ADR after implementation to compare predictions vs reality
+
+### When You Can't Quantify
+
+Sometimes quantification is hard or misleading:
+
+**Don't Force It:**
+- Developer happiness (use qualitative descriptions)
+- Code maintainability (subjective, context-dependent)
+- Strategic alignment (qualitative business value)
+
+**Instead:**
+- Use relative comparisons: "significantly faster", "moderately more complex"
+- Provide qualitative reasoning: "Aligns with our cloud-first strategy"
+- Reference case studies: "Netflix saw 5x improvement in similar migration"
+
+---
+
+## Summary Checklist
+
+Use this quick reference before creating or reviewing an ADR:
+
+### Before Writing
+- [ ] Decision meets threshold (affects 3+ devs, >2 weeks to reverse)
+- [ ] Alternative solutions explored
+- [ ] Stakeholders identified
+
+### While Writing
+- [ ] Title is clear and action-oriented (3-8 words)
+- [ ] Context explains problem with quantitative data
+- [ ] Decision is specific (technologies, versions, timeline)
+- [ ] Consequences include positives, negatives, and neutral
+- [ ] At least 2 alternatives documented fairly
+- [ ] Quantified: cost, performance, timeline, risk
+
+### Before Approval
+- [ ] Reviewed by relevant stakeholders
+- [ ] Questions and concerns addressed
+- [ ] Status is "Proposed" (not yet "Accepted")
+- [ ] Linked to related ADRs if applicable
+
+### After Approval
+- [ ] Status changed to "Accepted"
+- [ ] Approval signatures added
+- [ ] Committed to main branch
+- [ ] ADR linked in implementation PRs
+
+### During Implementation
+- [ ] Status updated to "Implemented" when live
+- [ ] Implementation links added (PRs, commits)
+- [ ] Actual outcomes compared to predictions
+
+### Lifecycle Management
+- [ ] Superseded ADRs updated with bidirectional links
+- [ ] Deprecated ADRs include migration path
+- [ ] ADR index (README) kept current
+- [ ] Quarterly audit for zombie ADRs
+
+---
+
+## Related Resources
+
+**Templates:**
+- `/assets/adr-template.md` - Standard ADR template
+- `/scripts/adr-frontmatter.yaml` - YAML metadata for tooling
+
+**Examples:**
+- `/examples/adr-0001-adopt-microservices.md` - Full example ADR
+- `/examples/adr-0002-choose-postgresql.md` - Database decision
+- `/examples/adr-0003-api-versioning-strategy.md` - API pattern
+
+**Checklists:**
+- `/checklists/adr-review-checklist.md` - Complete review criteria
+
+**Further Reading:**
+- Michael Nygard: [Documenting Architecture Decisions](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions)
+- ThoughtWorks Technology Radar: [Lightweight ADRs](https://www.thoughtworks.com/radar/techniques/lightweight-architecture-decision-records)
+- Joel Parker Henderson: [ADR GitHub Repo](https://github.com/joelparkerhenderson/architecture-decision-record)
+
+---
+
+**Reference Version**: 1.0.0
+**Last Updated**: 2025-12-21
+**Maintained by**: AI Agent Hub Team
+**Skill**: architecture-decision-record v1.0.0
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Adr Review Checklist">
+
+# ADR Review Checklist
+
+Use this checklist when reviewing Architecture Decision Records before accepting them.
+
+## Pre-Review Checklist
+
+Before distributing ADR for review, author should verify:
+
+- [ ] **ADR Number**: Sequential 4-digit number assigned (check existing ADRs)
+- [ ] **File Location**: Placed in `/docs/adr/` or `/architecture/decisions/`
+- [ ] **File Naming**: Follows format `adr-####-brief-title.md`
+- [ ] **Status**: Set to "Proposed" (not yet "Accepted")
+- [ ] **Date**: Current date in YYYY-MM-DD format
+- [ ] **Authors**: All contributors listed with roles
+- [ ] **Formatting**: Markdown renders correctly, no broken links
+- [ ] **Template**: Follows standard ADR template structure
+
+---
+
+## Content Quality Checklist
+
+### 1. Context Section
+
+- [ ] **Problem is Clear**: Anyone can understand what needs solving
+- [ ] **Current State Documented**: What exists today is explained
+- [ ] **Requirements Listed**: Business and technical needs specified
+- [ ] **Constraints Identified**: Limitations are explicit (budget, time, tech, skills)
+- [ ] **Forces Explained**: Competing concerns or trade-offs described
+- [ ] **Stakeholders Identified**: Who cares about this decision?
+
+**Quality Indicators:**
+- ✅ Context is 3-5 paragraphs (not too brief, not too verbose)
+- ✅ Someone unfamiliar with the problem can understand it
+- ✅ Quantitative data provided where relevant (users, load, costs)
+- ✅ No solution details leaked into context (remains problem-focused)
+
+### 2. Decision Section
+
+- [ ] **Decision is Specific**: Clear what is being adopted
+- [ ] **Technology Stack Named**: Specific versions and tools listed
+- [ ] **Implementation Strategy Defined**: How this will be rolled out
+- [ ] **Timeline Provided**: When implementation starts and completes
+- [ ] **Responsibilities Assigned**: Who owns what aspects
+- [ ] **Success Criteria**: How we'll know this works (optional but recommended)
+
+**Quality Indicators:**
+- ✅ Decision uses active, declarative language ("We will adopt...")
+- ✅ No ambiguity (another team could implement from this ADR)
+- ✅ Scope is clear (what's included, what's not)
+- ✅ Entry criteria specified if phased approach
+
+**Red Flags:**
+- ❌ Vague language: "We'll consider using..." or "We might try..."
+- ❌ No timeline: "Eventually we'll implement this"
+- ❌ No ownership: "Someone should do this"
+
+### 3. Consequences Section
+
+- [ ] **Positive Outcomes Listed**: Benefits are explicit (at least 3)
+- [ ] **Negative Outcomes Listed**: Costs, risks, trade-offs documented (at least 3)
+- [ ] **Neutral Outcomes Listed**: Changes that aren't clearly positive/negative
+- [ ] **Honest Assessment**: Not just selling the decision, but balanced
+- [ ] **Quantified Where Possible**: Numbers provided (latency, cost, time)
+
+**Quality Indicators:**
+- ✅ Negatives are substantial and honest, not trivial
+- ✅ Each consequence explains "why it matters"
+- ✅ Operational impact considered (monitoring, debugging, on-call)
+- ✅ Long-term consequences addressed (not just short-term)
+
+**Red Flags:**
+- ❌ Only positive consequences listed
+- ❌ Negatives are downplayed or hand-waved
+- ❌ No mention of operational complexity
+- ❌ Consequences are vague: "May be harder to..." vs "Will add 10-50ms latency"
+
+### 4. Alternatives Section
+
+- [ ] **At Least 2 Alternatives**: Minimum requirement
+- [ ] **Alternatives Are Real**: Actually considered, not strawmen
+- [ ] **Description Provided**: What each alternative entails
+- [ ] **Pros Listed**: Advantages of each alternative (at least 2)
+- [ ] **Cons Listed**: Disadvantages of each alternative (at least 2)
+- [ ] **Rejection Rationale**: Clear explanation why not chosen
+- [ ] **Comparative**: Alternatives compared against chosen solution
+
+**Quality Indicators:**
+- ✅ "Do nothing" or "Status quo" considered as alternative
+- ✅ Alternatives span different approaches (not just vendor variations)
+- ✅ Each alternative has enough detail to understand trade-offs
+- ✅ Rejection rationale is specific, not generic
+
+**Red Flags:**
+- ❌ Only 1 alternative (should have at least 2)
+- ❌ Alternatives are clearly inferior (strawmen)
+- ❌ Rejection rationale is "We just liked the other one better"
+- ❌ Pros/cons are imbalanced (chosen solution has 10 pros, alternatives have 1)
+
+### 5. References Section (Optional but Recommended)
+
+- [ ] **Discussion Links**: Slack threads, meeting notes, email chains
+- [ ] **Research Sources**: Articles, books, documentation consulted
+- [ ] **Related ADRs**: Other decisions that influenced this one
+- [ ] **Proof of Concept**: Link to PoC implementation or spike results
+- [ ] **Cost Analysis**: Spreadsheets or documents with cost projections
+
+---
+
+## Architecture Review Criteria
+
+### Technical Viability
+
+- [ ] **Technically Sound**: Solution is feasible with current state of technology
+- [ ] **Scalability**: Addresses scale requirements (users, data, transactions)
+- [ ] **Performance**: Meets latency, throughput, and responsiveness needs
+- [ ] **Security**: Security implications considered and addressed
+- [ ] **Reliability**: Failure modes and recovery strategies documented
+- [ ] **Maintainability**: Long-term maintenance burden is acceptable
+- [ ] **Testability**: Can be tested effectively (unit, integration, E2E)
+
+### Business Alignment
+
+- [ ] **Supports Goals**: Aligns with company/product strategic direction
+- [ ] **Cost Justified**: ROI or value proposition is clear
+- [ ] **Timeline Realistic**: Implementation window is achievable
+- [ ] **Resource Availability**: Team has skills (or can acquire them)
+- [ ] **Risk Acceptable**: Risks are understood and within tolerance
+
+### Operational Considerations
+
+- [ ] **Deployment Strategy**: How this goes to production is clear
+- [ ] **Monitoring Plan**: How we'll observe this in production
+- [ ] **Rollback Plan**: How we undo this if it fails
+- [ ] **Training Needs**: Team knows how to work with this
+- [ ] **Documentation**: Sufficient for ongoing maintenance
+- [ ] **On-Call Impact**: Effect on operations team understood
+
+### Compliance & Standards
+
+- [ ] **Coding Standards**: Follows team/org conventions
+- [ ] **Security Standards**: Meets security policies
+- [ ] **Compliance Requirements**: Regulatory needs addressed (GDPR, HIPAA, SOC2)
+- [ ] **Architecture Principles**: Consistent with existing principles
+- [ ] **Technology Radar**: Aligns with approved technology choices
+
+---
+
+## Stakeholder Sign-Off
+
+Required approvals (customize based on your organization):
+
+### Technical Approvals
+
+- [ ] **Chief/Principal Architect**: Overall architecture coherence
+- [ ] **Domain Architect**: Specific domain expertise (frontend, backend, data, security)
+- [ ] **Tech Lead**: Implementation feasibility
+- [ ] **DevOps/SRE**: Operational viability
+
+### Business Approvals
+
+- [ ] **Engineering Manager**: Resource allocation and timeline
+- [ ] **Product Manager**: Business value and priority
+- [ ] **Security Team**: Security implications (if applicable)
+- [ ] **Compliance Team**: Regulatory requirements (if applicable)
+
+### Optional Approvals (depending on scope)
+
+- [ ] **CTO/VP Engineering**: Strategic decisions
+- [ ] **Finance**: Large cost impacts (>$50k)
+- [ ] **Legal**: Licensing, contracts, IP considerations
+
+---
+
+## Common Review Feedback
+
+### Context Issues
+
+- "I don't understand the problem we're solving"
+  - **Fix**: Add more background, quantify the pain points
+
+- "Are these requirements from Product or assumptions?"
+  - **Fix**: Clarify source of each requirement, validate with stakeholders
+
+- "What's the urgency? Can this wait?"
+  - **Fix**: Add business impact and timeline drivers
+
+### Decision Issues
+
+- "This seems too vague to implement"
+  - **Fix**: Add specific technologies, versions, and implementation steps
+
+- "Who's actually going to do this?"
+  - **Fix**: Assign clear ownership with names/roles
+
+- "What if we need to change this later?"
+  - **Fix**: Document extensibility, plan for evolution
+
+### Consequences Issues
+
+- "You're only showing the upside"
+  - **Fix**: Add honest trade-offs, costs, and risks
+
+- "What about operational complexity?"
+  - **Fix**: Document monitoring, debugging, on-call implications
+
+- "How does this affect other teams?"
+  - **Fix**: Assess cross-team impact, communication needs
+
+### Alternatives Issues
+
+- "These alternatives seem like strawmen"
+  - **Fix**: Present alternatives fairly, with genuine pros/cons
+
+- "Why didn't you consider [obvious alternative]?"
+  - **Fix**: Add missing alternatives, explain evaluation process
+
+- "I disagree with your reasoning"
+  - **Fix**: Revisit decision rationale, possibly reconsider
+
+---
+
+## Post-Review Actions
+
+After approval:
+
+- [ ] **Update Status**: Change from "Proposed" to "Accepted"
+- [ ] **Add Approval Dates**: Document when each stakeholder approved
+- [ ] **Commit to Repository**: Merge ADR into main branch
+- [ ] **Communicate**: Announce accepted ADR to relevant teams
+- [ ] **Link in Implementation**: Reference ADR in PRs/tickets
+- [ ] **Update Index**: Add to ADR index or table of contents
+- [ ] **Schedule Review**: Calendar reminder to review effectiveness in 3-6 months
+
+---
+
+## ADR Rejection Criteria
+
+When to reject an ADR (requires rewrite):
+
+### Fatal Flaws
+
+- ❌ **Decision is Premature**: Not enough information to decide yet
+- ❌ **Problem Undefined**: Can't understand what's being solved
+- ❌ **No Alternatives**: Only one option presented
+- ❌ **Unjustified**: Decision rationale is weak or missing
+- ❌ **Unrealistic**: Timeline, budget, or skills are infeasible
+- ❌ **Wrong Scope**: Too big (break into multiple ADRs) or too small (not worthy of ADR)
+
+### Serious Issues
+
+- ⚠️ **Insufficient Analysis**: Trade-offs not explored deeply enough
+- ⚠️ **Missing Stakeholders**: Key people weren't consulted
+- ⚠️ **Conflicts with Strategy**: Doesn't align with org direction
+- ⚠️ **Risks Unaddressed**: Major risks not acknowledged or mitigated
+- ⚠️ **Compliance Issues**: Regulatory problems not resolved
+
+### Process Problems
+
+- ⚠️ **Bypassed Review**: ADR created after decision already made
+- ⚠️ **Incomplete Template**: Major sections missing
+- ⚠️ **Poor Quality**: Unclear writing, formatting issues
+
+---
+
+## Review Meeting Tips
+
+**Before the Meeting:**
+- [ ] Share ADR at least 48 hours in advance
+- [ ] Request reviewers read before meeting
+- [ ] Prepare to answer questions about alternatives and trade-offs
+
+**During the Meeting:**
+- [ ] Present context and decision clearly (5-10 minutes)
+- [ ] Walk through alternatives and why not chosen
+- [ ] Address questions and concerns
+- [ ] Document feedback and action items
+- [ ] Seek consensus, not just majority
+
+**After the Meeting:**
+- [ ] Incorporate feedback within 1 week
+- [ ] Re-share revised ADR for final approval
+- [ ] Don't "accept" ADR until concerns addressed
+
+---
+
+## Version History
+
+- **v1.0.0** (2025-10-31): Initial checklist
+- Template maintained by: AI Agent Hub Team
+- Skill: architecture-decision-record v1.0.0
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Examples (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Adr 0001 Adopt Microservices">
+
+# ADR-0001: Adopt Microservices Architecture
+
+**Status**: Accepted
+
+**Date**: 2025-10-15
+
+**Authors**: Jane Smith (Backend Architect), John Doe (Tech Lead)
+
+**Supersedes**: N/A
+
+**Superseded by**: N/A
+
+---
+
+## Context
+
+Our e-commerce platform has grown from 10,000 to 500,000 daily active users over the past 18 months. The current monolithic architecture is experiencing significant scalability and operational challenges.
+
+**Problem Statement:**
+The monolithic application architecture is preventing us from scaling effectively to meet growth projections of 10x traffic over the next 12 months.
+
+**Current Situation:**
+- Single Node.js application (250,000 lines of code)
+- Shared PostgreSQL database
+- Deployment requires full application restart (15-minute downtime)
+- 45-minute build times
+- Database connection pool exhausted during peak hours
+- Teams blocked waiting for shared resources
+
+**Requirements:**
+- **Business**: Support 5M daily active users by Q4 2026
+- **Technical**: Enable independent team deployments without downtime
+- **Operational**: Reduce build times to under 5 minutes
+- **Product**: Decrease time-to-market for new features by 40%
+
+**Constraints:**
+- Team expertise: Node.js, Python, PostgreSQL
+- Infrastructure: AWS (existing investment)
+- Budget: $75k for migration, 2 senior DevOps engineers allocated
+- Timeline: Complete migration within 6 months (Q1-Q2 2026)
+
+**Forces:**
+- **Scale vs Complexity**: Need to scale but don't want operational burden
+- **Speed vs Stability**: Fast feature development vs system reliability
+- **Autonomy vs Coordination**: Team independence vs system coherence
+- **Cost vs Performance**: Infrastructure costs vs user experience
+
+---
+
+## Decision
+
+**We will migrate from our monolithic architecture to a microservices architecture using a strangler fig pattern.**
+
+**Technology Stack:**
+- **Services**: Node.js 20+ with Express framework
+- **Databases**: PostgreSQL 15+ (one per service)
+- **Caching**: Redis 7+ for session management and caching
+- **Messaging**: RabbitMQ 3.12+ for async inter-service communication
+- **API Gateway**: Kong for routing and rate limiting
+- **Orchestration**: Kubernetes (EKS on AWS)
+- **Observability**: Jaeger for distributed tracing, Prometheus for metrics
+
+**Service Boundaries:**
+1. **User Service**: Authentication, user profiles, preferences
+2. **Order Service**: Order processing, payment integration, order history
+3. **Inventory Service**: Product catalog, stock management, pricing
+4. **Notification Service**: Email, SMS, push notifications
+5. **Analytics Service**: User behavior tracking, reporting
+
+**Implementation Strategy:**
+- **Pattern**: Strangler Fig - gradually extract services from monolith
+- **Phase 1** (Month 1-2): Notification Service (lowest risk, clear boundaries)
+- **Phase 2** (Month 2-3): Analytics Service (read-only, non-critical)
+- **Phase 3** (Month 3-4): User Service (core functionality, highest risk)
+- **Phase 4** (Month 4-5): Inventory Service (moderate complexity)
+- **Phase 5** (Month 5-6): Order Service (most critical, saved for last)
+
+**Timeline:**
+- **Q1 2026**: Infrastructure setup + Notification & Analytics services
+- **Q2 2026**: User, Inventory, and Order services
+- **Q3 2026**: Monolith decommissioned
+
+**Responsibility:**
+- **Backend Architect** (Jane Smith): Service design, API contracts
+- **DevOps Team** (Led by Sarah Johnson): Kubernetes setup, CI/CD pipelines
+- **Team Leads**: Service migration execution and team coordination
+- **QA Lead**: Testing strategy and service contract validation
+
+---
+
+## Consequences
+
+### Positive
+- **Independent Scalability**: Each service scales based on its specific load patterns
+  - Notification Service: 10x scale during campaigns
+  - Order Service: 3x scale during Black Friday
+
+- **Deployment Independence**: Teams deploy services without coordination
+  - 10+ deployments per day vs 1-2 per week currently
+  - Zero-downtime deployments
+
+- **Technology Flexibility**: Services can adopt optimal tech stacks
+  - Analytics Service may use Python for ML libraries
+  - Real-time services optimized with Node.js
+
+- **Fault Isolation**: Service failures don't cascade system-wide
+  - Notification Service failure doesn't affect orders
+  - Graceful degradation possible
+
+- **Faster Build Times**: 2-5 minutes per service vs 45 minutes for monolith
+  - Improved developer experience
+  - Faster feedback loops
+
+- **Team Autonomy**: Teams own services end-to-end
+  - Reduced coordination overhead
+  - Faster feature delivery
+
+### Negative
+- **Operational Complexity**: Managing 5+ services vs 1 application
+  - Need service mesh for traffic management
+  - More monitoring and alerting required
+  - On-call rotation complexity increases
+
+- **Network Latency**: Inter-service calls add overhead
+  - 10-50ms per service hop
+  - Requires request optimization and caching
+
+- **Distributed Debugging**: Tracing requests across services harder
+  - Need distributed tracing (Jaeger)
+  - Correlation IDs required for all requests
+
+- **Data Consistency**: Eventual consistency vs immediate
+  - Inventory updates may lag order placement
+  - Need compensation logic for failures
+
+- **Learning Curve**: Team needs new skills
+  - Kubernetes: 2-3 month ramp-up
+  - Service mesh concepts
+  - Distributed systems patterns
+
+- **Initial Slowdown**: Infrastructure setup before productivity gains
+  - Q1 focused on foundation, not features
+  - 2-3 months before velocity improvements visible
+
+- **Testing Complexity**: Contract tests, integration tests across services
+  - New testing strategies required
+  - Requires investment in test infrastructure
+
+- **Cost Increase**: Higher infrastructure costs initially
+  - 5 databases instead of 1
+  - Kubernetes overhead
+  - Additional monitoring tools
+  - Offset by improved productivity (net positive after 12 months)
+
+### Neutral
+- **Monitoring**: Shift from centralized logging to distributed tracing
+  - Different tools (Jaeger vs simple logs)
+  - More powerful but requires learning
+
+- **Database Strategy**: Per-service databases instead of shared schema
+  - More isolation but harder for reporting
+  - Requires data aggregation service for analytics
+
+- **API Contracts**: Need formal API versioning and contracts
+  - OpenAPI specifications required
+  - Contract testing between services
+
+---
+
+## Alternatives Considered
+
+### Alternative 1: Optimize Existing Monolith
+
+**Description:**
+Keep monolithic architecture but add:
+- PostgreSQL read replicas (3 replicas)
+- Redis caching layer
+- Horizontal scaling with load balancer (4 instances)
+- Database connection pooling improvements
+- Code optimization and query tuning
+
+**Pros:**
+- **Lower Complexity**: Team already familiar with architecture
+- **Faster Implementation**: 4-6 weeks vs 6 months
+- **Lower Risk**: No fundamental architecture change
+- **Cost Effective**: $10k vs $75k for microservices
+- **No Learning Curve**: Existing team skills sufficient
+
+**Cons:**
+- **Limited Scalability**: Eventually hit ceiling again
+- **Deployment Coupling**: Still requires full restarts
+- **Build Times**: Remains 45 minutes (can't improve significantly)
+- **Team Bottlenecks**: Shared codebase still blocks teams
+- **Technical Debt**: Doesn't address root architectural issues
+- **Short-Term Fix**: Same problems resurface in 12-18 months
+
+**Why not chosen:**
+This addresses symptoms but not root causes. Based on our growth trajectory, we'd face the same scalability crisis again within 18 months. The deployment coupling continues to slow feature velocity, and the monolith's complexity makes onboarding difficult. While cheaper short-term, the total cost over 2 years exceeds microservices due to repeated optimization cycles and slower feature delivery.
+
+**Cost-Benefit Analysis:**
+- Year 1: $10k (optimization) + $50k (opportunity cost from slow velocity)
+- Year 2: $15k (more optimization) + $75k (opportunity cost)
+- **Total**: $150k over 2 years vs $75k one-time for microservices
+
+### Alternative 2: Serverless Architecture (AWS Lambda)
+
+**Description:**
+Decompose application into AWS Lambda functions:
+- API Gateway for routing
+- Lambda functions for business logic (Node.js)
+- DynamoDB for data storage
+- S3 for static assets
+- EventBridge for async communication
+
+**Pros:**
+- **Extreme Scalability**: Auto-scales to any load
+- **Pay-Per-Use**: No cost when idle, pay only for executions
+- **No Server Management**: AWS handles all infrastructure
+- **Built-in High Availability**: Multi-AZ by default
+- **Fast Deployment**: Deploy functions independently in seconds
+
+**Cons:**
+- **Vendor Lock-In**: Heavily tied to AWS services
+- **Cold Start Latency**: 500ms - 2s for cold starts
+  - Unacceptable for our real-time order processing requirements
+- **Execution Time Limit**: 15-minute maximum
+  - Problematic for batch processing and reports
+- **Local Development**: Difficult to replicate environment locally
+  - SAM/LocalStack not perfect
+- **Team Inexperience**: Zero serverless experience on team
+  - 6-12 month learning curve
+- **Debugging Complexity**: CloudWatch logs harder than standard logging
+- **State Management**: Stateless-only, requires external state store
+- **Cost Unpredictability**: Hard to forecast costs at scale
+
+**Why not chosen:**
+Risk assessment showed this approach has too many unknowns:
+1. **Cold Starts**: Real-time requirements mean 500ms delays unacceptable
+   - Critical for checkout flow (our highest revenue path)
+2. **Team Readiness**: Zero serverless experience = high learning curve
+   - Would extend timeline to 9-12 months vs 6 months
+3. **Vendor Lock-In**: Concern about being tied to AWS ecosystem
+   - Makes future multi-cloud strategy difficult
+4. **Debugging**: Production incidents harder to resolve
+   - Distributed logs across Lambda, API Gateway, DynamoDB
+
+**Alternative Consideration:**
+We may revisit serverless for specific use cases later (e.g., image processing, scheduled jobs) once team has microservices experience. Hybrid approach possible in future.
+
+### Alternative 3: Modular Monolith
+
+**Description:**
+Restructure monolith into well-defined modules with clear boundaries:
+- Module per domain (User, Order, Inventory, etc.)
+- Enforce module boundaries with linting rules
+- Separate databases per module within monolith
+- Keep deployment as single unit but enable parallel development
+
+**Pros:**
+- **Low Operational Complexity**: Still one deployment unit
+- **Module Independence**: Teams can work in parallel
+- **Shared Infrastructure**: Database connections, caching shared
+- **Gradual Path**: Can extract modules to services later
+- **Familiar Tooling**: Same dev/deploy tools
+
+**Cons:**
+- **Build Time**: Still 30-40 minutes (only marginal improvement)
+- **Deployment Coupling**: Any change requires full restart
+- **Scaling Limitations**: Can't scale modules independently
+- **Database Contention**: Modules still share connection pool
+- **Enforcement Challenges**: Module boundaries violated over time
+
+**Why not chosen:**
+This is a good intermediate step but doesn't solve our core problems:
+- Still can't scale Order Service independently during Black Friday
+- Deployment coupling remains (15-minute downtime window)
+- Doesn't reduce build times enough for velocity improvements
+
+**Note**: We considered this as Phase 0 but decided the investment would delay microservices benefits. Team consensus: do it right once vs incremental half-measures.
+
+---
+
+## References
+
+### Research & Best Practices
+- Martin Fowler: [Microservices Guide](https://martinfowler.com/microservices/)
+- Sam Newman: *Building Microservices* (O'Reilly, 2021)
+- Chris Richardson: [Microservices Patterns](https://microservices.io/patterns/)
+
+### Internal Discussions
+- Architecture Review Meeting: 2025-09-20 ([Confluence Link](https://wiki.company.com/arch-review-sep2025))
+- Slack #architecture channel: Discussion thread from 2025-10-01
+- Tech Talk: "Our Journey to Microservices" by Jane Smith (internal recording)
+
+### Proof of Concept
+- Notification Service PoC: [GitHub PR #1234](https://github.com/company/platform/pull/1234)
+  - Demonstrated 10x throughput improvement
+  - Validated Kubernetes setup on EKS
+  - Confirmed 3-minute build times
+
+### Related ADRs
+- ADR-0002: Choose PostgreSQL over MongoDB (coming soon)
+- ADR-0003: API Versioning Strategy (coming soon)
+- ADR-0004: Service Mesh Evaluation (coming soon)
+
+### Cost Analysis
+- Infrastructure Cost Projection: [Spreadsheet](https://docs.google.com/spreadsheets/d/xxx)
+- ROI Analysis: [Presentation](https://drive.google.com/file/d/yyy)
+
+---
+
+## Review Notes
+
+**Reviewers**: Architecture Team, Engineering Leads, DevOps, Product, Security
+
+**Questions Raised:**
+- Q: Can we afford 2-3 months of reduced velocity during migration?
+  - A: Yes, roadmap adjusted. Q1 has fewer features planned to accommodate.
+
+- Q: What's our rollback plan if microservices fails?
+  - A: Strangler fig keeps monolith running. Can pause migration at any point.
+
+- Q: How do we handle distributed transactions?
+  - A: Saga pattern with compensation logic. Details in future ADR.
+
+**Concerns Addressed:**
+- **Cost**: CFO approved $75k budget after ROI analysis
+- **Timeline**: Product accepted 6-month migration window
+- **Risk**: PoC de-risked Kubernetes and deployment approach
+- **Skills**: DevOps hiring approved, team training scheduled
+
+**Approval:**
+- ✅ Architecture Team (2025-10-12)
+- ✅ Engineering VP (2025-10-13)
+- ✅ Product VP (2025-10-14)
+- ✅ DevOps Lead (2025-10-15)
+- ✅ Security Team (2025-10-15)
+
+**Status Change**: Proposed → **Accepted** (2025-10-15)
+
+---
+
+**ADR Version**: 1.0
+**Created**: 2025-10-15
+**Accepted**: 2025-10-15
+**Implemented**: TBD (Target: Q2 2026)
+
+
+</Accordion>
+
+<Accordion title="Choose PostgreSQL as Primary Database">
+
+
+# ADR-0002: Choose PostgreSQL as Primary Database
+
+## Status
+
+**Accepted** (2024-10-15)
+
+## Context
+
+As we transition to microservices architecture (see ADR-0001), we need to select a database that supports our requirements for each service.
+
+**Current Situation:**
+- Monolith uses MySQL 5.7 (3 years old, not actively maintained by team)
+- Database handles 2M+ transactions daily
+- Growing need for complex queries and analytics
+- Team experienced with SQL but not database administration
+
+**Requirements:**
+- ACID compliance for financial transactions
+- Support for complex joins and aggregations
+- JSON document storage for flexible schemas
+- Full-text search capabilities
+- Strong community and tooling support
+- Open source (no vendor lock-in)
+- Cloud-native deployment ready (RDS, Cloud SQL)
+
+**Constraints:**
+- Budget: $2,000/month for database infrastructure
+- Timeline: Migration must complete within 4 months
+- Team: 5 backend developers (3 senior, 2 mid-level)
+- Data volume: 500GB current, projected 2TB in 2 years
+
+## Decision
+
+We will adopt **PostgreSQL 15+** as our primary relational database for all microservices.
+
+**Specific Choices:**
+
+1. **Version**: PostgreSQL 15.4 (stable, long-term support)
+
+2. **Deployment**:
+   - **Production**: AWS RDS for PostgreSQL (Multi-AZ)
+   - **Staging**: AWS RDS Single-AZ
+   - **Development**: Docker containers (postgres:15.4-alpine)
+
+3. **Architecture**:
+   - **Database-per-Service**: Each microservice owns its database
+   - **Connection Pooling**: PgBouncer in transaction mode
+   - **Read Replicas**: For analytics and reporting workloads
+
+4. **Extensions to Enable**:
+   - `pg_trgm` - Full-text search and fuzzy matching
+   - `pgcrypto` - Encryption functions
+   - `uuid-ossp` - UUID generation
+   - `pg_stat_statements` - Query performance monitoring
+
+5. **Migration Strategy**:
+   - **Phase 1** (Month 1): Set up PostgreSQL infrastructure
+   - **Phase 2** (Months 2-3): Migrate service by service (start with Notification Service)
+   - **Phase 3** (Month 4): Parallel running, validate data consistency
+   - **Phase 4** (Month 4): Cut over, decommission MySQL
+
+6. **Data Migration Tools**:
+   - `pgloader` for MySQL → PostgreSQL migration
+   - Custom validation scripts for data integrity checks
+   - Blue-green deployment for zero-downtime cutover
+
+## Consequences
+
+### Positive
+
+✅ **JSONB Support**: Native JSON storage with indexing and querying
+- Allows flexible schemas without separate NoSQL database
+- Example: User preferences, feature flags, configuration
+
+✅ **Advanced SQL Features**:
+- Window functions for analytics
+- CTEs (Common Table Expressions) for complex queries
+- Array types and operators
+- GIN/GiST indexes for specialized queries
+
+✅ **Strong ACID Guarantees**:
+- Reliable for financial transactions
+- Multi-version concurrency control (MVCC)
+- No phantom reads or dirty writes
+
+✅ **Full-Text Search**:
+- Built-in full-text search (no need for Elasticsearch initially)
+- Trigram indexes for fuzzy matching
+- Language-aware text search
+
+✅ **Extension Ecosystem**:
+- PostGIS for geospatial data (future use case)
+- TimescaleDB for time-series data (analytics)
+- Citus for horizontal scaling (if needed)
+
+✅ **Performance**:
+- Faster complex queries compared to MySQL
+- Better query planner and optimizer
+- Parallel query execution (PostgreSQL 15+)
+
+✅ **Community & Tooling**:
+- Excellent documentation
+- Active community support
+- Rich ecosystem (pgAdmin, DataGrip, DBeaver)
+- AWS RDS fully managed service
+
+✅ **Cost Efficiency**:
+- Open source (no licensing fees)
+- RDS pricing competitive: ~$1,500/month estimated
+
+### Negative
+
+⚠️ **Migration Complexity**:
+- 4-month migration timeline is tight
+- Data type differences (MySQL ENUM → PostgreSQL CHECK constraints)
+- Syntax differences in stored procedures
+- Potential query rewrites needed
+
+⚠️ **Learning Curve**:
+- Team needs training on PostgreSQL-specific features
+- Different performance tuning approach
+- New backup/restore procedures
+
+⚠️ **Operational Changes**:
+- Need to learn PostgreSQL-specific monitoring (pg_stat_* views)
+- Different VACUUM and ANALYZE maintenance
+- Connection pooling setup (PgBouncer)
+
+⚠️ **Lock Management**:
+- Different locking behavior than MySQL
+- Need to understand MVCC implications
+- Potential for lock contention in high-write scenarios
+
+⚠️ **Replication Lag**:
+- Read replicas may lag in high-write scenarios
+- Need monitoring for replication lag alerts
+
+### Neutral
+
+🔄 **Backward Compatibility**:
+- Some queries will need rewriting
+- Stored procedures incompatible (MySQL → PL/pgSQL)
+- Date/time functions have different names
+
+🔄 **Monitoring**:
+- Different metrics to track (pg_stat_activity, pg_stat_database)
+- New alerts to configure
+- Learning RDS CloudWatch metrics
+
+## Alternatives Considered
+
+### Alternative 1: MySQL 8.0 (Upgrade Current)
+
+**Description:**
+- Upgrade existing MySQL 5.7 to MySQL 8.0
+- Maintain current knowledge and tooling
+
+**Pros:**
+- Team already familiar with MySQL
+- Minimal learning curve
+- Existing queries mostly compatible
+- MySQL 8.0 has JSON support (added in 5.7+)
+- Lower migration risk
+
+**Cons:**
+- JSON support less mature than PostgreSQL JSONB
+- No native full-text search (would need Elasticsearch)
+- Weaker query optimizer for complex queries
+- Less extensible (no extension ecosystem)
+- MySQL future uncertain (Oracle ownership concerns)
+
+**Why not chosen:**
+We need the advanced features PostgreSQL offers (JSONB, full-text search, extensions). The investment in migration pays off with long-term capabilities.
+
+### Alternative 2: MongoDB (Document Database)
+
+**Description:**
+- Use MongoDB for all services
+- NoSQL document-oriented approach
+
+**Pros:**
+- Excellent JSON document support
+- Horizontal scaling built-in (sharding)
+- Flexible schemas
+- Great for rapidly evolving data models
+
+**Cons:**
+- **No ACID transactions** across collections (before v4.0)
+- Difficult to model relational data
+- Team has no MongoDB experience
+- Complex joins are expensive
+- Not ideal for financial transactions
+- Higher operational complexity
+
+**Why not chosen:**
+Our data is fundamentally relational (users, orders, payments). PostgreSQL JSONB gives us document storage flexibility while maintaining ACID guarantees and SQL power.
+
+### Alternative 3: DynamoDB (Managed NoSQL)
+
+**Description:**
+- AWS DynamoDB for all services
+- Fully managed, serverless
+
+**Pros:**
+- Fully managed (zero ops)
+- Unlimited scalability
+- Pay-per-use pricing
+- Single-digit millisecond latency
+
+**Cons:**
+- **Vendor lock-in** to AWS
+- No SQL (complex queries difficult)
+- Expensive for large datasets ($250/GB/month)
+- Steep learning curve
+- No full-text search
+- Limited to key-value and simple queries
+
+**Why not chosen:**
+DynamoDB lacks SQL querying and creates tight AWS coupling. PostgreSQL RDS gives us managed benefits while maintaining portability and SQL expressiveness.
+
+## References
+
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/15/index.html)
+- [AWS RDS for PostgreSQL Pricing Calculator](https://calculator.aws/)
+- [pgloader Migration Tool](https://github.com/dimitri/pgloader)
+- [PostgreSQL vs MySQL Performance Benchmarks (2024)](internal-wiki/benchmarks)
+- Meeting Notes: Architecture Review 2024-10-10
+- Related ADR: ADR-0001 (Adopt Microservices Architecture)
+
+## Implementation Plan
+
+**Owner**: Backend Architect (with DevOps Lead)
+
+**Timeline**:
+- **Week 1-2**: RDS setup, connection pooling, monitoring
+- **Week 3-4**: Migration tooling, validation scripts
+- **Week 5-12**: Service-by-service migration (Notification → Inventory → Order → User)
+- **Week 13-16**: Parallel running, data validation, cutover
+
+**Success Criteria**:
+- [ ] All services migrated to PostgreSQL
+- [ ] Zero data loss during migration
+- [ ] Query performance ≥ MySQL baseline
+- [ ] Team trained on PostgreSQL best practices
+- [ ] Monitoring and alerting operational
+
+**Risks**:
+- Migration timeline may slip (mitigation: parallel team approach)
+- Data consistency issues (mitigation: extensive validation scripts)
+- Performance regressions (mitigation: load testing before cutover)
+
+---
+
+**Decision Date**: 2024-10-15
+**Last Updated**: 2024-10-15
+**Next Review**: 2025-04-15 (6 months post-migration)
+
+
+</Accordion>
+
+<Accordion title="API Versioning Strategy Using URL Path Versioning">
+
+
+# ADR-0003: API Versioning Strategy Using URL Path Versioning
+
+## Status
+
+**Accepted** (2024-11-01)
+
+## Context
+
+As we build our microservices architecture (ADR-0001), we need a strategy for API versioning to support:
+- Backward compatibility for existing clients (mobile apps, web, partners)
+- Gradual rollout of breaking changes
+- Clear deprecation path for old API versions
+- Support for multiple active versions simultaneously
+
+**Current Situation:**
+- No formal versioning strategy in monolith
+- Breaking changes cause immediate failures for mobile apps
+- Mobile users on old app versions (30% still on v2.x)
+- Partner integrations hard-coded to current API
+- Difficult to introduce breaking changes
+
+**Requirements:**
+- Support mobile apps (iOS, Android) that update slowly
+- Allow 6-12 month deprecation window for old versions
+- Clear, discoverable version information
+- Maintain backward compatibility where possible
+- Enable gradual migration for breaking changes
+
+**Constraints:**
+- Mobile app force-upgrade is not acceptable (user experience)
+- Must support at least 2 major versions simultaneously
+- API gateway (AWS API Gateway) already in place
+- RESTful API design principles
+- Team size: 8 developers across 4 services
+
+## Decision
+
+We will adopt **URL path versioning** for all public-facing APIs using the format: `/v\{major\}/resource`.
+
+**Specific Approach:**
+
+1. **Version Format**:
+   ```
+   /v1/users
+   /v2/users
+   /v3/users
+   ```
+   - Major version only (no minor/patch in URL)
+   - Prefix with 'v' for clarity
+   - Integer version number (v1, v2, v3...)
+
+2. **Versioning Policy**:
+   - **Major version bump**: Breaking changes
+     - Removing fields
+     - Changing field types
+     - Renaming fields
+     - Changing validation rules (more restrictive)
+     - Modifying authentication/authorization
+
+   - **No version bump needed**: Non-breaking changes
+     - Adding new optional fields
+     - Adding new endpoints
+     - Adding new query parameters
+     - Deprecating fields (but still returning them)
+     - Loosening validation rules
+
+3. **Version Support**:
+   - Support **N and N-1** versions (latest + previous)
+   - Minimum support: 12 months after new version release
+   - Deprecation warning headers in responses
+   - Automatic redirect from legacy endpoints (where possible)
+
+4. **Implementation Strategy**:
+   ```typescript
+   // Controller structure
+   /src
+     /controllers
+       /v1
+         UserController.ts
+         OrderController.ts
+       /v2
+         UserController.ts
+         OrderController.ts
+     /services
+       UserService.ts    // Shared business logic
+   ```
+
+5. **Deprecation Process**:
+   - **Month 0**: Announce deprecation, add warning header
+     ```
+     Deprecation: version="v1", sunset="2025-06-01", link="/api/v2/users"
+     ```
+   - **Month 3**: Email notification to API consumers
+   - **Month 6**: Prominent dashboard warnings
+   - **Month 9**: Reduce rate limits for old version
+   - **Month 12**: Sunset (return 410 Gone)
+
+6. **Documentation**:
+   - OpenAPI spec per version: `/docs/v1/openapi.yaml`
+   - Interactive docs: `/docs/v1/`, `/docs/v2/`
+   - Migration guides for each version transition
+   - Changelog highlighting breaking changes
+
+## Consequences
+
+### Positive
+
+✅ **Clear and Discoverable**:
+- Version immediately visible in URL
+- No need to inspect headers or documentation
+- Easy to test different versions in browser/Postman
+- Simple for developers to understand
+
+✅ **Backward Compatibility**:
+- Old clients continue working with v1
+- No forced upgrades for mobile users
+- Gradual migration possible (service by service)
+- Reduces risk of breaking production integrations
+
+✅ **Flexible Deployment**:
+- Can deploy v2 while v1 still active
+- A/B testing between versions possible
+- Gradual traffic shifting (10% → 50% → 100%)
+- Rollback is straightforward (route back to v1)
+
+✅ **Caching-Friendly**:
+- Different cache keys for different versions
+- CDN can cache v1 and v2 separately
+- No cache invalidation issues across versions
+
+✅ **Simple Routing**:
+- API Gateway routes by path prefix
+- No custom header parsing needed
+- Load balancer rules are straightforward
+
+✅ **Client-Side Control**:
+- Clients explicitly choose version
+- No ambiguity about which version is being used
+- Easy to test multiple versions in parallel
+
+### Negative
+
+⚠️ **URL Namespace Pollution**:
+- URLs change with each major version
+- More routes to maintain and monitor
+- Can be confusing which version is "current"
+
+⚠️ **Code Duplication**:
+- Controllers may have similar logic across versions
+- Risk of divergence if not carefully managed
+- Testing overhead (test each version)
+
+⚠️ **Maintenance Burden**:
+- Supporting N + N-1 means double the endpoints
+- Bug fixes may need to be applied to multiple versions
+- Security patches must be backported
+
+⚠️ **Documentation Complexity**:
+- Need separate docs for each version
+- Migration guides between versions
+- Harder to keep documentation in sync
+
+⚠️ **Breaking Changes Are Delayed**:
+- Have to wait for major version to fix design mistakes
+- Can't introduce breaking changes incrementally
+- May accumulate technical debt between versions
+
+### Neutral
+
+🔄 **SEO Considerations**:
+- Search engines may index multiple versions
+- Canonical URLs needed to avoid duplicate content
+- Not applicable for private APIs
+
+🔄 **Monitoring**:
+- Need separate metrics per version
+- Dashboard showing v1 vs v2 traffic split
+- Alerts for usage spikes in deprecated versions
+
+## Alternatives Considered
+
+### Alternative 1: Header-Based Versioning
+
+**Description:**
+- Version specified in HTTP header
+- URL remains constant: `/users`
+- Header: `Accept: application/vnd.company.v2+json`
+
+**Pros:**
+- Clean URLs (no version in path)
+- Follows REST "resource" principle
+- More "RESTful" by some definitions
+- GitHub uses this approach
+
+**Cons:**
+- Not discoverable (hidden in headers)
+- Harder to test (can't just change URL)
+- Caching complexity (Vary: Accept header)
+- API Gateway harder to configure
+- Team unfamiliar with this approach
+
+**Why not chosen:**
+Discoverability is critical for our API consumers (many are external partners with varying technical expertise). URL versioning is more intuitive and easier to debug.
+
+### Alternative 2: Query Parameter Versioning
+
+**Description:**
+- Version in query string: `/users?version=2`
+- Default to latest if omitted
+
+**Pros:**
+- Optional parameter (can default to latest)
+- Easy to add to existing endpoints
+- URL-based (like path versioning)
+
+**Cons:**
+- Version can be accidentally omitted
+- Unclear if version is required or optional
+- Query params feel "wrong" for versioning
+- Caching issues (query params often ignored by CDN)
+- Routing harder in API Gateway
+
+**Why not chosen:**
+Query parameters should be for filtering/pagination, not API contracts. Risk of clients forgetting to specify version and breaking unexpectedly.
+
+### Alternative 3: Subdomain Versioning
+
+**Description:**
+- Version in subdomain: `v2.api.company.com/users`
+- Separate subdomains per version
+
+**Pros:**
+- Complete isolation between versions
+- Different DNS records, SSL certs per version
+- Can deploy to different infrastructure
+- Easy to deprecate (remove DNS entry)
+
+**Cons:**
+- DNS/SSL certificate management overhead
+- Harder to set up locally (local.v1.api, local.v2.api)
+- CORS complexity (different origins)
+- Overkill for our use case
+- More expensive (separate infrastructure)
+
+**Why not chosen:**
+Too much operational overhead for our team size. Path versioning provides sufficient isolation without the infrastructure complexity.
+
+### Alternative 4: No Versioning (Continuous Evolution)
+
+**Description:**
+- Add only non-breaking changes
+- Use feature flags for gradual rollouts
+- Never remove fields, only deprecate
+
+**Pros:**
+- Simpler implementation
+- No version management overhead
+- Forces backward compatibility thinking
+- Works well for internal APIs
+
+**Cons:**
+- **Impossible to make breaking changes**
+- API grows indefinitely (deprecated fields forever)
+- Complex logic handling old + new fields
+- Poor for public APIs
+- Technical debt accumulates
+
+**Why not chosen:**
+Not realistic for long-term API evolution. We need the ability to make breaking changes (e.g., fixing design mistakes, security improvements). Stripe tried this and eventually added versioning.
+
+## References
+
+- [Stripe API Versioning](https://stripe.com/docs/api/versioning)
+- [Twilio API Versioning Best Practices](https://www.twilio.com/docs/usage/api/versioning)
+- [REST API Versioning Strategies](https://restfulapi.net/versioning/)
+- [RFC 5988 - Web Linking (deprecation headers)](https://tools.ietf.org/html/rfc5988)
+- Meeting Notes: API Design Review 2024-10-28
+- Related ADRs:
+  - ADR-0001 (Adopt Microservices Architecture)
+  - ADR-0004 (To be written: API Gateway Configuration)
+
+## Implementation Plan
+
+**Owner**: Backend Architect (with API team)
+
+**Phase 1 - Infrastructure** (Week 1-2):
+- [ ] Update API Gateway routing rules for /v1/* and /v2/*
+- [ ] Add version detection middleware
+- [ ] Set up separate OpenAPI specs per version
+- [ ] Configure monitoring dashboards per version
+
+**Phase 2 - Migration** (Week 3-4):
+- [ ] Move existing endpoints to /v1/* namespace
+- [ ] Update clients to use /v1/* URLs (backward compatible)
+- [ ] Deploy v1 with deprecation headers pointing to future v2
+- [ ] Verify all clients successfully migrated to /v1/*
+
+**Phase 3 - V2 Development** (Week 5-8):
+- [ ] Implement breaking changes in /v2/* endpoints
+- [ ] Write migration guide (v1 → v2)
+- [ ] Beta testing with select partners
+- [ ] Performance testing both versions
+
+**Phase 4 - V2 Launch** (Week 9-10):
+- [ ] Deploy v2 endpoints to production
+- [ ] Update documentation site with v2 docs
+- [ ] Announce v2 availability to all API consumers
+- [ ] Start 12-month deprecation timeline for v1
+
+**Success Criteria**:
+- [ ] Both v1 and v2 APIs running simultaneously
+- [ ] Zero downtime during v1 → v2 transition
+- [ ] &lt; 5% error rate increase during migration
+- [ ] Documentation complete for both versions
+- [ ] Mobile apps support both v1 and v2
+
+**Risks & Mitigations**:
+- **Risk**: Clients forget to update to versioned URLs
+  - **Mitigation**: Redirect legacy URLs to /v1/* with warning
+- **Risk**: Bug exists in one version but not the other
+  - **Mitigation**: Shared service layer, thorough testing
+- **Risk**: Confusion about which version to use
+  - **Mitigation**: Clear docs, version comparison guide
+
+---
+
+**Decision Date**: 2024-11-01
+**Last Updated**: 2024-11-01
+**Next Review**: 2025-05-01 (after v2 launch)
+
+
+</Accordion>
+
+</Accordions>

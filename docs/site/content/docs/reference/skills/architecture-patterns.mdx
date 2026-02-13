@@ -2,6 +2,7 @@
 title: "Architecture Patterns"
 description: "Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -191,3 +192,4875 @@ class UserService:
 - `testing-patterns` - Comprehensive testing patterns and strategies
 - `python-backend` - FastAPI, SQLAlchemy, asyncio patterns
 - `database-patterns` - Schema design, query optimization, migrations
+
+
+---
+
+## Rules (13)
+
+<Accordions type="multiple">
+
+<Accordion title="Backend: Dependency Injection — HIGH">
+
+
+# Dependency Injection
+
+## Dependency Chain
+
+```python
+# deps.py - Dependency providers
+def get_user_repository(
+    db: AsyncSession = Depends(get_db),
+) -> UserRepository:
+    return UserRepository(db)
+
+def get_user_service(
+    repo: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    return UserService(repo)
+
+# router_users.py - Usage
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    return await service.get_user(user_id)
+```
+
+## Blocked DI Patterns
+
+```python
+# BLOCKED - Direct instantiation
+service = UserService()
+
+# BLOCKED - Global instance
+user_service = UserService()
+
+# BLOCKED - Missing Depends()
+async def get_users(db: AsyncSession):  # Missing Depends()
+```
+
+## Common Violations
+
+| Violation | Detection | Fix |
+|-----------|-----------|-----|
+| DB in router | db.add, db.execute in routers/ | Move to repository |
+| HTTPException in service | raise HTTPException in services/ | Use domain exceptions |
+| Direct instantiation | Service() without Depends | Use Depends(get_service) |
+| Missing await | Sync calls in async | Add await or use executor |
+
+
+</Accordion>
+
+<Accordion title="Backend: Layer Separation — HIGH">
+
+
+# Backend Layer Separation
+
+## Architecture Overview
+
+```
++-------------------------------------------------------------------+
+|                        ROUTERS LAYER                               |
+|  HTTP concerns only: request parsing, response formatting          |
++-------------------------------------------------------------------+
+|                        SERVICES LAYER                              |
+|  Business logic: orchestration, validation, transformations        |
++-------------------------------------------------------------------+
+|                      REPOSITORIES LAYER                            |
+|  Data access: database queries, external API calls                 |
++-------------------------------------------------------------------+
+|                        MODELS LAYER                                |
+|  Data structures: SQLAlchemy models, Pydantic schemas             |
++-------------------------------------------------------------------+
+```
+
+## Validation Rules (BLOCKING)
+
+| Rule | Check | Layer |
+|------|-------|-------|
+| No DB in Routers | Database operations blocked | routers/ |
+| No HTTP in Services | HTTPException blocked | services/ |
+| No Business Logic in Routers | Complex logic blocked | routers/ |
+| Use Depends() | Direct instantiation blocked | routers/ |
+| Async Consistency | Sync calls in async blocked | all |
+
+## Exception Pattern
+
+```python
+# Domain exceptions (services/repositories)
+class UserNotFoundError(DomainException):
+    def __init__(self, user_id: int):
+        super().__init__(f"User {user_id} not found")
+
+# Router converts to HTTP
+@router.get("/{user_id}")
+async def get_user(user_id: int, service: UserService = Depends(get_user_service)):
+    try:
+        return await service.get_user(user_id)
+    except UserNotFoundError:
+        raise HTTPException(404, "User not found")
+```
+
+
+</Accordion>
+
+<Accordion title="Backend: File Naming & Exceptions — HIGH">
+
+
+# File Naming & Exceptions
+
+## File Naming Conventions
+
+| Layer | Allowed Patterns | Blocked Patterns |
+|-------|-----------------|------------------|
+| Routers | router_*.py, routes_*.py, api_*.py, deps.py | users.py, UserRouter.py |
+| Services | *_service.py | users.py, UserService.py, service_*.py |
+| Repositories | *_repository.py, *_repo.py | users.py, repository_*.py |
+| Schemas | *_schema.py, *_dto.py, *_request.py, *_response.py | users.py, UserSchema.py |
+| Models | *_model.py, *_entity.py, *_orm.py, base.py | users.py, UserModel.py |
+
+## Async Rules
+
+```python
+# GOOD - Async all the way
+result = await db.execute(select(User))
+
+# BLOCKED - Sync in async function
+result = db.execute(select(User))  # Missing await
+
+# For sync code, use executor
+await loop.run_in_executor(None, sync_function)
+```
+
+## Key Principles
+
+- Use snake_case with suffixes for Python files
+- Routers prefix with `router_`, services suffix with `_service`
+- Domain exceptions in domain layer, HTTP conversion in routers only
+- All database operations must use `await`
+
+
+</Accordion>
+
+<Accordion title="Clean: SOLID & Dependency Inversion — HIGH">
+
+
+# SOLID Principles in Python
+
+## S - Single Responsibility
+
+```python
+# GOOD: Separate responsibilities
+class UserService:
+    def create_user(self, data: UserCreate) -> User: ...
+
+class EmailService:
+    def send_welcome(self, user: User) -> None: ...
+
+class ReportService:
+    def generate_user_report(self, users: list[User]) -> Report: ...
+```
+
+## O - Open/Closed (Protocol-based)
+
+```python
+from typing import Protocol
+
+class PaymentProcessor(Protocol):
+    async def process(self, amount: Decimal) -> PaymentResult: ...
+
+class StripeProcessor:
+    async def process(self, amount: Decimal) -> PaymentResult: ...
+
+class PayPalProcessor:
+    async def process(self, amount: Decimal) -> PaymentResult: ...
+```
+
+## I - Interface Segregation
+
+```python
+# GOOD: Segregated interfaces
+class IReader(Protocol):
+    async def get(self, id: str) -> T | None: ...
+
+class IWriter(Protocol):
+    async def save(self, entity: T) -> T: ...
+
+class ISearchable(Protocol):
+    async def search(self, query: str) -> list[T]: ...
+```
+
+## D - Dependency Inversion
+
+```python
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):
+        self._repo = repo  # Depends on abstraction
+
+def get_analysis_service(db: AsyncSession = Depends(get_db)) -> AnalysisService:
+    repo = PostgresAnalysisRepository(db)
+    return AnalysisService(repo)
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Protocol vs ABC | Protocol (structural typing) |
+| Dataclass vs Pydantic | Dataclass for domain, Pydantic for API |
+
+
+</Accordion>
+
+<Accordion title="Clean: Hexagonal Architecture — HIGH">
+
+
+# Hexagonal Architecture (Ports & Adapters)
+
+```
++-------------------------------------------------------------------+
+|                      DRIVING ADAPTERS                               |
+|  FastAPI Routes  |  CLI Commands  |  Celery Tasks  |  Tests/Mocks  |
+|       |                |                |                |          |
+|       v                v                v                v          |
+|  +===============================================================+ |
+|  |                    INPUT PORTS                                 | |
+|  |  AnalysisService (Use Cases)  |  UserService (Use Cases)      | |
+|  +===============================================================+ |
+|  |                      DOMAIN                                    | |
+|  |  Entities  |  Value Objects  |  Domain Events                  | |
+|  +===============================================================+ |
+|  |                   OUTPUT PORTS                                 | |
+|  |  IAnalysisRepo (Protocol)  |  INotificationService (Protocol) | |
+|  +===============================================================+ |
+|       |                                        |                    |
+|       v                                        v                    |
+|  PostgresRepo (SQLAlchemy)     EmailNotificationService (SMTP)      |
+|                      DRIVEN ADAPTERS                                |
++-------------------------------------------------------------------+
+```
+
+## Directory Structure
+
+```
+backend/app/
+├── api/v1/              # Driving adapters (FastAPI routes)
+├── domains/
+│   └── analysis/
+│       ├── entities.py      # Domain entities
+│       ├── value_objects.py  # Value objects
+│       ├── services.py      # Domain services (use cases)
+│       ├── repositories.py  # Output port protocols
+│       └── events.py        # Domain events
+├── infrastructure/
+│   ├── repositories/    # Driven adapters (PostgreSQL)
+│   ├── services/        # External service adapters
+│   └── messaging/       # Event publishers
+└── core/
+    ├── dependencies.py  # FastAPI DI configuration
+    └── protocols.py     # Shared protocols
+```
+
+## Key Principles
+
+- Domain layer has **zero** external dependencies
+- Input ports define use cases (service interfaces)
+- Output ports define infrastructure needs (repository protocols)
+- Driving adapters call inward (routes -> services)
+- Driven adapters are called outward (services -> repositories)
+
+
+</Accordion>
+
+<Accordion title="Clean: DDD Tactical Patterns — HIGH">
+
+
+# DDD Tactical Patterns
+
+## Entity (Identity-based)
+
+```python
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+
+@dataclass
+class Analysis:
+    id: UUID = field(default_factory=uuid4)
+    source_url: str
+    status: AnalysisStatus
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Analysis):
+            return False
+        return self.id == other.id  # Identity equality
+```
+
+## Value Object (Structural equality)
+
+```python
+@dataclass(frozen=True)  # Immutable
+class AnalysisType:
+    category: str
+    depth: int
+
+    def __post_init__(self):
+        if self.depth < 1 or self.depth > 3:
+            raise ValueError("Depth must be 1-3")
+```
+
+## Aggregate Root
+
+```python
+class AnalysisAggregate:
+    def __init__(self, analysis: Analysis, artifacts: list[Artifact]):
+        self._analysis = analysis
+        self._artifacts = artifacts
+        self._events: list[DomainEvent] = []
+
+    def complete(self, summary: str) -> None:
+        self._analysis.status = AnalysisStatus.COMPLETED
+        self._analysis.summary = summary
+        self._events.append(AnalysisCompleted(self._analysis.id))
+
+    def collect_events(self) -> list[DomainEvent]:
+        events = self._events.copy()
+        self._events.clear()
+        return events
+```
+
+## Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Repository granularity | One per aggregate root |
+| Transaction boundary | Service layer, not repository |
+| Event publishing | Collect in aggregate, publish after commit |
+
+
+</Accordion>
+
+<Accordion title="Right-Sizing Decision Guide — HIGH">
+
+
+## Right-Sizing Decision Guide
+
+Context-aware recommendations for ORM, auth, error handling, and testing by project tier.
+
+**Incorrect — rolling custom auth for an MVP:**
+```python
+# MVP with 0 users, building custom JWT from scratch
+import jwt
+from datetime import datetime, timedelta
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["argon2"])
+
+def create_access_token(user_id: str) -> str:
+    expire = datetime.utcnow() + timedelta(minutes=15)
+    return jwt.encode({"sub": user_id, "exp": expire}, SECRET_KEY)
+
+def create_refresh_token(user_id: str) -> str:
+    expire = datetime.utcnow() + timedelta(days=7)
+    return jwt.encode({"sub": user_id, "exp": expire, "type": "refresh"}, SECRET_KEY)
+
+# +200 LOC for token rotation, revocation, middleware...
+```
+
+**Correct — managed auth for MVP, custom for production:**
+```python
+# MVP: Use managed auth (Supabase/Clerk/Auth0)
+from supabase import create_client
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# Auth is a solved problem — build your differentiator
+
+# Production: JWT with proper refresh rotation
+# (justified at this scale)
+```
+
+**ORM approach by tier:**
+
+| Context | Recommendation | Anti-Pattern |
+|---------|---------------|--------------|
+| Interview | Raw SQL or SQLModel | Repository + Unit of Work |
+| MVP | Simple ORM, models near routes | Abstract repository protocol |
+| Production | ORM with repository per aggregate | Every table gets its own repo |
+| Enterprise | Full repository + Unit of Work | Over-abstracting simple lookups |
+
+**Authentication by tier:**
+
+| Context | Recommendation | Anti-Pattern |
+|---------|---------------|--------------|
+| Interview | Session cookies or hardcoded key | Full OAuth2 + PKCE |
+| MVP | Supabase Auth / Clerk / Auth0 | Rolling your own JWT |
+| Production | JWT (15min access + 7d refresh) | No refresh tokens |
+| Enterprise | OAuth2.1 + PKCE + SSO + MFA | Skipping SSO |
+
+**Over-engineering tax (LOC overhead when applied unnecessarily):**
+
+| Pattern | LOC Overhead | Justified When |
+|---------|-------------|----------------|
+| Repository pattern | +150-300/entity | 3+ consumers of same data |
+| Domain exceptions | +50-100 | Multiple transports |
+| Generic base repository | +100-200 | 5+ repos with shared queries |
+| Unit of Work | +150-250 | Cross-aggregate transactions |
+| Event sourcing | +500-2000 | Audit trail mandated |
+| CQRS | +300-800 | Read/write models diverge 50%+ |
+
+**Key rules:**
+- MVP auth should use managed services (Supabase, Clerk, Auth0) — auth is a solved problem
+- Interview testing needs only 3-5 smoke tests proving it works, not 80% coverage
+- Error handling for interviews: try/except with clear HTTP codes, not RFC 9457
+- Add abstractions only when pain appears, not preemptively
+
+
+</Accordion>
+
+<Accordion title="Architecture Sizing Tiers — HIGH">
+
+
+## Architecture Sizing Tiers
+
+Match architecture complexity to project scope using concrete signals.
+
+**Incorrect — enterprise patterns for a take-home:**
+```python
+# 4-hour interview take-home with full hexagonal architecture
+# app/domain/repositories/user_repository.py
+class IUserRepository(Protocol):
+    async def get_by_id(self, id: UUID) -> User | None: ...
+    async def save(self, user: User) -> User: ...
+
+# app/infrastructure/repositories/postgres_user_repository.py
+class PostgresUserRepository:
+    def __init__(self, session: AsyncSession): ...
+    # +300 LOC for a single CRUD entity
+```
+
+**Correct — right-sized for context:**
+```python
+# Interview: flat, 3-5 files, 300-600 LOC total
+# main.py — everything in one file
+from fastapi import FastAPI
+from sqlmodel import SQLModel, Field, Session, create_engine
+
+app = FastAPI()
+engine = create_engine("sqlite:///db.sqlite3")
+
+class Todo(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    title: str
+    done: bool = False
+
+@app.get("/todos")
+def list_todos():
+    with Session(engine) as session:
+        return session.query(Todo).all()
+```
+
+**Sizing matrix:**
+
+| Signal | Flat/Simple | Layered | Clean/Hexagonal |
+|--------|-------------|---------|-----------------|
+| Timeline | Hours to days | Weeks to months | Months to years |
+| Team size | 1 developer | 2-5 developers | 5+ developers |
+| Lifespan | Disposable / demo | 1-3 years | 3+ years |
+| Domain complexity | CRUD, single entity | 3-10 entities | Complex invariants |
+| Users | &lt; 100 | 100-10,000 | 10,000+ |
+| LOC estimate | 200-800 | 1,000-10,000 | 10,000+ |
+
+**Tier detection signals:**
+
+| Signal | Interview | MVP | Production | Enterprise |
+|--------|-----------|-----|------------|------------|
+| README mentions take-home | Yes | — | — | — |
+| File count &lt; 10 | Yes | — | — | — |
+| No CI config | — | Yes | — | — |
+| File count &lt; 50 | — | Yes | — | — |
+| Has k8s/terraform | — | — | — | Yes |
+| Has monorepo (packages/) | — | — | — | Yes |
+
+**Tier-based rule enforcement:**
+
+| Rule | Interview | MVP | Production | Enterprise |
+|------|-----------|-----|------------|------------|
+| Layer separation | OFF | WARN | BLOCK | BLOCK |
+| Repository pattern | OFF | OFF | WARN | BLOCK |
+| Domain exceptions | OFF | OFF | BLOCK | BLOCK |
+| Dependency injection | OFF | WARN | BLOCK | BLOCK |
+| OpenAPI documentation | OFF | OFF | WARN | BLOCK |
+
+**Key rules:**
+- Default to layered architecture — 80% of projects need layered, not hexagonal
+- Interview threshold is &lt; 10 files — demonstrate thinking, not scaffolding
+- Add repository pattern only when 3+ query consumers exist
+- Add CQRS only when read/write models differ by 50%+
+
+
+</Accordion>
+
+<Accordion title="Structure: Import Direction & Conventions — HIGH">
+
+
+# Import Direction & Conventions
+
+## Unidirectional Architecture
+
+```
+shared/lib  ->  components  ->  features  ->  app
+(lowest)                                    (highest)
+```
+
+| Layer | Can Import From |
+|-------|-----------------|
+| shared/, lib/ | Nothing (base layer) |
+| components/ | shared/, lib/, utils/ |
+| features/ | shared/, lib/, components/, utils/ |
+| app/ | Everything above |
+
+## Blocked Imports
+
+```typescript
+// BLOCKED: shared/ importing from features/
+import { authConfig } from '@/features/auth/config';
+
+// BLOCKED: features/ importing from app/
+import { RootLayout } from '@/app/layout';
+
+// BLOCKED: Cross-feature imports
+import { DashboardContext } from '@/features/dashboard/context';
+// Fix: Extract to shared/ if needed by multiple features
+```
+
+## Type-Only Exception
+
+```typescript
+// ALLOWED: Type-only import from another feature
+import type { User } from '@/features/users/types';
+```
+
+## Component Location Rules
+
+```
+ALLOWED: src/components/Button.tsx, src/features/auth/components/LoginForm.tsx
+BLOCKED: src/utils/Button.tsx, src/services/Modal.tsx
+
+ALLOWED: src/hooks/useAuth.ts, src/features/auth/hooks/useLogin.ts
+BLOCKED: src/components/useAuth.ts, src/utils/useDebounce.ts
+```
+
+## Python File Locations
+
+```
+ALLOWED: app/routers/router_users.py, app/services/user_service.py
+BLOCKED: app/user_service.py (not in services/), app/services/router_users.py (router in services/)
+```
+
+
+</Accordion>
+
+<Accordion title="Structure: Folder Organization — HIGH">
+
+
+# Folder Organization
+
+## React/Next.js (Frontend)
+
+```
+src/
+├── app/              # Next.js App Router
+│   ├── (auth)/       # Route groups
+│   ├── api/          # API routes
+│   └── layout.tsx
+├── components/       # Reusable UI components
+│   ├── ui/           # Primitive components
+│   └── forms/        # Form components
+├── features/         # Feature modules (self-contained)
+│   ├── auth/
+│   │   ├── components/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   └── types.ts
+│   └── dashboard/
+├── hooks/            # Global custom hooks
+├── lib/              # Third-party integrations
+├── services/         # API clients
+├── types/            # Global TypeScript types
+└── utils/            # Pure utility functions
+```
+
+## FastAPI (Backend)
+
+```
+app/
+├── routers/          # API route handlers
+├── services/         # Business logic layer
+├── repositories/     # Data access layer
+├── schemas/          # Pydantic models
+├── models/           # SQLAlchemy models
+├── core/             # Config, security, deps
+└── utils/            # Utility functions
+```
+
+## Nesting Depth (Max 4 levels)
+
+```
+ALLOWED (4 levels):
+  src/features/auth/components/LoginForm.tsx
+
+BLOCKED (5+ levels):
+  src/features/dashboard/widgets/charts/line/LineChart.tsx
+  -> Flatten to: src/features/dashboard/charts/LineChart.tsx
+```
+
+## No Barrel Files
+
+```typescript
+// BLOCKED: src/components/index.ts
+export { Button } from './Button';
+
+// GOOD: Import directly
+import { Button } from '@/components/Button';
+```
+
+Barrel files break tree-shaking, cause circular dependencies, and slow builds.
+
+
+</Accordion>
+
+<Accordion title="Testing: AAA Pattern & Isolation — MEDIUM">
+
+
+# AAA Pattern & Test Isolation
+
+## TypeScript AAA
+
+```typescript
+describe('calculateDiscount', () => {
+  test('should apply 10% discount for orders over $100', () => {
+    // Arrange
+    const order = createOrder({ total: 150 });
+    const calculator = new DiscountCalculator();
+
+    // Act
+    const discount = calculator.calculate(order);
+
+    // Assert
+    expect(discount).toBe(15);
+  });
+});
+```
+
+## Python AAA
+
+```python
+class TestCalculateDiscount:
+    def test_applies_10_percent_discount_over_threshold(self):
+        # Arrange
+        order = Order(total=150)
+        calculator = DiscountCalculator()
+
+        # Act
+        discount = calculator.calculate(order)
+
+        # Assert
+        assert discount == 15
+```
+
+## Test Isolation
+
+```typescript
+// GOOD - Reset state in beforeEach
+describe('ItemList', () => {
+  let items: string[];
+  beforeEach(() => { items = []; });
+
+  test('adds item', () => {
+    items.push('a');
+    expect(items).toHaveLength(1);
+  });
+
+  test('starts empty', () => {
+    expect(items).toHaveLength(0);
+  });
+});
+```
+
+## Parameterized Tests
+
+```python
+@pytest.mark.parametrize("email,expected", [
+    ("user@example.com", True),
+    ("invalid", False),
+    ("@missing.com", False),
+])
+def test_email_validation(self, email: str, expected: bool):
+    assert is_valid_email(email) == expected
+```
+
+
+</Accordion>
+
+<Accordion title="Testing: Coverage & Fixtures — MEDIUM">
+
+
+# Coverage & Fixtures
+
+## Coverage Requirements
+
+| Area | Minimum | Target |
+|------|---------|--------|
+| Overall | 80% | 90% |
+| Business Logic | 90% | 100% |
+| Critical Paths | 95% | 100% |
+| New Code | 100% | 100% |
+
+## Running Coverage
+
+```bash
+# TypeScript (Vitest/Jest)
+npm test -- --coverage
+npx vitest --coverage
+
+# Python (pytest)
+pytest --cov=app --cov-report=json
+```
+
+## Fixture Best Practices (Python)
+
+```python
+# Function scope (default) - Fresh each test
+@pytest.fixture
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()
+
+# Module scope - Shared across file
+@pytest.fixture(scope="module")
+def expensive_model():
+    return load_ml_model()
+
+# Session scope - Shared across all tests
+@pytest.fixture(scope="session")
+def db_engine():
+    engine = create_engine(TEST_DB_URL)
+    yield engine
+    engine.dispose()
+```
+
+## Key Principles
+
+- Enforce minimum 80% coverage before merge
+- Use function scope for mutable state, session scope for expensive setup
+- Include cleanup via `yield` in fixtures
+- 100% coverage required for all new code
+
+
+</Accordion>
+
+<Accordion title="Testing: Naming Conventions — MEDIUM">
+
+
+# Test Naming Conventions
+
+## TypeScript/JavaScript
+
+```typescript
+// GOOD - Descriptive, behavior-focused
+test('should return empty array when no items exist', () => {});
+test('throws ValidationError when email is invalid', () => {});
+it('renders loading spinner while fetching', () => {});
+
+// BLOCKED - Too short, not descriptive
+test('test1', () => {});
+test('works', () => {});
+it('test', () => {});
+```
+
+## Python
+
+```python
+# GOOD - snake_case, descriptive
+def test_should_return_user_when_id_exists():
+def test_raises_not_found_when_user_missing():
+
+# BLOCKED - Not descriptive, wrong case
+def testUser():      # camelCase
+def test_1():        # Not descriptive
+```
+
+## File Location Rules
+
+```
+ALLOWED:
+  tests/unit/user.test.ts
+  tests/integration/api.test.ts
+  __tests__/components/Button.test.tsx
+  app/tests/test_users.py
+
+BLOCKED:
+  src/utils/helper.test.ts      # Tests in src/
+  components/Button.test.tsx    # Tests outside test dir
+  app/routers/test_routes.py    # Tests mixed with source
+```
+
+## Key Principles
+
+- Test names describe **behavior**, not implementation
+- Names should read as specifications
+- Use "should" or "when" patterns for clarity
+- Place all tests in dedicated test directories
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (16)
+
+<Accordions type="multiple">
+
+<Accordion title="Backend Layers: Dependency Injection Patterns — HIGH">
+
+
+# Dependency Injection Patterns
+
+FastAPI dependency injection patterns using `Depends()` for Clean Architecture.
+
+## Core Principles
+
+1. **Never instantiate services/repositories directly** in route handlers
+2. **Always use `Depends()`** for injecting dependencies
+3. **Chain dependencies** for proper layering (router -> service -> repository -> db)
+4. **Keep dependency providers** in a dedicated `deps.py` file
+
+## Dependency Provider Pattern
+
+### Basic Setup
+
+```python
+# app/routers/deps.py
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import get_db
+from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
+
+def get_user_repository(
+    db: AsyncSession = Depends(get_db),
+) -> UserRepository:
+    """Repository depends on database session."""
+    return UserRepository(db)
+
+def get_user_service(
+    repo: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    """Service depends on repository."""
+    return UserService(repo)
+```
+
+### Usage in Router
+
+```python
+# app/routers/router_users.py
+from fastapi import APIRouter, Depends
+from app.services.user_service import UserService
+from app.routers.deps import get_user_service
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    return await service.get_user(user_id)
+
+@router.post("/")
+async def create_user(
+    user_data: UserCreate,
+    service: UserService = Depends(get_user_service),
+    current_user: User = Depends(get_current_user),  # Auth dependency
+):
+    return await service.create_user(user_data)
+```
+
+## Dependency Chaining
+
+```
+Request
+    |
+    v
++---------------------------------------------+
+| get_current_user (auth)                      |
+|   +-- Depends(get_db) for token validation   |
++---------------------------------------------+
+    |
+    v
++---------------------------------------------+
+| get_user_service                             |
+|   +-- Depends(get_user_repository)           |
+|         +-- Depends(get_db)                  |
++---------------------------------------------+
+    |
+    v
+Route Handler
+```
+
+## Common DI Patterns
+
+### 1. Database Session Dependency
+
+```python
+# app/core/database.py
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+engine = create_async_engine(DATABASE_URL)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+```
+
+### 2. Authentication Dependency
+
+```python
+# app/routers/deps.py
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    user_service: UserService = Depends(get_user_service),
+) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await user_service.get_user(user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+```
+
+### 3. Permission Dependency (Factory Pattern)
+
+```python
+# app/routers/deps.py
+from typing import Callable
+
+def require_permissions(*permissions: str) -> Callable:
+    """Factory for permission-checking dependencies."""
+    async def permission_checker(
+        current_user: User = Depends(get_current_active_user),
+    ) -> User:
+        user_permissions = set(current_user.permissions)
+        required = set(permissions)
+        if not required.issubset(user_permissions):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
+        return current_user
+    return permission_checker
+
+# Usage
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(require_permissions("admin", "user:delete")),
+    service: UserService = Depends(get_user_service),
+):
+    return await service.delete_user(user_id)
+```
+
+### 4. Pagination Dependency
+
+```python
+# app/routers/deps.py
+from pydantic import BaseModel
+
+class PaginationParams(BaseModel):
+    skip: int = 0
+    limit: int = 100
+
+def get_pagination(skip: int = 0, limit: int = 100) -> PaginationParams:
+    return PaginationParams(skip=skip, limit=min(limit, 100))
+
+@router.get("/")
+async def list_users(
+    pagination: PaginationParams = Depends(get_pagination),
+    service: UserService = Depends(get_user_service),
+):
+    return await service.list_users(skip=pagination.skip, limit=pagination.limit)
+```
+
+## Blocked DI Patterns
+
+### 1. Direct Instantiation
+
+```python
+# BLOCKED
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    service = UserService()  # Direct instantiation!
+    return await service.get_user(user_id)
+```
+
+### 2. Global Instance
+
+```python
+# BLOCKED
+user_service = UserService()  # Global instance!
+
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    return await user_service.get_user(user_id)
+```
+
+### 3. Missing Depends()
+
+```python
+# BLOCKED
+@router.get("/users")
+async def get_users(db: AsyncSession):  # Missing Depends()!
+    return await db.execute(select(User)).scalars().all()
+```
+
+### 4. Instantiation Inside Handler
+
+```python
+# BLOCKED
+@router.get("/{user_id}")
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
+    repo = UserRepository(db)      # Instantiation in handler!
+    service = UserService(repo)    # Should use Depends()!
+    return await service.get_user(user_id)
+```
+
+## Testing with DI Overrides
+
+```python
+# tests/conftest.py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+from app.routers.deps import get_db, get_user_service
+
+@pytest.fixture
+def mock_user_service():
+    service = Mock(spec=UserService)
+    service.get_user = AsyncMock(return_value=User(id=1, email="test@test.com"))
+    return service
+
+@pytest.fixture
+def client(mock_db, mock_user_service):
+    app.dependency_overrides[get_db] = lambda: mock_db
+    app.dependency_overrides[get_user_service] = lambda: mock_user_service
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+
+# tests/test_routers/test_users.py
+def test_get_user(client, mock_user_service):
+    response = client.get("/users/1")
+    assert response.status_code == 200
+    mock_user_service.get_user.assert_called_once_with(1)
+```
+
+## Best Practices
+
+| Practice | Description |
+|----------|-------------|
+| Centralize providers | Keep all `get_*` functions in `deps.py` |
+| Type hints | Always specify return types for providers |
+| Chain properly | Services depend on repos, repos depend on db |
+| Avoid global state | Never use module-level service instances |
+| Use factories | For parameterized dependencies (permissions) |
+| Test with overrides | Use `app.dependency_overrides` for mocking |
+
+
+</Accordion>
+
+<Accordion title="Backend Layers: Layer Separation Rules — HIGH">
+
+
+# Backend Layer Separation Rules
+
+Detailed rules for Router-Service-Repository layer separation in FastAPI Clean Architecture.
+
+## Architecture Overview
+
+```
++-------------------------------------------------------------------+
+|                        ROUTERS LAYER                               |
+|  HTTP concerns only: request parsing, response formatting          |
+|  Files: router_*.py, routes_*.py, api_*.py                        |
++-------------------------------------------------------------------+
+|                        SERVICES LAYER                              |
+|  Business logic: orchestration, validation, transformations        |
+|  Files: *_service.py                                              |
++-------------------------------------------------------------------+
+|                      REPOSITORIES LAYER                            |
+|  Data access: database queries, external API calls                 |
+|  Files: *_repository.py, *_repo.py                                |
++-------------------------------------------------------------------+
+|                        MODELS LAYER                                |
+|  Data structures: SQLAlchemy models, Pydantic schemas             |
+|  Files: *_model.py (ORM), *_schema.py (Pydantic)                 |
++-------------------------------------------------------------------+
+```
+
+## Routers Layer (HTTP Only)
+
+Routers should ONLY handle:
+- Request parsing and validation
+- Response formatting
+- HTTP status codes
+- Authentication/authorization checks
+- Calling services via `Depends()`
+
+```python
+# GOOD - Router delegates to service
+@router.post("/users", response_model=UserResponse)
+async def create_user(
+    user_data: UserCreate,
+    service: UserService = Depends(get_user_service),
+):
+    user = await service.create_user(user_data)
+    return user
+
+# BLOCKED - Business logic and DB in router
+@router.post("/users")
+async def create_user(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    existing = await db.execute(
+        select(User).where(User.email == user_data.email)
+    )
+    if existing.scalar():
+        raise HTTPException(400, "Email exists")
+    user = User(**user_data.dict())
+    db.add(user)
+    await db.commit()
+    return user
+```
+
+## Services Layer (Business Logic)
+
+Services should:
+- Contain business logic and validation
+- Orchestrate repositories
+- Transform data between layers
+- Raise domain exceptions (NOT HTTPException)
+
+```python
+# GOOD - Service with business logic and domain exceptions
+class UserService:
+    def __init__(self, repo: UserRepository):
+        self.repo = repo
+
+    async def create_user(self, data: UserCreate) -> User:
+        if await self.repo.exists_by_email(data.email):
+            raise UserAlreadyExistsError(data.email)
+
+        user = User(
+            email=data.email,
+            password_hash=hash_password(data.password),
+            created_at=datetime.now(timezone.utc),
+        )
+        return await self.repo.create(user)
+
+# BLOCKED - HTTP concerns in service
+class UserService:
+    async def create_user(self, data: UserCreate) -> User:
+        if await self.repo.exists_by_email(data.email):
+            raise HTTPException(400, "Email already exists")  # BLOCKED!
+```
+
+## Repositories Layer (Data Access)
+
+Repositories should:
+- Execute database queries
+- Call external APIs
+- Handle data persistence
+- Return domain objects or None
+
+```python
+# GOOD - Repository handles data access only
+class UserRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        result = await self.db.execute(
+            select(User).where(User.id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, user: User) -> User:
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
+# BLOCKED - HTTP concerns in repository
+class UserRepository:
+    async def get_by_id(self, user_id: int) -> User:
+        user = await self.db.get(User, user_id)
+        if not user:
+            raise HTTPException(404, "User not found")  # BLOCKED!
+        return user
+```
+
+## Exception Handling Pattern
+
+### Domain Exceptions
+
+```python
+# app/core/exceptions.py
+class DomainException(Exception):
+    """Base domain exception."""
+    pass
+
+class UserNotFoundError(DomainException):
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"User {user_id} not found")
+
+class UserAlreadyExistsError(DomainException):
+    def __init__(self, email: str):
+        self.email = email
+        super().__init__(f"User with email {email} already exists")
+```
+
+### Router Exception Handler
+
+```python
+# app/routers/deps.py
+def handle_domain_exception(exc: DomainException) -> HTTPException:
+    """Convert domain exceptions to HTTP responses."""
+    if isinstance(exc, UserNotFoundError):
+        return HTTPException(404, str(exc))
+    if isinstance(exc, UserAlreadyExistsError):
+        return HTTPException(409, str(exc))
+    return HTTPException(500, "Internal error")
+
+# Usage in router
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        return await service.get_user(user_id)
+    except DomainException as e:
+        raise handle_domain_exception(e)
+```
+
+## Async Consistency Rules
+
+### No Sync Calls in Async Functions
+
+```python
+# GOOD - Async all the way
+async def get_user(user_id: int) -> User:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+# BLOCKED - Sync call in async function (blocks event loop)
+async def get_user(user_id: int) -> User:
+    result = db.execute(select(User).where(User.id == user_id))  # Missing await!
+    return result.scalar_one_or_none()
+
+# For unavoidable sync code, use run_in_executor
+async def process_file(file_path: str) -> bytes:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None,
+        lambda: open(file_path, 'rb').read()
+    )
+```
+
+## Layer Boundaries Summary
+
+| Layer | Allowed | Blocked |
+|-------|---------|---------|
+| **Router** | HTTP handling, auth checks, calling services | DB operations, business logic |
+| **Service** | Business logic, validation, orchestration | HTTPException, Request object |
+| **Repository** | DB queries, data persistence | HTTP concerns, business logic |
+
+## Validation Rules (BLOCKING)
+
+| Rule | Check | Layer |
+|------|-------|-------|
+| No DB in Routers | `db.add`, `db.execute` blocked | routers/ |
+| No HTTP in Services | `HTTPException` blocked | services/ |
+| No Business Logic in Routers | Complex logic blocked | routers/ |
+| Use Depends() | Direct instantiation blocked | routers/ |
+| Async Consistency | Sync calls in async blocked | all |
+
+
+</Accordion>
+
+<Accordion title="Backend Layers: File Naming & Domain Exceptions — HIGH">
+
+
+# File Naming Conventions & Domain Exceptions
+
+Naming patterns for FastAPI layers, domain exception hierarchy, and violation detection.
+
+## File Naming Conventions
+
+### Quick Reference
+
+| Layer | Allowed Patterns | Blocked Patterns |
+|-------|-----------------|------------------|
+| **Routers** | `router_*.py`, `routes_*.py`, `api_*.py`, `deps.py` | `users.py`, `UserRouter.py` |
+| **Services** | `*_service.py` | `users.py`, `UserService.py`, `service_*.py` |
+| **Repositories** | `*_repository.py`, `*_repo.py` | `users.py`, `repository_*.py` |
+| **Schemas** | `*_schema.py`, `*_dto.py`, `*_request.py`, `*_response.py` | `users.py`, `UserSchema.py` |
+| **Models** | `*_model.py`, `*_entity.py`, `*_orm.py`, `base.py` | `users.py`, `UserModel.py` |
+
+### Proper File Layout
+
+```
+app/
++-- routers/
+|   +-- router_users.py      # router_ prefix
+|   +-- router_auth.py
+|   +-- routes_orders.py     # routes_ prefix also valid
+|   +-- api_v1.py            # api_ prefix for versioned
+|   +-- deps.py              # deps/dependencies allowed
++-- services/
+|   +-- user_service.py      # _service suffix
+|   +-- auth_service.py
+|   +-- email_service.py
++-- repositories/
+|   +-- user_repository.py   # _repository suffix
+|   +-- user_repo.py         # _repo suffix also valid
+|   +-- base_repository.py
++-- schemas/
+|   +-- user_schema.py       # _schema suffix
+|   +-- user_dto.py          # _dto suffix also valid
+|   +-- user_request.py      # _request suffix
+|   +-- user_response.py     # _response suffix
++-- models/
+    +-- user_model.py        # _model suffix
+    +-- user_entity.py       # _entity suffix also valid
+    +-- base.py              # base.py allowed
+```
+
+### Common Naming Violations
+
+| Current Name | Correct Name | Issue |
+|--------------|--------------|-------|
+| `users.py` (in routers/) | `router_users.py` | Missing prefix |
+| `users.py` (in services/) | `user_service.py` | Missing suffix |
+| `users.py` (in repositories/) | `user_repository.py` | Missing suffix |
+| `UserService.py` | `user_service.py` | PascalCase filename |
+| `service_user.py` | `user_service.py` | Wrong order |
+| `repository_user.py` | `user_repository.py` | Wrong order |
+
+### Why Naming Matters
+
+- **Discoverability**: Consistent naming helps developers find files quickly
+- **Automation**: Scripts and tools can identify file types from naming patterns
+- **Onboarding**: New team members understand file purposes immediately
+- **Import clarity**: Import statements clearly indicate what is being imported
+
+## Domain Exception Pattern
+
+### Exception Hierarchy
+
+```python
+# app/core/exceptions.py
+
+class DomainException(Exception):
+    """Base domain exception - never catch framework exceptions in domain."""
+    pass
+
+class EntityNotFoundError(DomainException):
+    """Raised when an entity cannot be found."""
+    def __init__(self, entity_type: str, identifier: str | int):
+        self.entity_type = entity_type
+        self.identifier = identifier
+        super().__init__(f"{entity_type} with id {identifier} not found")
+
+class UserNotFoundError(EntityNotFoundError):
+    def __init__(self, user_id: int):
+        super().__init__("User", str(user_id))
+
+class UserAlreadyExistsError(DomainException):
+    def __init__(self, email: str):
+        self.email = email
+        super().__init__(f"User with email {email} already exists")
+
+class InvalidStateError(DomainException):
+    """Raised when an operation violates state machine rules."""
+    pass
+
+class BusinessRuleViolation(DomainException):
+    """Raised when a business invariant is violated."""
+    pass
+
+class AuthorizationError(DomainException):
+    """Raised when user lacks permission for an operation."""
+    pass
+```
+
+### Exception-to-HTTP Mapping
+
+```python
+# app/core/exception_handlers.py
+from fastapi import Request
+from fastapi.responses import JSONResponse
+
+EXCEPTION_STATUS_MAP = {
+    EntityNotFoundError: 404,
+    UserAlreadyExistsError: 409,
+    InvalidStateError: 422,
+    BusinessRuleViolation: 400,
+    AuthorizationError: 403,
+}
+
+async def domain_exception_handler(request: Request, exc: DomainException) -> JSONResponse:
+    status_code = EXCEPTION_STATUS_MAP.get(type(exc), 500)
+    return JSONResponse(
+        status_code=status_code,
+        content={"detail": str(exc), "type": type(exc).__name__},
+    )
+
+# app/main.py
+app.add_exception_handler(DomainException, domain_exception_handler)
+```
+
+## Violation Detection Patterns
+
+### Database Operations in Routers
+
+```python
+# Detection patterns in routers/*.py:
+db.add(...)        # VIOLATION
+db.execute(...)    # VIOLATION
+db.commit()        # VIOLATION
+db.query(...)      # VIOLATION
+session.add(...)   # VIOLATION
+```
+
+### HTTPException in Services
+
+```python
+# Detection patterns in services/*.py:
+raise HTTPException(...)        # VIOLATION
+from fastapi import HTTPException  # VIOLATION (import)
+```
+
+### Direct Instantiation
+
+```python
+# Detection patterns in routers/*.py:
+service = UserService()         # VIOLATION (global)
+service = UserService(repo)     # VIOLATION (in handler)
+repo = UserRepository(db)       # VIOLATION (in handler)
+```
+
+### Sync in Async
+
+```python
+# Detection in async functions:
+db.execute(...)     # Missing await - VIOLATION
+requests.get(...)   # Sync HTTP in async - VIOLATION
+open(path, 'rb')    # Sync I/O in async - VIOLATION
+```
+
+## Auto-Fix Quick Reference
+
+| Violation | Detection | Fix |
+|-----------|-----------|-----|
+| DB in router | `db.add`, `db.execute` in routers/ | Move to repository |
+| HTTPException in service | `raise HTTPException` in services/ | Use domain exceptions |
+| Direct instantiation | `Service()` without Depends | Use `Depends(get_service)` |
+| Wrong naming | Missing suffix/prefix | Rename per convention |
+| Sync in async | Missing `await` | Add `await` or use executor |
+| Business logic in router | Complex conditions, loops | Extract to service |
+
+
+</Accordion>
+
+<Accordion title="Clean Architecture: DDD Tactical Patterns — HIGH">
+
+
+# DDD Tactical Patterns
+
+Domain-Driven Design tactical patterns for building rich domain models in Python.
+
+## Entity (Identity-based)
+
+Entities have a unique identity that persists across state changes.
+
+```python
+from dataclasses import dataclass, field
+from uuid import UUID, uuid4
+from datetime import datetime, timezone
+
+@dataclass
+class Analysis:
+    id: UUID = field(default_factory=uuid4)
+    source_url: str = ""
+    status: AnalysisStatus = AnalysisStatus.PENDING
+    summary: str | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Analysis):
+            return False
+        return self.id == other.id  # Identity equality, not structural
+
+    def __hash__(self) -> int:
+        return hash(self.id)
+```
+
+## Value Object (Structural equality)
+
+Value objects are immutable and compared by their attributes, not identity.
+
+```python
+from dataclasses import dataclass
+
+@dataclass(frozen=True)  # Immutable
+class AnalysisType:
+    category: str
+    depth: int
+
+    def __post_init__(self):
+        if self.depth < 1 or self.depth > 3:
+            raise ValueError("Depth must be 1-3")
+        if not self.category:
+            raise ValueError("Category cannot be empty")
+
+@dataclass(frozen=True)
+class Money:
+    amount: Decimal
+    currency: str
+
+    def __post_init__(self):
+        if self.amount < 0:
+            raise ValueError("Amount cannot be negative")
+
+    def add(self, other: "Money") -> "Money":
+        if self.currency != other.currency:
+            raise ValueError(f"Cannot add {self.currency} and {other.currency}")
+        return Money(self.amount + other.amount, self.currency)
+```
+
+## Aggregate Root
+
+Aggregates enforce invariants and consistency boundaries. Access child entities only through the root.
+
+```python
+class AnalysisAggregate:
+    def __init__(self, analysis: Analysis, artifacts: list[Artifact]):
+        self._analysis = analysis
+        self._artifacts = artifacts
+        self._events: list[DomainEvent] = []
+
+    @property
+    def id(self) -> UUID:
+        return self._analysis.id
+
+    @property
+    def status(self) -> AnalysisStatus:
+        return self._analysis.status
+
+    def complete(self, summary: str) -> None:
+        """Complete the analysis - enforces business rules."""
+        if self._analysis.status != AnalysisStatus.IN_PROGRESS:
+            raise InvalidStateError("Can only complete in-progress analyses")
+        if not self._artifacts:
+            raise BusinessRuleViolation("Cannot complete without artifacts")
+
+        self._analysis.status = AnalysisStatus.COMPLETED
+        self._analysis.summary = summary
+        self._events.append(AnalysisCompleted(self._analysis.id))
+
+    def add_artifact(self, artifact: Artifact) -> None:
+        """Add artifact - validates through aggregate root."""
+        if len(self._artifacts) >= 100:
+            raise BusinessRuleViolation("Maximum 100 artifacts per analysis")
+        self._artifacts.append(artifact)
+        self._events.append(ArtifactAdded(self._analysis.id, artifact.id))
+
+    def collect_events(self) -> list[DomainEvent]:
+        """Collect and clear domain events for publishing."""
+        events = self._events.copy()
+        self._events.clear()
+        return events
+```
+
+## Domain Events
+
+Events represent something significant that happened in the domain.
+
+```python
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from uuid import UUID, uuid4
+
+@dataclass(frozen=True)
+class DomainEvent:
+    event_id: UUID = field(default_factory=uuid4)
+    occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+
+@dataclass(frozen=True)
+class AnalysisCreated(DomainEvent):
+    analysis_id: UUID = field(default_factory=uuid4)
+    source_url: str = ""
+
+@dataclass(frozen=True)
+class AnalysisCompleted(DomainEvent):
+    analysis_id: UUID = field(default_factory=uuid4)
+    summary: str = ""
+```
+
+## Domain Exceptions
+
+Domain-specific exceptions that are independent of any framework.
+
+```python
+class DomainException(Exception):
+    """Base exception for domain errors."""
+    pass
+
+class EntityNotFoundError(DomainException):
+    def __init__(self, entity_type: str, entity_id: str):
+        self.entity_type = entity_type
+        self.entity_id = entity_id
+        super().__init__(f"{entity_type} with id {entity_id} not found")
+
+class InvalidStateError(DomainException):
+    """Raised when an operation violates state machine rules."""
+    pass
+
+class BusinessRuleViolation(DomainException):
+    """Raised when a business invariant is violated."""
+    pass
+```
+
+## Domain Services
+
+For operations that do not naturally belong to any single entity.
+
+```python
+class ScoringService:
+    """Domain service - stateless, operates on domain objects."""
+
+    def calculate_score(self, analysis: Analysis, artifacts: list[Artifact]) -> float:
+        base_score = len(artifacts) * 10
+        depth_multiplier = analysis.analysis_type.depth / 3.0
+        return min(base_score * depth_multiplier, 100.0)
+```
+
+## Repository Pattern (Output Port)
+
+Repositories define the interface for aggregate persistence. One repository per aggregate root.
+
+```python
+class IAnalysisRepository(Protocol):
+    """Output port - defined in domain, implemented in infrastructure."""
+    async def save(self, aggregate: AnalysisAggregate) -> AnalysisAggregate: ...
+    async def get_by_id(self, id: UUID) -> AnalysisAggregate | None: ...
+    async def find_by_status(self, status: AnalysisStatus) -> list[AnalysisAggregate]: ...
+```
+
+## Event Publishing Pattern
+
+Collect events in aggregates, publish after successful persistence.
+
+```python
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository, publisher: IEventPublisher):
+        self._repo = repo
+        self._publisher = publisher
+
+    async def complete_analysis(self, id: UUID, summary: str) -> None:
+        aggregate = await self._repo.get_by_id(id)
+        if not aggregate:
+            raise EntityNotFoundError("Analysis", str(id))
+
+        aggregate.complete(summary)  # Business logic + domain events
+        await self._repo.save(aggregate)  # Persist
+
+        # Publish events AFTER successful commit
+        for event in aggregate.collect_events():
+            await self._publisher.publish(event)
+```
+
+
+</Accordion>
+
+<Accordion title="Clean Architecture: Hexagonal Ports & Adapters — HIGH">
+
+
+# Hexagonal Architecture (Ports & Adapters)
+
+Comprehensive guide to implementing hexagonal architecture in Python/FastAPI backends.
+
+## Core Concepts
+
+### Ports
+
+Interfaces (Python Protocols) that define how the application core communicates with the outside world.
+
+**Driving Ports (Primary)**: How the outside world calls the application.
+
+```python
+# Input port - what the application offers
+class IAnalysisService(Protocol):
+    async def create_analysis(self, request: CreateAnalysisRequest) -> Analysis: ...
+    async def get_analysis(self, id: str) -> Analysis | None: ...
+```
+
+**Driven Ports (Secondary)**: How the application calls external systems.
+
+```python
+# Output port - what the application needs
+class IAnalysisRepository(Protocol):
+    async def save(self, analysis: Analysis) -> Analysis: ...
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class INotificationService(Protocol):
+    async def send(self, user_id: str, message: str) -> None: ...
+```
+
+### Adapters
+
+Concrete implementations that connect ports to external systems.
+
+**Driving Adapters (Primary)**: Translate external requests into application calls.
+
+```python
+# FastAPI route adapter
+@router.post("/analyses")
+async def create_analysis(
+    request: AnalyzeRequest,
+    service: IAnalysisService = Depends(get_analysis_service)
+) -> AnalysisResponse:
+    analysis = await service.create_analysis(request.to_domain())
+    return AnalysisResponse.from_domain(analysis)
+```
+
+**Driven Adapters (Secondary)**: Implement ports using external technologies.
+
+```python
+# PostgreSQL adapter
+class PostgresAnalysisRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def save(self, analysis: Analysis) -> Analysis:
+        model = AnalysisModel.from_domain(analysis)
+        self._session.add(model)
+        await self._session.flush()
+        return model.to_domain()
+```
+
+## Layer Structure
+
+```
++----------------------------------------------------------------------+
+|                         INFRASTRUCTURE                                |
+|  +-------------+  +---------------+  +-------------+                 |
+|  |  FastAPI    |  |  PostgreSQL   |  |   Redis     |                 |
+|  |  Routes     |  |  Repository   |  |   Cache     |                 |
+|  +------+------+  +-------+-------+  +------+------+                 |
+|         |                 |                 |                         |
+|         v                 v                 v                         |
+|  +--------------------------------------------------------------------+
+|  |                     APPLICATION LAYER                              |
+|  |  +--------------------------------------------------------------+  |
+|  |  |              Use Cases / Application Services                |  |
+|  |  |  +------------------+  +----------------------------+        |  |
+|  |  |  | AnalysisService  |  | UserService                |        |  |
+|  |  |  | - create()       |  | - register()               |        |  |
+|  |  |  | - process()      |  | - authenticate()           |        |  |
+|  |  |  +------------------+  +----------------------------+        |  |
+|  |  +--------------------------------------------------------------+  |
+|  |                                                                    |
+|  |  +--------------------------------------------------------------+  |
+|  |  |                    DOMAIN LAYER                              |  |
+|  |  |  +--------------+  +--------------+  +-------------+        |  |
+|  |  |  |   Entities   |  | Value Objects|  |   Events    |        |  |
+|  |  |  |   Analysis   |  | AnalysisType |  | Completed   |        |  |
+|  |  |  +--------------+  +--------------+  +-------------+        |  |
+|  |  |                                                              |  |
+|  |  |  +------------------------------------------------------+   |  |
+|  |  |  |              Domain Services                          |   |  |
+|  |  |  |  ScoringService, ValidationService                    |   |  |
+|  |  |  +------------------------------------------------------+   |  |
+|  |  +--------------------------------------------------------------+  |
+|  +--------------------------------------------------------------------+
++----------------------------------------------------------------------+
+```
+
+## Directory Mapping
+
+```
+backend/app/
++-- api/v1/                      # Driving adapters
+|   +-- routes/
+|   |   +-- analyses.py          # HTTP adapter
+|   |   +-- users.py
+|   +-- schemas/                 # DTOs (request/response)
+|   |   +-- analysis.py
+|   |   +-- user.py
+|   +-- deps.py                  # Dependency injection
+|
++-- application/                 # Application layer
+|   +-- services/               # Use cases
+|   |   +-- analysis_service.py
+|   |   +-- user_service.py
+|   +-- ports/                  # Port definitions
+|       +-- repositories.py     # Output ports
+|       +-- services.py         # External service ports
+|
++-- domain/                      # Domain layer (pure Python)
+|   +-- entities/
+|   |   +-- analysis.py         # Aggregate root
+|   |   +-- artifact.py         # Entity
+|   +-- value_objects/
+|   |   +-- analysis_type.py
+|   |   +-- url.py
+|   +-- events/
+|   |   +-- analysis_events.py
+|   +-- services/               # Domain services
+|       +-- scoring_service.py
+|
++-- infrastructure/              # Driven adapters
+    +-- persistence/
+    |   +-- models/             # ORM models
+    |   +-- repositories/       # Repository implementations
+    |   +-- mappers/            # Domain <-> ORM mappers
+    +-- cache/
+    |   +-- redis_cache.py
+    +-- external/
+        +-- llm_client.py
+```
+
+## Dependency Rule
+
+**Dependencies point inward.** Outer layers depend on inner layers, never the reverse.
+
+```
+Infrastructure -> Application -> Domain
+      |               |           |
+  (knows)        (knows)    (knows nothing)
+```
+
+### Import Rules
+
+```python
+# ALLOWED: Infrastructure imports from Application
+# infrastructure/repositories/postgres_analysis_repo.py
+from app.application.ports.repositories import IAnalysisRepository
+from app.domain.entities.analysis import Analysis
+
+# ALLOWED: Application imports from Domain
+# application/services/analysis_service.py
+from app.domain.entities.analysis import Analysis
+from app.domain.events import AnalysisCreated
+
+# FORBIDDEN: Domain imports from Application or Infrastructure
+# domain/entities/analysis.py
+from app.infrastructure.database import engine  # NEVER!
+from app.application.services import something  # NEVER!
+```
+
+## Testing Strategy
+
+### Unit Tests (Domain Layer)
+
+```python
+# No mocks needed - pure Python
+def test_analysis_completes():
+    analysis = Analysis(id="123", status=AnalysisStatus.PENDING)
+    analysis.complete(summary="Done")
+    assert analysis.status == AnalysisStatus.COMPLETED
+```
+
+### Integration Tests (Application Layer)
+
+```python
+# Mock driven ports only
+async def test_create_analysis():
+    mock_repo = Mock(spec=IAnalysisRepository)
+    mock_repo.save.return_value = Analysis(id="123")
+
+    service = AnalysisService(repo=mock_repo)
+    result = await service.create(CreateAnalysisRequest(url="..."))
+
+    assert result.id == "123"
+    mock_repo.save.assert_called_once()
+```
+
+### E2E Tests (Driving Adapters)
+
+```python
+# Full stack with test database
+async def test_create_analysis_endpoint(client: TestClient, db: AsyncSession):
+    response = await client.post("/api/v1/analyses", json={"url": "..."})
+    assert response.status_code == 201
+```
+
+
+</Accordion>
+
+<Accordion title="Clean Architecture: SOLID Principles & Dependency Rule — HIGH">
+
+
+# SOLID Principles & Dependency Rule
+
+Python implementations of SOLID principles using Protocol-based structural typing.
+
+## S - Single Responsibility
+
+```python
+# BAD: One class doing everything
+class UserManager:
+    def create_user(self, data): ...
+    def send_welcome_email(self, user): ...
+    def generate_report(self, users): ...
+
+# GOOD: Separate responsibilities
+class UserService:
+    def create_user(self, data: UserCreate) -> User: ...
+
+class EmailService:
+    def send_welcome(self, user: User) -> None: ...
+
+class ReportService:
+    def generate_user_report(self, users: list[User]) -> Report: ...
+```
+
+## O - Open/Closed (Protocol-based)
+
+```python
+from typing import Protocol
+
+class PaymentProcessor(Protocol):
+    async def process(self, amount: Decimal) -> PaymentResult: ...
+
+class StripeProcessor:
+    async def process(self, amount: Decimal) -> PaymentResult:
+        # Stripe implementation
+        ...
+
+class PayPalProcessor:
+    async def process(self, amount: Decimal) -> PaymentResult:
+        # PayPal implementation - extends without modifying
+        ...
+```
+
+## L - Liskov Substitution
+
+```python
+# Any implementation of Repository can substitute another
+class IUserRepository(Protocol):
+    async def get_by_id(self, id: str) -> User | None: ...
+    async def save(self, user: User) -> User: ...
+
+class PostgresUserRepository:
+    async def get_by_id(self, id: str) -> User | None: ...
+    async def save(self, user: User) -> User: ...
+
+class InMemoryUserRepository:  # For testing - fully substitutable
+    async def get_by_id(self, id: str) -> User | None: ...
+    async def save(self, user: User) -> User: ...
+```
+
+## I - Interface Segregation
+
+```python
+# BAD: Fat interface
+class IRepository(Protocol):
+    async def get(self, id: str): ...
+    async def save(self, entity): ...
+    async def delete(self, id: str): ...
+    async def search(self, query: str): ...
+    async def bulk_insert(self, entities): ...
+
+# GOOD: Segregated interfaces
+class IReader(Protocol):
+    async def get(self, id: str) -> T | None: ...
+
+class IWriter(Protocol):
+    async def save(self, entity: T) -> T: ...
+
+class ISearchable(Protocol):
+    async def search(self, query: str) -> list[T]: ...
+```
+
+## D - Dependency Inversion
+
+```python
+from typing import Protocol
+from fastapi import Depends
+
+class IAnalysisRepository(Protocol):
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class AnalysisService:
+    def __init__(self, repo: IAnalysisRepository):
+        self._repo = repo  # Depends on abstraction, not concrete
+
+# FastAPI DI
+def get_analysis_service(
+    db: AsyncSession = Depends(get_db)
+) -> AnalysisService:
+    repo = PostgresAnalysisRepository(db)
+    return AnalysisService(repo)
+```
+
+## Dependency Rule
+
+Dependencies always point inward. The domain layer has zero external dependencies.
+
+```
+Infrastructure -> Application -> Domain
+      |               |           |
+  (knows about)  (knows about)  (knows nothing external)
+```
+
+### What Each Layer Knows
+
+| Layer | Can Import | Cannot Import |
+|-------|-----------|---------------|
+| Domain | Python stdlib only | Application, Infrastructure, Frameworks |
+| Application | Domain | Infrastructure, Frameworks |
+| Infrastructure | Application, Domain | (can import everything above) |
+
+### FastAPI Dependency Injection Chain
+
+```python
+# deps.py - Wire everything together at the composition root
+def get_user_repository(
+    db: AsyncSession = Depends(get_db),
+) -> UserRepository:
+    return UserRepository(db)
+
+def get_user_service(
+    repo: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    return UserService(repo)
+
+# router_users.py - Only knows about service interface
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    return await service.get_user(user_id)
+```
+
+## Key Decisions
+
+| Decision | Recommendation | Rationale |
+|----------|----------------|-----------|
+| Protocol vs ABC | Protocol | Structural typing, no inheritance needed |
+| Dataclass vs Pydantic | Dataclass for domain, Pydantic for API | Domain stays framework-free |
+| Where to wire DI | `deps.py` (composition root) | Single location for all wiring |
+| How to test | Override `Depends()` | FastAPI's `app.dependency_overrides` |
+
+
+</Accordion>
+
+<Accordion title="Dependency Injection">
+
+# Dependency Injection Patterns
+
+FastAPI dependency injection patterns using `Depends()` for Clean Architecture.
+
+---
+
+## Core Principles
+
+1. **Never instantiate services/repositories directly** in route handlers
+2. **Always use `Depends()`** for injecting dependencies
+3. **Chain dependencies** for proper layering (router -> service -> repository -> db)
+4. **Keep dependency providers** in a dedicated `deps.py` file
+
+---
+
+## Dependency Provider Pattern
+
+### Basic Setup
+
+```python
+# app/routers/deps.py
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.core.database import get_db
+from app.repositories.user_repository import UserRepository
+from app.services.user_service import UserService
+
+def get_user_repository(
+    db: AsyncSession = Depends(get_db),
+) -> UserRepository:
+    """Repository depends on database session."""
+    return UserRepository(db)
+
+def get_user_service(
+    repo: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    """Service depends on repository."""
+    return UserService(repo)
+```
+
+### Usage in Router
+
+```python
+# app/routers/router_users.py
+from fastapi import APIRouter, Depends
+from app.services.user_service import UserService
+from app.routers.deps import get_user_service
+
+router = APIRouter(prefix="/users", tags=["users"])
+
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    return await service.get_user(user_id)
+
+@router.post("/")
+async def create_user(
+    user_data: UserCreate,
+    service: UserService = Depends(get_user_service),
+    current_user: User = Depends(get_current_user),  # Auth dependency
+):
+    return await service.create_user(user_data)
+```
+
+---
+
+## Dependency Chaining
+
+```
+Request
+    │
+    ▼
+┌─────────────────────────────────────────────────┐
+│ get_current_user (auth)                          │
+│   └── Depends(get_db) for token validation       │
+└─────────────────────────────────────────────────┘
+    │
+    ▼
+┌─────────────────────────────────────────────────┐
+│ get_user_service                                 │
+│   └── Depends(get_user_repository)               │
+│         └── Depends(get_db)                      │
+└─────────────────────────────────────────────────┘
+    │
+    ▼
+Route Handler
+```
+
+---
+
+## Common DI Patterns
+
+### 1. Database Session Dependency
+
+```python
+# app/core/database.py
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+
+engine = create_async_engine(DATABASE_URL)
+async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+```
+
+### 2. Authentication Dependency
+
+```python
+# app/routers/deps.py
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt, JWTError
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+async def get_current_user(
+    token: str = Depends(oauth2_scheme),
+    user_service: UserService = Depends(get_user_service),
+) -> User:
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = await user_service.get_user(user_id)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+```
+
+### 3. Permission Dependency
+
+```python
+# app/routers/deps.py
+from typing import Callable
+
+def require_permissions(*permissions: str) -> Callable:
+    """Factory for permission-checking dependencies."""
+    async def permission_checker(
+        current_user: User = Depends(get_current_active_user),
+    ) -> User:
+        user_permissions = set(current_user.permissions)
+        required = set(permissions)
+        if not required.issubset(user_permissions):
+            raise HTTPException(
+                status_code=403,
+                detail="Insufficient permissions"
+            )
+        return current_user
+    return permission_checker
+
+# Usage
+@router.delete("/{user_id}")
+async def delete_user(
+    user_id: int,
+    current_user: User = Depends(require_permissions("admin", "user:delete")),
+    service: UserService = Depends(get_user_service),
+):
+    return await service.delete_user(user_id)
+```
+
+### 4. Pagination Dependency
+
+```python
+# app/routers/deps.py
+from pydantic import BaseModel
+
+class PaginationParams(BaseModel):
+    skip: int = 0
+    limit: int = 100
+
+def get_pagination(
+    skip: int = 0,
+    limit: int = 100,
+) -> PaginationParams:
+    return PaginationParams(skip=skip, limit=min(limit, 100))
+
+# Usage
+@router.get("/")
+async def list_users(
+    pagination: PaginationParams = Depends(get_pagination),
+    service: UserService = Depends(get_user_service),
+):
+    return await service.list_users(
+        skip=pagination.skip,
+        limit=pagination.limit
+    )
+```
+
+---
+
+## Blocked Patterns
+
+### 1. Direct Instantiation
+
+```python
+# BLOCKED
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    service = UserService()  # Direct instantiation
+    return await service.get_user(user_id)
+```
+
+### 2. Global Instance
+
+```python
+# BLOCKED
+user_service = UserService()  # Global instance
+
+@router.get("/{user_id}")
+async def get_user(user_id: int):
+    return await user_service.get_user(user_id)
+```
+
+### 3. Missing Depends()
+
+```python
+# BLOCKED
+@router.get("/users")
+async def get_users(db: AsyncSession):  # Missing Depends()
+    return await db.execute(select(User)).scalars().all()
+```
+
+### 4. Instantiation Inside Handler
+
+```python
+# BLOCKED
+@router.get("/{user_id}")
+async def get_user(
+    user_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    repo = UserRepository(db)      # Instantiation in handler
+    service = UserService(repo)    # Should use Depends()
+    return await service.get_user(user_id)
+```
+
+---
+
+## Testing with DI
+
+### Override Dependencies in Tests
+
+```python
+# tests/conftest.py
+import pytest
+from fastapi.testclient import TestClient
+from app.main import app
+from app.routers.deps import get_db, get_user_service
+
+# Mock database session
+@pytest.fixture
+def mock_db():
+    return AsyncMock(spec=AsyncSession)
+
+# Mock service
+@pytest.fixture
+def mock_user_service():
+    service = Mock(spec=UserService)
+    service.get_user = AsyncMock(return_value=User(id=1, email="test@test.com"))
+    return service
+
+@pytest.fixture
+def client(mock_db, mock_user_service):
+    app.dependency_overrides[get_db] = lambda: mock_db
+    app.dependency_overrides[get_user_service] = lambda: mock_user_service
+    yield TestClient(app)
+    app.dependency_overrides.clear()
+```
+
+### Test with Dependency Overrides
+
+```python
+# tests/test_routers/test_users.py
+def test_get_user(client, mock_user_service):
+    response = client.get("/users/1")
+    assert response.status_code == 200
+    mock_user_service.get_user.assert_called_once_with(1)
+```
+
+---
+
+## Best Practices
+
+| Practice | Description |
+|----------|-------------|
+| **Centralize providers** | Keep all `get_*` functions in `deps.py` |
+| **Type hints** | Always specify return types for providers |
+| **Chain properly** | Services depend on repos, repos depend on db |
+| **Avoid global state** | Never use module-level service instances |
+| **Use factories** | For parameterized dependencies (permissions) |
+| **Test with overrides** | Use `app.dependency_overrides` for mocking |
+
+</Accordion>
+
+<Accordion title="Hexagonal Architecture">
+
+# Hexagonal Architecture (Ports & Adapters)
+
+Comprehensive guide to implementing hexagonal architecture in Python/FastAPI backends.
+
+## Core Concepts
+
+### Ports
+Interfaces (Python Protocols) that define how the application core communicates with the outside world.
+
+**Driving Ports (Primary)**: How the outside world calls the application
+```python
+# Input port - what the application offers
+class IAnalysisService(Protocol):
+    async def create_analysis(self, request: CreateAnalysisRequest) -> Analysis: ...
+    async def get_analysis(self, id: str) -> Analysis | None: ...
+```
+
+**Driven Ports (Secondary)**: How the application calls external systems
+```python
+# Output port - what the application needs
+class IAnalysisRepository(Protocol):
+    async def save(self, analysis: Analysis) -> Analysis: ...
+    async def get_by_id(self, id: str) -> Analysis | None: ...
+
+class INotificationService(Protocol):
+    async def send(self, user_id: str, message: str) -> None: ...
+```
+
+### Adapters
+Concrete implementations that connect ports to external systems.
+
+**Driving Adapters (Primary)**: Translate external requests into application calls
+```python
+# FastAPI route adapter
+@router.post("/analyses")
+async def create_analysis(
+    request: AnalyzeRequest,
+    service: IAnalysisService = Depends(get_analysis_service)
+) -> AnalysisResponse:
+    analysis = await service.create_analysis(request.to_domain())
+    return AnalysisResponse.from_domain(analysis)
+```
+
+**Driven Adapters (Secondary)**: Implement ports using external technologies
+```python
+# PostgreSQL adapter
+class PostgresAnalysisRepository:
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def save(self, analysis: Analysis) -> Analysis:
+        model = AnalysisModel.from_domain(analysis)
+        self._session.add(model)
+        await self._session.flush()
+        return model.to_domain()
+```
+
+## Layer Structure
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│                         INFRASTRUCTURE                            │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              │
+│  │  FastAPI    │  │  PostgreSQL │  │   Redis     │              │
+│  │  Routes     │  │  Repository │  │   Cache     │              │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘              │
+│         │                │                │                      │
+│         ▼                ▼                ▼                      │
+│  ┌──────────────────────────────────────────────────────────────┐│
+│  │                     APPLICATION LAYER                        ││
+│  │  ┌────────────────────────────────────────────────────────┐  ││
+│  │  │              Use Cases / Application Services          │  ││
+│  │  │  ┌──────────────────┐  ┌──────────────────────────┐   │  ││
+│  │  │  │ AnalysisService  │  │ UserService               │   │  ││
+│  │  │  │ - create()       │  │ - register()              │   │  ││
+│  │  │  │ - process()      │  │ - authenticate()          │   │  ││
+│  │  │  └──────────────────┘  └──────────────────────────┘   │  ││
+│  │  └────────────────────────────────────────────────────────┘  ││
+│  │                                                              ││
+│  │  ┌────────────────────────────────────────────────────────┐  ││
+│  │  │                    DOMAIN LAYER                        │  ││
+│  │  │  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │  ││
+│  │  │  │   Entities   │  │ Value Objects│  │   Events    │  │  ││
+│  │  │  │   Analysis   │  │ AnalysisType │  │ Completed   │  │  ││
+│  │  │  └──────────────┘  └──────────────┘  └─────────────┘  │  ││
+│  │  │                                                        │  ││
+│  │  │  ┌──────────────────────────────────────────────────┐  │  ││
+│  │  │  │              Domain Services                     │  │  ││
+│  │  │  │  ScoringService, ValidationService               │  │  ││
+│  │  │  └──────────────────────────────────────────────────┘  │  ││
+│  │  └────────────────────────────────────────────────────────┘  ││
+│  └──────────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────────┘
+```
+
+## Directory Mapping
+
+```
+backend/app/
+├── api/v1/                      # Driving adapters
+│   ├── routes/
+│   │   ├── analyses.py          # HTTP adapter
+│   │   └── users.py
+│   ├── schemas/                 # DTOs (request/response)
+│   │   ├── analysis.py
+│   │   └── user.py
+│   └── deps.py                  # Dependency injection
+│
+├── application/                 # Application layer
+│   ├── services/               # Use cases
+│   │   ├── analysis_service.py
+│   │   └── user_service.py
+│   └── ports/                  # Port definitions
+│       ├── repositories.py     # Output ports
+│       └── services.py         # External service ports
+│
+├── domain/                      # Domain layer (pure Python)
+│   ├── entities/
+│   │   ├── analysis.py         # Aggregate root
+│   │   └── artifact.py         # Entity
+│   ├── value_objects/
+│   │   ├── analysis_type.py
+│   │   └── url.py
+│   ├── events/
+│   │   └── analysis_events.py
+│   └── services/               # Domain services
+│       └── scoring_service.py
+│
+└── infrastructure/              # Driven adapters
+    ├── persistence/
+    │   ├── models/             # ORM models
+    │   ├── repositories/       # Repository implementations
+    │   └── mappers/            # Domain ↔ ORM mappers
+    ├── cache/
+    │   └── redis_cache.py
+    └── external/
+        └── llm_client.py
+```
+
+## Dependency Rule
+
+**Dependencies point inward**. Outer layers depend on inner layers, never the reverse.
+
+```
+Infrastructure → Application → Domain
+      ↓               ↓           ↓
+  (knows)        (knows)    (knows nothing)
+```
+
+### Import Rules
+
+```python
+# ✅ ALLOWED: Infrastructure imports from Application
+# infrastructure/repositories/postgres_analysis_repo.py
+from app.application.ports.repositories import IAnalysisRepository
+from app.domain.entities.analysis import Analysis
+
+# ✅ ALLOWED: Application imports from Domain
+# application/services/analysis_service.py
+from app.domain.entities.analysis import Analysis
+from app.domain.events import AnalysisCreated
+
+# ❌ FORBIDDEN: Domain imports from Application or Infrastructure
+# domain/entities/analysis.py
+from app.infrastructure.database import engine  # NEVER!
+from app.application.services import something  # NEVER!
+```
+
+## Testing Strategy
+
+### Unit Tests (Domain Layer)
+```python
+# No mocks needed - pure Python
+def test_analysis_completes():
+    analysis = Analysis(id="123", status=AnalysisStatus.PENDING)
+    analysis.complete(summary="Done")
+    assert analysis.status == AnalysisStatus.COMPLETED
+```
+
+### Integration Tests (Application Layer)
+```python
+# Mock driven ports only
+async def test_create_analysis():
+    mock_repo = Mock(spec=IAnalysisRepository)
+    mock_repo.save.return_value = Analysis(id="123")
+
+    service = AnalysisService(repo=mock_repo)
+    result = await service.create(CreateAnalysisRequest(url="..."))
+
+    assert result.id == "123"
+    mock_repo.save.assert_called_once()
+```
+
+### E2E Tests (Driving Adapters)
+```python
+# Full stack with test database
+async def test_create_analysis_endpoint(client: TestClient, db: AsyncSession):
+    response = await client.post("/api/v1/analyses", json={"url": "..."})
+    assert response.status_code == 201
+```
+
+## Related Files
+
+- See `checklists/solid-checklist.md` for SOLID principles checklist
+- See `scripts/domain-entity-template.py` for entity templates
+- See SKILL.md for DDD patterns
+
+
+</Accordion>
+
+<Accordion title="Layer Rules">
+
+# Layer Separation Rules
+
+Detailed rules for Router-Service-Repository layer separation in FastAPI Clean Architecture.
+
+---
+
+## Routers Layer (HTTP Only)
+
+Routers should ONLY handle:
+- Request parsing and validation
+- Response formatting
+- HTTP status codes
+- Authentication/authorization checks
+- Calling services
+
+```python
+# GOOD - Router delegates to service
+@router.post("/users", response_model=UserResponse)
+async def create_user(
+    user_data: UserCreate,
+    service: UserService = Depends(get_user_service),
+):
+    user = await service.create_user(user_data)
+    return user
+
+# BLOCKED - Business logic in router
+@router.post("/users")
+async def create_user(
+    user_data: UserCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    # Database operation in router
+    existing = await db.execute(
+        select(User).where(User.email == user_data.email)
+    )
+    if existing.scalar():
+        raise HTTPException(400, "Email exists")
+
+    # Business logic in router
+    user = User(**user_data.dict())
+    user.created_at = datetime.now(timezone.utc)
+    db.add(user)
+    await db.commit()
+    return user
+```
+
+---
+
+## Services Layer (Business Logic)
+
+Services should:
+- Contain business logic and validation
+- Orchestrate repositories
+- Transform data between layers
+- Raise domain exceptions (NOT HTTPException)
+
+```python
+# GOOD - Service with business logic
+class UserService:
+    def __init__(self, repo: UserRepository):
+        self.repo = repo
+
+    async def create_user(self, data: UserCreate) -> User:
+        if await self.repo.exists_by_email(data.email):
+            raise UserAlreadyExistsError(data.email)
+
+        user = User(
+            email=data.email,
+            password_hash=hash_password(data.password),
+            created_at=datetime.now(timezone.utc),
+        )
+        return await self.repo.create(user)
+
+# BLOCKED - HTTP concerns in service
+class UserService:
+    async def create_user(self, data: UserCreate) -> User:
+        if await self.repo.exists_by_email(data.email):
+            # HTTPException in service - BLOCKED
+            raise HTTPException(400, "Email already exists")
+```
+
+---
+
+## Repositories Layer (Data Access)
+
+Repositories should:
+- Execute database queries
+- Call external APIs
+- Handle data persistence
+- Return domain objects or None
+
+```python
+# GOOD - Repository handles data access only
+class UserRepository:
+    def __init__(self, db: AsyncSession):
+        self.db = db
+
+    async def get_by_id(self, user_id: int) -> User | None:
+        result = await self.db.execute(
+            select(User).where(User.id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, user: User) -> User:
+        self.db.add(user)
+        await self.db.commit()
+        await self.db.refresh(user)
+        return user
+
+# BLOCKED - HTTP concerns in repository
+class UserRepository:
+    async def get_by_id(self, user_id: int) -> User:
+        user = await self.db.get(User, user_id)
+        if not user:
+            # HTTPException in repository - BLOCKED
+            raise HTTPException(404, "User not found")
+        return user
+```
+
+---
+
+## Exception Handling Pattern
+
+### Domain Exceptions
+
+```python
+# app/core/exceptions.py
+class DomainException(Exception):
+    """Base domain exception."""
+    pass
+
+class UserNotFoundError(DomainException):
+    def __init__(self, user_id: int):
+        self.user_id = user_id
+        super().__init__(f"User {user_id} not found")
+
+class UserAlreadyExistsError(DomainException):
+    def __init__(self, email: str):
+        self.email = email
+        super().__init__(f"User with email {email} already exists")
+```
+
+### Router Exception Handler
+
+```python
+# app/routers/deps.py
+def handle_domain_exception(exc: DomainException) -> HTTPException:
+    """Convert domain exceptions to HTTP responses."""
+    if isinstance(exc, UserNotFoundError):
+        return HTTPException(404, str(exc))
+    if isinstance(exc, UserAlreadyExistsError):
+        return HTTPException(409, str(exc))
+    return HTTPException(500, "Internal error")
+
+# Usage in router
+@router.get("/users/{user_id}")
+async def get_user(
+    user_id: int,
+    service: UserService = Depends(get_user_service),
+):
+    try:
+        return await service.get_user(user_id)
+    except DomainException as e:
+        raise handle_domain_exception(e)
+```
+
+---
+
+## Async Consistency Rules
+
+### No Sync Calls in Async Functions
+
+```python
+# GOOD - Async all the way
+async def get_user(user_id: int) -> User:
+    result = await db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+# BLOCKED - Sync call in async function
+async def get_user(user_id: int) -> User:
+    # Missing await - blocks event loop
+    result = db.execute(select(User).where(User.id == user_id))
+    return result.scalar_one_or_none()
+
+# For unavoidable sync code, use run_in_executor
+async def process_file(file_path: str) -> bytes:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(
+        None,
+        lambda: open(file_path, 'rb').read()
+    )
+```
+
+---
+
+## Layer Boundaries Summary
+
+| Layer | Allowed | Blocked |
+|-------|---------|---------|
+| **Router** | HTTP handling, auth checks, calling services | DB operations, business logic |
+| **Service** | Business logic, validation, orchestration | HTTPException, Request object |
+| **Repository** | DB queries, data persistence | HTTP concerns, business logic |
+
+</Accordion>
+
+<Accordion title="Naming Conventions">
+
+# Test Naming Conventions
+
+Descriptive test names that document expected behavior.
+
+## Implementation
+
+### Python (pytest)
+
+```python
+# Pattern: test_<action>_<condition>_<expected_result>
+
+class TestUserRegistration:
+    def test_creates_user_when_valid_email_provided(self):
+        """Register with valid email succeeds."""
+        ...
+
+    def test_raises_validation_error_when_email_already_exists(self):
+        """Duplicate email registration fails."""
+        ...
+
+    def test_sends_welcome_email_after_successful_registration(self):
+        """New user receives welcome email."""
+        ...
+
+    def test_returns_none_when_user_not_found_by_id(self):
+        """Missing user returns None, not exception."""
+        ...
+
+
+class TestOrderCalculation:
+    def test_applies_bulk_discount_when_quantity_exceeds_threshold(self):
+        ...
+
+    def test_skips_discount_when_quantity_below_minimum(self):
+        ...
+
+    def test_calculates_tax_after_discount_applied(self):
+        ...
+```
+
+### TypeScript (Vitest/Jest)
+
+```typescript
+describe('UserService', () => {
+  // Pattern: should <expected_behavior> when <condition>
+  test('should create user when valid email provided', () => {});
+  test('should throw ValidationError when email already exists', () => {});
+  test('should send welcome email after successful registration', () => {});
+  test('should return null when user not found by id', () => {});
+});
+
+describe('OrderCalculation', () => {
+  test('should apply bulk discount when quantity exceeds threshold', () => {});
+  test('should skip discount when quantity below minimum', () => {});
+  test('should calculate tax after discount applied', () => {});
+});
+```
+
+## Anti-Patterns (Blocked)
+
+```python
+# BLOCKED - Not descriptive
+def test_user():
+def test_1():
+def test_it_works():
+def testUser():  # Wrong case
+
+# BLOCKED - Tests implementation, not behavior
+def test_calls_repository_save_method():
+def test_uses_cache():
+```
+
+## Checklist
+
+- [ ] Test name describes expected behavior, not implementation
+- [ ] Condition/scenario is clear from the name
+- [ ] Expected outcome is explicit
+- [ ] Use snake_case for Python, camelCase for TypeScript
+- [ ] Names are 3-10 words (not too short, not too long)
+- [ ] Avoid generic words: test, check, verify (alone)
+
+</Accordion>
+
+<Accordion title="Project Structure: Folder Conventions & Nesting — HIGH">
+
+
+# Folder Conventions & Nesting Depth
+
+Feature-based organization, maximum nesting depth enforcement, and barrel file prevention.
+
+## React/Next.js Folder Structure
+
+```
+src/
++-- app/              # Next.js App Router (pages)
+|   +-- (auth)/       # Route groups
+|   +-- api/          # API routes
+|   +-- layout.tsx
++-- components/       # Reusable UI components
+|   +-- ui/           # Primitive components
+|   +-- forms/        # Form components
++-- features/         # Feature modules (self-contained)
+|   +-- auth/
+|   |   +-- components/
+|   |   +-- hooks/
+|   |   +-- services/
+|   |   +-- types.ts
+|   +-- dashboard/
++-- hooks/            # Global custom hooks
++-- lib/              # Third-party integrations
++-- services/         # API clients
++-- types/            # Global TypeScript types
++-- utils/            # Pure utility functions
+```
+
+## FastAPI Folder Structure
+
+```
+app/
++-- routers/          # API route handlers
+|   +-- router_users.py
+|   +-- router_auth.py
+|   +-- deps.py       # Shared dependencies
++-- services/         # Business logic layer
+|   +-- user_service.py
+|   +-- auth_service.py
++-- repositories/     # Data access layer
+|   +-- user_repository.py
+|   +-- base_repository.py
++-- schemas/          # Pydantic models
+|   +-- user_schema.py
+|   +-- auth_schema.py
++-- models/           # SQLAlchemy models
+|   +-- user_model.py
+|   +-- base.py
++-- core/             # Config, security, deps
+|   +-- config.py
+|   +-- security.py
+|   +-- database.py
++-- utils/            # Utility functions
+```
+
+## Nesting Depth Rules
+
+Maximum 4 levels from `src/` or `app/`:
+
+```
+ALLOWED (4 levels):
+  src/features/auth/components/LoginForm.tsx
+  app/routers/v1/users/router_users.py
+
+BLOCKED (5+ levels):
+  src/features/dashboard/widgets/charts/line/LineChart.tsx
+  Fix: src/features/dashboard/charts/LineChart.tsx
+```
+
+### Flattening Deep Nesting
+
+```
+# Before (6 levels - VIOLATION)
+src/features/dashboard/widgets/charts/line/LineChart.tsx
+src/features/dashboard/widgets/charts/line/LineChartTooltip.tsx
+
+# After (4 levels) - Co-locate related files
+src/features/dashboard/charts/LineChart.tsx
+src/features/dashboard/charts/LineChartTooltip.tsx
+src/features/dashboard/charts/useLineChartData.ts
+```
+
+## Barrel File Prevention
+
+Barrel files (`index.ts` that only re-export) are BLOCKED.
+
+```typescript
+// BLOCKED: src/components/index.ts
+export { Button } from './Button';
+export { Input } from './Input';
+export { Modal } from './Modal';
+
+// GOOD: Import directly
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/forms/Input';
+```
+
+### Why Barrel Files Are Harmful
+
+- **Tree-shaking failure**: Bundlers import the entire barrel, not just used exports
+- **Bundle size**: Unused components end up in production bundle
+- **Build performance**: Barrel files slow down build times significantly
+- **Circular dependencies**: Barrels create hidden circular import chains
+- **HMR slowdown**: Hot Module Replacement processes entire barrel on changes
+
+### Removing Barrel Files
+
+```typescript
+// Before (barrel import)
+import { Button, Card } from '@/components';
+
+// After (direct imports)
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+```
+
+ESLint rule to prevent barrel creation:
+
+```javascript
+// .eslintrc.js
+rules: {
+  'no-restricted-imports': ['error', {
+    patterns: ['**/index']
+  }]
+}
+```
+
+## Python File Location Rules
+
+### Routers
+
+```
+ALLOWED:
+  app/routers/router_users.py
+  app/routers/routes_auth.py
+  app/routers/api_v1.py
+
+BLOCKED:
+  app/users_router.py          # Not in routers/
+  app/services/router_users.py # Router in services/
+```
+
+### Services
+
+```
+ALLOWED:
+  app/services/user_service.py
+  app/services/auth_service.py
+
+BLOCKED:
+  app/user_service.py           # Not in services/
+  app/routers/user_service.py   # Service in routers/
+```
+
+## Common Violations
+
+| Violation | Detection | Fix |
+|-----------|-----------|-----|
+| Deep nesting (5+ levels) | Count path segments from src/ | Flatten by combining levels |
+| Barrel file created | index.ts with re-exports only | Delete, use direct imports |
+| Component in wrong dir | PascalCase .tsx in utils/ | Move to components/ |
+| Router not in routers/ | router_*.py outside routers/ | Move to app/routers/ |
+| Service in wrong dir | *_service.py outside services/ | Move to app/services/ |
+
+
+</Accordion>
+
+<Accordion title="Project Structure: Import Direction & Component Location — HIGH">
+
+
+# Import Direction & Component Location
+
+Unidirectional import architecture, cross-feature prevention, and component/hook placement rules.
+
+## Unidirectional Import Architecture
+
+Code must flow in ONE direction. Lower layers never import from higher layers.
+
+```
+shared/lib  ->  components  ->  features  ->  app
+(lowest)                                    (highest)
+```
+
+### Allowed Imports
+
+| Layer | Can Import From |
+|-------|-----------------|
+| `shared/`, `lib/` | Nothing (base layer) |
+| `utils/` | `shared/`, `lib/` |
+| `components/` | `shared/`, `lib/`, `utils/` |
+| `features/` | `shared/`, `lib/`, `components/`, `utils/` |
+| `app/` | Everything above |
+
+### Blocked Import Directions
+
+```typescript
+// BLOCKED: shared/ importing from features/
+// File: src/shared/utils.ts
+import { authConfig } from '@/features/auth/config';  // VIOLATION!
+
+// BLOCKED: features/ importing from app/
+// File: src/features/auth/useAuth.ts
+import { RootLayout } from '@/app/layout';  // VIOLATION!
+
+// BLOCKED: components/ importing from features/
+// File: src/components/ui/UserAvatar.tsx
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'; // VIOLATION!
+```
+
+### Cross-Feature Import Prevention
+
+Features must not import from each other. Extract shared code to `shared/` or `lib/`.
+
+```typescript
+// BLOCKED: Cross-feature import
+// File: src/features/auth/useAuth.ts
+import { DashboardContext } from '@/features/dashboard/context';  // VIOLATION!
+import { useCart } from '@/features/cart/hooks/useCart';          // VIOLATION!
+
+// FIX: Extract to shared
+// Move to: src/shared/types/user.ts
+// Both features import from shared/
+```
+
+### Type-Only Import Exception
+
+Type-only imports across features are allowed since they are erased at compile time:
+
+```typescript
+// ALLOWED: Type-only import from another feature
+import type { User } from '@/features/users/types';
+```
+
+## Component Location Rules
+
+### React Components (PascalCase .tsx)
+
+```
+ALLOWED:
+  src/components/Button.tsx
+  src/components/ui/Card.tsx
+  src/features/auth/components/LoginForm.tsx
+  src/app/dashboard/page.tsx
+
+BLOCKED:
+  src/utils/Button.tsx       # Components not in utils/
+  src/services/Modal.tsx     # Components not in services/
+  src/hooks/Dropdown.tsx     # Components not in hooks/
+  src/lib/Avatar.tsx         # Components not in lib/
+```
+
+### Custom Hooks (useX pattern)
+
+```
+ALLOWED:
+  src/hooks/useAuth.ts
+  src/hooks/useLocalStorage.ts
+  src/features/auth/hooks/useLogin.ts
+
+BLOCKED:
+  src/components/useAuth.ts   # Hooks not in components/
+  src/utils/useDebounce.ts    # Hooks not in utils/
+  src/services/useFetch.ts    # Hooks not in services/
+```
+
+## Import Direction Quick Reference
+
+```
+ALLOWED DIRECTIONS:
+  shared/ -> (nothing)
+  lib/    -> shared/
+  utils/  -> shared/, lib/
+  components/ -> shared/, lib/, utils/
+  features/   -> shared/, lib/, utils/, components/
+  app/        -> shared/, lib/, utils/, components/, features/
+
+BLOCKED DIRECTIONS:
+  shared/ -> components/, features/, app/
+  lib/    -> components/, features/, app/
+  components/ -> features/, app/
+  features/ -> app/, other features/
+```
+
+## Fixing Import Direction Violations
+
+### shared/ importing from features/
+
+Extract the needed code to `shared/` where it belongs:
+
+```typescript
+// Before: shared/utils.ts imports features/auth/config
+// After: Move config to shared/config/auth.ts
+```
+
+### features/ importing from app/
+
+App layer should not export utilities. Move shared logic to appropriate lower layer:
+
+```typescript
+// Before: features/auth imports from app/layout
+// After: Extract shared layout types to shared/types/layout.ts
+```
+
+### Cross-feature imports
+
+Extract shared types and utilities:
+
+```typescript
+// Before: features/auth imports from features/users
+// After:
+//   1. Create src/shared/types/user.ts
+//   2. Both features import from shared/
+```
+
+### components/ importing from features/
+
+Component should receive data as props, not fetch it directly:
+
+```typescript
+// Before: components/UserAvatar imports useCurrentUser from features/auth
+// After: UserAvatar receives user as prop, feature component provides it
+```
+
+## Why This Matters
+
+- **Circular dependencies**: Bi-directional imports create runtime errors
+- **Build failures**: Bundlers cannot resolve circular module graphs
+- **Code splitting**: Circular deps prevent effective code splitting
+- **Maintainability**: Tangled dependencies make refactoring impossible
+- **Testing**: Cannot test components in isolation with circular deps
+
+
+</Accordion>
+
+<Accordion title="Test Standards: AAA Pattern & Test Isolation — MEDIUM">
+
+
+# AAA Pattern & Test Isolation
+
+Arrange-Act-Assert pattern enforcement, test isolation rules, and parameterized test patterns.
+
+## AAA Pattern (Required)
+
+Every test must follow Arrange-Act-Assert. This structure makes tests readable, maintainable, and debuggable.
+
+### TypeScript Example
+
+```typescript
+describe('calculateDiscount', () => {
+  test('should apply 10% discount for orders over $100', () => {
+    // Arrange
+    const order = createOrder({ total: 150 });
+    const calculator = new DiscountCalculator();
+
+    // Act
+    const discount = calculator.calculate(order);
+
+    // Assert
+    expect(discount).toBe(15);
+  });
+});
+```
+
+### Python Example
+
+```python
+class TestCalculateDiscount:
+    def test_applies_10_percent_discount_over_threshold(self):
+        # Arrange
+        order = Order(total=150)
+        calculator = DiscountCalculator()
+
+        # Act
+        discount = calculator.calculate(order)
+
+        # Assert
+        assert discount == 15
+```
+
+### Common AAA Violations
+
+```python
+# BLOCKED - No clear structure
+def test_discount():
+    assert DiscountCalculator().calculate(Order(total=150)) == 15
+
+# BLOCKED - Assert mixed with Act
+def test_discount():
+    calculator = DiscountCalculator()
+    assert calculator.calculate(Order(total=150)) == 15
+    assert calculator.calculate(Order(total=50)) == 0
+    # Multiple Act+Assert pairs - split into separate tests
+```
+
+## Test Isolation (Required)
+
+Tests must not share mutable state. Each test must run independently.
+
+### Shared State Violation
+
+```typescript
+// BLOCKED - Shared mutable state
+let items = [];
+
+test('adds item', () => {
+  items.push('a');
+  expect(items).toHaveLength(1);
+});
+
+test('removes item', () => {
+  // FAILS - items already has 'a' from previous test
+  expect(items).toHaveLength(0);
+});
+```
+
+### Proper Isolation
+
+```typescript
+// GOOD - Reset state in beforeEach
+describe('ItemList', () => {
+  let items: string[];
+
+  beforeEach(() => {
+    items = []; // Fresh state each test
+  });
+
+  test('adds item', () => {
+    items.push('a');
+    expect(items).toHaveLength(1);
+  });
+
+  test('starts empty', () => {
+    expect(items).toHaveLength(0); // Works!
+  });
+});
+```
+
+### Python Isolation with Fixtures
+
+```python
+import pytest
+
+# Function scope (default) - Fresh each test
+@pytest.fixture
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()
+
+# Each test gets its own session
+class TestUserRepository:
+    def test_creates_user(self, db_session):
+        repo = UserRepository(db_session)
+        user = repo.create(UserCreate(email="test@test.com"))
+        assert user.id is not None
+
+    def test_gets_user(self, db_session):
+        # Fresh session - no data from previous test
+        repo = UserRepository(db_session)
+        assert repo.get_by_email("test@test.com") is None
+```
+
+## Parameterized Tests
+
+Use parameterized tests for multiple similar cases instead of duplicating test bodies.
+
+### TypeScript (test.each)
+
+```typescript
+describe('isValidEmail', () => {
+  test.each([
+    ['user@example.com', true],
+    ['invalid', false],
+    ['@missing.com', false],
+    ['user@domain.co.uk', true],
+    ['user+tag@example.com', true],
+  ])('isValidEmail(%s) returns %s', (email, expected) => {
+    expect(isValidEmail(email)).toBe(expected);
+  });
+});
+```
+
+### Python (pytest.mark.parametrize)
+
+```python
+import pytest
+
+class TestIsValidEmail:
+    @pytest.mark.parametrize("email,expected", [
+        ("user@example.com", True),
+        ("invalid", False),
+        ("@missing.com", False),
+        ("user@domain.co.uk", True),
+    ])
+    def test_email_validation(self, email: str, expected: bool):
+        assert is_valid_email(email) == expected
+```
+
+## Test Factory Pattern
+
+Create reusable factory functions for test data.
+
+```python
+# tests/factories.py
+from dataclasses import dataclass
+
+def create_user(**overrides) -> User:
+    """Factory with sensible defaults."""
+    defaults = {
+        "email": "test@example.com",
+        "name": "Test User",
+        "is_active": True,
+    }
+    defaults.update(overrides)
+    return User(**defaults)
+
+# Usage
+def test_inactive_user_blocked(self):
+    user = create_user(is_active=False)
+    with pytest.raises(InactiveUserError):
+        service.validate_access(user)
+```
+
+## One Assert Per Logical Concept
+
+Each test should verify one behavior. Multiple assertions are fine if they all verify the same concept.
+
+```python
+# GOOD - Multiple assertions for one concept (user creation)
+def test_creates_user_with_defaults(self):
+    user = service.create_user(UserCreate(email="test@test.com"))
+    assert user.id is not None
+    assert user.email == "test@test.com"
+    assert user.is_active is True
+    assert user.created_at is not None
+
+# BAD - Testing multiple concepts in one test
+def test_user_operations(self):
+    user = service.create_user(data)
+    assert user.id is not None         # creation
+    updated = service.update_user(...)  # update (separate test!)
+    assert updated.name == "New"
+    service.delete_user(user.id)        # delete (separate test!)
+```
+
+
+</Accordion>
+
+<Accordion title="Test Standards: Coverage Thresholds & File Location — MEDIUM">
+
+
+# Coverage Thresholds & Test File Location
+
+Coverage requirements, fixture scope best practices, and test file placement rules.
+
+## Coverage Requirements
+
+| Area | Minimum | Target |
+|------|---------|--------|
+| Overall | 80% | 90% |
+| Business Logic | 90% | 100% |
+| Critical Paths | 95% | 100% |
+| New Code | 100% | 100% |
+
+### Running Coverage
+
+**TypeScript (Vitest/Jest):**
+
+```bash
+npm test -- --coverage
+npx vitest --coverage
+```
+
+**Python (pytest):**
+
+```bash
+pytest --cov=app --cov-report=json
+pytest --cov=app --cov-report=html  # HTML report
+```
+
+### Coverage Configuration
+
+**Vitest:**
+
+```typescript
+// vitest.config.ts
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: 'v8',
+      thresholds: {
+        statements: 80,
+        branches: 80,
+        functions: 80,
+        lines: 80,
+      },
+    },
+  },
+});
+```
+
+**pytest:**
+
+```text
+# pyproject.toml
+[tool.coverage.run]
+source = ["app"]
+omit = ["*/tests/*", "*/migrations/*"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+```
+
+## Test File Location Rules
+
+### Allowed Locations
+
+```
+ALLOWED:
+  tests/unit/user.test.ts
+  tests/integration/api.test.ts
+  __tests__/components/Button.test.tsx
+  app/tests/test_users.py
+  tests/conftest.py
+
+BLOCKED:
+  src/utils/helper.test.ts      # Tests in src/
+  components/Button.test.tsx    # Tests outside test dir
+  app/routers/test_routes.py    # Tests mixed with source
+```
+
+### Python Test File Location
+
+```
+project/
++-- app/                  # Source code
+|   +-- services/
+|   +-- repositories/
++-- tests/                # All tests here
+    +-- unit/
+    |   +-- test_user_service.py
+    |   +-- test_order_service.py
+    +-- integration/
+    |   +-- test_api_users.py
+    |   +-- test_api_orders.py
+    +-- conftest.py       # Shared fixtures
+```
+
+### TypeScript Test File Location
+
+```
+project/
++-- src/                  # Source code
+|   +-- components/
+|   +-- services/
++-- tests/                # Or __tests__/
+    +-- unit/
+    |   +-- UserService.test.ts
+    |   +-- OrderService.test.ts
+    +-- integration/
+    |   +-- api.test.ts
+    +-- setup.ts          # Test setup
+```
+
+## Fixture Best Practices (Python)
+
+### Scope Selection
+
+```python
+import pytest
+
+# Function scope (default) - Fresh each test
+@pytest.fixture
+def db_session():
+    session = create_session()
+    yield session
+    session.rollback()
+
+# Module scope - Shared across file
+@pytest.fixture(scope="module")
+def expensive_model():
+    return load_ml_model()  # Only loads once per file
+
+# Session scope - Shared across all tests
+@pytest.fixture(scope="session")
+def db_engine():
+    engine = create_engine(TEST_DB_URL)
+    yield engine
+    engine.dispose()
+```
+
+### Fixture Scope Guidelines
+
+| Scope | Use When | Example |
+|-------|----------|---------|
+| `function` (default) | Mutable state, isolation needed | DB sessions, test data |
+| `module` | Expensive, read-only setup | ML models, config parsing |
+| `session` | Global infrastructure | DB engine, Redis connection |
+| `class` | Shared across class methods | Class-level test data |
+
+### conftest.py Organization
+
+```python
+# tests/conftest.py - Root level (shared by all tests)
+@pytest.fixture(scope="session")
+def db_engine():
+    engine = create_engine(TEST_DB_URL)
+    yield engine
+    engine.dispose()
+
+@pytest.fixture
+def db_session(db_engine):
+    connection = db_engine.connect()
+    transaction = connection.begin()
+    session = Session(bind=connection)
+    yield session
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+# tests/unit/conftest.py - Unit test specific
+@pytest.fixture
+def mock_repository():
+    return Mock(spec=UserRepository)
+
+# tests/integration/conftest.py - Integration test specific
+@pytest.fixture
+async def client(db_session):
+    app.dependency_overrides[get_db] = lambda: db_session
+    async with AsyncClient(app=app, base_url="http://test") as client:
+        yield client
+    app.dependency_overrides.clear()
+```
+
+## Common Violations
+
+### 1. Test in Wrong Location
+
+```
+BLOCKED: Test file must be in tests/ directory
+  File: src/utils/helpers.test.ts
+  Move to: tests/utils/helpers.test.ts
+```
+
+### 2. Coverage Below Threshold
+
+```
+BLOCKED: Coverage 75.2% is below threshold 80%
+
+Actions required:
+  1. Add tests for uncovered code
+  2. Run: npm test -- --coverage
+  3. Ensure coverage >= 80% before proceeding
+```
+
+### 3. Tests Mixed with Source
+
+```
+BLOCKED: Test file found in source directory
+  File: app/routers/test_routes.py
+  Move to: tests/integration/test_routes.py
+```
+
+## Test Organization Pattern
+
+Organize tests to mirror source structure:
+
+```
+# Source
+app/
++-- services/
+|   +-- user_service.py
+|   +-- order_service.py
++-- repositories/
+    +-- user_repository.py
+
+# Tests (mirror structure)
+tests/
++-- unit/
+|   +-- services/
+|   |   +-- test_user_service.py
+|   |   +-- test_order_service.py
+|   +-- repositories/
+|       +-- test_user_repository.py
++-- integration/
+    +-- test_api_users.py
+```
+
+
+</Accordion>
+
+<Accordion title="Test Standards: Naming Conventions — MEDIUM">
+
+
+# Test Naming Conventions
+
+Descriptive test names that document expected behavior for both Python and TypeScript.
+
+## Python Naming Pattern
+
+Pattern: `test_&lt;action&gt;_&lt;condition&gt;_&lt;expected_result&gt;`
+
+```python
+class TestUserRegistration:
+    def test_creates_user_when_valid_email_provided(self):
+        """Register with valid email succeeds."""
+        ...
+
+    def test_raises_validation_error_when_email_already_exists(self):
+        """Duplicate email registration fails."""
+        ...
+
+    def test_sends_welcome_email_after_successful_registration(self):
+        """New user receives welcome email."""
+        ...
+
+    def test_returns_none_when_user_not_found_by_id(self):
+        """Missing user returns None, not exception."""
+        ...
+
+
+class TestOrderCalculation:
+    def test_applies_bulk_discount_when_quantity_exceeds_threshold(self):
+        ...
+
+    def test_skips_discount_when_quantity_below_minimum(self):
+        ...
+
+    def test_calculates_tax_after_discount_applied(self):
+        ...
+```
+
+## TypeScript Naming Pattern
+
+Pattern: `should &lt;expected_behavior&gt; when &lt;condition&gt;`
+
+```typescript
+describe('UserService', () => {
+  test('should create user when valid email provided', () => {});
+  test('should throw ValidationError when email already exists', () => {});
+  test('should send welcome email after successful registration', () => {});
+  test('should return null when user not found by id', () => {});
+});
+
+describe('OrderCalculation', () => {
+  test('should apply bulk discount when quantity exceeds threshold', () => {});
+  test('should skip discount when quantity below minimum', () => {});
+  test('should calculate tax after discount applied', () => {});
+});
+```
+
+## Blocked Naming Patterns
+
+```python
+# BLOCKED - Not descriptive
+def test_user():           # What about user?
+def test_1():              # Meaningless number
+def test_it_works():       # What works?
+def testUser():            # Wrong case (camelCase)
+
+# BLOCKED - Tests implementation, not behavior
+def test_calls_repository_save_method():   # Implementation detail
+def test_uses_cache():                     # Implementation detail
+```
+
+```typescript
+// BLOCKED - Not descriptive
+test('test1', () => {});           // Meaningless
+test('works', () => {});           // What works?
+test('test', () => {});            // Says nothing
+it('test', () => {});              // Says nothing
+```
+
+## Naming Checklist
+
+- Test name describes expected behavior, not implementation
+- Condition/scenario is clear from the name
+- Expected outcome is explicit
+- Use `snake_case` for Python, descriptive strings for TypeScript
+- Names are 3-10 words (not too short, not too long)
+- Avoid generic words alone: test, check, verify
+
+## Describe Block Naming (TypeScript)
+
+```typescript
+// GOOD - Named after the unit being tested
+describe('UserService', () => {
+  describe('createUser', () => {
+    test('should hash password before saving', () => {});
+    test('should throw when email is taken', () => {});
+  });
+
+  describe('deleteUser', () => {
+    test('should soft delete by setting is_active to false', () => {});
+    test('should throw when user not found', () => {});
+  });
+});
+
+// BAD - Vague describe blocks
+describe('tests', () => {
+  describe('user', () => {
+    test('test1', () => {});
+    test('test2', () => {});
+  });
+});
+```
+
+## Test Class Naming (Python)
+
+```python
+# GOOD - Named after the feature/unit
+class TestUserRegistration:
+    ...
+
+class TestOrderCalculation:
+    ...
+
+class TestPaymentProcessing:
+    ...
+
+# BAD - Vague class names
+class TestUtils:
+    ...
+
+class TestMisc:
+    ...
+```
+
+
+</Accordion>
+
+<Accordion title="Violation Examples">
+
+# Project Structure Violations
+
+Reference guide for common folder structure and import direction violations.
+
+---
+
+## 1. Excessive Nesting Depth
+
+### Proper Pattern
+
+```
+src/
+├── features/
+│   └── dashboard/
+│       └── charts/
+│           └── LineChart.tsx    # 4 levels from src/ - ALLOWED
+```
+
+```typescript
+// src/features/dashboard/charts/LineChart.tsx
+// Flat structure with co-located components
+
+import { ChartTooltip } from './ChartTooltip';
+import { ChartLegend } from './ChartLegend';
+import { useChartData } from './useChartData';
+
+export function LineChart({ data }: LineChartProps) {
+  const { processedData } = useChartData(data);
+  return (
+    <div className="chart-container">
+      <svg>{/* chart rendering */}</svg>
+      <ChartTooltip />
+      <ChartLegend />
+    </div>
+  );
+}
+```
+
+### Anti-Pattern (VIOLATION)
+
+```
+src/
+├── features/
+│   └── dashboard/
+│       └── widgets/
+│           └── charts/
+│               └── line/
+│                   └── LineChart.tsx    # 6 levels - VIOLATION!
+│                   └── components/
+│                       └── Tooltip.tsx  # 7 levels - VIOLATION!
+```
+
+```typescript
+// src/features/dashboard/widgets/charts/line/components/Tooltip.tsx
+// VIOLATION: 7 levels deep from src/
+
+// Long import paths become unwieldy
+import { formatNumber } from '../../../../../../utils/format';
+import { theme } from '../../../../../../styles/theme';
+```
+
+### Why It Matters
+
+- **Navigation Difficulty**: Deep nesting makes finding files tedious
+- **Import Complexity**: Long relative paths like `../../../../../` are error-prone
+- **Mental Overhead**: Developers struggle to track deep hierarchies
+- **IDE Performance**: Some IDEs slow down with deeply nested structures
+
+### Auto-Fix Suggestion
+
+1. Flatten the structure by combining related levels:
+   ```
+   # Before (6 levels)
+   src/features/dashboard/widgets/charts/line/LineChart.tsx
+
+   # After (4 levels)
+   src/features/dashboard/charts/LineChart.tsx
+   ```
+
+2. Co-locate related files instead of creating sub-directories:
+   ```
+   src/features/dashboard/charts/
+   ├── LineChart.tsx
+   ├── LineChartTooltip.tsx
+   ├── LineChartLegend.tsx
+   └── useLineChartData.ts
+   ```
+
+---
+
+## 2. Barrel Files (index.ts Re-exports)
+
+### Proper Pattern
+
+```typescript
+// Direct imports - each file imported explicitly
+// src/app/page.tsx
+
+import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import { Modal } from '@/components/ui/Modal';
+import { useAuth } from '@/hooks/useAuth';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+```
+
+### Anti-Pattern (VIOLATION)
+
+```typescript
+// VIOLATION: src/components/index.ts (barrel file)
+export { Button } from './ui/Button';
+export { Card } from './ui/Card';
+export { Modal } from './ui/Modal';
+export { Input } from './forms/Input';
+export { Select } from './forms/Select';
+export { Checkbox } from './forms/Checkbox';
+// ... 50 more exports
+
+// VIOLATION: src/hooks/index.ts (barrel file)
+export { useAuth } from './useAuth';
+export { useLocalStorage } from './useLocalStorage';
+export { useDebounce } from './useDebounce';
+// ... more exports
+
+// Consumer code using barrel imports
+// src/app/page.tsx
+import { Button, Card } from '@/components';  // Imports ENTIRE barrel
+import { useAuth } from '@/hooks';            // Imports ENTIRE barrel
+```
+
+### Why It Matters
+
+- **Tree-Shaking Failure**: Bundlers import the entire barrel, not just used exports
+- **Bundle Size**: Unused components still end up in production bundle
+- **Build Performance**: Barrel files slow down build times significantly
+- **Circular Dependencies**: Barrels create hidden circular import chains
+- **HMR Slowdown**: Hot Module Replacement must process entire barrel on changes
+
+### Auto-Fix Suggestion
+
+1. Delete all `index.ts` files that only re-export
+2. Update imports to use direct paths:
+   ```typescript
+   // Before (barrel import)
+   import { Button, Card } from '@/components';
+
+   // After (direct imports)
+   import { Button } from '@/components/ui/Button';
+   import { Card } from '@/components/ui/Card';
+   ```
+3. Configure ESLint to prevent barrel file creation:
+   ```javascript
+   // .eslintrc.js
+   rules: {
+     'no-restricted-imports': ['error', {
+       patterns: ['**/index']
+     }]
+   }
+   ```
+
+---
+
+## 3. Invalid Import Direction (Circular Architecture)
+
+### Proper Pattern
+
+```
+Import direction flows ONE WAY:
+
+shared/lib  -->  components  -->  features  -->  app
+(lowest)                                       (highest)
+```
+
+```typescript
+// CORRECT: src/features/auth/LoginForm.tsx
+// Feature imports from lower layers only
+
+import { Button } from '@/components/ui/Button';     // components -> features OK
+import { Input } from '@/components/forms/Input';    // components -> features OK
+import { validateEmail } from '@/lib/validation';    // lib -> features OK
+import { useAuth } from './hooks/useAuth';           // same feature OK
+```
+
+```typescript
+// CORRECT: src/components/ui/Button.tsx
+// Component imports only from shared/lib layer
+
+import { cn } from '@/lib/utils';                    // lib -> components OK
+import type { ButtonVariant } from '@/types/ui';     // types -> components OK
+```
+
+### Anti-Pattern (VIOLATION)
+
+```typescript
+// VIOLATION: src/shared/utils.ts
+// Shared layer importing from features layer
+
+import { AUTH_CONFIG } from '@/features/auth/config';  // VIOLATION!
+import { formatUserName } from '@/features/users/utils'; // VIOLATION!
+```
+
+```typescript
+// VIOLATION: src/features/auth/useAuth.ts
+// Feature importing from app layer
+
+import { RootLayout } from '@/app/layout';           // VIOLATION!
+import { metadata } from '@/app/page';               // VIOLATION!
+```
+
+```typescript
+// VIOLATION: src/features/auth/useAuth.ts
+// Cross-feature import (features should not import from each other)
+
+import { DashboardContext } from '@/features/dashboard/context';  // VIOLATION!
+import { useCart } from '@/features/cart/hooks/useCart';          // VIOLATION!
+```
+
+```typescript
+// VIOLATION: src/components/ui/UserAvatar.tsx
+// Component importing from features layer
+
+import { useCurrentUser } from '@/features/auth/hooks/useCurrentUser'; // VIOLATION!
+import { UserProfile } from '@/features/users/types';                   // VIOLATION!
+```
+
+### Why It Matters
+
+- **Circular Dependencies**: Bi-directional imports create runtime errors
+- **Build Failures**: Webpack/Vite cannot resolve circular module graphs
+- **Code Splitting**: Circular deps prevent effective code splitting
+- **Maintainability**: Tangled dependencies make refactoring impossible
+- **Testing**: Cannot test components in isolation
+
+### Auto-Fix Suggestion
+
+1. **For shared/ importing from features/**:
+   - Extract the needed code to `shared/` where it belongs
+   ```typescript
+   // Move features/auth/config.ts content to shared/config/auth.ts
+   ```
+
+2. **For features/ importing from app/**:
+   - App layer should not export utilities; move to appropriate layer
+   - If needed in feature, it belongs in `shared/` or `lib/`
+
+3. **For cross-feature imports**:
+   - Extract shared types/utilities to `shared/`:
+   ```typescript
+   // Before: features/auth imports from features/users
+   // After: Extract to shared/types/user.ts
+   // Both features import from shared/
+   ```
+
+4. **For components/ importing from features/**:
+   - Component should receive data as props, not fetch it
+   - Move hook usage to feature component that uses the UI component
+
+---
+
+## 4. Components in Wrong Directory
+
+### Proper Pattern
+
+```
+src/
+├── components/           # Reusable UI components
+│   ├── ui/
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   └── Modal.tsx
+│   └── forms/
+│       ├── Input.tsx
+│       └── Select.tsx
+├── features/             # Feature-specific components
+│   └── auth/
+│       └── components/
+│           ├── LoginForm.tsx
+│           └── RegisterForm.tsx
+├── hooks/                # Global custom hooks
+│   ├── useAuth.ts
+│   └── useLocalStorage.ts
+└── app/                  # Page components (Next.js)
+    └── dashboard/
+        └── page.tsx
+```
+
+### Anti-Pattern (VIOLATION)
+
+```
+src/
+├── utils/
+│   ├── Button.tsx       # VIOLATION: Component in utils/
+│   └── formatDate.ts
+├── services/
+│   ├── Modal.tsx        # VIOLATION: Component in services/
+│   └── api.ts
+├── lib/
+│   └── Dropdown.tsx     # VIOLATION: Component in lib/
+├── hooks/
+│   └── UserAvatar.tsx   # VIOLATION: Component in hooks/
+└── components/
+    ├── useAuth.ts       # VIOLATION: Hook in components/
+    └── useFetch.ts      # VIOLATION: Hook in components/
+```
+
+### Why It Matters
+
+- **Discoverability**: Developers expect components in `components/` or `features/`
+- **Consistency**: Mixed purposes in directories creates confusion
+- **Code Reviews**: Harder to enforce patterns with inconsistent structure
+- **Tooling**: File generators and linters rely on predictable locations
+
+### Auto-Fix Suggestion
+
+| Current Location | Correct Location |
+|------------------|------------------|
+| `src/utils/Button.tsx` | `src/components/ui/Button.tsx` |
+| `src/services/Modal.tsx` | `src/components/ui/Modal.tsx` |
+| `src/lib/Dropdown.tsx` | `src/components/ui/Dropdown.tsx` |
+| `src/hooks/UserAvatar.tsx` | `src/components/UserAvatar.tsx` |
+| `src/components/useAuth.ts` | `src/hooks/useAuth.ts` |
+| `src/components/useFetch.ts` | `src/hooks/useFetch.ts` |
+
+**Detection Rules**:
+- Files matching `*.tsx` with PascalCase names are React components
+- Files matching `use*.ts` are custom hooks
+- Components should be in `components/`, `features/*/components/`, or `app/`
+- Hooks should be in `hooks/` or `features/*/hooks/`
+
+---
+
+## 5. Python Files in Wrong Layer Directories
+
+### Proper Pattern
+
+```
+app/
+├── routers/              # HTTP handlers only
+│   ├── router_users.py
+│   ├── router_auth.py
+│   └── deps.py
+├── services/             # Business logic only
+│   ├── user_service.py
+│   └── auth_service.py
+├── repositories/         # Data access only
+│   ├── user_repository.py
+│   └── base_repository.py
+├── schemas/              # Pydantic schemas only
+│   ├── user_schema.py
+│   └── auth_schema.py
+└── models/               # SQLAlchemy models only
+    ├── user_model.py
+    └── base.py
+```
+
+### Anti-Pattern (VIOLATION)
+
+```
+app/
+├── router_users.py       # VIOLATION: Router not in routers/
+├── user_service.py       # VIOLATION: Service not in services/
+├── routers/
+│   ├── user_service.py   # VIOLATION: Service in routers/
+│   └── user_repository.py # VIOLATION: Repository in routers/
+├── services/
+│   ├── router_auth.py    # VIOLATION: Router in services/
+│   └── user_model.py     # VIOLATION: Model in services/
+└── models/
+    └── user_schema.py    # VIOLATION: Schema in models/
+```
+
+### Why It Matters
+
+- **Architecture Clarity**: Each directory represents a distinct layer
+- **Import Organization**: Clear layer boundaries prevent circular imports
+- **Onboarding**: New developers understand the codebase faster
+- **Refactoring**: Layer changes are isolated to specific directories
+
+### Auto-Fix Suggestion
+
+| Current Location | Correct Location |
+|------------------|------------------|
+| `app/router_users.py` | `app/routers/router_users.py` |
+| `app/user_service.py` | `app/services/user_service.py` |
+| `app/routers/user_service.py` | `app/services/user_service.py` |
+| `app/routers/user_repository.py` | `app/repositories/user_repository.py` |
+| `app/services/router_auth.py` | `app/routers/router_auth.py` |
+| `app/services/user_model.py` | `app/models/user_model.py` |
+| `app/models/user_schema.py` | `app/schemas/user_schema.py` |
+
+---
+
+## Quick Reference: Structure Rules
+
+| Rule | Frontend (React/Next.js) | Backend (FastAPI) |
+|------|--------------------------|-------------------|
+| Max Nesting | 4 levels from `src/` | 4 levels from `app/` |
+| Components | `components/`, `features/*/components/` | N/A |
+| Hooks | `hooks/`, `features/*/hooks/` | N/A |
+| Routers | N/A | `routers/router_*.py` |
+| Services | `services/` (API clients) | `services/*_service.py` |
+| Repositories | N/A | `repositories/*_repository.py` |
+| Barrel Files | BLOCKED (index.ts) | N/A |
+
+## Import Direction Quick Reference
+
+```
+ALLOWED DIRECTIONS:
+  shared/ -> (nothing)
+  lib/    -> shared/
+  utils/  -> shared/, lib/
+  components/ -> shared/, lib/, utils/
+  features/   -> shared/, lib/, utils/, components/
+  app/        -> shared/, lib/, utils/, components/, features/
+
+BLOCKED DIRECTIONS:
+  shared/ -> components/, features/, app/
+  lib/    -> components/, features/, app/
+  components/ -> features/, app/
+  features/ -> app/, other features/
+```
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Solid Checklist">
+
+# SOLID Principles Checklist
+
+Use this checklist when designing or reviewing code architecture.
+
+## Single Responsibility Principle (SRP)
+
+- [ ] Each class has only ONE reason to change
+- [ ] Class names clearly describe their single purpose
+- [ ] Methods within a class are cohesive (all relate to same responsibility)
+- [ ] No "Manager", "Handler", "Processor" suffix (often indicates multiple responsibilities)
+- [ ] Services don't mix business logic with infrastructure concerns
+
+**Red Flags:**
+- Class imports from many unrelated modules
+- Methods that don't use most class attributes
+- Class has > 200 lines (usually)
+- Changes to unrelated features require modifying same class
+
+## Open/Closed Principle (OCP)
+
+- [ ] New behavior added via new classes, not modifying existing ones
+- [ ] Using Protocols/ABCs for extension points
+- [ ] Strategy pattern for varying algorithms
+- [ ] No switch statements on type (use polymorphism)
+- [ ] Configuration over code for variation
+
+**Red Flags:**
+- Growing if/elif chains checking types
+- Methods that need modification for each new feature
+- Direct instantiation of concrete classes in business logic
+
+## Liskov Substitution Principle (LSP)
+
+- [ ] Subclasses don't strengthen preconditions (method requirements)
+- [ ] Subclasses don't weaken postconditions (what method guarantees)
+- [ ] Subclasses don't throw unexpected exceptions
+- [ ] All Protocol methods implemented with compatible signatures
+- [ ] Tests pass with any implementation of a Protocol
+
+**Red Flags:**
+- Subclass overrides method to throw NotImplementedError
+- Subclass returns different types than base
+- Code checks isinstance before calling methods
+- Subclass ignores/overrides parent behavior unexpectedly
+
+## Interface Segregation Principle (ISP)
+
+- [ ] Protocols are small and focused (3-5 methods max)
+- [ ] Clients don't depend on methods they don't use
+- [ ] No "god interfaces" with many unrelated methods
+- [ ] Role-based interfaces (IReadable, IWritable) vs. object-based
+- [ ] Composition of small interfaces over large monolithic ones
+
+**Red Flags:**
+- Implementations that stub out methods with `pass` or `raise`
+- Protocols with > 10 methods
+- Classes implement interface but use only subset of methods
+- Interface named after implementation, not capability
+
+## Dependency Inversion Principle (DIP)
+
+- [ ] High-level modules don't import from low-level modules
+- [ ] Both depend on abstractions (Protocols)
+- [ ] Abstractions don't depend on details
+- [ ] Dependencies injected, not created internally
+- [ ] Domain layer has zero infrastructure imports
+
+**Red Flags:**
+- `import` from infrastructure in domain/application layer
+- Direct instantiation with `SomeService()` in business logic
+- Hardcoded database connections, file paths, URLs
+- Tests require actual database/network
+
+## Architecture Review Checklist
+
+### Layer Independence
+
+- [ ] Domain layer: Zero imports from other layers
+- [ ] Application layer: Imports only from Domain
+- [ ] Infrastructure layer: Implements ports from Application
+- [ ] API layer: Translates DTOs ↔ Domain objects
+
+### Dependency Injection
+
+- [ ] All dependencies passed via constructor
+- [ ] No global state or singletons in business logic
+- [ ] FastAPI `Depends()` used for wiring
+- [ ] Test doubles easily substitutable
+
+### Domain Purity
+
+- [ ] Entities use dataclasses, not ORM models
+- [ ] No framework imports in domain
+- [ ] Value objects are immutable (`frozen=True`)
+- [ ] Domain logic has no side effects (I/O)
+
+### Testability
+
+- [ ] Unit tests need no mocks (domain layer)
+- [ ] Integration tests mock only external boundaries
+- [ ] No database needed for domain logic tests
+- [ ] Fast test execution (&lt; 1 second for unit tests)
+
+## Quick Reference
+
+| Principle | Ask Yourself |
+|-----------|--------------|
+| SRP | "What is the ONE thing this class does?" |
+| OCP | "Can I add new behavior without changing this code?" |
+| LSP | "Can any implementation replace another safely?" |
+| ISP | "Does this interface expose only what clients need?" |
+| DIP | "Does this module depend on abstractions?" |
+
+## When to Refactor
+
+1. **Adding feature requires modifying core classes** → Extract interface, use OCP
+2. **Test setup is complex** → Apply DIP, inject dependencies
+3. **Class is growing large** → Apply SRP, extract classes
+4. **Subclass behaves differently** → Check LSP, maybe use composition
+5. **Implementing interface partially** → Apply ISP, split interface
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Examples (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Fastapi Clean Architecture">
+
+# FastAPI Clean Architecture Example
+
+Complete example implementing clean architecture patterns in FastAPI.
+
+## Project Structure
+
+```
+backend/
+├── app/
+│   ├── api/v1/
+│   │   ├── routes/
+│   │   │   └── analyses.py      # Driving adapter
+│   │   ├── schemas/
+│   │   │   └── analysis.py      # DTOs
+│   │   └── deps.py              # DI configuration
+│   ├── application/
+│   │   ├── services/
+│   │   │   └── analysis_service.py
+│   │   └── ports/
+│   │       └── repositories.py   # Output ports
+│   ├── domain/
+│   │   ├── entities/
+│   │   │   └── analysis.py
+│   │   └── value_objects/
+│   │       └── analysis_type.py
+│   └── infrastructure/
+│       └── persistence/
+│           ├── models/
+│           │   └── analysis_model.py
+│           └── repositories/
+│               └── postgres_analysis_repo.py
+└── tests/
+    ├── unit/
+    ├── integration/
+    └── e2e/
+```
+
+## Domain Layer
+
+### Entity
+
+```python
+# domain/entities/analysis.py
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from uuid import UUID, uuid4
+
+class AnalysisStatus(Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+@dataclass
+class Analysis:
+    """Aggregate root for analysis domain."""
+
+    source_url: str
+    status: AnalysisStatus = AnalysisStatus.PENDING
+    id: UUID = field(default_factory=uuid4)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    summary: str | None = None
+    error_message: str | None = None
+
+    def start_processing(self) -> None:
+        if self.status != AnalysisStatus.PENDING:
+            raise ValueError(f"Cannot start processing from {self.status}")
+        self.status = AnalysisStatus.PROCESSING
+
+    def complete(self, summary: str) -> None:
+        if self.status != AnalysisStatus.PROCESSING:
+            raise ValueError(f"Cannot complete from {self.status}")
+        self.status = AnalysisStatus.COMPLETED
+        self.summary = summary
+
+    def fail(self, error: str) -> None:
+        self.status = AnalysisStatus.FAILED
+        self.error_message = error
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Analysis):
+            return False
+        return self.id == other.id
+```
+
+### Value Object
+
+```python
+# domain/value_objects/analysis_type.py
+from dataclasses import dataclass
+from enum import Enum
+
+class ContentType(Enum):
+    ARTICLE = "article"
+    VIDEO = "video"
+    GITHUB_REPO = "github_repo"
+
+@dataclass(frozen=True)
+class AnalysisType:
+    """Immutable value object for analysis configuration."""
+
+    content_type: ContentType
+    depth: int  # 1-3
+
+    def __post_init__(self):
+        if not 1 <= self.depth <= 3:
+            raise ValueError(f"Depth must be 1-3, got {self.depth}")
+
+    @property
+    def is_deep(self) -> bool:
+        return self.depth == 3
+```
+
+## Application Layer
+
+### Output Port (Protocol)
+
+```python
+# application/ports/repositories.py
+from typing import Protocol
+from app.domain.entities.analysis import Analysis
+
+class IAnalysisRepository(Protocol):
+    """Output port for analysis persistence."""
+
+    async def save(self, analysis: Analysis) -> Analysis:
+        """Persist an analysis."""
+        ...
+
+    async def get_by_id(self, id: str) -> Analysis | None:
+        """Retrieve analysis by ID."""
+        ...
+
+    async def find_by_status(self, status: str) -> list[Analysis]:
+        """Find all analyses with given status."""
+        ...
+```
+
+### Application Service (Use Case)
+
+```python
+# application/services/analysis_service.py
+from app.application.ports.repositories import IAnalysisRepository
+from app.domain.entities.analysis import Analysis
+
+class AnalysisService:
+    """Application service implementing use cases."""
+
+    def __init__(self, repo: IAnalysisRepository):
+        self._repo = repo
+
+    async def create_analysis(self, url: str) -> Analysis:
+        """Create a new analysis."""
+        analysis = Analysis(source_url=url)
+        return await self._repo.save(analysis)
+
+    async def get_analysis(self, id: str) -> Analysis | None:
+        """Get analysis by ID."""
+        return await self._repo.get_by_id(id)
+
+    async def start_processing(self, id: str) -> Analysis:
+        """Start processing an analysis."""
+        analysis = await self._repo.get_by_id(id)
+        if not analysis:
+            raise ValueError(f"Analysis {id} not found")
+
+        analysis.start_processing()
+        return await self._repo.save(analysis)
+
+    async def complete_analysis(self, id: str, summary: str) -> Analysis:
+        """Mark analysis as complete."""
+        analysis = await self._repo.get_by_id(id)
+        if not analysis:
+            raise ValueError(f"Analysis {id} not found")
+
+        analysis.complete(summary)
+        return await self._repo.save(analysis)
+```
+
+## Infrastructure Layer
+
+### ORM Model
+
+```python
+# infrastructure/persistence/models/analysis_model.py
+from sqlalchemy import String, DateTime, Enum as SQLEnum
+from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+from datetime import datetime
+import uuid
+
+from app.domain.entities.analysis import Analysis, AnalysisStatus
+from app.infrastructure.persistence.base import Base
+
+class AnalysisModel(Base):
+    """SQLAlchemy model for analysis."""
+
+    __tablename__ = "analyses"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+    source_url: Mapped[str] = mapped_column(String(2048))
+    status: Mapped[str] = mapped_column(
+        SQLEnum(AnalysisStatus, name="analysis_status")
+    )
+    summary: Mapped[str | None] = mapped_column(String, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc)
+    )
+
+    @classmethod
+    def from_domain(cls, analysis: Analysis) -> "AnalysisModel":
+        """Map domain entity to ORM model."""
+        return cls(
+            id=analysis.id,
+            source_url=analysis.source_url,
+            status=analysis.status,
+            summary=analysis.summary,
+            error_message=analysis.error_message,
+            created_at=analysis.created_at,
+        )
+
+    def to_domain(self) -> Analysis:
+        """Map ORM model to domain entity."""
+        return Analysis(
+            id=self.id,
+            source_url=self.source_url,
+            status=AnalysisStatus(self.status),
+            summary=self.summary,
+            error_message=self.error_message,
+            created_at=self.created_at,
+        )
+```
+
+### Repository Implementation (Driven Adapter)
+
+```python
+# infrastructure/persistence/repositories/postgres_analysis_repo.py
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.application.ports.repositories import IAnalysisRepository
+from app.domain.entities.analysis import Analysis, AnalysisStatus
+from app.infrastructure.persistence.models.analysis_model import AnalysisModel
+
+class PostgresAnalysisRepository:
+    """PostgreSQL implementation of IAnalysisRepository."""
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    async def save(self, analysis: Analysis) -> Analysis:
+        model = AnalysisModel.from_domain(analysis)
+        self._session.add(model)
+        await self._session.flush()
+        await self._session.refresh(model)
+        return model.to_domain()
+
+    async def get_by_id(self, id: str) -> Analysis | None:
+        stmt = select(AnalysisModel).where(AnalysisModel.id == id)
+        result = await self._session.execute(stmt)
+        model = result.scalar_one_or_none()
+        return model.to_domain() if model else None
+
+    async def find_by_status(self, status: str) -> list[Analysis]:
+        stmt = select(AnalysisModel).where(
+            AnalysisModel.status == AnalysisStatus(status)
+        )
+        result = await self._session.execute(stmt)
+        return [m.to_domain() for m in result.scalars()]
+```
+
+## API Layer (Driving Adapter)
+
+### Schemas (DTOs)
+
+```python
+# api/v1/schemas/analysis.py
+from pydantic import BaseModel, HttpUrl, ConfigDict
+from datetime import datetime
+
+class CreateAnalysisRequest(BaseModel):
+    """Request DTO for creating analysis."""
+    url: HttpUrl
+
+class AnalysisResponse(BaseModel):
+    """Response DTO for analysis."""
+    id: str
+    source_url: str
+    status: str
+    summary: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+    @classmethod
+    def from_domain(cls, analysis) -> "AnalysisResponse":
+        return cls(
+            id=str(analysis.id),
+            source_url=analysis.source_url,
+            status=analysis.status.value,
+            summary=analysis.summary,
+            created_at=analysis.created_at,
+        )
+```
+
+### Dependencies
+
+```python
+# api/v1/deps.py
+from typing import AsyncGenerator
+from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.application.services.analysis_service import AnalysisService
+from app.infrastructure.persistence.repositories.postgres_analysis_repo import (
+    PostgresAnalysisRepository
+)
+
+async def get_db(request: Request) -> AsyncGenerator[AsyncSession, None]:
+    async with AsyncSession(request.app.state.db_engine) as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+
+def get_analysis_service(
+    db: AsyncSession = Depends(get_db)
+) -> AnalysisService:
+    repo = PostgresAnalysisRepository(db)
+    return AnalysisService(repo)
+```
+
+### Routes
+
+```python
+# api/v1/routes/analyses.py
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.api.v1.deps import get_analysis_service
+from app.api.v1.schemas.analysis import (
+    CreateAnalysisRequest,
+    AnalysisResponse
+)
+from app.application.services.analysis_service import AnalysisService
+
+router = APIRouter(prefix="/analyses", tags=["analyses"])
+
+@router.post("/", response_model=AnalysisResponse, status_code=201)
+async def create_analysis(
+    request: CreateAnalysisRequest,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AnalysisResponse:
+    """Create a new analysis."""
+    analysis = await service.create_analysis(str(request.url))
+    return AnalysisResponse.from_domain(analysis)
+
+@router.get("/{analysis_id}", response_model=AnalysisResponse)
+async def get_analysis(
+    analysis_id: str,
+    service: AnalysisService = Depends(get_analysis_service),
+) -> AnalysisResponse:
+    """Get analysis by ID."""
+    analysis = await service.get_analysis(analysis_id)
+    if not analysis:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Analysis {analysis_id} not found"
+        )
+    return AnalysisResponse.from_domain(analysis)
+```
+
+## Tests
+
+### Unit Test (Domain)
+
+```python
+# tests/unit/domain/test_analysis.py
+import pytest
+from app.domain.entities.analysis import Analysis, AnalysisStatus
+
+def test_analysis_starts_processing():
+    analysis = Analysis(source_url="https://example.com")
+
+    analysis.start_processing()
+
+    assert analysis.status == AnalysisStatus.PROCESSING
+
+def test_analysis_cannot_start_if_not_pending():
+    analysis = Analysis(source_url="https://example.com")
+    analysis.status = AnalysisStatus.COMPLETED
+
+    with pytest.raises(ValueError):
+        analysis.start_processing()
+
+def test_analysis_completes_with_summary():
+    analysis = Analysis(source_url="https://example.com")
+    analysis.start_processing()
+
+    analysis.complete("Analysis complete")
+
+    assert analysis.status == AnalysisStatus.COMPLETED
+    assert analysis.summary == "Analysis complete"
+```
+
+### Integration Test (Service)
+
+```python
+# tests/integration/test_analysis_service.py
+import pytest
+from unittest.mock import AsyncMock
+
+from app.application.services.analysis_service import AnalysisService
+from app.domain.entities.analysis import Analysis, AnalysisStatus
+
+@pytest.fixture
+def mock_repo():
+    return AsyncMock()
+
+@pytest.fixture
+def service(mock_repo):
+    return AnalysisService(repo=mock_repo)
+
+async def test_create_analysis(service, mock_repo):
+    mock_repo.save.return_value = Analysis(source_url="https://example.com")
+
+    result = await service.create_analysis("https://example.com")
+
+    assert result.source_url == "https://example.com"
+    assert result.status == AnalysisStatus.PENDING
+    mock_repo.save.assert_called_once()
+```
+
+
+</Accordion>
+
+</Accordions>

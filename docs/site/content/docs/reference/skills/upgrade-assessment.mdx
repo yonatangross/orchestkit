@@ -2,6 +2,7 @@
 title: "Upgrade Assessment"
 description: "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-red">max</span>
 
@@ -437,3 +438,130 @@ Focus on plugin structure:
 
 - See `platform-upgrade-knowledge/references/scoring-rubric.md` for detailed dimension scoring
 - See `platform-upgrade-knowledge/references/compatibility-matrix.md` for version compatibility tracking
+
+
+---
+
+## Rules (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Platform Compatibility Knowledge — HIGH">
+
+
+## Platform Compatibility Knowledge
+
+Track compatibility across three independent upgrade axes: Claude model, Claude Code version, and OrchestKit version.
+
+### Model ID Breaking Pattern
+
+Model ID format changed from `claude-\{version\}-\{variant\}` to `claude-\{variant\}-\{version\}` starting with Claude 4:
+
+| From | To | Key Changes |
+|------|----|-------------|
+| `claude-3-5-sonnet-20241022` | `claude-sonnet-4-20250514` | ID format change, +extended thinking |
+| `claude-sonnet-4-20250514` | `claude-sonnet-4-5-20250916` | +1M context |
+| `claude-opus-4-20250514` | `claude-opus-4-6-20260115` | +1M context, +128K output, +files API |
+
+### Common Breaking Changes
+
+| Change | Detection Pattern | Severity |
+|--------|-------------------|----------|
+| Hardcoded model ID | `grep "claude-.*-\d"` | CRITICAL |
+| Context window assumption | `grep "200000\|200_000"` | WARNING |
+| Output token assumption | `grep "max_tokens.*4096\|8192"` | WARNING |
+| Removed hook type | hooks.json references | CRITICAL |
+| Changed hook signature | Hook handler functions | CRITICAL |
+| New required frontmatter | Skill/agent YAML | WARNING |
+| Deprecated config field | `.claude/settings.json` | WARNING |
+
+### Migration Effort Estimation
+
+| Category | Low (&lt; 1 hour) | Medium (1-4 hours) | High (4+ hours) |
+|----------|----------------|--------------------|-----------------|
+| Model refs | Find-and-replace IDs | Update conditional logic | Rewrite capability code |
+| Hooks | Update registration | Migrate handler signatures | Rewrite hook logic |
+| Skills | Add missing frontmatter | Restructure content | Create new skills |
+| Agents | Update model field | Update tool/skill refs | Rewrite directives |
+
+### Effort Formula
+
+```
+total_hours = sum(
+  count[CRITICAL] * 2.0 +
+  count[WARNING]  * 0.5 +
+  count[INFO]     * 0.1
+)
+```
+
+### Key Rules
+
+- **Scan first, upgrade second** — run codebase scan before making any changes
+- Hardcoded model IDs are **always CRITICAL** — use aliases where possible
+- Context window and output limits change across models — **never hardcode**
+- Hook type and format changes can **silently break** — test all hooks after upgrade
+- Use the **detection patterns** above as a pre-upgrade checklist
+- Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
+
+
+</Accordion>
+
+<Accordion title="Platform Upgrade Evaluation — HIGH">
+
+
+## Platform Upgrade Evaluation
+
+Score upgrade readiness 0-10 across 6 weighted dimensions. Produces a composite score that determines go/no-go.
+
+### Scoring Dimensions
+
+| Dimension | Weight | What It Measures |
+|-----------|--------|------------------|
+| Model Compatibility | 0.25 | Hardcoded model refs, capability assumptions, output limits |
+| Hook Compatibility | 0.20 | Hook type changes, async patterns, lifecycle changes |
+| Skill Coverage | 0.15 | Skill format changes, deprecated skills, new requirements |
+| Agent Readiness | 0.15 | Agent format changes, model field validity, tool availability |
+| Memory Architecture | 0.10 | Memory tier changes, storage format, migration needs |
+| CI/CD Pipeline | 0.15 | Test compatibility, build system, deployment config |
+
+### Score Interpretation
+
+| Range | Label | Action |
+|-------|-------|--------|
+| 9-10 | Ready | Upgrade with confidence |
+| 7-8 | Low Risk | Minor adjustments needed |
+| 5-6 | Moderate Risk | Plan a migration sprint |
+| 3-4 | High Risk | Significant rework needed |
+| 1-2 | Critical Risk | Consider phased migration |
+| 0 | Blocked | Cannot upgrade without fundamental changes |
+
+### Severity Classification
+
+| Level | Criteria | Required Action |
+|-------|----------|-----------------|
+| CRITICAL | Functionality breaks on upgrade | Must fix before upgrade |
+| WARNING | Degraded behavior, works incorrectly | Fix in same sprint |
+| INFO | Documentation outdated, no functional impact | Update when convenient |
+
+### Priority Assignment
+
+```
+dimension_score <= 2:  priority = P0 (Blocker)    — Before upgrade
+dimension_score <= 4:  priority = P1 (Critical)   — Same sprint
+dimension_score <= 6:  priority = P2 (Important)  — Next sprint
+dimension_score <= 8:  priority = P3 (Nice-to-Have) — Backlog
+dimension_score > 8:   No action needed
+```
+
+### Key Rules
+
+- Score **every dimension** even if it seems fine — assumptions hide breaking changes
+- CRITICAL findings are **blockers** — do not upgrade until resolved
+- Weighted composite score determines **overall readiness**
+- P0 items must be addressed **before** starting the upgrade
+- Re-score after addressing findings to **verify improvement**
+
+
+</Accordion>
+
+</Accordions>

@@ -2,6 +2,7 @@
 title: "Assess"
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
 
@@ -404,3 +405,605 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 ---
 
 **Version:** 1.1.0 (February 2026)
+
+
+---
+
+## Rules (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Task Decomposition Strategies — HIGH">
+
+
+## Task Decomposition Strategies
+
+When a task scores Level 4-5 (Complex/Very Complex), decompose it into subtasks that each score Level 1-3.
+
+### Decomposition Approach
+
+1. **Identify independent axes** — separate concerns that can be worked on independently
+2. **Isolate unknowns** — create a spike/research task for each unknown
+3. **Reduce cross-cutting scope** — break into single-module changes
+4. **Sequence by dependency** — order subtasks so blocked items come last
+
+### Strategies by Complexity Driver
+
+| High Criterion | Decomposition Strategy |
+|---------------|----------------------|
+| Lines of Code (4-5) | Split by component or layer |
+| Files Affected (4-5) | Split by directory or module |
+| Dependencies (4-5) | Isolate external integrations into adapter tasks |
+| Unknowns (4-5) | Create spike tasks to resolve unknowns first |
+| Cross-Cutting (4-5) | Split by layer (DB, API, UI) or by concern |
+| Risk Level (4-5) | Add validation/testing tasks before implementation |
+
+### Codebase Analysis for Decomposition
+
+```bash
+# Gather metrics to inform breakdown
+./scripts/analyze-codebase.sh "$TARGET"
+
+# Key signals:
+# - File count > 10: split by directory
+# - Import count > 5: isolate dependency interfaces
+# - Test coverage < 50%: add test-first subtask
+```
+
+### Subtask Validation
+
+Each subtask should score:
+- **Average: 1.0-3.4** (Level 1-3) — manageable
+- **Unknowns: &lt;= 2** — no major research needed
+- **Cross-cutting: &lt;= 2** — limited to 2-3 modules
+
+If any subtask still scores Level 4+, decompose it again.
+
+### Risk Assessment Integration
+
+| Risk Factor | Mitigation Task |
+|-------------|-----------------|
+| No test coverage | Add regression tests first |
+| Complex business logic | Write specification/invariant tests |
+| External API dependency | Create mock/adapter layer first |
+| Database migration | Test migration on staging first |
+| Multiple team coordination | Define interface contracts first |
+
+### Key Rules
+
+- Level 4-5 tasks are **never directly implemented** — decompose first
+- Every subtask must score **Level 3 or below** individually
+- Resolve **unknowns** before starting dependent implementation tasks
+- Use **`TaskCreate` with `addBlockedBy`** to enforce subtask ordering
+- Each subtask should be **independently verifiable** with its own tests
+- Prefer **vertical slices** (end-to-end for one feature) over horizontal layers
+
+
+</Accordion>
+
+<Accordion title="Complexity Scoring Frameworks — HIGH">
+
+
+## Complexity Scoring Frameworks
+
+Score task complexity across 7 criteria (1-5 each) to determine if a task should proceed or be decomposed first.
+
+### The 7 Criteria
+
+| Criterion | 1 (Low) | 3 (Medium) | 5 (High) |
+|-----------|---------|------------|----------|
+| Lines of Code | &lt; 50 | 200-500 | 1500+ |
+| Time Estimate | &lt; 30 min | 2-8 hours | 24+ hours |
+| Files Affected | 1 file | 4-10 files | 26+ files |
+| Dependencies | 0 deps | 2-3 deps | 7+ deps |
+| Unknowns | None | Several, researchable | Unclear scope |
+| Cross-Cutting | Single module | 4-5 modules | System-wide |
+| Risk Level | Trivial | Testable complexity | Mission-critical |
+
+### Complexity Levels
+
+| Average Score | Level | Classification | Action |
+|---------------|-------|----------------|--------|
+| 1.0 - 1.4 | 1 | Trivial | Proceed immediately |
+| 1.5 - 2.4 | 2 | Simple | Proceed |
+| 2.5 - 3.4 | 3 | Moderate | Proceed with caution |
+| 3.5 - 4.4 | 4 | Complex | Break down first |
+| 4.5 - 5.0 | 5 | Very Complex | Decompose and reassess |
+
+### Output Format
+
+```markdown
+## Complexity Assessment: [Target]
+
+| Criterion | Score |
+|-----------|-------|
+| Lines of Code | X/5 |
+| Time Estimate | X/5 |
+| Files Affected | X/5 |
+| Dependencies | X/5 |
+| Unknowns | X/5 |
+| Cross-Cutting | X/5 |
+| Risk Level | X/5 |
+| **Total** | **XX/35** |
+
+**Average Score:** X.X
+**Complexity Level:** X ([Classification])
+**Can Proceed:** Yes/No
+```
+
+### Key Rules
+
+- Score **all 7 criteria** even for seemingly simple tasks
+- Total of **35 points** maximum, divide by 7 for average
+- Level 4-5 tasks **must be decomposed** before starting implementation
+- Unknowns (criterion 5) is the **highest variance** factor — resolve unknowns first
+- Cross-cutting (criterion 6) indicates **coordination overhead** — account for it in estimates
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Alternative Analysis">
+
+# Alternative Analysis Reference
+
+How to identify, evaluate, and compare alternatives to the current approach.
+
+## Identifying Alternatives
+
+1. **Direct Substitutes**: Different implementations of the same solution
+2. **Architectural Alternatives**: Different design patterns or approaches
+3. **Technology Alternatives**: Different libraries, frameworks, or tools
+4. **Hybrid Approaches**: Combinations of multiple alternatives
+
+## Comparison Dimensions
+
+| Dimension | Question | Weight |
+|-----------|----------|--------|
+| Score | How does it rate on 6 dimensions? | 0.30 |
+| Effort | How hard to implement/migrate? | 0.25 |
+| Risk | What could go wrong? | 0.25 |
+| Benefit | What's the expected improvement? | 0.20 |
+
+## Migration Effort Scale
+
+| Level | Description | Time Estimate |
+|-------|-------------|---------------|
+| 1 | Drop-in replacement | &lt; 1 hour |
+| 2 | Minor refactoring | 1-4 hours |
+| 3 | Moderate changes | 1-2 days |
+| 4 | Significant rework | 3-5 days |
+| 5 | Major rewrite | 1+ weeks |
+
+## Risk Categories
+
+- **Technical**: Will it work? Compatibility issues?
+- **Team**: Does team know this? Learning curve?
+- **Timeline**: Can we afford the migration time?
+- **Dependencies**: What else needs to change?
+
+## Decision Criteria
+
+**Switch if:**
+- Score improvement >= 1.5 points AND effort &lt;= 3
+- Current has critical security/correctness issues
+- Alternative has significantly lower maintenance burden
+
+**Stay if:**
+- Score difference &lt; 1.0 point
+- Migration effort >= 4 AND no critical issues
+- Team familiarity strongly favors current
+
+## Trade-off Documentation
+
+```markdown
+## Alternative: [Name]
+
+**Score Delta:** +/-[N.N] points
+**Migration Effort:** [1-5]
+**Risk Level:** Low/Medium/High
+
+### Why Consider
+- [Benefit 1]
+- [Benefit 2]
+
+### Why Not
+- [Drawback 1]
+- [Drawback 2]
+
+### Verdict: [Adopt/Defer/Reject]
+```
+
+
+</Accordion>
+
+<Accordion title="Improvement Prioritization">
+
+# Improvement Prioritization Reference
+
+Systematic approach to ranking improvements by value delivered per effort invested.
+
+## Impact/Effort Scoring
+
+### Impact Scale (1-5)
+
+| Score | Label | Effect on Quality |
+|-------|-------|-------------------|
+| 5 | Critical | Fixes blocker, +2.0+ points |
+| 4 | High | Major improvement, +1.0-2.0 |
+| 3 | Medium | Notable improvement, +0.5-1.0 |
+| 2 | Low | Minor improvement, +0.2-0.5 |
+| 1 | Minimal | Cosmetic, +0.1-0.2 |
+
+### Effort Scale (1-5)
+
+| Score | Label | Time Required |
+|-------|-------|---------------|
+| 1 | Trivial | &lt; 15 minutes |
+| 2 | Easy | 15-60 minutes |
+| 3 | Medium | 1-4 hours |
+| 4 | Hard | 4-8 hours |
+| 5 | Very Hard | 1+ days |
+
+## Priority Formula
+
+```
+Priority = Impact / Effort
+```
+
+Higher priority = do first. At equal priority, prefer lower effort.
+
+## Improvement Categories
+
+| Category | Impact | Effort | Action |
+|----------|--------|--------|--------|
+| **Quick Wins** | High (4-5) | Low (1-2) | Do immediately |
+| **Strategic** | High (4-5) | High (4-5) | Plan carefully |
+| **Fill-ins** | Low (1-2) | Low (1-2) | Do when idle |
+| **Avoid** | Low (1-2) | High (4-5) | Skip or defer |
+
+## Time Estimation Guidelines
+
+- **Add buffer**: Estimate x1.5 for unknowns
+- **Include testing**: Add 30% for test updates
+- **Account for review**: Add time for PR process
+- **Consider dependencies**: Chain effects on other work
+
+## Sequencing Dependencies
+
+1. **Blockers first**: Changes that unblock other work
+2. **Foundation changes**: Structural changes before features
+3. **Shared code**: Common utilities before consumers
+4. **Leaf nodes last**: Isolated changes can wait
+
+## Quick Reference
+
+```
+Priority 5.0+  = Do NOW (high impact, trivial effort)
+Priority 2.0+  = Do soon (good ROI)
+Priority 1.0+  = Schedule it
+Priority <1.0  = Backlog or skip
+```
+
+
+</Accordion>
+
+<Accordion title="Scoring Rubric">
+
+# Scoring Rubric Reference
+
+Detailed scoring guidelines for each quality dimension.
+
+## Correctness (Weight: 0.20)
+
+### Score 9-10: Excellent
+- All functionality works as documented
+- All edge cases handled gracefully
+- Comprehensive error handling
+- No known bugs
+- Types are accurate and complete
+
+### Score 7-8: Good
+- Core functionality works correctly
+- Most edge cases handled
+- Good error handling
+- Minor edge cases might be missing
+- Types mostly accurate
+
+### Score 5-6: Adequate
+- Main happy path works
+- Some edge cases unhandled
+- Basic error handling
+- Known minor bugs exist
+- Some type inaccuracies
+
+### Score 3-4: Poor
+- Functionality partially works
+- Many edge cases fail
+- Minimal error handling
+- Multiple bugs present
+- Significant type issues
+
+### Score 1-2: Critical
+- Core functionality broken
+- No edge case handling
+- Errors cause crashes
+- Critical bugs
+- Types unreliable
+
+### Score 0: Broken
+- Does not function at all
+- Cannot be used
+
+---
+
+## Maintainability (Weight: 0.20)
+
+### Score 9-10: Excellent
+- Crystal clear code, self-documenting
+- Perfect naming conventions
+- Single responsibility everywhere
+- Cyclomatic complexity &lt; 5
+- Any developer can understand immediately
+
+### Score 7-8: Good
+- Clear code with minor clarifications needed
+- Good naming, occasional ambiguity
+- Mostly single responsibility
+- Cyclomatic complexity &lt; 10
+- Reasonable onboarding time
+
+### Score 5-6: Adequate
+- Understandable with effort
+- Mixed naming quality
+- Some large functions
+- Cyclomatic complexity &lt; 15
+- Requires context to understand
+
+### Score 3-4: Poor
+- Difficult to understand
+- Poor naming choices
+- Multiple responsibilities mixed
+- Cyclomatic complexity 15-20
+- Requires original author to explain
+
+### Score 1-2: Critical
+- Incomprehensible
+- Meaningless names
+- Massive functions
+- Cyclomatic complexity > 20
+- "Here be dragons"
+
+### Score 0: Broken
+- Cannot be maintained at all
+
+---
+
+## Performance (Weight: 0.15)
+
+### Score 9-10: Excellent
+- Optimal algorithm choices
+- No unnecessary operations
+- Proper caching
+- Async where beneficial
+- Measured and optimized
+
+### Score 7-8: Good
+- Good algorithm choices
+- Minor inefficiencies
+- Some caching
+- Async used appropriately
+- No major bottlenecks
+
+### Score 5-6: Adequate
+- Acceptable algorithms
+- Some unnecessary operations
+- Limited caching
+- Missing async opportunities
+- Noticeable but tolerable delays
+
+### Score 3-4: Poor
+- Suboptimal algorithms (O(n^2) in hot paths)
+- Many unnecessary operations
+- No caching strategy
+- Blocking where should be async
+- Noticeable performance issues
+
+### Score 1-2: Critical
+- Wrong algorithm choices
+- Excessive operations
+- Performance blockers
+- User-impacting delays
+
+### Score 0: Broken
+- Unusable due to performance
+
+---
+
+## Security (Weight: 0.15)
+
+### Score 9-10: Excellent
+- All OWASP Top 10 addressed
+- Input validation everywhere
+- Proper authentication/authorization
+- Secrets managed correctly
+- Security reviewed
+
+### Score 7-8: Good
+- Most security concerns addressed
+- Good input validation
+- Proper auth patterns
+- No obvious vulnerabilities
+- Minor improvements possible
+
+### Score 5-6: Adequate
+- Basic security in place
+- Some validation gaps
+- Auth works but could be tighter
+- No critical vulnerabilities
+- Needs security review
+
+### Score 3-4: Poor
+- Security gaps present
+- Missing input validation
+- Auth issues
+- Potential vulnerabilities
+- Should not be in production
+
+### Score 1-2: Critical
+- Security vulnerabilities present
+- No input validation
+- Broken auth
+- Active exploit potential
+
+### Score 0: Broken
+- Actively exploitable
+
+---
+
+## Scalability (Weight: 0.15)
+
+### Score 9-10: Excellent
+- Horizontally scalable
+- Stateless design
+- Proper queuing/caching
+- Handles 10x growth easily
+- Load tested
+
+### Score 7-8: Good
+- Mostly scalable
+- Minimal state
+- Some bottlenecks identified
+- Handles 5x growth
+- Scaling path clear
+
+### Score 5-6: Adequate
+- Scales with limitations
+- Some state management
+- Known bottlenecks
+- Handles 2x growth
+- Scaling requires work
+
+### Score 3-4: Poor
+- Limited scalability
+- Stateful design
+- Multiple bottlenecks
+- Near capacity
+- Scaling is a project
+
+### Score 1-2: Critical
+- Does not scale
+- Single point of failure
+- Already at capacity
+
+### Score 0: Broken
+- Cannot handle current load
+
+---
+
+## Testability (Weight: 0.15)
+
+### Score 9-10: Excellent
+- >90% coverage
+- Meaningful assertions
+- Edge cases tested
+- Fast, deterministic tests
+- Easy to add new tests
+
+### Score 7-8: Good
+- >80% coverage
+- Good assertions
+- Main paths tested
+- Mostly fast tests
+- Reasonable to add tests
+
+### Score 5-6: Adequate
+- >70% coverage
+- Basic assertions
+- Happy path tested
+- Some slow tests
+- Tests can be added
+
+### Score 3-4: Poor
+- >50% coverage
+- Weak assertions
+- Coverage gaps
+- Flaky tests
+- Hard to test
+
+### Score 1-2: Critical
+- &lt;50% coverage
+- Minimal assertions
+- Critical paths untested
+- Many flaky tests
+
+### Score 0: Broken
+- No tests or tests don't run
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Assessment Checklist">
+
+# Assessment Checklist
+
+Pre-completion validation for comprehensive assessments.
+
+## Quality Rating
+- [ ] All 6 dimensions rated (Correctness, Maintainability, Performance, Security, Scalability, Testability)
+- [ ] Each dimension has specific evidence cited
+- [ ] Composite score calculated with correct weights
+- [ ] Grade assigned matches score range
+
+## Pros/Cons Analysis
+- [ ] At least 3 pros identified
+- [ ] At least 3 cons identified
+- [ ] Pros and cons are balanced (not all positive or negative)
+- [ ] Each item has impact/severity rating
+- [ ] Evidence provided for each claim
+
+## Alternative Comparison
+- [ ] At least 2 alternatives considered
+- [ ] Each alternative scored on same dimensions
+- [ ] Migration effort estimated (1-5 scale)
+- [ ] Clear recommendation with rationale
+- [ ] Trade-offs documented
+
+## Improvement Suggestions
+- [ ] Suggestions prioritized by Impact/Effort
+- [ ] Quick wins identified (high impact, low effort)
+- [ ] Effort estimates provided for each
+- [ ] Expected score improvement stated
+- [ ] Dependencies between improvements noted
+
+## Verdict
+- [ ] Clear YES/NO/MOSTLY/SOMEWHAT answer
+- [ ] Reasoning explains the verdict
+- [ ] Actionable next steps provided
+- [ ] Strongest and weakest dimensions highlighted
+
+## Report Quality
+- [ ] Executive summary is 2-3 sentences
+- [ ] All sections completed
+- [ ] No contradictions between sections
+- [ ] Evidence is specific (file:line when applicable)
+
+
+</Accordion>
+
+</Accordions>

@@ -5,10 +5,11 @@ full: true
 ---
 
 import { SkillBrowser } from '@/components/skill-browser';
+import { Count } from '@/components/count';
 
 ## What Is a Skill?
 
-A skill is a Markdown file (`SKILL.md`) containing structured knowledge that Claude Code can load into its context window. Skills are **knowledge, not code**. They do not execute anything. They teach the model *how* to approach a category of work -- API design, database migrations, caching strategies, security patterns, and 195 other topics.
+A skill is a Markdown file (`SKILL.md`) containing structured knowledge that Claude Code can load into its context window. Skills are **knowledge, not code**. They do not execute anything. They teach the model *how* to approach a category of work -- API design, database migrations, caching strategies, security patterns, and 55 other topics.
 
 Each skill lives in its own directory under `src/skills/`:
 
@@ -33,12 +34,12 @@ Optional `references/` subdirectories hold deeper material that gets loaded prog
 
 ## The Two Types of Skills
 
-OrchestKit ships 200 skills in two categories:
+OrchestKit ships <Count k="skills" /> skills in two categories:
 
 | Type | Count | Who triggers it | Frontmatter marker |
 |------|-------|------------------|--------------------|
-| **Command** | 24 | User types `/ork:skill-name` | `user-invocable: true` |
-| **Reference** | 175 | Hooks or agent frontmatter inject it automatically | `user-invocable: false` |
+| **Command** | <Count k="commands" /> | User types `/ork:skill-name` | `user-invocable: true` |
+| **Reference** | <Count k="references" /> | Hooks or agent frontmatter inject it automatically | `user-invocable: false` |
 
 **Command skills** are workflows you run directly -- `/ork:implement`, `/ork:fix-issue`, `/ork:create-pr`. They often orchestrate multiple agents and reference skills behind the scenes.
 
@@ -159,7 +160,7 @@ This has practical implications:
 
 ## What's Next
 
-- [24 Command Skills](/docs/skills/command-skills) -- The full list of `/ork:X` commands you can invoke directly.
-- [175 Reference Skills](/docs/skills/reference-skills) -- The knowledge library that powers agents behind the scenes.
+- [<Count k="commands" /> Command Skills](/docs/skills/command-skills) -- The full list of `/ork:X` commands you can invoke directly.
+- [<Count k="references" /> Reference Skills](/docs/skills/reference-skills) -- The knowledge library that powers agents behind the scenes.
 - [Composing Skills Into Workflows](/docs/skills/skill-composition) -- How command skills, reference skills, and agents work together.
 - [Create Your Own SKILL.md](/docs/skills/writing-skills) -- Step-by-step guide to adding new skills.

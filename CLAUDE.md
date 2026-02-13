@@ -35,7 +35,7 @@ cd src/hooks && npm run build    # Compile TypeScript hooks
 
 ## Adding Components
 
-**Skill**: Create `src/skills/my-skill/SKILL.md` with YAML frontmatter (`name`, `description`, `tags`, `user-invocable`, `complexity`). Add to `manifests/ork.json`, run `npm run build`.
+**Skill**: See `src/skills/CONTRIBUTING-SKILLS.md` for full authoring standards. Create `src/skills/my-skill/SKILL.md` with YAML frontmatter (`name`, `description`, `tags`, `user-invocable`, `complexity`). Add to `manifests/ork.json`, run `npm run build`.
 
 **Agent**: Create `src/agents/my-agent.md` with frontmatter (`name`, `description`, `model`, `tools`, `skills`). Add to manifest, rebuild.
 

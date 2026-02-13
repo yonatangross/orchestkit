@@ -2,6 +2,7 @@
 title: "Multimodal Llm"
 description: "Vision, audio, and multimodal LLM integration patterns"
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -119,3 +120,502 @@ response = client.messages.create(
 - `rag-retrieval` - Multimodal RAG with image + text retrieval
 - `llm-integration` - General LLM function calling patterns
 - `streaming-api-patterns` - WebSocket patterns for real-time audio
+
+
+---
+
+## Rules (6)
+
+<Accordions type="multiple">
+
+<Accordion title="Audio Model Selection — MEDIUM">
+
+
+## Audio Model Selection
+
+Choose the right audio provider based on latency, features, and cost.
+
+**Incorrect — building STT+LLM+TTS pipeline for voice assistants:**
+```python
+# 3-step pipeline adds 2-5x latency vs native speech-to-speech
+text = transcribe(audio)          # STT: ~500ms
+response = llm.generate(text)     # LLM: ~1000ms
+audio = text_to_speech(response)  # TTS: ~500ms
+# Total: ~2000ms minimum
+```
+
+**Correct — use native speech-to-speech for voice assistants:**
+```python
+# Grok Voice Agent: <1s time-to-first-audio (5x faster)
+async with websockets.connect("wss://api.x.ai/v1/realtime", extra_headers=headers) as ws:
+    await ws.send(json.dumps({
+        "type": "session.update",
+        "session": {
+            "model": "grok-4-voice",
+            "voice": "Aria",
+            "input_audio_format": "pcm16",
+            "output_audio_format": "pcm16",
+            "turn_detection": {"type": "server_vad"}
+        }
+    }))
+    # Direct audio in -> audio out, no intermediary transcription
+```
+
+**Real-time voice provider comparison:**
+
+| Model | Latency | Languages | Price | Best For |
+|-------|---------|-----------|-------|----------|
+| **Grok Voice Agent** | &lt;1s TTFA | 100+ | $0.05/min | Fastest, lowest cost |
+| **Gemini Live API** | Low | 24 (30 voices) | Usage-based | Emotional awareness |
+| **OpenAI Realtime** | ~1s | 50+ | $0.10/min | Ecosystem integration |
+
+**Gemini Live — emotional awareness and barge-in:**
+```python
+async with model.connect(config=config) as session:
+    # Supports barge-in (user can interrupt anytime)
+    # Affective dialog (understands and responds to emotions)
+    # Proactive audio (responds only when relevant)
+    async for response in session.receive():
+        if response.data:
+            yield response.data  # Audio bytes
+```
+
+**Pricing comparison:**
+
+| Provider | Type | Price | Notes |
+|----------|------|-------|-------|
+| Grok Voice Agent | Real-time | $0.05/min | Cheapest real-time |
+| Gemini Live | Real-time | Usage-based | 30 HD voices |
+| OpenAI Realtime | Real-time | $0.10/min | |
+| Gemini 2.5 Pro | Transcription | $1.25/M tokens | 9.5hr audio |
+| GPT-4o-Transcribe | Transcription | $0.01/min | |
+| AssemblyAI | Transcription | ~$0.15/hr | Best features |
+| Deepgram | Transcription | ~$0.0043/min | Cheapest STT |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| Voice assistant (speed) | Grok Voice Agent (&lt;1s) |
+| Emotional AI | Gemini Live API |
+| Long audio (hours) | Gemini 2.5 Pro (9.5hr) |
+| Speaker diarization | AssemblyAI or Gemini |
+| Lowest latency STT | Deepgram Nova-3 (&lt;300ms) |
+| Self-hosted STT | Whisper Large V3 |
+| Cheapest real-time | Grok ($0.05/min) |
+
+**Key rules:**
+- Use native speech-to-speech for voice assistants — never chain STT+LLM+TTS
+- Grok Voice Agent is OpenAI Realtime API compatible (easy migration)
+- Gemini Live supports barge-in — essential for natural conversations
+- Always test latency with real users under realistic network conditions
+- For phone agents, &lt;1s time-to-first-audio is the quality threshold
+
+
+</Accordion>
+
+<Accordion title="Audio Speech-to-Text — HIGH">
+
+
+## Audio Speech-to-Text
+
+Convert audio to text with speaker labels, timestamps, and structured output.
+
+**Incorrect — using deprecated model:**
+```python
+# Whisper-1 is deprecated — use GPT-4o-Transcribe for better accuracy
+response = client.audio.transcriptions.create(model="whisper-1", file=audio_file)
+```
+
+**Correct — GPT-4o-Transcribe with structured output:**
+```python
+from openai import OpenAI
+client = OpenAI()
+
+with open(audio_path, "rb") as audio_file:
+    response = client.audio.transcriptions.create(
+        model="gpt-4o-transcribe",
+        file=audio_file,
+        language="en",  # Optional: improves accuracy for known language
+        response_format="verbose_json",
+        timestamp_granularities=["word", "segment"]
+    )
+
+result = {
+    "text": response.text,
+    "words": response.words,        # Word-level timestamps
+    "segments": response.segments,  # Segment-level with speaker info
+    "duration": response.duration
+}
+```
+
+**Gemini — best for long-form audio (up to 9.5 hours):**
+```python
+import google.generativeai as genai
+model = genai.GenerativeModel("gemini-2.5-pro")
+
+audio_file = genai.upload_file(audio_path)
+response = model.generate_content([
+    audio_file,
+    """Transcribe with:
+    1. Speaker labels (Speaker 1, Speaker 2)
+    2. Timestamps: [HH:MM:SS]
+    3. Punctuation and formatting"""
+])
+```
+
+**AssemblyAI — best feature set (diarization + sentiment + entities):**
+```python
+import assemblyai as aai
+aai.settings.api_key = "YOUR_API_KEY"
+
+config = aai.TranscriptionConfig(
+    speaker_labels=True,
+    sentiment_analysis=True,
+    entity_detection=True,
+    auto_highlights=True,
+    language_detection=True
+)
+transcript = aai.Transcriber().transcribe(audio_url, config=config)
+```
+
+**STT model comparison:**
+
+| Model | WER | Latency | Best For |
+|-------|-----|---------|----------|
+| Gemini 2.5 Pro | ~5% | Medium | 9.5hr audio, diarization |
+| GPT-4o-Transcribe | ~7% | Medium | Accuracy + accents |
+| AssemblyAI Universal-2 | 8.4% | 200ms | Best features |
+| Deepgram Nova-3 | ~18% | &lt;300ms | Lowest latency |
+| Whisper Large V3 | 7.4% | Slow | Self-host, 99+ langs |
+
+**Key rules:**
+- Use GPT-4o-Transcribe, not Whisper-1 (deprecated)
+- For audio >1 hour, prefer Gemini 2.5 Pro (handles up to 9.5 hours natively)
+- AssemblyAI provides the richest metadata (sentiment, entities, highlights)
+- Deepgram Nova-3 for lowest latency STT (&lt;300ms)
+- Whisper Large V3 only for self-hosted / air-gapped environments
+- Always specify language when known — improves accuracy significantly
+
+
+</Accordion>
+
+<Accordion title="Audio Text-to-Speech — MEDIUM">
+
+
+## Audio Text-to-Speech
+
+Generate natural speech from text with voice selection and expressive control.
+
+**Incorrect — no voice configuration:**
+```python
+# Default voice with no style control — sounds robotic
+response = model.generate_content(contents=text)
+```
+
+**Correct — Gemini TTS with voice and style config:**
+```python
+import google.generativeai as genai
+
+def text_to_speech(text: str, voice: str = "Kore") -> bytes:
+    """Gemini 2.5 Flash TTS with voice selection.
+
+    Available voices: Puck, Charon, Kore, Fenrir, Aoede (30 total)
+    """
+    model = genai.GenerativeModel("gemini-2.5-flash-tts")
+
+    response = model.generate_content(
+        contents=text,
+        generation_config=genai.GenerationConfig(
+            response_mime_type="audio/mp3",
+            speech_config=genai.SpeechConfig(
+                voice_config=genai.VoiceConfig(
+                    prebuilt_voice_config=genai.PrebuiltVoiceConfig(
+                        voice_name=voice
+                    )
+                )
+            )
+        )
+    )
+    return response.audio
+```
+
+**Expressive voice with auditory cues (Grok Voice Agent):**
+```python
+# Supports: [whisper], [sigh], [laugh], [pause]
+await ws.send(json.dumps({
+    "type": "response.create",
+    "response": {
+        "instructions": "[sigh] Let me think about that... [pause] Here's what I found."
+    }
+}))
+```
+
+**Gemini Live — real-time TTS with emotional awareness:**
+```python
+config = live.LiveConnectConfig(
+    response_modalities=["AUDIO"],
+    speech_config=live.SpeechConfig(
+        voice_config=live.VoiceConfig(
+            prebuilt_voice_config=live.PrebuiltVoiceConfig(
+                voice_name="Puck"  # 30 HD voices in 24 languages
+            )
+        )
+    ),
+    system_instruction="Speak warmly and naturally."
+)
+```
+
+**Key rules:**
+- Always configure voice explicitly — defaults vary by provider
+- Gemini TTS supports enhanced expressivity with style prompts in system instructions
+- Grok supports inline auditory cues: `[whisper]`, `[sigh]`, `[laugh]`, `[pause]`
+- For multi-speaker dialogue, use consistent voice assignments per character
+- Gemini offers 30 HD voices across 24 languages
+- Test with real users — perceived quality varies by use case and language
+
+
+</Accordion>
+
+<Accordion title="Vision Document Understanding — HIGH">
+
+
+## Vision Document Understanding
+
+Extract structured data from documents, charts, and PDFs using vision models.
+
+**Incorrect — sending entire large PDF at once:**
+```python
+# Exceeds context window or times out on 100+ page PDFs
+response = model.generate_content([genai.upload_file("large_doc.pdf"), "Summarize this"])
+```
+
+**Correct — incremental PDF processing:**
+```python
+# Claude Code Read tool with page ranges (max 20 pages per request)
+Read(file_path="/path/to/document.pdf", pages="1-5")    # TOC/structure scan
+Read(file_path="/path/to/document.pdf", pages="45-55")   # Target section
+Read(file_path="/path/to/document.pdf", pages="80-90")   # Appendix
+```
+
+**Chart/diagram analysis — use high detail and explicit extraction prompt:**
+```python
+response = client.chat.completions.create(
+    model="gpt-5.2",
+    max_tokens=4096,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": (
+                "Extract all data from this chart. Return as structured JSON with:\n"
+                "1. Chart type (bar, line, pie, etc.)\n"
+                "2. Axis labels and units\n"
+                "3. All data points with values\n"
+                "4. Title and legend entries"
+            )},
+            {"type": "image_url", "image_url": {
+                "url": f"data:{mime_type};base64,{base64_data}",
+                "detail": "high"  # Required for chart OCR accuracy
+            }}
+        ]
+    }]
+)
+```
+
+**Key rules:**
+- For PDFs >10 pages, always use page ranges — never send all at once
+- Max 20 pages per Read request in Claude Code
+- Use `detail: "high"` for documents with small text, tables, or charts
+- Gemini 2.5 Pro handles longest documents (1M+ context)
+- Always validate extracted numbers against source when accuracy is critical
+- Claude supports up to 100 images per request (useful for multi-page document analysis)
+
+**PDF constraints:**
+
+| Constraint | Value |
+|------------|-------|
+| Max pages per request | 20 |
+| Max file size | 20MB |
+| Large PDF threshold | >10 pages |
+
+
+</Accordion>
+
+<Accordion title="Vision Image Analysis — HIGH">
+
+
+## Vision Image Analysis
+
+Encode images correctly and structure multi-modal messages for each provider.
+
+**Incorrect — string content instead of content array:**
+```python
+# OpenAI — image silently ignored
+response = client.chat.completions.create(
+    model="gpt-5.2",
+    messages=[{"role": "user", "content": f"Describe this image: {base64_data}"}]
+)
+```
+
+**Correct — structured content array with image_url:**
+```python
+import base64, mimetypes
+
+def encode_image(path: str) -> tuple[str, str]:
+    mime_type = mimetypes.guess_type(path)[0] or "image/png"
+    with open(path, "rb") as f:
+        return base64.standard_b64encode(f.read()).decode("utf-8"), mime_type
+
+# OpenAI (GPT-5, GPT-4o)
+base64_data, mime_type = encode_image(image_path)
+response = client.chat.completions.create(
+    model="gpt-5.2",
+    max_tokens=4096,  # Required for vision — omitting truncates response
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "text", "text": prompt},
+            {"type": "image_url", "image_url": {
+                "url": f"data:{mime_type};base64,{base64_data}",
+                "detail": "high"  # low=65 tokens, high=129+ tokens/tile
+            }}
+        ]
+    }]
+)
+```
+
+**Claude — different content structure (type: "image", not "image_url"):**
+```python
+response = client.messages.create(
+    model="claude-opus-4-6",
+    max_tokens=4096,
+    messages=[{
+        "role": "user",
+        "content": [
+            {"type": "image", "source": {
+                "type": "base64",
+                "media_type": media_type,
+                "data": base64_data
+            }},
+            {"type": "text", "text": prompt}
+        ]
+    }]
+)
+```
+
+**Gemini — uses PIL Image directly:**
+```python
+from PIL import Image
+model = genai.GenerativeModel("gemini-2.5-pro")
+image = Image.open(image_path)
+response = model.generate_content([prompt, image])
+```
+
+**Multi-image comparison (Claude supports up to 100):**
+```python
+content = []
+for img_path in images:
+    b64, mt = encode_image(img_path)
+    content.append({"type": "image", "source": {"type": "base64", "media_type": mt, "data": b64}})
+content.append({"type": "text", "text": "Compare these images..."})
+response = client.messages.create(model="claude-opus-4-6", max_tokens=8192, messages=[{"role": "user", "content": content}])
+```
+
+**Object detection with bounding boxes (Gemini 2.5+):**
+```python
+response = model.generate_content([
+    "Detect all objects. Return JSON: {objects: [{label, box: [x1,y1,x2,y2]}]}",
+    image
+])
+```
+
+**Key rules:**
+- Always set `max_tokens` on vision requests (responses truncated without it)
+- Resize images to max 2048px before encoding (reduces cost and latency)
+- Use `detail: "low"` (65 tokens) for simple classification, `"high"` for OCR/charts
+- Each provider has different content structure — do not mix formats
+- Claude uses `media_type`, OpenAI uses `mime` in the data URI
+
+
+</Accordion>
+
+<Accordion title="Vision Model Selection — MEDIUM">
+
+
+## Vision Model Selection
+
+Choose the right vision provider based on accuracy, cost, and context needs.
+
+**Model comparison:**
+
+| Model | Context | Strengths | Max Images |
+|-------|---------|-----------|------------|
+| **GPT-5.2** | 128K | Best general reasoning | 10/request |
+| **Claude Opus 4.6** | 1M | Best coding, sustained agent tasks | 100/request |
+| **Gemini 2.5 Pro** | 1M+ | Longest context, native video | 3,600/request |
+| **Gemini 3 Pro** | 1M | Deep Think, enhanced segmentation | 3,600/request |
+| **Grok 4** | 2M | Real-time X integration | Limited |
+
+**Token cost by detail level:**
+
+| Provider | Detail Level | Token Cost | Use For |
+|----------|-------------|------------|---------|
+| OpenAI | `low` | 65 tokens | Classification (yes/no) |
+| OpenAI | `high` | 129+ tokens/tile | OCR, charts, detailed analysis |
+| Gemini | base | 258 tokens | Scales with resolution |
+| Claude | per-image | Fixed | Batch for efficiency |
+
+**Incorrect — using expensive model for simple classification:**
+```python
+# Wastes tokens: high detail + large model for yes/no
+response = client.chat.completions.create(
+    model="gpt-5.2",
+    messages=[{"role": "user", "content": [
+        {"type": "text", "text": "Is there a person? Reply: yes/no"},
+        {"type": "image_url", "image_url": {"url": img_url, "detail": "high"}}
+    ]}]
+)
+```
+
+**Correct — cost-optimized for simple tasks:**
+```python
+response = client.chat.completions.create(
+    model="gpt-5.2-mini",  # Cheaper model
+    messages=[{"role": "user", "content": [
+        {"type": "text", "text": "Is there a person? Reply: yes/no"},
+        {"type": "image_url", "image_url": {"url": img_url, "detail": "low"}}  # 65 tokens
+    ]}]
+)
+```
+
+**Image size limits:**
+
+| Provider | Max Size | Max Images | Notes |
+|----------|----------|------------|-------|
+| OpenAI | 20MB | 10/request | GPT-5 series |
+| Claude | 8000x8000 px | 100/request | 2000px if >20 images |
+| Gemini | 20MB | 3,600/request | Best for batch |
+| Grok | 20MB | Limited | |
+
+**Selection guide:**
+
+| Scenario | Recommendation |
+|----------|----------------|
+| High accuracy | Claude Opus 4.6 or GPT-5 |
+| Long documents | Gemini 2.5 Pro (1M context) |
+| Cost efficiency | Gemini 2.5 Flash ($0.15/M tokens) |
+| Real-time/X data | Grok 4 with DeepSearch |
+| Video analysis | Gemini 2.5/3 Pro (native) |
+| Batch images | Claude (100/req) or Gemini (3,600/req) |
+
+**Key rules:**
+- Cannot identify specific people (privacy restriction, all providers)
+- May hallucinate on low-quality or rotated images (&lt;200px)
+- No real-time video except Gemini — use frame extraction for others
+- Validate image format before encoding (corrupt files cause silent failures)
+- Always check rate limits on vision endpoints — they are lower than text-only
+
+
+</Accordion>
+
+</Accordions>

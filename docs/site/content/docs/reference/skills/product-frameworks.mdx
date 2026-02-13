@@ -2,6 +2,7 @@
 title: "Product Frameworks"
 description: "Product management frameworks for business cases, market analysis, strategy, prioritization, OKRs/KPIs, personas, requirements, and user research. Use when building ROI projections, competitive analysis, RICE scoring, OKR trees, user personas, PRDs, or usability testing plans."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -78,3 +79,4339 @@ User research methods and requirements documentation patterns.
 - **`research-requirements-prd`** -- PRD template, user stories, acceptance criteria, INVEST
 
 **Version:** 2.0.0 (February 2026)
+
+
+---
+
+## Rules (16)
+
+<Accordions type="multiple">
+
+<Accordion title="Business: Cost-Benefit & TCO — HIGH">
+
+
+# Cost-Benefit & Total Cost of Ownership
+
+## Build vs. Buy TCO Comparison
+
+```markdown
+## Build Option (3-Year TCO)
+
+### Year 1
+| Category | Cost |
+|----------|------|
+| Development team (4 FTEs x $150K) | $600,000 |
+| Infrastructure setup | $50,000 |
+| Tools & licenses | $20,000 |
+| **Year 1 Total** | **$670,000** |
+
+### Year 2-3 (Maintenance)
+| Category | Annual Cost |
+|----------|-------------|
+| Maintenance team (2 FTEs) | $300,000 |
+| Infrastructure | $60,000 |
+| Technical debt | $50,000 |
+| **Annual Total** | **$410,000** |
+
+### 3-Year Build TCO: $1,490,000
+
+---
+
+## Buy Option (3-Year TCO)
+
+| Category | Annual Cost |
+|----------|-------------|
+| SaaS license (100 users x $500) | $50,000 |
+| Implementation (Year 1 only) | $100,000 |
+| Training | $20,000 |
+| Integration maintenance | $30,000 |
+| **Year 1** | **$200,000** |
+| **Year 2-3** | **$100,000/year** |
+
+### 3-Year Buy TCO: $400,000
+```
+
+## Hidden Costs to Include
+
+| Category | Build | Buy |
+|----------|-------|-----|
+| Opportunity cost | Yes - team could work on other things | No |
+| Learning curve | Yes - building expertise | Yes - learning vendor |
+| Switching costs | N/A | Yes - vendor lock-in |
+| Downtime risk | Yes - you own uptime | Partial - SLA coverage |
+| Security/compliance | Yes - your responsibility | Shared - vendor handles some |
+
+## Business Case Template
+
+```markdown
+# Business Case: [Project Name]
+
+## Executive Summary
+[2-3 sentence summary of investment and expected return]
+
+## Financial Analysis
+
+### Investment Required
+| Item | One-Time | Annual |
+|------|----------|--------|
+| Software license | | $X |
+| Implementation | $X | |
+| Training | $X | |
+| Integration | $X | $X |
+| **Total** | **$X** | **$X** |
+
+### Expected Benefits
+| Benefit | Annual Value | Confidence |
+|---------|--------------|------------|
+| Time savings (X hrs x $Y/hr) | $X | High |
+| Error reduction | $X | Medium |
+| Revenue increase | $X | Low |
+| **Total** | **$X** | |
+
+### Key Metrics
+| Metric | Value |
+|--------|-------|
+| 3-Year TCO | $X |
+| 3-Year Benefits | $X |
+| NPV (10% discount) | $X |
+| IRR | X% |
+| Payback Period | X months |
+| ROI | X% |
+
+## Risk Analysis
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+| | | | |
+
+## Recommendation
+[GO / NO-GO with rationale]
+```
+
+## Sensitivity Analysis
+
+Test how results change with different assumptions.
+
+| Scenario | Discount Rate | Year 1 Benefits | NPV |
+|----------|---------------|-----------------|-----|
+| Base case | 10% | $200,000 | $258,157 |
+| Conservative | 15% | $150,000 | $102,345 |
+| Optimistic | 8% | $250,000 | $412,890 |
+| Pessimistic | 12% | $120,000 | $32,456 |
+
+## Cost Breakdown Framework
+
+### One-Time Costs (CAPEX)
+
+```
+Development Costs
++-- Engineering hours x hourly rate
++-- Design/UX hours x hourly rate
++-- QA/Testing hours x hourly rate
++-- Project management overhead (15-20%)
++-- Infrastructure setup
+```
+
+### Recurring Costs (OPEX)
+
+```
+Operational Costs (Annual)
++-- Infrastructure (hosting, compute)
++-- Maintenance (10-20% of dev cost)
++-- Support (tickets x cost/ticket)
++-- Monitoring/observability
++-- Security/compliance
+```
+
+
+</Accordion>
+
+<Accordion title="Business: ROI & Financial Metrics — HIGH">
+
+
+# ROI & Financial Metrics
+
+Financial frameworks for justifying investments and evaluating projects.
+
+## Return on Investment (ROI)
+
+```
+ROI = (Net Benefits - Total Costs) / Total Costs x 100%
+```
+
+**Example:**
+```
+Project cost: $500,000
+Annual benefits: $200,000 over 5 years
+
+Total benefits: $1,000,000
+ROI = ($1,000,000 - $500,000) / $500,000 x 100% = 100%
+```
+
+**Limitation:** Does not account for time value of money.
+
+## Net Present Value (NPV)
+
+Gold standard for project evaluation -- discounts future cash flows to present value.
+
+```
+NPV = Sum(Cash Flow_t / (1 + r)^t) - Initial Investment
+```
+
+```python
+def calculate_npv(
+    initial_investment: float,
+    cash_flows: list[float],
+    discount_rate: float = 0.10  # 10% typical
+) -> float:
+    npv = -initial_investment
+    for t, cf in enumerate(cash_flows, start=1):
+        npv += cf / ((1 + discount_rate) ** t)
+    return npv
+
+# Example: $500K investment, $200K/year for 5 years
+npv = calculate_npv(500_000, [200_000] * 5, 0.10)
+# NPV = $258,157 (positive = good investment)
+```
+
+**Decision Rule:**
+- NPV > 0: Accept (creates value)
+- NPV &lt; 0: Reject (destroys value)
+- NPV = 0: Indifferent
+
+## Internal Rate of Return (IRR)
+
+The discount rate at which NPV equals zero.
+
+```python
+def calculate_irr(cash_flows: list[float]) -> float:
+    """cash_flows[0] is initial investment (negative)"""
+    from scipy.optimize import brentq
+
+    def npv_at_rate(r):
+        return sum(cf / (1 + r) ** t for t, cf in enumerate(cash_flows))
+
+    return brentq(npv_at_rate, -0.99, 10.0)
+
+# Example: -$500K initial, then $200K/year for 5 years
+irr = calculate_irr([-500_000, 200_000, 200_000, 200_000, 200_000, 200_000])
+# IRR ~ 28.6%
+```
+
+**Decision Rule:**
+- IRR > hurdle rate: Accept
+- IRR &lt; hurdle rate: Reject
+
+**Typical Hurdle Rates:**
+- Conservative enterprise: 10-12%
+- Growth company: 15-20%
+- Startup: 25-40%
+
+## Payback Period
+
+```
+Payback Period = Initial Investment / Annual Cash Flow
+```
+
+**Typical Expectations:**
+- SaaS investments: 6-12 months
+- Enterprise platforms: 12-24 months
+- Infrastructure: 24-36 months
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Overestimating benefits | Use conservative estimates, document assumptions |
+| Ignoring soft costs | Include training, change management, productivity dip |
+| Underestimating timeline | Add 30-50% buffer to implementation estimates |
+| Sunk cost fallacy | Evaluate future costs/benefits only |
+| Confirmation bias | Have skeptic review the case |
+
+
+</Accordion>
+
+<Accordion title="Market: Competitive Analysis — HIGH">
+
+
+# Competitive Analysis
+
+Frameworks for analyzing competition and understanding industry dynamics.
+
+## Porter's Five Forces
+
+```
+                    +---------------------+
+                    |  Threat of New      |
+                    |     Entrants        |
+                    |    (Barrier height) |
+                    +---------+-----------+
+                              |
+                              v
++-----------------+    +-----------------+    +-----------------+
+|   Bargaining    |    |   Competitive   |    |   Bargaining    |
+|   Power of      |<---|    Rivalry      |--->|   Power of      |
+|   Suppliers     |    |  (Intensity)    |    |    Buyers       |
++-----------------+    +---------+-------+    +-----------------+
+                              |
+                              v
+                    +---------------------+
+                    |  Threat of          |
+                    |   Substitutes       |
+                    | (Alternative ways)  |
+                    +---------------------+
+```
+
+### Force Analysis Template
+
+```markdown
+## Porter's Five Forces: [Industry]
+
+### 1. Competitive Rivalry -- Intensity: HIGH / MEDIUM / LOW
+| Factor | Assessment |
+|--------|------------|
+| Number of competitors | |
+| Industry growth rate | |
+| Product differentiation | |
+| Exit barriers | |
+
+### 2. Threat of New Entrants -- Threat Level: HIGH / MEDIUM / LOW
+| Barrier | Strength |
+|---------|----------|
+| Economies of scale | |
+| Brand loyalty | |
+| Capital requirements | |
+| Network effects | |
+
+### 3-5. [Supplier power, Buyer power, Substitutes]
+[Same structure]
+
+### Overall Industry Attractiveness: X/10
+```
+
+## SWOT Analysis
+
+```
++-------------------------+-------------------------+
+|       STRENGTHS         |       WEAKNESSES        |
+|       (Internal +)      |       (Internal -)      |
+| * What we do well       | * Where we lack         |
+| * Unique resources      | * Resource gaps          |
+| * Competitive advantages| * Capability limits     |
++-------------------------+-------------------------+
+|      OPPORTUNITIES      |         THREATS         |
+|       (External +)      |       (External -)      |
+| * Market trends         | * Competitive pressure  |
+| * Unmet needs           | * Regulatory changes    |
+| * Technology shifts     | * Economic factors      |
++-------------------------+-------------------------+
+```
+
+### SWOT to Strategy (TOWS Matrix)
+
+| | Strengths | Weaknesses |
+|---|-----------|------------|
+| **Opportunities** | **SO Strategies**: Use strengths to capture opportunities | **WO Strategies**: Overcome weaknesses to capture opportunities |
+| **Threats** | **ST Strategies**: Use strengths to mitigate threats | **WT Strategies**: Minimize weaknesses and avoid threats |
+
+## Competitive Landscape Map
+
+```
+                    HIGH PRICE
+                        |
+         Premium        |        Luxury
+         Leaders        |        Niche
+    +-------------+     |     +-------------+
+    |  [Comp A]   |     |     |  [Comp B]   |
+    +-------------+     |     +-------------+
+                        |
+LOW --------------------+-------------------- HIGH
+FEATURES                |                   FEATURES
+                        |
+    +-------------+     |     +-------------+
+    |  [Comp C]   |     |     |    [US]     |
+    +-------------+     |     +-------------+
+         Budget         |       Value
+         Options        |       Leaders
+                        |
+                    LOW PRICE
+```
+
+## Competitor Profile Template
+
+```markdown
+## Competitor: [Name]
+
+### Overview
+- **Founded:** [Year]
+- **Funding:** $[Amount]
+- **Employees:** [N]
+
+### Product
+- **Core offering:** [Description]
+- **Key features:** [List]
+- **Pricing:** [Model]
+- **Target customer:** [Segment]
+
+### Strengths / Weaknesses
+1. [Strength/Weakness]
+2. [Strength/Weakness]
+
+### Threat Assessment: HIGH / MEDIUM / LOW
+```
+
+## GitHub Signals to Track
+
+```bash
+# Star count and growth
+gh api repos/owner/repo --jq '{stars: .stargazers_count}'
+
+# Recent releases (shipping velocity)
+gh release list --repo owner/repo --limit 5
+
+# Contributor count
+gh api repos/owner/repo/contributors --jq 'length'
+```
+
+## Update Frequency
+
+| Signal | Check Frequency |
+|--------|-----------------|
+| Star growth | Weekly |
+| Release notes | Per release |
+| Pricing changes | Monthly |
+| Feature launches | Per announcement |
+| Full analysis | Quarterly |
+
+
+</Accordion>
+
+<Accordion title="Market: TAM/SAM/SOM Sizing — HIGH">
+
+
+# TAM/SAM/SOM Market Sizing
+
+Market sizing from total opportunity to achievable share.
+
+## Framework Overview
+
+```
++-------------------------------------------------------+
+|                         TAM                            |
+|        Total Addressable Market                        |
+|     (Everyone who could possibly buy)                  |
+|  +---------------------------------------------------+|
+|  |                      SAM                           ||
+|  |       Serviceable Addressable Market               ||
+|  |    (Segment you can actually reach)                ||
+|  |  +-----------------------------------------------+||
+|  |  |                   SOM                          |||
+|  |  |     Serviceable Obtainable Market              |||
+|  |  |   (Realistic share you can capture)            |||
+|  |  +-----------------------------------------------+||
+|  +---------------------------------------------------+|
++-------------------------------------------------------+
+```
+
+| Metric | Definition | Example |
+|--------|------------|---------|
+| **TAM** | Total market demand globally | All project management software: $10B |
+| **SAM** | Your target segment | Enterprise PM software in North America: $3B |
+| **SOM** | What you can realistically capture | First 3 years with current resources: $50M |
+
+## Calculation Methods
+
+### Top-Down Approach
+
+```
+TAM = (# of potential customers) x (annual value per customer)
+SAM = TAM x (% addressable by your solution)
+SOM = SAM x (realistic market share %)
+```
+
+### Bottom-Up Approach
+
+```
+SOM = (# of customers you can acquire) x (average deal size)
+SAM = SOM / (your expected market share %)
+TAM = SAM / (segment % of total market)
+```
+
+## Example Analysis
+
+```markdown
+## Market Sizing: AI Code Review Tool
+
+### TAM (Total Addressable Market)
+- Global developers: 28 million
+- % using code review tools: 60%
+- Addressable developers: 16.8 million
+- Average annual spend: $300/developer
+- **TAM = $5.04 billion**
+
+### SAM (Serviceable Addressable Market)
+- Focus: Enterprise (>500 employees)
+- Enterprise developers: 8 million (48% of addressable)
+- Willing to pay premium: 40%
+- Target developers: 3.2 million
+- **SAM = $960 million**
+
+### SOM (Serviceable Obtainable Market)
+- Year 1-3 realistic market share: 2%
+- **SOM = $19.2 million**
+```
+
+## Cross-Referencing Methods
+
+Always use both methods and reconcile:
+
+| Method | TAM | Notes |
+|--------|-----|-------|
+| Top-Down | $4.86B | Based on industry reports |
+| Bottom-Up | $5.0B | Based on enterprise segments |
+| **Reconciled** | **$4.9B** | Average, validated range |
+
+## SOM Constraints
+
+```
+SAM: $470M
+
+Constraints:
+- Market share goal (3 years): 3%
+- Competitive pressure: -20%
+- Sales capacity: supports $15M ARR
+- Go-to-market reach: 70%
+
+Conservative SOM: min($470M x 3%, $15M, $470M x 70% x 3%)
+= min($14.1M, $15M, $9.87M)
+= $10M (3-year target)
+```
+
+## Confidence Levels
+
+| Confidence | Evidence |
+|------------|----------|
+| HIGH | Multiple corroborating sources, recent data |
+| MEDIUM | Single authoritative source, 1-2 years old |
+| LOW | Extrapolated, assumptions, old data |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| TAM = "everyone" | Define specific customer segment |
+| Ignoring competition | SOM must account for competitors |
+| Old data | Use most recent (&lt;2 years) |
+| Single method | Cross-validate top-down and bottom-up |
+| Confusing TAM/SAM | TAM is total, SAM is your reach |
+
+
+</Accordion>
+
+<Accordion title="Metrics: Instrumentation & Definition — HIGH">
+
+
+# Metric Instrumentation & Definition
+
+Formal patterns for defining, implementing, and monitoring KPIs.
+
+## Metric Definition Template
+
+```markdown
+## Metric: [Name]
+
+### Definition
+[Precise definition of what this metric measures]
+
+### Formula
+```
+Metric = Numerator / Denominator
+```
+
+### Data Source
+- System: [Where data comes from]
+- Table/Event: [Specific location]
+- Owner: [Team responsible]
+
+### Segments
+- By customer tier (Free, Pro, Enterprise)
+- By geography (NA, EMEA, APAC)
+- By cohort (signup month)
+
+### Frequency
+- Calculation: Daily
+- Review: Weekly
+
+### Targets
+| Period | Target | Stretch |
+|--------|--------|---------|
+| Q1 | 10,000 | 12,000 |
+| Q2 | 15,000 | 18,000 |
+
+### Related Metrics
+- Leading: [Metric that predicts this]
+- Lagging: [Metric this predicts]
+```
+
+## Event Naming Conventions
+
+### Standard Format
+
+```
+[object]_[action]
+
+Examples:
+- user_signed_up
+- feature_activated
+- subscription_upgraded
+- search_performed
+- export_completed
+```
+
+### Required Properties
+
+```json
+{
+  "event": "feature_activated",
+  "timestamp": "2026-02-13T10:30:00Z",
+  "user_id": "usr_123",
+  "properties": {
+    "feature_name": "advanced_search",
+    "plan_tier": "pro",
+    "activation_method": "onboarding_wizard"
+  }
+}
+```
+
+## Instrumentation Checklist
+
+### Events
+- [ ] Key events identified
+- [ ] Event naming consistent (object_action)
+- [ ] Required properties defined
+- [ ] Optional properties listed
+- [ ] Privacy considerations addressed
+
+### Implementation
+- [ ] Analytics tool selected
+- [ ] Events documented
+- [ ] Engineering ticket created
+- [ ] QA plan for events
+
+## Alerting Thresholds
+
+```markdown
+## Alert: [Metric Name]
+
+| Threshold | Severity | Action |
+|-----------|----------|--------|
+| < Warning | Warning | Investigate within 24 hours |
+| < Critical | Critical | Immediate escalation |
+| > Spike | Info | Review for anomaly |
+
+### Escalation Path
+1. On-call engineer investigates
+2. Team lead notified if not resolved in 2 hours
+3. VP notified for P0 metrics breach
+```
+
+## Dashboard Design
+
+### Principles
+
+| Principle | Application |
+|-----------|-------------|
+| **Leading indicators prominent** | Top of dashboard, real-time |
+| **Lagging indicators for context** | Below, trend-based |
+| **Drill-down available** | Click to segment |
+| **Historical comparison** | Week-over-week, month-over-month |
+| **Anomaly highlighting** | Auto-flag deviations |
+
+## Experiment Design
+
+```markdown
+## Experiment: [Name]
+
+### Hypothesis
+We believe [change] will cause [metric] to [improve by X%]
+
+### Success Metric
+- Primary: [Metric to move]
+- Guardrail: [Metric that must not degrade]
+
+### Sample Size
+- Minimum: [N] per variant
+- Duration: [X] weeks
+- Confidence: 95%
+
+### Rollout Plan
+1. 5% canary for 1 week
+2. 25% for 2 weeks
+3. 50% for 1 week
+4. 100% rollout
+```
+
+
+</Accordion>
+
+<Accordion title="Metrics: KPI Trees & North Star — HIGH">
+
+
+# KPI Trees & North Star Metric
+
+Hierarchical breakdown of metrics showing cause-effect relationships.
+
+## Revenue KPI Tree
+
+```
+                         Revenue
+                            |
+          +-----------------+-----------------+
+          |                 |                 |
+     New Revenue      Expansion         Retained
+          |            Revenue           Revenue
+          |                |                 |
+    +-----+-----+    +-----+-----+    +-----+-----+
+    |           |    |           |    |           |
+  Leads x    Conv  Users x   Upsell  Existing x (1-Churn)
+  Rate       Rate   ARPU      Rate    Revenue     Rate
+```
+
+## Product Health KPI Tree
+
+```
+                    Product Health Score
+                            |
+         +------------------+------------------+
+         |                  |                  |
+    Engagement          Retention         Satisfaction
+         |                  |                  |
+    +----+----+       +----+----+       +----+----+
+    |         |       |         |       |         |
+   DAU/     Time    Day 1    Day 30    NPS    Support
+   MAU      in App  Retention Retention       Tickets
+```
+
+## North Star Metric
+
+One metric that captures core value delivery.
+
+### Examples by Business Type
+
+| Business Type | North Star Metric | Why |
+|---------------|-------------------|-----|
+| SaaS | Weekly Active Users | Indicates ongoing value |
+| Marketplace | Gross Merchandise Value | Captures both sides |
+| Media | Time spent reading | Engagement = value |
+| E-commerce | Purchase frequency | Repeat = satisfied |
+| Fintech | Assets under management | Trust + usage |
+
+### North Star + Input Metrics
+
+```markdown
+## Our North Star Framework
+
+**North Star:** Weekly Active Teams (WAT)
+
+**Input Metrics:**
+1. New team signups (acquisition)
+2. Teams completing onboarding (activation)
+3. Features used per team per week (engagement)
+4. Teams inviting new members (virality)
+5. Teams on paid plans (monetization)
+
+**Lagging Validation:**
+- Revenue growth
+- Net retention rate
+- Customer lifetime value
+```
+
+## Building a KPI Tree
+
+### Step 1: Start with the Business Outcome
+What is the top-level metric leadership cares about? (Revenue, Users, Engagement)
+
+### Step 2: Decompose into Components
+Break the metric into its mathematical components (multiplied or added).
+
+### Step 3: Identify Input Metrics
+For each component, identify what leading indicators predict it.
+
+### Step 4: Assign Owners
+Each metric should have a clear team owner.
+
+### Step 5: Set Targets
+Baseline + target for each metric in the tree.
+
+## Best Practices
+
+- **Keep trees 3 levels deep** -- deeper than that and it loses clarity
+- **Every metric has an owner** -- no orphan metrics
+- **Leading indicators at the leaves** -- actionable by teams
+- **Lagging indicators at the root** -- confirms outcomes
+- **Dashboard the tree** -- make it visible to the whole organization
+
+
+</Accordion>
+
+<Accordion title="Metrics: Leading & Lagging Indicators — HIGH">
+
+
+# Leading & Lagging Indicators
+
+Understanding the difference is crucial for effective measurement.
+
+## Definitions
+
+| Type | Definition | Characteristics |
+|------|------------|-----------------|
+| **Leading** | Predictive, can be directly influenced | Real-time feedback, actionable |
+| **Lagging** | Results of past actions | Confirms outcomes, hard to change |
+
+## Examples by Domain
+
+```
+Sales Pipeline:
+  Leading: # of qualified meetings this week
+  Lagging: Quarterly revenue
+
+Customer Success:
+  Leading: Product usage frequency
+  Lagging: Customer churn rate
+
+Engineering:
+  Leading: Code review turnaround time
+  Lagging: Production incidents
+
+Marketing:
+  Leading: Website traffic, MQLs
+  Lagging: Customer acquisition cost (CAC)
+```
+
+## The Leading-Lagging Chain
+
+```
+Leading                                           Lagging
+----------------------------------------------------------->
+
+Blog posts    Website     MQLs      SQLs      Deals     Revenue
+published  -> traffic  -> generated -> created -> closed -> booked
+   |            |           |          |         |         |
+   v            v           v          v         v         v
+ Actionable  Actionable   Somewhat   Less      Hard      Result
+             (SEO, ads)   (content)  control   control
+```
+
+## Balanced Metrics Dashboard
+
+### Leading Indicators (Weekly Review)
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| Active users (DAU) | 12,500 | 15,000 | Yellow |
+| Feature adoption rate | 68% | 75% | Yellow |
+| Support ticket volume | 142 | &lt;100 | Red |
+| NPS responses collected | 89 | 100 | Green |
+
+### Lagging Indicators (Monthly Review)
+
+| Metric | Current | Target | Status |
+|--------|---------|--------|--------|
+| Monthly revenue | $485K | $500K | Yellow |
+| Customer churn | 5.2% | &lt;5% | Yellow |
+| NPS score | 42 | 50 | Green |
+| CAC payback months | 14 | 12 | Red |
+
+## Using Both Effectively
+
+### Pair Leading with Lagging
+
+For every lagging indicator you care about, identify 2-3 leading indicators that predict it.
+
+```markdown
+## Metric Pairs
+
+Lagging: Customer Churn Rate
+Leading:
+  1. Product usage frequency (weekly)
+  2. Support ticket severity (daily)
+  3. NPS score trend (monthly)
+
+Lagging: Revenue Growth
+Leading:
+  1. Pipeline value (weekly)
+  2. Demo-to-trial conversion (weekly)
+  3. Feature adoption rate (weekly)
+```
+
+### Review Cadence
+
+| Indicator Type | Review Frequency | Action Timeline |
+|----------------|------------------|-----------------|
+| Leading | Daily/Weekly | Immediate course correction |
+| Lagging | Monthly/Quarterly | Strategic adjustments |
+
+## Best Practices
+
+- **Start with the lagging metric** you want to improve
+- **Identify 2-3 leading indicators** that predict it
+- **Set up automated dashboards** for leading indicators
+- **Review leading indicators weekly** with the team
+- **Use lagging indicators** to validate that leading indicators actually predict outcomes
+- **Adjust leading indicators** when correlation breaks down
+
+
+</Accordion>
+
+<Accordion title="Metrics: OKR Framework — HIGH">
+
+
+# OKR Framework
+
+Objectives and Key Results align teams around ambitious goals with measurable outcomes.
+
+## OKR Structure
+
+```
+Objective: Qualitative, inspiring goal
++-- Key Result 1: Quantitative measure of progress
++-- Key Result 2: Quantitative measure of progress
++-- Key Result 3: Quantitative measure of progress
+```
+
+## Writing Good Objectives
+
+| Characteristic | Good | Bad |
+|---------------|------|-----|
+| Qualitative | "Delight enterprise customers" | "Increase NPS to 50" |
+| Inspiring | "Become the go-to platform" | "Ship 10 features" |
+| Time-bound | Implied quarterly | Vague timeline |
+| Ambitious | Stretch goal (70% achievable) | Sandbagged (100% easy) |
+
+## Writing Good Key Results
+
+| Characteristic | Good | Bad |
+|---------------|------|-----|
+| Quantitative | "Reduce churn from 8% to 4%" | "Improve retention" |
+| Measurable | "Ship to 10,000 beta users" | "Launch beta" |
+| Outcome-focused | "Increase conversion by 20%" | "Add 5 features" |
+| Leading indicators | "Weekly active users reach 50K" | "Revenue hits $1M" (lagging) |
+
+## Key Result Formula
+
+```
+[Verb] [metric] from [baseline] to [target] by [deadline]
+
+Examples:
+- Increase NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
+
+## OKR Example
+
+```markdown
+## Q1 OKRs
+
+### Objective 1: Become the #1 choice for enterprise teams
+
+**Key Results:**
+- KR1: Increase enterprise NPS from 32 to 50
+- KR2: Reduce time-to-value from 14 days to 3 days
+- KR3: Achieve 95% feature adoption in first 30 days
+- KR4: Win 5 competitive displacements from [Competitor]
+
+### Objective 2: Build a world-class engineering culture
+
+**Key Results:**
+- KR1: Reduce deploy-to-production time from 4 hours to 15 minutes
+- KR2: Achieve 90% code coverage on critical paths
+- KR3: Zero P0 incidents lasting longer than 30 minutes
+- KR4: Engineering satisfaction score reaches 4.5/5
+```
+
+## Alignment Cascade
+
+```
+Company OKRs
+    |
+    v
+Department OKRs (aligns to company)
+    |
+    v
+Team OKRs (aligns to department)
+    |
+    v
+Individual OKRs (optional, aligns to team)
+```
+
+## Best Practices
+
+- **OKRs for goals, KPIs for health**: Use together, not interchangeably
+- **Leading indicator focus**: Key Results should be leading indicators
+- **Cascade with autonomy**: Align outcomes, let teams choose their path
+- **Regular calibration**: Weekly check-ins on leading, monthly on lagging
+- **3-5 objectives max** per team per quarter
+- **3-5 KRs per objective**: Enough to measure, not too many to track
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Vanity metrics | Focus on metrics that drive decisions |
+| Too many KPIs | Limit to 5-7 per team |
+| Gaming metrics | Pair metrics that balance each other |
+| Static goals | Review and adjust quarterly |
+| No baselines | Establish current state before setting targets |
+
+
+</Accordion>
+
+<Accordion title="Prioritize: RICE & ICE Scoring — HIGH">
+
+
+# RICE & ICE Prioritization
+
+## RICE Framework
+
+Developed by Intercom for data-driven feature comparison.
+
+### Formula
+
+```
+RICE Score = (Reach x Impact x Confidence) / Effort
+```
+
+### Factors
+
+| Factor | Definition | Scale |
+|--------|------------|-------|
+| **Reach** | Users/customers affected per quarter | Actual number or 1-10 normalized |
+| **Impact** | Effect on individual user | 0.25 (minimal) to 3 (massive) |
+| **Confidence** | How sure are you? | 0.5 (low) to 1.0 (high) |
+| **Effort** | Person-months required | Actual estimate |
+
+### Impact Scale
+
+| Score | Level | Description |
+|-------|-------|-------------|
+| 3 | Massive | Fundamental improvement |
+| 2 | High | Significant improvement |
+| 1 | Medium | Noticeable improvement |
+| 0.5 | Low | Minor improvement |
+| 0.25 | Minimal | Barely noticeable |
+
+### Confidence Scale
+
+| Score | Level | Evidence |
+|-------|-------|----------|
+| 1.0 | High | Strong data, validated |
+| 0.8 | Medium | Some data, reasonable assumptions |
+| 0.5 | Low | Gut feeling, little data |
+| 0.3 | Moonshot | Speculative, new territory |
+
+### Example Calculation
+
+```markdown
+Feature: Smart search with AI suggestions
+
+Reach: 50,000 users/quarter (active searchers)
+Impact: 2 (high - significantly better results)
+Confidence: 0.8 (tested in prototype)
+Effort: 3 person-months
+
+RICE = (50,000 x 2 x 0.8) / 3 = 26,667
+```
+
+### RICE Scoring Template
+
+| Feature | Reach | Impact | Confidence | Effort | RICE Score |
+|---------|-------|--------|------------|--------|------------|
+| Feature A | 10,000 | 2 | 0.8 | 2 | 8,000 |
+| Feature B | 50,000 | 1 | 1.0 | 4 | 12,500 |
+| Feature C | 5,000 | 3 | 0.5 | 1 | 7,500 |
+
+## ICE Framework
+
+Simpler than RICE, ideal for fast prioritization.
+
+```
+ICE Score = Impact x Confidence x Ease
+```
+
+All factors on 1-10 scale.
+
+### ICE vs RICE
+
+| Aspect | RICE | ICE |
+|--------|------|-----|
+| Complexity | More detailed | Simpler |
+| Reach consideration | Explicit | Implicit in Impact |
+| Effort | Person-months | 1-10 Ease scale |
+| Best for | Data-driven teams | Fast decisions |
+
+## Kano Model
+
+Categorize features by customer satisfaction impact.
+
+| Type | Absent | Present | Example |
+|------|--------|---------|---------|
+| **Must-Be** | Dissatisfied | Neutral | Login works |
+| **Performance** | Dissatisfied | Satisfied | Fast load times |
+| **Delighters** | Neutral | Delighted | AI suggestions |
+| **Indifferent** | Neutral | Neutral | About page design |
+| **Reverse** | Satisfied | Dissatisfied | Forced tutorials |
+
+## Framework Selection Guide
+
+| Situation | Recommended Framework |
+|-----------|----------------------|
+| Data-driven team with metrics | RICE |
+| Fast startup decisions | ICE |
+| SAFe/Agile enterprise | WSJF |
+| Fixed scope negotiation | MoSCoW |
+| Customer satisfaction focus | Kano |
+
+## Common Pitfalls
+
+| Pitfall | Mitigation |
+|---------|------------|
+| Gaming the scores | Calibrate as a team regularly |
+| Ignoring qualitative factors | Use frameworks as input, not gospel |
+| Analysis paralysis | Set time limits on scoring sessions |
+| Inconsistent scales | Document and share scoring guidelines |
+
+
+</Accordion>
+
+<Accordion title="Prioritize: WSJF & MoSCoW — HIGH">
+
+
+# WSJF & MoSCoW Prioritization
+
+## WSJF (Weighted Shortest Job First)
+
+SAFe framework optimizing for economic value delivery.
+
+### Formula
+
+```
+WSJF = Cost of Delay / Job Size
+```
+
+Higher WSJF = Higher priority (do first)
+
+### Cost of Delay Components
+
+```
+Cost of Delay = User Value + Time Criticality + Risk Reduction
+```
+
+| Component | Question | Scale |
+|-----------|----------|-------|
+| **User Value** | How much do users/business want this? | 1-21 (Fibonacci) |
+| **Time Criticality** | Does value decay over time? | 1-21 |
+| **Risk Reduction** | Does this reduce risk or enable opportunities? | 1-21 |
+| **Job Size** | Relative effort compared to other items | 1-21 |
+
+### Time Criticality Guidelines
+
+| Score | Situation |
+|-------|-----------|
+| 21 | Must ship this quarter or lose the opportunity |
+| 13 | Competitor pressure, 6-month window |
+| 8 | Customer requested, flexible timeline |
+| 3 | Nice to have, no deadline |
+| 1 | Can wait indefinitely |
+
+### Example
+
+```markdown
+Feature: GDPR compliance update
+
+User Value: 8 (required for EU customers)
+Time Criticality: 21 (regulatory deadline)
+Risk Reduction: 13 (avoids fines)
+Job Size: 8 (medium complexity)
+
+Cost of Delay = 8 + 21 + 13 = 42
+WSJF = 42 / 8 = 5.25
+```
+
+### WSJF vs RICE
+
+| Use WSJF When | Use RICE When |
+|---------------|---------------|
+| Time matters | Value matters |
+| Deadlines exist | Steady-state prioritization |
+| Dependencies complex | Independent features |
+| Opportunity cost high | User reach important |
+
+## MoSCoW Method
+
+Qualitative prioritization for scope management.
+
+### Categories
+
+| Priority | Meaning | Guideline |
+|----------|---------|-----------|
+| **Must Have** | Non-negotiable for release | ~60% of effort |
+| **Should Have** | Important but not critical | ~20% of effort |
+| **Could Have** | Nice to have if time permits | ~20% of effort |
+| **Won't Have** | Explicitly out of scope | Documented |
+
+### Application Rules
+
+1. **Must Have** items alone should deliver a viable product
+2. **Should Have** items make product competitive
+3. **Could Have** items delight users
+4. **Won't Have** prevents scope creep
+
+### Template
+
+```markdown
+## Release 1.0 MoSCoW
+
+### Must Have (M)
+- [ ] User authentication
+- [ ] Core data model
+- [ ] Basic CRUD operations
+
+### Should Have (S)
+- [ ] Search functionality
+- [ ] Export to CSV
+- [ ] Email notifications
+
+### Could Have (C)
+- [ ] Dark mode
+- [ ] Keyboard shortcuts
+- [ ] Custom themes
+
+### Won't Have (W)
+- Mobile app (Release 2.0)
+- AI recommendations (Release 2.0)
+- Multi-language support (Release 3.0)
+```
+
+## Practical Tips
+
+1. **Calibrate together**: Score several items as a team to align understanding
+2. **Revisit regularly**: Priorities shift -- rescore quarterly
+3. **Document assumptions**: Why did you give that Impact score?
+4. **Combine frameworks**: Use ICE for quick triage, RICE for final decisions
+
+
+</Accordion>
+
+<Accordion title="Research: Journey Mapping & Service Blueprints — HIGH">
+
+
+# Journey Mapping & Service Blueprints
+
+## Customer Journey Map Structure
+
+```
++--------+---------+---------+---------+---------+---------------+
+| STAGE  | Aware   | Consider| Purchase| Onboard | Use & Retain  |
++--------+---------+---------+---------+---------+---------------+
+| DOING  |         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|THINKING|         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|FEELING | Neutral | Curious | Anxious | Hopeful | Satisfied     |
++--------+---------+---------+---------+---------+---------------+
+|  PAIN  |         |         |         |         |               |
+| POINTS |         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+| OPPORT-|         |         |         |         |               |
+| UNITIES|         |         |         |         |               |
++--------+---------+---------+---------+---------+---------------+
+|TOUCH-  | Blog,   | Demo,   | Sales,  | Email,  | App, Support, |
+|POINTS  | Social  | Reviews | Pricing | Docs    | Community     |
++--------+---------+---------+---------+---------+---------------+
+```
+
+## Journey Map Template
+
+```markdown
+## Journey Map: [Journey Name]
+
+### Persona
+[Which persona is this journey for]
+
+### Scenario
+[What is the user trying to accomplish]
+
+### Stages
+
+#### Stage 1: [Name]
+
+**Touchpoints:** [Channel/interaction point]
+**Actions:** [What user does]
+**Thoughts:** "[What they're thinking]"
+**Emotions:** [Satisfied / Neutral / Frustrated]
+**Pain Points:** [Friction or frustration]
+**Opportunities:** [How we can improve]
+
+---
+
+#### Stage 2: [Name]
+[Repeat structure]
+
+---
+
+### Key Insights
+1. [Insight from mapping process]
+2. [Another insight]
+
+### Priority Improvements
+| Stage | Opportunity | Impact | Effort |
+|-------|-------------|--------|--------|
+| | | | |
+```
+
+## Experience Curve
+
+```
+Emotional Journey: First Month with Product
+
+Satisfaction
+    |
+    |                              +----------
+    |                        +----/  Productive
+    |                   +----/       User
+    |              +----/
+    |     +--------/
+    | +---/   Pit of          Climbing
+    | /       Despair          Out
+    |-/
+    +-----------------------------------------------> Time
+      Day 1   Week 1   Week 2   Week 3   Week 4
+```
+
+## Service Blueprint
+
+Extension of journey map showing frontstage/backstage operations.
+
+```
++---------------------+----------+----------+------------+
+| CUSTOMER ACTIONS    |  Browse  |  Sign up |  Onboard   |
++---------------------+----------+----------+------------+
+| LINE OF INTERACTION |          |          |            |
++---------------------+----------+----------+------------+
+| FRONTSTAGE         | Website  |  Form    |  Welcome   |
+| (Visible)          |          |          |  wizard    |
++---------------------+----------+----------+------------+
+| LINE OF VISIBILITY |          |          |            |
++---------------------+----------+----------+------------+
+| BACKSTAGE          | CDN,     | Auth     |  Data      |
+| (Invisible)        | Analytics| system   |  import    |
++---------------------+----------+----------+------------+
+| SUPPORT PROCESSES  | Hosting, | Email    | Customer   |
+|                    | CMS      | provider | success    |
++---------------------+----------+----------+------------+
+```
+
+## When to Use Each Tool
+
+| Tool | Best For | Timing |
+|------|----------|--------|
+| Persona | Shared understanding of target users | After discovery research |
+| Empathy Map | Quick alignment on specific scenario | During workshops |
+| Journey Map | End-to-end experience analysis | Strategic planning |
+| Service Blueprint | Operations alignment with CX | Process improvement |
+
+## Common B2B SaaS Stages
+
+```
+Awareness -> Evaluation -> Purchase -> Onboarding ->
+Adoption -> Expansion -> Advocacy/Churn
+```
+
+## Common B2C Stages
+
+```
+Discover -> Research -> Try -> Buy -> Use -> Share
+```
+
+## Best Practices
+
+- **Dynamic journeys**: Update based on real user behavior data
+- **Cross-functional creation**: Include engineering, support, sales in workshops
+- **Connect to metrics**: Link journey stages to measurable KPIs
+- **Review after major feature launches**: Journeys change with the product
+
+
+</Accordion>
+
+<Accordion title="Research: User Personas & Empathy Maps — HIGH">
+
+
+# User Personas & Empathy Maps
+
+Frameworks for synthesizing research into actionable user models.
+
+## Persona Template
+
+```markdown
+## Persona: [Name]
+
+### Demographics
+- Age: [Range]
+- Role: [Job title]
+- Company: [Type/size]
+- Tech savviness: [Low/Medium/High]
+
+### Quote
+> "[Characteristic statement that captures their mindset]"
+
+### Background
+[2-3 sentences about their professional context]
+
+### Goals
+1. [Primary goal - what success looks like]
+2. [Secondary goal]
+3. [Tertiary goal]
+
+### Pain Points
+1. [Frustration with current state]
+2. [Obstacle they face]
+3. [Risk or concern]
+
+### Behaviors
+- [Typical workflow or habit]
+- [Tool preferences]
+- [Information sources]
+
+### Key Insight
+[The most important thing to remember about this persona]
+```
+
+## Persona Example
+
+```markdown
+## Persona: DevOps Dana
+
+### Demographics
+- Age: 32
+- Role: Senior DevOps Engineer
+- Company: Mid-size SaaS (200 employees)
+- Tech savviness: Expert
+
+### Quote
+> "I don't have time for tools that create more work than they save."
+
+### Background
+Dana manages CI/CD pipelines and infrastructure for a growing
+engineering team. She's responsible for reliability and developer
+productivity.
+
+### Goals
+1. Reduce deployment failures and rollback frequency
+2. Give developers self-service capabilities without chaos
+3. Spend less time on repetitive tasks, more on improvements
+
+### Pain Points
+1. Alert fatigue from too many false positives
+2. Lack of visibility into who changed what and when
+3. Context switching between 10+ different tools
+
+### Behaviors
+- Checks Slack and monitoring dashboards first thing
+- Automates anything she does more than twice
+- Documents decisions in ADRs and runbooks
+
+### Key Insight
+Dana evaluates tools by "time saved vs. time invested" -- she needs
+immediate value with minimal onboarding.
+```
+
+## Empathy Map
+
+```
++-------------------------+-------------------------------+
+|         SAYS            |            THINKS             |
+| * Direct quotes         | * What occupies their mind    |
+| * Statements made       | * Worries and concerns        |
+| * Questions asked       | * Aspirations                 |
++-------------------------+-------------------------------+
+|         DOES            |            FEELS              |
+| * Observable actions    | * Emotional state             |
+| * Behaviors             | * Frustrations                |
+| * Workarounds           | * Delights                    |
++-------------------------+-------------------------------+
+|         PAINS           |            GAINS              |
+| * Fears                 | * Wants                       |
+| * Frustrations          | * Needs                       |
+| * Obstacles             | * Success measures            |
++-------------------------+-------------------------------+
+```
+
+## Persona vs. Empathy Map
+
+| Aspect | Persona | Empathy Map |
+|--------|---------|-------------|
+| Based on | Fictional composite | Real individuals |
+| Scope | Full user profile | Specific moment/scenario |
+| Purpose | Shared understanding | Build empathy quickly |
+| Creation | After research synthesis | During/after research |
+
+## Maintenance Schedule
+
+### Personas
+- Review: Quarterly
+- Full update: Annually or after major pivot
+
+### Empathy Maps
+- Create fresh for each new scenario/project
+- Archive after project completion
+
+## Best Practices
+
+- **Data-backed personas**: Connect to analytics, not just qualitative research
+- **Cross-functional creation**: Include engineering, support, sales in workshops
+- **Accessibility by default**: Include users with disabilities in all personas
+- **Connect to metrics**: Link persona needs to measurable KPIs
+- **3-5 personas max**: Too many dilutes focus
+
+
+</Accordion>
+
+<Accordion title="Research: Requirements & PRD — HIGH">
+
+
+# Requirements Engineering & PRDs
+
+Patterns for translating product vision into clear, actionable engineering specifications.
+
+## User Stories
+
+### Standard Format
+
+```
+As a [type of user],
+I want [goal/desire],
+so that [benefit/value].
+```
+
+### INVEST Criteria
+
+| Criterion | Description | Example Check |
+|-----------|-------------|---------------|
+| **I**ndependent | Can be developed separately | No hard dependencies on other stories |
+| **N**egotiable | Details can be discussed | Not a contract, a conversation starter |
+| **V**aluable | Delivers user/business value | Answers "so what?" |
+| **E**stimable | Can be sized by the team | Clear enough to estimate |
+| **S**mall | Fits in a sprint | 1-5 days of work typically |
+| **T**estable | Has clear acceptance criteria | Know when it's done |
+
+### Good vs. Bad Stories
+
+**Good:**
+```markdown
+As a sales manager,
+I want to see my team's pipeline by stage,
+so that I can identify bottlenecks and coach accordingly.
+
+Acceptance Criteria:
+- [ ] Shows deals grouped by stage
+- [ ] Displays deal count and total value per stage
+- [ ] Filters by date range (default: current quarter)
+- [ ] Updates in real-time when deals move stages
+```
+
+**Bad (too vague):** `As a user, I want better reporting.`
+**Bad (solution-focused):** `As a user, I want a pie chart on the dashboard.`
+
+## Acceptance Criteria
+
+### Given-When-Then Format (Gherkin)
+
+```gherkin
+Scenario: Successful login with valid credentials
+  Given I am on the login page
+  And I have a valid account
+  When I enter my email "user@example.com"
+  And I enter my password "validpass123"
+  And I click the "Sign In" button
+  Then I should be redirected to the dashboard
+  And I should see "Welcome back" message
+```
+
+## PRD Template
+
+```markdown
+# PRD: [Feature Name]
+
+**Author:** [Name]
+**Status:** Draft | In Review | Approved | Shipped
+
+## Problem Statement
+[1-2 paragraphs describing the problem we're solving]
+
+## Goals
+1. [Primary goal with measurable outcome]
+2. [Secondary goal]
+
+## Non-Goals (Out of Scope)
+- [Explicitly what we're NOT doing]
+
+## Success Metrics
+| Metric | Current | Target | Timeline |
+|--------|---------|--------|----------|
+| | | | |
+
+## User Stories
+
+### P0 - Must Have (MVP)
+- [ ] Story 1: As a..., I want..., so that...
+
+### P1 - Should Have
+- [ ] Story 2: ...
+
+## Dependencies
+| Dependency | Owner | Status | ETA |
+|------------|-------|--------|-----|
+
+## Risks & Mitigations
+| Risk | Probability | Impact | Mitigation |
+|------|-------------|--------|------------|
+
+## Timeline
+| Milestone | Date | Status |
+|-----------|------|--------|
+| PRD Approved | | |
+| Dev Complete | | |
+| Launch | | |
+```
+
+## Requirements Priority Levels
+
+| Level | Meaning | Criteria |
+|-------|---------|----------|
+| **P0** | Must have for MVP | Users cannot accomplish core job without this |
+| **P1** | Important | Significantly improves experience, high demand |
+| **P2** | Nice to have | Enhances experience, moderate demand |
+| **P3** | Future | Backlog for later consideration |
+
+## Definition of Ready
+
+```markdown
+- [ ] User story follows standard format
+- [ ] Acceptance criteria are complete and testable
+- [ ] Dependencies identified and resolved
+- [ ] Design artifacts available (if applicable)
+- [ ] Story is estimated by the team
+- [ ] Story fits within a single sprint
+```
+
+## Definition of Done
+
+```markdown
+- [ ] Code complete and reviewed
+- [ ] Unit tests written and passing
+- [ ] Integration tests passing
+- [ ] Acceptance criteria verified
+- [ ] Documentation updated
+- [ ] Deployed to staging
+- [ ] Product owner acceptance
+```
+
+## Non-Functional Requirements
+
+| Category | Example Requirement |
+|----------|-------------------|
+| **Performance** | Page load time &lt; 2 seconds at 95th percentile |
+| **Scalability** | Support 10,000 concurrent users |
+| **Availability** | 99.9% uptime |
+| **Security** | All data encrypted at rest and in transit |
+| **Accessibility** | WCAG 2.1 AA compliant |
+
+
+</Accordion>
+
+<Accordion title="Research: User Interviews & Testing — HIGH">
+
+
+# User Interviews & Usability Testing
+
+Methods for understanding user needs, validating designs, and gathering actionable insights.
+
+## Research Methods Overview
+
+| Method | When to Use | Sample Size | Time | Output |
+|--------|-------------|-------------|------|--------|
+| User Interviews | Early discovery, deep understanding | 5-8 | 2-3 weeks | Qualitative insights |
+| Usability Testing | Validate designs, find issues | 5-10 | 1-2 weeks | Actionable fixes |
+| Surveys | Quantify attitudes, preferences | 100+ | 1-2 weeks | Statistical data |
+| Card Sorting | Information architecture | 15-30 | 1 week | IA recommendations |
+| A/B Testing | Compare alternatives | 1000+ | 2-4 weeks | Statistical winner |
+
+## Interview Structure
+
+```markdown
+## Interview Guide
+
+### Warm-up (5 min)
+- Introduction and consent
+- "Tell me about your role and what you do day-to-day"
+
+### Context Setting (10 min)
+- "Walk me through the last time you [relevant activity]"
+- "What tools or methods do you currently use?"
+
+### Deep Dive (25 min)
+- "What's the hardest part about [task]?"
+- "Can you show me how you typically [action]?"
+- "What would your ideal solution look like?"
+
+### Concept Testing (optional, 15 min)
+- Show prototype/concept
+- "What are your initial reactions?"
+- "How would this fit into your workflow?"
+
+### Wrap-up (5 min)
+- "Is there anything else you'd like to share?"
+- "Who else should we talk to?"
+- Thank you and incentive
+```
+
+## Interview Best Practices
+
+| Do | Don't |
+|----|-------|
+| Ask open-ended questions | Ask leading questions |
+| Listen more than talk | Interrupt or fill silences |
+| Follow interesting threads | Stick rigidly to script |
+| Ask "why" and "how" | Accept surface answers |
+| Take verbatim notes | Paraphrase or interpret |
+
+## Usability Test Plan Template
+
+```markdown
+## Usability Test Plan
+
+### Objective
+[What we're trying to learn]
+
+### Prototype/Product
+- Version: [Link or description]
+- Fidelity: Low / Medium / High
+
+### Participants
+- Target: 5-10 users
+- Criteria: [Who qualifies]
+
+### Tasks
+1. [Task 1]: Success criteria
+2. [Task 2]: Success criteria
+3. [Task 3]: Success criteria
+
+### Metrics
+- Task completion rate
+- Time on task
+- Error rate
+- SUS score (post-test)
+```
+
+## Survey Design
+
+### NPS Question
+
+```
+How likely are you to recommend [product] to a friend?
+0  1  2  3  4  5  6  7  8  9  10
+
+[Detractors: 0-6] [Passives: 7-8] [Promoters: 9-10]
+NPS = % Promoters - % Detractors
+```
+
+### System Usability Scale (SUS)
+
+```
+10 questions, 5-point scale (Strongly disagree -> Strongly agree)
+SUS Score = ((Sum of odd Qs - 5) + (25 - Sum of even Qs)) x 2.5
+Range: 0-100, Average: 68
+```
+
+## Card Sorting
+
+| Type | Description | When to Use |
+|------|-------------|-------------|
+| **Open** | Users create their own categories | Early IA exploration |
+| **Closed** | Users sort into predefined categories | Validate proposed IA |
+| **Hybrid** | Users can add categories | Balance of both |
+
+## Research Repository Template
+
+```markdown
+## Research Finding: [Title]
+
+### Study
+- Date: [When conducted]
+- Method: [Interview/Survey/etc.]
+- Participants: [N and description]
+
+### Key Insight
+[One sentence summary]
+
+### Evidence
+- "[Direct quote from participant]" - P3
+- [Observation or data point]
+
+### Implications
+- Product: [What to build/change]
+- Design: [UX recommendation]
+- Strategy: [Business consideration]
+```
+
+
+</Accordion>
+
+<Accordion title="Strategy: Go/No-Go & Build/Buy/Partner — HIGH">
+
+
+# Go/No-Go & Build/Buy/Partner Decisions
+
+## Stage Gate Criteria
+
+```markdown
+## Gate 1: Opportunity Validation
+- [ ] Clear customer problem identified (JTBD defined)
+- [ ] Market size sufficient (TAM > $100M)
+- [ ] Strategic alignment confirmed
+- [ ] No legal/regulatory blockers
+
+## Gate 2: Solution Validation
+- [ ] Value proposition tested with customers
+- [ ] Technical feasibility confirmed
+- [ ] Competitive differentiation clear
+- [ ] Unit economics viable (projected)
+
+## Gate 3: Business Case
+- [ ] ROI > hurdle rate (typically 15-25%)
+- [ ] Payback period acceptable (< 24 months)
+- [ ] Resource requirements confirmed
+- [ ] Risk mitigation plan in place
+
+## Gate 4: Launch Readiness
+- [ ] MVP complete and tested
+- [ ] Go-to-market plan ready
+- [ ] Success metrics defined
+- [ ] Support/ops prepared
+```
+
+## Scoring Template
+
+| Criterion | Weight | Score (1-10) | Weighted |
+|-----------|--------|--------------|----------|
+| Market opportunity | 20% | | |
+| Strategic fit | 20% | | |
+| Competitive position | 15% | | |
+| Technical feasibility | 15% | | |
+| Financial viability | 15% | | |
+| Team capability | 10% | | |
+| Risk profile | 5% | | |
+| **TOTAL** | 100% | | |
+
+**Decision Thresholds:**
+- **Go**: Score >= 7.0
+- **Conditional Go**: Score 5.0-6.9 (address gaps)
+- **No-Go**: Score &lt; 5.0
+
+## Build vs. Buy vs. Partner Decision Matrix
+
+| Factor | Build | Buy | Partner |
+|--------|-------|-----|---------|
+| **Time to Market** | Slow (6-18 months) | Fast (1-3 months) | Medium (3-6 months) |
+| **Cost (Year 1)** | High (dev team) | Medium (license) | Variable |
+| **Cost (Year 3+)** | Lower (owned) | Higher (recurring) | Negotiable |
+| **Customization** | Full control | Limited | Moderate |
+| **Core Competency** | Must be core | Not core | Adjacent |
+| **Competitive Advantage** | High | Low | Medium |
+| **Risk** | Execution risk | Vendor lock-in | Partnership risk |
+
+## Decision Framework
+
+```python
+def build_buy_partner_decision(
+    strategic_importance: int,    # 1-10
+    differentiation_value: int,   # 1-10
+    internal_capability: int,     # 1-10
+    time_sensitivity: int,        # 1-10
+    budget_availability: int,     # 1-10
+) -> str:
+    build_score = (
+        strategic_importance * 0.3 +
+        differentiation_value * 0.3 +
+        internal_capability * 0.2 +
+        (10 - time_sensitivity) * 0.1 +
+        budget_availability * 0.1
+    )
+    if build_score >= 7:
+        return "BUILD: Core capability, invest in ownership"
+    elif build_score >= 4:
+        return "PARTNER: Strategic integration with flexibility"
+    else:
+        return "BUY: Commodity, use best-in-class vendor"
+```
+
+## Decision Tree
+
+```
+Is this a core differentiator?
++-- YES -> BUILD (protects competitive advantage)
++-- NO -> Is there a mature solution available?
+         +-- YES -> BUY (fastest time to value)
+         +-- NO -> Is there a strategic partner?
+                  +-- YES -> PARTNER (shared risk/reward)
+                  +-- NO -> BUILD (must create capability)
+```
+
+## When to Build / Buy / Partner
+
+### Build When
+- Creates lasting competitive advantage
+- Core to your value proposition
+- Requires deep customization
+- Data/IP ownership is critical
+
+### Buy When
+- Commodity functionality (auth, payments, email)
+- Time-to-market is critical
+- Vendor has clear expertise edge
+- Total cost of ownership favors vendor
+
+### Partner When
+- Need capabilities but not full ownership
+- Market access matters (distribution)
+- Risk sharing is valuable
+- Neither build nor buy fits perfectly
+
+
+</Accordion>
+
+<Accordion title="Strategy: Value Proposition & JTBD — HIGH">
+
+
+# Value Proposition & Jobs-to-be-Done
+
+## Jobs-to-be-Done (JTBD) Framework
+
+People don't buy products -- they hire them to do specific jobs.
+
+### JTBD Statement Format
+
+```
+When [situation], I want to [motivation], so I can [expected outcome].
+```
+
+**Example:**
+```
+When I'm commuting to work, I want to catch up on industry news,
+so I can appear informed in morning meetings.
+```
+
+### Job Dimensions
+
+| Dimension | Description | Example |
+|-----------|-------------|---------|
+| **Functional** | Practical task to accomplish | "Transfer money to a friend" |
+| **Emotional** | How user wants to feel | "Feel confident I didn't make a mistake" |
+| **Social** | How user wants to be perceived | "Appear tech-savvy to peers" |
+
+### JTBD Discovery Process
+
+```markdown
+## Step 1: Identify Target Customer
+- Who struggles most with this job?
+- Who pays the most to get this job done?
+
+## Step 2: Define the Core Job
+- What is the customer ultimately trying to accomplish?
+- Strip away solutions -- focus on the outcome
+
+## Step 3: Map Job Steps
+1. Define what success looks like
+2. Locate inputs needed
+3. Prepare for the job
+4. Confirm readiness
+5. Execute the job
+6. Monitor progress
+7. Modify as needed
+8. Conclude the job
+
+## Step 4: Identify Pain Points
+- Where do customers struggle?
+- What causes anxiety or frustration?
+- What workarounds exist?
+
+## Step 5: Quantify Opportunity
+- Importance: How important is this job? (1-10)
+- Satisfaction: How satisfied with current solutions? (1-10)
+- Opportunity = Importance + (Importance - Satisfaction)
+```
+
+## Value Proposition Canvas
+
+### Customer Profile (Right Side)
+
+```
++-------------------------------------+
+|         CUSTOMER PROFILE            |
+|  JOBS                               |
+|  * Functional jobs (tasks)          |
+|  * Social jobs (how seen)           |
+|  * Emotional jobs (how feel)        |
+|                                     |
+|  PAINS                              |
+|  * Undesired outcomes               |
+|  * Obstacles                        |
+|  * Risks                            |
+|                                     |
+|  GAINS                              |
+|  * Required outcomes                |
+|  * Expected outcomes                |
+|  * Desired outcomes                 |
+|  * Unexpected outcomes              |
++-------------------------------------+
+```
+
+### Value Map (Left Side)
+
+```
++-------------------------------------+
+|           VALUE MAP                 |
+|  PRODUCTS & SERVICES                |
+|  * What we offer                    |
+|  * Features and capabilities        |
+|                                     |
+|  PAIN RELIEVERS                     |
+|  * How we eliminate pains           |
+|  * Risk reduction                   |
+|  * Cost savings                     |
+|                                     |
+|  GAIN CREATORS                      |
+|  * How we create gains              |
+|  * Performance improvements         |
+|  * Social/emotional benefits        |
++-------------------------------------+
+```
+
+### Fit Assessment
+
+| Fit Level | Description | Action |
+|-----------|-------------|--------|
+| **Problem-Solution Fit** | Value map addresses jobs/pains/gains | Validate with interviews |
+| **Product-Market Fit** | Customers actually buy/use | Measure retention, NPS |
+| **Business Model Fit** | Sustainable unit economics | Track CAC, LTV, margins |
+
+## Key Principles
+
+| Principle | Application |
+|-----------|-------------|
+| **Customer-first** | Start with jobs, not features |
+| **Evidence-based** | Validate assumptions with data |
+| **Strategic alignment** | Every initiative serves the mission |
+| **Reversible decisions** | Prefer options that preserve flexibility |
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (11)
+
+<Accordions type="multiple">
+
+<Accordion title="Build Buy Partner Decision">
+
+# Build vs Buy vs Partner Decision Framework
+
+Systematic approach for evaluating capability acquisition options.
+
+## Decision Matrix
+
+| Factor | BUILD | BUY | PARTNER |
+|--------|-------|-----|---------|
+| **Core differentiator?** | ✅ Yes | ❌ No | ⚠️ Maybe |
+| **Competitive advantage?** | ✅ Yes | ❌ No | ⚠️ Depends |
+| **In-house expertise?** | ✅ Have | ❌ Lack | ⚠️ Some |
+| **Time to market critical?** | ❌ Slow | ✅ Fast | ✅ Fast |
+| **Budget constrained?** | ❌ Higher upfront | ✅ Lower upfront | ⚠️ Varies |
+| **Long-term control needed?** | ✅ Full | ❌ Limited | ⚠️ Negotiated |
+| **Customization required?** | ✅ Full | ⚠️ Limited | ⚠️ Depends |
+
+## Scoring Template
+
+```markdown
+## Build vs Buy vs Partner: [Capability Name]
+
+### Scoring (1-5 each dimension)
+
+| Dimension | BUILD | BUY | PARTNER |
+|-----------|-------|-----|---------|
+| Strategic Importance | | | |
+| Capability Maturity | | | |
+| Time to Value | | | |
+| Total Cost (3yr) | | | |
+| Risk Level | | | |
+| **TOTAL** | | | |
+
+### Recommendation: [BUILD/BUY/PARTNER]
+
+### Rationale:
+[Explain the decision]
+
+### Conditions:
+- [ ] [Condition 1]
+- [ ] [Condition 2]
+```
+
+## Cost Considerations
+
+### BUILD Costs
+- Development (engineering time)
+- Opportunity cost (what else could be built)
+- Maintenance (10-20% annual)
+- Infrastructure
+- Hiring/training
+
+### BUY Costs
+- License/subscription fees
+- Integration development
+- Vendor lock-in risk
+- Customization limitations
+- Annual price increases
+
+### PARTNER Costs
+- Revenue share
+- Dependency risk
+- Integration complexity
+- Coordination overhead
+- Brand association risk
+
+## Decision Tree
+
+```
+Is this a core differentiator?
+├── YES → BUILD (protects competitive advantage)
+└── NO → Is there a mature solution available?
+         ├── YES → BUY (fastest time to value)
+         └── NO → Is there a strategic partner?
+                  ├── YES → PARTNER (shared risk/reward)
+                  └── NO → BUILD (must create capability)
+```
+
+## Red Flags by Option
+
+### BUILD Red Flags
+- No in-house expertise
+- Underestimated complexity
+- "We can do it better"
+- Core expertise elsewhere
+
+### BUY Red Flags
+- Heavy customization needed
+- Vendor lock-in concerns
+- Poor vendor track record
+- Integration nightmares
+
+### PARTNER Red Flags
+- Misaligned incentives
+- Competitor partnerships
+- Unclear value split
+- Dependency on partner roadmap
+
+## 2026 Best Practices
+
+- Revisit decisions quarterly (market changes fast)
+- Consider AI/ML tool availability before building
+- Evaluate open-source alternatives
+- Factor in security/compliance requirements
+- Include exit strategy in evaluation
+
+
+</Accordion>
+
+<Accordion title="Competitive Analysis Guide">
+
+# Competitive Analysis Guide
+
+Framework for systematic competitor research.
+
+## Competitor Categories
+
+```
+DIRECT COMPETITORS
+└── Same problem, same solution approach
+└── Example: Cursor vs GitHub Copilot
+
+INDIRECT COMPETITORS
+└── Same problem, different solution
+└── Example: AI coding vs traditional IDE plugins
+
+POTENTIAL COMPETITORS
+└── Adjacent players who could enter
+└── Example: Cloud providers adding AI tools
+```
+
+## Competitive Analysis Framework
+
+### 1. Identify Competitors
+
+```bash
+# GitHub search for similar projects
+gh search repos "langgraph workflow" --sort stars --limit 10
+
+# Check related topics
+gh api search/repositories?q=topic:ai-agents --jq '.items[].full_name'
+```
+
+### 2. Build Competitor Profiles
+
+```markdown
+## Competitor: [Name]
+
+### Overview
+- Founded: [Year]
+- Funding: $[Amount]
+- Team size: [N]
+- Headquarters: [Location]
+
+### Product
+- Core offering: [Description]
+- Target segment: [Who they serve]
+- Pricing: [Model and range]
+- Technology: [Key tech stack]
+
+### Positioning
+- Value proposition: [Their pitch]
+- Key differentiators: [What they claim]
+- Messaging: [How they talk about themselves]
+
+### Strengths
+- [Strength 1]
+- [Strength 2]
+
+### Weaknesses
+- [Weakness 1]
+- [Weakness 2]
+
+### Market Presence
+- GitHub stars: [N]
+- Monthly growth: [%]
+- Community activity: [Active/Moderate/Low]
+```
+
+### 3. Feature Comparison Matrix
+
+| Feature | Us | Competitor A | Competitor B | Competitor C |
+|---------|-----|--------------|--------------|--------------|
+| Core capability 1 | ✅ | ✅ | ❌ | ✅ |
+| Core capability 2 | ✅ | ❌ | ✅ | ⚠️ |
+| Integration X | ✅ | ✅ | ✅ | ❌ |
+| Pricing (entry) | $X | $Y | $Z | $W |
+| Open source | ✅ | ❌ | ✅ | ❌ |
+
+### 4. Positioning Map
+
+```
+                    EASE OF USE
+                        │
+           ┌────────────┼────────────┐
+           │    Us      │    [B]     │
+HIGH ──────┼────────────┼────────────┼────── LOW
+POWER      │            │            │   POWER
+           │    [A]     │    [C]     │
+           └────────────┼────────────┘
+                        │
+                    COMPLEXITY
+```
+
+### 5. SWOT Analysis
+
+```
+           HELPFUL              HARMFUL
+         ┌─────────────┬─────────────┐
+INTERNAL │ STRENGTHS   │ WEAKNESSES  │
+         │ • Our tech  │ • Resources │
+         │ • Our team  │ • Gaps      │
+         ├─────────────┼─────────────┤
+EXTERNAL │ OPPORTUN.   │ THREATS     │
+         │ • Market    │ • [Comp A]  │
+         │ • Trends    │ • Risks     │
+         └─────────────┴─────────────┘
+```
+
+## GitHub Signals to Track
+
+```bash
+# Star count and growth
+gh api repos/owner/repo --jq '{stars: .stargazers_count}'
+
+# Issue activity (community engagement)
+gh api repos/owner/repo --jq '{open_issues: .open_issues_count}'
+
+# Recent releases (shipping velocity)
+gh release list --repo owner/repo --limit 5
+
+# Contributor count
+gh api repos/owner/repo/contributors --jq 'length'
+```
+
+## Update Frequency
+
+| Signal | Check Frequency |
+|--------|-----------------|
+| Star growth | Weekly |
+| Release notes | Per release |
+| Pricing changes | Monthly |
+| Feature launches | Per announcement |
+| Full analysis | Quarterly |
+
+
+</Accordion>
+
+<Accordion title="Interview Guide Template">
+
+# Interview Guide Template
+
+Use this template to prepare for user interviews.
+
+```markdown
+# Interview Guide: [Research Topic]
+
+**Project:** [Project name]
+**Date:** YYYY-MM-DD
+**Interviewer:** [Name]
+**Note-taker:** [Name]
+
+---
+
+## Research Questions
+
+What do we want to learn?
+
+1. [Primary research question]
+2. [Secondary research question]
+3. [Secondary research question]
+
+---
+
+## Participant Profile
+
+| Criterion | Requirement |
+|-----------|-------------|
+| Role | [e.g., Product Manager] |
+| Experience | [e.g., 2+ years] |
+| Industry | [e.g., B2B SaaS] |
+| Tool usage | [e.g., Uses [tool] weekly] |
+
+---
+
+## Interview Flow
+
+### Warm-up (5 min)
+
+**Script:**
+```
+"Thank you for taking the time to speak with me today.
+I'm [name] and I'm researching [topic]. This conversation
+will help us understand [goal].
+
+There are no right or wrong answers - we want to learn
+from your experience. Is it okay if I record this for
+my notes? The recording won't be shared outside the team."
+```
+
+**Questions:**
+- Tell me a bit about your role and what you do day-to-day.
+- How long have you been in this role?
+
+---
+
+### Context Setting (10 min)
+
+**Goal:** Understand their current workflow and context.
+
+**Questions:**
+1. Walk me through the last time you [relevant activity].
+2. What tools or methods do you currently use for [task]?
+3. How often do you [activity]?
+4. Who else is involved in this process?
+
+**Probes:**
+- Can you tell me more about that?
+- What happened next?
+- How did that make you feel?
+
+---
+
+### Deep Dive (25 min)
+
+**Goal:** Explore pain points and needs.
+
+**Questions:**
+1. What's the hardest part about [task]?
+2. Can you tell me about a time when [task] went wrong?
+3. What do you wish you could do that you can't today?
+4. If you had a magic wand, what would you change?
+
+**Jobs to be Done:**
+- When [situation], what are you trying to accomplish?
+- What does success look like for you?
+
+---
+
+### Concept Testing (optional, 15 min)
+
+**Goal:** Get reaction to prototype or concept.
+
+**Setup:**
+```
+"I'm going to show you something we're working on.
+It's an early concept, so don't worry about polish.
+I want to hear your honest reaction."
+```
+
+**Questions:**
+1. What are your initial reactions?
+2. What would you expect to happen if you [action]?
+3. How would this fit into your current workflow?
+4. What's missing that you'd need?
+
+---
+
+### Wrap-up (5 min)
+
+**Questions:**
+1. Is there anything else you'd like to share?
+2. What's the one thing we should make sure to get right?
+3. Who else should we talk to about this?
+
+**Script:**
+```
+"Thank you so much for your time. This has been really
+helpful. Here's your [incentive]. We may follow up with
+additional questions - would that be okay?"
+```
+
+---
+
+## After Interview
+
+### Quick Debrief (5 min after)
+
+- Top 3 takeaways:
+- Surprises:
+- Quotes to remember:
+
+### Full Notes (within 24 hours)
+
+- Clean up notes
+- Highlight key quotes
+- Tag themes
+- Upload recording
+```
+
+
+</Accordion>
+
+<Accordion title="Journey Map Workshop">
+
+# Journey Map Workshop Guide
+
+Facilitation guide for customer journey mapping sessions.
+
+## Workshop Structure
+
+```
+Total Time: 3-4 hours
+
+1. Setup & Objectives (15 min)
+2. Journey Stages Definition (30 min)
+3. Touchpoint Mapping (45 min)
+4. Emotional Journey (30 min)
+5. Pain Points & Opportunities (45 min)
+6. Prioritization (30 min)
+7. Wrap-up & Next Steps (15 min)
+```
+
+## Pre-Workshop Preparation
+
+### Materials
+- Large whiteboard or wall space
+- Sticky notes (5 colors)
+- Markers
+- Persona cards
+- Research findings summary
+- Journey map template (printed large)
+
+### Participants to Invite
+- Product Manager
+- Designer
+- Engineer (customer-facing features)
+- Customer Success/Support
+- Sales (if B2B)
+- Marketing
+- Real customer (ideal but optional)
+
+### Pre-Read
+- Existing user research
+- Support ticket analysis
+- Analytics highlights
+- Persona documentation
+
+## Journey Map Canvas
+
+```
+STAGE:      | Awareness | Consideration | Purchase | Onboarding | Use | Advocacy |
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+DOING       │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+THINKING    │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+FEELING     │   😐      │     🤔        │    😬    │     😊     │ 😃  │    🥰    │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+TOUCHPOINTS │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+PAIN POINTS │           │               │          │            │     │          │
+────────────┼───────────┼───────────────┼──────────┼────────────┼─────┼──────────┤
+OPPORTUN.   │           │               │          │            │     │          │
+```
+
+## Workshop Flow
+
+### 1. Setup & Objectives (15 min)
+
+**Facilitator Script:**
+```
+"Today we're mapping the journey of [persona] as they
+[goal/task]. Our objective is to identify pain points
+and opportunities to improve their experience.
+
+We'll use this journey map as our canvas. Let's start
+by reviewing who [persona] is and what they're trying
+to accomplish."
+```
+
+**Review:**
+- Persona overview
+- Journey scope (start and end points)
+- Research highlights
+
+### 2. Journey Stages Definition (30 min)
+
+**Activity:** Define 5-7 stages of the journey
+
+**Questions:**
+- What triggers the journey? (Entry point)
+- What are the major phases?
+- What signals the end of each stage?
+- What does "success" look like? (Exit point)
+
+**Common B2B SaaS Stages:**
+```
+Awareness → Evaluation → Purchase → Onboarding →
+Adoption → Expansion → Advocacy/Churn
+```
+
+**Common B2C Stages:**
+```
+Discover → Research → Try → Buy → Use → Share
+```
+
+### 3. Touchpoint Mapping (45 min)
+
+**Activity:** For each stage, map what the user DOES
+
+**Questions per stage:**
+- What action does the user take?
+- What information do they seek?
+- What decisions do they make?
+- What channels do they use?
+
+**Sticky Note Prompts:**
+- "Searches for..."
+- "Clicks on..."
+- "Asks about..."
+- "Compares..."
+- "Signs up for..."
+
+### 4. Emotional Journey (30 min)
+
+**Activity:** Map the emotional experience at each stage
+
+**For each touchpoint, ask:**
+- How does the user feel at this moment?
+- What are they worried about?
+- What would delight them?
+
+**Emotion Scale:**
+
+```
+😃 Delighted - Exceeded expectations
+😊 Satisfied - Met expectations
+😐 Neutral - No strong feeling
+😟 Frustrated - Below expectations
+😠 Angry - Major failure
+```
+
+**Draw the emotional curve** across stages.
+
+### 5. Pain Points & Opportunities (45 min)
+
+**Pain Points (Red sticky notes):**
+- Where does friction occur?
+- What causes frustration?
+- Where do users drop off?
+- What support tickets mention?
+
+**Opportunities (Green sticky notes):**
+- How could we eliminate this pain?
+- What would delight users here?
+- What's the "magic moment" potential?
+- Quick wins vs. long-term improvements?
+
+### 6. Prioritization (30 min)
+
+**Impact/Effort Matrix:**
+
+```
+              HIGH IMPACT
+                   │
+        ┌──────────┼──────────┐
+        │  DO NEXT │ DO FIRST │
+LOW ────┼──────────┼──────────┼──── HIGH
+EFFORT  │  MAYBE   │  PLAN    │    EFFORT
+        └──────────┼──────────┘
+                   │
+              LOW IMPACT
+```
+
+**Dot Voting:**
+- Each person gets 5 dots
+- Vote on most valuable opportunities
+- Discuss top voted items
+
+### 7. Wrap-up (15 min)
+
+**Document:**
+- Top 3 pain points
+- Top 3 opportunities
+- Quick wins (&lt; 1 sprint)
+- Key insights
+
+**Assign:**
+- Owner for journey map document
+- Follow-up actions
+- Review date
+
+## Post-Workshop
+
+### Within 24 Hours
+- [ ] Photograph/export the physical map
+- [ ] Create digital version
+- [ ] Share with attendees
+
+### Within 1 Week
+- [ ] Create detailed journey map document
+- [ ] Prioritized improvement backlog
+- [ ] Share with broader team
+
+### Ongoing
+- [ ] Update as product evolves
+- [ ] Review quarterly
+- [ ] Validate with new research
+
+
+</Accordion>
+
+<Accordion title="Okr Workshop Guide">
+
+# OKR Workshop Guide
+
+Facilitation guide for setting effective OKRs.
+
+## Workshop Structure
+
+```
+Total Time: 3-4 hours
+
+1. OKR Foundations (20 min)
+2. Review Company/Team Context (20 min)
+3. Objective Brainstorming (45 min)
+4. Key Result Definition (60 min)
+5. Alignment Check (30 min)
+6. Finalization (25 min)
+```
+
+## Pre-Workshop Preparation
+
+### Materials Needed
+- Company/team strategy docs
+- Previous quarter OKR results
+- Whiteboard or Miro
+- Sticky notes (2 colors)
+- Timer
+- OKR template printouts
+
+### Pre-Read for Participants
+- Company OKRs (if cascade)
+- Previous quarter results
+- Strategic priorities for the period
+
+## 1. OKR Foundations (20 min)
+
+### Facilitator Script
+
+```
+"OKRs help us focus on what matters most and align our efforts.
+Today we'll set [N] Objectives with [M] Key Results each.
+
+Key principles:
+- Objectives are QUALITATIVE and INSPIRATIONAL
+- Key Results are QUANTITATIVE and MEASURABLE
+- Aim for 70% achievement (stretch, not sandbagging)
+- Focus on outcomes, not outputs"
+```
+
+### OKR Anatomy
+
+```
+OBJECTIVE: Qualitative, inspiring, time-bound
+├── What do we want to achieve?
+├── Why does it matter?
+└── Is it ambitious but achievable?
+
+KEY RESULT: Quantitative, measurable, has deadline
+├── How will we know we succeeded?
+├── Is it specific and unambiguous?
+└── Can we track progress?
+```
+
+## 2. Review Context (20 min)
+
+### Questions to Discuss
+
+1. What are the company's top priorities this quarter?
+2. What did we learn from last quarter?
+3. What constraints do we have (resources, dependencies)?
+4. What opportunities should we capture?
+
+### Alignment Cascade
+
+```
+Company OKRs
+    │
+    ▼
+Department OKRs (aligns to company)
+    │
+    ▼
+Team OKRs (aligns to department)
+    │
+    ▼
+Individual OKRs (optional, aligns to team)
+```
+
+## 3. Objective Brainstorming (45 min)
+
+### Silent Brainstorm (15 min)
+- Each participant writes 3-5 potential objectives
+- One objective per sticky note
+- Focus on outcomes, not activities
+
+### Share & Cluster (15 min)
+- Each person shares their objectives
+- Group similar objectives together
+- Identify themes
+
+### Vote & Select (15 min)
+- Dot voting (3 dots per person)
+- Select top 3-5 objectives
+- Discuss and refine wording
+
+### Objective Quality Check
+
+| Criterion | ✓ |
+|-----------|---|
+| Qualitative (no numbers) | |
+| Inspirational (energizing) | |
+| Time-bound (quarterly) | |
+| Actionable (within our control) | |
+| Aligned (to company/team strategy) | |
+
+## 4. Key Result Definition (60 min)
+
+### For Each Objective (15 min each)
+
+1. **Brainstorm metrics** (5 min)
+   - What would prove we achieved this?
+   - What leading indicators matter?
+   - What lagging indicators confirm success?
+
+2. **Set targets** (5 min)
+   - What's our current baseline?
+   - What's a stretch target (70% achievable)?
+   - What's the minimum acceptable?
+
+3. **Refine wording** (5 min)
+   - Is it specific and measurable?
+   - Is the target ambitious but realistic?
+   - Can we track this?
+
+### Key Result Formula
+
+```
+[Verb] [metric] from [baseline] to [target] by [deadline]
+
+Examples:
+- Increase NPS from 32 to 50
+- Reduce time-to-value from 14 days to 3 days
+- Achieve 95% feature adoption in first 30 days
+```
+
+### KR Quality Check
+
+| Criterion | ✓ |
+|-----------|---|
+| Quantitative (has number) | |
+| Measurable (we can track it) | |
+| Has baseline | |
+| Has target | |
+| Outcome-focused (not output) | |
+| 70% achievable stretch | |
+
+## 5. Alignment Check (30 min)
+
+### Vertical Alignment
+- Does this OKR support a higher-level objective?
+- Is the connection clear?
+
+### Horizontal Alignment
+- Do any OKRs conflict with other teams?
+- Are there dependencies we need to coordinate?
+
+### Sanity Check Questions
+- If we achieve all KRs, will we achieve the Objective?
+- Can we actually measure each KR?
+- Are we tracking too many things?
+
+## 6. Finalization (25 min)
+
+### Final OKR Template
+
+```markdown
+## Objective: [Inspiring statement]
+
+**Key Results:**
+1. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+
+2. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+
+3. [Verb] [metric] from [X] to [Y]
+   - Baseline: X
+   - Target: Y
+   - Owner: @name
+```
+
+### Post-Workshop Actions
+- [ ] Document final OKRs
+- [ ] Set up tracking dashboard
+- [ ] Schedule weekly check-ins
+- [ ] Schedule mid-quarter review
+- [ ] Share with stakeholders
+
+
+</Accordion>
+
+<Accordion title="Rice Scoring Guide">
+
+# RICE Scoring Guide
+
+Comprehensive guide for using RICE prioritization effectively.
+
+## RICE Formula
+
+```
+RICE Score = (Reach × Impact × Confidence) / Effort
+```
+
+## Reach Scoring
+
+Estimate how many users/customers will be affected per quarter.
+
+| Score | % of Users | Description |
+|-------|------------|-------------|
+| 10 | 100% | All users |
+| 8 | 80% | Most users |
+| 5 | 50% | Half of users |
+| 3 | 30% | Some users |
+| 1 | 10% | Few users |
+
+### Calculating Reach
+
+```
+Reach = (Users affected) / (Total users) × 10
+
+Example:
+- Total MAU: 10,000
+- Users who use search: 8,000
+- Reach for search improvement: 8,000/10,000 × 10 = 8
+```
+
+## Impact Scoring
+
+How much will this move the needle on your goal?
+
+| Score | Impact Level | Description |
+|-------|--------------|-------------|
+| 3.0 | Massive | 3x or more improvement |
+| 2.0 | High | 2x improvement |
+| 1.0 | Medium | Notable improvement |
+| 0.5 | Low | Minor improvement |
+| 0.25 | Minimal | Barely noticeable |
+
+### Impact Assessment Questions
+
+1. What metric does this affect?
+2. By how much will it change?
+3. What's the baseline?
+4. What's the target?
+
+## Confidence Scoring
+
+How certain are you about Reach and Impact estimates?
+
+| Score | Confidence | Evidence Level |
+|-------|------------|----------------|
+| 1.0 | High | Data-backed (analytics, A/B tests) |
+| 0.8 | Medium | Some validation (user interviews, surveys) |
+| 0.5 | Low | Gut feel (experienced intuition) |
+| 0.3 | Moonshot | Speculative (new territory) |
+
+### Confidence Calibration
+
+- Used similar feature before? → +0.2
+- Have user research? → +0.2
+- Have analytics data? → +0.2
+- New domain/technology? → -0.2
+- Many unknowns? → -0.2
+
+## Effort Scoring
+
+Person-weeks of work to ship (design, development, testing).
+
+| Score | Effort | Timeline |
+|-------|--------|----------|
+| 0.5 | Trivial | &lt; 1 week |
+| 1 | Small | 1 week |
+| 2 | Medium | 2 weeks |
+| 4 | Large | 1 month |
+| 8 | XL | 2 months |
+| 16 | XXL | Quarter |
+
+### Effort Estimation Tips
+
+- Include all disciplines (design, eng, QA)
+- Add buffer for unknowns (1.2-1.5x)
+- Consider dependencies
+- Account for coordination overhead
+
+## Example Scoring
+
+```markdown
+## Feature: Advanced Search Filters
+
+### Reach: 8
+- 80% of users use search at least once/week
+- Source: Analytics dashboard
+
+### Impact: 2.0
+- Support tickets about search: 40/week
+- Expected reduction: 50%
+- Secondary: +10% search completion rate
+
+### Confidence: 0.8
+- Have user interview data (5 users)
+- Similar feature at competitor successful
+- No A/B test yet
+
+### Effort: 2
+- Design: 0.5 weeks
+- Backend: 1 week
+- Frontend: 0.5 weeks
+
+### RICE Score
+(8 × 2.0 × 0.8) / 2 = 6.4
+```
+
+## Common Mistakes
+
+| Mistake | Solution |
+|---------|----------|
+| Overestimating reach | Use actual data, not hopes |
+| Impact without baseline | Define current state first |
+| 100% confidence | Nothing is certain |
+| Underestimating effort | Include all work, add buffer |
+| Comparing across goals | Only compare within same goal |
+
+## When NOT to Use RICE
+
+- Mandatory compliance/security work
+- Technical debt paydown
+- Infrastructure investments
+- Strategic bets with long payoff
+
+
+</Accordion>
+
+<Accordion title="Roi Calculation Guide">
+
+# ROI Calculation Guide
+
+Comprehensive guide for calculating Return on Investment for product decisions.
+
+## Basic ROI Formula
+
+```
+ROI = ((Net Benefit) / Total Investment) × 100%
+
+Net Benefit = Total Benefits - Total Costs
+```
+
+## Detailed Cost Breakdown
+
+### One-Time Costs (CAPEX)
+
+```
+Development Costs
+├── Engineering hours × hourly rate
+├── Design/UX hours × hourly rate
+├── QA/Testing hours × hourly rate
+├── Project management overhead (15-20%)
+└── Infrastructure setup
+
+Example:
+- 4 engineers × 40 hrs/week × 4 weeks × $100/hr = $64,000
+- 1 designer × 40 hrs/week × 2 weeks × $90/hr = $7,200
+- QA (20% of eng) = $12,800
+- PM overhead (15%) = $12,600
+Total Development: $96,600
+```
+
+### Recurring Costs (OPEX)
+
+```
+Operational Costs (Annual)
+├── Infrastructure (hosting, compute)
+├── Maintenance (10-20% of dev cost)
+├── Support (tickets × cost/ticket)
+├── Monitoring/observability
+└── Security/compliance
+
+Example:
+- Infrastructure: $12,000/year
+- Maintenance (15%): $14,490/year
+- Support: 50 tickets/month × $20 = $12,000/year
+Total Annual: $38,490
+```
+
+### Opportunity Costs
+
+What else could we do with these resources?
+
+- Delayed features (revenue impact)
+- Team context switching
+- Technical debt not addressed
+- Market timing missed
+
+## Benefit Categories
+
+### Quantifiable Revenue Benefits
+
+```
+Revenue Benefits
+├── New customer acquisition
+│   └── New customers × ARPU × 12 months
+├── Upsell/expansion
+│   └── Existing customers × upsell rate × additional ARPU
+├── Reduced churn
+│   └── Customers retained × ARPU × months retained
+└── Price increase enablement
+    └── Customers × price increase
+```
+
+### Quantifiable Cost Savings
+
+```
+Cost Savings
+├── Reduced support tickets
+│   └── Tickets reduced × cost/ticket
+├── Faster onboarding
+│   └── Time saved × support hourly rate
+├── Automation savings
+│   └── Hours automated × employee hourly rate
+└── Infrastructure efficiency
+    └── Resources freed × cost
+```
+
+### Intangible Benefits
+
+Document but don't include in ROI calculation:
+- Market positioning
+- Developer experience
+- Brand/reputation
+- Technical foundation for future features
+
+## Example ROI Calculation
+
+```markdown
+## Investment: Search Feature Improvement
+
+### Costs (3-Year Total)
+| Category | Year 1 | Year 2 | Year 3 | Total |
+|----------|--------|--------|--------|-------|
+| Development | $96,600 | $0 | $0 | $96,600 |
+| Infrastructure | $12,000 | $12,600 | $13,230 | $37,830 |
+| Maintenance | $14,490 | $15,215 | $15,975 | $45,680 |
+| **Total Costs** | $123,090 | $27,815 | $29,205 | **$180,110** |
+
+### Benefits (3-Year Total)
+| Category | Year 1 | Year 2 | Year 3 | Total |
+|----------|--------|--------|--------|-------|
+| New Revenue | $120,000 | $180,000 | $240,000 | $540,000 |
+| Cost Savings | $36,000 | $42,000 | $48,000 | $126,000 |
+| **Total Benefits** | $156,000 | $222,000 | $288,000 | **$666,000** |
+
+### ROI Calculation
+- Total Investment: $180,110
+- Total Benefits: $666,000
+- Net Benefit: $485,890
+- ROI: (485,890 / 180,110) × 100% = **270%**
+- Payback Period: $180,110 / ($666,000/36 months) = **9.7 months**
+```
+
+## Payback Period
+
+```
+Payback Period = Total Investment / Monthly Net Benefit
+
+Good: < 12 months
+Acceptable: 12-24 months
+Risky: > 24 months
+```
+
+## Sensitivity Analysis
+
+Always calculate three scenarios:
+
+| Scenario | Assumption | ROI |
+|----------|------------|-----|
+| Conservative (P10) | 50% of expected benefits | X% |
+| Base Case (P50) | Expected benefits | Y% |
+| Optimistic (P90) | 150% of expected benefits | Z% |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| Forgetting opportunity cost | Include what else could be built |
+| Single-point estimates | Use ranges and scenarios |
+| Ignoring maintenance | Add 10-20% annually |
+| Counting intangibles | Keep separate from hard ROI |
+| Not discounting future | Apply discount rate for NPV |
+
+
+</Accordion>
+
+<Accordion title="Tam Sam Som Guide">
+
+# TAM/SAM/SOM Market Sizing Guide
+
+Comprehensive guide for market size estimation.
+
+## Definitions
+
+```
+TAM (Total Addressable Market)
+└── "If we had 100% of the entire market"
+└── The total market demand for a product/service
+
+SAM (Serviceable Addressable Market)
+└── "Segment we can actually reach"
+└── TAM filtered by geography, segment, channel
+
+SOM (Serviceable Obtainable Market)
+└── "Realistic capture in 3 years"
+└── SAM filtered by competition, capacity, go-to-market
+```
+
+## Visual Hierarchy
+
+```
+┌─────────────────────────────────────────────────┐
+│                    TAM                           │
+│                 $10 Billion                      │
+│  ┌─────────────────────────────────────────┐    │
+│  │                SAM                       │    │
+│  │             $500 Million                 │    │
+│  │  ┌────────────────────────────────────┐ │    │
+│  │  │              SOM                    │ │    │
+│  │  │           $10 Million               │ │    │
+│  │  └────────────────────────────────────┘ │    │
+│  └─────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────┘
+```
+
+## TAM Calculation Methods
+
+### Top-Down Approach
+
+Start with industry reports and filter down.
+
+```
+Example: AI Developer Tools
+1. Global software developer population: 27M (Statista 2026)
+2. Developers using AI tools: 60% = 16.2M
+3. Average spend on AI tools: $300/year
+4. TAM = 16.2M × $300 = $4.86B
+```
+
+### Bottom-Up Approach
+
+Start with unit economics and scale up.
+
+```
+Example: AI Developer Tools
+1. Target customer: Enterprise dev team (10+ devs)
+2. Estimated teams globally: 500,000
+3. Average contract value: $10,000/year
+4. TAM = 500,000 × $10,000 = $5B
+```
+
+### Cross-Reference
+
+Always use both methods and reconcile:
+
+| Method | TAM | Notes |
+|--------|-----|-------|
+| Top-Down | $4.86B | Based on Statista data |
+| Bottom-Up | $5.0B | Based on enterprise segments |
+| **Reconciled** | **$4.9B** | Average, validated range |
+
+## SAM Calculation
+
+Filter TAM by your actual reach:
+
+```
+Example: AI Developer Tools (US/EU focus)
+TAM: $4.9B
+
+Filters:
+- Geography (US/EU only): 40% → $1.96B
+- Segment (Enterprise only): 30% → $588M
+- Use case (Python/TS devs): 80% → $470M
+
+SAM: $470M
+```
+
+## SOM Calculation
+
+What you can realistically capture:
+
+```
+Example: AI Developer Tools
+SAM: $470M
+
+Constraints:
+- Market share goal (3 years): 3%
+- Competitive pressure: -20%
+- Sales capacity: supports $15M ARR
+- Go-to-market reach: 70%
+
+Conservative SOM: min($470M × 3%, $15M, $470M × 70% × 3%)
+= min($14.1M, $15M, $9.87M)
+= $9.87M → Round to $10M
+
+SOM: $10M (3-year target)
+```
+
+## Data Sources
+
+### Primary Sources (Higher Confidence)
+- Gartner, Forrester, IDC reports
+- Company financials (public competitors)
+- Industry associations
+- Government statistics
+
+### Secondary Sources (Lower Confidence)
+- Press releases
+- Expert interviews
+- Survey data
+- LinkedIn data (company sizes)
+
+## Confidence Levels
+
+| Confidence | Evidence |
+|------------|----------|
+| HIGH | Multiple corroborating sources, recent data |
+| MEDIUM | Single authoritative source, 1-2 years old |
+| LOW | Extrapolated, assumptions, old data |
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| TAM = "everyone" | Define specific customer segment |
+| Ignoring competition | SOM must account for competitors |
+| Old data | Use most recent (&lt;2 years) |
+| Single method | Cross-validate top-down and bottom-up |
+| Confusing TAM/SAM | TAM is total, SAM is your reach |
+
+
+</Accordion>
+
+<Accordion title="User Story Workshop Guide">
+
+# User Story Workshop Guide
+
+Facilitation guide for effective user story writing sessions.
+
+## Workshop Structure
+
+```
+Total Time: 2-3 hours
+
+1. Context Setting (15 min)
+2. Persona Review (15 min)
+3. Story Mapping (45 min)
+4. Story Writing (45 min)
+5. Acceptance Criteria (30 min)
+6. Prioritization (20 min)
+7. Wrap-up (10 min)
+```
+
+## 1. Context Setting (15 min)
+
+### Facilitator Script
+```
+"Today we're writing user stories for [feature]. Our goal is to
+break down the work into independent, valuable pieces that can
+be estimated and prioritized.
+
+Remember: We're focusing on WHAT users need, not HOW we'll build it."
+```
+
+### Materials Needed
+- Large whiteboard or Miro board
+- Sticky notes (3 colors: personas, stories, criteria)
+- Sharpies
+- Timer
+- Persona cards (printed)
+
+## 2. Persona Review (15 min)
+
+Review the primary persona(s) for this feature:
+
+```markdown
+Quick Refresher:
+- Who is [Persona Name]?
+- What are their top 3 goals?
+- What are their top 3 pain points?
+- What context do they work in?
+```
+
+### Activity
+Each participant writes 1 "Job to be Done" for the persona on a sticky note.
+
+## 3. Story Mapping (45 min)
+
+### Backbone Creation
+
+```
+USER JOURNEY: [Feature Name]
+
+Discovery → Setup → First Use → Regular Use → Mastery
+    │          │         │           │           │
+    ▼          ▼         ▼           ▼           ▼
+[Stories] [Stories] [Stories]  [Stories]   [Stories]
+```
+
+### Process
+1. Identify journey stages (10 min)
+2. Add activities under each stage (15 min)
+3. Break activities into stories (20 min)
+
+## 4. Story Writing (45 min)
+
+### Template
+```
+As a [persona],
+I want to [action/goal],
+so that [benefit/outcome].
+```
+
+### INVEST Check (for each story)
+
+| Criterion | Question | ✓ |
+|-----------|----------|---|
+| Independent | Can this be built separately? | |
+| Negotiable | Are details discussable? | |
+| Valuable | Does this deliver user value? | |
+| Estimable | Can the team size this? | |
+| Small | Does this fit in a sprint? | |
+| Testable | Can we verify it's done? | |
+
+### Common Story Splits
+
+| If story is too big... | Split by... |
+|------------------------|-------------|
+| Multiple user types | Different personas |
+| Multiple actions | Workflow steps |
+| Multiple data types | Data variations |
+| Multiple platforms | Platform/device |
+| Complex rules | Simple → complex rules |
+
+## 5. Acceptance Criteria (30 min)
+
+### Given-When-Then Format
+
+```gherkin
+Scenario: [Scenario name]
+  Given [precondition/context]
+  When [action taken]
+  Then [expected result]
+  And [additional result]
+```
+
+### Example
+
+```gherkin
+Scenario: User filters search results by date
+  Given I have search results displayed
+  And the date filter is visible
+  When I select "Last 7 days"
+  Then only results from the last 7 days are shown
+  And the filter shows "Last 7 days" as selected
+  And the result count updates
+```
+
+### Edge Cases to Consider
+
+- Empty states (no data)
+- Error conditions
+- Boundary values
+- Permission variations
+- Network failures
+
+## 6. Prioritization (20 min)
+
+### MoSCoW Quick Sort
+
+| Category | Meaning | Time allocation |
+|----------|---------|-----------------|
+| Must | MVP, launch blocker | 60% |
+| Should | Important, not blocking | 20% |
+| Could | Nice to have | 15% |
+| Won't | Out of scope | 5% (document why) |
+
+### Dot Voting
+- Each participant gets 3 dots
+- Vote on most valuable stories
+- Count votes, sort by priority
+
+## 7. Wrap-up (10 min)
+
+### Deliverables Checklist
+- [ ] Stories mapped to journey
+- [ ] Each story has acceptance criteria
+- [ ] Stories prioritized (MoSCoW)
+- [ ] Dependencies identified
+- [ ] Next steps assigned
+
+### Follow-up Actions
+- [ ] Transfer to issue tracker
+- [ ] Schedule estimation session
+- [ ] Share with stakeholders
+
+
+</Accordion>
+
+<Accordion title="Value Prop Canvas Guide">
+
+# Value Proposition Canvas Guide
+
+Detailed guide for using the Value Proposition Canvas to align products with customer needs.
+
+## Canvas Structure
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    VALUE PROPOSITION MAP                     │
+├─────────────────────────────────────────────────────────────┤
+│  CUSTOMER PROFILE         │  VALUE MAP                      │
+│  ┌─────────────────────┐  │  ┌─────────────────────────┐    │
+│  │ Jobs to be Done     │◄─┼──│ Products & Services     │    │
+│  │ • Functional jobs   │  │  │ • Features              │    │
+│  │ • Social jobs       │  │  │ • Capabilities          │    │
+│  │ • Emotional jobs    │  │  │ • Integrations          │    │
+│  ├─────────────────────┤  │  ├─────────────────────────┤    │
+│  │ Pains               │◄─┼──│ Pain Relievers          │    │
+│  │ • Obstacles         │  │  │ • Eliminates            │    │
+│  │ • Risks             │  │  │ • Reduces               │    │
+│  │ • Negative outcomes │  │  │ • Prevents              │    │
+│  ├─────────────────────┤  │  ├─────────────────────────┤    │
+│  │ Gains               │◄─┼──│ Gain Creators           │    │
+│  │ • Required gains    │  │  │ • Creates               │    │
+│  │ • Expected gains    │  │  │ • Increases             │    │
+│  │ • Desired gains     │  │  │ • Enables               │    │
+│  └─────────────────────┘  │  └─────────────────────────┘    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Jobs to be Done Categories
+
+| Job Type | Definition | Example |
+|----------|------------|---------|
+| Functional | Tasks to accomplish | "Deploy code to production" |
+| Social | How to be perceived | "Be seen as innovative" |
+| Emotional | How to feel | "Feel confident in decisions" |
+
+## Pain Severity Ranking
+
+```
+CRITICAL  ────────────────────────────►  MINOR
+│                                            │
+│  Blocking     Painful      Annoying       │
+│  (must fix)   (should fix) (nice to fix)  │
+```
+
+## Gain Importance Ranking
+
+```
+REQUIRED  ────────────────────────────►  NICE-TO-HAVE
+│                                            │
+│  Expected     Desired      Unexpected     │
+│  (table stakes) (differentiators) (delighters)
+```
+
+## Fit Assessment
+
+| Fit Level | Criteria |
+|-----------|----------|
+| Problem-Solution Fit | Evidence that value prop addresses real jobs/pains |
+| Product-Market Fit | Evidence customers will pay for solution |
+| Business Model Fit | Evidence of sustainable business model |
+
+## Workshop Facilitation
+
+1. **Preparation** (30 min before)
+   - Print large canvas
+   - Prepare sticky notes (different colors for jobs/pains/gains)
+   - Gather customer research
+
+2. **Customer Profile First** (45 min)
+   - Each participant adds sticky notes silently (10 min)
+   - Group discussion and clustering (20 min)
+   - Prioritization voting (15 min)
+
+3. **Value Map Second** (45 min)
+   - Map features to jobs/pains/gains
+   - Identify gaps
+   - Prioritize what to build
+
+4. **Fit Assessment** (30 min)
+   - Score fit for each connection
+   - Identify highest-value opportunities
+   - Document assumptions to validate
+
+## Common Mistakes
+
+| Mistake | Correction |
+|---------|------------|
+| Starting with solution | Start with customer jobs |
+| Listing features | Focus on outcomes |
+| Ignoring emotional jobs | Include all job types |
+| Single customer segment | Separate canvas per segment |
+| No prioritization | Vote on importance |
+
+## 2026 Updates
+
+- AI-assisted job identification from support tickets
+- Automated pain/gain extraction from user interviews
+- Real-time fit scoring with analytics data
+
+
+</Accordion>
+
+<Accordion title="Wsjf Guide">
+
+# WSJF (Weighted Shortest Job First) Guide
+
+Framework for prioritizing when time-to-market matters.
+
+## WSJF Formula
+
+```
+WSJF = Cost of Delay / Job Size
+```
+
+Higher WSJF = Higher priority (do first)
+
+## Cost of Delay Components
+
+```
+Cost of Delay = User Value + Time Criticality + Risk Reduction
+```
+
+### User Value (1-10)
+How much do users need this?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Critical - users leaving without it |
+| 7-9 | High - major pain point |
+| 4-6 | Medium - nice improvement |
+| 1-3 | Low - minor enhancement |
+
+### Time Criticality (1-10)
+How urgent is the timing?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Hard deadline (regulatory, event) |
+| 7-9 | Competitive window closing |
+| 4-6 | Sooner better, but flexible |
+| 1-3 | No time pressure |
+
+### Risk Reduction (1-10)
+Does delay increase risk?
+
+| Score | Description |
+|-------|-------------|
+| 10 | Major risk if delayed (security, stability) |
+| 7-9 | Significant risk accumulation |
+| 4-6 | Moderate risk growth |
+| 1-3 | Risk doesn't change with time |
+
+## Job Size (1-10)
+
+Relative size compared to other work.
+
+| Score | Description |
+|-------|-------------|
+| 1-2 | XS - days |
+| 3-4 | S - 1-2 weeks |
+| 5-6 | M - 2-4 weeks |
+| 7-8 | L - 1-2 months |
+| 9-10 | XL - quarter+ |
+
+## Example Calculation
+
+```markdown
+## Feature: Security Patch for CVE
+
+### User Value: 6
+- Affects enterprise customers
+- Not user-facing but required for compliance
+
+### Time Criticality: 9
+- CVE published, 90-day disclosure window
+- Competitors already patched
+
+### Risk Reduction: 10
+- Active exploitation in the wild
+- Potential data breach
+
+### Cost of Delay: 6 + 9 + 10 = 25
+
+### Job Size: 3
+- Known fix, straightforward implementation
+- ~1 week of work
+
+### WSJF: 25 / 3 = 8.33
+```
+
+## When to Use WSJF
+
+- Multiple time-sensitive items competing
+- Opportunity windows exist
+- Dependencies create bottlenecks
+- Need to justify "why now"
+
+## WSJF vs RICE
+
+| Use WSJF When | Use RICE When |
+|---------------|---------------|
+| Time matters | Value matters |
+| Deadlines exist | Steady-state prioritization |
+| Dependencies complex | Independent features |
+| Opportunity cost high | User reach important |
+
+## Visualization
+
+```
+              HIGH Time Criticality
+                      │
+           ┌──────────┼──────────┐
+           │    DO    │   DO     │
+           │   FIRST  │  SECOND  │
+HIGH ──────┼──────────┼──────────┼────── LOW
+User Value │    DO    │   DO     │  User Value
+           │  THIRD   │  LAST    │
+           └──────────┼──────────┘
+                      │
+              LOW Time Criticality
+```
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (8)
+
+<Accordions type="multiple">
+
+<Accordion title="Business Case Checklist">
+
+# Business Case Checklist
+
+Validate your business case before presenting to stakeholders.
+
+## Cost Analysis
+
+- [ ] Development costs estimated (engineering, design, QA)
+- [ ] Infrastructure costs included
+- [ ] Maintenance costs projected (10-20% annual)
+- [ ] Opportunity costs considered
+- [ ] Hidden costs identified (training, migration, etc.)
+- [ ] Assumptions documented
+
+## Benefit Analysis
+
+- [ ] Revenue benefits quantified with methodology
+- [ ] Cost savings quantified with methodology
+- [ ] Intangible benefits listed (but not in ROI)
+- [ ] Benefits tied to specific metrics
+- [ ] Baseline established for comparison
+- [ ] Conservative estimates used
+
+## Financial Metrics
+
+- [ ] ROI calculated correctly
+- [ ] Payback period determined
+- [ ] NPV calculated (if multi-year)
+- [ ] IRR calculated (if comparing investments)
+- [ ] TCO considered for buy decisions
+
+## Risk Assessment
+
+- [ ] Key risks identified
+- [ ] Probability and impact assessed
+- [ ] Mitigation strategies defined
+- [ ] Sensitivity analysis completed
+- [ ] Break-even scenario calculated
+
+## Scenarios
+
+- [ ] Conservative (P10) scenario modeled
+- [ ] Base case (P50) scenario modeled
+- [ ] Optimistic (P90) scenario modeled
+- [ ] Key variables for sensitivity identified
+- [ ] Decision still positive in conservative case?
+
+## Stakeholder Readiness
+
+- [ ] Executive summary written
+- [ ] Visual summary created
+- [ ] Assumptions clearly stated
+- [ ] Comparison to alternatives included
+- [ ] Recommendation with rationale
+- [ ] Ask is clearly defined
+
+## Documentation
+
+- [ ] All calculations documented
+- [ ] Data sources cited
+- [ ] Assumptions version controlled
+- [ ] Template reusable for future cases
+
+
+</Accordion>
+
+<Accordion title="Market Research Checklist">
+
+# Market Research Checklist
+
+Complete checklist for thorough market analysis.
+
+## Market Sizing
+
+- [ ] TAM calculated (top-down method)
+- [ ] TAM calculated (bottom-up method)
+- [ ] TAM methods reconciled
+- [ ] SAM filters applied (geography, segment, use case)
+- [ ] SOM calculated with realistic constraints
+- [ ] Confidence level stated
+- [ ] Data sources documented
+
+## Competitive Analysis
+
+- [ ] Direct competitors identified (3-5)
+- [ ] Indirect competitors identified (2-3)
+- [ ] Potential future competitors noted
+- [ ] Competitor profiles completed
+- [ ] Feature comparison matrix built
+- [ ] Pricing comparison done
+- [ ] Positioning map created
+- [ ] GitHub signals tracked
+
+## SWOT Analysis
+
+- [ ] Internal strengths identified
+- [ ] Internal weaknesses acknowledged
+- [ ] External opportunities mapped
+- [ ] External threats assessed
+- [ ] Each quadrant has 3-5 items
+
+## Market Trends
+
+- [ ] Industry trends identified (3-5)
+- [ ] Technology trends noted
+- [ ] Regulatory considerations checked
+- [ ] Timing implications assessed
+- [ ] Trend sources cited
+
+## Output Deliverables
+
+- [ ] Executive summary written
+- [ ] Market sizing documented
+- [ ] Competitive landscape mapped
+- [ ] Recommendations provided
+- [ ] Confidence levels stated throughout
+- [ ] Update schedule defined
+
+## Quality Checks
+
+- [ ] Multiple sources for key claims
+- [ ] Data less than 2 years old
+- [ ] Assumptions explicitly stated
+- [ ] Bias acknowledged (if any)
+- [ ] Peer review completed
+
+
+</Accordion>
+
+<Accordion title="Metrics Framework Checklist">
+
+# Metrics Framework Checklist
+
+Validate your metrics framework before implementation.
+
+## OKR Quality
+
+### Objectives
+- [ ] 3-5 objectives maximum
+- [ ] Each objective is qualitative
+- [ ] Each objective is inspirational
+- [ ] Each objective is time-bound
+- [ ] Objectives align with strategy
+
+### Key Results
+- [ ] 3-5 KRs per objective
+- [ ] Each KR is quantitative
+- [ ] Each KR has a baseline
+- [ ] Each KR has a target
+- [ ] Targets are stretch (70% achievable)
+- [ ] KRs are outcome-focused (not output)
+
+## KPI Design
+
+### Each KPI Has
+- [ ] Clear definition
+- [ ] Precise formula
+- [ ] Data source identified
+- [ ] Owner assigned
+- [ ] Update frequency set
+- [ ] Target defined
+
+### Leading vs Lagging
+- [ ] Leading indicators identified
+- [ ] Lagging indicators identified
+- [ ] Connection between them documented
+- [ ] Review cadence appropriate to type
+
+## North Star Metric
+
+- [ ] Single north star defined
+- [ ] Captures core value delivery
+- [ ] Input metrics identified
+- [ ] Output metrics connected
+- [ ] Dashboarded prominently
+
+## Instrumentation Plan
+
+### Events
+- [ ] Key events identified
+- [ ] Event naming consistent (noun_verb)
+- [ ] Required properties defined
+- [ ] Optional properties listed
+- [ ] Privacy considerations addressed
+
+### Implementation
+- [ ] Analytics tool selected
+- [ ] Events documented
+- [ ] Engineering ticket created
+- [ ] QA plan for events
+
+## Dashboard & Reporting
+
+- [ ] Dashboard mockup created
+- [ ] Leading indicators prominent
+- [ ] Drill-down available
+- [ ] Historical comparison possible
+- [ ] Alerting thresholds set
+
+## Experiment Design
+
+- [ ] Hypothesis clearly stated
+- [ ] Success metric defined
+- [ ] Guardrail metrics identified
+- [ ] Sample size calculated
+- [ ] Duration estimated
+- [ ] Rollout plan documented
+
+## Review Cadence
+
+- [ ] Daily metrics identified
+- [ ] Weekly metrics identified
+- [ ] Monthly metrics identified
+- [ ] Quarterly OKR review scheduled
+- [ ] Annual goal refresh planned
+
+
+</Accordion>
+
+<Accordion title="Persona Quality Checklist">
+
+# Persona Quality Checklist
+
+Validate that your personas are research-backed and actionable.
+
+## Research Foundation
+
+- [ ] Based on actual user data (not assumptions)
+- [ ] Includes qualitative research (interviews)
+- [ ] Includes quantitative data (analytics, surveys)
+- [ ] Sample size adequate (5+ interviews per persona)
+- [ ] Research is recent (&lt; 1 year old)
+
+## Persona Content
+
+### Demographics (Not Too Much)
+- [ ] Role/job title included
+- [ ] Experience level indicated
+- [ ] Context (company size, industry)
+- [ ] Demographics relevant to product (not filler)
+
+### Goals
+- [ ] 2-3 primary goals defined
+- [ ] Goals are specific (not generic)
+- [ ] Goals relate to your product domain
+- [ ] Success criteria for goals clear
+
+### Pain Points
+- [ ] 2-3 major pain points identified
+- [ ] Pain points based on research evidence
+- [ ] Pain points actionable (we can address them)
+- [ ] Severity/frequency indicated
+
+### Behaviors
+- [ ] Workflow/usage patterns described
+- [ ] Tools and channels mentioned
+- [ ] Frequency of relevant activities
+- [ ] Context of use (when, where)
+
+### Quote
+- [ ] Characteristic quote included
+- [ ] Quote captures mindset
+- [ ] Based on actual user statement
+
+### Key Insight
+- [ ] One key insight highlighted
+- [ ] Insight is actionable
+- [ ] Helps team make decisions
+
+## Actionability
+
+- [ ] Team can use persona to make decisions
+- [ ] Persona answers "would X want this feature?"
+- [ ] Clear differentiation from other personas
+- [ ] Scenarios help with design decisions
+
+## Format & Accessibility
+
+- [ ] Easy to scan (not walls of text)
+- [ ] Visual representation included
+- [ ] Shareable format (1-2 pages max)
+- [ ] Accessible to whole team
+
+## Maintenance
+
+- [ ] Review date scheduled (quarterly)
+- [ ] Owner assigned for updates
+- [ ] Process to incorporate new research
+- [ ] Version history maintained
+
+## Anti-Patterns to Avoid
+
+- [ ] NOT based only on demographics
+- [ ] NOT a wish-list of features
+- [ ] NOT too many personas (3-5 max)
+- [ ] NOT designed to justify existing plans
+- [ ] NOT static forever (gets updated)
+
+
+</Accordion>
+
+<Accordion title="Prd Review Checklist">
+
+# PRD Review Checklist
+
+Quality gate for Product Requirements Documents.
+
+## Problem Definition
+
+- [ ] Problem statement is clear and specific
+- [ ] Who has this problem is defined
+- [ ] Impact of not solving is quantified
+- [ ] Evidence from users supports the problem
+
+## Solution
+
+- [ ] Solution approach is described (not just features)
+- [ ] Key capabilities listed
+- [ ] How it solves the problem is explained
+- [ ] Alternative approaches considered
+
+## Scope
+
+- [ ] In-scope items explicitly listed
+- [ ] Out-of-scope items explicitly listed
+- [ ] Non-goals clearly stated
+- [ ] Future considerations noted
+- [ ] Scope is achievable in target timeline
+
+## User Stories
+
+- [ ] Stories follow standard format (As a... I want... So that...)
+- [ ] Stories pass INVEST criteria
+- [ ] Stories cover happy path
+- [ ] Stories cover edge cases
+- [ ] Stories cover error scenarios
+- [ ] Each story has acceptance criteria
+- [ ] Stories are prioritized (P0/P1/P2)
+
+## Acceptance Criteria
+
+- [ ] Given-When-Then format used
+- [ ] Criteria are testable
+- [ ] Criteria are specific (not vague)
+- [ ] Edge cases covered
+- [ ] Error handling specified
+
+## Non-Functional Requirements
+
+- [ ] Performance targets defined
+- [ ] Scalability requirements stated
+- [ ] Security requirements listed
+- [ ] Accessibility requirements (WCAG level)
+- [ ] Browser/platform support specified
+- [ ] Localization requirements (if any)
+
+## Success Metrics
+
+- [ ] Metrics linked to requirements-translator or metrics-architect
+- [ ] Baseline established
+- [ ] Target defined
+- [ ] Measurement method clear
+
+## Dependencies
+
+- [ ] Technical dependencies identified
+- [ ] Cross-team dependencies noted
+- [ ] External dependencies listed
+- [ ] Risk of dependencies assessed
+
+## Open Questions
+
+- [ ] Unresolved questions listed
+- [ ] Owners assigned to resolve
+- [ ] Deadline for resolution
+
+## Stakeholder Alignment
+
+- [ ] Key stakeholders reviewed
+- [ ] Feedback incorporated
+- [ ] Sign-off obtained (or scheduled)
+
+## Quality Standards
+
+- [ ] Follows PRD template
+- [ ] No jargon or ambiguous terms
+- [ ] Visuals/mockups linked (if available)
+- [ ] Version controlled
+- [ ] Review date set
+
+
+</Accordion>
+
+<Accordion title="Prioritization Session Checklist">
+
+# Prioritization Session Checklist
+
+Use before and during prioritization sessions.
+
+## Pre-Session (1 day before)
+
+- [ ] Backlog cleaned and deduplicated
+- [ ] Each item has clear description
+- [ ] Effort estimates available
+- [ ] Impact data gathered (analytics, research)
+- [ ] Right stakeholders invited
+- [ ] Scoring framework selected (RICE/ICE/WSJF)
+- [ ] Previous priorities reviewed
+
+## During Session
+
+### Setup (10 min)
+- [ ] Align on goal being prioritized for
+- [ ] Confirm framework and scoring criteria
+- [ ] Set time box (2 hours max)
+
+### Scoring (60-90 min)
+- [ ] Each item scored independently first
+- [ ] Discuss outliers and disagreements
+- [ ] Document rationale for scores
+- [ ] Flag items needing more research
+
+### Ranking (20 min)
+- [ ] Sort by priority score
+- [ ] Review top 10 for sanity check
+- [ ] Identify dependencies
+- [ ] Note items moved for strategic reasons
+
+### Output (10 min)
+- [ ] Top priorities documented
+- [ ] Trade-offs recorded
+- [ ] Human decisions flagged
+- [ ] Next review date set
+
+## Post-Session
+
+- [ ] Priorities shared with team
+- [ ] Roadmap updated
+- [ ] Dependencies communicated
+- [ ] Calendar reminder for re-prioritization
+
+## Red Flags During Session
+
+| Red Flag | Action |
+|----------|--------|
+| No data for estimates | Stop, gather research first |
+| One voice dominating | Ensure equal input |
+| Scope creep on items | Separate into distinct items |
+| Gaming the scores | Recalibrate criteria |
+| Too many "high priority" | Force ranking |
+
+## Framework Selection Guide
+
+| Situation | Recommended Framework |
+|-----------|----------------------|
+| Steady-state product work | RICE |
+| Quick rough prioritization | ICE |
+| Time-sensitive decisions | WSJF |
+| Many stakeholders | MoSCoW |
+| Portfolio-level | Kano + RICE |
+
+
+</Accordion>
+
+<Accordion title="Research Study Checklist">
+
+# Research Study Checklist
+
+Complete checklist for running user research studies.
+
+## Planning Phase
+
+### Research Questions
+- [ ] Primary research questions defined
+- [ ] Secondary questions listed
+- [ ] Questions are specific and answerable
+- [ ] Method matches questions
+
+### Methodology
+- [ ] Method selected (interviews, usability, survey, etc.)
+- [ ] Appropriate for research questions
+- [ ] Timeline established
+- [ ] Resources allocated
+
+### Participants
+- [ ] Target participant profile defined
+- [ ] Inclusion criteria clear
+- [ ] Exclusion criteria clear
+- [ ] Sample size determined (5-8 for qual, 100+ for quant)
+- [ ] Recruitment channel identified
+- [ ] Incentive amount set
+
+## Preparation Phase
+
+### Materials
+- [ ] Discussion guide/test plan written
+- [ ] Prototype or artifact ready (if testing)
+- [ ] Recording consent form prepared
+- [ ] Note-taking template ready
+- [ ] Incentive fulfillment process set
+
+### Recruitment
+- [ ] Screener survey created
+- [ ] Recruitment started
+- [ ] Participants scheduled
+- [ ] Calendar invites sent
+- [ ] Reminder emails scheduled
+
+### Logistics
+- [ ] Room booked (if in-person)
+- [ ] Video call link generated (if remote)
+- [ ] Recording software tested
+- [ ] Note-taker confirmed
+- [ ] Backup plan for no-shows
+
+## Execution Phase
+
+### Before Each Session
+- [ ] Review participant profile
+- [ ] Test recording
+- [ ] Materials ready
+- [ ] Note-taker briefed
+
+### During Session
+- [ ] Consent obtained
+- [ ] Recording started
+- [ ] Follow discussion guide
+- [ ] Notes captured in real-time
+- [ ] Probing questions asked
+
+### After Each Session
+- [ ] Quick debrief (5 min)
+- [ ] Top takeaways noted
+- [ ] Recording saved
+- [ ] Incentive sent
+- [ ] Thank you sent
+
+## Analysis Phase
+
+### Data Processing
+- [ ] Notes cleaned up
+- [ ] Recordings uploaded
+- [ ] Transcripts generated (if needed)
+- [ ] Data organized by participant
+
+### Synthesis
+- [ ] Affinity mapping completed
+- [ ] Themes identified
+- [ ] Patterns documented
+- [ ] Quotes extracted
+- [ ] Insights generated
+
+### Output
+- [ ] Report/presentation created
+- [ ] Key findings highlighted
+- [ ] Recommendations provided
+- [ ] Limitations acknowledged
+- [ ] Next steps proposed
+
+## Sharing Phase
+
+- [ ] Stakeholders identified
+- [ ] Presentation scheduled
+- [ ] Report distributed
+- [ ] Raw data archived
+- [ ] Findings added to research repository
+- [ ] Follow-up research identified
+
+
+</Accordion>
+
+<Accordion title="Strategy Review Checklist">
+
+# Product Strategy Review Checklist
+
+Use this checklist to validate strategic decisions before committing resources.
+
+## Value Proposition Validation
+
+- [ ] Target user segment clearly defined
+- [ ] Jobs to be done identified (functional, social, emotional)
+- [ ] Top 3 pains ranked by severity
+- [ ] Top 3 gains ranked by importance
+- [ ] Evidence from real users (not assumptions)
+- [ ] Differentiation from competitors articulated
+
+## Strategic Alignment
+
+- [ ] Aligns with company vision/mission
+- [ ] Supports current OKRs
+- [ ] Fits product portfolio (extends, not conflicts)
+- [ ] Resource availability confirmed
+- [ ] Stakeholder buy-in obtained
+
+## Build/Buy/Partner Assessment
+
+- [ ] All three options evaluated
+- [ ] Strategic importance scored
+- [ ] Time to value estimated
+- [ ] Total cost of ownership calculated (3-year)
+- [ ] Risks identified and mitigated
+- [ ] Decision rationale documented
+
+## Market Context
+
+- [ ] Competitive landscape mapped
+- [ ] Market size estimated (TAM/SAM/SOM)
+- [ ] Timing considerations reviewed
+- [ ] Regulatory/compliance checked
+
+## Go/No-Go Decision
+
+- [ ] Confidence level stated (HIGH/MEDIUM/LOW)
+- [ ] Conditions for success defined
+- [ ] Risks acknowledged with mitigations
+- [ ] Value hypothesis formulated
+- [ ] Success metrics defined
+- [ ] Review cadence established
+
+## Documentation
+
+- [ ] Strategic assessment document created
+- [ ] Assumptions explicitly stated
+- [ ] Decision rationale recorded
+- [ ] Handoff to next phase prepared
+
+
+</Accordion>
+
+</Accordions>

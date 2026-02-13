@@ -2,6 +2,7 @@
 title: "Doctor"
 description: "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -360,3 +361,696 @@ ls -la .claude/memory/
 - [Memory Health](references/memory-health.md)
 - [Permission Rules](references/permission-rules.md)
 - [Schema Validation](references/schema-validation.md)
+
+
+---
+
+## References (6)
+
+<Accordions type="multiple">
+
+<Accordion title="Agents Validation">
+
+# Agents Validation
+
+## Overview
+
+OrchestKit includes 36 specialized agents validated against CC 2.1.6 frontmatter format.
+
+## Agent Structure
+
+```
+src/agents/
+├── backend-system-architect.md
+├── code-quality-reviewer.md
+├── frontend-ui-developer.md
+└── ... (35 total)
+```
+
+## Validation Checks
+
+### 1. Frontmatter Fields
+
+Required fields:
+- `name` - Agent identifier (used in Task subagent_type)
+- `description` - Purpose and auto-mode keywords
+- `model` - opus, sonnet, or haiku
+- `tools` - Array of allowed CC tools
+- `skills` - Array of skill names to auto-inject
+
+Optional fields:
+- `context` - fork or inherit
+- `color` - Display color
+- `hooks` - Agent-specific hooks
+
+### 2. Model Validation
+
+Only valid models:
+
+```bash
+# Check model values
+grep "^model:" src/agents/*.md | sort | uniq -c
+```
+
+Expected: opus, sonnet, haiku
+
+### 3. Skills References
+
+All skills in agent frontmatter must exist:
+
+```bash
+# Check skill references
+for agent in src/agents/*.md; do
+  grep -A100 "^skills:" "$agent" | grep "^  - " | \
+    sed 's/.*- //' | while read skill; do
+      [ -d "src/skills/$skill" ] || echo "Missing: $agent -> $skill"
+    done
+done
+```
+
+### 4. Tools Validation
+
+Valid CC tools:
+- Bash, Read, Write, Edit, MultiEdit
+- Grep, Glob
+- Task, Skill
+- WebFetch, WebSearch
+- NotebookEdit
+- AskUserQuestion
+- TaskCreate, TaskUpdate, TaskGet, TaskList
+
+## Quick Validation
+
+```bash
+# Run full agent validation
+npm run test:agents
+
+# Or directly
+./tests/agents/test-agent-frontmatter.sh
+```
+
+## Common Issues
+
+### Invalid model
+
+```yaml
+model: sonnet  # Valid: opus, sonnet, haiku
+```
+
+### Missing skill reference
+
+Ensure skill exists in `src/skills/` directory.
+
+### Invalid tool name
+
+Check tool spelling matches CC tool names exactly.
+
+
+</Accordion>
+
+<Accordion title="Hook Validation">
+
+# Hook Validation
+
+## Overview
+
+OrchestKit uses 22 hook entry points across 11 categories, compiled into 11 bundles. This reference explains how to validate and troubleshoot hooks.
+
+## Hook Architecture
+
+```
+hooks.json (22 entries)
+    ↓
+11 TypeScript bundles (dist/*.mjs)
+    ↓
+6 async hooks use fire-and-forget pattern
+```
+
+## Hook Categories
+
+| Category | Count | Purpose |
+|----------|-------|---------|
+| PreToolUse | 8 | Before tool execution |
+| PostToolUse | 3 | After tool execution |
+| PermissionRequest | 3 | Auto-approval logic |
+| UserPromptSubmit | 1 | Prompt enhancement |
+| SessionStart | 1 | Session initialization |
+| SessionEnd | 1 | Session cleanup |
+| Stop | 1 | Conversation end |
+| SubagentStart | 1 | Before agent spawn |
+| SubagentStop | 1 | After agent completes |
+| Notification | 1 | Desktop/sound alerts |
+| Setup | 1 | Plugin initialization |
+| **Total** | **22** | |
+
+## Bundle Structure
+
+| Bundle | Handlers | Async |
+|--------|----------|-------|
+| agent.mjs | Agent hooks | No |
+| hooks.mjs | Core dispatching | No |
+| lifecycle.mjs | Session lifecycle | Yes |
+| notification.mjs | Alerts | Yes |
+| permission.mjs | Auto-approve | No |
+| posttool.mjs | Post-execution | Yes |
+| pretool.mjs | Pre-execution | No |
+| prompt.mjs | Prompt enhancement | Yes |
+| setup.mjs | Initialization | Yes |
+| stop.mjs | Conversation end | Yes |
+| subagent.mjs | Agent lifecycle | No |
+
+## Validation Checks
+
+### 1. hooks.json Schema
+
+```bash
+# Validate hooks.json structure
+cat src/hooks/hooks.json | jq '.hooks | keys'
+```
+
+### 2. Bundle Existence
+
+```bash
+# Check all bundles exist
+ls -la src/hooks/dist/*.mjs
+```
+
+### 3. Async Hook Pattern
+
+Async hooks use fire-and-forget scripts:
+
+```bash
+# 6 fire-and-forget scripts required
+ls src/hooks/bin/*-fire-and-forget.mjs
+```
+
+### 4. Matcher Syntax
+
+Valid matcher patterns:
+
+```json
+{
+  "matcher": "Bash",           // Exact tool name
+  "matcher": "Write|Edit",     // Multiple tools
+  "matcher": "*",              // All tools
+  "matcher": "mcp__*"          // Wildcard prefix
+}
+```
+
+## Debug Mode (Issue #243)
+
+Silent hooks run in detached background processes. Enable debug mode to monitor them.
+
+### Enable Debug Logging
+
+Create `.claude/hooks/debug.json`:
+
+```json
+{
+  "enabled": true,
+  "verbose": false,
+  "includeInput": false,
+  "hookFilters": []
+}
+```
+
+### View Debug Logs
+
+```bash
+# Recent background hook activity
+tail -f .claude/logs/background-hooks.log
+
+# Filter by hook name
+grep "unified-dispatcher" .claude/logs/background-hooks.log
+```
+
+### Hook Metrics
+
+Execution metrics tracked in `.claude/hooks/metrics.json`:
+
+```json
+{
+  "hooks": {
+    "posttool/unified-dispatcher": {
+      "totalRuns": 42,
+      "successCount": 41,
+      "errorCount": 1,
+      "avgDurationMs": 150
+    }
+  }
+}
+```
+
+### PID Tracking
+
+```bash
+# Check for orphaned processes
+for f in .claude/hooks/pids/*.pid; do
+  pid=$(jq -r '.pid' "$f" 2>/dev/null)
+  if [ -n "$pid" ] && ! kill -0 "$pid" 2>/dev/null; then
+    echo "Orphaned: $f"
+    rm "$f"
+  fi
+done
+```
+
+## Troubleshooting
+
+### Hook not firing
+
+1. Check matcher pattern matches tool name
+2. Verify bundle exists in dist/
+3. Check hooks.json registration
+
+### Hook timing out
+
+Default timeout: 120s (bash), 600s (CC 2.1.3+)
+
+### Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | Success / Allow |
+| 1 | Error (logged, continues) |
+| 2 | Block (stops execution) |
+
+
+</Accordion>
+
+<Accordion title="Memory Health">
+
+# Memory Health
+
+## Overview
+
+OrchestKit uses graph memory for knowledge persistence. Doctor validates it with automated checks.
+
+## Automated Health Check
+
+The `memory-health.ts` library provides `checkMemoryHealth()` which returns a `MemoryHealthReport`:
+
+```typescript
+interface MemoryHealthReport {
+  overall: 'healthy' | 'degraded' | 'unavailable';
+  timestamp: string;
+  graph: {
+    status: TierStatus;
+    memoryDir: boolean;        // .claude/memory/ exists
+    decisions: FileHealth;     // decisions.jsonl analysis
+    graphQueue: FileHealth;    // graph-queue.jsonl depth
+  };
+}
+```
+
+Each `FileHealth` includes: `exists`, `lineCount`, `corruptLines`, `sizeBytes`, `lastModified`.
+
+## Status Meanings
+
+| Status | Meaning |
+|--------|---------|
+| `healthy` | Graph memory operational, no issues |
+| `degraded` | Working but with issues (corrupt data, high queue depth) |
+| `unavailable` | Not configured or missing critical components |
+
+## Graph Memory
+
+Local knowledge graph stored in `.claude/memory/`.
+
+### Validation Commands
+
+```bash
+# Check directory exists
+ls -la .claude/memory/
+
+# Count decisions
+wc -l .claude/memory/decisions.jsonl
+
+# Check graph queue depth
+wc -l .claude/memory/graph-queue.jsonl 2>/dev/null
+
+# Validate JSONL integrity (each line must be valid JSON)
+while IFS= read -r line; do
+  echo "$line" | python3 -m json.tool > /dev/null 2>&1 || echo "CORRUPT: $line"
+done < .claude/memory/decisions.jsonl
+```
+
+### Health Indicators
+
+- Directory exists: `.claude/memory/`
+- `decisions.jsonl`: Valid JSONL, no corrupt lines
+- `graph-queue.jsonl`: Queue depth &lt; 50 (high depth = sync backlog)
+- No corruption: every line parses as valid JSON
+
+### Degraded Conditions
+
+- **Corrupt lines**: One or more JSONL lines fail to parse
+- **High queue depth**: >50 pending graph operations (sync backlog)
+- **Missing directory**: Graph memory never initialized
+
+## Troubleshooting
+
+### Graph memory missing
+
+```bash
+# Initialize graph
+mkdir -p .claude/memory
+```
+
+The first `/ork:remember` call will create `decisions.jsonl`.
+
+### Corrupt JSONL lines
+
+```bash
+# Find corrupt lines
+python3 -c "
+import json, sys
+with open('.claude/memory/decisions.jsonl') as f:
+    for i, line in enumerate(f, 1):
+        try: json.loads(line)
+        except: print(f'Line {i}: {line.strip()[:80]}')
+"
+```
+
+### High queue depth
+
+Queue items accumulate if the stop dispatcher doesn't run (e.g., session crash). The queue-recovery hook processes orphaned queues on the next session start.
+
+
+</Accordion>
+
+<Accordion title="Permission Rules">
+
+# Permission Rules Analysis
+
+## Overview
+
+CC 2.1.3 added detection for unreachable permission rules. This reference explains how to diagnose and fix permission issues.
+
+## Common Issues
+
+### 1. Unreachable Rules
+
+A rule is unreachable when a more general rule already matches:
+
+```json
+// PROBLEM: Second rule never matches
+{
+  "permissions": [
+    { "path": "**/*.md", "action": "allow" },
+    { "path": "README.md", "action": "deny" }  // Unreachable!
+  ]
+}
+```
+
+**Fix:** Order rules from specific to general:
+
+```json
+{
+  "permissions": [
+    { "path": "README.md", "action": "deny" },
+    { "path": "**/*.md", "action": "allow" }
+  ]
+}
+```
+
+### 2. Shadowed Rules
+
+When two rules match the same pattern with different actions:
+
+```json
+// PROBLEM: Both match, but first wins
+{
+  "permissions": [
+    { "matcher": "Bash", "action": "allow" },
+    { "matcher": "Bash", "commands": ["rm"], "action": "deny" }
+  ]
+}
+```
+
+**Fix:** Use more specific matchers:
+
+```json
+{
+  "permissions": [
+    { "matcher": "Bash", "commands": ["rm", "rm -rf"], "action": "deny" },
+    { "matcher": "Bash", "action": "allow" }
+  ]
+}
+```
+
+### 3. Invalid Patterns
+
+Glob patterns that will never match:
+
+```json
+// PROBLEM: Typo in pattern
+{
+  "permissions": [
+    { "path": "**.md", "action": "allow" }  // Should be **/*.md
+  ]
+}
+```
+
+## Validation Commands
+
+```bash
+# Check for unreachable rules
+jq '.permissions // [] | to_entries | map(select(.value.action == "allow"))' \
+  .claude/settings.json
+
+# List all permission matchers
+jq '.permissions // [] | map(.matcher) | unique' .claude/settings.json
+```
+
+## Best Practices
+
+1. Order rules from most specific to least specific
+2. Use explicit deny rules before catch-all allow rules
+3. Test rules with actual tool invocations
+4. Review rules after plugin updates
+
+</Accordion>
+
+<Accordion title="Schema Validation">
+
+# Schema Validation
+
+## Overview
+
+OrchestKit uses JSON schemas to validate configuration files. This reference explains how to validate and fix schema issues.
+
+## Schemas
+
+Located in `.claude/schemas/`:
+
+| Schema | Validates |
+|--------|-----------|
+| `plugin.schema.json` | `plugin.json` |
+| `skill files` | All `SKILL.md` files |
+| `context.schema.json` | Context protocol files |
+| `coordination.schema.json` | Work registry and decision log |
+
+## Validation Commands
+
+### Validate All
+
+```bash
+./tests/schemas/validate-all.sh
+```
+
+### Validate Specific File
+
+```bash
+# Using ajv
+npx ajv validate \
+  -s .claude/schemas/skill files \
+  -d .claude/skills/doctor/SKILL.md
+
+# Using jq for basic structure check
+jq empty .claude/skills/doctor/SKILL.md
+```
+
+## Common Schema Errors
+
+### Missing Required Field
+
+```json
+// ERROR: Missing "description"
+{
+  "name": "my-skill",
+  "version": "1.0.0"
+}
+```
+
+**Fix:** Add all required fields:
+
+```json
+{
+  "$schema": "../../schemas/skill files",
+  "name": "my-skill",
+  "version": "1.0.0",
+  "description": "Description of the skill",
+  "capabilities": ["capability-1"]
+}
+```
+
+### Invalid Type
+
+```json
+// ERROR: capabilities must be array
+{
+  "capabilities": "single-capability"
+}
+```
+
+**Fix:** Use correct type:
+
+```json
+{
+  "capabilities": ["single-capability"]
+}
+```
+
+### Pattern Mismatch
+
+```json
+// ERROR: version must match semver
+{
+  "version": "1.0"
+}
+```
+
+**Fix:** Use proper semver:
+
+```json
+{
+  "version": "1.0.0"
+}
+```
+
+## Batch Validation
+
+```bash
+# Validate all SKILL.md files
+for category in skills/*/.claude/skills; do for f in "$category"/*/SKILL.md; do
+  npx ajv validate \
+    -s .claude/schemas/skill files \
+    -d "$f" || echo "INVALID: $f"
+done
+```
+
+## Creating Valid Files
+
+Use schema as a template:
+
+```bash
+# View required fields
+jq '.required' .claude/schemas/skill files
+
+# View property types
+jq '.properties | to_entries | map({key: .key, type: .value.type})' \
+  .claude/schemas/skill files
+```
+
+</Accordion>
+
+<Accordion title="Skills Validation">
+
+# Skills Validation
+
+## Overview
+
+OrchestKit includes 60 skills validated against frontmatter requirements and content standards.
+
+## Skill Types
+
+| Type | Count | Frontmatter |
+|------|-------|-------------|
+| User-invocable | 24 | `user-invocable: true` |
+| Reference | 175 | `user-invocable: false` |
+
+## Validation Checks
+
+### 1. Frontmatter Fields
+
+Required fields:
+- `name` - Skill identifier
+- `description` - Brief description with triggers
+- `user-invocable` - Boolean for command availability
+
+Optional fields:
+- `context` - fork (recommended), inherit
+- `agent` - Associated agent name
+- `tags` - Keywords for discovery
+- `version` - Semver version
+- `allowedTools` - Tool whitelist
+
+### 2. Token Budget
+
+Skills must stay within token limits:
+- Minimum: 300 tokens
+- Maximum: 5000 tokens
+
+```bash
+# Check skill size
+wc -c src/skills/*/SKILL.md | sort -n
+```
+
+### 3. Reference Links
+
+All internal links must resolve:
+
+```bash
+# Check for broken references
+for skill in src/skills/*/SKILL.md; do
+  grep -o 'references/[^)]*' "$skill" | while read ref; do
+    dir=$(dirname "$skill")
+    [ -f "$dir/$ref" ] || echo "Broken: $skill -> $ref"
+  done
+done
+```
+
+### 4. Related Skills
+
+All skills in "Related Skills" section must exist:
+
+```bash
+# Validate related skill references
+grep -h "^- " src/skills/*/SKILL.md | grep -v "http" | \
+  sed 's/.*`\([^`]*\)`.*/\1/' | sort -u
+```
+
+## Quick Validation
+
+```bash
+# Run full skill validation
+npm run test:skills
+
+# Or directly
+./tests/skills/structure/test-skill-md.sh
+```
+
+## Common Issues
+
+### Missing frontmatter
+
+```yaml
+---
+name: my-skill
+description: Does something useful
+user-invocable: false
+---
+```
+
+### Token budget exceeded
+
+Split into SKILL.md + references/ directory.
+
+### Broken reference link
+
+Ensure file exists at `references/filename.md`.
+
+
+</Accordion>
+
+</Accordions>

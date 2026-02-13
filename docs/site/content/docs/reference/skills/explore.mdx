@@ -2,6 +2,7 @@
 title: "Explore"
 description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
 
@@ -501,3 +502,281 @@ Task(
 | Health scoring | 5 dimensions, 0-10 scale | Granular feedback on specific improvement areas |
 | Dependency analysis | Fan-in/fan-out metrics | Quantifies coupling for informed refactoring decisions |
 | Report format | Structured markdown with tables | Scannable, actionable output |
+
+---
+
+## References (3)
+
+<Accordions type="multiple">
+
+<Accordion title="Code Health Rubric">
+
+# Code Health Rubric
+
+Standardized 0-10 scoring criteria for assessing code quality across five dimensions.
+
+## Scoring Scale
+
+| Score | Rating | Description |
+|-------|--------|-------------|
+| 9-10 | Excellent | Production-ready, exemplary code |
+| 7-8 | Good | Minor improvements possible |
+| 5-6 | Adequate | Functional but needs attention |
+| 3-4 | Poor | Significant issues, refactor recommended |
+| 0-2 | Critical | Major problems, immediate action required |
+
+---
+
+## 1. Readability (0-10)
+
+| Score | Criteria |
+|-------|----------|
+| 10 | Self-documenting, intuitive naming, perfect structure |
+| 7-8 | Clear names, logical flow, minimal cognitive load |
+| 5-6 | Understandable with effort, some unclear sections |
+| 3-4 | Confusing logic, poor naming, requires context |
+| 0-2 | Incomprehensible, magic numbers, no conventions |
+
+## 2. Maintainability (0-10)
+
+| Score | Criteria |
+|-------|----------|
+| 10 | SRP adherence, loose coupling, DRY, easy to modify |
+| 7-8 | Good separation, minor duplication, clear boundaries |
+| 5-6 | Some coupling, moderate duplication, changes ripple |
+| 3-4 | High coupling, significant duplication, fragile |
+| 0-2 | Spaghetti code, any change breaks multiple areas |
+
+## 3. Testability (0-10)
+
+| Score | Criteria |
+|-------|----------|
+| 10 | Pure functions, DI, 90%+ coverage, mocks easy |
+| 7-8 | Most logic testable, some DI, 70%+ coverage |
+| 5-6 | Testable with effort, some hidden dependencies |
+| 3-4 | Hard to isolate, global state, 30% coverage |
+| 0-2 | Untestable, tightly coupled, no test infrastructure |
+
+## 4. Complexity (0-10, inverted: 10=simple)
+
+| Score | Criteria |
+|-------|----------|
+| 10 | Cyclomatic &lt;5, max 2 nesting, &lt;20 line functions |
+| 7-8 | Cyclomatic 5-10, 3 nesting, &lt;40 line functions |
+| 5-6 | Cyclomatic 10-15, 4 nesting, some long functions |
+| 3-4 | Cyclomatic 15-25, deep nesting, 100+ line functions |
+| 0-2 | Cyclomatic >25, 6+ nesting, god functions |
+
+## 5. Documentation (0-10)
+
+| Score | Criteria |
+|-------|----------|
+| 10 | Complete API docs, examples, architecture notes |
+| 7-8 | Public API documented, inline comments where needed |
+| 5-6 | Some docstrings, missing edge cases |
+| 3-4 | Sparse comments, outdated documentation |
+| 0-2 | No documentation, misleading comments |
+
+---
+
+## Overall Score Calculation
+
+```
+overall = (readability + maintainability + testability + complexity + documentation) / 5
+```
+
+**Score Interpretation:**
+- **8.0+**: Ship it
+- **6.0-7.9**: Acceptable, plan improvements
+- **4.0-5.9**: Technical debt, prioritize refactoring
+- **&lt;4.0**: Stop and fix before proceeding
+
+
+</Accordion>
+
+<Accordion title="Dependency Analysis">
+
+# Dependency Analysis
+
+Identify coupling hotspots and dependency patterns in codebases.
+
+## Fan-In / Fan-Out Metrics
+
+| Metric | Definition | Implication |
+|--------|------------|-------------|
+| **Fan-In** | Files that import this module | High = many dependents, changes risky |
+| **Fan-Out** | Modules this file imports | High = many dependencies, fragile |
+| **Instability** | Fan-Out / (Fan-In + Fan-Out) | 0 = stable, 1 = unstable |
+
+**Ideal Patterns:**
+- Core utilities: High fan-in, low fan-out (stable)
+- Feature modules: Low fan-in, moderate fan-out
+- Entry points: Low fan-in, high fan-out
+
+---
+
+## Hotspot Identification
+
+### High-Risk Indicators
+
+| Pattern | Risk | Action |
+|---------|------|--------|
+| Fan-in > 10 | Blast radius large | Add interface/abstraction |
+| Fan-out > 8 | Too many dependencies | Extract facades |
+| Instability = 1, Fan-in > 5 | Unstable core | Stabilize or decouple |
+
+### Coupling Score Formula
+
+```
+coupling_score = min(10, (fan_in + fan_out) / 3)
+```
+
+- 0-3: Low coupling (healthy)
+- 4-6: Moderate coupling (monitor)
+- 7-10: High coupling (refactor)
+
+---
+
+## Circular Dependency Detection
+
+**Signs of Circular Dependencies:**
+1. Import errors at runtime
+2. Mysterious `None` values
+3. Files that always change together
+4. Cannot extract to separate package
+
+**Detection Approach:**
+```
+A imports B
+B imports C
+C imports A  <- CIRCULAR
+```
+
+**Resolution Strategies:**
+1. Extract shared interface
+2. Dependency inversion (depend on abstractions)
+3. Merge tightly coupled modules
+4. Event-driven decoupling
+
+---
+
+## Change Impact Analysis
+
+**Questions to Answer:**
+1. If I modify this file, what breaks?
+2. Which files always change together?
+3. What is the blast radius of a refactor?
+
+**Measuring Impact:**
+- **Direct Impact**: Files importing the changed module
+- **Transitive Impact**: Files importing those files
+- **Co-Change Frequency**: Git history of files changed together
+
+**High Impact Indicators:**
+- > 5 direct dependents
+- > 20 transitive dependents
+- > 80% co-change frequency with another file
+
+
+</Accordion>
+
+<Accordion title="Findability Patterns">
+
+# Findability Patterns
+
+Improve code discoverability for developers exploring the codebase.
+
+## Naming Conventions for Searchability
+
+| Pattern | Example | Searchability |
+|---------|---------|---------------|
+| Domain prefix | `auth_login()`, `auth_logout()` | Grep "auth_" finds all |
+| Feature suffix | `UserService`, `UserRepository` | Grep "User" finds related |
+| Action verbs | `create_user`, `delete_order` | Grep "create_" finds patterns |
+| Consistent pluralization | `users/`, `orders/` | Predictable directory names |
+
+**Anti-Patterns:**
+- Abbreviations: `usr`, `mgr`, `svc` (hard to search)
+- Generic names: `utils.py`, `helpers.js` (too broad)
+- Inconsistent casing: `getUserData`, `get_user_data`
+
+---
+
+## Documentation Placement
+
+| Location | Purpose | Findability |
+|----------|---------|-------------|
+| `README.md` in directory | Module overview | First thing developers see |
+| Inline docstrings | Function behavior | IDE tooltips, grep |
+| `docs/architecture/` | System design | High-level understanding |
+| `CLAUDE.md` / `CONTRIBUTING.md` | Development guide | Onboarding entry |
+
+**Entry Point Strategy:**
+1. Every directory should have a README or index
+2. Complex modules need architecture diagrams
+3. Public APIs need usage examples
+4. Workflows need sequence diagrams
+
+---
+
+## Module Organization
+
+### Vertical Slice Architecture
+
+```
+features/
+  auth/
+    api.py          # Entry point
+    service.py      # Business logic
+    repository.py   # Data access
+    models.py       # Domain models
+    tests/          # Co-located tests
+```
+
+**Benefits:**
+- Related code together
+- Easy to find all auth-related files
+- Clear boundaries
+
+### Horizontal Layer Architecture
+
+```
+api/
+  auth.py
+  users.py
+services/
+  auth.py
+  users.py
+```
+
+**Benefits:**
+- Technical cohesion
+- Easier cross-cutting concerns
+
+---
+
+## Improving Discoverability
+
+### Quick Wins
+
+1. **Add index files**: Export public API from `__init__.py` or `index.ts`
+2. **Use consistent prefixes**: `handle_`, `on_`, `create_`, `get_`
+3. **Create README per directory**: Brief purpose + key files
+4. **Tag with keywords**: Add searchable comments for concepts
+
+### Search Optimization
+
+```python
+# Keywords: authentication, login, JWT, OAuth, session
+# See also: user_service.py, token_handler.py
+```
+
+**Metadata in Files:**
+- Related files cross-reference
+- Alternative terms for the concept
+- Links to documentation
+
+
+</Accordion>
+
+</Accordions>

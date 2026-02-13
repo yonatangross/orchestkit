@@ -2,6 +2,7 @@
 title: "Responsive Patterns"
 description: "Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -454,3 +455,662 @@ Each category has individual rule files in `rules/` loaded on-demand:
 - `references/container-queries.md` - Container query patterns
 - `references/fluid-typography.md` - Accessible fluid type scales
 - `scripts/responsive-card.tsx` - Responsive card component
+
+
+---
+
+## Rules (4)
+
+<Accordions type="multiple">
+
+<Accordion title="Motion Library & View Transitions — HIGH">
+
+
+## Motion Library & View Transitions
+
+Use Motion (Framer Motion) for React component animations and View Transitions API for page navigation with consistent presets.
+
+**Incorrect — inline animation values without presets:**
+```tsx
+// WRONG: Inconsistent animation values, no reduced-motion support
+<motion.div
+  initial={{ opacity: 0, y: 50, scale: 0.8 }}
+  animate={{ opacity: 1, y: 0, scale: 1 }}
+  transition={{ duration: 0.7, ease: "easeInOut" }}
+>
+  {/* Different values everywhere, no consistency */}
+</motion.div>
+```
+
+**Correct — centralized presets with AnimatePresence:**
+```tsx
+// lib/animations.ts — Single source of truth
+export const fadeInUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { type: 'spring', stiffness: 300, damping: 30 },
+};
+
+export const staggerContainer = {
+  animate: { transition: { staggerChildren: 0.05 } },
+};
+
+export const staggerItem = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+};
+
+// Usage with AnimatePresence for exit animations
+import { motion, AnimatePresence } from 'motion/react';
+import { staggerContainer, staggerItem, fadeInUp } from '@/lib/animations';
+
+function AnimatedList({ items }: { items: Item[] }) {
+  return (
+    <AnimatePresence mode="wait">
+      <motion.ul variants={staggerContainer} initial="initial" animate="animate">
+        {items.map((item) => (
+          <motion.li key={item.id} variants={staggerItem} layout>
+            {item.name}
+          </motion.li>
+        ))}
+      </motion.ul>
+    </AnimatePresence>
+  );
+}
+```
+
+**View Transitions API for page navigation:**
+```tsx
+// React Router with View Transitions
+import { Link, useViewTransitionState } from 'react-router';
+
+function ProductCard({ product }: { product: Product }) {
+  const isTransitioning = useViewTransitionState(`/products/${product.id}`);
+  return (
+    <Link to={`/products/${product.id}`} viewTransition>
+      <img
+        src={product.image}
+        alt={product.name}
+        style={{
+          viewTransitionName: isTransitioning ? 'product-image' : undefined,
+        }}
+      />
+    </Link>
+  );
+}
+```
+
+**Key rules:**
+- Animate only `transform` and `opacity` for 60fps (hardware accelerated)
+- Use centralized preset files, never inline animation values
+- Always wrap conditional renders in `AnimatePresence` for exit animations
+- Respect `prefers-reduced-motion: reduce` — disable or shorten animations
+- Keep transitions under 400ms to avoid blocking user interaction
+- Use View Transitions API for page navigation, Motion for component animations
+
+
+</Accordion>
+
+<Accordion title="Scroll-Driven Animations — MEDIUM">
+
+
+## Scroll-Driven Animations
+
+Use CSS Scroll-Driven Animations API for performant, declarative scroll-linked effects without JavaScript.
+
+**Incorrect — JavaScript scroll listener (jank-prone):**
+```javascript
+// WRONG: Scroll listeners run on main thread, cause jank
+window.addEventListener('scroll', () => {
+  const progress = window.scrollY / document.body.scrollHeight;
+  progressBar.style.width = `${progress * 100}%`; // Layout thrashing!
+  parallaxElement.style.transform = `translateY(${window.scrollY * 0.5}px)`;
+});
+```
+
+**Correct — CSS Scroll-Driven Animations (compositor thread):**
+```css
+/* Reading progress bar — zero JavaScript */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--color-primary);
+  transform-origin: left;
+  animation: grow-progress linear;
+  animation-timeline: scroll(root block);
+}
+
+@keyframes grow-progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Reveal on scroll — element enters viewport */
+.reveal-on-scroll {
+  animation: fade-in-up linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 100%;
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Parallax section */
+.parallax-bg {
+  animation: parallax-shift linear;
+  animation-timeline: scroll(root block);
+}
+
+@keyframes parallax-shift {
+  from { transform: translateY(-20%); }
+  to { transform: translateY(20%); }
+}
+```
+
+**Progressive enhancement (required for browser support):**
+```css
+/* Feature detection — fallback for unsupported browsers */
+@supports (animation-timeline: view()) {
+  .reveal-on-scroll {
+    animation: fade-in-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+}
+
+/* Fallback: IntersectionObserver in JavaScript */
+@supports not (animation-timeline: view()) {
+  .reveal-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+  .reveal-on-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+**Browser support:**
+| Feature | Chrome | Safari | Firefox | Edge |
+|---------|--------|--------|---------|------|
+| Scroll-Driven CSS | 115+ | 18.4+ | In dev | 115+ |
+| `scroll()` function | 115+ | 18.4+ | In dev | 115+ |
+| `view()` function | 115+ | 18.4+ | In dev | 115+ |
+
+**Key rules:**
+- CSS Scroll-Driven Animations run on compositor thread = guaranteed 60fps
+- Always use `@supports (animation-timeline: view())` for progressive enhancement
+- Use `scroll(root block)` for page-level progress, `view()` for element visibility
+- `animation-range` controls when animation starts/ends relative to viewport
+- Never use JavaScript scroll listeners for visual effects (use CSS or IntersectionObserver)
+- Respect `prefers-reduced-motion` — disable parallax and motion effects
+
+
+</Accordion>
+
+<Accordion title="PWA Offline & Installability — HIGH">
+
+
+## PWA Offline & Installability
+
+Implement offline-first patterns, background sync, install prompts, and web app manifests for native-like PWA experiences.
+
+**Incorrect — no offline fallback or install handling:**
+```javascript
+// WRONG: App crashes when offline
+// No service worker fallback, no install prompt handling
+// Users get browser error page instead of offline experience
+```
+
+**Correct — offline status hook and install prompt:**
+```tsx
+// useOnlineStatus hook
+export function useOnlineStatus() {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  return isOnline;
+}
+
+// Install prompt hook
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+export function useInstallPrompt() {
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: BeforeInstallPromptEvent) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handler as EventListener);
+    if (window.matchMedia('(display-mode: standalone)').matches) setIsInstalled(true);
+    return () => window.removeEventListener('beforeinstallprompt', handler as EventListener);
+  }, []);
+
+  const promptInstall = async () => {
+    if (!installPrompt) return false;
+    await installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    setInstallPrompt(null);
+    if (outcome === 'accepted') { setIsInstalled(true); return true; }
+    return false;
+  };
+
+  return { canInstall: !!installPrompt, isInstalled, promptInstall };
+}
+```
+
+**Background sync for offline form submissions:**
+```javascript
+// sw.js
+import { BackgroundSyncPlugin } from 'workbox-background-sync';
+import { registerRoute } from 'workbox-routing';
+import { NetworkOnly } from 'workbox-strategies';
+
+registerRoute(
+  /\/api\/forms/,
+  new NetworkOnly({
+    plugins: [
+      new BackgroundSyncPlugin('formQueue', {
+        maxRetentionTime: 24 * 60, // 24 hours
+      }),
+    ],
+  }),
+  'POST'
+);
+```
+
+**PWA checklist:**
+- Service worker registered with offline fallback
+- Web App Manifest with icons (192px + 512px maskable)
+- HTTPS enabled (required for service workers)
+- Offline page/experience works gracefully
+- Responsive design (meta viewport set)
+- Fast First Contentful Paint (&lt; 1.8s)
+
+**Key rules:**
+- Use `display: "standalone"` in manifest for app-like experience
+- Include both 192px and 512px icons with `maskable` purpose
+- Use BackgroundSyncPlugin for offline form submissions
+- Prompt install at a natural moment (not on page load)
+- Test offline behavior in Chrome DevTools Application tab
+
+
+</Accordion>
+
+<Accordion title="PWA Service Worker & Workbox — HIGH">
+
+
+## PWA Service Worker & Workbox
+
+Configure service workers with Workbox 7.x for reliable caching, update management, and installability.
+
+**Incorrect — service worker without update strategy:**
+```javascript
+// WRONG: No skipWaiting means users stuck on old version
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open('v1').then((cache) =>
+      cache.addAll(['/index.html', '/app.js', '/style.css'])
+    )
+  );
+});
+// Missing: skipWaiting, clientsClaim, no update prompt
+```
+
+**Correct — Workbox with proper caching strategies:**
+```javascript
+import { registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheableResponsePlugin } from 'workbox-cacheable-response';
+
+// Static assets: CacheFirst (hashed filenames = safe to cache long)
+registerRoute(
+  /\.(?:js|css|woff2)$/,
+  new CacheFirst({
+    cacheName: 'static-v1',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 365 * 24 * 60 * 60 }),
+    ],
+  })
+);
+
+// API calls: NetworkFirst (fresh data preferred, cached fallback)
+registerRoute(
+  /\/api\//,
+  new NetworkFirst({
+    cacheName: 'api-cache',
+    networkTimeoutSeconds: 10,
+    plugins: [new CacheableResponsePlugin({ statuses: [0, 200] })],
+  })
+);
+
+// Avatars/images: StaleWhileRevalidate (show cached, update in background)
+registerRoute(
+  /\/avatars\//,
+  new StaleWhileRevalidate({ cacheName: 'avatars' })
+);
+```
+
+**VitePWA integration:**
+```typescript
+// vite.config.ts
+import { VitePWA } from 'vite-plugin-pwa';
+
+export default defineConfig({
+  plugins: [
+    VitePWA({
+      registerType: 'autoUpdate',
+      workbox: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        runtimeCaching: [
+          { urlPattern: /^https:\/\/api\./, handler: 'NetworkFirst' },
+        ],
+      },
+      manifest: {
+        name: 'My PWA App',
+        short_name: 'MyPWA',
+        theme_color: '#4f46e5',
+        icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+      },
+    }),
+  ],
+});
+```
+
+**Key rules:**
+- Use `generateSW` for simple apps, `injectManifest` for custom service worker logic
+- Always enable `clientsClaim` and `skipWaiting` for immediate activation
+- CacheFirst for static assets, NetworkFirst for APIs, StaleWhileRevalidate for non-critical images
+- Never cache POST responses or authentication tokens
+- Include `navigateFallback: '/index.html'` for SPA offline support
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Container Queries">
+
+# Container Queries Reference
+
+## Container Types
+
+```css
+/* Size queries (width/height) */
+container-type: inline-size;  /* Query inline dimension */
+container-type: size;         /* Query both dimensions */
+container-type: normal;       /* No containment (default) */
+
+/* Named container */
+container-name: card;
+
+/* Shorthand */
+container: card / inline-size;
+```
+
+## Query Syntax
+
+```css
+/* Width queries */
+@container (min-width: 400px) { }
+@container (max-width: 399px) { }
+@container (width > 400px) { }
+@container (400px <= width <= 800px) { }
+
+/* Named container queries */
+@container card (min-width: 400px) { }
+
+/* Logical properties */
+@container (min-inline-size: 400px) { }
+@container (min-block-size: 300px) { }
+```
+
+## Container Query Units
+
+```css
+/* Inline dimension (usually width) */
+cqi  /* 1% of container inline size */
+
+/* Block dimension (usually height) */
+cqb  /* 1% of container block size */
+
+/* Min/max of cqi and cqb */
+cqmin
+cqmax
+
+/* Legacy (avoid - not logical) */
+cqw  /* Container width */
+cqh  /* Container height */
+```
+
+## Tailwind CSS v4 Integration
+
+Container queries are built into Tailwind CSS v4 - no plugin required.
+
+```html
+<!-- Enable container with @container -->
+<div class="@container">
+  <div class="flex flex-col @md:flex-row @lg:gap-8">
+    <!-- Responsive to container, not viewport -->
+  </div>
+</div>
+
+<!-- Named containers -->
+<div class="@container/card">
+  <div class="@lg/card:grid-cols-2">
+    <!-- Queries the 'card' container -->
+  </div>
+</div>
+```
+
+```css
+/* app.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
+
+@theme {
+  /* Custom container breakpoints (optional) */
+  --container-3xs: 16rem;
+  --container-2xs: 18rem;
+  --container-xs: 20rem;
+  /* Default breakpoints: @sm (20rem), @md (28rem), @lg (32rem), etc. */
+}
+```
+
+## Best Practices
+
+```css
+/* ✅ Use logical units */
+.card-title {
+  font-size: clamp(1rem, 5cqi, 2rem);
+  padding: 2cqi;
+}
+
+/* ✅ Nest containers carefully */
+.outer {
+  container: outer / inline-size;
+}
+.inner {
+  container: inner / inline-size;
+}
+@container inner (min-width: 200px) { }
+
+/* ❌ Don't query non-container */
+.no-container {
+  /* No container-type set */
+}
+@container (min-width: 400px) {
+  /* This won't work! */
+}
+```
+
+## Feature Detection
+
+```css
+@supports (container-type: inline-size) {
+  .card-container {
+    container-type: inline-size;
+  }
+}
+```
+
+
+</Accordion>
+
+<Accordion title="Fluid Typography">
+
+# Fluid Typography Reference
+
+## The clamp() Formula
+
+```css
+/* Syntax: clamp(min, preferred, max) */
+font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
+
+/* Breakdown:
+   min: 1rem (16px at default)
+   preferred: 0.5rem + 2vw (scales with viewport)
+   max: 2rem (32px at default)
+*/
+```
+
+## Accessible Fluid Scale
+
+```css
+:root {
+  /* Always include rem to respect user preferences */
+  --text-xs: clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.375vw, 1rem);
+  --text-base: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.625vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1rem + 1.25vw, 1.75rem);
+  --text-2xl: clamp(1.5rem, 1rem + 2.5vw, 2.5rem);
+  --text-3xl: clamp(1.875rem, 1rem + 4.375vw, 3.5rem);
+  --text-4xl: clamp(2.25rem, 1rem + 6.25vw, 4.5rem);
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl); }
+p { font-size: var(--text-base); }
+small { font-size: var(--text-sm); }
+```
+
+## Container-Based Fluid Type
+
+```css
+/* For component-scoped scaling */
+.card {
+  container-type: inline-size;
+}
+
+.card-title {
+  /* Scales with card width, not viewport */
+  font-size: clamp(1rem, 0.5rem + 5cqi, 1.75rem);
+}
+
+.card-body {
+  font-size: clamp(0.875rem, 0.5rem + 3cqi, 1rem);
+}
+```
+
+## Calculating Fluid Values
+
+```
+Target: 16px at 320px viewport → 24px at 1200px viewport
+
+Formula:
+preferred = min + (max - min) × (viewport - min-viewport) / (max-viewport - min-viewport)
+
+Step 1: Convert to vw
+  (24 - 16) / (1200 - 320) = 8 / 880 = 0.909% per px
+  0.909 × 100 = 0.909vw
+
+Step 2: Calculate rem offset
+  At 320px: 16px = 1rem
+  16 - (320 × 0.00909) = 16 - 2.91 = 13.09px ≈ 0.818rem
+
+Result:
+font-size: clamp(1rem, 0.818rem + 0.909vw, 1.5rem);
+```
+
+## Accessibility Considerations
+
+```css
+/* ❌ WRONG: Ignores user font preferences */
+font-size: 5vw;
+
+/* ❌ WRONG: Completely overrides user settings */
+font-size: 16px;
+
+/* ✅ CORRECT: Respects user preferences while scaling */
+font-size: clamp(1rem, 0.5rem + 2vw, 2rem);
+
+/* The rem portion ensures user's font-size preference
+   is always a factor in the final size */
+```
+
+## Line Height Scaling
+
+```css
+/* Tighter line-height for larger text */
+h1 {
+  font-size: clamp(2rem, 1rem + 5vw, 4rem);
+  line-height: clamp(1.1, 1.4 - 0.2vw, 1.3);
+}
+
+p {
+  font-size: clamp(1rem, 0.9rem + 0.5vw, 1.125rem);
+  line-height: 1.6; /* Static is fine for body */
+}
+```
+
+## Tools
+
+- [Utopia.fyi](https://utopia.fyi/type/calculator) - Fluid type scale generator
+- [Fluid Type Scale](https://www.fluid-type-scale.com/) - Calculate clamp values
+
+
+</Accordion>
+
+</Accordions>

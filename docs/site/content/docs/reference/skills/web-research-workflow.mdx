@@ -2,6 +2,7 @@
 title: "Web Research Workflow"
 description: "Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -458,3 +459,170 @@ This skill is used by:
 ---
 
 **Version:** 1.3.0 (February 2026)
+
+
+---
+
+## Rules (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Change Detection and Site Discovery — HIGH">
+
+
+## Change Detection and Site Discovery
+
+Detect differences between snapshots and discover competitor pages for monitoring.
+
+**Incorrect -- manual visual comparison:**
+```bash
+# Open two browser tabs and visually compare
+# No structured diff, easy to miss changes
+# No record of what changed or when
+```
+
+**Correct -- automated diff with structured comparison:**
+```bash
+# Text diff between latest two snapshots
+LATEST=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.txt | head -1)
+PREVIOUS=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.txt | head -2 | tail -1)
+
+diff -u "$PREVIOUS" "$LATEST" > \
+  .competitive-intel/diffs/competitor-pricing-$(date +%Y%m%d).diff
+
+# Structured JSON comparison for pricing changes
+LATEST_JSON=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.json | head -1)
+PREVIOUS_JSON=$(ls -t .competitive-intel/snapshots/competitor-pricing-*.json | head -2 | tail -1)
+
+jq -s '
+  .[0] as $old | .[1] as $new |
+  {
+    price_changes: [
+      $new[] | . as $tier |
+      ($old[] | select(.name == $tier.name)) as $old_tier |
+      select($old_tier.price \!= $tier.price) |
+      {name: .name, old_price: $old_tier.price, new_price: .price}
+    ],
+    new_tiers: [$new[] | select(.name as $n | $old | map(.name) | index($n) | not)],
+    removed_tiers: [$old[] | select(.name as $n | $new | map(.name) | index($n) | not)]
+  }
+' "$PREVIOUS_JSON" "$LATEST_JSON"
+```
+
+**Site discovery with Tavily (when TAVILY_API_KEY is set):**
+```bash
+# Crawl competitor site -- discovers URLs and extracts content
+# Use Tavily crawl API with include_paths filter
+# Save results to .competitive-intel/snapshots/ directory
+# See web-research-workflow SKILL.md for full Tavily crawl examples
+```
+
+**Automated monitoring via CI:**
+```yaml
+# .github/workflows/competitive-monitor.yml
+name: Competitive Monitor
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Daily at 9 AM
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g agent-browser
+      - run: agent-browser install
+      - run: ./scripts/run-competitive-monitor.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: competitive-intel
+          path: .competitive-intel/
+```
+
+**Key rules:**
+- Run structured JSON diffs, not just text diffs, to detect price and feature changes precisely
+- Use Tavily crawl for initial site discovery when API key is available, fall back to manual URL lists
+- Store diffs with timestamps for change history and trend analysis
+- Automate monitoring in CI with daily schedules for consistent coverage
+
+
+</Accordion>
+
+<Accordion title="Competitor Page Monitoring — HIGH">
+
+
+## Competitor Page Monitoring
+
+Capture point-in-time snapshots of competitor pages for pricing, features, and positioning tracking.
+
+**Incorrect -- manual one-off checks with no history:**
+```bash
+# Check competitor pricing once, no record kept
+# No snapshot, no history, no comparison baseline
+```
+
+**Correct -- structured snapshot capture with change classification:**
+```bash
+# Create snapshots directory
+mkdir -p .competitive-intel/snapshots
+
+# Capture text content
+agent-browser open https://competitor.com/pricing
+agent-browser wait --load networkidle
+agent-browser get text body > \
+  .competitive-intel/snapshots/competitor-pricing-$(date +%Y%m%d).txt
+
+# Extract structured pricing data
+agent-browser eval "JSON.stringify(
+  Array.from(document.querySelectorAll('.pricing-tier')).map(tier => ({
+    name: tier.querySelector('h3')?.innerText,
+    price: tier.querySelector('.price')?.innerText,
+    features: Array.from(tier.querySelectorAll('li')).map(li => li.innerText)
+  }))
+)" > .competitive-intel/snapshots/competitor-pricing-$(date +%Y%m%d).json
+
+agent-browser close
+```
+
+**Change classification:**
+
+| Severity | Examples | Action |
+|----------|----------|--------|
+| Critical | Price increase/decrease, major feature change | Immediate alert |
+| High | New feature added, feature removed | Review required |
+| Medium | Copy changes, positioning shift | Note for analysis |
+| Low | Typos, minor styling | Log only |
+
+**Config file for monitoring targets:**
+```json
+{
+  "monitors": [
+    {
+      "name": "Competitor A Pricing",
+      "url": "https://competitor-a.com/pricing",
+      "frequency": "daily",
+      "selectors": {
+        "pricing": ".pricing-tier",
+        "features": ".feature-list li"
+      },
+      "alerts": {
+        "price_change": "critical",
+        "new_feature": "high",
+        "copy_change": "low"
+      }
+    }
+  ],
+  "storage": ".competitive-intel",
+  "retention_days": 90
+}
+```
+
+**Key rules:**
+- Always save both text and structured (JSON) snapshots for each capture
+- Use consistent date-stamped filenames for chronological comparison
+- Classify changes by severity to prioritize strategic response
+- Store findings in knowledge graph for cross-session persistence
+
+
+</Accordion>
+
+</Accordions>

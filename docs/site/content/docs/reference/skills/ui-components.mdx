@@ -2,6 +2,7 @@
 title: "Ui Components"
 description: "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -152,3 +153,3793 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 - `accessibility` - WCAG compliance and React Aria patterns
 - `testing-patterns` - Component testing patterns
+
+
+---
+
+## Rules (10)
+
+<Accordions type="multiple">
+
+<Accordion title="Design System Component Architecture — HIGH">
+
+
+## Design System Component Architecture
+
+**Incorrect — unstructured components without patterns:**
+```tsx
+// WRONG: No variant system, inline styles
+function Button({ type, children }) {
+  const style = type === 'primary'
+    ? { background: 'blue', color: 'white', padding: '10px 20px' }
+    : { background: 'gray', color: 'black', padding: '10px 20px' };
+  return <button style={style}>{children}</button>;
+}
+
+// WRONG: Wrapper divs instead of composition
+<div className="dialog-wrapper">
+  <div className="dialog-overlay" />
+  <div className="dialog-content">
+    <button onClick={close}>Close</button>
+  </div>
+</div>
+```
+
+**Correct — Atomic Design with CVA variants:**
+```tsx
+// Atomic Design hierarchy
+// Atoms -> Molecules -> Organisms -> Templates -> Pages
+
+// Atom: Button with CVA variants
+import { cva, type VariantProps } from 'class-variance-authority'
+import { cn } from '@/lib/utils'
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-md font-medium transition-colors',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground',
+        outline: 'border border-input bg-background hover:bg-accent',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 px-3',
+        lg: 'h-11 px-8',
+      },
+    },
+    defaultVariants: { variant: 'default', size: 'default' },
+  }
+)
+```
+
+### Atomic Design Levels
+
+| Level | Description | Examples |
+|-------|-------------|----------|
+| Atoms | Indivisible primitives | Button, Input, Label, Icon |
+| Molecules | Simple compositions | FormField, SearchBar, Card |
+| Organisms | Complex compositions | Navigation, Modal, DataTable |
+| Templates | Page layouts | DashboardLayout, AuthLayout |
+| Pages | Specific instances | HomePage, SettingsPage |
+
+### WCAG 2.1 Level AA Requirements
+
+| Requirement | Threshold |
+|-------------|-----------|
+| Normal text contrast | 4.5:1 minimum |
+| Large text contrast | 3:1 minimum |
+| UI components | 3:1 minimum |
+
+### Accessibility Essentials
+
+- **Keyboard Navigation**: All interactive elements must be keyboard accessible
+- **Focus Management**: Use focus traps in modals, maintain logical focus order
+- **Semantic HTML**: Use `&lt;button&gt;`, `&lt;nav&gt;`, `&lt;main&gt;` instead of generic divs
+- **ARIA Attributes**: `aria-label`, `aria-expanded`, `aria-controls`, `aria-live`
+- **No positive tabindex**: Using `tabindex > 0` disrupts natural tab order
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Component architecture | Atomic Design (scalable hierarchy) |
+| Variant management | CVA (Class Variance Authority) |
+| Documentation | Storybook (interactive component playground) |
+| Composition | Use `asChild` to avoid wrapper divs |
+| Extending components | Wrap, don't modify source files |
+| Class merging | Always use cn() for Tailwind conflicts |
+
+
+</Accordion>
+
+<Accordion title="Design System Token Architecture — HIGH">
+
+
+## Design System Token Architecture
+
+**Incorrect — hardcoded values and CSS variable abuse:**
+```tsx
+// WRONG: Hardcoded colors
+<div className="bg-[#0066cc] text-[#ffffff]">
+
+// WRONG: CSS variables in className (use semantic tokens instead)
+<div className="bg-[var(--color-primary)]">
+
+// WRONG: No token structure
+const styles = { color: '#333', padding: '17px', fontSize: '15px' };
+```
+
+**Correct — W3C design token structure with Tailwind @theme:**
+```typescript
+const tokens = {
+  colors: {
+    primary: { base: "#0066cc", hover: "#0052a3" },
+    semantic: { success: "#28a745", error: "#dc3545" }
+  },
+  spacing: { xs: "4px", sm: "8px", md: "16px", lg: "24px" }
+};
+```
+
+```css
+/* Tailwind @theme directive (recommended) */
+@theme {
+  --color-primary: oklch(0.55 0.15 250);
+  --color-primary-hover: oklch(0.45 0.15 250);
+  --color-text-primary: oklch(0.15 0 0);
+  --color-background: oklch(0.98 0 0);
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+}
+```
+
+```tsx
+// Components use Tailwind utilities (correct)
+<div className="bg-primary text-text-primary p-md">
+```
+
+### Token Categories
+
+| Category | Examples | Scale |
+|----------|----------|-------|
+| Colors | `blue.500`, `text.primary`, `feedback.error` | 50-950 |
+| Typography | `fontSize.base`, `fontWeight.semibold` | xs-5xl |
+| Spacing | `spacing.4`, `spacing.8` | 0-24 (4px base) |
+| Border Radius | `borderRadius.md`, `borderRadius.full` | none-full |
+| Shadows | `shadow.sm`, `shadow.lg` | xs-xl |
+
+### Design System Layers
+
+| Layer | Description | Examples |
+|-------|-------------|----------|
+| Design Tokens | Foundational design decisions | Colors, spacing, typography |
+| Components | Reusable UI building blocks | Button, Input, Card, Modal |
+| Patterns | Common UX solutions | Forms, Navigation, Layouts |
+| Guidelines | Rules and best practices | Accessibility, naming, APIs |
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Token format | W3C Design Tokens (industry standard) |
+| Color format | OKLCH for perceptually uniform theming |
+| Styling approach | Tailwind `@theme` directive |
+| Spacing base | 4px system |
+| Dark mode | Tailwind `@theme` with CSS variables |
+
+
+</Accordion>
+
+<Accordion title="React Hook Form Patterns — HIGH">
+
+
+## React Hook Form Patterns
+
+Production form patterns with React Hook Form v7 for controlled rendering, field arrays, wizards, and file uploads.
+
+**Incorrect — uncontrolled form with useEffect fetch:**
+```tsx
+// WRONG: Fetching in useEffect, manual state management
+function BadForm() {
+  const [email, setEmail] = useState('');
+  const [errors, setErrors] = useState({});
+
+  useEffect(() => {
+    // Manual validation on every render...
+    if (!email.includes('@')) setErrors({ email: 'Invalid' });
+  }, [email]);
+
+  return <input value={email} onChange={(e) => setEmail(e.target.value)} />;
+}
+```
+
+**Correct — React Hook Form with Zod resolver:**
+```tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+
+const userSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(8, 'Minimum 8 characters'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ['confirmPassword'],
+});
+
+type UserForm = z.infer<typeof userSchema>;
+
+function SignupForm() {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<UserForm>({
+    resolver: zodResolver(userSchema),
+    defaultValues: { email: '', password: '', confirmPassword: '' },
+    mode: 'onBlur', // Validate on blur, not every keystroke
+  });
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <input
+        {...register('email')}
+        aria-invalid={!!errors.email}
+        aria-describedby={errors.email ? 'email-error' : undefined}
+      />
+      {errors.email && <p id="email-error" role="alert">{errors.email.message}</p>}
+
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Submitting...' : 'Sign Up'}
+      </button>
+    </form>
+  );
+}
+```
+
+**Field arrays for dynamic fields:**
+```tsx
+import { useFieldArray } from 'react-hook-form';
+
+function OrderForm() {
+  const { control, register } = useForm({
+    defaultValues: { items: [{ productId: '', quantity: 1 }] },
+  });
+  const { fields, append, remove } = useFieldArray({ control, name: 'items' });
+
+  return (
+    <>
+      {fields.map((field, index) => (
+        <div key={field.id}> {/* Use field.id, NOT index */}
+          <input {...register(`items.${index}.productId`)} />
+          <input type="number" {...register(`items.${index}.quantity`, { valueAsNumber: true })} />
+          <button type="button" onClick={() => remove(index)}>Remove</button>
+        </div>
+      ))}
+      <button type="button" onClick={() => append({ productId: '', quantity: 1 })}>Add</button>
+    </>
+  );
+}
+```
+
+**Controller for third-party components:**
+```tsx
+import { Controller } from 'react-hook-form';
+
+<Controller
+  name="date"
+  control={control}
+  render={({ field, fieldState }) => (
+    <DatePicker
+      value={field.value}
+      onChange={field.onChange}
+      onBlur={field.onBlur}
+      error={fieldState.error?.message}
+    />
+  )}
+/>
+```
+
+**Key rules:**
+- Always provide `defaultValues` (prevents uncontrolled-to-controlled warnings)
+- Use `mode: 'onBlur'` for better performance (not every keystroke)
+- Use `field.id` as key in field arrays, never index
+- Use `Controller` for non-native inputs (date pickers, selects, rich text)
+- Add `noValidate` to form element when using Zod (disable browser validation)
+- Use `aria-invalid` and `role="alert"` for accessibility
+
+
+</Accordion>
+
+<Accordion title="Zod Validation & Server Actions — HIGH">
+
+
+## Zod Validation & Server Actions
+
+Type-safe validation with Zod schemas shared between client forms and React 19 Server Actions.
+
+**Incorrect — client-only validation without server check:**
+```tsx
+// WRONG: Client validation only — bypassable with DevTools
+function ContactForm() {
+  const handleSubmit = (e: FormEvent) => {
+    if (!email.includes('@')) return; // Client-only, easily bypassed!
+    fetch('/api/contact', { body: JSON.stringify({ email }) });
+  };
+}
+```
+
+**Correct — shared Zod schema for client AND server:**
+```typescript
+// schemas/contact.ts — Shared validation (client + server)
+import { z } from 'zod';
+
+export const contactSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters'),
+  email: z.string().email('Please enter a valid email'),
+  message: z.string().min(10, 'Message must be at least 10 characters'),
+});
+
+export type ContactForm = z.infer<typeof contactSchema>;
+```
+
+**Server Action with Zod validation (React 19):**
+```typescript
+// actions.ts
+'use server';
+import { contactSchema } from '@/schemas/contact';
+
+export async function submitContact(formData: FormData) {
+  const result = contactSchema.safeParse({
+    name: formData.get('name'),
+    email: formData.get('email'),
+    message: formData.get('message'),
+  });
+
+  if (!result.success) {
+    return { errors: result.error.flatten().fieldErrors };
+  }
+
+  await saveContact(result.data);
+  return { success: true };
+}
+
+// Component with useActionState
+'use client';
+import { useActionState } from 'react';
+import { submitContact } from './actions';
+
+function ContactForm() {
+  const [state, formAction, isPending] = useActionState(submitContact, null);
+
+  return (
+    <form action={formAction}>
+      <input name="name" />
+      {state?.errors?.name && <span role="alert">{state.errors.name[0]}</span>}
+
+      <input name="email" />
+      {state?.errors?.email && <span role="alert">{state.errors.email[0]}</span>}
+
+      <textarea name="message" />
+      {state?.errors?.message && <span role="alert">{state.errors.message[0]}</span>}
+
+      <button type="submit" disabled={isPending}>
+        {isPending ? 'Sending...' : 'Send'}
+      </button>
+    </form>
+  );
+}
+```
+
+**Advanced Zod patterns:**
+```typescript
+// Async validation (username availability)
+const usernameSchema = z.object({
+  username: z.string()
+    .min(3, 'At least 3 characters')
+    .refine(async (value) => {
+      const available = await checkUsernameAvailability(value);
+      return available;
+    }, 'Username already taken'),
+});
+
+// Use mode: 'onBlur' to avoid async validation on every keystroke
+useForm({ resolver: zodResolver(usernameSchema), mode: 'onBlur' });
+
+// Transform + validate
+const priceSchema = z.object({
+  price: z.string()
+    .transform((val) => parseFloat(val))
+    .pipe(z.number().positive('Must be positive')),
+});
+
+// Discriminated union for conditional fields
+const paymentSchema = z.discriminatedUnion('method', [
+  z.object({ method: z.literal('card'), cardNumber: z.string().length(16) }),
+  z.object({ method: z.literal('paypal'), paypalEmail: z.string().email() }),
+]);
+```
+
+**Key rules:**
+- Share Zod schemas between client and server — single source of truth
+- Always validate on server even if client validation passes (never trust client)
+- Use `safeParse` (not `parse`) for server actions to return errors instead of throwing
+- Use `z.infer&lt;typeof schema&gt;` for automatic TypeScript types
+- Async validation: combine with `mode: 'onBlur'` to avoid excessive API calls
+- Custom error messages in every `.email()`, `.min()`, `.refine()` call
+
+
+</Accordion>
+
+<Accordion title="Radix: Composition — HIGH">
+
+
+# Radix Composition Patterns
+
+Polymorphic rendering with asChild, Slot, nested triggers, and ref forwarding.
+
+## asChild Pattern
+
+The `asChild` prop renders children as the component itself, merging props and refs:
+
+```tsx
+// Without asChild - nested elements
+<Button>
+  <Link href="/about">About</Link>
+</Button>
+// Renders: <button><a href="/about">About</a></button>
+
+// With asChild - single element
+<Button asChild>
+  <Link href="/about">About</Link>
+</Button>
+// Renders: <a href="/about" class="button-styles">About</a>
+```
+
+**How it works** (via Radix `Slot`):
+1. **Props merging**: Parent props spread to child
+2. **Ref forwarding**: Refs correctly forwarded
+3. **Event combining**: Both onClick handlers fire
+4. **Class merging**: ClassNames combined
+
+## Nested Composition
+
+Combine multiple Radix triggers on a single element:
+
+```tsx
+import { Dialog, Tooltip } from 'radix-ui'
+
+const MyButton = React.forwardRef((props, ref) => (
+  <button {...props} ref={ref} />
+))
+
+export function DialogWithTooltip() {
+  return (
+    <Dialog.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <Dialog.Trigger asChild>
+            <MyButton>Open dialog</MyButton>
+          </Dialog.Trigger>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content>Click to open dialog</Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content>Dialog content</Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## Common Patterns
+
+### Link as Button
+
+```tsx
+<Button asChild variant="outline">
+  <Link href="/settings">Settings</Link>
+</Button>
+```
+
+### Icon Button
+
+```tsx
+<Button asChild size="icon">
+  <a href="https://github.com" target="_blank">
+    <GitHubIcon />
+  </a>
+</Button>
+```
+
+### Menu Item as Link
+
+```tsx
+<DropdownMenu.Item asChild>
+  <Link href="/profile">Profile</Link>
+</DropdownMenu.Item>
+```
+
+### Polymorphic Extension with Slot
+
+```tsx
+import { Slot } from '@radix-ui/react-slot'
+
+interface IconButtonProps
+  extends React.ComponentPropsWithoutRef<typeof Button> {
+  icon: React.ReactNode
+  label: string
+}
+
+const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+  ({ icon, label, asChild, ...props }, ref) => (
+    <Button ref={ref} size="icon" aria-label={label} asChild={asChild} {...props}>
+      {asChild ? <Slot>{icon}</Slot> : icon}
+    </Button>
+  )
+)
+```
+
+## When to Use asChild
+
+| Use Case | Use asChild? |
+|----------|--------------|
+| Link styled as button | Yes |
+| Combining triggers | Yes |
+| Custom element with Radix behavior | Yes |
+| Default element is fine | No |
+| Adds complexity without benefit | No |
+
+## Requirements for Child Components
+
+The child component MUST:
+
+1. **Forward refs** with `React.forwardRef`
+2. **Spread props** to underlying element
+3. Be a **single element** (not fragment)
+
+```tsx
+// CORRECT - forwards ref and spreads props
+const MyButton = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => <button ref={ref} {...props} />
+)
+
+// INCORRECT - no ref forwarding
+const MyButton = (props) => <button {...props} />
+```
+
+## Primitives Catalog
+
+### Overlay Components
+| Primitive | Use Case |
+|-----------|----------|
+| **Dialog** | Modal dialogs, forms, confirmations |
+| **AlertDialog** | Destructive action confirmations |
+| **Sheet** | Side panels, mobile drawers |
+
+### Popover Components
+| Primitive | Use Case |
+|-----------|----------|
+| **Popover** | Rich content on trigger |
+| **Tooltip** | Simple text hints |
+| **HoverCard** | Preview cards on hover |
+| **ContextMenu** | Right-click menus |
+
+### Menu Components
+| Primitive | Use Case |
+|-----------|----------|
+| **DropdownMenu** | Action menus |
+| **Menubar** | Application menubars |
+| **NavigationMenu** | Site navigation |
+
+### Form Components
+| Primitive | Use Case |
+|-----------|----------|
+| **Select** | Custom select dropdowns |
+| **RadioGroup** | Single selection groups |
+| **Checkbox** | Boolean toggles |
+| **Switch** | On/off toggles |
+| **Slider** | Range selection |
+
+### Disclosure Components
+| Primitive | Use Case |
+|-----------|----------|
+| **Accordion** | Expandable sections |
+| **Collapsible** | Single toggle content |
+| **Tabs** | Tabbed interfaces |
+
+
+</Accordion>
+
+<Accordion title="Radix: Dialog Patterns — HIGH">
+
+
+# Radix Dialog Patterns
+
+Accessible modal dialogs with Radix primitives, including Dialog and AlertDialog.
+
+## Dialog vs AlertDialog
+
+| Feature | Dialog | AlertDialog |
+|---------|--------|-------------|
+| Close on overlay click | Yes | No |
+| Close on Escape | Yes | Requires explicit action |
+| Use case | Forms, content | Destructive confirmations |
+
+## Basic Dialog
+
+```tsx
+import { Dialog } from 'radix-ui'
+
+export function BasicDialog() {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
+        <Button>Edit Profile</Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6">
+          <Dialog.Title>Edit Profile</Dialog.Title>
+          <Dialog.Description>
+            Make changes to your profile here.
+          </Dialog.Description>
+          {/* Form content */}
+          <Dialog.Close asChild>
+            <Button>Save changes</Button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## Controlled Dialog
+
+```tsx
+export function ControlledDialog() {
+  const [open, setOpen] = useState(false)
+
+  const handleSubmit = async () => {
+    await saveData()
+    setOpen(false)
+  }
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <Button>Open</Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content>
+          <form onSubmit={handleSubmit}>
+            {/* Form fields */}
+            <Button type="submit">Save</Button>
+          </form>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## AlertDialog (Destructive Actions)
+
+```tsx
+import { AlertDialog } from 'radix-ui'
+
+export function DeleteConfirmation({ onDelete }) {
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className="fixed inset-0 bg-black/50" />
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6">
+          <AlertDialog.Title>Are you sure?</AlertDialog.Title>
+          <AlertDialog.Description>
+            This action cannot be undone.
+          </AlertDialog.Description>
+          <div className="flex gap-4 justify-end">
+            <AlertDialog.Cancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <Button variant="destructive" onClick={onDelete}>
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  )
+}
+```
+
+## Abstracting Dialog Components
+
+Create reusable wrappers for consistent styling:
+
+```tsx
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+
+export const Dialog = DialogPrimitive.Root
+export const DialogTrigger = DialogPrimitive.Trigger
+export const DialogClose = DialogPrimitive.Close
+
+export const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ children, className, ...props }, ref) => (
+  <DialogPrimitive.Portal>
+    <DialogPrimitive.Overlay
+      className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out"
+    />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
+        'bg-background rounded-lg shadow-lg p-6 w-full max-w-lg',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPrimitive.Portal>
+))
+```
+
+## Animation with data-state
+
+```css
+[data-state="open"] .overlay {
+  animation: fadeIn 150ms ease-out;
+}
+[data-state="closed"] .overlay {
+  animation: fadeOut 150ms ease-in;
+}
+
+[data-state="open"] .content {
+  animation: scaleIn 150ms ease-out;
+}
+[data-state="closed"] .content {
+  animation: scaleOut 150ms ease-in;
+}
+
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } }
+@keyframes scaleOut { to { transform: scale(0.95); opacity: 0; } }
+```
+
+## Accessibility Built-in
+
+- Focus trapped within dialog
+- Focus returns to trigger on close
+- Escape closes dialog
+- Click outside closes (Dialog only)
+- Proper ARIA attributes
+- Screen reader announcements
+
+
+</Accordion>
+
+<Accordion title="Radix: Styling & Focus — HIGH">
+
+
+# Radix Styling & Focus Management
+
+Data attributes, Tailwind arbitrary variants, keyboard navigation, and focus management.
+
+## Styling with Data Attributes
+
+Radix exposes state via data attributes for CSS styling:
+
+```css
+/* Style based on state */
+[data-state="open"] { /* open styles */ }
+[data-state="closed"] { /* closed styles */ }
+[data-disabled] { /* disabled styles */ }
+[data-highlighted] { /* keyboard focus */ }
+```
+
+```tsx
+// Tailwind arbitrary variants
+<Dialog.Content className="data-[state=open]:animate-in data-[state=closed]:animate-out">
+```
+
+## Dropdown Menu Styling
+
+```tsx
+const DropdownMenuContent = React.forwardRef(
+  ({ className, sideOffset = 4, ...props }, ref) => (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        className={cn(
+          'z-50 min-w-[8rem] rounded-md border bg-popover p-1 shadow-md',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out',
+          'data-[state=open]:fade-in-0 data-[state=closed]:fade-out-0',
+          'data-[state=open]:zoom-in-95 data-[state=closed]:zoom-out-95',
+          'data-[side=bottom]:slide-in-from-top-2',
+          'data-[side=left]:slide-in-from-right-2',
+          'data-[side=right]:slide-in-from-left-2',
+          'data-[side=top]:slide-in-from-bottom-2',
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  )
+)
+
+const DropdownMenuItem = React.forwardRef(
+  ({ className, ...props }, ref) => (
+    <DropdownMenuPrimitive.Item
+      ref={ref}
+      className={cn(
+        'relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
+        'focus:bg-accent focus:text-accent-foreground',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+```
+
+## Popover and Tooltip
+
+```tsx
+// Tooltip with Provider for shared configuration
+<Tooltip.Provider delayDuration={300}>
+  <Tooltip.Root>
+    <Tooltip.Trigger asChild>
+      <Button size="icon" variant="ghost">
+        <Settings className="h-4 w-4" />
+      </Button>
+    </Tooltip.Trigger>
+    <Tooltip.Portal>
+      <Tooltip.Content
+        className="bg-gray-900 text-white px-3 py-1.5 rounded text-sm"
+        sideOffset={5}
+      >
+        Settings
+        <Tooltip.Arrow className="fill-gray-900" />
+      </Tooltip.Content>
+    </Tooltip.Portal>
+  </Tooltip.Root>
+</Tooltip.Provider>
+```
+
+## Positioning Props
+
+```tsx
+<Content
+  side="top"              // top | right | bottom | left
+  sideOffset={5}          // Distance from trigger
+  align="center"          // start | center | end
+  alignOffset={0}         // Offset from alignment
+  avoidCollisions={true}  // Flip if clipped
+  collisionPadding={8}    // Viewport padding
+/>
+```
+
+## Side-Aware Animations
+
+```css
+[data-state="open"] { animation: fadeIn 200ms ease-out; }
+[data-state="closed"] { animation: fadeOut 150ms ease-in; }
+
+[data-side="top"] { animation-name: slideFromBottom; }
+[data-side="bottom"] { animation-name: slideFromTop; }
+[data-side="left"] { animation-name: slideFromRight; }
+[data-side="right"] { animation-name: slideFromLeft; }
+```
+
+## Built-in Accessibility
+
+Every Radix primitive includes:
+- **Keyboard navigation**: Arrow keys, Escape, Enter, Tab
+- **Focus management**: Trap, return, visible focus rings
+- **ARIA attributes**: Roles, states, properties
+- **Screen reader**: Proper announcements
+
+## Focus Management
+
+### Dialog Focus Trap
+
+```tsx
+<Dialog.Content
+  onOpenAutoFocus={(event) => {
+    event.preventDefault()
+    document.getElementById('email-input')?.focus()
+  }}
+  onCloseAutoFocus={(event) => {
+    event.preventDefault()
+    document.getElementById('other-element')?.focus()
+  }}
+>
+```
+
+### Escape Key Handling
+
+```tsx
+<Dialog.Content
+  onEscapeKeyDown={(event) => {
+    if (hasUnsavedChanges) {
+      event.preventDefault()
+      showConfirmDialog()
+    }
+  }}
+>
+```
+
+## Focus Visible Styling
+
+```css
+[data-focus-visible] {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+```
+
+```tsx
+<Button className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+```
+
+## Keyboard Shortcuts Reference
+
+| Component | Key | Action |
+|-----------|-----|--------|
+| Dialog | Escape | Close |
+| Menu | Arrow Up/Down | Navigate |
+| Menu | Enter/Space | Select |
+| Menu | Right Arrow | Open submenu |
+| Menu | Left Arrow | Close submenu |
+| Tabs | Arrow Left/Right | Switch tab |
+| RadioGroup | Arrow Up/Down | Change selection |
+| Select | Arrow Up/Down | Navigate options |
+| Select | Enter | Select option |
+
+
+</Accordion>
+
+<Accordion title="shadcn/ui: Customization — HIGH">
+
+
+# shadcn/ui Customization
+
+CVA variant system, cn() class merging, OKLCH theming, and component extension patterns.
+
+## CVA (Class Variance Authority)
+
+Declarative, type-safe variant definitions:
+
+```tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  // Base classes (always applied)
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
+      },
+    },
+    compoundVariants: [
+      { variant: 'outline', size: 'lg', className: 'border-2' },
+    ],
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+)
+
+// Type-safe props
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+```
+
+### Boolean Variants
+
+```tsx
+const cardVariants = cva(
+  'rounded-lg border bg-card text-card-foreground',
+  {
+    variants: {
+      elevated: {
+        true: 'shadow-lg',
+        false: 'shadow-none',
+      },
+      interactive: {
+        true: 'cursor-pointer hover:bg-accent transition-colors',
+        false: '',
+      },
+    },
+    defaultVariants: { elevated: false, interactive: false },
+  }
+)
+```
+
+## cn() Utility
+
+Combines `clsx` + `tailwind-merge` for conflict resolution:
+
+```tsx
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
+// Usage - later classes win
+cn('px-4 py-2', 'px-6')  // => 'py-2 px-6'
+cn('text-red-500', condition && 'text-blue-500')
+
+// With CVA variants
+cn(buttonVariants({ variant, size }), className)
+```
+
+## OKLCH Theming (2026 Standard)
+
+Modern perceptually uniform color space:
+
+```css
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.985 0 0);
+  --destructive: oklch(0.396 0.141 25.723);
+}
+```
+
+**Why OKLCH?** Perceptually uniform (equal steps look equal), better dark mode contrast, wide gamut support. Format: `oklch(lightness chroma hue)`.
+
+## Component Extension Strategy
+
+**Wrap, don't modify source:**
+
+```tsx
+import { Button as ShadcnButton } from '@/components/ui/button'
+
+interface ExtendedButtonProps
+  extends React.ComponentPropsWithoutRef<typeof ShadcnButton> {
+  loading?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
+  ({ loading, disabled, children, ...props }, ref) => (
+    <ShadcnButton ref={ref} disabled={disabled || loading} {...props}>
+      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {children}
+    </ShadcnButton>
+  )
+)
+Button.displayName = 'Button'
+```
+
+## CLI Quick Reference
+
+```bash
+npx shadcn@latest init        # Initialize in project
+npx shadcn@latest add button  # Add components
+npx shadcn@latest add dialog card input label
+```
+
+## Best Practices
+
+1. **Keep variants focused**: Each variant should have a single responsibility
+2. **Always forward refs**: Components may need ref access
+3. **Use compound variants sparingly**: Only for complex combinations
+4. **Type exports**: Export `VariantProps` type for consumers
+5. **Preserve displayName**: Helps with debugging
+
+
+</Accordion>
+
+<Accordion title="shadcn/ui: Data Table — HIGH">
+
+
+# shadcn/ui Data Table
+
+TanStack Table integration with shadcn/ui for sortable, filterable data tables.
+
+## Basic Table Structure
+
+```tsx
+import {
+  Table, TableBody, TableCell, TableHead,
+  TableHeader, TableRow,
+} from '@/components/ui/table'
+import {
+  useReactTable, getCoreRowModel, getSortedRowModel,
+  getFilteredRowModel, getPaginationRowModel,
+  flexRender, type ColumnDef, type SortingState,
+} from '@tanstack/react-table'
+
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+}
+
+export function DataTable<TData, TValue>({
+  columns, data,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = useState([])
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    state: { sorting, columnFilters },
+  })
+
+  return (
+    <div>
+      <Table>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead key={header.id}>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id}>
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      {/* Pagination */}
+      <div className="flex items-center justify-end gap-2 py-4">
+        <Button
+          variant="outline" size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline" size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
+      </div>
+    </div>
+  )
+}
+```
+
+## Column Definitions
+
+```tsx
+const columns: ColumnDef<User>[] = [
+  {
+    accessorKey: 'name',
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+      >
+        Name
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => {
+      const status = row.getValue('status') as string
+      return (
+        <Badge variant={status === 'active' ? 'default' : 'secondary'}>
+          {status}
+        </Badge>
+      )
+    },
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon">
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem>Edit</DropdownMenuItem>
+          <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    ),
+  },
+]
+```
+
+## Column Filtering
+
+```tsx
+<Input
+  placeholder="Filter by name..."
+  value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+  onChange={(e) => table.getColumn('name')?.setFilterValue(e.target.value)}
+  className="max-w-sm"
+/>
+```
+
+## Dependencies
+
+```bash
+npm install @tanstack/react-table   # Table state management
+npx shadcn@latest add table badge dropdown-menu button input
+```
+
+
+</Accordion>
+
+<Accordion title="shadcn/ui: Forms — HIGH">
+
+
+# shadcn/ui Form Patterns
+
+Form field wrappers, validation states, and react-hook-form integration.
+
+## Form Field Wrapper
+
+Reusable wrapper that associates Label, Input, and error messages:
+
+```tsx
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+
+interface FormFieldProps extends React.ComponentPropsWithoutRef<typeof Input> {
+  label: string
+  error?: string
+  description?: string
+}
+
+const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
+  ({ label, error, description, className, id, ...props }, ref) => {
+    const inputId = id || label.toLowerCase().replace(/\s+/g, '-')
+
+    return (
+      <div className={cn('space-y-2', className)}>
+        <Label htmlFor={inputId}>{label}</Label>
+        <Input
+          ref={ref}
+          id={inputId}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          aria-invalid={!!error}
+          className={cn(error && 'border-destructive')}
+          {...props}
+        />
+        {description && !error && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+        {error && (
+          <p id={`${inputId}-error`} className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+    )
+  }
+)
+```
+
+## Input with States
+
+```tsx
+function Input({ className, error, ...props }) {
+  return (
+    <input
+      className={cn(
+        'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
+        'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+        'placeholder:text-muted-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        error && 'border-destructive focus-visible:ring-destructive',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+```
+
+## Confirm Dialog (Form Composition)
+
+```tsx
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle,
+  DialogDescription, DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+
+interface ConfirmDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description: string
+  onConfirm: () => void
+  variant?: 'default' | 'destructive'
+}
+
+export function ConfirmDialog({
+  open, onOpenChange, title, description,
+  onConfirm, variant = 'default',
+}: ConfirmDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            onClick={() => { onConfirm(); onOpenChange(false) }}
+          >
+            Confirm
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+## Dark Mode Toggle
+
+```tsx
+'use client'
+
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+export function ModeToggle() {
+  const { setTheme } = useTheme()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+```
+
+## Hydration Safety
+
+```tsx
+'use client'
+
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
+
+export function ThemeAwareComponent() {
+  const { resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!mounted) return <Skeleton />
+
+  return <div>Current theme: {resolvedTheme}</div>
+}
+```
+
+## Dependencies
+
+```bash
+npm install next-themes              # Theme switching
+npm install class-variance-authority # CVA variants
+npm install clsx tailwind-merge      # Class merging
+npm install react-hook-form          # Form management
+npm install lucide-react             # Icons
+```
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (10)
+
+<Accordions type="multiple">
+
+<Accordion title="Aschild Composition">
+
+# asChild Composition Pattern
+
+Polymorphic rendering without wrapper divs.
+
+## What is asChild?
+
+The `asChild` prop renders children as the component itself, merging props and refs. This avoids extra DOM elements while preserving functionality.
+
+## Basic Usage
+
+```tsx
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+
+// Without asChild - nested elements
+<Button>
+  <Link href="/about">About</Link>
+</Button>
+// Renders: <button><a href="/about">About</a></button>
+
+// With asChild - single element
+<Button asChild>
+  <Link href="/about">About</Link>
+</Button>
+// Renders: <a href="/about" class="button-styles">About</a>
+```
+
+## How It Works
+
+Under the hood, `asChild` uses Radix's `Slot` component:
+
+1. **Props merging**: Parent props spread to child
+2. **Ref forwarding**: Refs correctly forwarded
+3. **Event combining**: Both onClick handlers fire
+4. **Class merging**: ClassNames combined
+
+```tsx
+// Internal implementation concept
+function Slot({ children, ...props }) {
+  return React.cloneElement(children, {
+    ...props,
+    ...children.props,
+    ref: mergeRefs(props.ref, children.ref),
+    className: cn(props.className, children.props.className),
+    onClick: chain(props.onClick, children.props.onClick),
+  })
+}
+```
+
+## Nested Composition
+
+Combine multiple Radix triggers:
+
+```tsx
+import { Dialog, Tooltip } from 'radix-ui'
+
+const MyButton = React.forwardRef((props, ref) => (
+  <button {...props} ref={ref} />
+))
+
+export function DialogWithTooltip() {
+  return (
+    <Dialog.Root>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <Dialog.Trigger asChild>
+            <MyButton>Open dialog</MyButton>
+          </Dialog.Trigger>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content>Click to open dialog</Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content>Dialog content</Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## Common Patterns
+
+### Link as Button
+
+```tsx
+<Button asChild variant="outline">
+  <Link href="/settings">Settings</Link>
+</Button>
+```
+
+### Icon Button
+
+```tsx
+<Button asChild size="icon">
+  <a href="https://github.com" target="_blank">
+    <GitHubIcon />
+  </a>
+</Button>
+```
+
+### Menu Item as Link
+
+```tsx
+<DropdownMenu.Item asChild>
+  <Link href="/profile">Profile</Link>
+</DropdownMenu.Item>
+```
+
+## When to Use
+
+| Use Case | Use asChild? |
+|----------|--------------|
+| Link styled as button | Yes |
+| Combining triggers | Yes |
+| Custom element with Radix behavior | Yes |
+| Default element is fine | No |
+| Adds complexity without benefit | No |
+
+## Requirements for Child Components
+
+The child component MUST:
+
+1. **Forward refs** with `React.forwardRef`
+2. **Spread props** to underlying element
+3. Be a **single element** (not fragment)
+
+```tsx
+// ✅ Correct - forwards ref and spreads props
+const MyButton = React.forwardRef<HTMLButtonElement, Props>(
+  (props, ref) => <button ref={ref} {...props} />
+)
+
+// ❌ Incorrect - no ref forwarding
+const MyButton = (props) => <button {...props} />
+```
+
+
+</Accordion>
+
+<Accordion title="Cn Utility Patterns">
+
+# cn() Utility Patterns
+
+Class merging with tailwind-merge and clsx.
+
+## Setup
+
+```typescript
+// lib/utils.ts
+import { clsx, type ClassValue } from 'clsx'
+import { twMerge } from 'tailwind-merge'
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+```
+
+## What It Solves
+
+### Problem: Tailwind Class Conflicts
+
+```tsx
+// Without cn() - px-4 and px-6 both apply (unpredictable)
+<div className={`px-4 ${props.className}`}>
+// If props.className = "px-6", result is "px-4 px-6" (conflict!)
+
+// With cn() - px-6 wins (later class wins)
+<div className={cn('px-4', props.className)}>
+// Result: "px-6" (clean, predictable)
+```
+
+## Common Patterns
+
+### Conditional Classes
+
+```tsx
+cn(
+  'base-class',
+  isActive && 'active-class',
+  isDisabled && 'disabled-class'
+)
+// Falsy values are filtered out
+```
+
+### Object Syntax
+
+```tsx
+cn({
+  'bg-blue-500': variant === 'primary',
+  'bg-gray-500': variant === 'secondary',
+  'opacity-50 cursor-not-allowed': disabled,
+})
+```
+
+### With CVA Variants
+
+```tsx
+cn(buttonVariants({ variant, size }), className)
+```
+
+### Array of Classes
+
+```tsx
+cn([
+  'flex items-center',
+  'gap-2',
+  'p-4',
+])
+```
+
+## Real-World Component Examples
+
+### Button with Override Support
+
+```tsx
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, ...props }, ref) => (
+    <button
+      className={cn(
+        // Base styles
+        'inline-flex items-center justify-center rounded-md font-medium',
+        // Variant styles from CVA
+        buttonVariants({ variant, size }),
+        // Consumer overrides (wins over variants)
+        className
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+)
+```
+
+### Card with Conditional Styling
+
+```tsx
+function Card({ className, elevated, interactive, ...props }) {
+  return (
+    <div
+      className={cn(
+        // Base
+        'rounded-lg border bg-card text-card-foreground',
+        // Conditional
+        elevated && 'shadow-lg',
+        interactive && 'cursor-pointer hover:bg-accent transition-colors',
+        // Overrides
+        className
+      )}
+      {...props}
+    />
+  )
+}
+```
+
+### Input with States
+
+```tsx
+function Input({ className, error, ...props }) {
+  return (
+    <input
+      className={cn(
+        'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm',
+        'file:border-0 file:bg-transparent file:text-sm file:font-medium',
+        'placeholder:text-muted-foreground',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'disabled:cursor-not-allowed disabled:opacity-50',
+        // Error state
+        error && 'border-destructive focus-visible:ring-destructive',
+        className
+      )}
+      {...props}
+    />
+  )
+}
+```
+
+## Order Matters
+
+```tsx
+// Classes are processed left to right
+// Later classes override earlier ones for the same property
+
+cn('text-red-500', 'text-blue-500')
+// Result: "text-blue-500"
+
+cn('p-4', 'p-2', 'p-8')
+// Result: "p-8"
+
+cn('text-sm md:text-base', 'text-lg')
+// Result: "text-lg md:text-base"
+// (base overridden, responsive preserved)
+```
+
+## With Responsive Classes
+
+```tsx
+cn(
+  'grid grid-cols-1',
+  'md:grid-cols-2',
+  'lg:grid-cols-3',
+  fullWidth && 'lg:grid-cols-4'
+)
+```
+
+## Performance Notes
+
+- `twMerge` is optimized and fast for typical use
+- Avoid calling cn() in loops with dynamic classes
+- For static classes, regular string concatenation is fine
+
+```tsx
+// ✅ Good - cn() handles conflicts
+cn(baseClasses, props.className)
+
+// ✅ Good - no conflicts possible
+`${staticClass} ${anotherStatic}`
+
+// ⚠️ Avoid - cn() in hot loop
+items.map(item => cn(classes, item.className)) // Consider memoization
+```
+
+
+</Accordion>
+
+<Accordion title="Component Extension">
+
+# Component Extension Patterns
+
+Extending shadcn/ui components without modifying source.
+
+## Principle: Wrap, Don't Modify
+
+shadcn/ui components are meant to be copied and owned. However, when extending:
+
+1. **Wrap** the original component
+2. **Forward refs** correctly
+3. **Preserve** the variant system
+4. **Add** new functionality as props
+
+## Basic Extension: Adding Props
+
+```tsx
+import { Button as ShadcnButton } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
+
+interface ExtendedButtonProps
+  extends React.ComponentPropsWithoutRef<typeof ShadcnButton> {
+  loading?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
+  ({ loading, disabled, children, ...props }, ref) => (
+    <ShadcnButton
+      ref={ref}
+      disabled={disabled || loading}
+      {...props}
+    >
+      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {children}
+    </ShadcnButton>
+  )
+)
+Button.displayName = 'Button'
+
+export { Button }
+```
+
+## Adding New Variants
+
+```tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+import { Button as ShadcnButton } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+// Extended variant system
+const extendedButtonVariants = cva('', {
+  variants: {
+    glow: {
+      true: 'shadow-lg shadow-primary/25 hover:shadow-primary/40',
+      false: '',
+    },
+    pulse: {
+      true: 'animate-pulse',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    glow: false,
+    pulse: false,
+  },
+})
+
+interface ExtendedButtonProps
+  extends React.ComponentPropsWithoutRef<typeof ShadcnButton>,
+    VariantProps<typeof extendedButtonVariants> {}
+
+const Button = React.forwardRef<HTMLButtonElement, ExtendedButtonProps>(
+  ({ className, glow, pulse, ...props }, ref) => (
+    <ShadcnButton
+      ref={ref}
+      className={cn(extendedButtonVariants({ glow, pulse }), className)}
+      {...props}
+    />
+  )
+)
+```
+
+## Composition: Combining Components
+
+```tsx
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+
+interface ConfirmDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  title: string
+  description: string
+  onConfirm: () => void
+  onCancel?: () => void
+  confirmText?: string
+  cancelText?: string
+  variant?: 'default' | 'destructive'
+}
+
+export function ConfirmDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  onConfirm,
+  onCancel,
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  variant = 'default',
+}: ConfirmDialogProps) {
+  const handleConfirm = () => {
+    onConfirm()
+    onOpenChange(false)
+  }
+
+  const handleCancel = () => {
+    onCancel?.()
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel}>
+            {cancelText}
+          </Button>
+          <Button
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            onClick={handleConfirm}
+          >
+            {confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+## Polymorphic Extension with asChild
+
+```tsx
+import { Button } from '@/components/ui/button'
+import { Slot } from '@radix-ui/react-slot'
+
+interface IconButtonProps
+  extends React.ComponentPropsWithoutRef<typeof Button> {
+  icon: React.ReactNode
+  label: string // For accessibility
+}
+
+const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
+  ({ icon, label, asChild, ...props }, ref) => {
+    return (
+      <Button
+        ref={ref}
+        size="icon"
+        aria-label={label}
+        asChild={asChild}
+        {...props}
+      >
+        {asChild ? (
+          <Slot>{icon}</Slot>
+        ) : (
+          icon
+        )}
+      </Button>
+    )
+  }
+)
+```
+
+## Form Field Wrapper
+
+```tsx
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { cn } from '@/lib/utils'
+
+interface FormFieldProps extends React.ComponentPropsWithoutRef<typeof Input> {
+  label: string
+  error?: string
+  description?: string
+}
+
+const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
+  ({ label, error, description, className, id, ...props }, ref) => {
+    const inputId = id || label.toLowerCase().replace(/\s+/g, '-')
+
+    return (
+      <div className={cn('space-y-2', className)}>
+        <Label htmlFor={inputId}>{label}</Label>
+        <Input
+          ref={ref}
+          id={inputId}
+          aria-describedby={error ? `${inputId}-error` : undefined}
+          aria-invalid={!!error}
+          className={cn(error && 'border-destructive')}
+          {...props}
+        />
+        {description && !error && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
+        {error && (
+          <p id={`${inputId}-error`} className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+    )
+  }
+)
+```
+
+## Best Practices
+
+1. **Always forward refs** - Components may need ref access
+2. **Preserve displayName** - Helps with debugging
+3. **Type props explicitly** - Use ComponentPropsWithoutRef
+4. **Keep variants compatible** - Don't break existing API
+5. **Document extensions** - Make custom props discoverable
+
+
+</Accordion>
+
+<Accordion title="Cva Variant System">
+
+# CVA Variant System
+
+Type-safe, declarative component variants with Class Variance Authority.
+
+## Core Pattern
+
+```tsx
+import { cva, type VariantProps } from 'class-variance-authority'
+
+const buttonVariants = cva(
+  // Base classes (always applied)
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+        destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+        outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+        secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        link: 'text-primary underline-offset-4 hover:underline',
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 rounded-md px-3',
+        lg: 'h-11 rounded-md px-8',
+        icon: 'h-10 w-10',
+      },
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+)
+```
+
+## Type-Safe Props
+
+```tsx
+import { cn } from '@/lib/utils'
+
+interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button'
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    )
+  }
+)
+```
+
+## Compound Variants
+
+Apply classes when multiple variants are combined:
+
+```tsx
+const alertVariants = cva(
+  'relative w-full rounded-lg border p-4',
+  {
+    variants: {
+      variant: {
+        default: 'bg-background text-foreground',
+        destructive: 'border-destructive/50 text-destructive',
+        success: 'border-green-500/50 text-green-700',
+      },
+      size: {
+        default: 'text-sm',
+        lg: 'text-base p-6',
+      },
+    },
+    compoundVariants: [
+      // When variant=destructive AND size=lg, add extra styles
+      {
+        variant: 'destructive',
+        size: 'lg',
+        className: 'border-2 font-semibold',
+      },
+      // Multiple variants can match
+      {
+        variant: ['destructive', 'success'],
+        size: 'lg',
+        className: 'shadow-lg',
+      },
+    ],
+    defaultVariants: {
+      variant: 'default',
+      size: 'default',
+    },
+  }
+)
+```
+
+## Boolean Variants
+
+```tsx
+const cardVariants = cva(
+  'rounded-lg border bg-card text-card-foreground',
+  {
+    variants: {
+      elevated: {
+        true: 'shadow-lg',
+        false: 'shadow-none',
+      },
+      interactive: {
+        true: 'cursor-pointer hover:bg-accent transition-colors',
+        false: '',
+      },
+    },
+    defaultVariants: {
+      elevated: false,
+      interactive: false,
+    },
+  }
+)
+
+// Usage
+<Card elevated interactive>Click me</Card>
+```
+
+## Extending Variants
+
+```tsx
+// Base badge variants
+const badgeVariants = cva(
+  'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+  {
+    variants: {
+      variant: {
+        default: 'bg-primary text-primary-foreground',
+        secondary: 'bg-secondary text-secondary-foreground',
+        outline: 'border text-foreground',
+      },
+    },
+    defaultVariants: { variant: 'default' },
+  }
+)
+
+// Extended with status colors
+const statusBadgeVariants = cva(
+  badgeVariants({ variant: 'outline' }), // Use base as starting point
+  {
+    variants: {
+      status: {
+        pending: 'border-yellow-500 text-yellow-700 bg-yellow-50',
+        active: 'border-green-500 text-green-700 bg-green-50',
+        inactive: 'border-gray-500 text-gray-700 bg-gray-50',
+        error: 'border-red-500 text-red-700 bg-red-50',
+      },
+    },
+    defaultVariants: { status: 'pending' },
+  }
+)
+```
+
+## With Responsive Variants
+
+CVA doesn't handle responsive directly, but combine with Tailwind:
+
+```tsx
+const layoutVariants = cva('grid gap-4', {
+  variants: {
+    columns: {
+      1: 'grid-cols-1',
+      2: 'grid-cols-1 md:grid-cols-2',
+      3: 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3',
+      4: 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+    },
+  },
+  defaultVariants: { columns: 1 },
+})
+```
+
+## Best Practices
+
+1. **Keep variants focused**: Each variant should have a single responsibility
+2. **Use compound variants sparingly**: Only for complex combinations
+3. **Default variants**: Always set sensible defaults
+4. **Type exports**: Export `VariantProps` type for consumers
+5. **Consistent naming**: `variant` for style, `size` for dimensions
+
+## Anti-Patterns
+
+```tsx
+// ❌ Don't mix styling and behavior
+const badVariants = cva('...', {
+  variants: {
+    onClick: { /* This should be a prop, not a variant */ }
+  }
+})
+
+// ❌ Don't duplicate Tailwind breakpoints in variants
+const badVariants = cva('...', {
+  variants: {
+    mobilePadding: { /* Use responsive Tailwind classes instead */ }
+  }
+})
+
+// ✅ Keep variants about visual presentation
+const goodVariants = cva('...', {
+  variants: {
+    variant: { /* visual style */ },
+    size: { /* dimensions */ },
+  }
+})
+```
+
+
+</Accordion>
+
+<Accordion title="Dark Mode Toggle">
+
+# Dark Mode Toggle
+
+Theme switching with next-themes and shadcn/ui.
+
+## Setup with next-themes
+
+### 1. Install
+
+```bash
+npm install next-themes
+```
+
+### 2. Add ThemeProvider
+
+```tsx
+// app/providers.tsx
+'use client'
+
+import { ThemeProvider as NextThemesProvider } from 'next-themes'
+
+export function Providers({ children }: { children: React.ReactNode }) {
+  return (
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      {children}
+    </NextThemesProvider>
+  )
+}
+```
+
+### 3. Wrap App
+
+```tsx
+// app/layout.tsx
+import { Providers } from './providers'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
+  )
+}
+```
+
+## Toggle Component (Dropdown)
+
+```tsx
+'use client'
+
+import * as React from 'react'
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+export function ModeToggle() {
+  const { setTheme } = useTheme()
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+```
+
+## Toggle Component (Simple Button)
+
+```tsx
+'use client'
+
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Button } from '@/components/ui/button'
+
+export function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+    >
+      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+      <span className="sr-only">Toggle theme</span>
+    </Button>
+  )
+}
+```
+
+## Toggle Component (Switch)
+
+```tsx
+'use client'
+
+import { useTheme } from 'next-themes'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
+import { Moon, Sun } from 'lucide-react'
+
+export function ThemeSwitch() {
+  const { theme, setTheme } = useTheme()
+  const isDark = theme === 'dark'
+
+  return (
+    <div className="flex items-center gap-2">
+      <Sun className="h-4 w-4" />
+      <Switch
+        id="theme-switch"
+        checked={isDark}
+        onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+      />
+      <Moon className="h-4 w-4" />
+      <Label htmlFor="theme-switch" className="sr-only">
+        Toggle dark mode
+      </Label>
+    </div>
+  )
+}
+```
+
+## Handling Hydration
+
+```tsx
+'use client'
+
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
+
+export function ThemeAwareComponent() {
+  const { theme, resolvedTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  // Avoid hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <Skeleton /> // Or null
+  }
+
+  // Safe to use theme now
+  return (
+    <div>
+      Current theme: {resolvedTheme}
+    </div>
+  )
+}
+```
+
+## CSS Variables Setup
+
+Ensure your CSS supports both themes:
+
+```css
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  /* ... other light mode variables */
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  /* ... other dark mode variables */
+}
+```
+
+## Configuration Options
+
+```tsx
+<NextThemesProvider
+  attribute="class"           // Use class strategy
+  defaultTheme="system"       // Default to system preference
+  enableSystem                // Enable system preference detection
+  disableTransitionOnChange   // Prevent flash on theme change
+  storageKey="theme"          // localStorage key
+  themes={['light', 'dark', 'system']}  // Available themes
+/>
+```
+
+## Tailwind v4 Dark Mode
+
+In Tailwind CSS v4, dark mode uses a CSS-first approach. The `dark:` variant works automatically based on the `.dark` class or `prefers-color-scheme` media query.
+
+```css
+/* app.css - Tailwind v4 CSS-first approach */
+@import "tailwindcss";
+
+@theme {
+  /* Define your theme tokens */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+}
+
+/* Dark mode via .dark class (used by next-themes) */
+.dark {
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+}
+
+/* Or automatic detection via media query */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --color-background: oklch(0.145 0 0);
+    --color-foreground: oklch(0.985 0 0);
+  }
+}
+```
+
+No `tailwind.config.js` configuration needed - the `dark:` variant is enabled by default in v4 and responds to the `.dark` class on a parent element.
+
+
+</Accordion>
+
+<Accordion title="Dialog Modal Patterns">
+
+# Dialog and Modal Patterns
+
+Accessible modal dialogs with Radix primitives.
+
+## Dialog vs AlertDialog
+
+| Feature | Dialog | AlertDialog |
+|---------|--------|-------------|
+| Close on overlay click | Yes | No |
+| Close on Escape | Yes | Requires explicit action |
+| Use case | Forms, content | Destructive confirmations |
+
+## Basic Dialog
+
+```tsx
+import { Dialog } from 'radix-ui'
+
+export function BasicDialog() {
+  return (
+    <Dialog.Root>
+      <Dialog.Trigger asChild>
+        <Button>Edit Profile</Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 bg-black/50" />
+        <Dialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6">
+          <Dialog.Title>Edit Profile</Dialog.Title>
+          <Dialog.Description>
+            Make changes to your profile here.
+          </Dialog.Description>
+
+          {/* Form content */}
+
+          <Dialog.Close asChild>
+            <Button>Save changes</Button>
+          </Dialog.Close>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## Controlled Dialog
+
+```tsx
+export function ControlledDialog() {
+  const [open, setOpen] = useState(false)
+
+  const handleSubmit = async () => {
+    await saveData()
+    setOpen(false) // Close after save
+  }
+
+  return (
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <Button>Open</Button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay />
+        <Dialog.Content>
+          <form onSubmit={handleSubmit}>
+            {/* Form fields */}
+            <Button type="submit">Save</Button>
+          </form>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  )
+}
+```
+
+## AlertDialog (Destructive Actions)
+
+```tsx
+import { AlertDialog } from 'radix-ui'
+
+export function DeleteConfirmation({ onDelete }) {
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger asChild>
+        <Button variant="destructive">Delete</Button>
+      </AlertDialog.Trigger>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay className="fixed inset-0 bg-black/50" />
+        <AlertDialog.Content className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-lg p-6">
+          <AlertDialog.Title>Are you sure?</AlertDialog.Title>
+          <AlertDialog.Description>
+            This action cannot be undone. This will permanently delete your account.
+          </AlertDialog.Description>
+          <div className="flex gap-4 justify-end">
+            <AlertDialog.Cancel asChild>
+              <Button variant="outline">Cancel</Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action asChild>
+              <Button variant="destructive" onClick={onDelete}>
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Portal>
+    </AlertDialog.Root>
+  )
+}
+```
+
+## Abstracting Dialog Components
+
+Create reusable wrappers:
+
+```tsx
+// components/ui/dialog.tsx
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import { X } from 'lucide-react'
+
+export const Dialog = DialogPrimitive.Root
+export const DialogTrigger = DialogPrimitive.Trigger
+export const DialogClose = DialogPrimitive.Close
+
+export const DialogContent = React.forwardRef<
+  React.ElementRef<typeof DialogPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+>(({ children, className, ...props }, ref) => (
+  <DialogPrimitive.Portal>
+    <DialogPrimitive.Overlay
+      className="fixed inset-0 bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out"
+    />
+    <DialogPrimitive.Content
+      ref={ref}
+      className={cn(
+        'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2',
+        'bg-background rounded-lg shadow-lg p-6 w-full max-w-lg',
+        'data-[state=open]:animate-in data-[state=closed]:animate-out',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <DialogPrimitive.Close className="absolute right-4 top-4">
+        <X className="h-4 w-4" />
+        <span className="sr-only">Close</span>
+      </DialogPrimitive.Close>
+    </DialogPrimitive.Content>
+  </DialogPrimitive.Portal>
+))
+
+export const DialogHeader = ({ children }) => (
+  <div className="space-y-1.5 mb-4">{children}</div>
+)
+
+export const DialogTitle = DialogPrimitive.Title
+export const DialogDescription = DialogPrimitive.Description
+```
+
+## Animation with data-state
+
+```css
+/* Overlay animation */
+[data-state="open"] .overlay {
+  animation: fadeIn 150ms ease-out;
+}
+[data-state="closed"] .overlay {
+  animation: fadeOut 150ms ease-in;
+}
+
+/* Content animation */
+[data-state="open"] .content {
+  animation: scaleIn 150ms ease-out;
+}
+[data-state="closed"] .content {
+  animation: scaleOut 150ms ease-in;
+}
+
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes fadeOut { to { opacity: 0; } }
+@keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } }
+@keyframes scaleOut { to { transform: scale(0.95); opacity: 0; } }
+```
+
+## Accessibility Built-in
+
+- Focus trapped within dialog
+- Focus returns to trigger on close
+- Escape closes dialog
+- Click outside closes (Dialog only)
+- Proper ARIA attributes
+- Screen reader announcements
+
+
+</Accordion>
+
+<Accordion title="Dropdown Menu Patterns">
+
+# Dropdown Menu Patterns
+
+Accessible dropdown menus with Radix primitives.
+
+## Basic Dropdown Menu
+
+```tsx
+import { DropdownMenu } from 'radix-ui'
+import { ChevronDown } from 'lucide-react'
+
+export function UserMenu() {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button variant="outline">
+          Options <ChevronDown className="ml-2 h-4 w-4" />
+        </Button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content
+          className="min-w-[200px] bg-white rounded-md shadow-lg p-1"
+          sideOffset={5}
+        >
+          <DropdownMenu.Item className="px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer">
+            Profile
+          </DropdownMenu.Item>
+          <DropdownMenu.Item className="px-2 py-1.5 rounded hover:bg-gray-100 cursor-pointer">
+            Settings
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator className="h-px bg-gray-200 my-1" />
+          <DropdownMenu.Item className="px-2 py-1.5 rounded hover:bg-red-100 text-red-600 cursor-pointer">
+            Sign out
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
+}
+```
+
+## With Checkbox Items
+
+```tsx
+export function ViewOptionsMenu() {
+  const [showGrid, setShowGrid] = useState(true)
+  const [showDetails, setShowDetails] = useState(false)
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button>View</Button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content>
+          <DropdownMenu.CheckboxItem
+            checked={showGrid}
+            onCheckedChange={setShowGrid}
+          >
+            <DropdownMenu.ItemIndicator>
+              <Check className="h-4 w-4" />
+            </DropdownMenu.ItemIndicator>
+            Show Grid
+          </DropdownMenu.CheckboxItem>
+
+          <DropdownMenu.CheckboxItem
+            checked={showDetails}
+            onCheckedChange={setShowDetails}
+          >
+            <DropdownMenu.ItemIndicator>
+              <Check className="h-4 w-4" />
+            </DropdownMenu.ItemIndicator>
+            Show Details
+          </DropdownMenu.CheckboxItem>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
+}
+```
+
+## With Radio Group
+
+```tsx
+export function SortMenu() {
+  const [sort, setSort] = useState('date')
+
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button>Sort by</Button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content>
+          <DropdownMenu.RadioGroup value={sort} onValueChange={setSort}>
+            <DropdownMenu.RadioItem value="date">
+              <DropdownMenu.ItemIndicator>
+                <Circle className="h-2 w-2 fill-current" />
+              </DropdownMenu.ItemIndicator>
+              Date
+            </DropdownMenu.RadioItem>
+            <DropdownMenu.RadioItem value="name">
+              <DropdownMenu.ItemIndicator>
+                <Circle className="h-2 w-2 fill-current" />
+              </DropdownMenu.ItemIndicator>
+              Name
+            </DropdownMenu.RadioItem>
+            <DropdownMenu.RadioItem value="size">
+              <DropdownMenu.ItemIndicator>
+                <Circle className="h-2 w-2 fill-current" />
+              </DropdownMenu.ItemIndicator>
+              Size
+            </DropdownMenu.RadioItem>
+          </DropdownMenu.RadioGroup>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
+}
+```
+
+## With Submenus
+
+```tsx
+export function FileMenu() {
+  return (
+    <DropdownMenu.Root>
+      <DropdownMenu.Trigger asChild>
+        <Button>File</Button>
+      </DropdownMenu.Trigger>
+
+      <DropdownMenu.Portal>
+        <DropdownMenu.Content>
+          <DropdownMenu.Item>New File</DropdownMenu.Item>
+          <DropdownMenu.Item>Open</DropdownMenu.Item>
+
+          <DropdownMenu.Sub>
+            <DropdownMenu.SubTrigger>
+              Export
+              <ChevronRight className="ml-auto h-4 w-4" />
+            </DropdownMenu.SubTrigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.SubContent>
+                <DropdownMenu.Item>PDF</DropdownMenu.Item>
+                <DropdownMenu.Item>PNG</DropdownMenu.Item>
+                <DropdownMenu.Item>SVG</DropdownMenu.Item>
+              </DropdownMenu.SubContent>
+            </DropdownMenu.Portal>
+          </DropdownMenu.Sub>
+
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item>Quit</DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Portal>
+    </DropdownMenu.Root>
+  )
+}
+```
+
+## Custom Abstraction
+
+```tsx
+// components/ui/dropdown-menu.tsx
+export const DropdownMenu = DropdownMenuPrimitive.Root
+export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger
+
+export const DropdownMenuContent = React.forwardRef(
+  ({ className, sideOffset = 4, ...props }, ref) => (
+    <DropdownMenuPrimitive.Portal>
+      <DropdownMenuPrimitive.Content
+        ref={ref}
+        sideOffset={sideOffset}
+        className={cn(
+          'z-50 min-w-[8rem] rounded-md border bg-popover p-1 shadow-md',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out',
+          className
+        )}
+        {...props}
+      />
+    </DropdownMenuPrimitive.Portal>
+  )
+)
+
+export const DropdownMenuItem = React.forwardRef(
+  ({ className, ...props }, ref) => (
+    <DropdownMenuPrimitive.Item
+      ref={ref}
+      className={cn(
+        'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none',
+        'focus:bg-accent focus:text-accent-foreground',
+        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+        className
+      )}
+      {...props}
+    />
+  )
+)
+```
+
+## Keyboard Navigation
+
+Built-in keyboard support:
+- **Arrow keys**: Navigate items
+- **Enter/Space**: Select item
+- **Escape**: Close menu
+- **Right arrow**: Open submenu
+- **Left arrow**: Close submenu
+- **Type ahead**: Focus matching item
+
+
+</Accordion>
+
+<Accordion title="Focus Management">
+
+# Focus Management
+
+Keyboard navigation and focus handling with Radix.
+
+## Built-in Focus Features
+
+All Radix primitives include:
+
+| Feature | Description |
+|---------|-------------|
+| **Focus trap** | Focus stays within component |
+| **Focus return** | Focus returns to trigger on close |
+| **Visible focus** | Clear focus indicators |
+| **Roving tabindex** | Arrow key navigation in groups |
+
+## Dialog Focus Trap
+
+Focus is automatically trapped within dialogs:
+
+```tsx
+<Dialog.Root>
+  <Dialog.Trigger>Open</Dialog.Trigger>
+  <Dialog.Portal>
+    <Dialog.Content>
+      {/* Focus trapped here */}
+      <input autoFocus />  {/* Receives initial focus */}
+      <button>Action 1</button>
+      <button>Action 2</button>
+      <Dialog.Close>Close</Dialog.Close>
+      {/* Tab cycles through these elements */}
+    </Dialog.Content>
+  </Dialog.Portal>
+</Dialog.Root>
+```
+
+## Custom Initial Focus
+
+```tsx
+<Dialog.Content
+  onOpenAutoFocus={(event) => {
+    event.preventDefault()
+    // Focus specific element
+    document.getElementById('email-input')?.focus()
+  }}
+>
+  <input id="name-input" />
+  <input id="email-input" />  {/* Gets focus */}
+</Dialog.Content>
+```
+
+## Preventing Focus Return
+
+```tsx
+<Dialog.Content
+  onCloseAutoFocus={(event) => {
+    event.preventDefault()
+    // Focus something else instead of trigger
+    document.getElementById('other-element')?.focus()
+  }}
+>
+  {/* Content */}
+</Dialog.Content>
+```
+
+## Roving Tabindex (Menu Navigation)
+
+Arrow keys navigate within menus:
+
+```tsx
+<DropdownMenu.Content>
+  {/* Tab: exits menu */}
+  {/* Arrow Up/Down: navigates items */}
+  <DropdownMenu.Item>Profile</DropdownMenu.Item>
+  <DropdownMenu.Item>Settings</DropdownMenu.Item>
+  <DropdownMenu.Item>Sign out</DropdownMenu.Item>
+</DropdownMenu.Content>
+```
+
+## RadioGroup Focus
+
+```tsx
+<RadioGroup.Root>
+  {/* Tab: enters group at selected item */}
+  {/* Arrow keys: move between items */}
+  <RadioGroup.Item value="a">Option A</RadioGroup.Item>
+  <RadioGroup.Item value="b">Option B</RadioGroup.Item>
+  <RadioGroup.Item value="c">Option C</RadioGroup.Item>
+</RadioGroup.Root>
+```
+
+## Tabs Focus
+
+```tsx
+<Tabs.Root>
+  <Tabs.List>
+    {/* Arrow keys navigate tabs */}
+    <Tabs.Trigger value="account">Account</Tabs.Trigger>
+    <Tabs.Trigger value="password">Password</Tabs.Trigger>
+  </Tabs.List>
+  {/* Tab moves to content */}
+  <Tabs.Content value="account">...</Tabs.Content>
+  <Tabs.Content value="password">...</Tabs.Content>
+</Tabs.Root>
+```
+
+## Focus Visible Styling
+
+Style focus indicators for keyboard users:
+
+```css
+/* Only show focus ring for keyboard navigation */
+[data-focus-visible] {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+/* Hide for mouse users */
+:focus:not([data-focus-visible]) {
+  outline: none;
+}
+```
+
+```tsx
+// Tailwind
+<Button className="focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+```
+
+## Escape Key Handling
+
+All overlays close on Escape:
+
+```tsx
+<Dialog.Content
+  onEscapeKeyDown={(event) => {
+    // Prevent close if form has changes
+    if (hasUnsavedChanges) {
+      event.preventDefault()
+      showConfirmDialog()
+    }
+  }}
+>
+```
+
+## Keyboard Shortcuts Reference
+
+| Component | Key | Action |
+|-----------|-----|--------|
+| Dialog | Escape | Close |
+| Menu | Arrow Up/Down | Navigate |
+| Menu | Enter/Space | Select |
+| Menu | Right Arrow | Open submenu |
+| Menu | Left Arrow | Close submenu |
+| Tabs | Arrow Left/Right | Switch tab |
+| RadioGroup | Arrow Up/Down | Change selection |
+| Select | Arrow Up/Down | Navigate options |
+| Select | Enter | Select option |
+
+## Focus Scope (Advanced)
+
+For custom focus trapping:
+
+```tsx
+import { FocusScope } from '@radix-ui/react-focus-scope'
+
+<FocusScope
+  trapped={true}
+  onMountAutoFocus={(event) => {
+    event.preventDefault()
+    firstInput.current?.focus()
+  }}
+  onUnmountAutoFocus={(event) => {
+    event.preventDefault()
+    triggerRef.current?.focus()
+  }}
+>
+  {/* Focusable content */}
+</FocusScope>
+```
+
+
+</Accordion>
+
+<Accordion title="Oklch Theming">
+
+# OKLCH Theming (2026 Standard)
+
+Modern perceptually uniform color space for shadcn/ui themes.
+
+## Why OKLCH?
+
+| Feature | OKLCH | HSL |
+|---------|-------|-----|
+| Perceptual uniformity | Yes | No |
+| Wide gamut support | Yes | Limited |
+| Predictable lightness | Yes | No |
+| Dark mode conversion | Easier | Manual |
+
+**Format**: `oklch(lightness chroma hue)`
+- **Lightness**: 0 (black) to 1 (white)
+- **Chroma**: 0 (gray) to ~0.4 (most saturated)
+- **Hue**: 0-360 degrees
+
+## Complete Theme Structure
+
+```css
+:root {
+  /* Core semantic colors */
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+
+  /* Card/Popover */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+
+  /* Primary brand color */
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+
+  /* Secondary */
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+
+  /* Muted/subdued */
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+
+  /* Accent/highlight */
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+
+  /* Destructive/danger */
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  /* Borders and inputs */
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+
+  /* Radius scale */
+  --radius: 0.625rem;
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+
+  --card: oklch(0.145 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.145 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+
+  --primary: oklch(0.985 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+
+  --destructive: oklch(0.396 0.141 25.723);
+  --destructive-foreground: oklch(0.985 0 0);
+
+  --border: oklch(0.269 0 0);
+  --input: oklch(0.269 0 0);
+  --ring: oklch(0.439 0 0);
+}
+```
+
+## Tailwind Integration
+
+```css
+@theme inline {
+  /* Map CSS variables to Tailwind utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Radius scale */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+```
+
+## Chart Colors
+
+Data visualization with distinct OKLCH hues:
+
+```css
+:root {
+  --chart-1: oklch(0.646 0.222 41.116);   /* Orange */
+  --chart-2: oklch(0.6 0.118 184.704);     /* Teal */
+  --chart-3: oklch(0.398 0.07 227.392);    /* Blue */
+  --chart-4: oklch(0.828 0.189 84.429);    /* Yellow */
+  --chart-5: oklch(0.769 0.188 70.08);     /* Amber */
+}
+
+.dark {
+  --chart-1: oklch(0.488 0.243 264.376);   /* Indigo */
+  --chart-2: oklch(0.696 0.17 162.48);      /* Cyan */
+  --chart-3: oklch(0.769 0.188 70.08);      /* Amber */
+  --chart-4: oklch(0.627 0.265 303.9);      /* Purple */
+  --chart-5: oklch(0.645 0.246 16.439);     /* Red */
+}
+```
+
+## Creating Custom Brand Colors
+
+```css
+/* Blue brand example */
+:root {
+  /* Primary blue - adjust lightness for variants */
+  --primary: oklch(0.546 0.245 262.881);        /* Base blue */
+  --primary-foreground: oklch(0.97 0.014 254.604);  /* Light text on blue */
+
+  /* Derived variants */
+  --primary-hover: oklch(0.496 0.245 262.881);  /* Darker for hover */
+  --primary-muted: oklch(0.85 0.08 262.881);    /* Muted background */
+}
+
+.dark {
+  --primary: oklch(0.707 0.165 254.624);        /* Lighter in dark mode */
+  --primary-foreground: oklch(0.145 0 0);       /* Dark text */
+}
+```
+
+## Sidebar-Specific Colors
+
+```css
+:root {
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+```
+
+## Converting from HSL
+
+```
+HSL: hsl(220, 70%, 50%)
+    ↓
+OKLCH: oklch(0.55 0.2 260)
+
+Rough mapping:
+- Lightness: HSL L% ÷ 100 ≈ OKLCH L
+- Chroma: HSL S% × 0.003 ≈ OKLCH C (very rough)
+- Hue: Similar but can shift
+```
+
+Use tools like [oklch.com](https://oklch.com) for accurate conversion.
+
+## Accessibility Considerations
+
+- Minimum contrast ratio: 4.5:1 for normal text
+- Large text (18px+): 3:1 minimum
+- OKLCH makes it easier to maintain contrast by adjusting lightness predictably
+
+
+</Accordion>
+
+<Accordion title="Popover Tooltip Patterns">
+
+# Popover and Tooltip Patterns
+
+Floating content with Radix primitives.
+
+## Tooltip vs Popover vs HoverCard
+
+| Component | Trigger | Content | Use Case |
+|-----------|---------|---------|----------|
+| **Tooltip** | Hover/Focus | Text only | Icon hints, abbreviations |
+| **Popover** | Click | Interactive | Forms, rich content |
+| **HoverCard** | Hover | Rich preview | User cards, link previews |
+
+## Basic Tooltip
+
+```tsx
+import { Tooltip } from 'radix-ui'
+
+export function IconWithTooltip() {
+  return (
+    <Tooltip.Provider delayDuration={300}>
+      <Tooltip.Root>
+        <Tooltip.Trigger asChild>
+          <Button size="icon" variant="ghost">
+            <Settings className="h-4 w-4" />
+          </Button>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            className="bg-gray-900 text-white px-3 py-1.5 rounded text-sm"
+            sideOffset={5}
+          >
+            Settings
+            <Tooltip.Arrow className="fill-gray-900" />
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  )
+}
+```
+
+## Tooltip Provider
+
+Wrap your app for shared configuration:
+
+```tsx
+// app/layout.tsx
+import { Tooltip } from 'radix-ui'
+
+export default function RootLayout({ children }) {
+  return (
+    <Tooltip.Provider
+      delayDuration={400}      // Delay before showing
+      skipDelayDuration={300}  // Skip delay when moving between tooltips
+    >
+      {children}
+    </Tooltip.Provider>
+  )
+}
+```
+
+## Basic Popover
+
+```tsx
+import { Popover } from 'radix-ui'
+
+export function FilterPopover() {
+  return (
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <Button variant="outline">
+          <Filter className="mr-2 h-4 w-4" />
+          Filters
+        </Button>
+      </Popover.Trigger>
+
+      <Popover.Portal>
+        <Popover.Content
+          className="w-80 bg-white rounded-lg shadow-lg p-4"
+          sideOffset={5}
+        >
+          <div className="space-y-4">
+            <h4 className="font-medium">Filter options</h4>
+
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <Select>
+                <option>All</option>
+                <option>Active</option>
+                <option>Archived</option>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Date range</Label>
+              <Input type="date" />
+            </div>
+
+            <Button className="w-full">Apply filters</Button>
+          </div>
+
+          <Popover.Arrow className="fill-white" />
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}
+```
+
+## Controlled Popover
+
+```tsx
+export function ControlledPopover() {
+  const [open, setOpen] = useState(false)
+
+  const handleSubmit = () => {
+    // Process form
+    setOpen(false) // Close after submit
+  }
+
+  return (
+    <Popover.Root open={open} onOpenChange={setOpen}>
+      <Popover.Trigger asChild>
+        <Button>Add item</Button>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Content>
+          <form onSubmit={handleSubmit}>
+            <Input placeholder="Item name" />
+            <Button type="submit">Add</Button>
+          </form>
+        </Popover.Content>
+      </Popover.Portal>
+    </Popover.Root>
+  )
+}
+```
+
+## HoverCard (Rich Previews)
+
+```tsx
+import { HoverCard } from 'radix-ui'
+
+export function UserHoverCard({ username }) {
+  return (
+    <HoverCard.Root>
+      <HoverCard.Trigger asChild>
+        <a href={`/user/${username}`} className="text-blue-500 hover:underline">
+          @{username}
+        </a>
+      </HoverCard.Trigger>
+
+      <HoverCard.Portal>
+        <HoverCard.Content
+          className="w-64 bg-white rounded-lg shadow-lg p-4"
+          sideOffset={5}
+        >
+          <div className="flex gap-4">
+            <Avatar src={`/avatars/${username}.jpg`} />
+            <div>
+              <h4 className="font-medium">{username}</h4>
+              <p className="text-sm text-gray-500">Software Engineer</p>
+              <p className="text-sm mt-2">Building cool things with React.</p>
+            </div>
+          </div>
+          <HoverCard.Arrow className="fill-white" />
+        </HoverCard.Content>
+      </HoverCard.Portal>
+    </HoverCard.Root>
+  )
+}
+```
+
+## Positioning
+
+Common positioning props:
+
+```tsx
+<Content
+  side="top"           // top | right | bottom | left
+  sideOffset={5}       // Distance from trigger
+  align="center"       // start | center | end
+  alignOffset={0}      // Offset from alignment
+  avoidCollisions={true}  // Flip if clipped
+  collisionPadding={8}    // Viewport padding
+/>
+```
+
+## Styling States
+
+```css
+/* Animation on open/close */
+[data-state="open"] { animation: fadeIn 200ms ease-out; }
+[data-state="closed"] { animation: fadeOut 150ms ease-in; }
+
+/* Side-aware animations */
+[data-side="top"] { animation-name: slideFromBottom; }
+[data-side="bottom"] { animation-name: slideFromTop; }
+[data-side="left"] { animation-name: slideFromRight; }
+[data-side="right"] { animation-name: slideFromLeft; }
+```
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Accessibility Audit">
+
+# Radix Accessibility Audit Checklist
+
+Verify WCAG compliance for Radix-based components.
+
+## Keyboard Navigation
+
+- [ ] All interactive elements reachable via Tab
+- [ ] Tab order follows visual layout
+- [ ] Focus visible on all interactive elements
+- [ ] Escape closes overlays (dialogs, menus, popovers)
+- [ ] Enter/Space activates buttons and triggers
+- [ ] Arrow keys navigate menus, tabs, radio groups
+- [ ] Home/End jump to first/last items in lists
+
+## Focus Management
+
+- [ ] Focus trapped within dialogs when open
+- [ ] Focus returns to trigger on close
+- [ ] Initial focus on logical element (first input or primary action)
+- [ ] No focus loss when elements are removed
+- [ ] Focus visible indicator meets 3:1 contrast
+
+## ARIA Attributes (Auto-provided by Radix)
+
+- [ ] `role` appropriate for component type
+- [ ] `aria-expanded` on triggers for expandable content
+- [ ] `aria-controls` links trigger to content
+- [ ] `aria-haspopup` on menu triggers
+- [ ] `aria-selected` on selected tabs/items
+- [ ] `aria-checked` on checkboxes/radios
+- [ ] `aria-disabled` on disabled elements
+
+## Screen Reader Announcements
+
+- [ ] Dialog title announced on open
+- [ ] Dialog description announced on open
+- [ ] Menu items announced with role
+- [ ] State changes announced (expanded/collapsed)
+- [ ] Error messages associated with inputs
+
+## Dialogs (Dialog, AlertDialog)
+
+- [ ] Has accessible name via `Dialog.Title`
+- [ ] Has description via `Dialog.Description`
+- [ ] AlertDialog requires explicit action (no click-outside close)
+- [ ] Focus trapped within dialog
+- [ ] Escape closes dialog (or prevented with reason)
+
+## Menus (DropdownMenu, ContextMenu)
+
+- [ ] Trigger has `aria-haspopup="menu"`
+- [ ] Items navigable via arrow keys
+- [ ] Type-ahead focuses matching items
+- [ ] Submenus accessible via arrow keys
+- [ ] Disabled items skipped in navigation
+
+## Tooltips
+
+- [ ] Wrapped in `Tooltip.Provider` for delay sharing
+- [ ] Appears on hover AND focus
+- [ ] Dismissible via Escape
+- [ ] Does not block interaction with trigger
+- [ ] Content is text-only (use Popover for interactive)
+
+## Forms (Select, Checkbox, RadioGroup, Switch)
+
+- [ ] Associated with label
+- [ ] Required state indicated
+- [ ] Error messages programmatically associated
+- [ ] Disabled state communicated
+- [ ] Custom controls have appropriate ARIA roles
+
+## Testing Tools
+
+```bash
+# Install axe-core for automated testing
+npm install -D @axe-core/react
+
+# Or use browser extensions:
+# - axe DevTools
+# - WAVE
+# - Accessibility Insights
+```
+
+## Manual Testing
+
+1. **Keyboard-only**: Unplug mouse, navigate entire flow
+2. **Screen reader**: Test with VoiceOver (Mac), NVDA (Windows), or Orca (Linux)
+3. **Zoom**: Test at 200% and 400% zoom levels
+4. **High contrast**: Test with OS high contrast mode
+5. **Reduced motion**: Test with `prefers-reduced-motion: reduce`
+
+
+</Accordion>
+
+<Accordion title="Shadcn Setup">
+
+# shadcn/ui Setup Checklist
+
+Complete setup and configuration checklist.
+
+## Initial Setup
+
+- [ ] Initialize shadcn/ui: `npx shadcn@latest init`
+- [ ] Select style (New York or Default)
+- [ ] Select base color
+- [ ] Configure CSS variables: Yes
+- [ ] Configure `components.json` generated
+
+## File Structure Verification
+
+- [ ] `components.json` created at root
+- [ ] `lib/utils.ts` created with `cn()` function
+- [ ] `components/ui/` directory created
+- [ ] CSS variables added to `globals.css` or `app.css`
+- [ ] Dark mode configured via CSS (Tailwind v4 CSS-first approach)
+
+## Dependencies Installed
+
+- [ ] `class-variance-authority` for variants
+- [ ] `clsx` for conditional classes
+- [ ] `tailwind-merge` for class merging
+- [ ] `radix-ui` unified package (or individual `@radix-ui/react-*`)
+- [ ] `lucide-react` for icons (optional)
+
+## Tailwind Configuration (v4 CSS-First)
+
+```css
+/* app.css or globals.css */
+@import "tailwindcss";
+
+/* Dark mode via CSS variables - no tailwind.config.js needed */
+/* Tailwind v4 auto-detects content files */
+```
+
+- [ ] `@import "tailwindcss"` in CSS entry file
+- [ ] CSS variables define theme tokens
+- [ ] No `tailwind.config.js` needed (Tailwind v4 auto-detects content)
+
+## CSS Variables
+
+- [ ] Light mode variables defined in `:root`
+- [ ] Dark mode variables defined in `.dark`
+- [ ] All semantic colors defined:
+  - [ ] `--background`, `--foreground`
+  - [ ] `--card`, `--card-foreground`
+  - [ ] `--popover`, `--popover-foreground`
+  - [ ] `--primary`, `--primary-foreground`
+  - [ ] `--secondary`, `--secondary-foreground`
+  - [ ] `--muted`, `--muted-foreground`
+  - [ ] `--accent`, `--accent-foreground`
+  - [ ] `--destructive`, `--destructive-foreground`
+  - [ ] `--border`, `--input`, `--ring`
+  - [ ] `--radius`
+
+## Adding Components
+
+```bash
+# Add individual components
+npx shadcn@latest add button
+npx shadcn@latest add card
+npx shadcn@latest add dialog
+
+# Add multiple components
+npx shadcn@latest add button card input label
+```
+
+- [ ] Add commonly used components
+- [ ] Verify components render correctly
+- [ ] Test dark mode toggle
+
+## Dark Mode Setup
+
+- [ ] Install `next-themes`: `npm install next-themes`
+- [ ] Create ThemeProvider wrapper
+- [ ] Add provider to root layout
+- [ ] Add `suppressHydrationWarning` to `&lt;html&gt;`
+- [ ] Create theme toggle component
+- [ ] Test theme persistence
+
+## TypeScript Configuration
+
+```json
+// tsconfig.json
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"]
+    }
+  }
+}
+```
+
+- [ ] Path alias `@/*` configured
+- [ ] Types resolve correctly
+
+## Testing Checklist
+
+- [ ] Button variants render correctly
+- [ ] Dark mode switches properly
+- [ ] No hydration mismatches
+- [ ] Keyboard navigation works
+- [ ] Focus states visible
+- [ ] Responsive at all breakpoints
+
+## Common Issues
+
+### Hydration Mismatch
+```tsx
+// Wrap theme-dependent content
+const [mounted, setMounted] = useState(false)
+useEffect(() => setMounted(true), [])
+if (!mounted) return null
+```
+
+### Missing CSS Variables
+- Check `globals.css` is imported in layout
+- Verify variable names match exactly
+
+### Tailwind Classes Not Applying
+- Verify `@import "tailwindcss"` in CSS entry file
+- Restart dev server after config changes
+
+## Recommended First Components
+
+1. `button` - Foundation for CTAs
+2. `input` + `label` - Form basics
+3. `card` - Content containers
+4. `dialog` - Modals
+5. `dropdown-menu` - Actions menu
+6. `toast` - Notifications
+
+
+</Accordion>
+
+</Accordions>

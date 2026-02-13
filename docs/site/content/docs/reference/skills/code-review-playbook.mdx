@@ -2,6 +2,7 @@
 title: "Code Review Playbook"
 description: "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices."
 ---
+import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -345,3 +346,1389 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 - **`assets/review-feedback-template.md`** - Static review feedback template
 - **`assets/pr-template.md`** - PR description template
+
+
+---
+
+## Rules (5)
+
+<Accordions type="multiple">
+
+<Accordion title="Biome Rule Configuration and CI Integration — HIGH">
+
+
+## Biome Rule Configuration and CI Integration
+
+**Incorrect -- default config without key rules enabled:**
+```json
+{
+  "linter": { "enabled": true }
+  // Missing: noUnusedVariables, noUnusedImports, noExplicitAny
+  // Missing: type-aware rules (Biome 2.0+)
+}
+```
+
+**Correct -- production Biome configuration:**
+```json
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "correctness": {
+        "noUnusedVariables": "error",
+        "noUnusedImports": "error"
+      },
+      "suspicious": {
+        "noExplicitAny": "warn"
+      },
+      "nursery": {
+        "noFloatingPromises": "error"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "trailingCommas": "all"
+    }
+  }
+}
+```
+
+**Biome 2.0+ type inference features:**
+- Reads `.d.ts` from node_modules for type-aware rules
+- `noFloatingPromises`: Catches unhandled promises (previously required tsconfig)
+- Multi-file analysis: Cross-module diagnostics
+
+**Correct -- CI integration (GitHub Actions):**
+```yaml
+# .github/workflows/lint.yml
+name: Lint
+on: [push, pull_request]
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: biomejs/setup-biome@v2
+      - run: biome ci .
+```
+
+**Biome vs ESLint comparison:**
+
+| Aspect | Biome | ESLint + Prettier |
+|--------|-------|-------------------|
+| Speed | ~200ms for 10k lines | 3-5s |
+| Config files | 1 (biome.json) | 4+ |
+| npm packages | 1 binary | 127+ |
+| Rules | 421 | Varies by plugins |
+| Type inference | Yes (v2.0+) | Requires tsconfig |
+
+Key decisions:
+- Start with `recommended` rules, tighten over time
+- Enable `noUnusedVariables` and `noUnusedImports` as errors
+- Enable `noFloatingPromises` for TypeScript projects (v2.0+)
+- Use `biome ci` in CI (strict), `biome check` locally
+- Config strictness: recommended -> warn -> error progression
+
+
+</Accordion>
+
+<Accordion title="Biome Linting Setup and Migration — HIGH">
+
+
+## Biome Linting Setup and Migration
+
+**Incorrect -- complex multi-tool setup:**
+```json
+// 4+ config files: .eslintrc, .prettierrc, .prettierignore, .editorconfig
+// 127+ npm packages for ESLint + Prettier + plugins
+// 3-5s lint time for 10k lines
+```
+
+**Correct -- Biome single-tool setup:**
+```bash
+# Install (single binary, no plugins needed)
+npm install --save-dev --save-exact @biomejs/biome
+
+# Initialize config
+npx @biomejs/biome init
+
+# Check (lint + format in one command)
+npx @biomejs/biome check .
+
+# Fix all auto-fixable issues
+npx @biomejs/biome check --write .
+
+# CI mode (strict, fails on errors)
+npx @biomejs/biome ci .
+```
+
+**Correct -- ESLint migration:**
+```bash
+# Auto-migrate ESLint configuration
+npx @biomejs/biome migrate eslint --write
+```
+
+Common rule mappings:
+
+| ESLint | Biome |
+|--------|-------|
+| no-unused-vars | correctness/noUnusedVariables |
+| no-console | suspicious/noConsole |
+| @typescript-eslint/* | Most supported |
+| eslint-plugin-react | Most supported |
+| eslint-plugin-jsx-a11y | Most supported |
+
+**Correct -- gradual adoption with overrides:**
+```json
+{
+  "overrides": [
+    {
+      "include": ["*.test.ts", "*.spec.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": { "noExplicitAny": "off" }
+        }
+      }
+    },
+    {
+      "include": ["legacy/**"],
+      "linter": { "enabled": false }
+    }
+  ]
+}
+```
+
+Key decisions:
+- New projects: Start with Biome directly
+- Existing projects: Migrate gradually with overrides
+- CI: Use `biome ci` for strict mode, `biome check` for local dev
+- Speed: ~200ms for 10k lines vs 3-5s with ESLint+Prettier
+
+
+</Accordion>
+
+<Accordion title="Python Quality Review Rules — HIGH">
+
+
+## Python Quality Review Rules
+
+Review rules for Python code. Focused on Pydantic v2, async safety, and type strictness.
+
+### Pydantic v2 Patterns
+
+```python
+# VIOLATION: No validation on input models
+class UserInput(BaseModel):
+    email: str      # Accepts any string
+    age: int        # Accepts negative numbers
+
+# CORRECT: Constrained fields + validators
+from pydantic import BaseModel, Field, model_validator
+
+class UserInput(BaseModel):
+    email: str = Field(pattern=r'^[\w\.-]+@[\w\.-]+\.\w+$')
+    age: int = Field(ge=0, le=150)
+
+    @model_validator(mode='after')
+    def validate_fields(self) -> 'UserInput':
+        if self.age < 13 and '@' not in self.email:
+            raise ValueError('Minors require valid parent email')
+        return self
+```
+
+### Type Hints (mypy Strict)
+
+```python
+# VIOLATION: Missing type hints
+def process(data):
+    result = []
+    for item in data:
+        result.append(item.name)
+    return result
+
+# CORRECT: Full type hints
+def process(data: list[UserModel]) -> list[str]:
+    result: list[str] = []
+    for item in data:
+        result.append(item.name)
+    return result
+```
+
+### Async Safety
+
+```python
+# VIOLATION: No timeout on external calls
+async def fetch_user(user_id: str) -> User:
+    response = await httpx.get(f"/users/{user_id}")
+    return User(**response.json())
+
+# CORRECT: Timeout protection
+import asyncio
+
+async def fetch_user(user_id: str) -> User:
+    async with asyncio.timeout(10):
+        response = await httpx.get(f"/users/{user_id}")
+        response.raise_for_status()
+        return User.model_validate(response.json())
+```
+
+### Ruff Compliance
+
+```python
+# All Python files must pass:
+# ruff check --select ALL
+# ruff format --check
+
+# Key rules enforced:
+# - No unused imports
+# - No f-strings in logging (use % formatting)
+# - No bare except clauses
+# - No mutable default arguments
+```
+
+### Review Checklist
+
+| Check | Severity | What to Look For |
+|-------|----------|-----------------|
+| Pydantic validators | HIGH | Missing `Field()` constraints, no `model_validator` |
+| Type hints | HIGH | Functions without return types, `Any` usage |
+| Async timeouts | CRITICAL | External calls without `asyncio.timeout()` |
+| Ruff compliance | MEDIUM | Formatting violations, unused imports |
+| Exception handling | HIGH | Bare `except:`, swallowing exceptions |
+| Division safety | MEDIUM | Division without checking `len() > 0` |
+
+
+</Accordion>
+
+<Accordion title="Security Baseline Review Rules — CRITICAL">
+
+
+## Security Baseline Review Rules
+
+Security checks that apply to ALL languages. These are merge-blocking findings.
+
+### No Hardcoded Secrets
+
+```python
+# VIOLATION: Secrets in code
+API_KEY = "sk-1234567890abcdef"
+DB_PASSWORD = "admin123"
+JWT_SECRET = "mysecret"
+
+# CORRECT: Environment variables
+API_KEY = os.environ["API_KEY"]
+DB_PASSWORD = os.environ.get("DB_PASSWORD")
+```
+
+```typescript
+// VIOLATION: Secrets in code
+const apiKey = "sk-1234567890abcdef";
+
+// CORRECT: Environment variables
+const apiKey = process.env.API_KEY;
+```
+
+**Detection patterns**: Look for variables named `*_KEY`, `*_SECRET`, `*_PASSWORD`, `*_TOKEN` with string literal values.
+
+### Authentication on All Endpoints
+
+```python
+# VIOLATION: Unprotected endpoint
+@app.get("/api/admin/users")
+async def list_users():
+    return await db.get_all_users()
+
+# CORRECT: Auth middleware
+@app.get("/api/admin/users")
+async def list_users(user: User = Depends(require_admin)):
+    return await db.get_all_users()
+```
+
+```typescript
+// VIOLATION: No auth
+router.get('/api/users', getUsers);
+
+// CORRECT: Auth middleware
+router.get('/api/users', requireAuth, getUsers);
+```
+
+### Input Validation
+
+```python
+# VIOLATION: SQL injection
+query = f"SELECT * FROM users WHERE id = {user_id}"
+
+# CORRECT: Parameterized query
+query = "SELECT * FROM users WHERE id = $1"
+await db.execute(query, user_id)
+```
+
+```typescript
+// VIOLATION: XSS — raw HTML insertion
+element.innerHTML = userInput;
+
+// CORRECT: Text content or sanitization
+element.textContent = userInput;
+```
+
+### Dependency Audit
+
+```bash
+# Must run before merge:
+npm audit          # JavaScript/TypeScript
+pip-audit          # Python
+```
+
+| Finding | Action |
+|---------|--------|
+| Critical vulnerability | BLOCK merge |
+| High vulnerability (> 5) | BLOCK merge |
+| Moderate vulnerability | WARN, track |
+| Low vulnerability | INFORM only |
+
+### Debug/Development Code
+
+```python
+# VIOLATION: Debug code in production
+import pdb; pdb.set_trace()
+print(f"DEBUG: user password is {password}")
+set -x  # In scripts with secrets in scope
+
+# CORRECT: Remove before commit
+logger.debug("User authenticated", extra={"user_id": user.id})
+```
+
+### Review Checklist
+
+| Check | Severity | Action |
+|-------|----------|--------|
+| Hardcoded secrets | CRITICAL | BLOCK — use env vars |
+| Missing auth | CRITICAL | BLOCK — add middleware |
+| SQL injection | CRITICAL | BLOCK — parameterize |
+| XSS vulnerability | CRITICAL | BLOCK — sanitize |
+| Missing input validation | HIGH | BLOCK — validate at boundary |
+| Debug code | HIGH | BLOCK — remove before merge |
+| Dependency vulnerabilities | VARIES | See audit table above |
+| `set -x` with secrets | HIGH | BLOCK — never expose secrets in logs |
+
+
+</Accordion>
+
+<Accordion title="TypeScript Quality Review Rules — HIGH">
+
+
+## TypeScript Quality Review Rules
+
+Review rules for TypeScript and React code. Flag violations, suggest fixes.
+
+### No `any` Types
+
+```typescript
+// VIOLATION: any defeats the type system
+function processData(data: any) { ... }
+const result: any = await fetch(url);
+
+// CORRECT: Use proper types or unknown
+function processData(data: UserInput) { ... }
+const result: unknown = await fetch(url);
+```
+
+### Zod Runtime Validation
+
+All API responses MUST be validated with Zod at the boundary:
+
+```typescript
+// VIOLATION: Trust the network
+const data = await response.json();
+const data = await response.json() as User;  // Type assertion, not validation
+
+// CORRECT: Validate at boundary
+import { z } from 'zod';
+const UserSchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+  role: z.enum(['admin', 'user']),
+});
+const data = UserSchema.parse(await response.json());
+```
+
+### Exhaustive Switch Statements
+
+All switch statements MUST have `assertNever` default:
+
+```typescript
+// VIOLATION: Non-exhaustive — adding a new status silently falls through
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+}
+
+// CORRECT: Compiler catches missing cases
+function assertNever(x: never): never {
+  throw new Error(`Unexpected value: ${x}`);
+}
+
+switch (status) {
+  case 'active': return 'Active';
+  case 'inactive': return 'Inactive';
+  default: return assertNever(status);
+}
+```
+
+### React 19 APIs
+
+```typescript
+// REQUIRE: useOptimistic for mutations
+const [optimistic, addOptimistic] = useOptimistic(state, reducer);
+
+// REQUIRE: useFormStatus in form submit buttons
+const { pending } = useFormStatus();
+
+// REQUIRE: use() for Suspense-aware data fetching
+const data = use(promise);
+
+// REQUIRE: Skeleton loading, not spinners
+function CardSkeleton() {
+  return <div className="animate-pulse">...</div>;
+}
+```
+
+### Review Checklist
+
+| Check | Severity | What to Look For |
+|-------|----------|-----------------|
+| No `any` types | HIGH | `any` in params, returns, variables |
+| Zod validation | CRITICAL | Raw `.json()` without `.parse()` |
+| Exhaustive switches | HIGH | Missing `assertNever` default |
+| React 19 APIs | MEDIUM | Missing `useOptimistic`, `useFormStatus` |
+| Skeleton loading | MEDIUM | Spinners instead of skeletons |
+| Prefetching | MEDIUM | Links without `preload="intent"` |
+| MSW for tests | HIGH | `jest.mock(fetch)` instead of MSW |
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## References (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Review Patterns">
+
+# Code Review Patterns & Practices
+
+This reference guide covers common review patterns, conventional comments, depth levels, and security focus areas.
+
+---
+
+## Conventional Comments
+
+Use structured comment prefixes to set clear expectations for the author. This pattern originated from [conventionalcomments.org](https://conventionalcomments.org/).
+
+### Standard Prefixes
+
+| Prefix | Meaning | Requires Action | Example |
+|--------|---------|-----------------|---------|
+| **praise** | Highlight good work | No | `praise: Excellent use of type guards here!` |
+| **nitpick** | Minor style/formatting | No (optional) | `nitpick: Consider using const instead of let` |
+| **suggestion** | Propose improvement | No (consider) | `suggestion: Extract this to a helper function` |
+| **issue** | Problem to address | Yes (mild) | `issue: This breaks when array is empty` |
+| **question** | Seek clarification | Yes (answer) | `question: Why fetch data twice here?` |
+| **thought** | Thinking out loud | No | `thought: Wonder if we'll need pagination later` |
+| **chore** | Routine task | Yes | `chore: Add type definition for this interface` |
+| **note** | Point out context | No | `note: This behavior changed in React 19` |
+| **todo** | Follow-up work | Yes (track) | `todo: Add error boundary for this component` |
+| **security** | Security concern | Yes (critical) | `security: Sanitize user input before SQL query` |
+| **performance** | Performance issue | Yes (if severe) | `performance: N+1 query detected in loop` |
+| **breaking** | Breaking change | Yes (critical) | `breaking: This changes the API contract` |
+
+### Decorators (Optional)
+
+Add decorators to clarify urgency:
+
+- **blocking:** Must be fixed before merge
+- **non-blocking:** Can be addressed later
+- **if-minor:** Only if it's a quick fix
+
+**Examples:**
+```
+issue (blocking): SQL injection risk - sanitize input
+suggestion (non-blocking): Consider memoizing this calculation
+nitpick (if-minor): Add newline at end of file
+```
+
+---
+
+## Review Depth Levels
+
+Adjust review depth based on change type, author experience, and risk.
+
+### Level 1: Light Review (5-10 minutes)
+**When to use:**
+- Documentation-only changes
+- Test-only additions
+- Config/dependency updates (low risk)
+- Experienced author, small change
+
+**What to check:**
+- [ ] CI passes (lint, tests, type check)
+- [ ] No obvious security issues (secrets, SQL injection)
+- [ ] Commit message follows convention
+- [ ] PR description explains "why"
+
+**Example comment:**
+```
+LGTM! CI green, change is isolated.
+
+nitpick: Consider adding a test case for edge case X
+```
+
+---
+
+### Level 2: Standard Review (15-30 minutes)
+**When to use:**
+- New features (medium complexity)
+- Bug fixes with logic changes
+- Refactoring existing code
+- Moderate author experience
+
+**What to check:**
+- [ ] **Correctness:** Logic handles edge cases (empty arrays, null, undefined)
+- [ ] **Tests:** Unit tests cover happy path + edge cases (80%+ coverage)
+- [ ] **Type safety:** No `any` types, proper null checks
+- [ ] **Error handling:** Try/catch for async, meaningful error messages
+- [ ] **Performance:** No obvious N+1 queries, unnecessary re-renders
+- [ ] **Security:** Input validation, no hardcoded secrets
+- [ ] **Documentation:** JSDoc for public APIs, README updates if needed
+
+**Example comment:**
+```
+issue (blocking): Missing error handling in fetchAnalysis()
+- What happens if API returns 500?
+- Add try/catch and show user-friendly error message
+
+suggestion: Consider extracting validation logic to Zod schema
+- Reusable across API + frontend
+- Centralized validation rules
+
+praise: Great test coverage! Love the edge case tests.
+```
+
+---
+
+### Level 3: Deep Review (30-60 minutes)
+**When to use:**
+- Critical path features (auth, payments, data loss risk)
+- Architecture changes (new patterns, major refactors)
+- Security-sensitive code (authentication, authorization, PII)
+- Junior author or unfamiliar codebase area
+
+**What to check (includes Level 2, plus):**
+- [ ] **Architecture:** Fits existing patterns, doesn't introduce coupling
+- [ ] **Scalability:** Handles 10x growth (users, data volume)
+- [ ] **Maintainability:** Code is readable, well-documented, DRY
+- [ ] **Security (OWASP):** Injection, auth, XSS, CSRF, exposure, misconfiguration
+- [ ] **Observability:** Logging, error tracking, metrics
+- [ ] **Migration path:** Database migrations, backward compatibility
+- [ ] **Rollback plan:** Feature flags, circuit breakers
+- [ ] **E2E tests:** Critical flows tested end-to-end
+
+**Example comment:**
+```
+security (blocking): Multiple OWASP Top 10 violations detected
+
+1. SQL Injection (A03):
+   - Line 45: User input concatenated into SQL query
+   - Fix: Use parameterized queries (SQLAlchemy already supports this)
+
+2. Broken Access Control (A01):
+   - Line 78: No check if user owns this analysis
+   - Fix: Add ownership check before allowing update
+
+3. Security Logging Failures (A09):
+   - No audit log for data deletion
+   - Fix: Log user_id, analysis_id, timestamp to audit table
+
+performance: Potential N+1 query in loop (lines 102-110)
+- Fetching chunks individually instead of batch query
+- Fix: Use `SELECT WHERE id IN (...)` to fetch all at once
+- Expected impact: 50ms → 5ms for 10 chunks
+
+suggestion: Add feature flag for this rollout
+- New analysis pipeline is high-risk change
+- Allows gradual rollout + quick rollback
+- Example: `if feature_flags.is_enabled('new_pipeline', user_id):`
+
+question: How does this handle concurrent updates?
+- Two users editing same analysis simultaneously
+- Do we need optimistic locking (version field)?
+
+praise: Excellent error messages! These will make debugging much easier.
+```
+
+---
+
+## Security Focus Areas
+
+### OWASP Top 10 (2021) Checklist
+
+Use this checklist for every security-sensitive change:
+
+#### A01: Broken Access Control
+- [ ] Check user authentication before accessing resources
+- [ ] Verify user owns the resource (analysis, artifact, etc.)
+- [ ] Validate permissions for create/read/update/delete
+- [ ] No direct object references without authorization (e.g., `/api/analyses/123`)
+
+**Example violation:**
+```python
+# BAD: Anyone can delete any analysis
+@router.delete("/analyses/{analysis_id}")
+async def delete_analysis(analysis_id: int):
+    await repo.delete(analysis_id)  # ❌ No auth check!
+
+# GOOD: Check ownership first
+@router.delete("/analyses/{analysis_id}")
+async def delete_analysis(
+    analysis_id: int,
+    current_user: User = Depends(get_current_user)
+):
+    analysis = await repo.get(analysis_id)
+    if analysis.user_id != current_user.id:
+        raise HTTPException(403, "Not authorized")
+    await repo.delete(analysis_id)
+```
+
+---
+
+#### A02: Cryptographic Failures
+- [ ] No passwords/API keys in plaintext (use bcrypt, environment variables)
+- [ ] Sensitive data encrypted at rest (PII, payment info)
+- [ ] HTTPS enforced for all endpoints
+- [ ] No sensitive data in logs or error messages
+
+**Example violation:**
+```python
+# BAD: Password in plaintext
+user = User(email=email, password=password)  # ❌
+
+# GOOD: Hash password
+from passlib.context import CryptContext
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+user = User(email=email, password_hash=pwd_context.hash(password))
+```
+
+---
+
+#### A03: Injection (SQL, NoSQL, Command)
+- [ ] Use parameterized queries (never string concatenation)
+- [ ] Validate/sanitize all user input
+- [ ] Use ORM (SQLAlchemy) instead of raw SQL when possible
+- [ ] Escape HTML output to prevent XSS
+
+**Example violation:**
+```python
+# BAD: SQL injection risk
+query = f"SELECT * FROM analyses WHERE url = '{user_url}'"  # ❌
+results = db.execute(query)
+
+# GOOD: Parameterized query
+query = "SELECT * FROM analyses WHERE url = :url"
+results = db.execute(query, {"url": user_url})
+
+# BEST: Use ORM
+results = db.query(Analysis).filter(Analysis.url == user_url).all()
+```
+
+---
+
+**Remember:** Code review is about **collaboration**, not gatekeeping. Explain reasoning, suggest alternatives, and celebrate good work. Every review is a learning opportunity for both author and reviewer.
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Checklists (1)
+
+<Accordions type="multiple">
+
+<Accordion title="Code Review Checklist">
+
+# Code Review Checklist
+
+Use this comprehensive checklist when reviewing code to ensure thorough and consistent reviews.
+
+---
+
+## Pre-Review Setup
+
+- [ ] **Read PR Description**: Understand intent and scope
+- [ ] **Check CI Status**: All automated checks passing (tests, linting, type checking)
+- [ ] **Review Size**: PR is manageable (&lt; 400 lines preferred, flag if &gt; 800)
+- [ ] **Linked Issues**: PR references relevant tickets/issues
+- [ ] **No Merge Conflicts**: Branch is up to date with target branch
+
+---
+
+## High-Level Review (Architecture & Design)
+
+### Overall Approach
+
+- [ ] **Problem-Solution Alignment**: Changes solve the stated problem
+- [ ] **Scope Appropriate**: No unrelated changes included
+- [ ] **Architecture Consistency**: Follows existing patterns and conventions
+- [ ] **Design Patterns**: Appropriate patterns used (not over-engineered)
+- [ ] **Separation of Concerns**: Each module/function has single responsibility
+
+### Code Organization
+
+- [ ] **File Structure**: New files in appropriate directories
+- [ ] **Module Boundaries**: Clear separation between modules
+- [ ] **Coupling**: Low coupling between modules
+- [ ] **Cohesion**: High cohesion within modules
+
+---
+
+## Code Quality
+
+### Readability
+
+- [ ] **Clear Intent**: Code purpose is obvious from reading
+- [ ] **Naming Conventions**: Variables, functions, classes have descriptive names
+- [ ] **Consistent Style**: Follows team style guide
+- [ ] **Comments**: Complex logic explained (not what, but why)
+- [ ] **Magic Numbers**: Constants extracted and named
+- [ ] **Code Formatting**: Properly formatted (via Prettier/Black)
+
+### Maintainability
+
+- [ ] **DRY Principle**: No unnecessary code duplication
+- [ ] **Function Size**: Functions &lt; 50 lines, focused on single task
+- [ ] **Cyclomatic Complexity**: Functions have complexity &lt; 10
+- [ ] **Nesting Depth**: No deeply nested code (&lt; 4 levels)
+- [ ] **Dead Code**: No commented-out code or unused variables
+- [ ] **TODO Comments**: Tracked in issue tracker, not just in code
+
+---
+
+## Functionality
+
+### Correctness
+
+- [ ] **Logic Errors**: No obvious bugs or logic errors
+- [ ] **Edge Cases**: Boundary conditions handled
+  - [ ] Null/undefined/None handled
+  - [ ] Empty arrays/strings handled
+  - [ ] Zero values handled
+  - [ ] Negative numbers (if applicable)
+  - [ ] Maximum/minimum values
+- [ ] **Data Types**: Correct data types used
+- [ ] **Off-by-One Errors**: Array indices and loops correct
+
+### Error Handling
+
+- [ ] **Try-Catch Blocks**: Errors caught where appropriate
+- [ ] **Specific Exceptions**: Catching specific errors, not generic catch-all
+- [ ] **Error Messages**: Clear, actionable error messages
+- [ ] **Error Logging**: Errors logged with appropriate context
+- [ ] **Error Propagation**: Errors bubble up or handled at right level
+- [ ] **Graceful Degradation**: System handles failures gracefully
+- [ ] **User Feedback**: Users see helpful error messages (not stack traces)
+
+### Input Validation
+
+- [ ] **Required Fields**: Required inputs validated
+- [ ] **Data Types**: Input types validated
+- [ ] **Ranges**: Min/max values enforced
+- [ ] **Format Validation**: Email, phone, URL formats validated
+- [ ] **Sanitization**: User input sanitized (XSS prevention)
+- [ ] **SQL Injection Prevention**: Parameterized queries used
+
+---
+
+## Testing
+
+### Test Coverage
+
+- [ ] **Tests Exist**: New code has tests
+- [ ] **Coverage Metrics**: Code coverage meets targets (80%+)
+- [ ] **Happy Path**: Main functionality tested
+- [ ] **Error Paths**: Error scenarios tested
+- [ ] **Edge Cases**: Boundary conditions tested
+- [ ] **Regression Tests**: Previous bugs have tests
+
+### Test Quality
+
+- [ ] **Test Names**: Clearly describe what's being tested
+- [ ] **AAA Pattern**: Arrange-Act-Assert structure
+- [ ] **Test Isolation**: Tests don't depend on each other
+- [ ] **No Flaky Tests**: Tests pass consistently
+- [ ] **Realistic Data**: Test data resembles production data
+- [ ] **Mocking Strategy**: Appropriate use of mocks vs real dependencies
+
+### Test Types
+
+- [ ] **Unit Tests**: Business logic tested in isolation
+- [ ] **Integration Tests**: Component interactions tested
+- [ ] **E2E Tests**: Critical user flows tested (if applicable)
+- [ ] **Performance Tests**: Performance benchmarks (if applicable)
+
+---
+
+## Performance
+
+### Efficiency
+
+- [ ] **Algorithm Complexity**: Efficient algorithms used
+  - [ ] No O(n²) where O(n) is possible
+  - [ ] No unnecessary nested loops
+- [ ] **Database Queries**: Optimized queries
+  - [ ] No N+1 query problems
+  - [ ] Eager loading where needed
+  - [ ] Appropriate indexes exist
+- [ ] **Caching**: Used where appropriate
+- [ ] **Lazy Loading**: Heavy operations deferred when possible
+
+### Resource Management
+
+- [ ] **Memory Leaks**: No obvious memory leaks
+  - [ ] Event listeners cleaned up
+  - [ ] Subscriptions unsubscribed
+  - [ ] Timers/intervals cleared
+- [ ] **File Handles**: Files closed after use
+- [ ] **Database Connections**: Connections properly managed (pooling)
+- [ ] **Large Collections**: Large arrays/lists handled efficiently
+
+---
+
+## Security
+
+### Authentication & Authorization
+
+- [ ] **Auth Required**: Protected endpoints require authentication
+- [ ] **Permission Checks**: User permissions verified before actions
+- [ ] **JWT Validation**: Tokens validated and not expired
+- [ ] **Session Security**: Sessions managed securely
+- [ ] **Password Requirements**: Password complexity enforced
+
+### Data Protection
+
+- [ ] **Sensitive Data**: No secrets in code (API keys, passwords)
+- [ ] **Environment Variables**: Secrets in environment, not hardcoded
+- [ ] **Encryption**: Sensitive data encrypted (passwords, PII)
+- [ ] **HTTPS Only**: Production uses HTTPS
+- [ ] **Secure Headers**: Security headers set (CSP, X-Frame-Options)
+
+### Common Vulnerabilities
+
+- [ ] **SQL Injection**: Parameterized queries used
+- [ ] **XSS**: User input sanitized, output encoded
+- [ ] **CSRF**: CSRF tokens for state-changing operations
+- [ ] **Insecure Dependencies**: No known vulnerabilities (`npm audit`)
+- [ ] **Rate Limiting**: Public endpoints rate-limited
+- [ ] **File Upload Security**: File type/size restrictions
+
+---
+
+## API Design (if applicable)
+
+### REST Principles
+
+- [ ] **Resource Naming**: Plural nouns, kebab-case
+- [ ] **HTTP Methods**: Correct methods (GET, POST, PUT, DELETE)
+- [ ] **Status Codes**: Appropriate status codes (200, 201, 400, 404, 500)
+- [ ] **Idempotency**: PUT/DELETE are idempotent
+- [ ] **Pagination**: Large lists paginated
+- [ ] **Versioning**: API version strategy followed
+
+### Request/Response
+
+- [ ] **Request Validation**: Request body validated
+- [ ] **Response Format**: Consistent response structure
+- [ ] **Error Format**: Standardized error responses
+- [ ] **Field Naming**: Consistent naming (camelCase or snake_case)
+- [ ] **Timestamps**: ISO 8601 format
+
+---
+
+## Database (if applicable)
+
+### Schema Design
+
+- [ ] **Migrations**: Database changes have migrations
+- [ ] **Rollback Migrations**: Rollback scripts provided
+- [ ] **Indexes**: Appropriate indexes created
+- [ ] **Foreign Keys**: Relationships properly defined
+- [ ] **Constraints**: Unique, not-null constraints defined
+- [ ] **Normalization**: Appropriate normalization level
+
+### Queries
+
+- [ ] **Parameterized Queries**: No SQL injection risk
+- [ ] **Query Optimization**: Queries are efficient
+- [ ] **Transaction Management**: ACID properties maintained
+- [ ] **Connection Pooling**: Database connections pooled
+
+---
+
+## Frontend (if applicable)
+
+### React/Component Best Practices
+
+- [ ] **Component Size**: Components &lt; 300 lines
+- [ ] **Props Validation**: PropTypes or TypeScript interfaces
+- [ ] **Key Props**: Proper keys in lists (not index)
+- [ ] **State Management**: State lifted appropriately
+- [ ] **Side Effects**: useEffect dependencies correct
+- [ ] **Memoization**: Expensive calculations memoized
+
+### Accessibility
+
+- [ ] **Keyboard Navigation**: All interactive elements keyboard accessible
+- [ ] **ARIA Labels**: Screen reader support
+- [ ] **Color Contrast**: WCAG AA compliance (4.5:1 ratio)
+- [ ] **Focus Indicators**: Visible focus states
+- [ ] **Semantic HTML**: Using proper HTML elements
+
+### Performance
+
+- [ ] **Bundle Size**: No unnecessary dependencies
+- [ ] **Code Splitting**: Large components lazy-loaded
+- [ ] **Image Optimization**: Images compressed and sized appropriately
+- [ ] **Render Optimization**: No unnecessary re-renders
+
+---
+
+## Documentation
+
+### Code Documentation
+
+- [ ] **Inline Comments**: Complex logic explained
+- [ ] **JSDoc/Docstrings**: Public APIs documented
+- [ ] **Type Annotations**: TypeScript/Python type hints used
+- [ ] **Examples**: Usage examples provided (if library/utility)
+
+### Project Documentation
+
+- [ ] **README Updated**: If functionality changed
+- [ ] **API Docs Updated**: If API changed
+- [ ] **CHANGELOG Updated**: Breaking changes documented
+- [ ] **Migration Guide**: If breaking changes
+- [ ] **Architecture Diagrams**: Updated (if relevant)
+
+---
+
+## Language-Specific Checks
+
+### JavaScript/TypeScript
+
+- [ ] **Async/Await**: Promises handled with async/await
+- [ ] **Error Handling**: Async errors caught
+- [ ] **Type Safety**: No `any` types (TypeScript)
+- [ ] **Null Safety**: Optional chaining (`?.`) used
+- [ ] **Const vs Let**: Immutable values use `const`
+- [ ] **Arrow Functions**: Used appropriately
+- [ ] **Template Literals**: Used instead of string concatenation
+- [ ] **Destructuring**: Used for readability
+- [ ] **Modern Syntax**: ES6+ features used appropriately
+
+### Python
+
+- [ ] **PEP 8**: Follows Python style guide
+- [ ] **Type Hints**: Function annotations provided
+- [ ] **F-Strings**: Modern string formatting
+- [ ] **List Comprehensions**: Used appropriately (not overused)
+- [ ] **Context Managers**: `with` for file/connection handling
+- [ ] **Exception Handling**: Specific exceptions, no bare `except:`
+- [ ] **Generator Expressions**: Used for memory efficiency
+- [ ] **Dataclasses**: Used for data structures (Python 3.7+)
+
+---
+
+## Dependencies
+
+### Dependency Management
+
+- [ ] **Necessary Dependencies**: New dependencies justified
+- [ ] **Version Pinning**: Dependencies pinned to specific versions
+- [ ] **Lock Files Updated**: package-lock.json / Pipfile.lock updated
+- [ ] **No Vulnerabilities**: `npm audit` / `pip-audit` clean
+- [ ] **License Compatibility**: Dependency licenses compatible
+- [ ] **Bundle Size Impact**: Large dependencies justified
+
+---
+
+## CI/CD & Deployment
+
+### Continuous Integration
+
+- [ ] **All Checks Pass**: Linting, tests, type checking
+- [ ] **Build Succeeds**: Application builds successfully
+- [ ] **No Warnings**: Build generates no warnings
+
+### Deployment Considerations
+
+- [ ] **Feature Flags**: New features behind flags (if applicable)
+- [ ] **Database Migrations**: Safe for zero-downtime deployment
+- [ ] **Backward Compatibility**: No breaking changes to API contracts
+- [ ] **Rollback Plan**: Can revert if issues arise
+- [ ] **Environment Variables**: New env vars documented
+
+---
+
+## Breaking Changes
+
+### Impact Assessment
+
+- [ ] **No Breaking Changes** (or marked as breaking change)
+- [ ] **Migration Path**: Clear upgrade path provided
+- [ ] **Deprecation Warnings**: Old APIs deprecated, not removed immediately
+- [ ] **Version Bump**: Semantic versioning followed (major version bump)
+- [ ] **Stakeholder Notification**: Affected teams notified
+
+---
+
+## Follow-Up Work
+
+### Technical Debt
+
+- [ ] **TODO Items**: Tracked in issue tracker
+- [ ] **Known Limitations**: Documented
+- [ ] **Refactoring Needed**: Follow-up issues created
+- [ ] **Performance Optimizations**: Future work identified
+
+---
+
+## Final Checks
+
+### Before Approving
+
+- [ ] **All Blocking Issues Addressed**: Critical problems resolved
+- [ ] **Questions Answered**: Author responded to clarifications
+- [ ] **Tests Pass**: All automated checks green
+- [ ] **Documentation Complete**: Necessary docs updated
+- [ ] **Security Reviewed**: No security vulnerabilities
+- [ ] **Performance Acceptable**: No significant regressions
+
+### Approval Decision
+
+- ✅ **Approve**: Ready to merge, no blocking issues
+- 💬 **Comment**: Feedback provided, no action required
+- 🔄 **Request Changes**: Blocking issues must be addressed
+
+---
+
+## Common Issues to Watch For
+
+### Frequent Problems
+
+- ❌ Missing null/undefined checks
+- ❌ No error handling in async operations
+- ❌ N+1 database queries
+- ❌ Hardcoded secrets or API keys
+- ❌ Missing input validation
+- ❌ Commented-out code
+- ❌ console.log / print statements
+- ❌ TODO comments without issue references
+- ❌ Magic numbers (unnamed constants)
+- ❌ Deep nesting (> 4 levels)
+- ❌ Large functions (> 50 lines)
+- ❌ Missing tests for new code
+
+---
+
+## Review Etiquette
+
+### For Reviewers
+
+- [ ] Use conventional comments (praise, issue, suggestion, question)
+- [ ] Be specific and actionable
+- [ ] Explain the "why" behind suggestions
+- [ ] Acknowledge good work (use "praise" labels)
+- [ ] Assume positive intent
+- [ ] Provide timely feedback (&lt; 24 hours)
+
+### For Authors
+
+- [ ] Respond to all comments
+- [ ] Ask for clarification if needed
+- [ ] Accept feedback gracefully
+- [ ] Make changes promptly
+- [ ] Thank reviewers for their time
+
+---
+
+**Checklist Version**: 1.0.0
+**Skill**: code-review-playbook v1.0.0
+**Last Updated**: 2025-10-31
+
+
+</Accordion>
+
+</Accordions>
+
+---
+
+## Examples (2)
+
+<Accordions type="multiple">
+
+<Accordion title="Conventional Comments">
+
+# Conventional Comments Examples
+
+Real-world examples of conventional comments for different scenarios.
+
+## Comment Format
+
+```
+<label> (<category>): <subject>
+
+<discussion>
+```
+
+## Labels & When to Use
+
+### 🔴 `issue` - Must Fix (Blocking)
+
+**Security vulnerability:**
+```
+issue (security): SQL injection vulnerability in user lookup.
+
+The `user_id` parameter is concatenated directly into the query.
+
+Instead of:
+  cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+
+Use parameterized queries:
+  cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+```
+
+**Breaking bug:**
+```
+issue (bug): This will crash when `items` is empty.
+
+`items[0]` throws IndexError. Add a guard:
+  if not items:
+      return default_value
+```
+
+### 🟡 `suggestion` - Should Consider
+
+**Better approach:**
+```
+suggestion (performance): Consider using `dict.get()` for O(1) lookup.
+
+Current loop is O(n) for each check:
+  for item in items:
+      if item['id'] == target_id: ...
+
+With a dict:
+  items_by_id = {item['id']: item for item in items}
+  result = items_by_id.get(target_id)
+```
+
+**Readability improvement:**
+```
+suggestion (readability): Extract this into a well-named function.
+
+This 15-line block calculates shipping cost. A function like
+`calculate_shipping_cost(order, destination)` would make the
+caller's intent clearer and enable reuse.
+```
+
+### ⚪ `nitpick` - Non-blocking Polish
+
+**Style:**
+```
+nitpick (style): Prefer `is None` over `== None` per PEP 8.
+
+  if value is None:  # ✓
+  if value == None:  # ✗
+```
+
+**Naming:**
+```
+nitpick (naming): `data` is generic. Consider `user_profile` or `response_payload`.
+```
+
+### 🟢 `praise` - Positive Reinforcement
+
+```
+praise: Excellent test coverage! These edge cases would have caught
+real bugs. The property-based test for serialization roundtrips is
+particularly clever.
+```
+
+```
+praise: This refactor reduced complexity from 15 to 4. Much easier
+to reason about now. Great work!
+```
+
+### 🔵 `question` - Clarification Needed
+
+```
+question (design): Why did we choose Redis over PostgreSQL for sessions?
+
+Not blocking, just want to understand the tradeoff for the ADR.
+```
+
+```
+question: Is `timeout=30` intentional? Other endpoints use 60s.
+```
+
+### 📝 `thought` - Non-blocking Observation
+
+```
+thought: We might want to add rate limiting here eventually.
+Not for this PR, but worth a follow-up issue.
+```
+
+## Anti-Patterns to Avoid
+
+❌ **Vague criticism:**
+```
+This code is bad.
+```
+
+✅ **Specific and actionable:**
+```
+issue (complexity): This function has 6 levels of nesting.
+Consider early returns or extracting helper functions.
+```
+
+❌ **Demanding tone:**
+```
+You need to fix this. This is wrong.
+```
+
+✅ **Collaborative tone:**
+```
+suggestion: Consider using X because Y. What do you think?
+```
+
+
+</Accordion>
+
+<Accordion title="Pr Review Walkthrough">
+
+# PR Review Walkthrough Example
+
+A complete example of reviewing a PR that adds user authentication.
+
+## The PR
+
+**Title:** feat(auth): Add JWT authentication middleware
+**Files Changed:** 4 files (+180, -12)
+
+### File 1: `auth/middleware.py`
+
+```python
+def authenticate_request(request):
+    token = request.headers.get('Authorization')
+    if not token:
+        raise AuthError('Missing token')
+
+    payload = jwt.decode(token, SECRET_KEY)  # ← Issue: No algorithm specified
+    request.user = payload['user_id']
+    return request
+```
+
+## Review Comments (Conventional Format)
+
+### 1. Security Issue (Blocking)
+
+```
+🔴 **issue (security):** JWT decode without algorithm is vulnerable to algorithm confusion attacks.
+
+An attacker could forge tokens by switching to 'none' algorithm.
+
+**Suggestion:**
+​```python
+payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+​```
+
+Reference: https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+```
+
+### 2. Error Handling (Suggestion)
+
+```
+🟡 **suggestion (error-handling):** Consider catching specific JWT exceptions.
+
+​```python
+try:
+    payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+except jwt.ExpiredSignatureError:
+    raise AuthError('Token expired', code=401)
+except jwt.InvalidTokenError:
+    raise AuthError('Invalid token', code=401)
+​```
+
+This gives users actionable error messages.
+```
+
+### 3. Praise
+
+```
+🟢 **praise:** Clean separation of auth logic into middleware. This will make testing much easier!
+```
+
+### 4. Nitpick (Non-blocking)
+
+```
+⚪ **nitpick (style):** Consider using `get()` with default for cleaner None check:
+
+​```python
+token = request.headers.get('Authorization', '')
+if not token:
+​```
+```
+
+## Summary Comment
+
+```markdown
+## Review Summary
+
+Thanks for adding auth! The implementation is clean and well-structured.
+
+### Must Fix (Blocking)
+- [ ] Add `algorithms` parameter to `jwt.decode()` (security)
+
+### Should Consider
+- [ ] Specific JWT exception handling for better UX
+
+### Nice to Have
+- [ ] Minor style improvements
+
+LGTM once the security issue is addressed! 🔐
+```
+
+## Key Takeaways
+
+1. **Lead with praise** - Acknowledge good work first
+2. **Use conventional comments** - Clear severity (issue/suggestion/nitpick)
+3. **Provide context** - Explain *why*, not just *what*
+4. **Include examples** - Show the fix, don't just describe it
+5. **Summarize** - Group by priority for easy action
+
+
+</Accordion>
+
+</Accordions>

@@ -9,7 +9,7 @@ import type { scrapbookDemoSquareSchema } from "../ScrapbookDemo-Square";
 
 export const scrapbookShowcaseConfig: z.infer<typeof scrapbookDemoSchema> = {
   title: "OrchestKit",
-  tagline: "200 skills. 36 agents. One plugin.",
+  tagline: "60 skills. 36 agents. One plugin.",
   socialCards: [
     {
       author: "Sarah Chen",
@@ -44,9 +44,9 @@ export const scrapbookShowcaseConfig: z.infer<typeof scrapbookDemoSchema> = {
     "Done in 47s — 3 agents, 280 lines, 0 issues",
   ].join("\n"),
   stats: {
-    skills: 200,
+    skills: 60,
     agents: 36,
-    hooks: 98,
+    hooks: 86,
   },
   ctaCommand: "/plugin install ork",
   accentColor: "#2A9D8F",
@@ -56,7 +56,7 @@ export const scrapbookShowcaseSquareConfig: z.infer<
   typeof scrapbookDemoSquareSchema
 > = {
   title: "OrchestKit",
-  tagline: "200 skills. 36 agents. One plugin.",
+  tagline: "60 skills. 36 agents. One plugin.",
   socialCards: [
     {
       author: "Sarah Chen",
@@ -70,9 +70,9 @@ export const scrapbookShowcaseSquareConfig: z.infer<
     },
   ],
   stats: {
-    skills: 200,
+    skills: 60,
     agents: 36,
-    hooks: 98,
+    hooks: 86,
   },
   ctaCommand: "/plugin install ork",
   accentColor: "#2A9D8F",
