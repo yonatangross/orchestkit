@@ -84,20 +84,24 @@ describe('Dispatcher Registry Wiring E2E', () => {
       }
     });
 
-    it('should have Stop using fire-and-forget for non-blocking session exit (Issue #243)', () => {
+    it('should have Stop using fire-and-forget and uncommitted check for session exit (Issue #243)', () => {
       // Stop hooks run cleanup tasks that should NOT block session exit.
-      // Fire-and-forget spawns a detached background worker immediately returns.
+      // Fire-and-forget spawns a detached background worker that immediately returns.
+      // Uncommitted check warns about unsaved work on exit.
       // Stop may also include prompt-type hooks (e.g., commit reminder).
       const stopGroups = hooksConfig.hooks.Stop || [];
       const allHooks = stopGroups.flatMap(g => g.hooks);
       const commandHooks = allHooks.filter(h => h.type === 'command');
 
-      // Should have exactly one command hook - the fire-and-forget entry point
-      expect(commandHooks.length, 'Stop should have single fire-and-forget command hook').toBe(1);
+      // Should have exactly two command hooks
+      expect(commandHooks.length, 'Stop should have two command hooks').toBe(2);
 
-      const fireAndForgetHook = commandHooks[0];
-      expect(fireAndForgetHook.command, 'Stop should use stop-fire-and-forget.mjs').toContain('stop-fire-and-forget.mjs');
-      expect(fireAndForgetHook.async, 'Stop should NOT have async flag').toBeUndefined();
+      const fireAndForgetHook = commandHooks.find(h => h.command?.includes('stop-fire-and-forget.mjs'));
+      expect(fireAndForgetHook, 'Stop should have stop-fire-and-forget.mjs').toBeDefined();
+      expect(fireAndForgetHook!.async, 'fire-and-forget should NOT have async flag').toBeUndefined();
+
+      const uncommittedCheckHook = commandHooks.find(h => h.command?.includes('stop-uncommitted-check.mjs'));
+      expect(uncommittedCheckHook, 'Stop should have stop-uncommitted-check.mjs').toBeDefined();
     });
   });
 

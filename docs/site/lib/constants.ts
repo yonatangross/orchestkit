@@ -11,9 +11,9 @@ export const SITE = {
 } as const;
 
 export const COUNTS = {
-  skills: 199,
+  skills: 60,
   agents: 36,
-  hooks: 119,
+  hooks: 86,
 } as const;
 
 export const BANNER_TEXT = `OrchestKit v${SITE.version} — ${COUNTS.skills} skills, ${COUNTS.agents} agents, ${COUNTS.hooks} hooks with Opus 4.6 support`;
