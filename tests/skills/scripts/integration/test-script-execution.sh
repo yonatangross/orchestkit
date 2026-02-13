@@ -147,7 +147,7 @@ echo "────────────────────────�
 SUBSTITUTION_TESTS=(
     "architecture-decision-record/scripts/create-adr.md:ADR-001"
     "code-review-playbook/scripts/review-pr.md:123"
-    "fastapi-advanced/scripts/create-fastapi-app.md:my-api"
+    "python-backend/scripts/create-fastapi-app.md:my-api"
 )
 
 SUBSTITUTION_SUCCESSES=0
@@ -225,11 +225,13 @@ for skill_path in "${SAMPLE_SKILLS[@]}"; do
             # Execute command (with fallback)
             cmd="${BASH_REMATCH[1]}"
             output=$(bash -c "$cmd" 2>/dev/null || echo "Command output unavailable")
-            echo "$line" | sed "s|!\`[^\`]*\`|$output|g"
+            # Print line with command output appended (avoid sed with multi-line output)
+            printf '%s\n' "${line//\$ARGUMENTS/TEST-ARGS}"
+            printf '%s\n' "$output"
         else
-            echo "$line"
+            printf '%s\n' "${line//\$ARGUMENTS/TEST-ARGS}"
         fi
-    done < "$skill_file" | sed "s|\$ARGUMENTS|TEST-ARGS|g" > "$temp_content"
+    done < "$skill_file" > "$temp_content"
     
     # Validate final content
     if [[ -s "$temp_content" ]]; then

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Test suite for AI/ML Roadmap 2026 skills
-# Tests: mcp-security-hardening, advanced-guardrails, agentic-rag-patterns,
-#        prompt-engineering-suite, alternative-agent-frameworks, mcp-advanced-patterns,
-#        high-performance-inference, fine-tuning-customization
+# Test suite for AI/ML Roadmap 2026 skills (updated after consolidation #536)
+# Tests: mcp-security-hardening, advanced-guardrails, rag-retrieval,
+#        prompt-engineering-suite, agent-orchestration, mcp-advanced-patterns,
+#        llm-integration
 
 set -euo pipefail
 
@@ -36,16 +36,15 @@ warn() {
     TESTS_RUN=$((TESTS_RUN + 1))
 }
 
-# AI/ML skills to test
+# AI/ML skills to test (updated after skill consolidation #536)
 AI_ML_SKILLS=(
     "mcp-security-hardening"
     "advanced-guardrails"
-    "agentic-rag-patterns"
+    "rag-retrieval"
     "prompt-engineering-suite"
-    "alternative-agent-frameworks"
+    "agent-orchestration"
     "mcp-advanced-patterns"
-    "high-performance-inference"
-    "fine-tuning-customization"
+    "llm-integration"
 )
 
 echo "=== AI/ML Roadmap 2026 Skills Test Suite ==="
@@ -81,11 +80,12 @@ for skill in "${AI_ML_SKILLS[@]}"; do
     fi
 done
 
-# Test 3: All skills have references directory with content
+# Test 3: All skills have references or rules directory with content
 echo ""
-echo "Test 3: References directory validation"
+echo "Test 3: References/rules directory validation"
 for skill in "${AI_ML_SKILLS[@]}"; do
     refs_dir="$PROJECT_ROOT/src/skills/$skill/references"
+    rules_dir="$PROJECT_ROOT/src/skills/$skill/rules"
     if [[ -d "$refs_dir" ]]; then
         ref_count=$(find "$refs_dir" -type f -name "*.md" | wc -l | tr -d ' ')
         if [[ $ref_count -ge 2 ]]; then
@@ -93,8 +93,15 @@ for skill in "${AI_ML_SKILLS[@]}"; do
         else
             fail "$skill has only $ref_count reference files (need >=2)"
         fi
+    elif [[ -d "$rules_dir" ]]; then
+        rule_count=$(find "$rules_dir" -type f -name "*.md" | wc -l | tr -d ' ')
+        if [[ $rule_count -ge 2 ]]; then
+            pass "$skill has $rule_count rule files"
+        else
+            fail "$skill has only $rule_count rule files (need >=2)"
+        fi
     else
-        fail "$skill missing references directory"
+        fail "$skill missing references/rules directory"
     fi
 done
 
