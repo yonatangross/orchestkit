@@ -115,7 +115,7 @@ jobs:
           CI_COMMIT_SHA: ${{ github.sha }}
           CI_BRANCH: ${{ github.ref_name }}
           CI_PR_NUMBER: ${{ github.event.pull_request.number }}
-          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": ${{ steps.tests.outputs.passed || 0 }}, "failures": []}'
+          CI_TEST_RESULTS: '{"passed": ${{ steps.tests.outputs.passed || 0 }}, "failed": ${{ steps.tests.outputs.failed || 0 }}, "skipped": ${{ steps.tests.outputs.skipped || 0 }}, "total": 0, "failures": []}'
           CI_LINT_RESULTS: '{"errors": ${{ steps.lint.outputs.errors || 0 }}, "warnings": ${{ steps.lint.outputs.warnings || 0 }}, "files": 0, "issues": []}'
           CI_SECURITY_RESULTS: '{"critical": ${{ steps.security.outputs.critical || 0 }}, "high": ${{ steps.security.outputs.high || 0 }}, "medium": ${{ steps.security.outputs.medium || 0 }}, "low": ${{ steps.security.outputs.low || 0 }}, "vulnerabilities": []}'
           CI_COVERAGE: '{"lines": ${{ steps.tests.outputs.coverage_lines || 0 }}, "functions": ${{ steps.tests.outputs.coverage_functions || 0 }}, "branches": ${{ steps.tests.outputs.coverage_branches || 0 }}, "statements": ${{ steps.tests.outputs.coverage_statements || 0 }}}'
@@ -129,6 +129,7 @@ jobs:
           path: |
             ci-report.html
             ci-report.json
+            ci-report.md
           retention-days: 30
 
       - name: Comment on PR
@@ -200,15 +201,8 @@ jobs:
 
       - name: Job Summary
         run: |
-          cat ci-report.json | jq -r '
-            "## CI Assessment Report\n\n" +
-            "**Score:** \(.score)/100\n" +
-            "**Status:** \(.overallStatus | ascii_upcase)\n\n" +
-            "| Check | Result |\n" +
-            "|-------|--------|\n" +
-            "| Build | \(.build.status) |\n" +
-            "| Tests | \(.tests.passed)/\(.tests.total) passed |\n" +
-            "| Lint | \(.lint.errors) errors, \(.lint.warnings) warnings |\n" +
-            "| Security | \(.security.critical) critical, \(.security.high) high |\n" +
-            "| Coverage | \(.coverage.current)% |"
-          ' >> $GITHUB_STEP_SUMMARY
+          if [ -f ci-report.md ]; then
+            cat ci-report.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## CI Report generation failed" >> "$GITHUB_STEP_SUMMARY"
+          fi

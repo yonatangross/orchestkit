@@ -31,12 +31,12 @@ export default defineConfig({
         'bin/**/*.mjs',  // Tested via integration, not unit coverage
       ],
       thresholds: {
-        // Current baseline - incrementally increase as coverage improves
-        // Target: 70% lines, 60% functions, 50% branches
-        lines: 40,
-        functions: 45,
-        branches: 30,
-        statements: 40,
+        // Actual coverage: ~73% lines, ~75% functions, ~68% branches, ~72% statements
+        // Target: 80%
+        lines: 70,
+        functions: 72,
+        branches: 65,
+        statements: 70,
       },
     },
   },

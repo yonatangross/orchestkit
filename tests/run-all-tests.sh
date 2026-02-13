@@ -167,7 +167,6 @@ if [[ "$RUN_UNIT" == "true" ]]; then
     run_test "JSON Validity Check" "$SCRIPT_DIR/unit/test-json-validity.sh" || true
     run_test "Hook Executability" "$SCRIPT_DIR/unit/test-hook-executability.sh" || true
     run_test "Context Schema Validation" "$SCRIPT_DIR/unit/test-context-schemas.sh" || true
-    run_test "Hook Unit Tests" "$SCRIPT_DIR/unit/test-hooks-unit.sh" || true
     run_test "Graph Utils Unit Tests" "$SCRIPT_DIR/unit/test-graph-utils.sh" || true
 
     # TypeScript hook tests (vitest) - if node_modules exist
@@ -189,13 +188,21 @@ if [[ "$RUN_UNIT" == "true" ]]; then
             echo -e "${YELLOW}      Run 'cd src/hooks && rm -rf node_modules && npm i' to fix${NC}"
             echo -e "TypeScript Hook Tests (vitest)          ${YELLOW}SKIP${NC}"
         else
-            (cd "$PROJECT_ROOT/src/hooks" && npx vitest run --reporter=verbose) && {
+            VITEST_OUTPUT=$(cd "$PROJECT_ROOT/src/hooks" && npx vitest run --reporter=verbose 2>&1) && VITEST_EXIT=0 || VITEST_EXIT=$?
+
+            # Parse vitest output for pass/fail/skip counts
+            VITEST_PASSED=$(echo "$VITEST_OUTPUT" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || echo "0")
+            VITEST_FAILED=$(echo "$VITEST_OUTPUT" | grep -oE '[0-9]+ failed' | grep -oE '[0-9]+' || echo "0")
+            VITEST_SKIPPED=$(echo "$VITEST_OUTPUT" | grep -oE '[0-9]+ skipped' | grep -oE '[0-9]+' || echo "0")
+
+            if [[ $VITEST_EXIT -eq 0 ]]; then
                 TOTAL_PASSED=$((TOTAL_PASSED + 1))
                 echo -e "TypeScript Hook Tests (vitest)          ${GREEN}PASS${NC}"
-            } || {
+            else
                 TOTAL_FAILED=$((TOTAL_FAILED + 1))
                 echo -e "TypeScript Hook Tests (vitest)          ${RED}FAIL${NC}"
-            }
+            fi
+            echo -e "  vitest: ${GREEN}${VITEST_PASSED} passed${NC}, ${RED}${VITEST_FAILED} failed${NC}, ${YELLOW}${VITEST_SKIPPED} skipped${NC}"
         fi
     fi
 fi

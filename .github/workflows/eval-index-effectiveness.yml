@@ -205,16 +205,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
 
       - name: Download with-index results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: results-with-index
           path: tests/evals/results/with-index/
 
       - name: Download without-index results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: results-without-index
           path: tests/evals/results/without-index/
@@ -226,7 +226,7 @@ jobs:
           ./tests/evals/scripts/compare.sh || echo "comparison_failed=true" >> $GITHUB_OUTPUT
 
       - name: Upload comparison results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: comparison-results
           path: tests/evals/comparison.json
@@ -298,12 +298,12 @@ jobs:
       pull-requests: write
     steps:
       - name: Download comparison results
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: comparison-results
 
       - name: Post comment to PR
-        uses: actions/github-script@v7
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd  # v8
         with:
           script: |
             const fs = require('fs');

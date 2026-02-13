@@ -4,7 +4,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ## Project Overview
 
-**OrchestKit** — Claude Code plugin: **60 skills**, **36 agents**, **86 hooks** (65 global + 22 agent-scoped + 1 skill-scoped).
+**OrchestKit** — Claude Code plugin: **60 skills**, **36 agents**, **86 hooks** (63 global + 22 agent-scoped + 1 skill-scoped).
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 

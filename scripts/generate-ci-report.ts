@@ -28,7 +28,7 @@
 
 import { writeFileSync, existsSync, readFileSync } from 'fs';
 import { execSync } from 'child_process';
-import { join } from 'path';
+// path module not currently needed
 
 // =============================================================================
 // Types
@@ -140,6 +140,8 @@ function collectTestResults(): TestResult {
     failures: [],
   });
 
+  // Always recompute total from components (workflow may pass wrong value)
+  envResult.total = envResult.passed + envResult.failed + envResult.skipped;
   if (envResult.total > 0) return envResult;
 
   // Try to collect from npm test output
@@ -336,19 +338,32 @@ function calculateScore(report: CIReport): number {
   // Test failures: -5 per failure (max -30)
   score -= Math.min(30, report.tests.failed * 5);
 
+  // Skipped tests: -1 per skip (max -5) — skipped tests hide risk
+  score -= Math.min(5, report.tests.skipped * 1);
+
   // Lint errors: -2 per error (max -20)
   score -= Math.min(20, report.lint.errors * 2);
 
-  // Security issues: -10 critical, -5 high, -2 medium
+  // Lint warnings: -1 per 5 warnings (max -5)
+  score -= Math.min(5, Math.floor(report.lint.warnings / 5));
+
+  // Security issues: -10 critical, -5 high, -2 medium, -1 low
   score -= report.security.critical * 10;
   score -= report.security.high * 5;
   score -= report.security.medium * 2;
+  score -= Math.min(5, report.security.low);
 
-  // Coverage below 60%: -10
-  if (report.coverage.current > 0 && report.coverage.current < 60) score -= 10;
+  // Coverage scoring (graduated, honest thresholds)
+  if (report.coverage.current > 0) {
+    if (report.coverage.current < 50) score -= 20;
+    else if (report.coverage.current < 60) score -= 15;
+    else if (report.coverage.current < 70) score -= 10;
+    else if (report.coverage.current < 80) score -= 5;
+    // 80%+ = no penalty
+  }
 
   // Coverage decrease: -5
-  if (report.coverage.delta < 0) score -= 5;
+  if (report.coverage.delta < -1) score -= 5;
 
   return Math.max(0, Math.min(100, score));
 }
@@ -359,6 +374,7 @@ function determineOverallStatus(report: CIReport): CIReport['overallStatus'] {
   if (report.security.critical > 0) return 'failure';
   if (report.lint.errors > 0) return 'warning';
   if (report.security.high > 0) return 'warning';
+  if (report.coverage.current > 0 && report.coverage.current < 60) return 'warning';
   return 'success';
 }
 
@@ -666,6 +682,96 @@ function generateHtml(report: CIReport): string {
 }
 
 // =============================================================================
+// Markdown Generation (for GitHub Job Summary)
+// =============================================================================
+
+function generateMarkdown(report: CIReport): string {
+  const statusEmoji =
+    report.overallStatus === 'success' ? '✅' : report.overallStatus === 'warning' ? '⚠️' : '❌';
+
+  const grade =
+    report.score >= 90
+      ? 'A'
+      : report.score >= 80
+        ? 'B'
+        : report.score >= 70
+          ? 'C'
+          : report.score >= 60
+            ? 'D'
+            : 'F';
+
+  const buildEmoji = report.build.status === 'success' ? '✅' : '❌';
+  const testEmoji = report.tests.failed > 0 ? '❌' : '✅';
+  const lintEmoji = report.lint.errors > 0 ? '❌' : report.lint.warnings > 0 ? '⚠️' : '✅';
+  const secEmoji =
+    report.security.critical > 0 ? '❌' : report.security.high > 0 ? '⚠️' : '✅';
+  const covEmoji =
+    report.coverage.current >= 80 ? '✅' : report.coverage.current >= 60 ? '⚠️' : '❌';
+
+  // Score breakdown — show what got deducted
+  const deductions: string[] = [];
+  if (report.build.status === 'failure') deductions.push('Build failure: -30');
+  if (report.tests.failed > 0)
+    deductions.push(`${report.tests.failed} test failures: -${Math.min(30, report.tests.failed * 5)}`);
+  if (report.tests.skipped > 0)
+    deductions.push(`${report.tests.skipped} skipped tests: -${Math.min(5, report.tests.skipped)}`);
+  if (report.lint.errors > 0)
+    deductions.push(`${report.lint.errors} lint errors: -${Math.min(20, report.lint.errors * 2)}`);
+  if (report.lint.warnings > 0) {
+    const penalty = Math.min(5, Math.floor(report.lint.warnings / 5));
+    if (penalty > 0) deductions.push(`${report.lint.warnings} lint warnings: -${penalty}`);
+  }
+  if (report.security.critical > 0)
+    deductions.push(`${report.security.critical} critical vulns: -${report.security.critical * 10}`);
+  if (report.security.high > 0)
+    deductions.push(`${report.security.high} high vulns: -${report.security.high * 5}`);
+  if (report.security.medium > 0)
+    deductions.push(`${report.security.medium} medium vulns: -${report.security.medium * 2}`);
+  if (report.security.low > 0)
+    deductions.push(`${report.security.low} low vulns: -${Math.min(5, report.security.low)}`);
+  if (report.coverage.current > 0 && report.coverage.current < 80) {
+    const covPenalty =
+      report.coverage.current < 50
+        ? 20
+        : report.coverage.current < 60
+          ? 15
+          : report.coverage.current < 70
+            ? 10
+            : 5;
+    deductions.push(`Coverage ${report.coverage.current.toFixed(1)}% (< 80%): -${covPenalty}`);
+  }
+  if (report.coverage.delta < -1)
+    deductions.push(`Coverage decreased ${report.coverage.delta.toFixed(1)}%: -5`);
+
+  const scoreBreakdown =
+    deductions.length > 0
+      ? `\n<details>\n<summary>Score breakdown</summary>\n\nStarting from 100:\n${deductions.map((d) => `- ${d}`).join('\n')}\n\n**Final: ${report.score}/100**\n</details>\n`
+      : '';
+
+  const coverageTable =
+    report.coverage.lines > 0
+      ? `\n### Coverage Breakdown\n\n| Metric | Coverage | Status |\n|--------|----------|--------|\n| Lines | ${report.coverage.lines.toFixed(1)}% | ${report.coverage.lines >= 80 ? '✅' : report.coverage.lines >= 60 ? '⚠️' : '❌'} |\n| Functions | ${report.coverage.functions.toFixed(1)}% | ${report.coverage.functions >= 80 ? '✅' : report.coverage.functions >= 60 ? '⚠️' : '❌'} |\n| Branches | ${report.coverage.branches.toFixed(1)}% | ${report.coverage.branches >= 80 ? '✅' : report.coverage.branches >= 60 ? '⚠️' : '❌'} |\n| Statements | ${report.coverage.statements.toFixed(1)}% | ${report.coverage.statements >= 80 ? '✅' : report.coverage.statements >= 60 ? '⚠️' : '❌'} |\n`
+      : '';
+
+  return `## ${statusEmoji} CI Assessment Report
+
+**Score:** ${report.score}/100 (Grade ${grade}) | **Status:** ${report.overallStatus.toUpperCase()}
+**Branch:** \`${report.branch}\` @ \`${report.commit}\`${report.prNumber ? ` | PR #${report.prNumber}` : ''}
+
+| Check | Result |
+|-------|--------|
+| Build | ${buildEmoji} ${report.build.status === 'success' ? 'Passed' : 'Failed'} |
+| Tests | ${testEmoji} ${report.tests.passed}/${report.tests.total} passed${report.tests.failed > 0 ? `, ${report.tests.failed} failed` : ''}${report.tests.skipped > 0 ? `, ${report.tests.skipped} skipped` : ''} |
+| Lint | ${lintEmoji} ${report.lint.errors} errors, ${report.lint.warnings} warnings |
+| Security | ${secEmoji} ${report.security.critical} critical, ${report.security.high} high, ${report.security.medium} medium, ${report.security.low} low |
+| Coverage | ${covEmoji} ${report.coverage.current.toFixed(1)}% avg |
+${coverageTable}${scoreBreakdown}
+---
+*Generated by OrchestKit CI Report • vitest + @vitest/coverage-v8*
+`;
+}
+
+// =============================================================================
 // Main
 // =============================================================================
 
@@ -694,10 +800,17 @@ function main() {
   writeFileSync(outputPath, html);
   console.log(`Report written to: ${outputPath}`);
 
-  // Also output JSON for programmatic use
+  // Output JSON for programmatic use
   const jsonPath = outputPath.replace('.html', '.json');
   writeFileSync(jsonPath, JSON.stringify(report, null, 2));
   console.log(`JSON data written to: ${jsonPath}`);
+
+  // Output Markdown for GitHub Job Summary
+  console.log(`\nGenerating Markdown summary...`);
+  const markdown = generateMarkdown(report);
+  const mdPath = outputPath.replace('.html', '.md');
+  writeFileSync(mdPath, markdown);
+  console.log(`Markdown summary written to: ${mdPath}`);
 
   // Exit with appropriate code
   if (report.overallStatus === 'failure') {
