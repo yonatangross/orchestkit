@@ -17,8 +17,7 @@ tools:
   - TaskList
 skills:
   - security-patterns
-  - security-scanning
-  - mcp-security-hardening
+  - mcp-patterns
   - task-dependency-patterns
   - remember
   - memory

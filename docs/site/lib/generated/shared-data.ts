@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 103,
+  "skills": 88,
   "agents": 36,
   "hooks": 90,
-  "commands": 27,
+  "commands": 25,
   "compositions": 14
 };
 
@@ -428,8 +428,8 @@ export const SKILLS_SUMMARY = {
       "commit",
       "git-workflow",
       "stacked-prs",
-      "issue-progress-tracking",
-      "task-dependency-patterns"
+      "task-dependency-patterns",
+      "web-research-workflow"
     ],
     "memory": [
       "doctor",
@@ -447,11 +447,10 @@ export const SKILLS_SUMMARY = {
       "fix-issue",
       "assess",
       "remember",
-      "git-recovery",
-      "feedback"
+      "feedback",
+      "api-design"
     ],
     "accessibility": [
-      "aggregate-patterns",
       "testing-patterns",
       "accessibility"
     ],
@@ -470,12 +469,10 @@ export const SKILLS_SUMMARY = {
     ],
     "security": [
       "review-pr",
-      "security-patterns",
-      "security-scanning"
+      "security-patterns"
     ],
     "python": [
       "domain-driven-design",
-      "aggregate-patterns",
       "testing-patterns"
     ],
     "react": [
@@ -496,8 +493,8 @@ export const SKILLS_SUMMARY = {
       "architecture-patterns",
       "domain-driven-design",
       "event-driven",
-      "aggregate-patterns",
-      "streaming-api-patterns"
+      "streaming-api-patterns",
+      "github-operations"
     ]
   },
   "ork-creative": {},
@@ -507,7 +504,6 @@ export const SKILLS_SUMMARY = {
       "async-jobs",
       "grpc-python",
       "python-backend",
-      "run-tests",
       "strawberry-graphql"
     ],
     "react": [
@@ -527,14 +523,13 @@ export const SKILLS_SUMMARY = {
       "langgraph",
       "llm-evaluation",
       "llm-integration",
-      "mcp-security-hardening",
-      "prompt-engineering-suite"
+      "mcp-patterns",
+      "multimodal-llm"
     ],
     "rag": [
       "llm-evaluation",
       "rag-retrieval",
-      "right-sized-backend",
-      "run-tests"
+      "right-sized-backend"
     ],
     "backend": [
       "audit-full",

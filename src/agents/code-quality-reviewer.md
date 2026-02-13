@@ -25,7 +25,6 @@ skills:
   - evidence-verification
   - distributed-systems
   - architecture-patterns
-  - security-scanning
   - quality-gates
   - biome-linting
   - best-practices

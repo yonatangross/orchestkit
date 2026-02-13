@@ -16,7 +16,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - root-cause-analysis
+  - fix-issue
   - monitoring-observability
   - errors
   - remember
@@ -255,7 +255,7 @@ The debug-investigator agent complements `/debug` by:
 1. Reviewing debug session output for patterns
 2. Applying systematic RCA methodology to session errors
 3. Suggesting `/ork:fix-issue` workflow if applicable
-4. Using root-cause-analysis skill patterns for deep investigation
+4. Using fix-issue skill patterns for deep investigation
 
 **Differences:**
 - `/debug` - Real-time diagnostics for current CC session state

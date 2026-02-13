@@ -19,8 +19,9 @@ Comprehensive patterns for building, managing, and validating golden datasets fo
 | [Curation](#curation) | 3 | HIGH | Content collection, annotation pipelines, diversity analysis |
 | [Management](#management) | 3 | HIGH | Versioning, backup/restore, CI/CD automation |
 | [Validation](#validation) | 3 | CRITICAL | Quality scoring, drift detection, regression testing |
+| [Add Workflow](#add-workflow) | 1 | HIGH | 9-phase curation, quality scoring, bias detection, silver-to-gold |
 
-**Total: 9 rules across 3 categories**
+**Total: 10 rules across 4 categories**
 
 ## Curation
 
@@ -51,6 +52,14 @@ Quality scoring, drift detection, and regression testing for golden datasets.
 | Quality | `rules/validation-quality.md` | Schema validation, content quality, referential integrity |
 | Drift | `rules/validation-drift.md` | Duplicate detection, semantic similarity, coverage gap analysis |
 | Regression | `rules/validation-regression.md` | Difficulty distribution, pre-commit hooks, full dataset validation |
+
+## Add Workflow
+
+Structured workflow for adding new documents to the golden dataset.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Add Document | `rules/curation-add-workflow.md` | 9-phase curation, parallel quality analysis, bias detection |
 
 ## Quick Start Example
 

@@ -21,8 +21,9 @@ Comprehensive patterns for infrastructure monitoring, LLM observability, and qua
 | [Infrastructure Monitoring](#infrastructure-monitoring) | 3 | CRITICAL | Prometheus metrics, Grafana dashboards, alerting rules |
 | [LLM Observability](#llm-observability) | 3 | HIGH | Langfuse tracing, cost tracking, evaluation scoring |
 | [Drift Detection](#drift-detection) | 3 | HIGH | Statistical drift, quality regression, drift alerting |
+| [Silent Failures](#silent-failures) | 3 | HIGH | Tool skipping, quality degradation, loop/token spike alerting |
 
-**Total: 9 rules across 3 categories**
+**Total: 12 rules across 4 categories**
 
 ## Quick Start
 
@@ -86,6 +87,16 @@ Statistical and quality drift detection for production LLM systems.
 | Statistical Drift | `rules/drift-statistical.md` | PSI, KS test, KL divergence, EWMA |
 | Quality Drift | `rules/drift-quality.md` | Score regression, baseline comparison, canary prompts |
 | Drift Alerting | `rules/drift-alerting.md` | Dynamic thresholds, correlation, anti-patterns |
+
+## Silent Failures
+
+Detection and alerting for silent failures in LLM agents.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Tool Skipping | `rules/silent-tool-skipping.md` | Expected vs actual tool calls, Langfuse traces |
+| Quality Degradation | `rules/silent-degraded-quality.md` | Heuristics + LLM-as-judge, z-score baselines |
+| Silent Alerting | `rules/silent-alerting.md` | Loop detection, token spikes, escalation workflow |
 
 ## Key Decisions
 

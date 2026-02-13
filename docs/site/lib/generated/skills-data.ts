@@ -50,58 +50,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-ui-developer"
     ]
   },
-  "add-golden": {
-    "name": "add-golden",
-    "description": "Adds documents to golden dataset with validation. Use when curating test data or saving examples.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "curation",
-      "golden-dataset",
-      "evaluation",
-      "testing",
-      "quality-scoring",
-      "bias-detection"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Edit",
-      "Grep",
-      "Glob",
-      "Task",
-      "TaskCreate",
-      "TaskUpdate",
-      "mcp__memory__search_nodes"
-    ],
-    "skills": [
-      "golden-dataset",
-      "llm-evaluation",
-      "testing-patterns"
-    ],
-    "agent": null,
-    "structure": {
-      "references": [
-        "bias-detection-guide.md",
-        "quality-scoring.md",
-        "silver-gold-promotion.md"
-      ],
-      "assets": [
-        "diversity-dashboard.md",
-        "version-entry.json"
-      ],
-      "scripts": [
-        "__pycache__",
-        "diversity-checker.py"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "advanced-guardrails": {
     "name": "advanced-guardrails",
     "description": "LLM guardrails with NeMo, Guardrails AI, and OpenAI. Input/output rails, hallucination prevention, fact-checking, toxicity detection, red-teaming patterns. Use when building LLM guardrails, safety checks, or red-team workflows.",
@@ -194,46 +142,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "workflow-architect"
-    ]
-  },
-  "aggregate-patterns": {
-    "name": "aggregate-patterns",
-    "description": "DDD aggregate design patterns for consistency boundaries and invariants. Use when designing aggregate roots, enforcing business invariants, handling cross-aggregate references, or optimizing aggregate size.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "ddd",
-      "aggregate",
-      "consistency",
-      "invariants",
-      "domain-modeling",
-      "python"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "backend-system-architect",
-    "structure": {
-      "references": [
-        "aggregate-sizing.md",
-        "eventual-consistency.md",
-        "invariant-enforcement.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "aggregate-root-template.py"
-      ],
-      "checklists": [
-        "aggregate-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "backend-system-architect"
     ]
   },
   "analytics": {
@@ -515,44 +423,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "assess-complexity": {
-    "name": "assess-complexity",
-    "description": "Assesses task complexity with codebase metrics. Use when determining if a task needs breakdown.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "quality-gates",
-      "planning",
-      "complexity",
-      "assessment"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Bash",
-      "Task",
-      "mcp__memory__search_nodes"
-    ],
-    "skills": [
-      "quality-gates",
-      "brainstorming",
-      "memory"
-    ],
-    "agent": null,
-    "structure": {
-      "scripts": [
-        "analyze-codebase.sh"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": []
-  },
   "async-jobs": {
     "name": "async-jobs",
     "description": "Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems.",
@@ -593,43 +463,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "data-pipeline-engineer",
       "event-driven-architect",
       "python-performance-engineer"
-    ]
-  },
-  "audio-language-models": {
-    "name": "audio-language-models",
-    "description": "Gemini Live API, Grok Voice Agent, GPT-4o-Transcribe, AssemblyAI patterns for real-time voice, speech-to-text, and TTS. Use when implementing voice agents, audio transcription, or conversational AI.",
-    "version": "1.1.0",
-    "author": "OrchestKit",
-    "tags": [
-      "audio",
-      "multimodal",
-      "gemini-live",
-      "grok-voice",
-      "whisper",
-      "tts",
-      "speech",
-      "voice-agent"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "multimodal-specialist",
-    "structure": {
-      "references": [
-        "streaming-audio.md",
-        "tts-patterns.md",
-        "whisper-integration.md"
-      ],
-      "checklists": [
-        "implementation.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "multimodal-specialist"
     ]
   },
   "audit-full": {
@@ -1837,7 +1670,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "debug-investigator"
+    ]
   },
   "form-state-patterns": {
     "name": "form-state-patterns",
@@ -1919,34 +1754,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "rapid-ui-designer"
     ]
   },
-  "git-recovery": {
-    "name": "git-recovery",
-    "description": "Recovery from git mistakes. Use when you need to undo commits, recover branches, or fix history.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "git",
-      "recovery",
-      "undo",
-      "reflog",
-      "reset"
-    ],
-    "userInvocable": true,
-    "context": "inherit",
-    "allowedTools": [
-      "Bash"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {},
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "git-operations-engineer"
-    ]
-  },
   "git-workflow": {
     "name": "git-workflow",
     "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.",
@@ -1961,7 +1768,7 @@ export const SKILLS: Record<string, SkillMeta> = {
       "reflog",
       "staging"
     ],
-    "userInvocable": false,
+    "userInvocable": true,
     "context": "inherit",
     "allowedTools": [],
     "skills": [],
@@ -2254,38 +2061,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "issue-progress-tracking": {
-    "name": "issue-progress-tracking",
-    "description": "Automatic GitHub issue progress updates from commits and sub-task completion. Use when tracking issue progress from commits or automating status updates.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "github",
-      "issues",
-      "progress",
-      "tracking",
-      "automation",
-      "commits"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "branch-naming.md",
-        "gh-api-commands.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "git-operations-engineer"
-    ]
-  },
   "langgraph": {
     "name": "langgraph",
     "description": "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.",
@@ -2404,116 +2179,33 @@ export const SKILLS: Record<string, SkillMeta> = {
       "prompt-engineer"
     ]
   },
-  "mcp-advanced-patterns": {
-    "name": "mcp-advanced-patterns",
-    "description": "Advanced MCP patterns for tool composition, resource management, and scaling. Build custom MCP servers, compose tools, manage resources efficiently. Use when composing MCP tools or scaling MCP servers.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "mcp",
-      "tools",
-      "resources",
-      "scaling",
-      "servers",
-      "composition"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "llm-integrator",
-    "structure": {
-      "references": [
-        "resource-management.md",
-        "scaling-strategies.md",
-        "server-building-advanced.md",
-        "tool-composition.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "mcp-server-template.py"
-      ],
-      "checklists": [
-        "mcp-production.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "llm-integrator"
-    ]
-  },
-  "mcp-security-hardening": {
-    "name": "mcp-security-hardening",
-    "description": "MCP security patterns for prompt injection defense, tool poisoning prevention, and permission management. Use when securing MCP servers, validating tool descriptions, implementing allowlists.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "mcp",
-      "security",
-      "prompt-injection",
-      "tool-poisoning",
-      "allowlist",
-      "zero-trust"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "security-auditor",
-    "structure": {
-      "references": [
-        "prompt-injection-defense.md",
-        "session-security.md",
-        "tool-permissions.md",
-        "tool-poisoning-attacks.md"
-      ],
-      "scripts": [
-        "session-security.py",
-        "tool-allowlist.py"
-      ],
-      "checklists": [
-        "mcp-security-audit.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "ai-safety-auditor",
-      "security-auditor"
-    ]
-  },
-  "mcp-server-building": {
-    "name": "mcp-server-building",
-    "description": "Building MCP (Model Context Protocol) servers for Claude extensibility. Use when creating MCP servers, building custom Claude tools, extending Claude with external integrations, or developing tool packages for Claude Desktop.",
+  "mcp-patterns": {
+    "name": "mcp-patterns",
+    "description": "MCP server building, advanced patterns, and security hardening",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
       "mcp",
       "server",
       "tools",
-      "integration"
+      "resources",
+      "security",
+      "prompt-injection"
     ],
     "userInvocable": false,
     "context": "fork",
     "allowedTools": [],
     "skills": [],
-    "agent": "backend-system-architect",
-    "structure": {
-      "references": [
-        "auto-discovery.md",
-        "resource-patterns.md",
-        "testing-patterns.md",
-        "tool-definitions.md",
-        "transport-patterns.md"
-      ]
-    },
+    "agent": null,
+    "structure": {},
     "plugins": [
       "ork"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "ai-safety-auditor",
+      "llm-integrator",
+      "security-auditor"
+    ]
   },
   "memory": {
     "name": "memory",
@@ -2736,6 +2428,33 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
+  "multimodal-llm": {
+    "name": "multimodal-llm",
+    "description": "Vision, audio, and multimodal LLM integration patterns",
+    "version": "1.0.0",
+    "author": "OrchestKit",
+    "tags": [
+      "vision",
+      "audio",
+      "multimodal",
+      "image",
+      "speech",
+      "transcription",
+      "tts"
+    ],
+    "userInvocable": false,
+    "context": "fork",
+    "allowedTools": [],
+    "skills": [],
+    "agent": null,
+    "structure": {},
+    "plugins": [
+      "ork"
+    ],
+    "relatedAgents": [
+      "multimodal-specialist"
+    ]
+  },
   "performance": {
     "name": "performance",
     "description": "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.",
@@ -2867,35 +2586,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "scripts": [
         "analyze-impact.sh",
         "detect-plan-context.sh"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": []
-  },
-  "platform-upgrade-knowledge": {
-    "name": "platform-upgrade-knowledge",
-    "description": "Platform upgrade evaluation criteria and compatibility knowledge. Use when assessing model or CC version upgrades.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "upgrade",
-      "assessment",
-      "compatibility",
-      "platform",
-      "migration"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "deployment-manager",
-    "structure": {
-      "references": [
-        "compatibility-matrix.md",
-        "scoring-rubric.md"
       ]
     },
     "plugins": [
@@ -3469,72 +3159,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "root-cause-analysis": {
-    "name": "root-cause-analysis",
-    "description": "5 Whys, Fishbone diagrams, Fault Tree Analysis, and systematic debugging approaches. Use when investigating bugs, analyzing incidents, or identifying root causes of problems.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "debugging",
-      "rca",
-      "5-whys",
-      "fishbone",
-      "fault-tree",
-      "incident"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "debug-investigator",
-    "structure": {
-      "references": [
-        "5-whys-workshop.md",
-        "fishbone-template.md"
-      ],
-      "assets": [
-        "rca-report-template.md"
-      ],
-      "checklists": [
-        "rca-quality-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "debug-investigator"
-    ]
-  },
-  "run-tests": {
-    "name": "run-tests",
-    "description": "Comprehensive test execution with parallel analysis and coverage reporting. Use when running test suites or troubleshooting failures with the run-tests workflow.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "testing",
-      "pytest",
-      "coverage",
-      "test-execution"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "test-commands.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "test-generator"
-    ]
-  },
   "security-patterns": {
     "name": "security-patterns",
     "description": "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction.",
@@ -3596,113 +3220,14 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "ai-safety-auditor",
       "backend-system-architect",
+      "ci-cd-engineer",
       "code-quality-reviewer",
+      "infrastructure-architect",
       "llm-integrator",
       "security-auditor",
       "security-layer-auditor",
       "system-design-reviewer"
     ]
-  },
-  "security-scanning": {
-    "name": "security-scanning",
-    "description": "Automated security scanning for dependencies and code. Use when running npm audit, pip-audit, Semgrep, secret detection, or integrating security checks into CI/CD.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "security",
-      "scanning",
-      "vulnerabilities",
-      "audit"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Bash  # For running security scanners only"
-    ],
-    "skills": [],
-    "agent": "security-auditor",
-    "structure": {
-      "references": [
-        "tool-configs.md"
-      ],
-      "scripts": [
-        "security-audit-template.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "ci-cd-engineer",
-      "code-quality-reviewer",
-      "infrastructure-architect",
-      "security-auditor",
-      "security-layer-auditor",
-      "system-design-reviewer"
-    ]
-  },
-  "silent-failure-detection": {
-    "name": "silent-failure-detection",
-    "description": "Detect quiet failures in LLM agents - tool skipping, gibberish outputs, infinite loops, and degraded quality. Use when agents appear to work but produce incorrect results.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "monitoring",
-      "alerting",
-      "anomaly",
-      "silent-failure",
-      "observability",
-      "agents"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "monitoring-engineer",
-    "structure": {
-      "references": [
-        "baseline-comparison.md",
-        "gibberish-detection.md",
-        "loop-detection.md",
-        "tool-skipping-detection.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
-  "skill-analyzer": {
-    "name": "skill-analyzer",
-    "description": "Reference patterns for parsing skill metadata. Use when extracting phases, examples, or features from SKILL.md files for demo generation",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "skill",
-      "metadata",
-      "parser",
-      "analysis",
-      "reference"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "frontmatter-parsing.md",
-        "phase-extraction.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "skill-evolution": {
     "name": "skill-evolution",
@@ -3852,40 +3377,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "event-driven-architect",
       "llm-integrator",
       "multimodal-specialist"
-    ]
-  },
-  "system-design-interrogation": {
-    "name": "system-design-interrogation",
-    "description": "Use when planning system architecture to ensure nothing is missed. Provides structured questions covering scalability, security, data, and operational dimensions before implementation.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "architecture",
-      "design",
-      "review",
-      "questions"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "system-design-reviewer",
-    "structure": {
-      "references": [
-        "coherence-questions.md",
-        "scale-questions.md",
-        "security-questions.md"
-      ],
-      "checklists": [
-        "before-implementation.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "system-design-reviewer"
     ]
   },
   "tanstack-query-advanced": {
@@ -4417,43 +3908,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "demo-producer"
-    ]
-  },
-  "vision-language-models": {
-    "name": "vision-language-models",
-    "description": "GPT-5/4o, Claude 4.5, Gemini 2.5/3, Grok 4 vision patterns for image analysis, document understanding, and visual QA. Use when implementing image captioning, document/chart analysis, or multi-image comparison.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "vision",
-      "multimodal",
-      "image",
-      "gpt-5",
-      "claude-4",
-      "gemini",
-      "grok",
-      "vlm"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "multimodal-specialist",
-    "structure": {
-      "references": [
-        "cost-optimization.md",
-        "document-vision.md",
-        "image-captioning.md"
-      ],
-      "checklists": [
-        "implementation.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "multimodal-specialist"
     ]
   },
   "vite-advanced": {

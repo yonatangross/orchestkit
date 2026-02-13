@@ -21,7 +21,7 @@ tools:
   - TaskList
 skills:
   - devops-deployment
-  - security-scanning
+  - security-patterns
   - github-operations
   - monitoring-observability
   - biome-linting
@@ -205,4 +205,4 @@ Task: "Set up CI/CD for FastAPI backend"
 ## Integration
 - **Receives from:** backend-system-architect (build requirements), infrastructure-architect (deployment targets)
 - **Hands off to:** deployment-manager (for releases), security-auditor (scan results)
-- **Skill references:** devops-deployment, security-scanning, github-operations
+- **Skill references:** devops-deployment, security-patterns, github-operations

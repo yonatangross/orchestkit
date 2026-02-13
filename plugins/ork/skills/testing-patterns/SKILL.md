@@ -28,8 +28,9 @@ Comprehensive patterns for building production test suites. Each category has in
 | [Performance](#performance) | 3 | MEDIUM | k6 load tests, Locust, test types |
 | [LLM Testing](#llm-testing) | 3 | HIGH | Mock responses, DeepEval, structured output |
 | [Accessibility](#accessibility) | 3 | MEDIUM | jest-axe, Playwright axe, CI gates |
+| [Execution](#execution) | 2 | HIGH | Parallel runs (xdist/matrix), coverage thresholds/reporting |
 
-**Total: 30 rules across 10 categories**
+**Total: 32 rules across 11 categories**
 
 ## Quick Start
 
@@ -154,6 +155,15 @@ Automated accessibility testing for WCAG compliance.
 | jest-axe | `rules/a11y-jest-axe.md` | Component-level axe validation |
 | Playwright axe | `rules/a11y-playwright.md` | Page-level wcag2aa scanning |
 | CI Gates | `rules/a11y-ci-gates.md` | PR blocking, regression prevention |
+
+## Execution
+
+Test execution strategies for parallel runs and coverage collection.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Parallel Execution | `rules/execution-parallel.md` | xdist, CI matrix sharding, worker DB isolation |
+| Coverage Collection | `rules/execution-coverage.md` | pytest-cov, v8, thresholds, CI upload |
 
 ## Key Decisions
 

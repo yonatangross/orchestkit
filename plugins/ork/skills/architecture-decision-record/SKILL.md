@@ -158,6 +158,14 @@ Keep ADRs in version control alongside code:
   
 - **`assets/adr-template.md`** - Static template for manual use
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [interrogation-scalability](rules/interrogation-scalability.md) | HIGH | Scale questions, data volume, growth projections |
+| [interrogation-reliability](rules/interrogation-reliability.md) | HIGH | Data patterns, UX impact, coherence validation |
+| [interrogation-security](rules/interrogation-security.md) | HIGH | Access control, tenant isolation, attack surface |
+
 ## Common Pitfalls to Avoid
 
 ❌ **Too Technical**: "We'll use Kubernetes with these 50 YAML configs..."

@@ -27,7 +27,7 @@ skills:
   - security-patterns
   - llm-evaluation
   - performance
-  - mcp-advanced-patterns
+  - mcp-patterns
   - context-optimization
   - task-dependency-patterns
   - remember

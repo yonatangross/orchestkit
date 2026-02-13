@@ -20,7 +20,6 @@ tools:
 skills:
   - testing-patterns
   - architecture-patterns
-  - run-tests
   - browser-tools
   - task-dependency-patterns
   - remember

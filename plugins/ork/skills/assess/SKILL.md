@@ -385,6 +385,13 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 
 ---
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [complexity-metrics](rules/complexity-metrics.md) | HIGH | 7-criterion scoring (1-5), complexity levels, thresholds |
+| [complexity-breakdown](rules/complexity-breakdown.md) | HIGH | Task decomposition strategies, risk assessment |
+
 ## Related Skills
 
 - `assess-complexity` - Task complexity assessment

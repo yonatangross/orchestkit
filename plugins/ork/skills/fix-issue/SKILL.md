@@ -442,6 +442,14 @@ claude                              # Shows resume hint
 
 ---
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [rca-five-whys](rules/rca-five-whys.md) | HIGH | 5 Whys iterative causal analysis |
+| [rca-fishbone](rules/rca-fishbone.md) | MEDIUM | Ishikawa diagram, multi-factor analysis |
+| [rca-fault-tree](rules/rca-fault-tree.md) | MEDIUM | Fault tree analysis, AND/OR gates, critical systems |
+
 ## Related Skills
 
 - `commit` - Commit issue fixes

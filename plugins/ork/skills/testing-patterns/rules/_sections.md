@@ -84,3 +84,10 @@ Automated accessibility testing for WCAG compliance.
 - `a11y-jest-axe.md` — Component-level jest-axe validation
 - `a11y-playwright.md` — Page-level Playwright + axe-core scanning
 - `a11y-ci-gates.md` — CI/CD gates, PR blocking, regression prevention
+
+## 11. Execution (execution) — HIGH — 2 rules
+
+Test execution strategies for parallel runs, CI matrix sharding, and coverage collection.
+
+- `execution-parallel.md` — pytest-xdist, CI matrix sharding, worker DB isolation, Vitest/Jest parallelism
+- `execution-coverage.md` — pytest-cov, Istanbul/v8, coverage thresholds, CI upload, per-module targets

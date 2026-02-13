@@ -28,3 +28,9 @@ Quality scoring, drift detection, and regression testing for golden datasets.
 - `validation-quality.md` -- Schema validation, content quality, referential integrity
 - `validation-drift.md` -- Duplicate detection, semantic similarity, coverage gap analysis
 - `validation-regression.md` -- Difficulty distribution, pre-commit hooks, full dataset validation
+
+## 4. Add Workflow (add-workflow) -- HIGH -- 1 rule
+
+Structured workflow for adding new documents to the golden dataset with quality gates.
+
+- `curation-add-workflow.md` -- 9-phase curation, parallel quality analysis, bias detection, silver-to-gold classification

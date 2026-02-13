@@ -24,9 +24,7 @@ skills:
   - worktree-coordination
   - commit
   - release-management
-  - git-recovery
   - architecture-decision-record
-  - issue-progress-tracking
   - task-dependency-patterns
   - remember
   - memory

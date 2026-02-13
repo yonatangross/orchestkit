@@ -4,7 +4,7 @@ description: Complete git workflow patterns including GitHub Flow branching, ato
 context: inherit
 version: 1.0.0
 tags: [git, branch, commit, recovery, workflow, reflog, staging]
-user-invocable: false
+user-invocable: true
 complexity: medium
 ---
 
@@ -189,8 +189,11 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Branch Protection | `rules/branch-protection.md` | CRITICAL | Protected branches, required PR workflow |
 | Merge Strategy | `rules/merge-strategy.md` | HIGH | Rebase-first, conflict resolution, force-with-lease |
 | History Hygiene | `rules/history-hygiene.md` | HIGH | Squash WIP, fixup commits, clean history |
+| Recovery | `rules/recovery-reflog.md` | CRITICAL | Reflog recovery for lost commits and branches |
+| Recovery | `rules/recovery-reset.md` | CRITICAL | Safe vs dangerous reset modes |
+| Recovery | `rules/recovery-stash.md` | HIGH | Stash management and dropped stash recovery |
 
-**Total: 3 rules across 3 categories**
+**Total: 6 rules across 4 categories**
 
 ## References
 

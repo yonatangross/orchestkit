@@ -24,8 +24,9 @@ Comprehensive security patterns for building hardened applications. Each categor
 | [OWASP Top 10](#owasp-top-10) | 2 | CRITICAL | Injection prevention, broken authentication fixes |
 | [LLM Safety](#llm-safety) | 3 | HIGH | Prompt injection defense, output guardrails, content filtering |
 | [PII Masking](#pii-masking) | 2 | HIGH | PII detection/redaction with Presidio, Langfuse, LLM Guard |
+| [Scanning](#scanning) | 3 | HIGH | Dependency audit, SAST (Semgrep/Bandit), secret detection |
 
-**Total: 15 rules across 6 categories**
+**Total: 18 rules across 7 categories**
 
 ## Quick Start
 
@@ -141,6 +142,18 @@ PII detection and masking for LLM observability pipelines and logging.
 | `pii-redaction.md` | Langfuse mask callback, structlog/loguru processors, Vault deanonymization |
 
 **Key Decisions:** Presidio for enterprise | Replace with type tokens | Use mask callback at init
+
+## Scanning
+
+Automated security scanning for dependencies, code, and secrets.
+
+| Rule | Description |
+|------|-------------|
+| `scanning-dependency.md` | npm audit, pip-audit, Trivy container scanning, CI gating |
+| `scanning-sast.md` | Semgrep and Bandit static analysis, custom rules, pre-commit |
+| `scanning-secrets.md` | Gitleaks, TruffleHog, detect-secrets with baseline management |
+
+**Key Decisions:** Pre-commit hooks for shift-left | Block on critical/high | Gitleaks + detect-secrets baseline
 
 ## Anti-Patterns (FORBIDDEN)
 

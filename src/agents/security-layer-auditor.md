@@ -17,7 +17,6 @@ tools:
   - TaskList
 skills:
   - security-patterns
-  - security-scanning
   - remember
   - memory
 hooks:

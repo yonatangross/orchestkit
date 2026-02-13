@@ -22,3 +22,11 @@ When to rebase vs merge, how to handle conflicts, and keeping history clean.
 Maintaining a clean, useful git history for debugging (bisect) and code review.
 
 - `history-hygiene.md` — Squashing, fixup commits, interactive rebase, history cleanup
+
+## 4. Recovery (recovery) — CRITICAL — 3 rules
+
+Git recovery patterns using reflog, reset modes, and stash management.
+
+- `recovery-reflog.md` — Reflog-based recovery of lost commits, deleted branches, undone rebases
+- `recovery-reset.md` — Safe (--soft/--mixed) vs dangerous (--hard) reset, pushed vs unpushed
+- `recovery-stash.md` — Named stashes, context switching, recovering dropped stashes via fsck

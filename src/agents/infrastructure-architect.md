@@ -23,7 +23,7 @@ tools:
 skills:
   - devops-deployment
   - monitoring-observability
-  - security-scanning
+  - security-patterns
   - distributed-systems
   - task-dependency-patterns
   - remember

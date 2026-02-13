@@ -33,7 +33,6 @@ skills:
   - python-backend
   - async-jobs
   - domain-driven-design
-  - aggregate-patterns
   - task-dependency-patterns
   - remember
   - memory
@@ -284,4 +283,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design, database-patterns, streaming-api-patterns, architecture-patterns, distributed-systems, caching, async-jobs, python-backend, mcp-server-building
+- **Skill references:** api-design, database-patterns, streaming-api-patterns, architecture-patterns, distributed-systems, caching, async-jobs, python-backend, mcp-patterns

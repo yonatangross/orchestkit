@@ -125,8 +125,8 @@ Production/
 │   ├── Memory-Skills/    → remember, memory
 │   ├── Review-Skills/    → review-pr, create-pr, fix-issue
 │   ├── DevOps-Skills/    → doctor, configure, run-tests, feedback
-│   ├── AI-Skills/        → brainstorming, assess, assess-complexity
-│   ├── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer, add-golden
+│   ├── AI-Skills/        → brainstorming, assess
+│   ├── Advanced-Skills/  → worktree-coordination, skill-evolution, demo-producer
 │   └── Styles/           → ProgressiveZoom, SplitMerge, Cinematic, Scrapbook, etc.
 ├── Vertical-9x16/
 ├── Square-1x1/
@@ -251,3 +251,17 @@ With 128K output tokens, generate complete artifacts in a single pass. Do not sp
 - Skip the content analysis step
 - Hardcode content that should be dynamic
 - Create misleading demonstrations
+
+## Skill Index
+
+Read the specific file before advising. Do NOT rely on training data.
+
+```
+[Skills for demo-producer]
+|root: ./skills
+|IMPORTANT: Read the specific SKILL.md file before advising on any topic.
+|Do NOT rely on training data for framework patterns.
+|
+|demo-producer:{SKILL.md,references/{content-types.md,format-selection.md,script-generation.md,template-system.md}}|demo,video,marketing,vhs,remotion,terminal,showcase,tutorial
+|video-production:{SKILL.md,references/{3d-graphics.md,agent-demo-recipe.md,agent-spawning.md,aida-framework.md,animation-presets.md,asciinema-recording.md,attention-curves.md,audio-layer.md,audio-mixing-guide.md,calibration-workflow.md,captions-subtitles.md,card-templates.md,cc-simulation.md,cinematic-scenes.md,composition-patterns.md,coordinate-systems.md,data-viz-patterns.md,debug-grid-component.md,ducking-patterns.md,effects-library.md,elevenlabs-api-integration.md,ffmpeg-filters.md,first-frame-optimization.md,folder-organization.md,hook-patterns.md,lottie-animations.md,music-matching-guide.md,pacing-guidelines.md,platform-pacing-rules.md,platform-requirements.md,platform-specific-hooks.md,plugin-demo-recipe.md,pre-production-checklist.md,rhythm-patterns.md,scene-animation-presets.md,scene-templates.md,script-templates.md,sfx-library.md,showcase-templates.md,skill-demo-recipe.md,testing-hooks.md,thumbnail-formulas.md,timing-calculation.md,timing-markers.md,timing-patterns.md,tutorial-recipe.md,vhs-tape-format.md,voice-selection.md,volume-balancing.md,workflow-animation.md}}|video,demo,remotion,vhs,narration,audio,storyboard,manim,thumbnail,pacing
+```

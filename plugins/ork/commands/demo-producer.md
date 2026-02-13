@@ -424,6 +424,12 @@ TERMINAL TEXT DENSITY
 Rule: If content doesn't earn its screen time, cut it.
 ```
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [analyzer-patterns](rules/analyzer-patterns.md) | MEDIUM | Frontmatter parsing, phase detection, example extraction |
+
 ## Related Skills
 
 - `video-production`: Full video production pipeline (recording, composition, audio, pacing)

@@ -18,10 +18,8 @@ tools:
   - TaskList
 skills:
   - architecture-decision-record
-  - system-design-interrogation
   - ascii-visualizer
   - security-patterns
-  - security-scanning
   - performance
   - remember
   - memory
@@ -343,7 +341,7 @@ No blockers. Well-designed feature.
 ## Integration
 
 This agent integrates with:
-- `system-design-interrogation` skill for question frameworks
+- `architecture-decision-record` skill for question frameworks and decision documentation
 - `security-patterns` skill for security layers and LLM-specific checks
 
 ## Task Boundaries

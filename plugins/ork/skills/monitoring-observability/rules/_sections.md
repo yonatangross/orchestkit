@@ -28,3 +28,11 @@ Statistical and quality drift detection for production LLM systems.
 - `drift-statistical.md` — PSI, KS test, KL divergence, EWMA dynamic thresholds
 - `drift-quality.md` — Score regression, baseline comparison, canary prompts, embedding drift
 - `drift-alerting.md` — Dynamic thresholds, correlation with performance, anti-patterns
+
+## 4. Silent Failures (silent) — HIGH — 3 rules
+
+Detection and alerting for silent failures in LLM agents — tool skipping, quality degradation, and behavioral anomalies.
+
+- `silent-tool-skipping.md` — Expected vs actual tool calls, Langfuse trace validation, agent profiles
+- `silent-degraded-quality.md` — Heuristic + LLM-as-judge quality checks, z-score baseline anomaly detection
+- `silent-alerting.md` — Loop detection, token spikes, severity-based escalation, quarantine patterns

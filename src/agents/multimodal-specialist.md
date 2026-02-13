@@ -19,8 +19,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - vision-language-models
-  - audio-language-models
+  - multimodal-llm
   - rag-retrieval
   - streaming-api-patterns
   - llm-integration
@@ -237,4 +236,4 @@ Task: "Add image analysis endpoint with document OCR"
 
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
-- **Skill references:** vision-language-models, audio-language-models, rag-retrieval, streaming-api-patterns
+- **Skill references:** multimodal-llm, rag-retrieval, streaming-api-patterns

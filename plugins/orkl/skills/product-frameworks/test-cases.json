@@ -1,0 +1,182 @@
+{
+  "skill": "product-frameworks",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "business-roi",
+      "rule": "business-roi",
+      "query": "Calculate the ROI for a $500K software investment with $200K annual benefits over 5 years",
+      "expectedBehavior": [
+        "Uses ROI formula: (Net Benefits - Total Costs) / Total Costs x 100%",
+        "Calculates NPV with discount rate",
+        "Provides IRR and payback period",
+        "Includes Python code examples"
+      ]
+    },
+    {
+      "id": "business-cost-benefit",
+      "rule": "business-cost-benefit",
+      "query": "Compare build vs buy for an authentication system",
+      "expectedBehavior": [
+        "Creates 3-year TCO comparison table",
+        "Includes hidden costs (opportunity cost, switching costs)",
+        "Provides sensitivity analysis with scenarios",
+        "Uses business case template structure"
+      ]
+    },
+    {
+      "id": "market-tam-sam-som",
+      "rule": "market-tam-sam-som",
+      "query": "Size the market for an AI developer tools product",
+      "expectedBehavior": [
+        "Uses both top-down and bottom-up TAM calculation",
+        "Applies SAM filters (geography, segment, use case)",
+        "Calculates realistic SOM with competitive constraints",
+        "Cross-references methods and reconciles"
+      ]
+    },
+    {
+      "id": "market-competitive",
+      "rule": "market-competitive",
+      "query": "Analyze the competitive landscape for a project management SaaS",
+      "expectedBehavior": [
+        "Applies Porter's Five Forces framework",
+        "Creates SWOT analysis with TOWS matrix",
+        "Builds competitive positioning map",
+        "Includes competitor profile template"
+      ]
+    },
+    {
+      "id": "strategy-value-prop",
+      "rule": "strategy-value-prop",
+      "query": "Create a value proposition canvas for an enterprise collaboration tool",
+      "expectedBehavior": [
+        "Maps customer jobs (functional, social, emotional)",
+        "Identifies pains and gains with ranking",
+        "Creates value map with pain relievers and gain creators",
+        "Assesses problem-solution fit"
+      ]
+    },
+    {
+      "id": "strategy-go-no-go",
+      "rule": "strategy-go-no-go",
+      "query": "Should we proceed with building an AI-powered search feature?",
+      "expectedBehavior": [
+        "Uses stage gate criteria checklist",
+        "Applies weighted scoring template",
+        "Provides decision thresholds (Go >= 7.0, No-Go < 5.0)",
+        "Includes build/buy/partner evaluation"
+      ]
+    },
+    {
+      "id": "prioritize-rice",
+      "rule": "prioritize-rice",
+      "query": "Prioritize these features: search improvements, dark mode, API v2, mobile app",
+      "expectedBehavior": [
+        "Scores each feature with Reach, Impact, Confidence, Effort",
+        "Calculates RICE score for each feature",
+        "Ranks features by score",
+        "Documents scoring rationale"
+      ]
+    },
+    {
+      "id": "prioritize-wsjf",
+      "rule": "prioritize-wsjf",
+      "query": "Prioritize backlog items when we have a regulatory deadline",
+      "expectedBehavior": [
+        "Calculates Cost of Delay (User Value + Time Criticality + Risk Reduction)",
+        "Divides by Job Size for WSJF score",
+        "Identifies time-sensitive items for higher priority",
+        "Includes MoSCoW categorization"
+      ]
+    },
+    {
+      "id": "metrics-okr",
+      "rule": "metrics-okr",
+      "query": "Write OKRs for a team focused on improving customer retention",
+      "expectedBehavior": [
+        "Creates qualitative, inspiring objectives",
+        "Defines quantitative key results with baselines and targets",
+        "Key results are outcome-focused, not output-focused",
+        "Targets are stretch goals (70% achievable)"
+      ]
+    },
+    {
+      "id": "metrics-kpi-trees",
+      "rule": "metrics-kpi-trees",
+      "query": "Build a KPI tree for tracking SaaS revenue growth",
+      "expectedBehavior": [
+        "Creates hierarchical metric breakdown",
+        "Shows cause-effect relationships",
+        "Identifies North Star metric with input metrics",
+        "Covers new revenue, expansion, and retention branches"
+      ]
+    },
+    {
+      "id": "metrics-leading-lagging",
+      "rule": "metrics-leading-lagging",
+      "query": "Set up a balanced metrics dashboard for a product team",
+      "expectedBehavior": [
+        "Distinguishes leading from lagging indicators",
+        "Shows the leading-lagging chain",
+        "Sets appropriate review cadences (weekly for leading, monthly for lagging)",
+        "Pairs actionable metrics with result metrics"
+      ]
+    },
+    {
+      "id": "metrics-instrumentation",
+      "rule": "metrics-instrumentation",
+      "query": "Define and instrument a new KPI for feature adoption",
+      "expectedBehavior": [
+        "Uses metric definition template with formula",
+        "Identifies data source, table, and owner",
+        "Defines segments and historical context",
+        "Sets alerting thresholds"
+      ]
+    },
+    {
+      "id": "research-personas",
+      "rule": "research-personas",
+      "query": "Create a user persona for a DevOps engineer using our CI/CD platform",
+      "expectedBehavior": [
+        "Includes demographics, goals, pain points, behaviors",
+        "Adds characteristic quote capturing mindset",
+        "Provides key insight for design decisions",
+        "Creates empathy map for specific scenario"
+      ]
+    },
+    {
+      "id": "research-journey-mapping",
+      "rule": "research-journey-mapping",
+      "query": "Map the customer journey for onboarding new enterprise users",
+      "expectedBehavior": [
+        "Defines 5-7 journey stages",
+        "Maps actions, thoughts, emotions per stage",
+        "Identifies pain points and opportunities",
+        "Includes touchpoints and emotional curve"
+      ]
+    },
+    {
+      "id": "research-user-interviews",
+      "rule": "research-user-interviews",
+      "query": "Plan a user research study to understand search behavior",
+      "expectedBehavior": [
+        "Creates interview plan with research questions",
+        "Designs interview guide with warm-up, deep dive, wrap-up",
+        "Includes usability test plan with success criteria",
+        "Follows best practices (open-ended questions, no leading)"
+      ]
+    },
+    {
+      "id": "research-requirements-prd",
+      "rule": "research-requirements-prd",
+      "query": "Write a PRD for a new notification system feature",
+      "expectedBehavior": [
+        "Follows PRD template structure",
+        "Includes user stories with INVEST criteria",
+        "Writes acceptance criteria in Given-When-Then format",
+        "Defines non-functional requirements and success metrics"
+      ]
+    }
+  ]
+}

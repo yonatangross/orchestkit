@@ -1,0 +1,13 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Database design and migration patterns covering Alembic migrations (autogenerate, data migrations, branching), schema design (normalization, indexing, NoSQL), and database versioning (changelogs, rollback, drift detection).",
+  "ruleCount": 9,
+  "categories": 3,
+  "consolidatedFrom": [
+    "alembic-migrations",
+    "database-schema-designer",
+    "database-versioning"
+  ]
+}
