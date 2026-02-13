@@ -1,5 +1,7 @@
 ---
 name: quality-gates
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
@@ -8,6 +10,8 @@ author: OrchestKit AI Agent Hub
 tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns]
 user-invocable: false
 complexity: max
+metadata:
+  category: document-asset-creation
 ---
 
 # Quality Gates

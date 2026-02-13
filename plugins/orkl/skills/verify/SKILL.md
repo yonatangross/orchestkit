@@ -1,14 +1,20 @@
 ---
 name: verify
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
+argument-hint: "[feature-or-scope]"
 context: fork
 version: 3.1.0
 author: OrchestKit
 tags: [verification, testing, quality, validation, parallel-agents, grading]
 user-invocable: true
-allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [code-review-playbook, security-scanning, evidence-verification, run-tests, testing-patterns, memory, quality-gates]
 complexity: medium
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
 
 # Verify Feature

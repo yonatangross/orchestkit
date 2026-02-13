@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Automated Skill Permission Audit for CC 2.1.19
-# Scans all skills and identifies those needing allowedTools declarations
+# Scans all skills and identifies those needing allowed-tools declarations
 
 set -euo pipefail
 
@@ -52,8 +52,8 @@ for skill_dir in "$SKILLS_DIR"/*/; do
     if grep -q "^user-invocable: true" "$skill_md" 2>/dev/null; then
         ((user_invocable++))
 
-        # Check for allowedTools
-        if grep -q "^allowedTools:" "$skill_md" 2>/dev/null; then
+        # Check for allowed-tools
+        if grep -q "^allowed-tools:" "$skill_md" 2>/dev/null; then
             ((has_tools++))
         else
             # Check if skill has scripts that use dangerous tools
@@ -101,12 +101,12 @@ done
 # Print results
 echo -e "${GREEN}Total Skills:${NC} $total_skills"
 echo -e "${GREEN}User-Invocable:${NC} $user_invocable"
-echo -e "${GREEN}With allowedTools:${NC} $has_tools"
-echo -e "${YELLOW}Needing allowedTools:${NC} $needs_tools"
+echo -e "${GREEN}With allowed-tools:${NC} $has_tools"
+echo -e "${YELLOW}Needing allowed-tools:${NC} $needs_tools"
 echo ""
 
 if [[ ${#skills_needing_update[@]} -gt 0 ]]; then
-    echo -e "${YELLOW}Skills needing allowedTools declarations:${NC}"
+    echo -e "${YELLOW}Skills needing allowed-tools declarations:${NC}"
     for skill in "${skills_needing_update[@]}"; do
         echo "  - $skill"
     done
@@ -119,8 +119,8 @@ cat >> "$REPORT_FILE" << EOF
 |--------|-------|
 | Total Skills | $total_skills |
 | User-Invocable | $user_invocable |
-| With allowedTools | $has_tools |
-| Needing allowedTools | $needs_tools |
+| With allowed-tools | $has_tools |
+| Needing allowed-tools | $needs_tools |
 
 ## Skills Needing Update
 
@@ -150,11 +150,11 @@ if [[ ${#skills_needing_update[@]} -gt 0 ]]; then
         done
 
         if [[ -n "$tools" ]]; then
-            echo "  - Recommended: \`allowedTools: [$tools]\`" >> "$REPORT_FILE"
+            echo "  - Recommended: \`allowed-tools: [$tools]\`" >> "$REPORT_FILE"
         fi
     done
 else
-    echo "All user-invocable skills have proper allowedTools declarations." >> "$REPORT_FILE"
+    echo "All user-invocable skills have proper allowed-tools declarations." >> "$REPORT_FILE"
 fi
 
 echo ""

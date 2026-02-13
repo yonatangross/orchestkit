@@ -1,12 +1,18 @@
 ---
 name: demo-producer
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
+argument-hint: "[topic-or-feature]"
 user-invocable: true
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [demo, video, marketing, vhs, remotion, terminal, showcase, tutorial]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # Demo Producer

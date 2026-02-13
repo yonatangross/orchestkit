@@ -1,14 +1,20 @@
 ---
 name: commit
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "Creates commits with conventional format and validation. Use when committing changes or generating commit messages."
+argument-hint: "[message]"
 context: inherit
+agent: git-operations-engineer
 version: 1.0.0
 author: OrchestKit
 tags: [git, commit, version-control, conventional-commits]
 user-invocable: true
-allowedTools: [Bash]
+allowed-tools: [Bash]
 skills: [git-recovery]
 complexity: low
+metadata:
+  category: workflow-automation
 ---
 
 # Smart Commit

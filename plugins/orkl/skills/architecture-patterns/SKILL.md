@@ -1,5 +1,7 @@
 ---
 name: architecture-patterns
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
 tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: high
+metadata:
+  category: document-asset-creation
 ---
 
 # Architecture Patterns

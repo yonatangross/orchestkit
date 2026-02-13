@@ -1,15 +1,20 @@
 ---
 name: assess
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 context: fork
 version: 1.1.0
 author: OrchestKit
 tags: [assessment, evaluation, quality, comparison, pros-cons, rating]
 user-invocable: true
-allowedTools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes, Bash]
 skills: [code-review-playbook, assess-complexity, quality-gates, architecture-decision-record, memory]
 argument-hint: [code-path-or-topic]
 complexity: high
+metadata:
+  category: document-asset-creation
+  mcp-server: memory
 ---
 
 # Assess

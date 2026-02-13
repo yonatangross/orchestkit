@@ -3,6 +3,7 @@ name: debug-investigator
 description: Debug specialist who performs systematic root cause analysis on bugs, errors, exceptions, crashes, and failures. Uses scientific method to isolate issues, traces execution paths, analyzes logs and stack traces. Use when investigating broken functionality, debugging regressions, or analyzing flaky tests.
 category: testing
 model: sonnet
+maxTurns: 15
 context: inherit
 color: orange
 memory: local
@@ -15,6 +16,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - fix-issue
   - monitoring-observability
@@ -51,7 +53,7 @@ Recommend the minimum fix needed to resolve the issue.
 Don't suggest architectural changes unless they're directly relevant to the bug.
 </avoid_overengineering>
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - **Opus 4.6 adaptive thinking** — Complex multi-step reasoning. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 - `mcp__memory__*` - For persisting investigation context across sessions
 

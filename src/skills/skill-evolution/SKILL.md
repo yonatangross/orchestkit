@@ -1,13 +1,18 @@
 ---
 name: skill-evolution
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions."
+argument-hint: "[subcommand] [skill-id]"
 context: inherit
 version: 1.0.0
 author: OrchestKit
 tags: [skill-management, evolution, versioning, analytics]
 user-invocable: true
-allowedTools: [Read, Write, Edit, Grep, Glob]
+allowed-tools: [Read, Write, Edit, Grep, Glob]
 complexity: medium
+metadata:
+  category: document-asset-creation
 ---
 
 # Skill Evolution Manager

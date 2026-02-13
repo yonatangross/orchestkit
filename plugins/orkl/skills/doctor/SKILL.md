@@ -1,14 +1,19 @@
 ---
 name: doctor
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
+argument-hint: "[--verbose]"
 context: inherit
 version: 3.0.0
 author: OrchestKit
 tags: [health-check, diagnostics, validation, permissions, hooks, skills, agents, memory]
 user-invocable: true
-allowedTools: [Bash, Read, Grep, Glob]
+allowed-tools: [Bash, Read, Grep, Glob]
 skills: [configure]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # OrchestKit Health Diagnostics

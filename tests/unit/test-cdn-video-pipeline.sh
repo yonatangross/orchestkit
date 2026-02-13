@@ -3,7 +3,7 @@
 # Created: 2026-02-07
 
 # Unit tests for CDN video pipeline
-# Validates that generate-playground-data.js merges cdn-urls.json correctly
+# Validates that generate-docs-data.js merges cdn-urls.json correctly
 # and that the generated playground-data.ts contains CDN fields.
 
 set -euo pipefail

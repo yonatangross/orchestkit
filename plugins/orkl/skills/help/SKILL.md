@@ -1,13 +1,18 @@
 ---
 name: help
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "OrchestKit skill directory. Use when you want to see available skills or need help."
+argument-hint: "[category]"
 context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [help, documentation, skills, discovery, meta]
 user-invocable: true
-allowedTools: [AskUserQuestion]
+allowed-tools: [AskUserQuestion]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # OrchestKit Skill Directory

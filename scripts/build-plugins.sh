@@ -54,7 +54,7 @@ generate_command_from_skill() {
     local description=$(echo "$frontmatter" | grep -E "^description:" | sed 's/^description: *//')
 
     # Extract allowed tools from frontmatter
-    local allowed_tools=$(echo "$frontmatter" | grep -E "^allowedTools:" | sed 's/^allowedTools: *//')
+    local allowed_tools=$(echo "$frontmatter" | grep -E "^allowed-tools:" | sed 's/^allowed-tools: *//')
 
     # Default allowed tools if not specified
     if [[ -z "$allowed_tools" ]]; then
@@ -346,10 +346,10 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[6/10] Generating passive indexes...${NC}"
 
-if [[ -x "$SCRIPT_DIR/generate-indexes.sh" ]]; then
-    bash "$SCRIPT_DIR/generate-indexes.sh"
+if [[ -f "$SCRIPT_DIR/generate-indexes.js" ]]; then
+    node "$SCRIPT_DIR/generate-indexes.js"
 else
-    echo -e "${YELLOW}  generate-indexes.sh not found or not executable, skipping${NC}"
+    echo -e "${YELLOW}  generate-indexes.js not found, skipping${NC}"
 fi
 
 echo ""
@@ -359,10 +359,10 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[7/10] Generating docs site data...${NC}"
 
-if [[ -f "$SCRIPT_DIR/generate-playground-data.js" ]]; then
-    node "$SCRIPT_DIR/generate-playground-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-playground-data.js failed, skipping${NC}"
+if [[ -f "$SCRIPT_DIR/generate-docs-data.js" ]]; then
+    node "$SCRIPT_DIR/generate-docs-data.js" 2>/dev/null || echo -e "${YELLOW}  generate-docs-data.js failed, skipping${NC}"
 else
-    echo -e "${YELLOW}  generate-playground-data.js not found, skipping${NC}"
+    echo -e "${YELLOW}  generate-docs-data.js not found, skipping${NC}"
 fi
 
 echo ""

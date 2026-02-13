@@ -1,14 +1,20 @@
 ---
 name: brainstorming
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
+argument-hint: "[topic-or-idea]"
 tags: [planning, ideation, creativity, design]
 context: fork
 version: 4.2.0
 author: OrchestKit
 user-invocable: true
-allowedTools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity]
 complexity: medium
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
 
 # Brainstorming Ideas Into Designs

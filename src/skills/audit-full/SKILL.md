@@ -1,14 +1,20 @@
 ---
 name: audit-full
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: "Full-codebase audit using 1M context window. Security, architecture, and dependency analysis in a single pass. Use when you need whole-project analysis."
+argument-hint: "[scope]"
 context: fork
 version: 1.0.0
 author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: true
-allowedTools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
 skills: [security-scanning, security-patterns, architecture-patterns, quality-gates]
 complexity: max
+metadata:
+  category: document-asset-creation
+  mcp-server: memory
 ---
 
 # Full-Codebase Audit

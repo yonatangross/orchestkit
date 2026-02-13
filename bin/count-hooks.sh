@@ -24,18 +24,11 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 GLOBAL=$(grep -c '"type": "command"' "$PROJECT_ROOT/src/hooks/hooks.json" 2>/dev/null || echo "0")
 
 # Agent-scoped hooks: command:.*run-hook in YAML frontmatter
-AGENT=0
-for f in "$PROJECT_ROOT"/src/agents/*.md; do
-  n=$(awk '/^---$/{if(++c==2) exit} /command:.*run-hook/{n++} END{print n+0}' "$f")
-  AGENT=$((AGENT + n))
-done
+# Single grep across all files instead of per-file awk (96 forks → 2)
+AGENT=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/agents/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
 # Skill-scoped hooks: command:.*run-hook in YAML frontmatter
-SKILL=0
-while IFS= read -r f; do
-  n=$(awk '/^---$/{if(++c==2) exit} /command:.*run-hook/{n++} END{print n+0}' "$f")
-  SKILL=$((SKILL + n))
-done < <(find "$PROJECT_ROOT/src/skills" -name "SKILL.md" -type f 2>/dev/null)
+SKILL=$(grep -rch 'command:.*run-hook' "$PROJECT_ROOT/src/skills/" 2>/dev/null | awk '{s+=$1} END{print s+0}')
 
 TOTAL=$((GLOBAL + AGENT + SKILL))
 

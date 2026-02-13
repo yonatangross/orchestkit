@@ -1,5 +1,7 @@
 ---
 name: langgraph
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows.
 tags: [langgraph, workflow, state, routing, parallel, supervisor, tools, checkpoints, streaming, subgraphs, functional]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: high
+metadata:
+  category: document-asset-creation
 ---
 
 # LangGraph Workflow Patterns

@@ -1,13 +1,19 @@
 ---
 name: errors
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.
 context: inherit
+agent: debug-investigator
 version: 1.0.0
 author: OrchestKit
 tags: [errors, debugging, troubleshooting, patterns]
 user-invocable: false
-allowedTools: [Read, Bash, Grep]
+allowed-tools: [Read, Bash, Grep]
 complexity: low
+metadata:
+  category: document-asset-creation
+  mcp-server: memory
 ---
 
 # Error Pattern Analysis

@@ -1,5 +1,5 @@
 ---
-description: "Visualize planned changes before implementation. Before/after architecture, risk dashboard, execution order, impact analysis."
+description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
 allowed-tools: [Read, Grep, Glob, Task, AskUserQuestion, Bash, Write]
 ---
 

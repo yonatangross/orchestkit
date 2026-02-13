@@ -1,14 +1,20 @@
 ---
 name: implement
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server, context7 MCP server, network access."
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
+argument-hint: "[feature-description]"
 context: fork
 version: 2.1.0
 author: OrchestKit
 tags: [implementation, feature, full-stack, parallel-agents, reflection, worktree]
 user-invocable: true
-allowedTools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__context7__query_docs, mcp__memory__search_nodes]
 skills: [api-design, react-server-components-framework, type-safety-validation, testing-patterns, explore, verify, memory, worktree-coordination]
 complexity: medium
+metadata:
+  category: workflow-automation
+  mcp-server: memory, context7
 ---
 
 # Implement Feature

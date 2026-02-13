@@ -1,13 +1,19 @@
 ---
 name: remember
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
 description: "Stores decisions and patterns in knowledge graph. Use when saving patterns, remembering outcomes, or recording decisions."
+argument-hint: "[decision-or-pattern]"
 context: none
 version: 3.0.0
 author: OrchestKit
 tags: [memory, decisions, patterns, best-practices, graph-memory]
 user-invocable: true
-allowedTools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
+allowed-tools: [Read, Grep, Glob, Bash, mcp__memory__create_entities, mcp__memory__create_relations, mcp__memory__add_observations, mcp__memory__search_nodes]
 complexity: low
+metadata:
+  category: workflow-automation
+  mcp-server: memory
 ---
 
 # Remember - Store Decisions and Patterns

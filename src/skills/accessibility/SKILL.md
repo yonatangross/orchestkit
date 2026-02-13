@@ -1,5 +1,7 @@
 ---
 name: accessibility
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries.
 tags: [accessibility, a11y, wcag, focus-management, react-aria, keyboard-navigation, screen-reader, aria]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
+metadata:
+  category: document-asset-creation
 ---
 
 # Accessibility

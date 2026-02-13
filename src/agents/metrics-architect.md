@@ -28,7 +28,7 @@ skills:
 Design measurable success criteria, define OKRs and KPIs, and create instrumentation plans to validate product hypotheses and track outcomes.
 
 Consult project memory for past decisions and patterns before starting. Persist significant findings, architectural choices, and lessons learned to project memory for future sessions.
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__memory__*` - Track metrics definitions and targets over time
 - `mcp__postgres-mcp__query` - Query existing metrics data for baselines
 

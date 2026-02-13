@@ -3,6 +3,7 @@ name: performance-engineer
 description: Performance engineer who optimizes Core Web Vitals, analyzes bundles, profiles render performance, and sets up RUM. Activates for performance, Core Web Vitals, LCP, INP, CLS, bundle size, Lighthouse, optimization, slow, latency, profiling, metrics, RUM, bundle, chunk, splitting, speed
 category: frontend
 model: sonnet
+maxTurns: 20
 context: fork
 color: green
 memory: project
@@ -39,7 +40,7 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 
 - `mcp__context7__*` - React, Next.js, Vite, Lighthouse documentation
 - **Opus 4.6 adaptive thinking** — Complex optimization decision trees. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis

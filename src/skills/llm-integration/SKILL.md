@@ -1,5 +1,7 @@
 ---
 name: llm-integration
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.
 tags: [llm, function-calling, streaming, ollama, fine-tuning, lora, tool-use, local-inference]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
+metadata:
+  category: mcp-enhancement
 ---
 
 # LLM Integration

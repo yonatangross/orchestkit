@@ -1,5 +1,8 @@
 ---
 name: vite-advanced
+license: MIT
+compatibility: "Claude Code 2.1.34+."
+author: OrchestKit
 description: Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.
 context: fork
 agent: frontend-ui-developer
@@ -7,6 +10,8 @@ version: 1.0.0
 tags: [vite, build, bundler, plugins, ssr, library-mode, environment-api, optimization]
 user-invocable: false
 complexity: medium
+metadata:
+  category: document-asset-creation
 ---
 
 # Vite Advanced Patterns

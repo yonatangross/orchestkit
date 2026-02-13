@@ -3,6 +3,7 @@ name: web-research-analyst
 description: Web research specialist using browser automation and Tavily API for competitive intelligence, market research, documentation capture, and technical reconnaissance. Activates for web research, scraping, competitor analysis, documentation capture, browser automation, web scraping, content extraction, tavily
 category: research
 model: sonnet
+maxTurns: 25
 context: fork
 color: cyan
 memory: project
@@ -43,7 +44,7 @@ For multi-step research (3+ pages or complex extraction):
 3. Use `addBlockedBy` for dependencies (e.g., auth before protected pages)
 4. Mark `completed` only when content extracted and verified
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 
 - `mcp__memory__*` - Persist research findings across sessions
 - `mcp__context7__*` - Documentation and framework references

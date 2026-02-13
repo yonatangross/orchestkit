@@ -16,6 +16,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - product-frameworks
   - ui-components
@@ -25,7 +26,7 @@ skills:
 ## Directive
 Conduct user research, create actionable personas, map user journeys, and validate design decisions through data-driven insights and behavioral analysis.
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - UX research methodologies and frameworks
 
 

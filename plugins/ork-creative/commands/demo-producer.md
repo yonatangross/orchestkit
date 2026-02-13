@@ -1,6 +1,6 @@
 ---
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
-allowed-tools: [Bash, Read, Write, Edit, Glob, Grep]
+allowed-tools: [AskUserQuestion, Bash, Read, Write, Edit, Grep, Glob, Task, TaskCreate, TaskUpdate]
 ---
 
 # Auto-generated from skills/demo-producer/SKILL.md

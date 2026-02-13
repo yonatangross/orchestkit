@@ -242,29 +242,50 @@ CI_UNIT_TESTS=(
   tests/unit/test-pre-push-hook.sh
 )
 
-UNIT_TEST_ERRORS=0
-for test_file in "${CI_UNIT_TESTS[@]}"; do
+# Run tests in parallel for speed (~160s sequential → ~20s parallel on M4 Max)
+MAX_JOBS=8
+if command -v nproc &>/dev/null; then
+  CORES=$(nproc)
+elif command -v sysctl &>/dev/null; then
+  CORES=$(sysctl -n hw.ncpu 2>/dev/null || echo 8)
+else
+  CORES=8
+fi
+[[ $CORES -lt $MAX_JOBS ]] && MAX_JOBS=$CORES
+
+FAIL_DIR=$(mktemp -d)
+trap "rm -rf $FAIL_DIR" EXIT
+
+printf '%s\n' "${CI_UNIT_TESTS[@]}" | xargs -P "$MAX_JOBS" -I {} bash -c '
+  test_file="{}"
   if [[ -f "$test_file" ]]; then
-    if ! run_with_timeout 120 bash "$test_file" >/dev/null 2>&1; then
-      if [[ $UNIT_TEST_ERRORS -eq 0 ]]; then
-        echo "FAILED"
-      fi
-      echo "    FAIL: $(basename "$test_file")"
-      UNIT_TEST_ERRORS=$((UNIT_TEST_ERRORS + 1))
+    if ! bash "$test_file" >/dev/null 2>&1; then
+      touch "'"$FAIL_DIR"'/$(basename "$test_file")"
     fi
   fi
+'
+
+FAILURES=()
+for f in "$FAIL_DIR"/*; do
+  [[ -e "$f" ]] && FAILURES+=("$(basename "$f")")
 done
 
-if [[ $UNIT_TEST_ERRORS -gt 0 ]]; then
+if [[ ${#FAILURES[@]} -gt 0 ]]; then
+  echo "FAILED"
+  for f in "${FAILURES[@]}"; do
+    echo "    FAIL: $f"
+  done
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"
-  echo "║  Unit tests failed! ($UNIT_TEST_ERRORS test file(s) failed)"
+  echo "║  Unit tests failed! (${#FAILURES[@]} test file(s) failed)"
   echo "╠════════════════════════════════════════════════════════════╣"
   echo "║  Run failing tests to see details"
   echo "╚════════════════════════════════════════════════════════════╝"
+  rm -rf "$FAIL_DIR"
   exit 1
 fi
-echo "OK"
+rm -rf "$FAIL_DIR"
+echo "OK (${#CI_UNIT_TESTS[@]} tests, ${MAX_JOBS} parallel)"
 
 # ===== Security Tests =====
 echo -n "  Running security tests... "

@@ -1,14 +1,20 @@
 ---
 name: worktree-coordination
+license: MIT
+compatibility: "Claude Code 2.1.34+."
 description: "Coordinates multiple Claude instances across worktrees. Use when managing parallel development."
+argument-hint: "[subcommand]"
 context: none
+agent: git-operations-engineer
 version: 1.0.0
 author: OrchestKit
 tags: [coordination, worktree, multi-instance, locking, parallel-development]
 user-invocable: true
-allowedTools: [Read, Write, Bash, Grep, Glob]
+allowed-tools: [Read, Write, Bash, Grep, Glob]
 skills: [git-workflow, commit, stacked-prs]
 complexity: low
+metadata:
+  category: workflow-automation
 ---
 
 # Worktree Coordination Skill

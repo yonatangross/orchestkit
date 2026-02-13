@@ -1,12 +1,19 @@
 ---
 name: analytics
+license: MIT
+compatibility: "Claude Code 2.1.34+."
+author: OrchestKit
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects."
+argument-hint: "[subcommand]"
 context: fork
+agent: metrics-architect
 version: 1.0.0
 tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets]
 user-invocable: true
-allowedTools: [Bash, Read, Grep, Glob, AskUserQuestion]
+allowed-tools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
+metadata:
+  category: document-asset-creation
 ---
 
 # Cross-Project Analytics

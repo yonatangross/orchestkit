@@ -1,5 +1,7 @@
 ---
 name: browser-tools
+license: MIT
+compatibility: "Claude Code 2.1.34+. Requires network access."
 description: Browser automation and content capture patterns for Playwright, Puppeteer, web scraping, and structured data extraction. Use when automating browser workflows, capturing web content, or extracting structured data from web pages.
 tags: [browser, automation, playwright, puppeteer, scraping, content-capture]
 context: fork
@@ -8,6 +10,8 @@ version: 2.0.0
 author: OrchestKit
 user-invocable: false
 complexity: medium
+metadata:
+  category: mcp-enhancement
 ---
 
 # Browser Tools

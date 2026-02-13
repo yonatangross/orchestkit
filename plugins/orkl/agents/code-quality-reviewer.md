@@ -18,6 +18,7 @@ tools:
   - TaskCreate
   - TaskUpdate
   - TaskList
+disallowedTools: [Write, Edit, MultiEdit]
 skills:
   - code-review-playbook
   - security-patterns
@@ -64,7 +65,7 @@ When running as a teammate in an Agent Teams session:
 - Produce a final APPROVE/REJECT verdict when the lead requests integration review.
 - Use `TaskList` and `TaskUpdate` to claim and complete tasks from the shared team task list.
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Latest testing framework docs, linting tool references
 - **Opus 4.6 adaptive thinking** — Complex security vulnerability analysis. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 

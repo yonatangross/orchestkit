@@ -3,6 +3,7 @@ name: backend-system-architect
 description: Backend architect who designs REST/GraphQL APIs, database schemas, microservice boundaries, and distributed systems. Focuses on scalability, security, performance optimization, and clean architecture patterns. Activates for API design, database schema, microservice, backend architecture, REST, GraphQL, distributed systems, endpoint, route, model, migration, authentication, authorization, JWT, OAuth, rate limiting, middleware, service layer, repository pattern, dependency injection
 category: backend
 model: sonnet
+permissionMode: plan
 context: fork
 color: yellow
 memory: project
@@ -36,6 +37,7 @@ skills:
   - task-dependency-patterns
   - remember
   - memory
+mcpServers: [context7]
 ---
 ## Directive
 Design and implement REST/GraphQL APIs, database schemas, microservice boundaries, and distributed system patterns with scalability, security, and performance focus.
@@ -78,9 +80,8 @@ For multi-step work (3+ distinct steps), use CC 2.1.16 task tracking:
 4. Mark `completed` only when step is fully verified
 5. Check `TaskList` before starting to see pending work
 
-## MCP Tools
+## MCP Tools (Optional — skip if not configured)
 - `mcp__context7__*` - Up-to-date documentation for FastAPI, SQLAlchemy, Pydantic
-- `mcp__postgres-mcp__*` - Database schema inspection and query testing
 - **Opus 4.6 adaptive thinking** — Complex architectural decisions. Native feature for multi-step reasoning — no MCP calls needed. Replaces sequential-thinking MCP tool for complex analysis
 
 ## Opus 4.6: 128K Output Tokens
