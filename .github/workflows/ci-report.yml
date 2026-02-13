@@ -52,57 +52,60 @@ jobs:
           fi
           cd ../..
 
-          # Run other tests
+          # Run shell-based tests
           npm test 2>&1 | tee -a test.log || true
 
-          # Extract test counts (vitest format)
-          passed=$(grep -oP '\d+(?=\s*passed)' test.log | tail -1 || echo "0")
-          failed=$(grep -oP '\d+(?=\s*failed)' test.log | tail -1 || echo "0")
-          skipped=$(grep -oP '\d+(?=\s*skipped)' test.log | tail -1 || echo "0")
-          echo "passed=${passed:-0}" >> $GITHUB_OUTPUT
-          echo "failed=${failed:-0}" >> $GITHUB_OUTPUT
-          echo "skipped=${skipped:-0}" >> $GITHUB_OUTPUT
+          # Extract test counts (vitest format: "N passed")
+          # Use grep with || true to avoid pipefail, default to 0
+          passed="$(grep -oP '\d+(?=\s+passed)' test.log | tail -1)" || true
+          failed="$(grep -oP '\d+(?=\s+failed)' test.log | tail -1)" || true
+          skipped="$(grep -oP '\d+(?=\s+skipped)' test.log | tail -1)" || true
+          echo "passed=${passed:-0}" >> "$GITHUB_OUTPUT"
+          echo "failed=${failed:-0}" >> "$GITHUB_OUTPUT"
+          echo "skipped=${skipped:-0}" >> "$GITHUB_OUTPUT"
 
           # Extract coverage from summary
           if [ -f coverage-summary.json ]; then
-            lines=$(jq '.total.lines.pct // 0' coverage-summary.json)
-            functions=$(jq '.total.functions.pct // 0' coverage-summary.json)
-            branches=$(jq '.total.branches.pct // 0' coverage-summary.json)
-            statements=$(jq '.total.statements.pct // 0' coverage-summary.json)
-            echo "coverage_lines=${lines}" >> $GITHUB_OUTPUT
-            echo "coverage_functions=${functions}" >> $GITHUB_OUTPUT
-            echo "coverage_branches=${branches}" >> $GITHUB_OUTPUT
-            echo "coverage_statements=${statements}" >> $GITHUB_OUTPUT
+            lines="$(jq -r '.total.lines.pct // 0' coverage-summary.json)"
+            functions="$(jq -r '.total.functions.pct // 0' coverage-summary.json)"
+            branches="$(jq -r '.total.branches.pct // 0' coverage-summary.json)"
+            statements="$(jq -r '.total.statements.pct // 0' coverage-summary.json)"
+            echo "coverage_lines=${lines:-0}" >> "$GITHUB_OUTPUT"
+            echo "coverage_functions=${functions:-0}" >> "$GITHUB_OUTPUT"
+            echo "coverage_branches=${branches:-0}" >> "$GITHUB_OUTPUT"
+            echo "coverage_statements=${statements:-0}" >> "$GITHUB_OUTPUT"
           else
-            echo "coverage_lines=0" >> $GITHUB_OUTPUT
-            echo "coverage_functions=0" >> $GITHUB_OUTPUT
-            echo "coverage_branches=0" >> $GITHUB_OUTPUT
-            echo "coverage_statements=0" >> $GITHUB_OUTPUT
+            echo "coverage_lines=0" >> "$GITHUB_OUTPUT"
+            echo "coverage_functions=0" >> "$GITHUB_OUTPUT"
+            echo "coverage_branches=0" >> "$GITHUB_OUTPUT"
+            echo "coverage_statements=0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run linting
         id: lint
         continue-on-error: true
         run: |
-          npm run lint 2>&1 | tee lint.log || true
-          errors=$(grep -c "error" lint.log || echo "0")
-          warnings=$(grep -c "warning" lint.log || echo "0")
-          echo "errors=${errors:-0}" >> $GITHUB_OUTPUT
-          echo "warnings=${warnings:-0}" >> $GITHUB_OUTPUT
+          # TypeScript type-check (no standalone lint script)
+          cd src/hooks && npx tsc --noEmit 2>&1 | tee ../../lint.log || true
+          cd ../..
+          errors="$(grep -c ' error ' lint.log)" || true
+          warnings="$(grep -c ' warning ' lint.log)" || true
+          echo "errors=${errors:-0}" >> "$GITHUB_OUTPUT"
+          echo "warnings=${warnings:-0}" >> "$GITHUB_OUTPUT"
 
       - name: Run security scan
         id: security
         continue-on-error: true
         run: |
           npm audit --json > audit.json 2>/dev/null || true
-          critical=$(jq '.metadata.vulnerabilities.critical // 0' audit.json)
-          high=$(jq '.metadata.vulnerabilities.high // 0' audit.json)
-          medium=$(jq '.metadata.vulnerabilities.moderate // 0' audit.json)
-          low=$(jq '.metadata.vulnerabilities.low // 0' audit.json)
-          echo "critical=${critical:-0}" >> $GITHUB_OUTPUT
-          echo "high=${high:-0}" >> $GITHUB_OUTPUT
-          echo "medium=${medium:-0}" >> $GITHUB_OUTPUT
-          echo "low=${low:-0}" >> $GITHUB_OUTPUT
+          critical="$(jq -r '.metadata.vulnerabilities.critical // 0' audit.json)" || true
+          high="$(jq -r '.metadata.vulnerabilities.high // 0' audit.json)" || true
+          medium="$(jq -r '.metadata.vulnerabilities.moderate // 0' audit.json)" || true
+          low="$(jq -r '.metadata.vulnerabilities.low // 0' audit.json)" || true
+          echo "critical=${critical:-0}" >> "$GITHUB_OUTPUT"
+          echo "high=${high:-0}" >> "$GITHUB_OUTPUT"
+          echo "medium=${medium:-0}" >> "$GITHUB_OUTPUT"
+          echo "low=${low:-0}" >> "$GITHUB_OUTPUT"
 
       - name: Generate CI Report
         id: report
