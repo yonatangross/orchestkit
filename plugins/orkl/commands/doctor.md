@@ -1,5 +1,5 @@
 ---
-description: "OrchestKit health diagnostics for health diagnostics. Use when checking plugin health or troubleshooting issues."
+description: "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
 allowed-tools: [Bash, Read, Grep, Glob]
 ---
 
@@ -64,13 +64,13 @@ Auto-detects which OrchestKit plugins are installed:
 **Output (orkl):**
 ```
 Installed Plugins: 1
-- orkl: 43 skills, 36 agents, 88 hook entries
+- orkl: 43 skills, 36 agents, 86 hook entries
 ```
 
 **Output (ork full):**
 ```
 Installed Plugins: 1
-- ork: 60 skills, 36 agents, 88 hook entries
+- ork: 60 skills, 36 agents, 86 hook entries
 ```
 
 ### 1. Skills Validation

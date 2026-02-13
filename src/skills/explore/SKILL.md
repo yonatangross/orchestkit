@@ -1,6 +1,6 @@
 ---
 name: explore
-description: "Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture."
+description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture."
 context: fork
 version: 2.1.0
 author: OrchestKit

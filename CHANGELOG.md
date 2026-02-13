@@ -5,6 +5,25 @@ All notable changes to the OrchestKit Claude Code Plugin will be documented in t
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.0.5] - 2026-02-13
+
+### Fixed
+
+- **Bugs**: Close 11 open issues (#417, #418, #437, #450, #451, #452, #453, #454, #455, #456, #534)
+- **Skills**: Fix doctor "health diagnostics for health diagnostics" redundancy (#456)
+- **Skills**: Add skill name to explore description for semantic discovery (#456)
+- **Tests**: Rewrite MCP pretool hook tests for TypeScript — removes 14 dead skip() calls (#417)
+- **Tests**: Rewrite hook timing tests to measure TypeScript hooks via run-hook.mjs (#455)
+
+### Changed
+
+- **CLAUDE.md**: Prune from 275 to 75 lines, link to docs instead of inline (#452)
+- **Hooks**: Consolidate 4 PostToolUse Write|Edit hooks into unified-write-quality-dispatcher (#453)
+  - auto-lint, readme-sync, merge-conflict-predictor, coverage-predictor → 1 dispatcher
+  - Hook count: 88 → 86 (63 global + 22 agent + 1 skill)
+- **README**: Fix stale counts (200→60 skills, 98→86 hooks), remove playground-demo.gif
+- **GitHub**: Update repo description with accurate component counts
+
 ## [6.0.4] - 2026-02-13
 
 ### Fixed

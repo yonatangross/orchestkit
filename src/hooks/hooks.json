@@ -1,5 +1,5 @@
 {
-  "description": "OrchestKit hooks - 72 global entries + 22 agent-scoped + 6 skill-scoped hooks for comprehensive development automation",
+  "description": "OrchestKit hooks - 63 global + 22 agent-scoped + 1 skill-scoped = 86 total hooks",
   "hooks": {
     "PreToolUse": [
       {
@@ -118,19 +118,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/auto-lint"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/readme-sync"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs skill/merge-conflict-predictor"
-          },
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/coverage-predictor"
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/run-hook.mjs posttool/write/unified-write-quality-dispatcher"
           }
         ]
       },
@@ -273,8 +261,8 @@
             "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-fire-and-forget.mjs"
           },
           {
-            "type": "prompt",
-            "prompt": "Check if this session made code changes that should be committed. Review: (1) Are there uncommitted changes in the working directory? (2) Were commits made atomically (one logical change per commit)? (3) Are there staged but uncommitted changes left behind? If the session involved code changes and there are uncommitted modifications, respond with {\"ok\": false, \"reason\": \"There are uncommitted changes. Commit them atomically before stopping.\"}. If everything is committed or no code changes were made, respond with {\"ok\": true}. Do NOT block if the user explicitly chose not to commit."
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/bin/stop-uncommitted-check.mjs"
           }
         ]
       }

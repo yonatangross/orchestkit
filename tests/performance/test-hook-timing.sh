@@ -2,8 +2,9 @@
 # ============================================================================
 # Hook Timing Performance Test
 # ============================================================================
-# Verifies that all hooks execute within acceptable time limits.
-# This ensures hooks don't introduce noticeable latency to Claude Code.
+# Verifies that TypeScript hooks execute within acceptable time limits.
+# All hooks are now TypeScript, executed via run-hook.mjs.
+# CC 2.1.34 Compliant
 # ============================================================================
 
 set -euo pipefail
@@ -11,6 +12,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${CLAUDE_PROJECT_DIR:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
 HOOKS_DIR="$PROJECT_ROOT/src/hooks"
+HOOKS_BIN="$HOOKS_DIR/bin/run-hook.mjs"
 
 # Colors
 RED='\033[0;31m'
@@ -29,9 +31,9 @@ warn() { echo -e "  ${YELLOW}⚠${NC} $1"; WARN_COUNT=$((WARN_COUNT + 1)); }
 info() { echo -e "  ${BLUE}ℹ${NC} $1"; }
 
 # Timing thresholds (milliseconds)
-HOOK_LATENCY_TARGET=50      # Individual hook should complete in <50ms
-DISPATCHER_TARGET=100       # Full dispatcher chain should complete in <100ms
-LIFECYCLE_TARGET=200        # Lifecycle hooks can be slower (session start/end)
+HOOK_LATENCY_TARGET=200     # Individual TS hook via run-hook.mjs (includes Node startup)
+DISPATCHER_TARGET=300       # Full dispatcher chain
+LIFECYCLE_TARGET=500        # Lifecycle hooks (more I/O)
 
 # Cross-platform millisecond timer
 get_time_ms() {
@@ -40,7 +42,6 @@ get_time_ms() {
     elif date --version 2>/dev/null | grep -q GNU; then
         date +%s%3N
     else
-        # macOS fallback: use Python
         python3 -c 'import time; print(int(time.time() * 1000))' 2>/dev/null || echo 0
     fi
 }
@@ -56,14 +57,21 @@ time_command() {
 }
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "  Hook Timing Performance Tests"
+echo "  Hook Timing Performance Tests (TypeScript via run-hook.mjs)"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "  Latency Targets:"
+echo "  Latency Targets (includes Node.js startup ~100ms):"
 echo "  - Individual hook: <${HOOK_LATENCY_TARGET}ms"
 echo "  - Dispatcher chain: <${DISPATCHER_TARGET}ms"
 echo "  - Lifecycle hooks: <${LIFECYCLE_TARGET}ms"
 echo ""
+
+# Check run-hook.mjs exists
+if [[ ! -f "$HOOKS_BIN" ]]; then
+    echo -e "  ${RED}✗ run-hook.mjs not found at $HOOKS_BIN${NC}"
+    echo "  Skipping all timing tests."
+    exit 0
+fi
 
 # ============================================================================
 # Test 1: PreToolUse Hook Latency
@@ -71,50 +79,40 @@ echo ""
 echo "▶ Test 1: PreToolUse Hook Latency"
 echo "────────────────────────────────────────"
 
-# Test git-branch-protection hook (CC 2.1.7 native - no dispatchers)
-if [[ -f "$HOOKS_DIR/pretool/bash/git-branch-protection.sh" ]]; then
-    test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"}}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/pretool/bash/git-branch-protection.sh'")
+# Test dangerous-command-blocker (security-critical, must be fast)
+test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"}}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' pretool/bash/dangerous-command-blocker")
 
-    if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        pass "git-branch-protection: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
-    elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-        warn "git-branch-protection: ${duration}ms (acceptable but >target)"
-    else
-        fail "git-branch-protection: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "dangerous-command-blocker: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "dangerous-command-blocker: ${duration}ms (acceptable but >target)"
 else
-    info "git-branch-protection not found (skipping)"
+    fail "dangerous-command-blocker: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
-# Test file-guard hook (CC 2.1.7 native - no dispatchers)
-if [[ -f "$HOOKS_DIR/pretool/write-edit/file-guard.sh" ]]; then
-    test_input='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.txt","content":"test"}}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/pretool/write-edit/file-guard.sh'")
+# Test file-guard (security guard)
+test_input='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.txt","content":"test"}}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' pretool/write-edit/file-guard")
 
-    if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        pass "file-guard: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
-    elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-        warn "file-guard: ${duration}ms (acceptable but >target)"
-    else
-        fail "file-guard: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "file-guard: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "file-guard: ${duration}ms (acceptable but >target)"
 else
-    info "file-guard not found (skipping)"
+    fail "file-guard: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
-# Test path normalizer
-if [[ -f "$HOOKS_DIR/pretool/read/path-normalizer.sh" ]]; then
-    test_input='{"tool_name":"Read","tool_input":{"file_path":"./test.txt"}}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/pretool/read/path-normalizer.sh'")
+# Test tldr-summary (Read hook)
+test_input='{"tool_name":"Read","tool_input":{"file_path":"/tmp/test.txt"}}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' pretool/read/tldr-summary")
 
-    if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        pass "path-normalizer: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
-    else
-        warn "path-normalizer: ${duration}ms (>target)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "tldr-summary: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "tldr-summary: ${duration}ms (acceptable but >target)"
 else
-    info "path-normalizer not found (skipping)"
+    fail "tldr-summary: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
 echo ""
@@ -125,110 +123,91 @@ echo ""
 echo "▶ Test 2: PostToolUse Hook Latency"
 echo "────────────────────────────────────────"
 
-# Test audit-logger hook (CC 2.1.7 native - no dispatchers)
-if [[ -f "$HOOKS_DIR/posttool/audit-logger.sh" ]]; then
-    test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/posttool/audit-logger.sh'")
+# Test context-budget-monitor
+test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/context-budget-monitor")
 
-    if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        pass "audit-logger: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
-    elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
-        warn "audit-logger: ${duration}ms (acceptable but >target)"
-    else
-        fail "audit-logger: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "context-budget-monitor: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "context-budget-monitor: ${duration}ms (acceptable but >target)"
 else
-    info "audit-logger not found (skipping)"
+    fail "context-budget-monitor: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
-# Test audit logger
-if [[ -f "$HOOKS_DIR/posttool/audit/audit-logger.sh" ]]; then
-    test_input='{"tool_name":"Read","tool_input":{"file_path":"/tmp/test"},"tool_result":"content"}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/posttool/audit/audit-logger.sh'")
+# Test unified-error-handler
+test_input='{"tool_name":"Bash","tool_input":{"command":"echo test"},"tool_result":"test"}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' posttool/unified-error-handler")
 
-    if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        pass "audit-logger: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
-    else
-        warn "audit-logger: ${duration}ms (>target)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "unified-error-handler: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "unified-error-handler: ${duration}ms (acceptable but >target)"
 else
-    info "audit-logger not found (skipping)"
+    fail "unified-error-handler: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
 echo ""
 
 # ============================================================================
-# Test 3: Lifecycle Hook Latency
+# Test 3: Permission Hook Latency
 # ============================================================================
-echo "▶ Test 3: Lifecycle Hook Latency"
+echo "▶ Test 3: Permission Hook Latency"
 echo "────────────────────────────────────────"
 
-# Test session start hooks
-if [[ -f "$HOOKS_DIR/lifecycle/session-start/context-loader.sh" ]]; then
-    duration=$(time_command bash "$HOOKS_DIR/lifecycle/session-start/context-loader.sh")
+# Test auto-approve-safe-bash
+test_input='{"tool_name":"Bash","tool_input":{"command":"echo hello"}}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' permission/auto-approve-safe-bash")
 
-    if [[ "$duration" -lt "$LIFECYCLE_TARGET" ]]; then
-        pass "context-loader: ${duration}ms (<${LIFECYCLE_TARGET}ms)"
-    else
-        warn "context-loader: ${duration}ms (>target)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "auto-approve-safe-bash: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "auto-approve-safe-bash: ${duration}ms (acceptable but >target)"
 else
-    info "context-loader not found (skipping)"
+    fail "auto-approve-safe-bash: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
-# Test stop hooks
-if [[ -f "$HOOKS_DIR/stop/auto-save-context.sh" ]]; then
-    duration=$(time_command bash "$HOOKS_DIR/stop/auto-save-context.sh")
+# Test auto-approve-project-writes
+test_input='{"tool_name":"Write","tool_input":{"file_path":"/tmp/test.txt"}}'
+duration=$(time_command bash -c "echo '$test_input' | node '$HOOKS_BIN' permission/auto-approve-project-writes")
 
-    if [[ "$duration" -lt "$LIFECYCLE_TARGET" ]]; then
-        pass "auto-save-context: ${duration}ms (<${LIFECYCLE_TARGET}ms)"
-    else
-        warn "auto-save-context: ${duration}ms (>target)"
-    fi
+if [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
+    pass "auto-approve-project-writes: ${duration}ms (<${HOOK_LATENCY_TARGET}ms)"
+elif [[ "$duration" -lt "$DISPATCHER_TARGET" ]]; then
+    warn "auto-approve-project-writes: ${duration}ms (acceptable but >target)"
 else
-    info "auto-save-context not found (skipping)"
-fi
-
-echo ""
-
-# ============================================================================
-# Test 4: Permission Hook Latency
-# ============================================================================
-echo "▶ Test 4: Permission Hook Latency"
-echo "────────────────────────────────────────"
-
-# Test auto-approve hooks (should be very fast)
-if [[ -f "$HOOKS_DIR/permission/auto-approve-readonly.sh" ]]; then
-    test_input='{"tool_name":"Read","tool_input":{"file_path":"/tmp/test.txt"}}'
-    duration=$(time_command bash -c "echo '$test_input' | '$HOOKS_DIR/permission/auto-approve-readonly.sh'")
-
-    if [[ "$duration" -lt 30 ]]; then
-        pass "auto-approve-readonly: ${duration}ms (<30ms)"
-    elif [[ "$duration" -lt "$HOOK_LATENCY_TARGET" ]]; then
-        warn "auto-approve-readonly: ${duration}ms (slower than expected)"
-    else
-        fail "auto-approve-readonly: ${duration}ms (too slow)"
-    fi
-else
-    info "auto-approve-readonly not found (skipping)"
+    fail "auto-approve-project-writes: ${duration}ms (exceeds ${DISPATCHER_TARGET}ms)"
 fi
 
 echo ""
 
 # ============================================================================
-# Test 5: Aggregate Timing Statistics
+# Test 4: Aggregate Timing Statistics
 # ============================================================================
-echo "▶ Test 5: Aggregate Timing Statistics"
+echo "▶ Test 4: Aggregate Timing Statistics"
 echo "────────────────────────────────────────"
 
-# Count all hook scripts
-total_hooks=$(find "$HOOKS_DIR" -name "*.sh" -type f 2>/dev/null | wc -l | tr -d ' ')
-info "Total hook scripts: $total_hooks"
+# Count all TypeScript hook source files
+total_ts_hooks=$(find "$HOOKS_DIR/src" -name "*.ts" -not -name "*.d.ts" -not -name "types.ts" -not -name "index.ts" -type f 2>/dev/null | wc -l | tr -d ' ')
+info "Total TypeScript hook source files: $total_ts_hooks"
 
-# Calculate rough overhead per tool call
-# Typical tool call invokes: pretool + posttool dispatchers
-estimated_overhead=$((HOOK_LATENCY_TARGET * 2))
-info "Estimated hook overhead per tool call: ~${estimated_overhead}ms (2 dispatchers)"
+# Count hooks.json entries
+hooks_json_entries=$(python3 -c "
+import json, sys
+with open('$HOOKS_DIR/hooks.json') as f:
+    data = json.load(f)
+count = 0
+for event_type, entries in data.get('hooks', {}).items():
+    for entry in entries:
+        hooks = entry.get('hooks', [])
+        count += len(hooks)
+print(count)
+" 2>/dev/null || echo "?")
+info "Total hooks.json entries: $hooks_json_entries"
+
+# Count built bundles
+total_bundles=$(find "$HOOKS_DIR/dist" -name "*.mjs" -type f 2>/dev/null | wc -l | tr -d ' ')
+info "Built bundles: $total_bundles"
 
 pass "Timing statistics collected"
 

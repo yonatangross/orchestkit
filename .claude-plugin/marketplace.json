@@ -1,9 +1,9 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "orchestkit",
-  "version": "6.0.4",
+  "version": "6.0.5",
   "engine": ">=2.1.33",
-  "description": "The Complete AI Development Toolkit - 60 skills, 36 agents, 88 hooks for full-stack development",
+  "description": "The Complete AI Development Toolkit - 60 skills, 36 agents, 86 hooks for full-stack development",
   "owner": {
     "name": "Yonatan Gross",
     "email": "yonatan2gross@gmail.com"
@@ -14,8 +14,8 @@
   "plugins": [
     {
       "name": "orkl",
-      "description": "Universal toolkit — 43 skills, 36 agents, 88 hooks. All workflows, architecture, security, product, accessibility. Works for any stack.",
-      "version": "6.0.4",
+      "description": "Universal toolkit — 43 skills, 36 agents, 86 hooks. All workflows, architecture, security, product, accessibility. Works for any stack.",
+      "version": "6.0.5",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -26,7 +26,7 @@
     {
       "name": "ork-creative",
       "description": "Video production add-on — 3 skills, 1 agent. Demo recording, Remotion composition, storyboarding, and content creation tools.",
-      "version": "6.0.4",
+      "version": "6.0.5",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"
@@ -36,8 +36,8 @@
     },
     {
       "name": "ork",
-      "description": "Full specialized toolkit — 60 skills, 36 agents, 88 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
-      "version": "6.0.4",
+      "description": "Full specialized toolkit — 60 skills, 36 agents, 86 hooks. Everything in orkl plus Python (FastAPI, SQLAlchemy), React (RSC, TanStack), LLM/RAG, LangGraph, and MCP patterns.",
+      "version": "6.0.5",
       "author": {
         "name": "Yonatan Gross",
         "email": "yonatan2gross@gmail.com"

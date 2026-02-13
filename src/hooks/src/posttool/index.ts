@@ -21,6 +21,7 @@ export { codeStyleLearner } from './write/code-style-learner.js';
 export { coveragePredictor } from './write/coverage-predictor.js';
 export { namingConventionLearner } from './write/naming-convention-learner.js';
 export { readmeSync } from './write/readme-sync.js';
+export { unifiedWriteQualityDispatcher } from './write/unified-write-quality-dispatcher.js';
 // Bash-specific hooks
 export { issueProgressCommenter } from './bash/issue-progress-commenter.js';
 export { issueSubtaskUpdater } from './bash/issue-subtask-updater.js';
