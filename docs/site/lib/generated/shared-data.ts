@@ -281,7 +281,7 @@ export const AGENTS: AgentSummary[] = [
       "ork",
       "orkl"
     ],
-    "model": "haiku",
+    "model": "sonnet",
     "category": "frontend"
   },
   {

@@ -10,7 +10,8 @@ import path from 'path';
 
 interface Hook {
   type: string;
-  command: string;
+  command?: string;
+  prompt?: string;
   async?: boolean;
   timeout?: number;
   once?: boolean;
@@ -58,7 +59,7 @@ describe('Async Hooks Registry', () => {
       }
 
       for (const { path: hookPath, event } of expectedSilentDispatchers) {
-        const hook = allHooks.find(h => h.command.includes(hookPath));
+        const hook = allHooks.find(h => h.command?.includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} (${event}) should exist in hooks.json`).toBeDefined();
         expect(hook?.command, `Dispatcher ${hookPath} (${event}) should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
         expect(hook?.async, `Dispatcher ${hookPath} (${event}) should NOT have async flag`).toBeUndefined();
@@ -103,7 +104,7 @@ describe('Async Hooks Registry', () => {
 
       const allBlockingHooks = [...preToolHooks, ...permissionHooks];
       for (const hookPath of blockingHookPaths) {
-        const hook = allBlockingHooks.find(h => h.command.includes(hookPath));
+        const hook = allBlockingHooks.find(h => h.command?.includes(hookPath));
         if (hook) {
           expect(hook.async, `Blocking hook ${hookPath} should NOT have async: true`).not.toBe(true);
         }
@@ -157,7 +158,7 @@ describe('Async Hooks Registry', () => {
     it('should match the expected tool set for unified-dispatcher', () => {
       const postToolGroups = hooksConfig.hooks.PostToolUse || [];
       const dispatcherGroup = postToolGroups.find(g =>
-        g.hooks.some(h => h.command.includes('posttool/unified-dispatcher'))
+        g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
       );
       expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
       expect(dispatcherGroup!.matcher).toBe('Bash|Write|Edit|Task|Skill|NotebookEdit');
@@ -186,7 +187,7 @@ describe('Async Hooks Registry', () => {
       ];
 
       for (const hookPath of silentDispatchers) {
-        const hook = allHooks.find(h => h.command.includes(hookPath));
+        const hook = allHooks.find(h => h.command?.includes(hookPath));
         expect(hook, `Dispatcher ${hookPath} should exist`).toBeDefined();
         expect(hook!.command, `${hookPath} should use run-hook-silent.mjs`).toContain('run-hook-silent.mjs');
         expect(hook!.timeout, `${hookPath} should NOT have timeout (silent runner)`).toBeUndefined();

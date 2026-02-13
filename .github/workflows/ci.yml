@@ -329,63 +329,6 @@ jobs:
           bash scripts/ci/run-tests.sh tests/compliance --verbose
 
   # ============================================================================
-  # STAGE 6b: Mem0 Integration Tests
-  # Cross-platform: ubuntu + macos + windows
-  # Uses dynamic test discovery
-  # ============================================================================
-  mem0-tests:
-    name: Mem0 Integration (${{ matrix.os }})
-    needs: [build-plugins]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
-    continue-on-error: true  # mem0 cloud API availability/rate limits; dedup handled via --no-infer
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6
-
-      - name: Download built plugins
-        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
-        with:
-          name: built-plugins
-          path: plugins/
-
-      - name: Setup environment
-        uses: ./.github/actions/setup
-        with:
-          build-plugins: 'false'
-
-      - name: Setup Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405  # v6
-        with:
-          python-version: '3.12'
-
-      - name: Install mem0ai
-        shell: bash
-        run: pip install -r src/skills/mem0-memory/scripts/requirements.txt
-
-      - name: Run mem0 tests
-        id: mem0-run
-        shell: bash
-        env:
-          MEM0_API_KEY: ${{ secrets.MEM0_API_KEY }}
-          MEM0_ORG_ID: ${{ secrets.MEM0_ORG_ID }}
-          MEM0_PROJECT_ID: ${{ secrets.MEM0_PROJECT_ID }}
-        run: |
-          export CLAUDE_PROJECT_DIR="${{ github.workspace }}"
-          bash scripts/ci/run-tests.sh tests/mem0 --verbose 2>&1 | tee mem0-test-output.log
-
-      - name: Upload mem0 test logs
-        if: failure()
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882  # v4
-        with:
-          name: mem0-test-logs-${{ matrix.os }}
-          path: mem0-test-output.log
-          retention-days: 7
-
-  # ============================================================================
   # STAGE 7: Agent & Skill Validation
   # Cross-platform: ubuntu + macos + windows
   # Uses dynamic test discovery
@@ -522,7 +465,7 @@ jobs:
   # ============================================================================
   summary:
     name: CI Summary
-    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, mem0-tests, agent-skill-tests, system-tests, coverage-report]
+    needs: [lint, security-audit, secret-scanning, unit-tests, hook-typescript-tests, security-tests, integration-tests, performance-tests, compliance-tests, agent-skill-tests, system-tests, coverage-report]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     if: always()
@@ -539,13 +482,11 @@ jobs:
           echo "Integration Tests: ${{ needs.integration-tests.result }}"
           echo "Performance Tests: ${{ needs.performance-tests.result }}"
           echo "Compliance Tests: ${{ needs.compliance-tests.result }}"
-          echo "Mem0 Tests: ${{ needs.mem0-tests.result }}"
           echo "Agent & Skill Tests: ${{ needs.agent-skill-tests.result }}"
           echo "System Tests: ${{ needs.system-tests.result }}"
           echo "Coverage Report: ${{ needs.coverage-report.result }}"
 
           # Fail only on explicit failures (skipped jobs are OK - they use path filters)
-          # mem0-tests excluded: uses continue-on-error (cloud API has dedup/eventual consistency)
           FAILED=0
           for result in \
             "${{ needs.lint.result }}" \
@@ -563,11 +504,6 @@ jobs:
               FAILED=1
             fi
           done
-
-          # Report mem0 status separately (informational, not blocking)
-          if [[ "${{ needs.mem0-tests.result }}" == "failure" ]]; then
-            echo "::warning::Mem0 integration tests had failures (non-blocking). Check mem0-test-logs artifacts for details."
-          fi
 
           if [[ "$FAILED" == "1" ]]; then
             echo "::error::One or more CI stages failed"

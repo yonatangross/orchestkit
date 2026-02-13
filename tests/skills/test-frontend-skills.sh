@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Test suite for new frontend skills (lazy-loading-patterns, view-transitions, etc.)
+# Test suite for frontend skills (consolidated: frontend-animation, ui-components, etc.)
 # Validates SKILL.md structure, references, and templates
 
 set -euo pipefail
@@ -20,13 +20,12 @@ WARNINGS=0
 
 # New frontend skills to test
 FRONTEND_SKILLS=(
-  "lazy-loading-patterns"
-  "view-transitions"
-  "scroll-driven-animations"
+  "frontend-animation"
+  "ui-components"
+  "data-visualization"
   "responsive-patterns"
   "pwa-patterns"
-  "recharts-patterns"
-  "dashboard-patterns"
+  "performance"
 )
 
 log_pass() { echo -e "${GREEN}✓${NC} $1"; PASSED=$((PASSED + 1)); }

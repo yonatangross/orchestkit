@@ -13,7 +13,8 @@ import path from 'path';
 
 interface Hook {
   type: string;
-  command: string;
+  command?: string;
+  prompt?: string;
   async?: boolean;
   timeout?: number;
   once?: boolean;
@@ -74,7 +75,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       for (const event of silentEvents) {
         const groups = hooksConfig.hooks[event] || [];
         const allHooks = groups.flatMap(g => g.hooks);
-        const dispatcher = allHooks.find(h => h.command.includes(expectedDispatcherPaths[event]));
+        const dispatcher = allHooks.find(h => h.command?.includes(expectedDispatcherPaths[event]));
 
         expect(dispatcher, `${event} should have unified dispatcher at ${expectedDispatcherPaths[event]}`).toBeDefined();
         // Should use silent runner (not async flag) to avoid terminal spam
@@ -86,13 +87,15 @@ describe('Dispatcher Registry Wiring E2E', () => {
     it('should have Stop using fire-and-forget for non-blocking session exit (Issue #243)', () => {
       // Stop hooks run cleanup tasks that should NOT block session exit.
       // Fire-and-forget spawns a detached background worker immediately returns.
+      // Stop may also include prompt-type hooks (e.g., commit reminder).
       const stopGroups = hooksConfig.hooks.Stop || [];
       const allHooks = stopGroups.flatMap(g => g.hooks);
+      const commandHooks = allHooks.filter(h => h.type === 'command');
 
-      // Should have exactly one hook - the fire-and-forget entry point
-      expect(allHooks.length, 'Stop should have single fire-and-forget hook').toBe(1);
+      // Should have exactly one command hook - the fire-and-forget entry point
+      expect(commandHooks.length, 'Stop should have single fire-and-forget command hook').toBe(1);
 
-      const fireAndForgetHook = allHooks[0];
+      const fireAndForgetHook = commandHooks[0];
       expect(fireAndForgetHook.command, 'Stop should use stop-fire-and-forget.mjs').toContain('stop-fire-and-forget.mjs');
       expect(fireAndForgetHook.async, 'Stop should NOT have async flag').toBeUndefined();
     });
@@ -107,8 +110,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const bashHooks: { name: string; groupIndex: number; hookIndex: number }[] = [];
       bashGroups.forEach((group, groupIndex) => {
         group.hooks.forEach((hook, hookIndex) => {
-          if (hook.command.includes('pretool/bash/')) {
-            const name = hook.command.split('pretool/bash/')[1]?.split(' ')[0] || '';
+          if (hook.command?.includes('pretool/bash/')) {
+            const name = hook.command?.split('pretool/bash/')[1]?.split(' ')[0] || '';
             bashHooks.push({ name, groupIndex, hookIndex });
           }
         });
@@ -131,8 +134,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const writeHooks: string[] = [];
       writeGroups.forEach(group => {
         group.hooks.forEach(hook => {
-          if (hook.command.includes('pretool/write-edit/')) {
-            const name = hook.command.split('pretool/write-edit/')[1]?.split(' ')[0] || '';
+          if (hook.command?.includes('pretool/write-edit/')) {
+            const name = hook.command?.split('pretool/write-edit/')[1]?.split(' ')[0] || '';
             writeHooks.push(name);
           }
         });
@@ -169,7 +172,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
     it('should have explicit matcher for unified-dispatcher', () => {
       const postToolGroups = hooksConfig.hooks.PostToolUse || [];
       const dispatcherGroup = postToolGroups.find(g =>
-        g.hooks.some(h => h.command.includes('posttool/unified-dispatcher'))
+        g.hooks.some(h => h.command?.includes('posttool/unified-dispatcher'))
       );
 
       expect(dispatcherGroup, 'unified-dispatcher group should exist').toBeDefined();
@@ -209,7 +212,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const hookName of autoApproveHooks) {
-        const hook = allHooks.find(h => h.command.includes(hookName));
+        const hook = allHooks.find(h => h.command?.includes(hookName));
         expect(hook, `${hookName} should be registered`).toBeDefined();
       }
     });
@@ -232,7 +235,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
     it('should have notification dispatcher using silent runner', () => {
       const notificationGroups = hooksConfig.hooks.Notification || [];
       const allHooks = notificationGroups.flatMap(g => g.hooks);
-      const dispatcher = allHooks.find(h => h.command.includes('notification/unified-dispatcher'));
+      const dispatcher = allHooks.find(h => h.command?.includes('notification/unified-dispatcher'));
 
       expect(dispatcher, 'Notification dispatcher should exist').toBeDefined();
       expect(dispatcher?.command, 'Notification should use silent runner').toContain('run-hook-silent.mjs');
@@ -250,7 +253,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const pattern of onceHookPatterns) {
-        const hook = allHooks.find(h => h.command.includes(pattern));
+        const hook = allHooks.find(h => h.command?.includes(pattern));
         if (hook) {
           expect(hook.once, `${pattern} should have once: true`).toBe(true);
         }
@@ -268,7 +271,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
 
       // Issue #243: Stop dispatcher should use silent runner (not async flag)
       const stopHooks = stopGroups.flatMap(g => g.hooks);
-      const stopDispatcher = stopHooks.find(h => h.command.includes('unified-dispatcher'));
+      const stopDispatcher = stopHooks.find(h => h.command?.includes('unified-dispatcher'));
       expect(stopDispatcher?.command, 'SubagentStop dispatcher should use silent runner').toContain('run-hook-silent.mjs');
     });
 
@@ -277,8 +280,8 @@ describe('Dispatcher Registry Wiring E2E', () => {
       const allHooks = startGroups.flatMap(g => g.hooks);
 
       const memoryHooks = allHooks.filter(h =>
-        h.command.includes('memory-inject') ||
-        h.command.includes('graph-memory')
+        h.command?.includes('memory-inject') ||
+        h.command?.includes('graph-memory')
       );
 
       expect(memoryHooks.length, 'SubagentStart should have memory injection hooks').toBeGreaterThan(0);
@@ -312,7 +315,7 @@ describe('Dispatcher Registry Wiring E2E', () => {
       ];
 
       for (const hookName of securityHooks) {
-        const hook = bashHooks.find(h => h.command.includes(hookName));
+        const hook = bashHooks.find(h => h.command?.includes(hookName));
         expect(hook, `Security hook ${hookName} should exist`).toBeDefined();
       }
     });
