@@ -29,8 +29,10 @@ Comprehensive patterns for building production test suites. Each category has in
 | [LLM Testing](#llm-testing) | 3 | HIGH | Mock responses, DeepEval, structured output |
 | [Accessibility](#accessibility) | 3 | MEDIUM | jest-axe, Playwright axe, CI gates |
 | [Execution](#execution) | 2 | HIGH | Parallel runs (xdist/matrix), coverage thresholds/reporting |
+| [Validation](#validation) | 2 | HIGH | Zod schema testing, tRPC/Prisma end-to-end type safety |
+| [Evidence](#evidence) | 1 | MEDIUM | Task completion verification, exit codes, evidence protocol |
 
-**Total: 32 rules across 11 categories**
+**Total: 35 rules across 13 categories**
 
 ## Quick Start
 
@@ -165,6 +167,23 @@ Test execution strategies for parallel runs and coverage collection.
 | Parallel Execution | `rules/execution-parallel.md` | xdist, CI matrix sharding, worker DB isolation |
 | Coverage Collection | `rules/execution-coverage.md` | pytest-cov, v8, thresholds, CI upload |
 
+## Validation
+
+Schema validation testing with Zod, tRPC, and end-to-end type safety.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Zod Schema | `rules/validation-zod-schema.md` | safeParse testing, branded types, assertNever |
+| End-to-End Types | `rules/validation-end-to-end.md` | tRPC, Prisma, Pydantic, schema rejection tests |
+
+## Evidence
+
+Evidence collection for verifiable task completion.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Evidence Verification | `rules/verification-evidence.md` | Exit codes, test/build/quality evidence, protocol |
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -176,6 +195,11 @@ Test execution strategies for parallel runs and coverage collection.
 | Coverage targets | 90% business logic, 70% integration, 100% critical paths |
 | Performance tool | k6 (JS), Locust (Python) |
 | A11y testing | jest-axe + Playwright axe-core |
+| Runtime validation | Zod (safeParse at boundaries) |
+| E2E type safety | tRPC (no codegen) |
+| Branded types | Zod .brand() for ID confusion prevention |
+| Evidence minimum | Exit code 0 + timestamp |
+| Coverage standard | 70% production, 80% gold |
 
 ## Detailed Documentation
 

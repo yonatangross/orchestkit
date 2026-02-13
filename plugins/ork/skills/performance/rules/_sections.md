@@ -52,3 +52,17 @@ High-performance LLM inference with vLLM, quantization, and speculative decoding
 - `inference-vllm.md` — vLLM 0.14.x deployment with PagedAttention and batching
 - `inference-quantization.md` — AWQ, GPTQ, FP8, INT8 method selection
 - `inference-speculative.md` — N-gram and draft model speculative decoding
+
+## 7. Caching (caching) -- HIGH -- 2 rules
+
+Backend Redis caching and LLM prompt caching patterns.
+
+- `caching-redis.md` -- Cache-aside, write-through, invalidation, stampede prevention
+- `caching-http.md` -- HTTP cache headers, LLM prompt caching, semantic caching
+
+## 8. Query & Data Fetching (query) -- HIGH -- 2 rules
+
+TanStack Query v5 patterns for prefetching and optimistic updates.
+
+- `query-prefetching.md` -- Hover prefetch, route loaders, queryOptions helper, Suspense
+- `query-optimistic.md` -- Optimistic mutations, rollback, cache invalidation, pending state

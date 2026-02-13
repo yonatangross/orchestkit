@@ -5,7 +5,7 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **88 skills**: Reusable knowledge modules
+- **60 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
 - **88 hooks**: TypeScript lifecycle automation (65 global + 22 agent-scoped + 1 skill-scoped, 7 fire-and-forget dispatchers)
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 88 skills
+├── skills/             # 60 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -150,7 +150,7 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-88 skills available. 27 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+60 skills available. 23 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
@@ -233,9 +233,9 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Agents | Description |
 |--------|--------|--------|-------------|
-| `orkl` | 52 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `orkl` | 43 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork-creative` | 3 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
-| `ork` | 103 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
+| `ork` | 60 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
 All plugins include 88 hooks and all memory skills (remember, memory, memory-fabric).
 

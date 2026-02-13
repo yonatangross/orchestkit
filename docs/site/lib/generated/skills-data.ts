@@ -50,49 +50,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "frontend-ui-developer"
     ]
   },
-  "advanced-guardrails": {
-    "name": "advanced-guardrails",
-    "description": "LLM guardrails with NeMo, Guardrails AI, and OpenAI. Input/output rails, hallucination prevention, fact-checking, toxicity detection, red-teaming patterns. Use when building LLM guardrails, safety checks, or red-team workflows.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "guardrails",
-      "nemo",
-      "safety",
-      "hallucination",
-      "factuality",
-      "red-teaming",
-      "colang"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "ai-safety-auditor",
-    "structure": {
-      "references": [
-        "factuality-checking.md",
-        "guardrails-ai.md",
-        "nemo-guardrails.md",
-        "openai-guardrails.md",
-        "red-teaming.md"
-      ],
-      "scripts": [
-        "create-guardrails-config.md",
-        "nemo-config.yaml",
-        "rails-pipeline.py"
-      ],
-      "checklists": [
-        "guardrails-deployment.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "ai-safety-auditor"
-    ]
-  },
   "agent-orchestration": {
     "name": "agent-orchestration",
     "description": "Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios.",
@@ -156,7 +113,12 @@ export const SKILLS: Record<string, SkillMeta> = {
       "teams",
       "agents",
       "skills",
-      "hooks"
+      "hooks",
+      "data-visualization",
+      "dashboard",
+      "recharts",
+      "charts",
+      "widgets"
     ],
     "userInvocable": true,
     "context": "fork",
@@ -226,7 +188,10 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "backend-system-architect",
-      "documentation-specialist"
+      "documentation-specialist",
+      "event-driven-architect",
+      "llm-integrator",
+      "multimodal-specialist"
     ]
   },
   "architecture-decision-record": {
@@ -276,7 +241,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "architecture-patterns": {
     "name": "architecture-patterns",
-    "description": "Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, and test standards. Use when designing system boundaries, enforcing layered architecture, validating project structure, or defining test standards.",
+    "description": "Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -285,7 +250,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "validation",
       "structure",
       "enforcement",
-      "testing-standards"
+      "testing-standards",
+      "right-sizing",
+      "over-engineering"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -327,45 +294,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "code-quality-reviewer",
       "frontend-ui-developer",
       "test-generator"
-    ]
-  },
-  "ascii-visualizer": {
-    "name": "ascii-visualizer",
-    "description": "Use when visualizing architecture, data flows, or system diagrams in text. Creates ASCII visualizer diagrams for plans, workflows, and structures.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "ascii",
-      "visualization",
-      "diagrams",
-      "architecture",
-      "2025"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "architecture-diagrams.md",
-        "comparisons.md",
-        "file-trees.md",
-        "workflows.md"
-      ],
-      "scripts": [
-        "diagram-templates.md"
-      ],
-      "checklists": [
-        "diagram-creation-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": [
-      "system-design-reviewer"
     ]
   },
   "assess": {
@@ -462,7 +390,8 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect",
       "data-pipeline-engineer",
       "event-driven-architect",
-      "python-performance-engineer"
+      "python-performance-engineer",
+      "workflow-architect"
     ]
   },
   "audit-full": {
@@ -521,82 +450,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": []
-  },
-  "best-practices": {
-    "name": "best-practices",
-    "description": "View and manage your personal best practices library with success/failure patterns. Use when viewing best practices, checking patterns, reviewing success/failure history.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "best-practices",
-      "patterns",
-      "anti-patterns",
-      "learning"
-    ],
-    "userInvocable": false,
-    "context": "inherit",
-    "allowedTools": [
-      "Read",
-      "Bash"
-    ],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "proactive-warnings.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "code-quality-reviewer"
-    ]
-  },
-  "biome-linting": {
-    "name": "biome-linting",
-    "description": "Biome 2.0+ linting and formatting for fast, unified code quality. Includes type inference, ESLint migration, CI integration, and 421 lint rules. Use when migrating from ESLint/Prettier or setting up new projects.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "biome",
-      "linting",
-      "formatting",
-      "eslint-migration",
-      "ci",
-      "code-quality",
-      "typescript"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "biome-json-config.md",
-        "ci-integration.md",
-        "eslint-migration.md",
-        "type-aware-rules.md"
-      ],
-      "scripts": [
-        "biome-strict.json",
-        "biome.json",
-        "github-action.yml"
-      ],
-      "checklists": [
-        "migration-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "ci-cd-engineer",
-      "code-quality-reviewer",
-      "frontend-ui-developer"
-    ]
   },
   "brainstorming": {
     "name": "brainstorming",
@@ -704,55 +557,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "web-research-analyst"
     ]
   },
-  "caching": {
-    "name": "caching",
-    "description": "Caching patterns for backend, LLM prompt, semantic similarity, and cost tracking. Use when implementing Redis cache, prompt caching, semantic caching, cache cost monitoring, or optimizing cache hit rates.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "caching",
-      "redis",
-      "performance",
-      "llm",
-      "prompt-caching",
-      "semantic",
-      "cost",
-      "langfuse"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "data-pipeline-engineer",
-    "structure": {
-      "references": [
-        "cache-patterns.md",
-        "semantic-cache-strategies.md"
-      ],
-      "scripts": [
-        "prompt-cache-wrapper.py",
-        "redis-cache-service.py",
-        "redis-cache.py",
-        "semantic-cache-service.py"
-      ],
-      "checklists": [
-        "cache-cost-checklist.md",
-        "caching-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "backend-system-architect",
-      "data-pipeline-engineer",
-      "database-engineer",
-      "llm-integrator",
-      "metrics-architect",
-      "performance-engineer",
-      "python-performance-engineer"
-    ]
-  },
   "code-review-playbook": {
     "name": "code-review-playbook",
     "description": "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.",
@@ -792,7 +596,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
-      "code-quality-reviewer"
+      "ci-cd-engineer",
+      "code-quality-reviewer",
+      "frontend-ui-developer"
     ]
   },
   "commit": {
@@ -829,38 +635,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "git-operations-engineer"
     ]
   },
-  "competitive-monitoring": {
-    "name": "competitive-monitoring",
-    "description": "Tracks competitor page changes over time. Captures snapshots, detects diffs, alerts on significant changes. Supports Tavily site discovery for URL enumeration. Use when monitoring competitive intelligence, pricing changes, or feature tracking.",
-    "version": "1.1.0",
-    "author": "OrchestKit AI Agent Hub",
-    "tags": [
-      "competitive-intelligence",
-      "monitoring",
-      "diff",
-      "tracking",
-      "pricing",
-      "tavily"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [
-      "Bash",
-      "Read",
-      "Write",
-      "WebFetch"
-    ],
-    "skills": [],
-    "agent": "market-intelligence",
-    "structure": {},
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "web-research-analyst"
-    ]
-  },
   "configure": {
     "name": "configure",
     "description": "Configures OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences.",
@@ -893,46 +667,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": []
-  },
-  "context-optimization": {
-    "name": "context-optimization",
-    "description": "Context window optimization patterns for token budget management, context compression, prompt engineering, and context engineering strategies. Use when managing large context windows, optimizing token usage, or engineering effective context for LLM interactions.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "context",
-      "optimization",
-      "tokens",
-      "compression",
-      "prompt-engineering",
-      "context-window"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "prompt-engineer",
-    "structure": {
-      "references": [
-        "anchored-summarization.md",
-        "attention-mechanics.md",
-        "compression-strategies.md",
-        "compression-triggers.md",
-        "context-layers.md",
-        "context-positioning.md",
-        "token-budget-management.md"
-      ],
-      "assets": [],
-      "checklists": []
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "llm-integrator",
-      "prompt-engineer",
-      "workflow-architect"
-    ]
   },
   "create-pr": {
     "name": "create-pr",
@@ -971,38 +705,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork",
       "orkl"
-    ],
-    "relatedAgents": []
-  },
-  "data-visualization": {
-    "name": "data-visualization",
-    "description": "Data visualization patterns for dashboard layouts and Recharts 3.x charting. Use when building dashboards, widget grids, chart components, or data-driven UIs.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "data-visualization",
-      "dashboard",
-      "recharts",
-      "charts",
-      "widgets",
-      "data-ui"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "chart-types.md",
-        "widget-composition.md"
-      ],
-      "scripts": [
-        "widget-card.tsx"
-      ]
-    },
-    "plugins": [
-      "ork"
     ],
     "relatedAgents": []
   },
@@ -1096,49 +798,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "demo-producer"
     ]
   },
-  "design-system-starter": {
-    "name": "design-system-starter",
-    "description": "Use this skill when creating or evolving design systems for applications. Provides design token structures, component architecture patterns, documentation templates, and accessibility guidelines. Ensures consistent, scalable, and accessible UI design across products.",
-    "version": "1.0.0",
-    "author": "AI Agent Hub",
-    "tags": [
-      "design-system",
-      "ui",
-      "components",
-      "design-tokens",
-      "accessibility",
-      "frontend"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "rapid-ui-designer",
-    "structure": {
-      "references": [
-        "component-examples.md",
-        "component-patterns.md",
-        "design-tokens.md",
-        "theming.md"
-      ],
-      "assets": [
-        "component-template.tsx",
-        "design-tokens-template.json"
-      ],
-      "checklists": [
-        "design-system-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "accessibility-specialist",
-      "frontend-ui-developer",
-      "rapid-ui-designer",
-      "ux-researcher"
-    ]
-  },
   "devops-deployment": {
     "name": "devops-deployment",
     "description": "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns.",
@@ -1205,7 +864,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "idempotency",
       "rate-limiting",
       "retry",
-      "fault-tolerance"
+      "fault-tolerance",
+      "edge-computing",
+      "cloudflare-workers",
+      "vercel-edge",
+      "event-sourcing",
+      "cqrs",
+      "saga",
+      "outbox",
+      "message-queue",
+      "kafka"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -1341,44 +1009,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "backend-system-architect"
     ]
   },
-  "edge-computing-patterns": {
-    "name": "edge-computing-patterns",
-    "description": "Use when deploying to Cloudflare Workers, Vercel Edge, or Deno Deploy. Covers edge middleware, streaming, runtime constraints, and globally distributed low-latency patterns.",
-    "version": "1.1.0",
-    "author": "AI Agent Hub",
-    "tags": [
-      "edge",
-      "cloudflare",
-      "vercel",
-      "deno",
-      "serverless",
-      "2025"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "cloudflare-workers.md",
-        "runtime-differences.md",
-        "vercel-edge.md"
-      ],
-      "scripts": [
-        "edge-function.ts",
-        "edge-middleware.ts"
-      ],
-      "checklists": [
-        "edge-deployment-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": []
-  },
   "errors": {
     "name": "errors",
     "description": "Error pattern analysis and troubleshooting for Claude Code sessions. Use when handling errors, fixing failures, troubleshooting issues.",
@@ -1406,118 +1036,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "debug-investigator"
-    ]
-  },
-  "event-driven": {
-    "name": "event-driven",
-    "description": "Event-driven architecture patterns for event sourcing, CQRS, saga orchestration, transactional outbox, and message queue topologies. Use when building event stores, command/query separation, distributed transactions, reliable messaging, or Kafka/RabbitMQ/Redis Streams patterns.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "event-sourcing",
-      "cqrs",
-      "saga",
-      "outbox",
-      "message-queue",
-      "kafka",
-      "rabbitmq",
-      "redis-streams"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "event-driven-architect",
-    "structure": {
-      "references": [
-        "cdc-debezium.md",
-        "choreography-deep-dive.md",
-        "command-handlers.md",
-        "compensation-strategies.md",
-        "event-store-patterns.md",
-        "event-store-setup.md",
-        "faststream-patterns.md",
-        "idempotency-patterns.md",
-        "kafka-patterns.md",
-        "orchestration-deep-dive.md",
-        "outbox-delivery-patterns.md",
-        "projection-patterns.md",
-        "query-handlers.md",
-        "rabbitmq-patterns.md",
-        "state-machine-saga.md"
-      ],
-      "scripts": [
-        "command-bus-template.py",
-        "event-router-template.py",
-        "event-store-template.py",
-        "outbox-publisher-template.py",
-        "projection-template.py",
-        "query-handler-template.py",
-        "queue-consumer-template.py",
-        "saga-orchestrator-template.py",
-        "saga-step-template.py"
-      ],
-      "checklists": [
-        "compensation-checklist.md",
-        "cqrs-adoption-checklist.md",
-        "cqrs-implementation-checklist.md",
-        "event-sourcing-checklist.md",
-        "message-queue-checklist.md",
-        "outbox-checklist.md",
-        "saga-design-checklist.md",
-        "saga-implementation-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "event-driven-architect"
-    ]
-  },
-  "evidence-verification": {
-    "name": "evidence-verification",
-    "description": "Collects and verifies evidence before marking tasks complete. Use when completing tasks, code reviews, or deployments to prove work with test results, build outputs, coverage metrics, and exit codes.",
-    "version": "2.0.0",
-    "author": "OrchestKit AI Agent Hub",
-    "tags": [
-      "quality",
-      "verification",
-      "testing",
-      "evidence",
-      "completion"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Grep",
-      "Glob",
-      "Bash"
-    ],
-    "skills": [],
-    "agent": "code-quality-reviewer",
-    "structure": {
-      "references": [
-        "evidence-patterns.md"
-      ],
-      "scripts": [
-        "build-evidence.md",
-        "evidence-checklist.md",
-        "generate-test-evidence.md",
-        "test-evidence.md"
-      ],
-      "checklists": [
-        "verification-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "code-quality-reviewer"
     ]
   },
   "explore": {
@@ -1674,86 +1192,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "debug-investigator"
     ]
   },
-  "form-state-patterns": {
-    "name": "form-state-patterns",
-    "description": "React Hook Form v7 with Zod validation, React 19 useActionState, Server Actions, field arrays, and async validation. Use when building complex forms, validation flows, or server action forms.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "react-hook-form",
-      "zod",
-      "forms",
-      "validation",
-      "server-actions",
-      "field-arrays",
-      "useActionState"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "validation-patterns.md"
-      ],
-      "scripts": [
-        "create-form.md",
-        "form-template.tsx"
-      ],
-      "checklists": [
-        "form-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
-  },
-  "frontend-animation": {
-    "name": "frontend-animation",
-    "description": "Frontend animation patterns for Motion (Framer Motion), CSS scroll-driven animations, and View Transitions API. Use when implementing page transitions, scroll animations, layout animations, or gesture-driven interactions.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "animation",
-      "motion",
-      "framer-motion",
-      "scroll-driven",
-      "view-transitions",
-      "css-animations",
-      "gestures"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "animation-presets.md",
-        "css-scroll-timeline.md",
-        "react-router-integration.md"
-      ],
-      "scripts": [
-        "view-transition-wrapper.tsx"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "accessibility-specialist",
-      "rapid-ui-designer"
-    ]
-  },
   "git-workflow": {
     "name": "git-workflow",
     "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.",
@@ -1766,7 +1204,11 @@ export const SKILLS: Record<string, SkillMeta> = {
       "recovery",
       "workflow",
       "reflog",
-      "staging"
+      "staging",
+      "stacked-prs",
+      "monorepo",
+      "add-dir",
+      "code-review"
     ],
     "userInvocable": true,
     "context": "inherit",
@@ -1791,6 +1233,7 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "documentation-specialist",
+      "frontend-ui-developer",
       "git-operations-engineer"
     ]
   },
@@ -1883,47 +1326,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "data-pipeline-engineer"
     ]
-  },
-  "grpc-python": {
-    "name": "grpc-python",
-    "description": "gRPC with Python using grpcio and protobuf for high-performance microservice communication. Use when implementing service-to-service APIs, streaming data, or building polyglot microservices requiring strong typing.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "grpc",
-      "protobuf",
-      "microservices",
-      "rpc",
-      "streaming",
-      "python"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "backend-system-architect",
-    "structure": {
-      "references": [
-        "error-handling.md",
-        "health-check-setup.md",
-        "interceptor-patterns.md",
-        "streaming-patterns.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "grpc-client-template.py",
-        "grpc-server-template.py",
-        "proto-service-template.proto"
-      ],
-      "checklists": [
-        "grpc-design-checklist.md",
-        "production-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
   },
   "help": {
     "name": "help",
@@ -2092,42 +1494,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "llm-evaluation": {
-    "name": "llm-evaluation",
-    "description": "LLM output evaluation and quality assessment. Use when implementing LLM-as-judge patterns, quality gates for AI outputs, or automated evaluation pipelines.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "evaluation",
-      "llm",
-      "quality",
-      "ragas",
-      "langfuse"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "llm-integrator",
-    "structure": {
-      "references": [
-        "evaluation-metrics.md"
-      ],
-      "scripts": [
-        "evaluator-template.py"
-      ],
-      "checklists": [
-        "evaluation-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "llm-integrator",
-      "prompt-engineer"
-    ]
-  },
   "llm-integration": {
     "name": "llm-integration",
     "description": "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs.",
@@ -2176,7 +1542,8 @@ export const SKILLS: Record<string, SkillMeta> = {
     "relatedAgents": [
       "llm-integrator",
       "multimodal-specialist",
-      "prompt-engineer"
+      "prompt-engineer",
+      "workflow-architect"
     ]
   },
   "mcp-patterns": {
@@ -2404,30 +1771,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "workflow-architect"
     ]
   },
-  "monorepo-context": {
-    "name": "monorepo-context",
-    "description": "Multi-directory context patterns for monorepos. Use when working with --add-dir, per-service CLAUDE.md, or separating root vs service context",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "monorepo",
-      "multi-directory",
-      "context",
-      "workspace",
-      "add-dir"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {},
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": []
-  },
   "multimodal-llm": {
     "name": "multimodal-llm",
     "description": "Vision, audio, and multimodal LLM integration patterns",
@@ -2475,7 +1818,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "profiling",
       "vllm",
       "quantization",
-      "inference"
+      "inference",
+      "caching",
+      "redis",
+      "prompt-caching",
+      "tanstack-query",
+      "prefetching",
+      "optimistic-updates"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -2529,11 +1878,15 @@ export const SKILLS: Record<string, SkillMeta> = {
       "orkl"
     ],
     "relatedAgents": [
+      "backend-system-architect",
+      "data-pipeline-engineer",
       "database-engineer",
       "frontend-ui-developer",
       "llm-integrator",
+      "metrics-architect",
       "monitoring-engineer",
       "performance-engineer",
+      "python-performance-engineer",
       "system-design-reviewer"
     ]
   },
@@ -2592,7 +1945,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "system-design-reviewer"
+    ]
   },
   "product-frameworks": {
     "name": "product-frameworks",
@@ -2668,79 +2023,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "web-research-analyst"
     ]
   },
-  "prompt-engineering-suite": {
-    "name": "prompt-engineering-suite",
-    "description": "Comprehensive prompt engineering with Chain-of-Thought, few-shot learning, prompt versioning, and optimization. Use when designing prompts, improving accuracy, managing prompt lifecycle.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "prompts",
-      "cot",
-      "few-shot",
-      "versioning",
-      "optimization",
-      "langfuse",
-      "dspy"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "prompt-engineer",
-    "structure": {
-      "references": [
-        "chain-of-thought.md",
-        "few-shot-patterns.md",
-        "prompt-optimization.md",
-        "prompt-versioning.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "cot-template.py",
-        "few-shot-template.py",
-        "jinja2-prompts.py"
-      ],
-      "checklists": [
-        "prompt-design.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "prompt-engineer"
-    ]
-  },
-  "pwa-patterns": {
-    "name": "pwa-patterns",
-    "description": "Progressive Web App patterns with Workbox 7.x, service worker lifecycle, offline-first strategies, and installability. Use when building PWAs, service workers, or offline support.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "pwa",
-      "service-worker",
-      "workbox",
-      "offline-first",
-      "cache-api",
-      "push-notifications",
-      "manifest",
-      "installable"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "workbox-strategies.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
   "python-backend": {
     "name": "python-backend",
     "description": "Python backend patterns for asyncio, FastAPI, SQLAlchemy 2.0 async, and connection pooling. Use when building async Python services, FastAPI endpoints, database sessions, or connection pool tuning.",
@@ -2797,15 +2079,17 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "quality-gates": {
     "name": "quality-gates",
-    "description": "Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides quality-gates scoring (1-5) and escalation workflows.",
-    "version": "1.1.0",
+    "description": "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.",
+    "version": "1.2.0",
     "author": "OrchestKit AI Agent Hub",
     "tags": [
       "quality",
       "complexity",
       "planning",
       "escalation",
-      "blocking"
+      "blocking",
+      "best-practices",
+      "patterns"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3063,7 +2347,16 @@ export const SKILLS: Record<string, SkillMeta> = {
       "css-grid",
       "clamp",
       "cqi",
-      "breakpoints"
+      "breakpoints",
+      "pwa",
+      "service-worker",
+      "workbox",
+      "offline-first",
+      "animation",
+      "motion",
+      "framer-motion",
+      "scroll-driven",
+      "view-transitions"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3080,7 +2373,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork",
       "orkl"
     ],
-    "relatedAgents": []
+    "relatedAgents": [
+      "accessibility-specialist",
+      "rapid-ui-designer"
+    ]
   },
   "review-pr": {
     "name": "review-pr",
@@ -3124,38 +2420,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     "plugins": [
       "ork",
       "orkl"
-    ],
-    "relatedAgents": []
-  },
-  "right-sized-backend": {
-    "name": "right-sized-backend",
-    "description": "Context-aware backend architecture sizing. Prevents over-engineering for interviews and MVPs, ensures proper structure for enterprise. Use when starting a new project, evaluating architecture decisions, or reviewing project structure.",
-    "version": "1.0.0",
-    "author": "OrchestKit AI Agent Hub",
-    "tags": [
-      "architecture",
-      "sizing",
-      "interview",
-      "mvp",
-      "enterprise",
-      "over-engineering",
-      "pragmatic"
-    ],
-    "userInvocable": true,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "backend-system-architect",
-    "structure": {
-      "references": [
-        "enterprise.md",
-        "interview-takehome.md",
-        "oss-cli-plugin.md",
-        "startup-mvp.md"
-      ]
-    },
-    "plugins": [
-      "ork"
     ],
     "relatedAgents": []
   },
@@ -3262,165 +2526,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "stacked-prs": {
-    "name": "stacked-prs",
-    "description": "Multi-PR development for large features. Stack dependent PRs, manage rebases, and get faster reviews on smaller changes. Use when creating stacked PRs.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "git",
-      "pull-request",
-      "stacked",
-      "workflow",
-      "code-review"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": null,
-    "structure": {
-      "references": [
-        "stack-management.md"
-      ],
-      "scripts": [
-        "create-stacked-pr.md",
-        "stack-scripts.sh"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer",
-      "git-operations-engineer"
-    ]
-  },
-  "strawberry-graphql": {
-    "name": "strawberry-graphql",
-    "description": "Strawberry GraphQL library for Python with FastAPI integration, type-safe resolvers, DataLoader patterns, and subscriptions. Use when building GraphQL APIs with Python, implementing real-time features, or creating federated schemas.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "graphql",
-      "strawberry",
-      "fastapi",
-      "dataloader",
-      "subscriptions",
-      "federation",
-      "python"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "backend-system-architect",
-    "structure": {
-      "references": [
-        "dataloader-patterns.md",
-        "federation-patterns.md",
-        "permission-classes.md",
-        "subscription-setup.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "dataloader-template.py",
-        "strawberry-fastapi-template.py",
-        "strawberry-schema-template.py",
-        "subscription-template.py"
-      ],
-      "checklists": [
-        "graphql-production-checklist.md",
-        "performance-checklist.md",
-        "schema-design-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": []
-  },
-  "streaming-api-patterns": {
-    "name": "streaming-api-patterns",
-    "description": "Real-time data streaming with SSE, WebSockets, and ReadableStream. Use when implementing streaming responses, real-time data updates, Server-Sent Events, WebSocket setup, live notifications, push updates, or chat server backends.",
-    "version": "1.0.0",
-    "author": "AI Agent Hub",
-    "tags": [
-      "streaming",
-      "sse",
-      "websocket",
-      "real-time",
-      "api"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "sse-deep-dive.md"
-      ],
-      "scripts": [
-        "sse-endpoint-template.ts"
-      ],
-      "checklists": [
-        "streaming-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "event-driven-architect",
-      "llm-integrator",
-      "multimodal-specialist"
-    ]
-  },
-  "tanstack-query-advanced": {
-    "name": "tanstack-query-advanced",
-    "description": "Advanced TanStack Query v5 patterns for infinite queries, optimistic updates, prefetching, gcTime, and queryOptions. Use when building data fetching, caching, or optimistic updates.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "tanstack-query",
-      "react-query",
-      "caching",
-      "infinite-scroll",
-      "optimistic-updates",
-      "prefetching",
-      "suspense"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "cache-strategies.md"
-      ],
-      "scripts": [
-        "query-hooks-template.ts"
-      ],
-      "checklists": [
-        "tanstack-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
-  },
   "task-dependency-patterns": {
     "name": "task-dependency-patterns",
     "description": "CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status.",
@@ -3480,50 +2585,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "release-engineer",
       "security-auditor",
       "test-generator",
-      "workflow-architect"
-    ]
-  },
-  "temporal-io": {
-    "name": "temporal-io",
-    "description": "Temporal.io workflow orchestration for durable, fault-tolerant distributed applications. Use when implementing long-running workflows, saga patterns, microservice orchestration, or systems requiring exactly-once execution guarantees.",
-    "version": "1.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "temporal",
-      "workflow",
-      "orchestration",
-      "durable-execution",
-      "saga",
-      "microservices"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "workflow-architect",
-    "structure": {
-      "references": [
-        "activity-best-practices.md",
-        "signals-queries-updates.md",
-        "versioning-strategies.md",
-        "workflow-patterns.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "saga-workflow-template.py",
-        "scheduled-workflow-template.py",
-        "temporal-worker-template.py"
-      ],
-      "checklists": [
-        "production-deployment-checklist.md",
-        "temporal-production-checklist.md",
-        "workflow-design-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
       "workflow-architect"
     ]
   },
@@ -3624,50 +2685,6 @@ export const SKILLS: Record<string, SkillMeta> = {
       "test-generator"
     ]
   },
-  "type-safety-validation": {
-    "name": "type-safety-validation",
-    "description": "End-to-end type safety with Zod, tRPC, Prisma, and TypeScript 5.7+ patterns. Use when creating Zod schemas, setting up tRPC, validating input, implementing exhaustive switch statements, branded types, or type checking with ty.",
-    "version": "1.1.0",
-    "author": "AI Agent Hub",
-    "tags": [
-      "typescript",
-      "zod",
-      "trpc",
-      "prisma",
-      "type-safety",
-      "validation",
-      "exhaustive-types",
-      "branded-types"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "frontend-ui-developer",
-    "structure": {
-      "references": [
-        "prisma-types.md",
-        "trpc-setup.md",
-        "ty-type-checker-patterns.md",
-        "typescript-5-features.md",
-        "typescript-advanced.md",
-        "zod-patterns.md"
-      ],
-      "scripts": [
-        "trpc-router.ts",
-        "zod-schema.ts"
-      ],
-      "checklists": [
-        "type-safety-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork"
-    ],
-    "relatedAgents": [
-      "frontend-ui-developer"
-    ]
-  },
   "ui-components": {
     "name": "ui-components",
     "description": "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.",
@@ -3679,7 +2696,13 @@ export const SKILLS: Record<string, SkillMeta> = {
       "radix",
       "component-library",
       "design-system",
-      "accessible-components"
+      "accessible-components",
+      "react-hook-form",
+      "zod",
+      "forms",
+      "validation",
+      "server-actions",
+      "field-arrays"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -3716,7 +2739,10 @@ export const SKILLS: Record<string, SkillMeta> = {
       "ork"
     ],
     "relatedAgents": [
-      "rapid-ui-designer"
+      "accessibility-specialist",
+      "frontend-ui-developer",
+      "rapid-ui-designer",
+      "ux-researcher"
     ]
   },
   "upgrade-assessment": {
@@ -3819,97 +2845,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": []
   },
-  "video-production": {
-    "name": "video-production",
-    "description": "Video production pipeline for tech demos covering pre-production, recording, composition, and audio. Use when creating demo videos, terminal recordings, Remotion compositions, narration scripts, or audio mixing.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "video",
-      "demo",
-      "remotion",
-      "vhs",
-      "narration",
-      "audio",
-      "storyboard",
-      "manim",
-      "thumbnail",
-      "pacing"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [],
-    "skills": [],
-    "agent": "demo-producer",
-    "structure": {
-      "references": [
-        "3d-graphics.md",
-        "agent-demo-recipe.md",
-        "agent-spawning.md",
-        "aida-framework.md",
-        "animation-presets.md",
-        "asciinema-recording.md",
-        "attention-curves.md",
-        "audio-layer.md",
-        "audio-mixing-guide.md",
-        "calibration-workflow.md",
-        "captions-subtitles.md",
-        "card-templates.md",
-        "cc-simulation.md",
-        "cinematic-scenes.md",
-        "composition-patterns.md",
-        "coordinate-systems.md",
-        "data-viz-patterns.md",
-        "debug-grid-component.md",
-        "ducking-patterns.md",
-        "effects-library.md",
-        "elevenlabs-api-integration.md",
-        "ffmpeg-filters.md",
-        "first-frame-optimization.md",
-        "folder-organization.md",
-        "hook-patterns.md",
-        "lottie-animations.md",
-        "music-matching-guide.md",
-        "pacing-guidelines.md",
-        "platform-pacing-rules.md",
-        "platform-requirements.md",
-        "platform-specific-hooks.md",
-        "plugin-demo-recipe.md",
-        "pre-production-checklist.md",
-        "rhythm-patterns.md",
-        "scene-animation-presets.md",
-        "scene-templates.md",
-        "script-templates.md",
-        "sfx-library.md",
-        "showcase-templates.md",
-        "skill-demo-recipe.md",
-        "testing-hooks.md",
-        "thumbnail-formulas.md",
-        "timing-calculation.md",
-        "timing-markers.md",
-        "timing-patterns.md",
-        "tutorial-recipe.md",
-        "vhs-tape-format.md",
-        "voice-selection.md",
-        "volume-balancing.md",
-        "workflow-animation.md"
-      ],
-      "scripts": [
-        "__init__.py",
-        "agent_spawning.py",
-        "base.py",
-        "generate.py",
-        "task_dependency.py"
-      ]
-    },
-    "plugins": [
-      "ork-creative",
-      "ork"
-    ],
-    "relatedAgents": [
-      "demo-producer"
-    ]
-  },
   "vite-advanced": {
     "name": "vite-advanced",
     "description": "Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds.",
@@ -3957,8 +2892,8 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "web-research-workflow": {
     "name": "web-research-workflow",
-    "description": "Unified decision tree for web research. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Use when researching web content, scraping, extracting raw markdown, or capturing documentation.",
-    "version": "1.2.0",
+    "description": "Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.",
+    "version": "1.3.0",
     "author": "OrchestKit AI Agent Hub",
     "tags": [
       "research",
@@ -3967,7 +2902,9 @@ export const SKILLS: Record<string, SkillMeta> = {
       "tavily",
       "automation",
       "scraping",
-      "content-extraction"
+      "content-extraction",
+      "competitive-intelligence",
+      "monitoring"
     ],
     "userInvocable": false,
     "context": "fork",
@@ -4022,50 +2959,6 @@ export const SKILLS: Record<string, SkillMeta> = {
     ],
     "relatedAgents": [
       "git-operations-engineer"
-    ]
-  },
-  "zero-downtime-migration": {
-    "name": "zero-downtime-migration",
-    "description": "Safe database schema changes without downtime using expand-contract pattern and online schema changes. Use when deploying schema changes to production without service interruption.",
-    "version": "2.0.0",
-    "author": "OrchestKit",
-    "tags": [
-      "database",
-      "migration",
-      "zero-downtime",
-      "expand-contract",
-      "pgroll"
-    ],
-    "userInvocable": false,
-    "context": "fork",
-    "allowedTools": [
-      "Read",
-      "Write",
-      "Bash",
-      "Grep",
-      "Glob"
-    ],
-    "skills": [],
-    "agent": "database-engineer",
-    "structure": {
-      "references": [
-        "expand-contract-pattern.md",
-        "pgroll-guide.md"
-      ],
-      "scripts": [
-        "__pycache__",
-        "expand-contract-template.py"
-      ],
-      "checklists": [
-        "zero-downtime-checklist.md"
-      ]
-    },
-    "plugins": [
-      "ork",
-      "orkl"
-    ],
-    "relatedAgents": [
-      "database-engineer"
     ]
   },
   "zustand-patterns": {

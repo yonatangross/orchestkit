@@ -28,3 +28,12 @@ Database version control and change management across environments.
 - `versioning-changelog.md` — Schema version table, semantic versioning, audit trails, CDC
 - `versioning-rollback.md` — Rollback testing, destructive rollback docs, data integrity verification
 - `versioning-drift.md` — Environment sync, checksum verification, advisory locks, migration ordering
+
+## 4. Zero-Downtime Migration (migration) — CRITICAL — 2 rules
+
+Safe database schema changes without downtime using expand-contract pattern and pgroll automation.
+
+| Rule | Impact | File |
+|------|--------|------|
+| Zero-Downtime Migration Patterns | CRITICAL | `migration-zero-downtime.md` |
+| Migration Rollback and Monitoring | HIGH | `migration-rollback.md` |

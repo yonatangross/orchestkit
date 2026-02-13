@@ -1,7 +1,7 @@
 ---
 name: distributed-systems
 description: Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns.
-tags: [distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance]
+tags: [distributed-systems, distributed-locks, resilience, circuit-breaker, idempotency, rate-limiting, retry, fault-tolerance, edge-computing, cloudflare-workers, vercel-edge, event-sourcing, cqrs, saga, outbox, message-queue, kafka]
 context: fork
 agent: backend-system-architect
 version: 2.0.0
@@ -22,8 +22,10 @@ Comprehensive patterns for building reliable distributed systems. Each category 
 | [Resilience](#resilience) | 3 | CRITICAL | Circuit breakers, retry with backoff, bulkhead isolation |
 | [Idempotency](#idempotency) | 3 | HIGH | Idempotency keys, request dedup, database-backed idempotency |
 | [Rate Limiting](#rate-limiting) | 3 | HIGH | Token bucket, sliding window, distributed rate limits |
+| [Edge Computing](#edge-computing) | 2 | HIGH | Edge workers, V8 isolates, CDN caching, geo-routing |
+| [Event-Driven](#event-driven) | 2 | HIGH | Event sourcing, CQRS, transactional outbox, sagas |
 
-**Total: 12 rules across 4 categories**
+**Total: 16 rules across 6 categories**
 
 ## Quick Start
 
@@ -91,6 +93,24 @@ Protect APIs with distributed rate limiting using Redis.
 | Token Bucket | `rules/ratelimit-token-bucket.md` | Redis Lua scripts, burst capacity, refill rate |
 | Sliding Window | `rules/ratelimit-sliding-window.md` | Sorted sets, precise counting, no boundary spikes |
 | Distributed Limits | `rules/ratelimit-distributed.md` | SlowAPI + Redis, tiered limits, response headers |
+
+## Edge Computing
+
+Edge runtime patterns for Cloudflare Workers, Vercel Edge, and Deno Deploy.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Edge Workers | `rules/edge-workers.md` | V8 isolate constraints, Web APIs, geo-routing, auth at edge |
+| Edge Caching | `rules/edge-caching.md` | Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate |
+
+## Event-Driven
+
+Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Event Sourcing | `rules/event-sourcing.md` | Event-sourced aggregates, CQRS read models, optimistic concurrency |
+| Event Messaging | `rules/event-messaging.md` | Transactional outbox, saga compensation, idempotent consumers |
 
 ## Key Decisions
 

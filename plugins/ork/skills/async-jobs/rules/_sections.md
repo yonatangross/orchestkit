@@ -5,18 +5,11 @@ version: 2.0.0
 
 # Rule Categories
 
-## 1. Background Jobs (jobs) — HIGH — 3 rules
+## 1. Temporal Workflows (temporal) — HIGH — 2 rules
 
-Basic async task processing with ARQ, Celery, and FastAPI BackgroundTasks.
+Temporal.io durable execution engine for long-running, fault-tolerant distributed workflows.
 
-- `jobs-task-queue.md` — ARQ setup, task definition, FastAPI enqueue, Celery basic setup
-- `jobs-scheduling.md` — Celery Beat periodic tasks, crontab, FastAPI BackgroundTasks
-- `jobs-monitoring.md` — Job status tracking, progress updates, status endpoints
-
-## 2. Celery Advanced (celery) — HIGH — 3 rules
-
-Enterprise-grade task orchestration with canvas workflows, priority queues, and monitoring.
-
-- `celery-canvas.md` — Chain, group, chord, map/starmap, signatures, error handling in workflows
-- `celery-routing.md` — Priority queues, task routing, rate limiting, multi-queue workers
-- `celery-monitoring.md` — Flower dashboard, custom signals, health checks, custom task states
+| Rule | Impact | File |
+|------|--------|------|
+| Temporal Workflow Definitions | HIGH | `temporal-workflows.md` |
+| Temporal Activity and Worker Patterns | HIGH | `temporal-activities.md` |

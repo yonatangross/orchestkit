@@ -29,7 +29,7 @@ skills:
   - architecture-patterns
   - security-patterns
   - monitoring-observability
-  - caching
+  - performance
   - python-backend
   - async-jobs
   - domain-driven-design
@@ -283,4 +283,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design, database-patterns, streaming-api-patterns, architecture-patterns, distributed-systems, caching, async-jobs, python-backend, mcp-patterns
+- **Skill references:** api-design, database-patterns, architecture-patterns, distributed-systems, performance, async-jobs, python-backend, mcp-patterns

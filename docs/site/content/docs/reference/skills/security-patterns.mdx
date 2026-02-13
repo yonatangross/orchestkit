@@ -23,8 +23,9 @@ Comprehensive security patterns for building hardened applications. Each categor
 | [LLM Safety](#llm-safety) | 3 | HIGH | Prompt injection defense, output guardrails, content filtering |
 | [PII Masking](#pii-masking) | 2 | HIGH | PII detection/redaction with Presidio, Langfuse, LLM Guard |
 | [Scanning](#scanning) | 3 | HIGH | Dependency audit, SAST (Semgrep/Bandit), secret detection |
+| [Advanced Guardrails](#advanced-guardrails) | 2 | CRITICAL | NeMo/Guardrails AI validators, red-teaming, OWASP LLM |
 
-**Total: 18 rules across 7 categories**
+**Total: 20 rules across 8 categories**
 
 ## Quick Start
 
@@ -152,6 +153,17 @@ Automated security scanning for dependencies, code, and secrets.
 | `scanning-secrets.md` | Gitleaks, TruffleHog, detect-secrets with baseline management |
 
 **Key Decisions:** Pre-commit hooks for shift-left | Block on critical/high | Gitleaks + detect-secrets baseline
+
+## Advanced Guardrails
+
+Production LLM safety with NeMo Guardrails, Guardrails AI validators, and DeepTeam red-teaming.
+
+| Rule | Description |
+|------|-------------|
+| `guardrails-nemo.md` | NeMo Guardrails, Colang 2.0 flows, Guardrails AI validators, layered validation |
+| `guardrails-llm-validation.md` | DeepTeam red-teaming (40+ vulnerabilities), OWASP LLM Top 10 compliance |
+
+**Key Decisions:** NeMo for flows, Guardrails AI for validators | Toxicity 0.5 threshold | Red-team pre-release + quarterly
 
 ## Anti-Patterns (FORBIDDEN)
 

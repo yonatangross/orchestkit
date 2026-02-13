@@ -186,8 +186,11 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Recovery | `rules/recovery-reflog.md` | CRITICAL | Reflog recovery for lost commits and branches |
 | Recovery | `rules/recovery-reset.md` | CRITICAL | Safe vs dangerous reset modes |
 | Recovery | `rules/recovery-stash.md` | HIGH | Stash management and dropped stash recovery |
+| Stacked PRs | `rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+| Monorepo | `rules/monorepo-context.md` | MEDIUM | --add-dir, per-service CLAUDE.md, workspace detection |
 
-**Total: 6 rules across 4 categories**
+**Total: 9 rules across 6 categories**
 
 ## References
 

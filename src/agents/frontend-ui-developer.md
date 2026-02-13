@@ -20,17 +20,14 @@ tools:
   - TaskList
 skills:
   - react-server-components-framework
-  - design-system-starter
-  - type-safety-validation
+  - ui-components
   - testing-patterns
   - accessibility
   - performance
-  - biome-linting
+  - code-review-playbook
   - zustand-patterns
-  - tanstack-query-advanced
-  - form-state-patterns
   - architecture-patterns
-  - stacked-prs
+  - git-workflow
   - task-dependency-patterns
   - remember
   - memory

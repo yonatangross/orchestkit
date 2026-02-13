@@ -57,3 +57,10 @@ Automated security scanning for dependencies, static analysis, and secret detect
 - `scanning-dependency.md` — npm audit, pip-audit, Trivy, severity gating, CI integration
 - `scanning-sast.md` — Semgrep, Bandit, pre-commit SAST, custom rules
 - `scanning-secrets.md` — Gitleaks, TruffleHog, detect-secrets, baseline management
+
+## 8. Advanced Guardrails (guardrails) — CRITICAL — 2 rules
+
+Production LLM safety with NeMo Guardrails, Guardrails AI, and red-teaming.
+
+- `guardrails-nemo.md` — NeMo Guardrails, Colang 2.0, Guardrails AI validators, input/output validation
+- `guardrails-llm-validation.md` — DeepTeam red-teaming, OWASP LLM Top 10 compliance, adversarial testing

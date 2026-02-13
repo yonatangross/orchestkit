@@ -18,11 +18,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - prompt-engineering-suite
-  - llm-evaluation
-  - monitoring-observability
-  - context-optimization
   - llm-integration
+  - monitoring-observability
   - task-dependency-patterns
   - remember
   - memory

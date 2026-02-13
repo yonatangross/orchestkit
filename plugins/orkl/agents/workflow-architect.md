@@ -23,9 +23,9 @@ tools:
 skills:
   - langgraph
   - agent-orchestration
-  - temporal-io
+  - async-jobs
   - monitoring-observability
-  - context-optimization
+  - llm-integration
   - task-dependency-patterns
   - remember
   - memory

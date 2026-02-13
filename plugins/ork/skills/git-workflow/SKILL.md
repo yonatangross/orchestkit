@@ -3,7 +3,7 @@ name: git-workflow
 description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.
 context: inherit
 version: 1.0.0
-tags: [git, branch, commit, recovery, workflow, reflog, staging]
+tags: [git, branch, commit, recovery, workflow, reflog, staging, stacked-prs, monorepo, add-dir, code-review]
 user-invocable: true
 complexity: medium
 ---
@@ -192,8 +192,11 @@ Each category has individual rule files in `rules/` loaded on-demand:
 | Recovery | `rules/recovery-reflog.md` | CRITICAL | Reflog recovery for lost commits and branches |
 | Recovery | `rules/recovery-reset.md` | CRITICAL | Safe vs dangerous reset modes |
 | Recovery | `rules/recovery-stash.md` | HIGH | Stash management and dropped stash recovery |
+| Stacked PRs | `rules/stacked-pr-workflow.md` | HIGH | Stack planning, PR creation, dependency tracking |
+| Stacked PRs | `rules/stacked-pr-rebase.md` | HIGH | Rebase management, force-with-lease, retargeting |
+| Monorepo | `rules/monorepo-context.md` | MEDIUM | --add-dir, per-service CLAUDE.md, workspace detection |
 
-**Total: 6 rules across 4 categories**
+**Total: 9 rules across 6 categories**
 
 ## References
 

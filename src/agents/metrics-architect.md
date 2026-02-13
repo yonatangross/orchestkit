@@ -19,7 +19,7 @@ tools:
 skills:
   - product-frameworks
   - monitoring-observability
-  - caching
+  - performance
   - testing-patterns
   - remember
   - memory

@@ -21,8 +21,9 @@ Comprehensive patterns for database migrations, schema design, and version manag
 | [Alembic Migrations](#alembic-migrations) | 3 | CRITICAL | Autogenerate, data migrations, branch management |
 | [Schema Design](#schema-design) | 3 | HIGH | Normalization, indexing strategies, NoSQL patterns |
 | [Versioning](#versioning) | 3 | HIGH | Changelogs, rollback plans, schema drift detection |
+| [Zero-Downtime Migration](#zero-downtime-migration) | 2 | CRITICAL | Expand-contract, pgroll, rollback monitoring |
 
-**Total: 9 rules across 3 categories**
+**Total: 11 rules across 4 categories**
 
 ## Quick Start
 
@@ -127,9 +128,17 @@ command.stamp(alembic_config, "head")  # Loses history
 | [examples/](examples/) | Complete migration examples, schema examples |
 | [scripts/](scripts/) | Migration templates, model change detector |
 
+## Zero-Downtime Migration
+
+Safe database schema changes without downtime using expand-contract pattern and online schema changes.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Expand-Contract | `rules/migration-zero-downtime.md` | Expand phase, backfill, contract phase, pgroll automation |
+| Rollback & Monitoring | `rules/migration-rollback.md` | pgroll rollback, lock monitoring, replication lag, backfill progress |
+
 ## Related Skills
 
-- `zero-downtime-migration` - Expand/contract patterns for safe migrations
 - `sqlalchemy-2-async` - Async SQLAlchemy session patterns
 - `testing-patterns` - Comprehensive testing patterns including migration testing
 - `caching` - Cache layer design to complement database performance

@@ -36,3 +36,17 @@ Protect APIs with distributed rate limiting using Redis and modern algorithms.
 - `ratelimit-token-bucket.md` -- Token bucket with Redis Lua scripts, burst capacity, refill rate
 - `ratelimit-sliding-window.md` -- Sorted set counters, precise windowing, no boundary spikes
 - `ratelimit-distributed.md` -- SlowAPI + Redis, tiered user limits, RFC 6585 response headers
+
+## 5. Edge Computing (edge) -- HIGH -- 2 rules
+
+Edge runtime patterns for Cloudflare Workers, Vercel Edge, and Deno Deploy.
+
+- `edge-workers.md` -- V8 isolate constraints, Web APIs, geo-routing, auth at edge
+- `edge-caching.md` -- Cache-aside at edge, CDN headers, KV storage, stale-while-revalidate
+
+## 6. Event-Driven (events) -- HIGH -- 2 rules
+
+Event sourcing, CQRS, saga orchestration, and reliable messaging patterns.
+
+- `event-sourcing.md` -- Event-sourced aggregates, CQRS read models, optimistic concurrency
+- `event-messaging.md` -- Transactional outbox, saga compensation, idempotent consumers

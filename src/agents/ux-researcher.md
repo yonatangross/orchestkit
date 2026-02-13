@@ -18,7 +18,7 @@ tools:
   - TaskList
 skills:
   - product-frameworks
-  - design-system-starter
+  - ui-components
   - remember
   - memory
 ---

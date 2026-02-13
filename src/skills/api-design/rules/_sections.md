@@ -28,3 +28,24 @@ RFC 9457 Problem Details for machine-readable, standardized error responses.
 - `errors-problem-details.md` — RFC 9457 schema, application/problem+json, ProblemException base class
 - `errors-validation.md` — Field-level validation errors, Pydantic integration, 422 responses
 - `errors-error-catalog.md` — Problem type registry, error type URIs, client handling patterns
+
+## 4. GraphQL (graphql) — HIGH — 2 rules
+
+Strawberry GraphQL code-first schema, DataLoader, subscriptions, and FastAPI integration.
+
+- `graphql-strawberry.md` — Type-safe schema, DataLoader N+1 prevention, union error handling, Private fields
+- `graphql-schema.md` — Permission classes, FastAPI integration, subscriptions, Redis PubSub
+
+## 5. gRPC (grpc) — HIGH — 2 rules
+
+gRPC service definition, streaming patterns, and interceptors for microservice communication.
+
+- `grpc-service.md` — Protobuf definition, async server, client with timeout, code generation
+- `grpc-streaming.md` — Server/bidirectional streaming, auth interceptor, retry with backoff
+
+## 6. Streaming (streaming) — HIGH — 2 rules
+
+Real-time data streaming with SSE, WebSockets, and async generator cleanup.
+
+- `streaming-sse.md` — SSE endpoints, LLM token streaming, reconnection with exponential backoff
+- `streaming-websocket.md` — WebSocket bidirectional, heartbeat, aclosing() for async generators

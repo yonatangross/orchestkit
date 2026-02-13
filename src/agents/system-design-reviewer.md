@@ -18,7 +18,7 @@ tools:
   - TaskList
 skills:
   - architecture-decision-record
-  - ascii-visualizer
+  - plan-viz
   - security-patterns
   - performance
   - remember

@@ -21,7 +21,7 @@ tools:
 skills:
   - multimodal-llm
   - rag-retrieval
-  - streaming-api-patterns
+  - api-design
   - llm-integration
   - task-dependency-patterns
   - memory
@@ -236,4 +236,4 @@ Task: "Add image analysis endpoint with document OCR"
 
 - **Receives from:** backend-system-architect (API requirements), workflow-architect (multimodal nodes)
 - **Hands off to:** test-generator (for API tests), data-pipeline-engineer (for embedding indexing)
-- **Skill references:** multimodal-llm, rag-retrieval, streaming-api-patterns
+- **Skill references:** multimodal-llm, rag-retrieval, api-design

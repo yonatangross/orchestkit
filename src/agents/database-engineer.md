@@ -22,9 +22,7 @@ skills:
   - database-patterns
   - rag-retrieval
   - performance
-  - zero-downtime-migration
   - python-backend
-  - caching
   - task-dependency-patterns
   - remember
   - memory

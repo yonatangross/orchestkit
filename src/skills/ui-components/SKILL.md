@@ -1,7 +1,7 @@
 ---
 name: ui-components
 description: UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations.
-tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components]
+tags: [ui-components, shadcn, radix, component-library, design-system, accessible-components, react-hook-form, zod, forms, validation, server-actions, field-arrays]
 context: fork
 agent: frontend-ui-developer
 version: 2.0.0
@@ -20,8 +20,11 @@ Comprehensive patterns for building accessible UI component libraries with shadc
 |----------|-------|--------|-------------|
 | [shadcn/ui](#shadcnui) | 3 | HIGH | CVA variants, component customization, form patterns, data tables |
 | [Radix Primitives](#radix-primitives) | 3 | HIGH | Dialogs, polymorphic composition, data-attribute styling |
+| [Design System Tokens](#design-system-tokens) | 1 | HIGH | W3C tokens, OKLCH theming, Tailwind @theme, spacing scales |
+| [Design System Components](#design-system-components) | 1 | HIGH | Atomic design, CVA variants, accessibility, Storybook |
+| [Forms](#forms) | 2 | HIGH | React Hook Form v7, Zod validation, Server Actions |
 
-**Total: 6 rules across 2 categories**
+**Total: 10 rules across 4 categories**
 
 ## Quick Start
 
@@ -122,8 +125,32 @@ Unstyled, accessible React primitives for building high-quality design systems.
 | [checklists/](checklists/) | shadcn setup, accessibility audit checklists |
 | [references/](references/) | CVA system, OKLCH theming, cn() utility, focus management |
 
+## Design System Tokens
+
+Design token architecture for consistent theming and visual identity.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Token Architecture | `rules/design-system-tokens.md` | W3C tokens, OKLCH colors, Tailwind @theme, spacing scales |
+
+## Design System Components
+
+Component architecture patterns with atomic design and accessibility.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Component Architecture | `rules/design-system-components.md` | Atomic design, CVA variants, WCAG 2.1 AA, Storybook |
+
+## Forms
+
+React Hook Form v7 with Zod validation and React 19 Server Actions.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| React Hook Form | `rules/forms-react-hook-form.md` | useForm, field arrays, Controller, wizards, file uploads |
+| Zod & Server Actions | `rules/forms-validation-zod.md` | Zod schemas, Server Actions, useActionState, async validation |
+
 ## Related Skills
 
 - `accessibility` - WCAG compliance and React Aria patterns
-- `design-system-starter` - Design system foundation patterns
 - `testing-patterns` - Component testing patterns

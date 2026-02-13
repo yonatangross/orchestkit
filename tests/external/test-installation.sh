@@ -128,16 +128,16 @@ test_empty_repo_skills_discoverable() {
     for path in "$PLUGIN_ROOT/src/skills" "$PLUGIN_ROOT/plugins/ork/skills" "$PLUGIN_ROOT/skills"; do
         if [[ -d "$path" ]]; then
             skill_count=$(find "$path" -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-            if [[ "$skill_count" -gt 80 ]]; then
+            if [[ "$skill_count" -gt 55 ]]; then
                 break
             fi
         fi
     done
 
-    if [[ "$skill_count" -gt 80 ]]; then
+    if [[ "$skill_count" -gt 55 ]]; then
         test_pass
     else
-        test_fail "Expected 80+ skills, found $skill_count"
+        test_fail "Expected 55+ skills, found $skill_count"
     fi
 }
 

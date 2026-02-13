@@ -20,8 +20,8 @@ tools:
 skills:
   - accessibility
   - testing-patterns
-  - design-system-starter
-  - frontend-animation
+  - ui-components
+  - responsive-patterns
   - i18n-date-patterns
   - task-dependency-patterns
   - remember

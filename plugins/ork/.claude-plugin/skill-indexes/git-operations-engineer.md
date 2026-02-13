@@ -3,9 +3,8 @@
 |IMPORTANT: Read the specific SKILL.md file before advising on any topic.
 |Do NOT rely on training data for framework patterns.
 |
-|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging
+|git-workflow:{SKILL.md,references/{github-flow.md,interactive-staging.md,recovery-decision-tree.md,reflog-recovery.md}}|git,branch,commit,recovery,workflow,reflog,staging,stacked-prs,monorepo,add-dir,code-review
 |github-operations:{SKILL.md,references/{graphql-api.md,issue-management.md,milestone-api.md,pr-workflows.md,projects-v2.md}}|github,gh,cli,issues,pr,milestones,projects,api
-|stacked-prs:{SKILL.md,references/{stack-management.md}}|git,pull-request,stacked,workflow,code-review
 |worktree-coordination:{SKILL.md}|coordination,worktree,multi-instance,locking,parallel-development
 |commit:{SKILL.md,references/{conventional-commits.md,recovery.md}}|git,commit,version-control,conventional-commits
 |release-management:{SKILL.md,references/{semver.md}}|git,github,releases,versioning,changelog,automation

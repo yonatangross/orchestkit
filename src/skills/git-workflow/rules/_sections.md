@@ -30,3 +30,16 @@ Git recovery patterns using reflog, reset modes, and stash management.
 - `recovery-reflog.md` — Reflog-based recovery of lost commits, deleted branches, undone rebases
 - `recovery-reset.md` — Safe (--soft/--mixed) vs dangerous (--hard) reset, pushed vs unpushed
 - `recovery-stash.md` — Named stashes, context switching, recovering dropped stashes via fsck
+
+## 5. Stacked PRs (stacked) -- HIGH -- 2 rules
+
+Break large features into small, reviewable, dependent PRs that merge in sequence.
+
+- `stacked-pr-workflow.md` -- Stack planning, PR creation, dependency tracking, numbering
+- `stacked-pr-rebase.md` -- Rebase management, force-with-lease, retargeting after merge
+
+## 6. Monorepo (monorepo) -- MEDIUM -- 1 rule
+
+Multi-directory context patterns for monorepo workflows.
+
+- `monorepo-context.md` -- --add-dir, per-service CLAUDE.md, workspace detection

@@ -21,7 +21,6 @@ skills:
   - performance
   - vite-advanced
   - monitoring-observability
-  - caching
   - task-dependency-patterns
   - remember
   - memory
@@ -241,7 +240,7 @@ Return structured performance report:
 
 - **Receives from:** frontend-ui-developer (component for optimization), backend-system-architect (API response times)
 - **Hands off to:** frontend-ui-developer (implementation of suggested patterns), devops-deployment (CI configuration)
-- **Skill references:** performance, caching, vite-advanced
+- **Skill references:** performance, vite-advanced
 
 ## Quick Commands
 

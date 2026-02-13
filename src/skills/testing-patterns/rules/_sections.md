@@ -91,3 +91,16 @@ Test execution strategies for parallel runs, CI matrix sharding, and coverage co
 
 - `execution-parallel.md` — pytest-xdist, CI matrix sharding, worker DB isolation, Vitest/Jest parallelism
 - `execution-coverage.md` — pytest-cov, Istanbul/v8, coverage thresholds, CI upload, per-module targets
+
+## 12. Validation (validation) — HIGH — 2 rules
+
+Schema validation testing with Zod, tRPC, Prisma, and end-to-end type safety.
+
+- `validation-zod-schema.md` — Zod schemas, branded types, exhaustive switches, safeParse testing
+- `validation-end-to-end.md` — tRPC end-to-end types, Pydantic, Python NewType, schema rejection tests
+
+## 13. Evidence Verification (evidence) — MEDIUM — 1 rule
+
+Evidence collection for task completion verification.
+
+- `verification-evidence.md` — Exit code validation, test/build/quality evidence, collection protocol

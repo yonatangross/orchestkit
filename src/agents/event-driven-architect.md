@@ -20,8 +20,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - event-driven
-  - streaming-api-patterns
+  - distributed-systems
+  - api-design
   - async-jobs
   - distributed-systems
   - python-backend

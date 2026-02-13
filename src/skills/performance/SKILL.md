@@ -1,7 +1,7 @@
 ---
 name: performance
 description: Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently.
-tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference]
+tags: [performance, core-web-vitals, lcp, inp, cls, react-compiler, virtualization, lazy-loading, code-splitting, image-optimization, avif, profiling, vllm, quantization, inference, caching, redis, prompt-caching, tanstack-query, prefetching, optimistic-updates]
 context: fork
 agent: frontend-ui-developer
 version: 2.0.0
@@ -24,8 +24,10 @@ Comprehensive performance optimization patterns for frontend, backend, and LLM i
 | [Image Optimization](#image-optimization) | 3 | HIGH | Next.js Image, AVIF/WebP, responsive images |
 | [Profiling & Backend](#profiling--backend) | 3 | MEDIUM | React DevTools, py-spy, bundle analysis |
 | [LLM Inference](#llm-inference) | 3 | MEDIUM | vLLM, quantization, speculative decoding |
+| [Caching](#caching) | 2 | HIGH | Redis cache-aside, prompt caching, HTTP cache headers |
+| [Query & Data Fetching](#query--data-fetching) | 2 | HIGH | TanStack Query prefetching, optimistic updates, rollback |
 
-**Total: 18 rules across 6 categories**
+**Total: 22 rules across 8 categories**
 
 ## Core Web Vitals
 
@@ -94,6 +96,24 @@ High-performance LLM inference with vLLM, quantization, and speculative decoding
 | vLLM Deployment | `rules/inference-vllm.md` | PagedAttention, continuous batching, tensor parallelism |
 | Quantization | `rules/inference-quantization.md` | AWQ, GPTQ, FP8, INT8 method selection |
 | Speculative Decoding | `rules/inference-speculative.md` | N-gram, draft model, 1.5-2.5x throughput |
+
+## Caching
+
+Backend Redis caching and LLM prompt caching for cost savings and performance.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Redis & Backend | `rules/caching-redis.md` | Cache-aside, write-through, invalidation, stampede prevention |
+| HTTP & Prompt | `rules/caching-http.md` | HTTP cache headers, LLM prompt caching, semantic caching |
+
+## Query & Data Fetching
+
+TanStack Query v5 patterns for prefetching and optimistic updates.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Prefetching | `rules/query-prefetching.md` | Hover prefetch, route loaders, queryOptions, Suspense |
+| Optimistic Updates | `rules/query-optimistic.md` | Optimistic mutations, rollback, cache invalidation |
 
 ## Quick Start Example
 

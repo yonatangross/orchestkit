@@ -22,12 +22,9 @@ skills:
   - code-review-playbook
   - security-patterns
   - testing-patterns
-  - evidence-verification
   - distributed-systems
   - architecture-patterns
   - quality-gates
-  - biome-linting
-  - best-practices
   - remember
   - memory
 hooks:

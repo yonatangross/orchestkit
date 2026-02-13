@@ -5,10 +5,10 @@ import type { Totals, AgentSummary, CategoryMeta } from "./types";
 
 export const TOTALS: Totals = {
   "plugins": 3,
-  "skills": 88,
+  "skills": 60,
   "agents": 36,
   "hooks": 90,
-  "commands": 25,
+  "commands": 23,
   "compositions": 14
 };
 
@@ -427,7 +427,6 @@ export const SKILLS_SUMMARY = {
       "verify",
       "commit",
       "git-workflow",
-      "stacked-prs",
       "task-dependency-patterns",
       "web-research-workflow"
     ],
@@ -457,15 +456,14 @@ export const SKILLS_SUMMARY = {
     "devops": [
       "devops-deployment",
       "monitoring-observability",
-      "competitive-monitoring"
+      "web-research-workflow"
     ],
     "testing": [
       "verify",
       "review-pr",
       "architecture-patterns",
       "testing-patterns",
-      "golden-dataset",
-      "evidence-verification"
+      "golden-dataset"
     ],
     "security": [
       "review-pr",
@@ -480,7 +478,6 @@ export const SKILLS_SUMMARY = {
       "performance"
     ],
     "llm": [
-      "streaming-api-patterns",
       "security-patterns",
       "testing-patterns",
       "golden-dataset",
@@ -492,9 +489,9 @@ export const SKILLS_SUMMARY = {
       "api-design",
       "architecture-patterns",
       "domain-driven-design",
-      "event-driven",
-      "streaming-api-patterns",
-      "github-operations"
+      "distributed-systems",
+      "github-operations",
+      "architecture-decision-record"
     ]
   },
   "ork-creative": {},
@@ -502,43 +499,28 @@ export const SKILLS_SUMMARY = {
     "includesAllOrkLite": true,
     "python": [
       "async-jobs",
-      "grpc-python",
-      "python-backend",
-      "strawberry-graphql"
+      "python-backend"
     ],
     "react": [
-      "biome-linting",
-      "design-system-starter",
-      "form-state-patterns",
-      "frontend-animation",
       "i18n-date-patterns",
       "react-server-components-framework",
-      "tanstack-query-advanced",
-      "type-safety-validation"
+      "ui-components",
+      "zustand-patterns"
     ],
     "llm": [
-      "caching",
-      "context-optimization",
-      "grpc-python",
       "langgraph",
-      "llm-evaluation",
       "llm-integration",
       "mcp-patterns",
-      "multimodal-llm"
+      "multimodal-llm",
+      "rag-retrieval",
+      "react-server-components-framework"
     ],
     "rag": [
-      "llm-evaluation",
-      "rag-retrieval",
-      "right-sized-backend"
+      "rag-retrieval"
     ],
     "backend": [
       "audit-full",
-      "grpc-python",
-      "pwa-patterns",
       "python-backend",
-      "right-sized-backend",
-      "strawberry-graphql",
-      "temporal-io",
       "vite-advanced"
     ]
   }

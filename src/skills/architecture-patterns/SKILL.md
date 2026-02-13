@@ -1,7 +1,7 @@
 ---
 name: architecture-patterns
-description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, and test standards. Use when designing system boundaries, enforcing layered architecture, validating project structure, or defining test standards.
-tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards]
+description: Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope.
+tags: [architecture, clean-architecture, validation, structure, enforcement, testing-standards, right-sizing, over-engineering]
 context: fork
 agent: backend-system-architect
 version: 2.0.0
@@ -22,8 +22,9 @@ Consolidated architecture validation and enforcement patterns covering clean arc
 | [Project Structure](#project-structure) | 2 | HIGH | Folder conventions, nesting depth, import direction, barrel files |
 | [Backend Layers](#backend-layers) | 3 | HIGH | Router/service/repository separation, DI, file naming |
 | [Test Standards](#test-standards) | 3 | MEDIUM | AAA pattern, naming conventions, coverage thresholds |
+| [Right-Sizing](#right-sizing) | 2 | HIGH | Architecture tier selection, over-engineering prevention, context-aware enforcement |
 
-**Total: 11 rules across 4 categories**
+**Total: 13 rules across 5 categories**
 
 ## Quick Start
 
@@ -125,6 +126,31 @@ Testing best practices with AAA pattern, naming conventions, isolation, and cove
 | Business Logic | 90% | 100% |
 | Critical Paths | 95% | 100% |
 | New Code | 100% | 100% |
+
+## Right-Sizing
+
+Context-aware backend architecture sizing that prevents over-engineering for interviews and MVPs while ensuring proper structure for enterprise.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Architecture Sizing Tiers | `rules/right-sizing-tiers.md` | Interview/MVP/production/enterprise sizing matrix, LOC estimates, detection signals |
+| Right-Sizing Decision Guide | `rules/right-sizing-decision.md` | ORM, auth, error handling, testing recommendations per tier, over-engineering tax |
+
+### Decision Flowchart
+
+```
+Is this a take-home or hackathon?
+  YES --> Flat architecture. Single file or 3-5 files. Done.
+  NO  -->
+
+Is this a prototype or MVP with < 3 months runway?
+  YES --> Simple layered. Routes + services + models. No abstractions.
+  NO  -->
+
+Do you have > 5 engineers or complex domain rules?
+  YES --> Clean architecture with ports/adapters.
+  NO  --> Layered architecture. Add abstractions only when pain appears.
+```
 
 ## Anti-Patterns (FORBIDDEN)
 

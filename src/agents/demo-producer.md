@@ -23,7 +23,6 @@ tools:
   - AskUserQuestion
 skills:
   - demo-producer
-  - video-production
   - task-dependency-patterns
   - remember
   - memory

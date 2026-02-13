@@ -22,8 +22,11 @@ Patterns for integrating LLMs into production applications: tool use, streaming,
 | [Streaming](#streaming) | 3 | HIGH | SSE endpoints, structured streaming, backpressure handling |
 | [Local Inference](#local-inference) | 3 | HIGH | Ollama setup, model selection, GPU optimization |
 | [Fine-Tuning](#fine-tuning) | 3 | HIGH | LoRA/QLoRA training, dataset preparation, evaluation |
+| [Context Optimization](#context-optimization) | 2 | HIGH | Window management, compression, caching, budget scaling |
+| [Evaluation](#evaluation) | 2 | HIGH | LLM-as-judge, RAGAS metrics, quality gates, benchmarks |
+| [Prompt Engineering](#prompt-engineering) | 2 | HIGH | CoT, few-shot, versioning, DSPy optimization |
 
-**Total: 12 rules across 4 categories**
+**Total: 18 rules across 7 categories**
 
 ## Quick Start
 
@@ -110,6 +113,27 @@ Customize LLMs with parameter-efficient techniques. Fine-tune ONLY after exhaust
 - `tuning-dataset-prep.md` -- Synthetic data generation, quality validation, deduplication
 - `tuning-evaluation.md` -- DPO alignment, evaluation metrics, anti-patterns
 
+## Context Optimization
+
+Manage context windows, compression, and attention-aware positioning. Optimize for tokens-per-task.
+
+- `context-window-management.md` -- Five-layer architecture, anchored summarization, compression triggers
+- `context-caching.md` -- Just-in-time loading, budget scaling, probe evaluation, CC 2.1.32+
+
+## Evaluation
+
+Evaluate LLM outputs with multi-dimension scoring, quality gates, and benchmarks.
+
+- `evaluation-metrics.md` -- LLM-as-judge, RAGAS metrics, hallucination detection
+- `evaluation-benchmarks.md` -- Quality gates, batch evaluation, pairwise comparison
+
+## Prompt Engineering
+
+Design, version, and optimize prompts for production LLM applications.
+
+- `prompt-design.md` -- Chain-of-Thought, few-shot learning, pattern selection guide
+- `prompt-testing.md` -- Langfuse versioning, DSPy optimization, A/B testing, self-consistency
+
 ## Key Decisions
 
 | Decision | Recommendation |
@@ -123,6 +147,13 @@ Customize LLMs with parameter-efficient techniques. Fine-tune ONLY after exhaust
 | Fine-tuning approach | LoRA/QLoRA (try prompting first) |
 | LoRA rank | 16-64 typical |
 | Training epochs | 1-3 (more risks overfitting) |
+| Context compression | Anchored iterative (60-80%) |
+| Compress trigger | 70% utilization, target 50% |
+| Judge model | GPT-5.2-mini or Haiku 4.5 |
+| Quality threshold | 0.7 production, 0.6 drafts |
+| Few-shot examples | 3-5 diverse, representative |
+| Prompt versioning | Langfuse with labels |
+| Auto-optimization | DSPy MIPROv2 |
 
 ## Related Skills
 

@@ -16,9 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - design-system-starter
   - ui-components
-  - frontend-animation
+  - responsive-patterns
   - task-dependency-patterns
   - remember
   - memory

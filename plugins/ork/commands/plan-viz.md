@@ -333,6 +333,13 @@ Sequential Block C (verification):
 | **Actionable output** | Write to file, generate issues, drill deeper |
 | **Anti-slop** | No generic transitions, no fake precision, no unused sections |
 
+## Rules Quick Reference
+
+| Rule | Impact | What It Covers |
+|------|--------|----------------|
+| [ascii-diagrams](rules/ascii-diagrams.md) | MEDIUM | Box-drawing characters, file trees, progress bars, workflow diagrams |
+| [ascii-architecture](rules/ascii-architecture.md) | MEDIUM | Layered architecture, blast radius, reversibility timelines, comparisons |
+
 ## References
 
 - [Change Manifest Patterns](references/change-manifest-patterns.md)

@@ -21,7 +21,6 @@ tools:
 skills:
   - web-research-workflow
   - browser-tools
-  - competitive-monitoring
   - product-frameworks
   - rag-retrieval
   - remember
@@ -286,7 +285,7 @@ cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
 
 - **Receives from:** User requests, `market-intelligence` (research tasks)
 - **Hands off to:** `product-strategist` (strategic analysis), `documentation-specialist` (doc formatting)
-- **Skill references:** web-research-workflow, browser-tools, competitive-monitoring
+- **Skill references:** web-research-workflow, browser-tools
 
 ## Notes
 

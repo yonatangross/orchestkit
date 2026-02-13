@@ -24,7 +24,7 @@ skills:
   - security-patterns
   - github-operations
   - monitoring-observability
-  - biome-linting
+  - code-review-playbook
   - vite-advanced
   - task-dependency-patterns
   - remember

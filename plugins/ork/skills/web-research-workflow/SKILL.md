@@ -1,11 +1,11 @@
 ---
 name: web-research-workflow
-description: Unified decision tree for web research. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Use when researching web content, scraping, extracting raw markdown, or capturing documentation.
+description: Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes.
 context: fork
 agent: web-research-analyst
-version: 1.2.0
+version: 1.3.0
 author: OrchestKit AI Agent Hub
-tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction]
+tags: [research, browser, webfetch, tavily, automation, scraping, content-extraction, competitive-intelligence, monitoring]
 user-invocable: false
 allowedTools: [Bash, Read, Write, WebFetch]
 complexity: low
@@ -426,6 +426,24 @@ Provides the same browsing capabilities but runs in BrightData's cloud infrastru
 | High-volume parallel scraping | BrightData (cloud infrastructure) |
 | Login-protected, custom flows | agent-browser (full control) |
 
+## Competitive Monitoring
+
+Track competitor websites for changes in pricing, features, positioning, and content. Detailed rule files provide snapshot capture, diff detection, and automated workflows.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Competitor Page Monitoring | `rules/monitoring-competitor.md` | Snapshot capture, structured data extraction, change classification |
+| Change Detection & Discovery | `rules/monitoring-change-detection.md` | Diff detection, structured comparison, Tavily site discovery, CI automation |
+
+### Change Classification
+
+| Severity | Examples | Action |
+|----------|----------|--------|
+| Critical | Price increase/decrease, major feature change | Immediate alert |
+| High | New feature added, feature removed | Review required |
+| Medium | Copy changes, positioning shift | Note for analysis |
+| Low | Typos, minor styling | Log only |
+
 ## Integration with Agents
 
 This skill is used by:
@@ -439,8 +457,7 @@ This skill is used by:
 
 - `browser-content-capture` - Detailed browser patterns
 - `agent-browser` - CLI reference
-- `competitive-monitoring` - Change tracking
 
 ---
 
-**Version:** 1.2.0 (February 2026)
+**Version:** 1.3.0 (February 2026)

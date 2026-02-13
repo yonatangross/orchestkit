@@ -22,7 +22,7 @@ tools:
 skills:
   - rag-retrieval
   - golden-dataset
-  - caching
+  - performance
   - async-jobs
   - browser-tools
   - devops-deployment

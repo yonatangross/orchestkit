@@ -26,8 +26,10 @@ Patterns for background task processing with Celery, ARQ, and Redis. Covers task
 | [Monitoring](#monitoring) | monitoring-health | MEDIUM | Flower, custom events, health checks, metrics |
 | [Result Backends](#result-backends) | result-backends | MEDIUM | Redis results, custom states, progress tracking |
 | [ARQ Patterns](#arq-patterns) | arq-patterns | MEDIUM | Async Redis Queue for FastAPI, lightweight jobs |
+| [Temporal Workflows](#temporal-workflows) | temporal-workflows | HIGH | Durable workflow definitions, sagas, signals, queries |
+| [Temporal Activities](#temporal-activities) | temporal-activities | HIGH | Activity patterns, workers, heartbeats, testing |
 
-**Total: 8 rules across 8 categories**
+**Total: 10 rules across 9 categories**
 
 ## Quick Start
 
@@ -282,6 +284,46 @@ celery_app.conf.task_acks_late = False  # Default loses tasks on crash
 # ALWAYS use immutable signatures in chords
 chord([task.s(x) for x in items], callback.si())  # si() prevents arg pollution
 ```
+
+## Temporal Workflows
+
+Durable execution engine for reliable distributed applications with Temporal.io.
+
+### Key Patterns
+
+- **Workflow definitions** with `@workflow.defn` and deterministic code
+- **Saga pattern** with compensation for multi-step transactions
+- **Signals and queries** for external interaction with running workflows
+- **Timers** with `workflow.wait_condition()` for human-in-the-loop
+- **Parallel activities** via `asyncio.gather` inside workflows
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Workflow ID | Business-meaningful, idempotent |
+| Determinism | Use `workflow.random()`, `workflow.now()` |
+| I/O | Always via activities, never directly |
+
+## Temporal Activities
+
+Activity and worker patterns for Temporal.io I/O operations.
+
+### Key Patterns
+
+- **Activity definitions** with `@activity.defn` for all I/O
+- **Heartbeating** for long-running activities (> 60s)
+- **Error classification** with `ApplicationError(non_retryable=True)` for business errors
+- **Worker configuration** with dedicated task queues
+- **Testing** with `WorkflowEnvironment.start_local()`
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Activity timeout | `start_to_close` for most cases |
+| Error handling | Non-retryable for business errors |
+| Testing | WorkflowEnvironment for integration tests |
 
 ## Related Skills
 

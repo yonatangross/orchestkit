@@ -77,6 +77,17 @@ jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
 - The `team` field is only present for entries recorded during team/swarm sessions
 - `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
 
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, custom tooltips |
+| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry, SSE updates |
+
+**Total: 2 rules across 1 category**
+
 ## Output Format
 
 Present results as a clean markdown table. Include counts, percentages, and averages. If a file doesn't exist, note that no data has been collected yet for that category.

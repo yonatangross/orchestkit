@@ -22,3 +22,10 @@ Python-specific review patterns: Pydantic v2, ruff formatting, async safety, typ
 Security review baseline that applies to all languages: OWASP Top 10, secrets, authentication.
 
 - `security-baseline.md` — No hardcoded secrets, auth on all endpoints, input validation, dependency audit
+
+## 4. Linting (linting) — HIGH — 2 rules
+
+Biome 2.0+ unified linting and formatting, ESLint migration, CI integration.
+
+- `linting-biome-setup.md` — Biome installation, ESLint migration, gradual adoption with overrides
+- `linting-biome-rules.md` — Production config, type-aware rules, CI integration, 421 built-in rules

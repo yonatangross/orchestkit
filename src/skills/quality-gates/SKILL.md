@@ -1,11 +1,11 @@
 ---
 name: quality-gates
-description: Use when assessing task complexity, before starting complex tasks, or when stuck after multiple attempts. Provides quality-gates scoring (1-5) and escalation workflows.
+description: Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management.
 context: fork
 agent: code-quality-reviewer
-version: 1.1.0
+version: 1.2.0
 author: OrchestKit AI Agent Hub
-tags: [quality, complexity, planning, escalation, blocking]
+tags: [quality, complexity, planning, escalation, blocking, best-practices, patterns]
 user-invocable: false
 complexity: max
 ---
@@ -199,6 +199,25 @@ if (!hasPassingEvidence) {
   return { gate_status: 'blocked', reason: 'no_passing_evidence' };
 }
 ```
+
+---
+
+## Best Practices Pattern Library
+
+Track success/failure patterns across projects to prevent repeating mistakes and proactively warn during code reviews.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Pattern Library | `rules/practices-code-standards.md` | Success/failure tracking, confidence scoring, memory integration |
+| Review Checklist | `rules/practices-review-checklist.md` | Category-based review, proactive anti-pattern detection |
+
+### Pattern Confidence Levels
+
+| Level | Meaning | Action |
+|-------|---------|--------|
+| Strong success | 3+ projects, 100% success | Always recommend |
+| Mixed results | Both successes and failures | Context-dependent |
+| Strong anti-pattern | 3+ projects, all failed | Block with explanation |
 
 ---
 

@@ -36,3 +36,24 @@ Customize LLMs with parameter-efficient techniques and alignment.
 - `tuning-lora.md` -- LoRA/QLoRA configuration, Unsloth/PEFT training, adapter merging
 - `tuning-dataset-prep.md` -- Synthetic data generation, quality validation, deduplication, formatting
 - `tuning-evaluation.md` -- DPO alignment, preference datasets, evaluation metrics, anti-patterns
+
+## 5. Context Optimization (context) -- HIGH -- 2 rules
+
+Context window management, compression strategies, and attention-aware positioning.
+
+- `context-window-management.md` -- Five-layer context architecture, anchored summarization, lost-in-the-middle, compression triggers
+- `context-caching.md` -- Just-in-time loading, budget scaling, probe-based evaluation, CC 2.1.32+ auto-scaling
+
+## 6. Evaluation (evaluation) -- HIGH -- 2 rules
+
+LLM output evaluation, quality gates, and benchmarking.
+
+- `evaluation-metrics.md` -- LLM-as-judge, RAGAS metrics, hallucination detection, multi-dimension scoring
+- `evaluation-benchmarks.md` -- Quality gates, batch evaluation, pairwise comparison, regression detection
+
+## 7. Prompt Engineering (prompt) -- HIGH -- 2 rules
+
+Prompt design patterns, versioning, and automatic optimization.
+
+- `prompt-design.md` -- Chain-of-Thought, few-shot learning, zero-shot CoT, pattern selection guide
+- `prompt-testing.md` -- Langfuse versioning, DSPy optimization, A/B testing, self-consistency

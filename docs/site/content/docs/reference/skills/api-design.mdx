@@ -19,8 +19,11 @@ Comprehensive API design patterns covering REST/GraphQL framework design, versio
 | [API Framework](#api-framework) | 3 | HIGH | REST conventions, resource modeling, OpenAPI specifications |
 | [Versioning](#versioning) | 3 | HIGH | URL path versioning, header versioning, deprecation/sunset policies |
 | [Error Handling](#error-handling) | 3 | HIGH | RFC 9457 Problem Details, validation errors, error type registries |
+| [GraphQL](#graphql) | 2 | HIGH | Strawberry code-first, DataLoader, permissions, subscriptions |
+| [gRPC](#grpc) | 2 | HIGH | Protobuf services, streaming, interceptors, retry |
+| [Streaming](#streaming) | 2 | HIGH | SSE endpoints, WebSocket bidirectional, async generators |
 
-**Total: 9 rules across 3 categories**
+**Total: 15 rules across 6 categories**
 
 ## API Framework
 
@@ -51,6 +54,33 @@ RFC 9457 Problem Details for machine-readable, standardized error responses.
 | Problem Details | `rules/errors-problem-details.md` | RFC 9457 schema, `application/problem+json`, exception classes |
 | Validation | `rules/errors-validation.md` | Field-level errors, Pydantic integration, 422 responses |
 | Error Catalog | `rules/errors-error-catalog.md` | Problem type registry, error type URIs, client handling |
+
+## GraphQL
+
+Strawberry GraphQL code-first schema with type-safe resolvers and FastAPI integration.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Schema Design | `rules/graphql-strawberry.md` | Type-safe schema, DataLoader, union errors, Private fields |
+| Patterns & Auth | `rules/graphql-schema.md` | Permission classes, FastAPI integration, subscriptions |
+
+## gRPC
+
+High-performance gRPC for internal microservice communication.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| Service Definition | `rules/grpc-service.md` | Protobuf, async server, client timeout, code generation |
+| Streaming & Interceptors | `rules/grpc-streaming.md` | Server/bidirectional streaming, auth, retry backoff |
+
+## Streaming
+
+Real-time data streaming with SSE, WebSockets, and proper cleanup.
+
+| Rule | File | Key Pattern |
+|------|------|-------------|
+| SSE | `rules/streaming-sse.md` | SSE endpoints, LLM streaming, reconnection, keepalive |
+| WebSocket | `rules/streaming-websocket.md` | Bidirectional, heartbeat, aclosing(), backpressure |
 
 ## Quick Start Example
 
@@ -84,6 +114,14 @@ async def get_user(user_id: str, service: UserService = Depends()):
 | Support window | Current + 1 previous version |
 | Deprecation notice | 3 months minimum before sunset |
 | Sunset period | 6 months after deprecation |
+| GraphQL schema | Code-first with Strawberry types |
+| N+1 prevention | DataLoader for all nested resolvers |
+| GraphQL auth | Permission classes (context-based) |
+| gRPC proto | One service per file, shared common.proto |
+| gRPC streaming | Server stream for lists, bidirectional for real-time |
+| SSE keepalive | Every 30 seconds |
+| WebSocket heartbeat | ping-pong every 30 seconds |
+| Async generator cleanup | aclosing() for all external resources |
 
 ## Common Mistakes
 

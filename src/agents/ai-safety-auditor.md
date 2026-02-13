@@ -20,7 +20,6 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - advanced-guardrails
   - mcp-patterns
   - security-patterns
   - remember

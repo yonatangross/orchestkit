@@ -3,7 +3,7 @@ name: analytics
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects."
 context: fork
 version: 1.0.0
-tags: [analytics, metrics, usage, teams, agents, skills, hooks]
+tags: [analytics, metrics, usage, teams, agents, skills, hooks, data-visualization, dashboard, recharts, charts, widgets]
 user-invocable: true
 allowedTools: [Bash, Read, Grep, Glob, AskUserQuestion]
 complexity: low
@@ -78,6 +78,17 @@ jq -r .pid ~/.claude/analytics/agent-usage.jsonl 2>/dev/null | sort -u | wc -l
 - Rotated files follow pattern `<name>.<YYYY-MM>.jsonl` — include them in queries if historical data is needed
 - The `team` field is only present for entries recorded during team/swarm sessions
 - `pid` is a 12-char SHA256 hash of the project path — irreversible, used for grouping
+
+## Rules
+
+Each category has individual rule files in `rules/` loaded on-demand:
+
+| Category | Rule | Impact | Key Pattern |
+|----------|------|--------|-------------|
+| Visualization | `rules/visualization-recharts.md` | HIGH | Recharts charts, ResponsiveContainer, custom tooltips |
+| Visualization | `rules/visualization-dashboards.md` | HIGH | Dashboard grids, stat cards, widget registry, SSE updates |
+
+**Total: 2 rules across 1 category**
 
 ## Output Format
 

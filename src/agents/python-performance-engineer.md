@@ -23,7 +23,7 @@ tools:
   - TaskList
 skills:
   - python-backend
-  - caching
+  - performance
   - testing-patterns
   - monitoring-observability
   - database-patterns
@@ -350,7 +350,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** python-backend, caching, testing-patterns, monitoring-observability
+- **Skill references:** python-backend, performance, testing-patterns, monitoring-observability
 
 ## Profiling Tools Reference
 
