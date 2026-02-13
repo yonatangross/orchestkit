@@ -3,7 +3,7 @@
 
 export const SITE = {
   name: "OrchestKit",
-  version: "6.0.3",
+  version: "6.0.4",
   domain: "https://orchestkit.dev",
   github: "https://github.com/yonatangross/orchestkit",
   installCommand: "claude install orchestkit/ork",
