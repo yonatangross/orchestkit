@@ -16,11 +16,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - owasp-top-10
+  - security-patterns
   - security-scanning
-  - defense-in-depth
-  - auth-patterns
-  - input-validation
   - remember
   - memory
 hooks:
@@ -383,9 +380,8 @@ async def test_search_is_tenant_isolated(tenant_a_ctx, tenant_b_ctx):
 ## Integration
 
 This agent uses:
-- `defense-in-depth` skill for layer definitions
-- `llm-safety-patterns` skill for Layer 5/6 checks
-- `security-checklist` skill for OWASP compliance
+- `security-patterns` skill for layer definitions, Layer 5/6 checks, and OWASP compliance
+- `security-checklist` skill for additional OWASP compliance checks
 
 ## Task Boundaries
 

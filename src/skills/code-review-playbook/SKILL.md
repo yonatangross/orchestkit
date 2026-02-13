@@ -287,7 +287,7 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 
 ## Related Skills
 
-- `test-standards-enforcer` - Enforce testing best practices during code review
+- `architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
 - `testing-patterns` - Comprehensive testing patterns to verify during review
 

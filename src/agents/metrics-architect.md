@@ -17,9 +17,8 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - okr-kpi-patterns
-  - langfuse-observability
-  - observability-monitoring
+  - product-frameworks
+  - monitoring-observability
   - caching
   - testing-patterns
   - remember
@@ -306,7 +305,7 @@ Task: "Define success metrics for the workflow builder"
 ## Integration
 - **Receives from:** `requirements-translator` (requirements for metrics definition)
 - **Hands off to:** Technical implementation agents (`ux-researcher`, `backend-system-architect`)
-- **Skill references:** langfuse-observability (for LLM-specific metrics)
+- **Skill references:** monitoring-observability (for LLM-specific metrics)
 
 ## Task Tool Metrics (CC 2.1.32+)
 

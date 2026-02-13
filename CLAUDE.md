@@ -5,9 +5,9 @@ Essential context for Claude Code when working on OrchestKit.
 ## Project Overview
 
 **OrchestKit** is a Claude Code plugin providing:
-- **151 skills**: Reusable knowledge modules
+- **103 skills**: Reusable knowledge modules
 - **36 agents**: Specialized AI personas
-- **93 hooks**: TypeScript lifecycle automation (70 global + 22 agent-scoped + 6 skill-scoped, 7 fire-and-forget dispatchers)
+- **88 hooks**: TypeScript lifecycle automation (65 global + 22 agent-scoped + 1 skill-scoped, 7 fire-and-forget dispatchers)
 
 **Purpose**: AI-assisted development with built-in best practices, security patterns, and quality gates.
 
@@ -17,7 +17,7 @@ Essential context for Claude Code when working on OrchestKit.
 
 ```
 src/                    ← SOURCE (edit here!)
-├── skills/             # 151 skills
+├── skills/             # 103 skills
 │   └── <skill-name>/
 │       ├── SKILL.md    # Required: frontmatter + content
 │       └── references/ # Optional: detailed guides
@@ -150,13 +150,13 @@ Use `TaskCreate` for multi-step work (3+ distinct steps). Set status to `in_prog
 See `skills/task-dependency-patterns` for comprehensive patterns.
 
 ### Skills
-151 skills available. 27 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
+103 skills available. 27 are user-invocable via `/ork:skillname`. Skills auto-suggest based on prompt content via hooks. Use `Skill` tool to invoke.
 
 **Skill Types:**
 | Type | Count | Frontmatter | Description |
 |------|-------|-------------|-------------|
-| Command | 24 | `user-invocable: true` | User runs via `/ork:name` |
-| Reference | 175 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
+| Command | 27 | `user-invocable: true` | User runs via `/ork:name` |
+| Reference | 76 | `user-invocable: false`, `context: fork` | Knowledge for agents, auto-injected |
 
 **Key Fields:**
 - `context: fork` — Required for CC 2.1.0+. Skill runs in isolated context.
@@ -169,7 +169,7 @@ See `skills/task-dependency-patterns` for comprehensive patterns.
 36 specialized agents. Spawn with `Task` tool using `subagent_type` parameter. Agents auto-discovered from `src/agents/*.md`. Skills in agent frontmatter are auto-injected.
 
 ### Hooks
-98 hook entries (70 global + 22 agent-scoped + 6 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
+88 hook entries (65 global + 22 agent-scoped + 1 skill-scoped) across 11 split bundles. Auto-loaded from `hooks/hooks.json`. Return `{"continue": true}` to proceed, `{"continue": false}` to block.
 
 **Async Execution**: 6 unified dispatchers use fire-and-forget pattern for non-blocking background execution (analytics, network I/O, startup tasks). See `src/hooks/README.md` for async hook patterns.
 
@@ -233,11 +233,11 @@ Security tests validate 8 defense-in-depth layers. All must pass before merge.
 
 | Plugin | Skills | Agents | Description |
 |--------|--------|--------|-------------|
-| `orkl` | 81 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
+| `orkl` | 60 | 36 | Universal toolkit — works for any stack. All workflows, agents, hooks. |
 | `ork-creative` | 3 | 1 | Video production add-on — demo recording, Remotion, storyboarding. |
-| `ork` | 151 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
+| `ork` | 103 | 36 | Full specialized — lite + creative + Python, React, LLM/RAG, LangGraph, MCP. |
 
-All plugins include 93 hooks and all memory skills (remember, memory, memory-fabric).
+All plugins include 88 hooks and all memory skills (remember, memory, memory-fabric).
 
 ### Environment Variables
 ```bash
@@ -269,6 +269,6 @@ High-confidence decisions (≥0.7) are automatically written to CC native MEMORY
 
 - **Current**: 6.0.3
 - **Claude Code**: >= 2.1.34
-- **Hooks**: 98 entries (70 global + 22 agent-scoped + 6 skill-scoped, 11 split bundles, 7 fire-and-forget dispatchers)
+- **Hooks**: 88 entries (65 global + 22 agent-scoped + 1 skill-scoped, 11 split bundles, 7 fire-and-forget dispatchers)
 
 See `CHANGELOG.md` for detailed version history and features.

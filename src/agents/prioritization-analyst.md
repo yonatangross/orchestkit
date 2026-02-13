@@ -16,7 +16,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - prioritization-frameworks
+  - product-frameworks
   - github-operations
   - remember
   - memory

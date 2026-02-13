@@ -225,7 +225,4 @@ session_id = secrets.token_urlsafe(32)
 
 ## Related Skills
 
-- `llm-safety-patterns` - LLM-specific security patterns
-- `input-validation` - Input sanitization fundamentals
-- `auth-patterns` - Session and token security
-- `defense-in-depth` - Layered security architecture
+- `security-patterns` - LLM-specific security patterns, input sanitization, session and token security, and layered security architecture

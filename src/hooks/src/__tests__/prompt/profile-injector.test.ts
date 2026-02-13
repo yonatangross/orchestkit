@@ -134,9 +134,9 @@ function createFullProfile(): UserProfile {
   return createMockProfile({
     sessions_count: 25,
     skill_usage: {
-      'api-design-framework': createMockUsageStats(50),
-      'database-schema-designer': createMockUsageStats(35),
-      'auth-patterns': createMockUsageStats(20),
+      'api-design': createMockUsageStats(50),
+      'database-patterns': createMockUsageStats(35),
+      'security-patterns': createMockUsageStats(20),
       'unit-testing': createMockUsageStats(15),
       'e2e-testing': createMockUsageStats(10),
     },
@@ -160,8 +160,8 @@ function createPartialProfile(): UserProfile {
   return createMockProfile({
     sessions_count: 10,
     skill_usage: {
-      'api-design-framework': createMockUsageStats(20),
-      'fastapi-advanced': createMockUsageStats(15),
+      'api-design': createMockUsageStats(20),
+      'python-backend': createMockUsageStats(15),
     },
     agent_usage: {},
     decisions: [],
@@ -228,7 +228,7 @@ describe('prompt/profile-injector', () => {
     test('returns suppressOutput: true in all cases', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([
         { agent: 'backend-system-architect', stats: createMockUsageStats(30) },
@@ -298,9 +298,9 @@ describe('prompt/profile-injector', () => {
       const fullProfile = createFullProfile();
       mockLoadUserProfile.mockReturnValue(fullProfile);
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
-        { skill: 'database-schema-designer', stats: createMockUsageStats(35) },
-        { skill: 'auth-patterns', stats: createMockUsageStats(20) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
+        { skill: 'database-patterns', stats: createMockUsageStats(35) },
+        { skill: 'security-patterns', stats: createMockUsageStats(20) },
       ]);
       mockGetTopAgents.mockReturnValue([
         { agent: 'backend-system-architect', stats: createMockUsageStats(30) },
@@ -322,8 +322,8 @@ describe('prompt/profile-injector', () => {
     test('includes top skills in context', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
-        { skill: 'database-schema-designer', stats: createMockUsageStats(35) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
+        { skill: 'database-patterns', stats: createMockUsageStats(35) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -332,8 +332,8 @@ describe('prompt/profile-injector', () => {
       const result = profileInjector(input);
 
       const context = result.hookSpecificOutput?.additionalContext || '';
-      expect(context).toContain('api-design-framework');
-      expect(context).toContain('database-schema-designer');
+      expect(context).toContain('api-design');
+      expect(context).toContain('database-patterns');
     });
 
     test('includes top agents in context', () => {
@@ -373,7 +373,7 @@ describe('prompt/profile-injector', () => {
     test('uses CC 2.1.9 additionalContext format', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -391,8 +391,8 @@ describe('prompt/profile-injector', () => {
       const partialProfile = createPartialProfile();
       mockLoadUserProfile.mockReturnValue(partialProfile);
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(20) },
-        { skill: 'fastapi-advanced', stats: createMockUsageStats(15) },
+        { skill: 'api-design', stats: createMockUsageStats(20) },
+        { skill: 'python-backend', stats: createMockUsageStats(15) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -402,8 +402,8 @@ describe('prompt/profile-injector', () => {
 
       expect(result.continue).toBe(true);
       const context = result.hookSpecificOutput?.additionalContext || '';
-      expect(context).toContain('api-design-framework');
-      expect(context).toContain('fastapi-advanced');
+      expect(context).toContain('api-design');
+      expect(context).toContain('python-backend');
       // Should not crash or include undefined agents
       expect(context).not.toContain('undefined');
     });
@@ -459,9 +459,9 @@ describe('prompt/profile-injector', () => {
     test('context message stays under 200 tokens', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
-        { skill: 'database-schema-designer', stats: createMockUsageStats(35) },
-        { skill: 'auth-patterns', stats: createMockUsageStats(20) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
+        { skill: 'database-patterns', stats: createMockUsageStats(35) },
+        { skill: 'security-patterns', stats: createMockUsageStats(20) },
       ]);
       mockGetTopAgents.mockReturnValue([
         { agent: 'backend-system-architect', stats: createMockUsageStats(30) },
@@ -541,7 +541,7 @@ describe('prompt/profile-injector', () => {
 
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([
         { agent: 'backend-system-architect', stats: createMockUsageStats(30) },
@@ -686,7 +686,7 @@ describe('prompt/profile-injector', () => {
     test('handles prompt with special characters', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -700,7 +700,7 @@ describe('prompt/profile-injector', () => {
     test('handles prompt with newlines', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'database-schema-designer', stats: createMockUsageStats(35) },
+        { skill: 'database-patterns', stats: createMockUsageStats(35) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -714,7 +714,7 @@ describe('prompt/profile-injector', () => {
     test('handles very long prompt', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -729,7 +729,7 @@ describe('prompt/profile-injector', () => {
     test('handles unicode characters in prompt', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -778,7 +778,7 @@ describe('prompt/profile-injector', () => {
     test('should only inject context on first prompt of session', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -799,8 +799,8 @@ describe('prompt/profile-injector', () => {
     test('formats skill list correctly', () => {
       mockLoadUserProfile.mockReturnValue(createFullProfile());
       mockGetTopSkills.mockReturnValue([
-        { skill: 'api-design-framework', stats: createMockUsageStats(50) },
-        { skill: 'database-schema-designer', stats: createMockUsageStats(35) },
+        { skill: 'api-design', stats: createMockUsageStats(50) },
+        { skill: 'database-patterns', stats: createMockUsageStats(35) },
       ]);
       mockGetTopAgents.mockReturnValue([]);
       mockGetRecentDecisions.mockReturnValue([]);
@@ -810,7 +810,7 @@ describe('prompt/profile-injector', () => {
 
       const context = result.hookSpecificOutput?.additionalContext || '';
       // Should have some form of list or mention of skills
-      expect(context).toMatch(/api-design-framework|database-schema-designer/);
+      expect(context).toMatch(/api-design|database-patterns/);
     });
 
     test('formats agent list correctly', () => {

@@ -19,18 +19,16 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - function-calling
-  - llm-streaming
+  - llm-integration
   - streaming-api-patterns
   - caching
-  - langfuse-observability
-  - resilience-patterns
-  - llm-safety-patterns
+  - monitoring-observability
+  - distributed-systems
+  - security-patterns
   - llm-evaluation
-  - fine-tuning-customization
   - performance
   - mcp-advanced-patterns
-  - ollama-local
+  - context-optimization
   - task-dependency-patterns
   - remember
   - memory
@@ -257,4 +255,4 @@ curl -X POST http://localhost:8500/api/v1/chat/stream \
 ## Integration
 - **Receives from:** workflow-architect (LLM node requirements)
 - **Hands off to:** test-generator (for API tests), workflow-architect (integration complete)
-- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, langfuse-observability, context-engineering (attention positioning, token budgeting), context-compression (long conversation management)
+- **Skill references:** ai-native-development (LLM sections), streaming-api-patterns, llm-caching-patterns, monitoring-observability, context-optimization (attention positioning, token budgeting, long conversation management)

@@ -177,8 +177,8 @@ Keep ADRs in version control alongside code:
 
 ## Related Skills
 
-- **api-design-framework**: Use when designing APIs referenced in ADRs
-- **database-schema-designer**: Use when ADR involves database choices
+- **api-design**: Use when designing APIs referenced in ADRs
+- **database-patterns**: Use when ADR involves database choices
 - **security-checklist**: Consult when ADR has security implications
 
 ---

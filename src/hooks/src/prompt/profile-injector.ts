@@ -25,7 +25,7 @@
  * ## User Profile Context
  * Working with **John** (42 sessions)
  *
- * **Preferred skills:** api-design-framework, fastapi-advanced, database-schema-designer
+ * **Preferred skills:** api-design, python-backend, database-patterns
  *
  * **Frequently used agents:** backend-system-architect, database-engineer
  *
@@ -90,7 +90,7 @@ const TOP_PREFERENCES_LIMIT = 2;
  * @returns Comma-separated skill names, or empty string if none
  *
  * @example
- * // Returns: "api-design-framework, fastapi-advanced, database-schema-designer"
+ * // Returns: "api-design, python-backend, database-patterns"
  * formatTopSkills(profile, 3);
  */
 function formatTopSkills(profile: UserProfile, limit: number = TOP_SKILLS_LIMIT): string {

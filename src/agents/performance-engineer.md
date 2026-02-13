@@ -20,7 +20,7 @@ tools:
 skills:
   - performance
   - vite-advanced
-  - observability-monitoring
+  - monitoring-observability
   - caching
   - task-dependency-patterns
   - remember

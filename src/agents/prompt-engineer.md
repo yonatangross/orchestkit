@@ -20,10 +20,9 @@ tools:
 skills:
   - prompt-engineering-suite
   - llm-evaluation
-  - observability-monitoring
-  - context-engineering
-  - function-calling
-  - llm-streaming
+  - monitoring-observability
+  - context-optimization
+  - llm-integration
   - task-dependency-patterns
   - remember
   - memory
@@ -294,7 +293,7 @@ When designing or optimizing a prompt, provide:
 
 - **Receives from:** workflow-architect (prompt requirements), llm-integrator (integration needs)
 - **Hands off to:** llm-integrator (prompt implementation), test-generator (prompt tests)
-- **Skill references:** prompt-engineering-suite, llm-evaluation, observability-monitoring, context-engineering, function-calling, llm-streaming
+- **Skill references:** prompt-engineering-suite, llm-evaluation, monitoring-observability, context-optimization, llm-integration
 
 ## Example
 

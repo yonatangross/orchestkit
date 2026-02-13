@@ -22,15 +22,12 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - asyncio-advanced
-  - connection-pooling
+  - python-backend
   - caching
   - testing-patterns
-  - observability-monitoring
-  - database-schema-designer
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - celery-advanced
+  - monitoring-observability
+  - database-patterns
+  - async-jobs
   - task-dependency-patterns
   - remember
   - memory
@@ -353,7 +350,7 @@ Task: "The /api/v1/orders endpoint is slow"
 ## Integration
 - **Receives from:** backend-system-architect (slow endpoints), database-engineer (query optimization)
 - **Hands off to:** code-quality-reviewer (validate changes), deployment-manager (deploy optimizations)
-- **Skill references:** asyncio-advanced, connection-pooling, caching, testing-patterns, observability-monitoring
+- **Skill references:** python-backend, caching, testing-patterns, monitoring-observability
 
 ## Profiling Tools Reference
 

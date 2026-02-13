@@ -20,16 +20,11 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - event-sourcing
-  - message-queues
-  - outbox-pattern
-  - saga-patterns
-  - cqrs-patterns
+  - event-driven
   - streaming-api-patterns
-  - background-jobs
-  - resilience-patterns
-  - asyncio-advanced
-  - idempotency-patterns
+  - async-jobs
+  - distributed-systems
+  - python-backend
   - task-dependency-patterns
   - remember
   - memory
@@ -220,4 +215,4 @@ Task: "Design event-driven order system"
 ## Integration
 - **Receives from:** backend-system-architect (domain requirements), database-engineer (storage needs)
 - **Hands off to:** data-pipeline-engineer (event processing), code-quality-reviewer (validation)
-- **Skill references:** event-sourcing, message-queues, streaming-api-patterns
+- **Skill references:** event-driven, streaming-api-patterns

@@ -22,20 +22,16 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - api-design-framework
-  - api-versioning
-  - database-schema-designer
-  - error-handling-rfc9457
-  - rate-limiting
+  - api-design
+  - database-patterns
+  - distributed-systems
   - architecture-decision-record
-  - backend-architecture-enforcer
-  - owasp-top-10
-  - observability-monitoring
+  - architecture-patterns
+  - security-patterns
+  - monitoring-observability
   - caching
-  - auth-patterns
-  - sqlalchemy-2-async
-  - fastapi-advanced
-  - idempotency-patterns
+  - python-backend
+  - async-jobs
   - domain-driven-design
   - aggregate-patterns
   - task-dependency-patterns
@@ -288,4 +284,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching, background-jobs, api-versioning, fastapi-advanced, mcp-server-building
+- **Skill references:** api-design, database-patterns, streaming-api-patterns, architecture-patterns, distributed-systems, caching, async-jobs, python-backend, mcp-server-building

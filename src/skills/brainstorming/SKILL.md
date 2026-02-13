@@ -7,7 +7,7 @@ version: 4.2.0
 author: OrchestKit
 user-invocable: true
 allowedTools: [AskUserQuestion, Task, Read, Grep, Glob, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [architecture-decision-record, api-design-framework, design-system-starter, memory, remember, assess-complexity]
+skills: [architecture-decision-record, api-design, design-system-starter, memory, remember, assess-complexity]
 complexity: medium
 ---
 

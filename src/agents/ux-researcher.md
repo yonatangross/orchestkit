@@ -17,8 +17,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - user-research-methods
-  - persona-journey-mapping
+  - product-frameworks
   - design-system-starter
   - remember
   - memory

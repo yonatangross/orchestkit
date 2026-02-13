@@ -21,12 +21,10 @@ tools:
   - TaskList
 skills:
   - rag-retrieval
-  - golden-dataset-management
-  - golden-dataset-curation
-  - golden-dataset-validation
+  - golden-dataset
   - caching
-  - background-jobs
-  - browser-content-capture
+  - async-jobs
+  - browser-tools
   - devops-deployment
   - memory-fabric
   - task-dependency-patterns
@@ -203,4 +201,4 @@ Task: "Regenerate embeddings for the golden dataset"
 ## Integration
 - **Receives from:** workflow-architect (data requirements for RAG)
 - **Hands off to:** database-engineer (for index schema changes), llm-integrator (data ready for consumption)
-- **Skill references:** rag-retrieval, golden-dataset-management, context-engineering
+- **Skill references:** rag-retrieval, golden-dataset, context-optimization

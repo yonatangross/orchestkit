@@ -17,7 +17,7 @@ tools:
   - TaskList
 skills:
   - root-cause-analysis
-  - observability-monitoring
+  - monitoring-observability
   - errors
   - remember
   - memory
@@ -264,4 +264,4 @@ The debug-investigator agent complements `/debug` by:
 ## Integration
 - **Triggered by:** User bug report, CI failure, error monitoring
 - **Hands off to:** backend-system-architect or frontend-ui-developer (for fix implementation)
-- **Skill references:** observability-monitoring
+- **Skill references:** monitoring-observability

@@ -23,7 +23,7 @@ skills:
   - devops-deployment
   - security-scanning
   - github-operations
-  - observability-monitoring
+  - monitoring-observability
   - biome-linting
   - vite-advanced
   - task-dependency-patterns

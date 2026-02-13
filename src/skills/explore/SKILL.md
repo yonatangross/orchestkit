@@ -7,7 +7,7 @@ author: OrchestKit
 tags: [exploration, code-search, architecture, codebase, health-assessment]
 user-invocable: true
 allowedTools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
-skills: [ascii-visualizer, architecture-decision-record, memory, clean-architecture, assess-complexity]
+skills: [ascii-visualizer, architecture-decision-record, memory, architecture-patterns, assess-complexity]
 complexity: high
 ---
 

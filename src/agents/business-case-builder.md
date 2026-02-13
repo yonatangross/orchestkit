@@ -18,7 +18,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - business-case-analysis
+  - product-frameworks
   - brainstorming
   - github-operations
   - remember

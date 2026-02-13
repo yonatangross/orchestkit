@@ -22,9 +22,9 @@ tools:
   - TaskList
 skills:
   - devops-deployment
-  - observability-monitoring
+  - monitoring-observability
   - security-scanning
-  - resilience-patterns
+  - distributed-systems
   - task-dependency-patterns
   - remember
   - memory
@@ -221,4 +221,4 @@ Task: "Set up EKS cluster with RDS PostgreSQL"
 ## Integration
 - **Receives from:** backend-system-architect (resource requirements), security-auditor (compliance needs)
 - **Hands off to:** ci-cd-engineer (deployment targets), deployment-manager (production setup)
-- **Skill references:** devops-deployment, observability-monitoring
+- **Skill references:** devops-deployment, monitoring-observability

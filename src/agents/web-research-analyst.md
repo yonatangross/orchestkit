@@ -20,10 +20,9 @@ tools:
   - TaskList
 skills:
   - web-research-workflow
-  - browser-content-capture
-  - browser-automation
+  - browser-tools
   - competitive-monitoring
-  - market-analysis-patterns
+  - product-frameworks
   - rag-retrieval
   - remember
   - memory
@@ -287,7 +286,7 @@ cat /tmp/api-calls.json | jq '.[] | {url, method, status}'
 
 - **Receives from:** User requests, `market-intelligence` (research tasks)
 - **Hands off to:** `product-strategist` (strategic analysis), `documentation-specialist` (doc formatting)
-- **Skill references:** web-research-workflow, browser-content-capture, competitive-monitoring
+- **Skill references:** web-research-workflow, browser-tools, competitive-monitoring
 
 ## Notes
 

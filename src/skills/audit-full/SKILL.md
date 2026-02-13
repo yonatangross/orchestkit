@@ -7,7 +7,7 @@ author: OrchestKit
 tags: [security, architecture, audit, dependencies, 1m-context, cross-file]
 user-invocable: true
 allowedTools: [AskUserQuestion, Read, Grep, Glob, Bash, Task, TaskCreate, TaskUpdate, TaskList, mcp__memory__search_nodes]
-skills: [security-scanning, defense-in-depth, owasp-top-10, clean-architecture, quality-gates]
+skills: [security-scanning, security-patterns, architecture-patterns, quality-gates]
 complexity: max
 ---
 
@@ -290,9 +290,8 @@ Before finalizing the report, verify with `checklists/audit-completion.md`.
 ## Related Skills
 
 - `security-scanning` — Automated scanner integration (npm audit, Semgrep, etc.)
-- `defense-in-depth` — 8-layer security architecture patterns
-- `owasp-top-10` — OWASP vulnerability classification
-- `clean-architecture` — Architectural pattern reference
+- `security-patterns` — Security architecture patterns and OWASP vulnerability classification
+- `architecture-patterns` — Architectural pattern reference
 - `quality-gates` — Quality assessment criteria
 - `verify` — Chunked multi-agent verification (fallback for large codebases)
 

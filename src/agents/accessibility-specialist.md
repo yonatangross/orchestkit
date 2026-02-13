@@ -18,12 +18,10 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - wcag-compliance
+  - accessibility
   - testing-patterns
-  - focus-management
-  - react-aria-patterns
   - design-system-starter
-  - motion-animation-patterns
+  - frontend-animation
   - i18n-date-patterns
   - task-dependency-patterns
   - remember
@@ -237,4 +235,4 @@ Task: "Audit and fix login form accessibility"
 ## Integration
 - **Receives from:** frontend-ui-developer (components), rapid-ui-designer (designs)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (test coverage)
-- **Skill references:** wcag-compliance, testing-patterns, design-system-starter
+- **Skill references:** accessibility, testing-patterns, design-system-starter

@@ -252,7 +252,7 @@ describe('E2E: Full Session Lifecycle', () => {
     writeFileSync(graphFile, 'x'.repeat(200));
 
     // 1. First prompt triggers skill resolver
-    const prompt1Content = 'Suggested: api-design-framework (80% confidence)';
+    const prompt1Content = 'Suggested: api-design (80% confidence)';
     const tokens1 = estimateTokenCount(prompt1Content);
     trackTokenUsage('skill-resolver', 'skill-injection', tokens1);
 
@@ -270,7 +270,7 @@ describe('E2E: Full Session Lifecycle', () => {
     expect(getTotalUsage()).toBe(tokens1 + memTokens);
 
     // 3. Second prompt - more skill suggestions
-    const prompt2Content = 'Hint: auth-patterns';
+    const prompt2Content = 'Hint: security-patterns';
     const tokens2 = estimateTokenCount(prompt2Content);
     trackTokenUsage('skill-resolver', 'skill-injection', tokens2);
 

@@ -19,13 +19,11 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - database-schema-designer
+  - database-patterns
   - rag-retrieval
   - performance
-  - alembic-migrations
-  - database-versioning
   - zero-downtime-migration
-  - sqlalchemy-2-async
+  - python-backend
   - caching
   - task-dependency-patterns
   - remember
@@ -199,4 +197,4 @@ def downgrade():
 ## Integration
 - **Receives from:** backend-system-architect (model requirements)
 - **Hands off to:** code-quality-reviewer (migration review)
-- **Skill references:** database-schema-designer, rag-retrieval
+- **Skill references:** database-patterns, rag-retrieval

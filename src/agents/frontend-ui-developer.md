@@ -23,14 +23,13 @@ skills:
   - design-system-starter
   - type-safety-validation
   - testing-patterns
-  - focus-management
+  - accessibility
   - performance
   - biome-linting
   - zustand-patterns
   - tanstack-query-advanced
   - form-state-patterns
-  - wcag-compliance
-  - project-structure-enforcer
+  - architecture-patterns
   - stacked-prs
   - task-dependency-patterns
   - remember
@@ -437,4 +436,4 @@ Action: Build real AnalysisStatus.tsx with:
 ## Integration
 - **Receives from:** rapid-ui-designer (design specs, Tailwind classes), ux-researcher (user stories, personas), backend-system-architect (API contracts)
 - **Hands off to:** code-quality-reviewer (validation), test-generator (E2E scenarios)
-- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, motion-animation-patterns
+- **Skill references:** react-server-components-framework, type-safety-validation, design-system-starter, performance, i18n-date-patterns, frontend-animation

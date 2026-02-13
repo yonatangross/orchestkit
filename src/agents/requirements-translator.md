@@ -16,7 +16,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - requirements-engineering
+  - product-frameworks
   - github-operations
   - remember
   - memory

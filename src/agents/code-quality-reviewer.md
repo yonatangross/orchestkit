@@ -20,16 +20,14 @@ tools:
   - TaskList
 skills:
   - code-review-playbook
-  - owasp-top-10
+  - security-patterns
   - testing-patterns
   - evidence-verification
-  - resilience-patterns
-  - test-standards-enforcer
+  - distributed-systems
+  - architecture-patterns
   - security-scanning
   - quality-gates
   - biome-linting
-  - clean-architecture
-  - project-structure-enforcer
   - best-practices
   - remember
   - memory

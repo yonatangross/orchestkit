@@ -18,7 +18,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - market-analysis-patterns
+  - product-frameworks
   - github-operations
   - remember
   - memory

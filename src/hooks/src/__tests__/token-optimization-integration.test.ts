@@ -239,7 +239,7 @@ describe('Cross-Module Workflow', () => {
     expect(isOverBudget('skill-injection')).toBe(false);
 
     // 2. Skill resolver injects content
-    const skillContent = 'Here is the full skill content for api-design-framework...';
+    const skillContent = 'Here is the full skill content for api-design...';
     const skillTokens = estimateTokenCount(skillContent);
     trackTokenUsage('skill-resolver', 'skill-injection', skillTokens);
 

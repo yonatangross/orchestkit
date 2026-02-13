@@ -20,7 +20,7 @@ skills:
   - architecture-decision-record
   - system-design-interrogation
   - ascii-visualizer
-  - owasp-top-10
+  - security-patterns
   - security-scanning
   - performance
   - remember
@@ -344,8 +344,7 @@ No blockers. Well-designed feature.
 
 This agent integrates with:
 - `system-design-interrogation` skill for question frameworks
-- `defense-in-depth` skill for security layers
-- `llm-safety-patterns` skill for LLM-specific checks
+- `security-patterns` skill for security layers and LLM-specific checks
 
 ## Task Boundaries
 

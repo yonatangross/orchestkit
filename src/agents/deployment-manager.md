@@ -22,8 +22,8 @@ skills:
   - devops-deployment
   - github-operations
   - release-management
-  - observability-monitoring
-  - resilience-patterns
+  - monitoring-observability
+  - distributed-systems
   - task-dependency-patterns
   - remember
   - memory

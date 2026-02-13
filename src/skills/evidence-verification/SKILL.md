@@ -315,7 +315,7 @@ mypy .                 # Run type checker
 
 - `testing-patterns` - Comprehensive testing patterns for generating test evidence
 - `security-scanning` - Security scan evidence collection (npm audit, pip-audit)
-- `test-standards-enforcer` - Enforce evidence collection standards
+- `architecture-patterns` - Enforce evidence collection standards
 
 ## Key Decisions
 

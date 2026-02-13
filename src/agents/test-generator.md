@@ -19,8 +19,9 @@ tools:
   - TaskList
 skills:
   - testing-patterns
-  - test-standards-enforcer
+  - architecture-patterns
   - run-tests
+  - browser-tools
   - task-dependency-patterns
   - remember
   - memory

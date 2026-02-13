@@ -1,6 +1,6 @@
 /**
  * Migration Validator Hook
- * Runs after Write for database-schema-designer skill
+ * Runs after Write for database-patterns skill
  * Validates alembic migration files
  * CC 2.1.7 Compliant
  */

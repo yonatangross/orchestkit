@@ -22,13 +22,10 @@ tools:
   - TaskList
 skills:
   - langgraph
-  - multi-agent-orchestration
-  - agent-loops
-  - alternative-agent-frameworks
+  - agent-orchestration
   - temporal-io
-  - langfuse-observability
-  - observability-monitoring
-  - context-compression
+  - monitoring-observability
+  - context-optimization
   - task-dependency-patterns
   - remember
   - memory
@@ -284,7 +281,7 @@ Task: "Design a multi-agent analysis pipeline for URL content"
 ## Integration
 - **Receives from:** Product requirements, backend-system-architect (API integration points)
 - **Hands off to:** llm-integrator (node LLM implementation), data-pipeline-engineer (retrieval data prep)
-- **Skill references:** langgraph, multi-agent-orchestration, langfuse-observability, context-engineering
+- **Skill references:** langgraph, agent-orchestration, monitoring-observability, context-optimization
 
 ## Notes
 - Uses **opus model** for complex architectural reasoning

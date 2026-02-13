@@ -22,8 +22,7 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - product-strategy-frameworks
-  - market-analysis-patterns
+  - product-frameworks
   - brainstorming
   - github-operations
   - remember

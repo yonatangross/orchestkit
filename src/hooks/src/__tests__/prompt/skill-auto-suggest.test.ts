@@ -75,75 +75,75 @@ describe('prompt/skill-auto-suggest', () => {
   });
 
   describe('API & backend keyword matching', () => {
-    test('suggests api-design-framework for "api" keyword', () => {
+    test('suggests api-design for "api" keyword', () => {
       const input = createPromptInput('Help me design an API for user management');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('api-design-framework');
+        expect(result.hookSpecificOutput.additionalContext).toContain('api-design');
       }
     });
 
-    test('suggests api-design-framework for "endpoint" keyword', () => {
+    test('suggests api-design for "endpoint" keyword', () => {
       const input = createPromptInput('Create a new endpoint for authentication');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('api-design-framework');
+        expect(result.hookSpecificOutput.additionalContext).toContain('api-design');
       }
     });
 
-    test('suggests api-design-framework for "rest" keyword', () => {
+    test('suggests api-design for "rest" keyword', () => {
       const input = createPromptInput('Design REST endpoints for the service');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('api-design-framework');
+        expect(result.hookSpecificOutput.additionalContext).toContain('api-design');
       }
     });
 
-    test('suggests fastapi-advanced for "fastapi" keyword', () => {
+    test('suggests python-backend for "fastapi" keyword', () => {
       const input = createPromptInput('Create a FastAPI application');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('fastapi-advanced');
+        expect(result.hookSpecificOutput.additionalContext).toContain('python-backend');
       }
     });
   });
 
   describe('database keyword matching', () => {
-    test('suggests database-schema-designer for "database" keyword', () => {
+    test('suggests database-patterns for "database" keyword', () => {
       const input = createPromptInput('Design a database schema for users');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('database-schema-designer');
+        expect(result.hookSpecificOutput.additionalContext).toContain('database-patterns');
       }
     });
 
-    test('suggests alembic-migrations for "migration" keyword', () => {
+    test('suggests database-patterns for "migration" keyword', () => {
       const input = createPromptInput('Create a database migration');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('alembic-migrations');
+        expect(result.hookSpecificOutput.additionalContext).toContain('database-patterns');
       }
     });
 
-    test('suggests sqlalchemy-2-async for "sqlalchemy" keyword', () => {
+    test('suggests python-backend for "sqlalchemy" keyword', () => {
       const input = createPromptInput('Configure SQLAlchemy for async operations');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('sqlalchemy-2-async');
+        expect(result.hookSpecificOutput.additionalContext).toContain('python-backend');
       }
     });
 
@@ -159,33 +159,33 @@ describe('prompt/skill-auto-suggest', () => {
   });
 
   describe('authentication & security keyword matching', () => {
-    test('suggests auth-patterns for "auth" keyword', () => {
+    test('suggests security-patterns for "auth" keyword', () => {
       const input = createPromptInput('Implement auth for the application');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('auth-patterns');
+        expect(result.hookSpecificOutput.additionalContext).toContain('security-patterns');
       }
     });
 
-    test('suggests auth-patterns for "jwt" keyword', () => {
+    test('suggests security-patterns for "jwt" keyword', () => {
       const input = createPromptInput('Add JWT authentication');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('auth-patterns');
+        expect(result.hookSpecificOutput.additionalContext).toContain('security-patterns');
       }
     });
 
-    test('suggests owasp-top-10 for "security" keyword', () => {
+    test('suggests security-patterns for "security" keyword', () => {
       const input = createPromptInput('Review the security of the application');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('owasp-top-10');
+        expect(result.hookSpecificOutput.additionalContext).toContain('security-patterns');
       }
     });
   });
@@ -263,13 +263,13 @@ describe('prompt/skill-auto-suggest', () => {
       }
     });
 
-    test('suggests radix-primitives for "radix" keyword', () => {
+    test('suggests ui-components for "radix" keyword', () => {
       const input = createPromptInput('Use Radix UI components');
       const result = skillAutoSuggest(input);
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('radix-primitives');
+        expect(result.hookSpecificOutput.additionalContext).toContain('ui-components');
       }
     });
   });
@@ -350,8 +350,8 @@ describe('prompt/skill-auto-suggest', () => {
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        // Should include fastapi-advanced with higher confidence
-        expect(result.hookSpecificOutput.additionalContext).toContain('fastapi-advanced');
+        // Should include python-backend with higher confidence
+        expect(result.hookSpecificOutput.additionalContext).toContain('python-backend');
       }
     });
 
@@ -414,7 +414,7 @@ describe('prompt/skill-auto-suggest', () => {
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('sqlalchemy-2-async');
+        expect(result.hookSpecificOutput.additionalContext).toContain('python-backend');
       }
     });
 
@@ -424,7 +424,7 @@ describe('prompt/skill-auto-suggest', () => {
 
       expect(result.continue).toBe(true);
       if (result.hookSpecificOutput?.additionalContext) {
-        expect(result.hookSpecificOutput.additionalContext).toContain('connection-pooling');
+        expect(result.hookSpecificOutput.additionalContext).toContain('python-backend');
       }
     });
 
