@@ -18,14 +18,12 @@ PASSED=0
 FAILED=0
 WARNINGS=0
 
-# New frontend skills to test
+# Frontend skills to test (updated after batch 18 consolidation #555)
 FRONTEND_SKILLS=(
-  "frontend-animation"
   "ui-components"
-  "data-visualization"
   "responsive-patterns"
-  "pwa-patterns"
   "performance"
+  "vite-advanced"
 )
 
 log_pass() { echo -e "${GREEN}✓${NC} $1"; PASSED=$((PASSED + 1)); }

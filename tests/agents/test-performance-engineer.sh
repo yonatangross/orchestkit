@@ -60,7 +60,7 @@ echo ""
 
 # Test 4: Required skills are present
 echo "Test 4: Required skills"
-required_skills=("performance" "monitoring-observability" "caching")
+required_skills=("performance" "monitoring-observability" "vite-advanced")
 for skill in "${required_skills[@]}"; do
   if grep -q "$skill" "$AGENT_FILE"; then
     log_pass "Has skill: $skill"

@@ -356,7 +356,8 @@ test_github_operations_skill_exists() {
 }
 
 test_stacked_prs_skill_exists() {
-    local skill_dir="$PROJECT_ROOT/src/skills/stacked-prs"
+    # stacked-prs absorbed into git-workflow in batch 18
+    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 
@@ -366,8 +367,8 @@ test_release_management_skill_exists() {
 }
 
 test_git_recovery_skill_exists() {
-    # Renamed from git-recovery-command to git-recovery in v6.0.0
-    local skill_dir="$PROJECT_ROOT/src/skills/git-recovery"
+    # git-recovery absorbed into git-workflow in batch 18
+    local skill_dir="$PROJECT_ROOT/src/skills/git-workflow"
     assert_file_exists "$skill_dir/SKILL.md"
 }
 

@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 # Test suite for AI/ML Roadmap 2026 skills (updated after consolidation #536)
-# Tests: mcp-security-hardening, advanced-guardrails, rag-retrieval,
-#        prompt-engineering-suite, agent-orchestration, mcp-advanced-patterns,
-#        llm-integration
+# Tests: mcp-patterns, security-patterns, rag-retrieval,
+#        agent-orchestration, llm-integration
 
 set -euo pipefail
 
@@ -36,14 +35,12 @@ warn() {
     TESTS_RUN=$((TESTS_RUN + 1))
 }
 
-# AI/ML skills to test (updated after skill consolidation #536)
+# AI/ML skills to test (updated after batch 18 consolidation #555)
 AI_ML_SKILLS=(
-    "mcp-security-hardening"
-    "advanced-guardrails"
+    "mcp-patterns"
+    "security-patterns"
     "rag-retrieval"
-    "prompt-engineering-suite"
     "agent-orchestration"
-    "mcp-advanced-patterns"
     "llm-integration"
 )
 
