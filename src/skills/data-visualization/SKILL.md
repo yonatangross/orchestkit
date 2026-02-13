@@ -1,0 +1,126 @@
+---
+name: data-visualization
+description: Data visualization patterns for dashboard layouts and Recharts 3.x charting. Use when building dashboards, widget grids, chart components, or data-driven UIs.
+tags: [data-visualization, dashboard, recharts, charts, widgets, data-ui]
+context: fork
+agent: frontend-ui-developer
+version: 2.0.0
+author: OrchestKit
+user-invocable: false
+complexity: low
+---
+
+# Data Visualization
+
+Patterns for building dashboards, widget grids, and Recharts 3.x chart components in React. Each category has individual rule files in `rules/` loaded on-demand.
+
+## Quick Reference
+
+| Category | Rules | Impact | When to Use |
+|----------|-------|--------|-------------|
+| [Dashboard](#dashboard) | 3 | HIGH | Grid layouts, widget composition, filter/search patterns |
+| [Charts](#charts) | 3 | HIGH | Line/bar/pie charts, responsive containers, custom tooltips |
+
+**Total: 6 rules across 2 categories**
+
+## Quick Start
+
+```tsx
+// Dashboard grid with stat cards
+function DashboardGrid() {
+  return (
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <StatCard title="Revenue" value="$45,231" change="+12%" />
+      <StatCard title="Users" value="2,350" change="+5.2%" />
+      <div className="col-span-full"><RevenueChart /></div>
+    </div>
+  );
+}
+```
+
+```tsx
+// Recharts responsive line chart
+function RevenueChart({ data }: { data: ChartData[] }) {
+  return (
+    <ResponsiveContainer width="100%" height={400}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis />
+        <Tooltip content={<CustomTooltip />} />
+        <Line type="monotone" dataKey="revenue" stroke="#8884d8" strokeWidth={2} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+```
+
+## Dashboard
+
+Responsive grid layouts, widget composition, and real-time data patterns for admin panels and analytics dashboards.
+
+### Key Patterns
+
+- **CSS Grid layouts** with responsive breakpoints (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`)
+- **Widget registry** pattern for dynamic dashboard composition
+- **TanStack Query + SSE** for real-time metric updates
+- **TanStack Table** for sortable, filterable data tables with pagination
+- **Skeleton loading** states for content areas
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Layout | CSS Grid for 2D dashboard layouts |
+| Real-time | SSE for server->client, WebSocket for bidirectional |
+| Data table | TanStack Table for features |
+| State | TanStack Query with granular keys |
+| Loading | Skeleton for content areas |
+
+## Charts
+
+Recharts 3.x data visualization with responsive containers, custom tooltips, accessibility, and performance optimization.
+
+### Key Patterns
+
+- **ResponsiveContainer** wrapping all charts (always set parent height)
+- **Custom tooltips** for branded UX
+- **Accessibility** with `figure` role and `aria-label`
+- **Real-time charts** with `isAnimationActive={false}` and `dot={false}`
+- **Performance** limiting data points and memoizing calculations
+
+### Chart Types
+
+| Chart | Component | Best For |
+|-------|-----------|----------|
+| Line | `LineChart` | Trends over time |
+| Bar | `BarChart` | Comparisons |
+| Pie/Donut | `PieChart` with `innerRadius` | Proportions |
+| Area | `AreaChart` with gradient | Volume over time |
+
+### Key Decisions
+
+| Decision | Recommendation |
+|----------|----------------|
+| Container | ResponsiveContainer always |
+| Animation | Disabled for real-time data |
+| Tooltip | Custom for branded UX |
+| Data updates | Sliding window for time-series |
+
+## Anti-Patterns (FORBIDDEN)
+
+```tsx
+// NEVER: Fetch data in every widget independently (duplicated queries)
+// NEVER: Re-render entire dashboard on single metric change
+// NEVER: Hardcoded dashboard layout (not responsive)
+// NEVER: ResponsiveContainer without parent dimensions
+// NEVER: Animations on real-time charts (causes jank)
+// NEVER: Inline data definition in render (new array every render)
+// NEVER: Too many data points without limiting (performance issue)
+```
+
+## Related Skills
+
+- `tanstack-query-advanced` - Data fetching patterns
+- `streaming-api-patterns` - SSE and WebSocket implementation
+- `testing-patterns` - Comprehensive testing including accessibility testing

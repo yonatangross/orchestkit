@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, rate limiting, and distributed task execution with ARQ and Celery.",
+  "ruleCount": 8,
+  "categories": 8,
+  "consolidatedFrom": [
+    "background-jobs",
+    "celery-advanced"
+  ]
+}

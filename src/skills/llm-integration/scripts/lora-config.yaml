@@ -1,0 +1,220 @@
+# LoRA/QLoRA Fine-Tuning Configuration
+# Production-ready hyperparameters for Llama 3.x / Mistral / Phi-3 models
+
+# =============================================================================
+# Model Configuration
+# =============================================================================
+model:
+  name: "unsloth/Meta-Llama-3.1-8B"  # Or: meta-llama/Llama-3.1-8B, mistralai/Mistral-7B-v0.3
+  max_seq_length: 2048  # Increase for longer contexts (4096, 8192)
+  dtype: null  # Auto-detect (float16/bfloat16)
+  load_in_4bit: true  # QLoRA: true, LoRA: false
+  trust_remote_code: false
+
+# =============================================================================
+# LoRA Configuration
+# =============================================================================
+lora:
+  # Rank: Controls adapter capacity
+  # - 8: Minimal (style/tone only)
+  # - 16: Standard (most tasks)
+  # - 32: Complex tasks
+  # - 64: Maximum (domain expertise)
+  r: 16
+
+  # Alpha: Scaling factor (usually 2x rank)
+  lora_alpha: 32
+
+  # Dropout: Regularization (0.0-0.1 typical)
+  lora_dropout: 0.05
+
+  # Target modules: Which layers to adapt
+  # Minimal (faster, less capacity):
+  #   - q_proj
+  #   - v_proj
+  # Standard (recommended):
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+  # Extended (more capacity, slower):
+  # target_modules:
+  #   - q_proj
+  #   - k_proj
+  #   - v_proj
+  #   - o_proj
+  #   - gate_proj
+  #   - up_proj
+  #   - down_proj
+  #   - embed_tokens
+  #   - lm_head
+
+  # Bias: Whether to train bias terms
+  bias: "none"  # Options: "none", "all", "lora_only"
+
+  # Task type for Hugging Face PEFT
+  task_type: "CAUSAL_LM"
+
+# =============================================================================
+# Training Configuration
+# =============================================================================
+training:
+  # Output directory
+  output_dir: "./output"
+
+  # Batch size
+  per_device_train_batch_size: 4
+  per_device_eval_batch_size: 4
+  gradient_accumulation_steps: 4  # Effective batch = 4 * 4 = 16
+
+  # Learning rate
+  # - LoRA: 1e-4 to 2e-4
+  # - QLoRA: 2e-4 to 5e-4
+  learning_rate: 2.0e-4
+  lr_scheduler_type: "cosine"
+
+  # Training duration
+  num_train_epochs: 1  # Start with 1, rarely need more than 3
+  max_steps: -1  # -1 = use num_train_epochs
+
+  # Warmup
+  warmup_ratio: 0.03  # 3% of training steps
+
+  # Regularization
+  weight_decay: 0.001
+
+  # Precision
+  fp16: false
+  bf16: true  # Prefer bf16 if supported
+
+  # Optimization
+  optim: "adamw_8bit"  # Memory efficient
+  # Alternative: "paged_adamw_8bit" for extreme memory savings
+
+  # Gradient checkpointing (memory vs speed tradeoff)
+  gradient_checkpointing: true
+
+  # Logging
+  logging_steps: 10
+  logging_first_step: true
+
+  # Saving
+  save_strategy: "epoch"
+  save_total_limit: 2
+
+  # Evaluation
+  eval_strategy: "epoch"
+  eval_steps: null  # Use eval_strategy
+
+  # Reproducibility
+  seed: 42
+
+# =============================================================================
+# Data Configuration
+# =============================================================================
+data:
+  # Dataset source
+  dataset_name: null  # Hugging Face dataset name
+  dataset_path: "./data/train.jsonl"  # Or local path
+
+  # Train/eval split
+  train_split: "train"
+  eval_split: "validation"  # Or create from train
+  eval_size: 0.1  # If no eval split, use 10% of train
+
+  # Formatting
+  # Alpaca format: instruction, input, output
+  # ChatML format: messages array
+  format: "alpaca"
+
+  # Prompt template (Alpaca)
+  prompt_template: |
+    ### Instruction:
+    {instruction}
+
+    ### Input:
+    {input}
+
+    ### Response:
+    {output}
+
+  # Or for ChatML:
+  # prompt_template: null  # Uses tokenizer's chat template
+
+  # Preprocessing
+  max_length: 2048
+  truncation: true
+  padding: false  # Dynamic padding in collator
+
+# =============================================================================
+# Evaluation Configuration
+# =============================================================================
+evaluation:
+  # Metrics to track
+  metrics:
+    - "loss"
+    - "perplexity"
+
+  # Early stopping
+  early_stopping: false
+  early_stopping_patience: 3
+  early_stopping_threshold: 0.01
+
+  # Best model selection
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+
+# =============================================================================
+# Hardware Configuration
+# =============================================================================
+hardware:
+  # Device placement
+  device_map: "auto"  # Automatic multi-GPU
+
+  # Memory optimization
+  use_gradient_checkpointing: "unsloth"  # Or: true, false
+  max_memory:
+    0: "20GB"  # GPU 0 memory limit
+    # 1: "20GB"  # GPU 1 if multi-GPU
+
+  # Data loading
+  dataloader_num_workers: 4
+  dataloader_pin_memory: true
+
+# =============================================================================
+# Experiment Tracking (Optional)
+# =============================================================================
+tracking:
+  # Weights & Biases
+  wandb:
+    enabled: false
+    project: "lora-finetuning"
+    entity: null
+    name: null  # Auto-generated if null
+
+  # Hugging Face Hub
+  hub:
+    push_to_hub: false
+    hub_model_id: null
+    hub_strategy: "end"
+
+# =============================================================================
+# Post-Training
+# =============================================================================
+post_training:
+  # Merge LoRA into base model
+  merge_adapters: false  # Set true for deployment without PEFT
+
+  # Quantization after merge
+  quantize_merged: false
+  quantization_bits: 4  # 4 or 8
+
+  # Export formats
+  export_gguf: false  # For llama.cpp
+  export_onnx: false  # For ONNX Runtime

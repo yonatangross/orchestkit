@@ -1,0 +1,16 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Comprehensive security patterns covering authentication (JWT, OAuth 2.1, RBAC), defense-in-depth (8-layer architecture, tenant isolation), input validation (Zod v4, Pydantic), OWASP Top 10 mitigations, LLM safety (prompt injection defense, output guardrails), and PII masking (Presidio, Langfuse, LLM Guard).",
+  "ruleCount": 15,
+  "categories": 6,
+  "consolidatedFrom": [
+    "auth-patterns",
+    "defense-in-depth",
+    "input-validation",
+    "owasp-top-10",
+    "llm-safety-patterns",
+    "pii-masking-patterns"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "UI component library patterns for shadcn/ui and Radix Primitives. Covers CVA variants, OKLCH theming, cn() utility, component extension, asChild polymorphic composition, dialog and menu patterns, data-attribute styling, and focus management.",
+  "ruleCount": 6,
+  "categories": 2,
+  "consolidatedFrom": [
+    "shadcn-patterns",
+    "radix-primitives"
+  ]
+}

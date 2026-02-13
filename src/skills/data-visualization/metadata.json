@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Data visualization patterns for dashboard layouts and Recharts 3.x charting, covering grid layouts, widget composition, real-time data, chart types, responsive containers, and custom tooltips.",
+  "ruleCount": 6,
+  "categories": 2,
+  "consolidatedFrom": [
+    "dashboard-patterns",
+    "recharts-patterns"
+  ]
+}

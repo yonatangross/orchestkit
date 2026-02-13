@@ -1,0 +1,118 @@
+{
+  "skill": "context-optimization",
+  "version": "2.0.0",
+  "testCases": [
+    {
+      "id": "compression-strategy-selection",
+      "rule": "compression-strategies",
+      "query": "My agent session is running long and hitting context limits. What compression strategy should I use?",
+      "expectedBehavior": [
+        "Recommends anchored iterative summarization as default",
+        "Explains trade-offs between strategies (anchored, opaque, regenerative, sliding window)",
+        "Mentions 60-80% compression ratio target",
+        "Warns against >95% compression as too aggressive"
+      ]
+    },
+    {
+      "id": "anchored-summarization-implementation",
+      "rule": "anchored-summarization",
+      "query": "How do I implement anchored summarization to compress conversation history?",
+      "expectedBehavior": [
+        "Shows forced sections: Session Intent, Files Modified, Decisions Made, Current State, Next Steps",
+        "Emphasizes incremental merge over full regeneration",
+        "Explains telephone game problem with regenerative approach",
+        "Includes AnchoredSummary data class or equivalent implementation"
+      ]
+    },
+    {
+      "id": "compression-trigger-thresholds",
+      "rule": "compression-triggers",
+      "query": "When should I trigger compression and what thresholds should I use?",
+      "expectedBehavior": [
+        "Triggers compression at 70% capacity",
+        "Targets 50% capacity after compression",
+        "Requires minimum 10 messages before compressing",
+        "Preserves last 5 messages uncompressed",
+        "Explains CC 2.1.7 effective vs static context window"
+      ]
+    },
+    {
+      "id": "probe-based-evaluation",
+      "rule": "compression-triggers",
+      "query": "How do I evaluate if my compression preserved critical information?",
+      "expectedBehavior": [
+        "Uses probe-based evaluation, not ROUGE/BLEU metrics",
+        "Tests functional preservation with specific questions",
+        "Targets >90% probe pass rate",
+        "Generates probes from file paths, decisions, and errors"
+      ]
+    },
+    {
+      "id": "attention-positioning",
+      "rule": "attention-mechanics",
+      "query": "How should I position information in my context window for best results?",
+      "expectedBehavior": [
+        "Explains lost-in-the-middle phenomenon",
+        "Places identity and constraints at START (85-95% recall)",
+        "Places background context in MIDDLE (10-40% recall)",
+        "Places current task and output format at END (80-95% recall)",
+        "Suggests repeating critical constraints at both START and END"
+      ]
+    },
+    {
+      "id": "context-layer-architecture",
+      "rule": "context-layers",
+      "query": "How should I structure the different layers of context for an agent?",
+      "expectedBehavior": [
+        "Describes five layers: system, tools, documents, history, outputs",
+        "Provides budget allocation percentages for agent vs chat",
+        "Warns that tool outputs can consume 83.9% of context",
+        "Recommends just-in-time document loading over pre-loading"
+      ]
+    },
+    {
+      "id": "token-budget-calculation",
+      "rule": "token-budget-management",
+      "query": "How do I calculate and allocate my token budget across context layers?",
+      "expectedBehavior": [
+        "Reserves 20% for response generation",
+        "Shows different allocations for chat vs agent tasks",
+        "Explains CC 2.1.32+ skill budget auto-scaling (2% of context window)",
+        "Includes budget calculator implementation"
+      ]
+    },
+    {
+      "id": "tool-output-optimization",
+      "rule": "context-layers",
+      "query": "My tool outputs are consuming too much context. How do I fix this?",
+      "expectedBehavior": [
+        "Truncates results at source with character/count limits",
+        "Summarizes large outputs before returning",
+        "Uses structured extraction instead of raw dumps",
+        "Shows 83.9% tool output finding as motivation"
+      ]
+    },
+    {
+      "id": "mcp-auto-deferral",
+      "rule": "token-budget-management",
+      "query": "How does MCP auto-deferral help with context optimization?",
+      "expectedBehavior": [
+        "Defers MCP tools when context exceeds 10% of effective window",
+        "Saves ~7200 tokens per session on average",
+        "Recommends using MCPs early before context fills",
+        "Suggests batching MCP calls and caching results"
+      ]
+    },
+    {
+      "id": "system-prompt-design",
+      "rule": "context-positioning",
+      "query": "How do I design an effective system prompt for my agent?",
+      "expectedBehavior": [
+        "Uses principled altitude (not too high or too low)",
+        "Defines role, expertise level, and boundaries",
+        "Positions at START of context for high attention",
+        "Includes what NOT to do alongside positive instructions"
+      ]
+    }
+  ]
+}
