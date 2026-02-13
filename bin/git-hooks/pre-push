@@ -63,8 +63,10 @@ echo -n "  Checking CHANGELOG.md... "
 
 # Note: git diff exits 1 when differences exist; pipefail would break the pipe.
 # Capture output first to avoid pipefail interaction.
+# Note: pipefail + "echo $big_var | grep -q" causes SIGPIPE when grep exits early.
+# Use bash pattern matching instead.
 _CL_FILES=$(git diff origin/main --name-only 2>/dev/null </dev/null || true)
-if ! echo "$_CL_FILES" | grep -q "CHANGELOG.md"; then
+if [[ "$_CL_FILES" != *"CHANGELOG.md"* ]]; then
   echo "FAILED"
   echo ""
   echo "╔════════════════════════════════════════════════════════════╗"

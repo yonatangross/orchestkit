@@ -9,16 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Skill Consolidation Batches 1-6** (#536): Restructured 56 skills into 6 unified skills with rules-based architecture
-  - LangGraph: 10 → 1 (`langgraph`) with 20 rules across 7 categories
-  - RAG: 9 → 1 (`rag-retrieval`) with 15 rules across 5 categories
-  - Testing: 13 → 1 (`testing-patterns`) with 26 rules across 7 categories
-  - Caching: 4 → 1 (`caching`) with 12 rules across 4 categories
-  - Performance: 6 → 1 (`performance`) with 18 rules across 6 categories
-  - Video: 14 → 1 (`video-production`) with 21 rules across 6 categories
-  - Total skills: 200 → 151 (124 internal, 27 user-invocable)
+- **Skill Consolidation** (#536): Restructured 200 skills into 103 through 16 consolidation batches
+  - **Batches 1-6**: LangGraph (10→1), RAG (9→1), Testing (13→1), Caching (4→1), Performance (6→1), Video (14→1)
+  - **Batches 7-16**: Event-Driven (3→1), Golden-Dataset (3→1), Accessibility (3→1), Database-Patterns (4→1), LLM-Integration (7→1), API-Design (3→1), Distributed-Systems (4→1), Agent-Orchestration (3→1), Security-Patterns (6→1), Product-Frameworks (5→1)
+  - **Additional groups**: Monitoring-Observability (2→1), Frontend-Animation (3→1), UI-Components (4→1), Data-Visualization (2→1), Python-Backend (5→1), Architecture-Patterns (2→1), Browser-Tools (2→1), Context-Optimization (2→1), Async-Jobs (2→1)
+  - Total: 200 → 103 skills (76 internal, 27 user-invocable)
   - ork-creative: 16 → 3 skills (demo-producer, video-production, ascii-visualizer)
-  - Updated 11 agents, 3 hooks, 3 manifests, ~40 cross-references
+  - Updated 33 agents, hooks, manifests, tests, and CLAUDE.md with corrected counts
+  - Hook count corrected: 93 → 88 (65 global + 22 agent + 1 skill)
 
 ### Added
 
