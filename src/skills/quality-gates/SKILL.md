@@ -227,9 +227,9 @@ if (!hasPassingEvidence) {
 
 ## Related Skills
 
-- `test-standards-enforcer` - Enforce testing standards as part of quality gates
+- `architecture-patterns` - Enforce testing standards as part of quality gates
 - `llm-evaluation` - LLM-as-judge patterns for quality validation
-- `golden-dataset-validation` - Validate datasets meet quality thresholds
+- `golden-dataset` - Validate datasets meet quality thresholds
 
 ## Key Decisions
 

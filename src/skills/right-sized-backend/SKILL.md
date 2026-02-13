@@ -188,10 +188,8 @@ Every abstraction has a cost. The table below estimates the LOC overhead of comm
 
 ## Related Skills
 
-- `backend-architecture-enforcer` - Layer separation enforcement (production/enterprise tier)
-- `clean-architecture` - Hexagonal architecture and DDD (enterprise tier)
-- `api-design-framework` - API design patterns (production+ tier)
-- `project-structure-enforcer` - Folder structure (all tiers, with adjusted rules)
+- `architecture-patterns` - Layer separation enforcement, hexagonal architecture, DDD, and folder structure (enterprise tier)
+- `api-design` - API design patterns (production+ tier)
 - `architecture-decision-record` - Document why you chose this architecture
 
 ## Capability Details

@@ -206,7 +206,7 @@ context.quality_evidence.security_scan = {
 
 ## Related Skills
 
-- `owasp-top-10` - Vulnerability context
+- `security-patterns` - Vulnerability context
 - `devops-deployment` - CI/CD integration
 - `code-review-playbook` - Review process
 
