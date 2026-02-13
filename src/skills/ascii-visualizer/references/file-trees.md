@@ -29,7 +29,7 @@ project/
 │   │   ├── references/        ✅ 5 files
 │   │   ├── scripts/         ✅ 2 files
 │   │   └── SKILL.md           ✅ Linked
-│   └── performance-optimization/
+│   └── performance/
 │       ├── references/        ✅ 5 files
 │       └── scripts/         ✅ 5 files
 └── agents/                    ✅ 10 agents

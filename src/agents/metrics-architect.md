@@ -20,7 +20,7 @@ skills:
   - okr-kpi-patterns
   - langfuse-observability
   - observability-monitoring
-  - cache-cost-tracking
+  - caching
   - testing-patterns
   - remember
   - memory

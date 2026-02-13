@@ -31,7 +31,7 @@ skills:
   - backend-architecture-enforcer
   - owasp-top-10
   - observability-monitoring
-  - caching-strategies
+  - caching
   - auth-patterns
   - sqlalchemy-2-async
   - fastapi-advanced
@@ -288,4 +288,4 @@ curl -X POST http://localhost:8500/api/v1/auth/register \
 ## Integration
 - **Receives from:** Product requirements, workflow-architect (API integration points)
 - **Hands off to:** database-engineer (for migrations), code-quality-reviewer (for validation), frontend-ui-developer (API contracts)
-- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching-strategies, background-jobs, api-versioning, fastapi-advanced, mcp-server-building
+- **Skill references:** api-design-framework, database-schema-designer, streaming-api-patterns, clean-architecture, rate-limiting, caching, background-jobs, api-versioning, fastapi-advanced, mcp-server-building

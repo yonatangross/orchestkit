@@ -92,8 +92,7 @@ tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
 ## Related Skills
 
 - `demo-producer`: Uses skill-analyzer output for script generation
-- `terminal-demo-generator`: Creates recordings based on extracted phases
-- `content-type-recipes`: Templates that consume analyzed metadata
+- `video-production`: Recording, composition, and content recipes for demos
 
 ## References
 

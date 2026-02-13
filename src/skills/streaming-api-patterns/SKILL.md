@@ -405,7 +405,7 @@ async def test_stream_cleanup_on_error():
 
 - `llm-streaming` - LLM-specific streaming patterns for token-by-token responses
 - `api-design-framework` - REST API design patterns for streaming endpoints
-- `caching-strategies` - Cache invalidation patterns for real-time data updates
+- `caching` - Cache invalidation patterns for real-time data updates
 - `edge-computing-patterns` - Edge function streaming for low-latency delivery
 
 ## Key Decisions

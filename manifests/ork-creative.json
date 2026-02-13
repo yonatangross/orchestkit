@@ -1,25 +1,12 @@
 {
   "name": "ork-creative",
   "version": "6.0.3",
-  "description": "Video add-on (requires orkl) — 16 skills, 1 agent. Demo recording, Remotion, storyboarding, content creation.",
+  "description": "Video add-on (requires orkl) — 3 skills, 1 agent. Demo recording, Remotion, storyboarding, content creation.",
   "dependencies": ["orkl"],
   "skills": [
     "demo-producer",
-    "terminal-demo-generator",
-    "remotion-composer",
-    "manim-visualizer",
-    "video-storyboarding",
-    "video-pacing",
-    "narration-scripting",
-    "content-type-recipes",
-    "hook-formulas",
-    "scene-intro-cards",
-    "callout-positioning",
-    "thumbnail-first-frame",
-    "ascii-visualizer",
-    "audio-mixing-patterns",
-    "music-sfx-selection",
-    "elevenlabs-narration"
+    "video-production",
+    "ascii-visualizer"
   ],
   "agents": ["demo-producer"],
   "hooks": "all"

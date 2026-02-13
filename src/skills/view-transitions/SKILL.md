@@ -394,7 +394,7 @@ window.addEventListener('scroll', () => {
 
 - `motion-animation-patterns` - Framer Motion for complex animations
 - `react-server-components-framework` - RSC navigation patterns
-- `core-web-vitals` - Performance impact of transitions
+- `performance` - Performance impact of transitions
 - `testing-patterns` - Comprehensive testing patterns including accessibility testing
 
 ## Capability Details

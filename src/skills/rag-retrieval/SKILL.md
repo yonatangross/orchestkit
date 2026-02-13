@@ -178,7 +178,7 @@ See `test-cases.json` for 30 test cases across all categories.
 ## Related Skills
 
 - `langgraph` - LangGraph workflow patterns (for agentic RAG workflows)
-- `semantic-caching` - Cache RAG responses for repeated queries
+- `caching` - Cache RAG responses for repeated queries
 - `golden-dataset-validation` - Evaluate retrieval quality
 - `ollama-local` - Local embeddings with nomic-embed-text
 - `vision-language-models` - Image analysis for multimodal RAG

@@ -22,14 +22,13 @@ skills:
   - function-calling
   - llm-streaming
   - streaming-api-patterns
-  - prompt-caching
-  - semantic-caching
+  - caching
   - langfuse-observability
   - resilience-patterns
   - llm-safety-patterns
   - llm-evaluation
   - fine-tuning-customization
-  - high-performance-inference
+  - performance
   - mcp-advanced-patterns
   - ollama-local
   - task-dependency-patterns

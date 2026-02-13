@@ -226,6 +226,6 @@ registerRoute(
 
 ## Related Skills
 
-- `caching-strategies` - Backend caching patterns
-- `core-web-vitals` - Performance metrics
+- `caching` - Backend caching patterns
+- `performance` - Performance metrics
 - `streaming-api-patterns` - Real-time updates

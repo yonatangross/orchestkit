@@ -21,12 +21,12 @@ tools:
 skills:
   - database-schema-designer
   - rag-retrieval
-  - performance-optimization
+  - performance
   - alembic-migrations
   - database-versioning
   - zero-downtime-migration
   - sqlalchemy-2-async
-  - caching-strategies
+  - caching
   - task-dependency-patterns
   - remember
   - memory

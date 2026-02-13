@@ -876,6 +876,4 @@ remotion render Root MySkillDemo out/custom.mp4 \
 ## Related Skills
 
 - `demo-producer` - Main skill for orchestrating demo creation
-- `remotion-composer` - Advanced Remotion component patterns
-- `video-pacing` - Timing and rhythm for video content
-- `terminal-demo-generator` - VHS recording patterns
+- `video-production` - Recording, composition, audio, and visual effects for demos

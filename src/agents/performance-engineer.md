@@ -18,13 +18,10 @@ tools:
   - TaskUpdate
   - TaskList
 skills:
-  - core-web-vitals
-  - lazy-loading-patterns
-  - image-optimization
-  - render-optimization
+  - performance
   - vite-advanced
   - observability-monitoring
-  - caching-strategies
+  - caching
   - task-dependency-patterns
   - remember
   - memory
@@ -244,7 +241,7 @@ Return structured performance report:
 
 - **Receives from:** frontend-ui-developer (component for optimization), backend-system-architect (API response times)
 - **Hands off to:** frontend-ui-developer (implementation of suggested patterns), devops-deployment (CI configuration)
-- **Skill references:** core-web-vitals, lazy-loading-patterns, image-optimization, vite-advanced
+- **Skill references:** performance, caching, vite-advanced
 
 ## Quick Commands
 

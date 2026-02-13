@@ -24,8 +24,7 @@ skills:
   - golden-dataset-management
   - golden-dataset-curation
   - golden-dataset-validation
-  - semantic-caching
-  - caching-strategies
+  - caching
   - background-jobs
   - browser-content-capture
   - devops-deployment

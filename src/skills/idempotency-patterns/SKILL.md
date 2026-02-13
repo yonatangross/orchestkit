@@ -284,7 +284,7 @@ if response.status_code >= 400:
 
 - `outbox-pattern` - Reliable event publishing
 - `message-queues` - At-least-once message delivery
-- `caching-strategies` - Redis caching patterns
+- `caching` - Redis caching patterns
 - `auth-patterns` - API key management
 
 ## Capability Details

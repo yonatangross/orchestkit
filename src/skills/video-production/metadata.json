@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "organization": "OrchestKit",
+  "date": "February 2026",
+  "abstract": "Video production pipeline for tech demos covering pre-production planning, terminal recording, Remotion composition, audio mixing, and visual effects.",
+  "ruleCount": 21,
+  "categories": 6,
+  "consolidatedFrom": [
+    "terminal-demo-generator",
+    "remotion-composer",
+    "video-storyboarding",
+    "narration-scripting",
+    "hook-formulas",
+    "content-type-recipes",
+    "scene-intro-cards",
+    "thumbnail-first-frame",
+    "video-pacing",
+    "music-sfx-selection",
+    "audio-mixing-patterns",
+    "elevenlabs-narration",
+    "manim-visualizer",
+    "callout-positioning"
+  ]
+}
