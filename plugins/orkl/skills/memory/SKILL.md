@@ -2,7 +2,7 @@
 name: memory
 license: MIT
 compatibility: "Claude Code 2.1.34+. Requires memory MCP server."
-description: "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
+description: "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph."
 argument-hint: "[subcommand] [query]"
 context: fork
 version: 2.0.0

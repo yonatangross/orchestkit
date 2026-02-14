@@ -958,7 +958,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "doctor": {
     "name": "doctor",
-    "description": "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues.",
+    "description": "OrchestKit doctor for health diagnostics. Use when running checks on plugin health, diagnosing problems, or troubleshooting issues.",
     "version": "3.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1075,7 +1075,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "explore": {
     "name": "explore",
-    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture.",
+    "description": "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1165,7 +1165,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "fix-issue": {
     "name": "fix-issue",
-    "description": "Fixes GitHub issues with parallel analysis. Use when fixing bugs or resolving issues.",
+    "description": "Fixes GitHub issues with parallel analysis. Use to debug errors, resolve regressions, fix bugs, or triage issues.",
     "version": "2.1.0",
     "author": "OrchestKit",
     "tags": [
@@ -1229,7 +1229,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "git-workflow": {
     "name": "git-workflow",
-    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.",
+    "description": "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.",
     "version": "1.0.0",
     "author": "OrchestKit",
     "tags": [
@@ -1622,7 +1622,7 @@ export const SKILLS: Record<string, SkillMeta> = {
   },
   "memory": {
     "name": "memory",
-    "description": "Read-side memory operations: search, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
+    "description": "Read-side memory operations: search, recall, load, sync, history, visualize. Use when searching past decisions, loading session context, or viewing the knowledge graph.",
     "version": "2.0.0",
     "author": "OrchestKit",
     "tags": [

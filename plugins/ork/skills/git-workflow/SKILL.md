@@ -3,7 +3,7 @@ name: git-workflow
 license: MIT
 compatibility: "Claude Code 2.1.34+. Requires gh CLI."
 author: OrchestKit
-description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history.
+description: Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, merge and rebase strategies, and recovery operations using reflog. Essential patterns for clean history. Use when managing branches, defining branching strategy, or recovering git history.
 argument-hint: "[subcommand]"
 context: inherit
 agent: git-operations-engineer

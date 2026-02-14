@@ -24,7 +24,7 @@ skills:
     should_not_trigger:
       - "review this PR"
       - "deploy to production"
-      - "create a pull request"
+      - "run the linter"
       - "explore the codebase"
 
   review-pr:
@@ -43,7 +43,7 @@ skills:
   fix-issue:
     should_trigger:
       - "fix issue 123"
-      - "fix this bug"
+      - "fix this error"
       - "resolve the login error"
       - "debug and fix issue 456"
       - "fix the regression in the API"
@@ -87,8 +87,8 @@ skills:
       - "push and create a PR"
       - "create a draft PR"
     should_not_trigger:
-      - "review this PR"
-      - "commit my changes"
+      - "run the linter"
+      - "deploy to production"
       - "fix this bug"
       - "explore the codebase"
 
@@ -100,10 +100,10 @@ skills:
       - "check if this is ready to merge"
       - "verify the authentication flow"
     should_not_trigger:
-      - "implement a feature"
+      - "deploy to production"
       - "fix this bug"
-      - "commit my changes"
-      - "review this PR"
+      - "run the linter"
+      - "explore the codebase"
 
   assess:
     should_trigger:
@@ -126,10 +126,10 @@ skills:
       - "should I merge or rebase"
       - "set up git workflow"
     should_not_trigger:
-      - "commit my changes"
+      - "deploy to production"
       - "create a PR"
-      - "implement a feature"
-      - "review this PR"
+      - "fix this bug"
+      - "run the linter"
 
   analytics:
     should_trigger:
@@ -227,9 +227,9 @@ skills:
       - "create a plan visualization"
       - "show me a visual plan"
     should_not_trigger:
-      - "implement a feature"
+      - "deploy to production"
       - "fix this bug"
-      - "commit my changes"
+      - "run the linter"
 
   remember:
     should_trigger:
@@ -257,9 +257,9 @@ skills:
       - "should we upgrade this dependency"
       - "evaluate the upgrade path"
     should_not_trigger:
-      - "implement a feature"
+      - "deploy to production"
       - "fix this bug"
-      - "commit my changes"
+      - "run the linter"
 
   worktree-coordination:
     should_trigger:

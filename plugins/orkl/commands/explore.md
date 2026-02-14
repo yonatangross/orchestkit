@@ -1,5 +1,5 @@
 ---
-description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo or discovering architecture."
+description: "explore — Deep codebase exploration with parallel agents. Use when exploring a repo, discovering architecture, finding files, or analyzing design patterns."
 allowed-tools: [AskUserQuestion, Read, Grep, Glob, Task, TaskCreate, TaskUpdate, mcp__memory__search_nodes, Bash]
 ---
 
