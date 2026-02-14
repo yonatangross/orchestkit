@@ -2,7 +2,6 @@
 title: "Brainstorming"
 description: "Design exploration with parallel agents. Use when brainstorming ideas, exploring solutions, or comparing alternatives."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -190,7 +189,7 @@ Skip brainstorming when:
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
 | "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
 
 **Always include:** `workflow-architect` for system design perspective.
 
@@ -287,9 +286,7 @@ TeamDelete()
 
 ## References (8)
 
-<Accordions type="multiple">
-
-<Accordion title="Common Pitfalls">
+### Common Pitfalls
 
 # Common Brainstorming Pitfalls
 
@@ -387,9 +384,7 @@ Let's extend that pattern..."
 **Why:** Unchallenged ideas often have hidden flaws.
 
 
-</Accordion>
-
-<Accordion title="Devils Advocate Prompts">
+### Devils Advocate Prompts
 
 # Devil's Advocate Prompts
 
@@ -447,9 +442,7 @@ Severity: [Critical|High|Medium|Low] per concern
 ```
 
 
-</Accordion>
-
-<Accordion title="Divergent Techniques">
+### Divergent Techniques
 
 # Divergent Techniques
 
@@ -505,9 +498,7 @@ Each agent contributes sequentially:
 | Cross-functional topic | Round-Robin |
 
 
-</Accordion>
-
-<Accordion title="Evaluation Rubric">
+### Evaluation Rubric
 
 # Evaluation Rubric
 
@@ -556,9 +547,7 @@ composite = impact * 0.25 + (10 - effort) * 0.20 + (10 - risk) * 0.20 + alignmen
 | Custom tokens | 9 | 8 | 7 | 5 | 9 | 5.55 | 1 crit | **3.89** |
 
 
-</Accordion>
-
-<Accordion title="Example Session Auth">
+### Example Session Auth
 
 # Example Session: Authentication Storage Design
 
@@ -743,9 +732,7 @@ Set-Cookie: session_id=abc123;
 This prevented a common pitfall: building JWT auth and realizing multi-device logout is impossible without a backend state store.
 
 
-</Accordion>
-
-<Accordion title="Example Session Dashboard">
+### Example Session Dashboard
 
 # Example Session: Real-Time Dashboard Design
 
@@ -952,9 +939,7 @@ Data Retention:
 This design validates requirements early and makes explicit trade-offs before implementation.
 
 
-</Accordion>
-
-<Accordion title="Phase Workflow">
+### Phase Workflow
 
 # Brainstorming Phase Workflow
 
@@ -1003,7 +988,7 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | Database | `backend-system-architect` | database-schema-designer |
 | Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
-| Performance | `performance-engineer` | performance |
+| Performance | `frontend-performance-engineer` | performance |
 
 **Always include:** `workflow-architect` (system design perspective)
 
@@ -1125,9 +1110,7 @@ mcp__memory__create_entities(entities=[{
 ```
 
 
-</Accordion>
-
-<Accordion title="Socratic Questions">
+### Socratic Questions
 
 # Socratic Questioning Templates
 
@@ -1181,17 +1164,12 @@ Use these templates to guide requirements discovery through structured questioni
 4. **Summarize understanding** - "So you need X because of Y?"
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Brainstorm Completion">
+### Brainstorm Completion
 
 # Brainstorm Completion Checklist
 
@@ -1230,9 +1208,7 @@ Verify brainstorm quality before concluding.
 - [ ] ADR created if architectural decision
 
 
-</Accordion>
-
-<Accordion title="Brainstorm Session Checklist">
+### Brainstorm Session Checklist
 
 # Brainstorming Session Checklist
 
@@ -1521,17 +1497,12 @@ Use this checklist to facilitate effective brainstorming sessions that transform
 **Remember:** Great brainstorming is 70% asking questions, 20% generating options, 10% deciding. Resist the urge to code immediately—clarity saves days of rework.
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Orchestkit Feature Brainstorm">
+### Orchestkit Feature Brainstorm
 
 # Example: OrchestKit Feature Brainstorming Session
 
@@ -1808,7 +1779,3 @@ Went from "Google Docs for technical analysis" → "Async-first collaborative co
 - [ ] Create GitHub issue with Option B implementation plan
 - [ ] Spike: Test Redis pub/sub with FastAPI WebSockets (2 hours)
 
-
-</Accordion>
-
-</Accordions>

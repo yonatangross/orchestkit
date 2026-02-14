@@ -2,7 +2,6 @@
 title: "I18n Date Patterns"
 description: "Implements internationalization (i18n) in React applications. Covers user-facing strings, date/time handling, locale-aware formatting, ICU MessageFormat, and RTL support. Use when building multilingual UIs or formatting dates/currency."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -270,9 +269,7 @@ See `checklists/i18n-checklist.md` for complete implementation and review checkl
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="i18n: Formatting Anti-Patterns — CRITICAL">
+### i18n: Formatting Anti-Patterns — CRITICAL
 
 
 ## i18n: Formatting Anti-Patterns
@@ -348,9 +345,7 @@ const formatted = formatNumber(number);
 Reference: `references/formatting-utilities.md` (lines 132-167)
 
 
-</Accordion>
-
-<Accordion title="i18n: ICU Plural Rules — HIGH">
+### i18n: ICU Plural Rules — HIGH
 
 
 ## i18n: ICU Plural Rules
@@ -426,9 +421,7 @@ Hebrew uses a `two` (dual) form. Arabic uses `zero`, `one`, `two`, `few`, `many`
 Reference: `references/icu-messageformat.md` (lines 13-28, 141-165)
 
 
-</Accordion>
-
-<Accordion title="i18n: Trans Component — HIGH">
+### i18n: Trans Component — HIGH
 
 
 ## i18n: Trans Component
@@ -497,17 +490,12 @@ import { Trans } from 'react-i18next';
 Reference: `references/trans-component.md` (lines 23-38, 207-235)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Formatting Utilities">
+### Formatting Utilities
 
 # Formatting Utilities Reference
 
@@ -717,9 +705,7 @@ const { locale, isRTL } = useFormatting();
 **Last Updated**: 2026-01-06
 
 
-</Accordion>
-
-<Accordion title="Icu Messageformat">
+### Icu Messageformat
 
 # ICU MessageFormat Reference
 
@@ -892,9 +878,7 @@ const message = t('items', { count });
 **Last Updated**: 2026-01-06
 
 
-</Accordion>
-
-<Accordion title="Trans Component">
+### Trans Component
 
 # Trans Component Reference
 
@@ -1151,17 +1135,12 @@ const transProps: TransProps<string> = {
 **Last Updated**: 2026-01-06
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="I18n Checklist">
+### I18n Checklist
 
 # i18n Implementation Checklist
 
@@ -1269,17 +1248,12 @@ When updating a component to use proper i18n:
 **Last Updated**: 2026-01-06
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Component I18n Example">
+### Component I18n Example
 
 # Component i18n Example
 
@@ -1407,7 +1381,3 @@ function InvoiceSummary({ invoice }) {
 
 **Last Updated**: 2026-01-06
 
-
-</Accordion>
-
-</Accordions>

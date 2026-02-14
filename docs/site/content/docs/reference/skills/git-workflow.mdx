@@ -2,7 +2,6 @@
 title: "Git Workflow"
 description: "Complete git workflow patterns including GitHub Flow branching, atomic commits with interactive staging, and recovery operations using reflog. Essential patterns for clean history. Use when defining branching strategy or recovering git history."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -216,9 +215,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (9)
 
-<Accordions type="multiple">
-
-<Accordion title="Branch Protection Rules — CRITICAL">
+### Branch Protection Rules — CRITICAL
 
 
 ## Branch Protection Rules
@@ -296,9 +293,7 @@ gh pr create --base main --title "HOTFIX: Critical auth bypass"
 - Delete feature branches after merge
 
 
-</Accordion>
-
-<Accordion title="History Hygiene Rules — HIGH">
+### History Hygiene Rules — HIGH
 
 
 ## History Hygiene Rules
@@ -380,9 +375,7 @@ ghi9012 docs(#123): Document validation error codes
 - Commit messages should explain WHY, not just WHAT
 
 
-</Accordion>
-
-<Accordion title="Merge Strategy Rules — HIGH">
+### Merge Strategy Rules — HIGH
 
 
 ## Merge Strategy Rules
@@ -472,9 +465,7 @@ git push --force origin main  # NEVER DO THIS
 - Abort rebase if unsure — you can always start over
 
 
-</Accordion>
-
-<Accordion title="Monorepo Context Patterns — MEDIUM">
+### Monorepo Context Patterns — MEDIUM
 
 
 ## Monorepo Context Patterns
@@ -563,9 +554,7 @@ npm run test:api:e2e   # Integration tests
 - Keep service CLAUDE.md focused — avoid duplicating root-level rules
 
 
-</Accordion>
-
-<Accordion title="Reflog Recovery — HIGH">
+### Reflog Recovery — HIGH
 
 
 ## Reflog Recovery
@@ -630,9 +619,7 @@ git reset --hard ORIG_HEAD
 - Reflog is local only — not shared with remotes
 
 
-</Accordion>
-
-<Accordion title="Reset and Restore — HIGH">
+### Reset and Restore — HIGH
 
 
 ## Reset and Restore
@@ -711,9 +698,7 @@ git reset HEAD path/to/file
 - `git restore` is the modern replacement for `git checkout -- file`
 
 
-</Accordion>
-
-<Accordion title="Stash Recovery — MEDIUM">
+### Stash Recovery — MEDIUM
 
 
 ## Stash Recovery
@@ -771,9 +756,7 @@ git stash push -u -m "including new files"
 - Stash includes staged changes by default; use `--keep-index` to stash only unstaged
 
 
-</Accordion>
-
-<Accordion title="Stacked PR Rebase Management — HIGH">
+### Stacked PR Rebase Management — HIGH
 
 
 ## Stacked PR Rebase Management
@@ -852,9 +835,7 @@ echo "Stack rebased successfully!"
 - Never force push to already-approved PRs without re-requesting review
 
 
-</Accordion>
-
-<Accordion title="Stacked PR Workflow — HIGH">
+### Stacked PR Workflow — HIGH
 
 
 ## Stacked PR Workflow
@@ -925,17 +906,12 @@ gh pr create --base feature/auth-service \
 - Never merge out of order
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Github Flow">
+### Github Flow
 
 # GitHub Flow Guide
 
@@ -1043,9 +1019,7 @@ This allows:
 - Instant rollback (disable flag)
 
 
-</Accordion>
-
-<Accordion title="Interactive Staging">
+### Interactive Staging
 
 # Interactive Staging with git add -p
 
@@ -1142,9 +1116,7 @@ git status
 5. **Stage by file**: `git add -p file.ts` for focused work
 
 
-</Accordion>
-
-<Accordion title="Recovery Decision Tree">
+### Recovery Decision Tree
 
 # Recovery Decision Tree
 
@@ -1323,9 +1295,7 @@ git push --force-with-lease
 **Stay calm** - Git almost never loses data permanently. The reflog keeps everything for 90 days.
 
 
-</Accordion>
-
-<Accordion title="Reflog Recovery">
+### Reflog Recovery
 
 # Reflog Recovery
 
@@ -1444,17 +1414,12 @@ git config gc.reflogExpire never
 5. **Each repo has separate reflog**
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Branch Checklist">
+### Branch Checklist
 
 # Branch Checklist
 
@@ -1555,9 +1520,7 @@ git checkout fix/my-changes
 - [Recovery Decision Tree](../references/recovery-decision-tree.md)
 
 
-</Accordion>
-
-<Accordion title="Pre Commit Checklist">
+### Pre Commit Checklist
 
 # Pre-Commit Checklist
 
@@ -1720,7 +1683,3 @@ git reset --hard HEAD~1
 - [Interactive Staging](../references/interactive-staging.md)
 - [Recovery Decision Tree](../references/recovery-decision-tree.md)
 
-
-</Accordion>
-
-</Accordions>

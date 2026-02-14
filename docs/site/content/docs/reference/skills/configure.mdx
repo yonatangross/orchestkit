@@ -2,7 +2,6 @@
 title: "Configure"
 description: "Configures OrchestKit settings. Use when customizing MCP servers, plugin options, or preferences."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -239,9 +238,7 @@ Save to: `~/.claude/plugins/orchestkit/config.json`
 
 ## References (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Mcp Config">
+### Mcp Config
 
 # MCP Configuration
 
@@ -317,9 +314,7 @@ Commands still work - MCPs just enhance them:
 For browser automation and testing, use the `agent-browser` skill instead of an MCP.
 See `/ork:agent-browser` for Vercel's headless browser CLI.
 
-</Accordion>
-
-<Accordion title="Presets">
+### Presets
 
 # Preset Definitions
 
@@ -434,7 +429,3 @@ Just safety guardrails, no skills or agents.
   "mcps": { "context7": false, "sequential_thinking": false, "memory": false }
 }
 ```
-
-</Accordion>
-
-</Accordions>

@@ -133,7 +133,7 @@ cache_operations = Counter(
 
 ## PromQL Quick Reference
 
-```promql
+```text
 # Rate of requests
 rate(http_requests_total[5m])
 

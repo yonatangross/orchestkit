@@ -2,7 +2,6 @@
 title: "Skill Evolution"
 description: "Evolves skills based on usage patterns. Use when improving or rolling back skill definitions."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -337,9 +336,7 @@ Consider: /ork:skill-evolution rollback api-design-framework 1.1.0
 
 ## References (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Evolution Analysis">
+### Evolution Analysis
 
 # Evolution Analysis Methodology
 
@@ -463,9 +460,7 @@ Generated when users frequently remove generated content:
 - Might be edge case or user preference
 - Review individual edit patterns for context
 
-</Accordion>
-
-<Accordion title="Version Management">
+### Version Management
 
 # Version Management Guide
 
@@ -660,7 +655,3 @@ version-manager.sh diff <skill-id> 1.0.0 1.2.0
 # 2. Identify problematic changes
 # 3. Create new version fixing issues
 ```
-
-</Accordion>
-
-</Accordions>

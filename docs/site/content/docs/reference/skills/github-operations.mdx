@@ -2,7 +2,6 @@
 title: "Github Operations"
 description: "GitHub CLI operations for issues, PRs, milestones, and Projects v2. Covers gh commands, REST API patterns, and automation scripts. Use when managing GitHub issues, PRs, milestones, or Projects with gh."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -168,9 +167,7 @@ Projects v2 uses GraphQL for setting custom fields (Status, Priority, Domain). B
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Linking Issues to Branches and PRs — MEDIUM">
+### Linking Issues to Branches and PRs — MEDIUM
 
 
 ## Linking Issues to Branches and PRs
@@ -240,9 +237,7 @@ claude --from-pr 42    # Loads PR diff, comments, review status
 - Use **`--from-pr`** to resume sessions with full PR context
 
 
-</Accordion>
-
-<Accordion title="Automated Issue Progress Updates — HIGH">
+### Automated Issue Progress Updates — HIGH
 
 
 ## Automated Issue Progress Updates
@@ -316,17 +311,12 @@ Commit messages are matched against issue checkboxes using normalized text compa
 - Post **consolidated summaries** at session end, not per-commit
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Graphql Api">
+### Graphql Api
 
 # GraphQL API with gh
 
@@ -717,9 +707,7 @@ gh api graphql -f query='
 ```
 
 
-</Accordion>
-
-<Accordion title="Issue Management">
+### Issue Management
 
 # Issue Management
 
@@ -964,9 +952,7 @@ gh issue list --state all --json labels \
 ```
 
 
-</Accordion>
-
-<Accordion title="Milestone Api">
+### Milestone Api
 
 # Milestone API Reference
 
@@ -1161,9 +1147,7 @@ gh ms-progress 1                   # Check progress
 5. **Link to Projects** - Use Projects v2 Iteration field for cross-repo tracking
 
 
-</Accordion>
-
-<Accordion title="Pr Workflows">
+### Pr Workflows
 
 # Pull Request Workflows
 
@@ -1496,9 +1480,7 @@ gh pr list --state merged --limit 20 --json createdAt,mergedAt \
 ```
 
 
-</Accordion>
-
-<Accordion title="Projects V2">
+### Projects V2
 
 # GitHub Projects v2
 
@@ -1821,17 +1803,12 @@ gh api graphql -f query='
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Automation Scripts">
+### Automation Scripts
 
 # GitHub Automation Scripts
 
@@ -2086,7 +2063,3 @@ done
 - [Milestone API](../references/milestone-api.md)
 - [GraphQL API](../references/graphql-api.md)
 
-
-</Accordion>
-
-</Accordions>

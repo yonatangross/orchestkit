@@ -2,7 +2,6 @@
 title: "Quality Gates"
 description: "Use when assessing task complexity, before starting complex tasks, when stuck after multiple attempts, or reviewing code against best practices. Provides quality-gates scoring (1-5), escalation workflows, and pattern library management."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-red">max</span>
 
@@ -326,9 +325,7 @@ Track success/failure patterns across projects to prevent repeating mistakes and
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Best Practices Pattern Library — HIGH">
+### Best Practices Pattern Library — HIGH
 
 
 ## Best Practices Pattern Library
@@ -400,9 +397,7 @@ mcp__memory__search_nodes(query="pagination patterns outcomes")
 - Update confidence levels as more project data accumulates
 
 
-</Accordion>
-
-<Accordion title="Best Practices Review Checklist — HIGH">
+### Best Practices Review Checklist — HIGH
 
 
 ## Best Practices Review Checklist
@@ -471,9 +466,7 @@ AUTHENTICATION
 - Update pattern library after review with new outcomes
 
 
-</Accordion>
-
-<Accordion title="YAGNI Gate — HIGH">
+### YAGNI Gate — HIGH
 
 
 ## YAGNI Gate
@@ -600,17 +593,12 @@ Step 5: Final gate decision
 - User can override with explicit confirmation ("I know this is a take-home but I want to demonstrate hexagonal architecture")
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Blocking Thresholds">
+### Blocking Thresholds
 
 # Blocking Thresholds Reference
 
@@ -840,9 +828,7 @@ if (context.attempt_tracking[taskId].attempts.length >= 3) {
 }
 ```
 
-</Accordion>
-
-<Accordion title="Complexity Scoring">
+### Complexity Scoring
 
 # Complexity Scoring Reference
 
@@ -1011,9 +997,7 @@ Before assigning a complexity score, answer:
 7. [ ] Does this require database changes?
 8. [ ] Does this integrate with external services?
 
-</Accordion>
-
-<Accordion title="Gate Patterns">
+### Gate Patterns
 
 # Quality Gate Patterns Reference
 
@@ -1429,9 +1413,7 @@ def quality_gate(result: QualityResult, config: GateConfig) -> GateDecision:
 - LangGraph: Conditional routing patterns
 
 
-</Accordion>
-
-<Accordion title="Llm Quality Validation">
+### Llm Quality Validation
 
 # LLM-as-Judge Quality Validation Reference
 
@@ -1610,9 +1592,7 @@ class QuizQuestion(BaseModel):
 | Security Analysis | 0.8 | Closed | 3 |
 | Payment/Finance | 0.9 | Closed | 3 |
 
-</Accordion>
-
-<Accordion title="Workflows">
+### Workflows
 
 # Quality Gate Workflows Reference
 
@@ -1930,17 +1910,12 @@ function handleComplexTask(task) {
 }
 ```
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Quality Gate Checklist">
+### Quality Gate Checklist
 
 # Quality Gate Implementation Checklist
 
@@ -2055,17 +2030,12 @@ Use this checklist when implementing quality gates in workflows, APIs, or CI/CD 
 **Remember**: Quality gates should **enable** quality work, not **prevent** work. If pass rate &lt;70% or bypass rate &gt;5%, investigate root causes.
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Orchestkit Quality Gates">
+### Orchestkit Quality Gates
 
 # OrchestKit Quality Gates - Real Implementation
 
@@ -2145,7 +2115,3 @@ See full implementation in backend/app/workflows/nodes/quality_gate_node.py
 
 **Key Takeaway**: Quality gates in OrchestKit prevent 15%+ of low-quality analysis from reaching users, with only 3.4% requiring human escalation.
 
-
-</Accordion>
-
-</Accordions>

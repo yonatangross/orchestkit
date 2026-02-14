@@ -63,7 +63,7 @@ if should_sample("INFO", rate=0.1):
 ## Log Aggregation with Loki
 
 **Loki Query Language (LogQL) examples:**
-```logql
+```text
 # Find all errors in last hour
 {app="backend"} |= "ERROR" | json
 

@@ -2,7 +2,6 @@
 title: "Task Dependency Patterns"
 description: "CC 2.1.16 Task Management patterns with TaskCreate, TaskUpdate, TaskGet, TaskList tools. Decompose complex work into trackable tasks with dependency chains. Use when managing multi-step implementations, coordinating parallel work, or tracking completion status."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -187,9 +186,7 @@ SendMessage(type: "broadcast",
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Tasks: Agent Coordination — HIGH">
+### Tasks: Agent Coordination — HIGH
 
 
 ## Tasks: Agent Coordination
@@ -250,9 +247,7 @@ SendMessage(
 Reference: [Multi-Agent Coordination](../references/multi-agent-coordination.md) — Best Practices (lines 110-116), Agent Workflow (lines 47-70)
 
 
-</Accordion>
-
-<Accordion title="Tasks: Completion Criteria — HIGH">
+### Tasks: Completion Criteria — HIGH
 
 
 ## Tasks: Completion Criteria
@@ -324,9 +319,7 @@ TaskUpdate(taskId: "1", status: "completed")
 Reference: [Status Workflow](../references/status-workflow.md) — Completion Criteria (lines 71-78), Anti-Patterns (lines 80-105)
 
 
-</Accordion>
-
-<Accordion title="Tasks: Dependency Validation — HIGH">
+### Tasks: Dependency Validation — HIGH
 
 
 ## Tasks: Dependency Validation
@@ -384,17 +377,12 @@ TaskUpdate(taskId: "3", addBlockedBy: ["6"])
 Reference: [Dependency Tracking](../references/dependency-tracking.md) — Validation Rules (lines 72-77), Best Practices (lines 89-94)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Dependency Tracking">
+### Dependency Tracking
 
 # Dependency Tracking
 
@@ -492,9 +480,7 @@ TaskGet taskId="3"
 - Review blocked tasks when completing work
 
 
-</Accordion>
-
-<Accordion title="Multi Agent Coordination">
+### Multi Agent Coordination
 
 # Multi-Agent Task Coordination
 
@@ -622,9 +608,7 @@ The task system integrates with:
 - **agent handoff hooks**: Auto-document in decision log
 
 
-</Accordion>
-
-<Accordion title="Status Workflow">
+### Status Workflow
 
 # Status Workflow
 
@@ -746,17 +730,12 @@ Provide meaningful present-continuous descriptions:
 - "Writing integration tests"
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Dependency Checklist">
+### Dependency Checklist
 
 # Dependency Validation Checklist
 
@@ -865,9 +844,7 @@ For complex dependency chains:
 - [ ] Expected execution order documented
 
 
-</Accordion>
-
-<Accordion title="Task Design Checklist">
+### Task Design Checklist
 
 # Task Design Checklist
 
@@ -965,7 +942,3 @@ Signs your task is too small:
 - [ ] Task can be understood without external context
 - [ ] activeForm provides useful progress feedback
 
-
-</Accordion>
-
-</Accordions>

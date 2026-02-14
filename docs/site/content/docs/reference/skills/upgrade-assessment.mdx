@@ -2,7 +2,6 @@
 title: "Upgrade Assessment"
 description: "Assess platform upgrade readiness for Claude model and CC version changes. Use when evaluating upgrades."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-red">max</span>
 
@@ -444,9 +443,7 @@ Focus on plugin structure:
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Platform Compatibility Knowledge — HIGH">
+### Platform Compatibility Knowledge — HIGH
 
 
 ## Platform Compatibility Knowledge
@@ -504,9 +501,7 @@ total_hours = sum(
 - Track each axis **independently** — model, CC version, and OrchestKit can upgrade separately
 
 
-</Accordion>
-
-<Accordion title="Platform Upgrade Evaluation — HIGH">
+### Platform Upgrade Evaluation — HIGH
 
 
 ## Platform Upgrade Evaluation
@@ -561,7 +556,3 @@ dimension_score > 8:   No action needed
 - P0 items must be addressed **before** starting the upgrade
 - Re-score after addressing findings to **verify improvement**
 
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "Assess"
 description: "Assesses and rates quality 0-10 with pros/cons analysis. Use when evaluating code, designs, or approaches."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-orange">high</span>
 
@@ -211,7 +210,7 @@ For each dimension, spawn a background agent with **scope constraints**:
 for dimension, agent_type in [
     ("CORRECTNESS + MAINTAINABILITY", "code-quality-reviewer"),
     ("SECURITY", "security-auditor"),
-    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; performance-engineer for frontend
+    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; frontend-performance-engineer for frontend
     ("TESTABILITY", "test-generator"),
 ]:
     Task(subagent_type=agent_type, run_in_background=True, max_turns=15,
@@ -262,7 +261,7 @@ Task(subagent_type="security-auditor", name="security-assessor",
      When you find performance-impacting security measures, message perf-assessor.
      Share your score and flag any cross-dimension trade-offs.""")
 
-Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or performance-engineer for frontend
+Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
      team_name="assess-{target-slug}", max_turns=15,
      prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
@@ -411,9 +410,7 @@ See [Scoring Rubric](references/scoring-rubric.md) for full report template.
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Task Decomposition Strategies — HIGH">
+### Task Decomposition Strategies — HIGH
 
 
 ## Task Decomposition Strategies
@@ -479,9 +476,7 @@ If any subtask still scores Level 4+, decompose it again.
 - Prefer **vertical slices** (end-to-end for one feature) over horizontal layers
 
 
-</Accordion>
-
-<Accordion title="Complexity Scoring Frameworks — HIGH">
+### Complexity Scoring Frameworks — HIGH
 
 
 ## Complexity Scoring Frameworks
@@ -540,17 +535,12 @@ Score task complexity across 7 criteria (1-5 each) to determine if a task should
 - Cross-cutting (criterion 6) indicates **coordination overhead** — account for it in estimates
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Alternative Analysis">
+### Alternative Analysis
 
 # Alternative Analysis Reference
 
@@ -622,9 +612,7 @@ How to identify, evaluate, and compare alternatives to the current approach.
 ```
 
 
-</Accordion>
-
-<Accordion title="Improvement Prioritization">
+### Improvement Prioritization
 
 # Improvement Prioritization Reference
 
@@ -693,9 +681,7 @@ Priority <1.0  = Backlog or skip
 ```
 
 
-</Accordion>
-
-<Accordion title="Scoring Rubric">
+### Scoring Rubric
 
 # Scoring Rubric Reference
 
@@ -948,17 +934,12 @@ Detailed scoring guidelines for each quality dimension.
 - No tests or tests don't run
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Assessment Checklist">
+### Assessment Checklist
 
 # Assessment Checklist
 
@@ -1003,7 +984,3 @@ Pre-completion validation for comprehensive assessments.
 - [ ] No contradictions between sections
 - [ ] Evidence is specific (file:line when applicable)
 
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "React Server Components Framework"
 description: "Use when building Next.js 16+ apps with React Server Components. Covers App Router, Cache Components (replacing experimental_ppr), streaming SSR, Server Actions, and React 19 patterns for server-first architecture."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -387,9 +386,7 @@ After mastering React Server Components:
 
 ## Rules (5)
 
-<Accordions type="multiple">
-
-<Accordion title="RSC: Cache Safety — CRITICAL">
+### RSC: Cache Safety — CRITICAL
 
 
 ## RSC: Cache Safety
@@ -453,9 +450,7 @@ async function Cached({ value }: { value: string }) {
 Reference: `references/cache-components.md` (Constraints, Common Pitfalls)
 
 
-</Accordion>
-
-<Accordion title="RSC: Client Boundaries — CRITICAL">
+### RSC: Client Boundaries — CRITICAL
 
 
 ## RSC: Client Boundaries
@@ -530,9 +525,7 @@ export function ProductFilters() {
 Reference: `references/client-components.md` (Common Mistakes), `references/component-patterns.md` (Composition Rules)
 
 
-</Accordion>
-
-<Accordion title="RSC: Component Types — MEDIUM">
+### RSC: Component Types — MEDIUM
 
 
 ## RSC: Component Types
@@ -608,9 +601,7 @@ const inputRef = useRef<HTMLInputElement>(null)
 Reference: `references/client-components.md` (React 19 Component Patterns, Ref as Prop)
 
 
-</Accordion>
-
-<Accordion title="RSC: Hydration — HIGH">
+### RSC: Hydration — HIGH
 
 
 ## RSC: Hydration
@@ -684,9 +675,7 @@ function ScreenWidth() {
 Reference: `references/client-components.md` (Avoiding Hydration Mismatches, Client-Only Rendering)
 
 
-</Accordion>
-
-<Accordion title="RSC: Serialization — CRITICAL">
+### RSC: Serialization — CRITICAL
 
 
 ## RSC: Serialization
@@ -761,17 +750,12 @@ export function ClientCard({ item, tags, isActive, onAction }: ClientCardProps) 
 Reference: `references/component-patterns.md` (Serializable Props Only)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (12)
 
-<Accordions type="multiple">
-
-<Accordion title="Cache Components">
+### Cache Components
 
 # Cache Components Reference
 
@@ -1475,9 +1459,7 @@ async function Page() {
 Cache Components provides a declarative, component-level caching model that makes it easy to build fast, dynamic applications with fine-grained control over what gets cached and when.
 
 
-</Accordion>
-
-<Accordion title="Client Components">
+### Client Components
 
 # Client Components Reference
 
@@ -1869,9 +1851,7 @@ export default function Page() {
 }
 ```
 
-</Accordion>
-
-<Accordion title="Component Patterns">
+### Component Patterns
 
 # React Server Components - Component Patterns
 
@@ -2297,9 +2277,7 @@ export function ThemeToggle({ initialTheme }: { initialTheme: string }) {
 ```
 
 
-</Accordion>
-
-<Accordion title="Data Fetching">
+### Data Fetching
 
 # Data Fetching Patterns
 
@@ -2473,9 +2451,7 @@ export default async function PostsPage() {
 ```
 
 
-</Accordion>
-
-<Accordion title="Migration Guide">
+### Migration Guide
 
 # Migration Guide
 
@@ -2676,9 +2652,7 @@ export async function generateMetadata({ params }): Promise<Metadata> {
 5. **Missing revalidation** after mutations
 
 
-</Accordion>
-
-<Accordion title="Nextjs 16 Upgrade">
+### Nextjs 16 Upgrade
 
 # Next.js 16 Upgrade Guide
 
@@ -3314,9 +3288,7 @@ npx @next/codemod@latest async-dynamic-apis .
 - [ESLint Flat Config Migration](https://eslint.org/docs/latest/use/configure/migration-guide)
 
 
-</Accordion>
-
-<Accordion title="React 19 Patterns">
+### React 19 Patterns
 
 # React 19 Component Patterns
 
@@ -4076,9 +4048,7 @@ Add these ESLint rules to enforce React 19 patterns:
 **OrchestKit Implementation**: Issue #547 (bf43ad5a, 96d9a0e8)
 
 
-</Accordion>
-
-<Accordion title="Routing Patterns">
+### Routing Patterns
 
 # Advanced Routing Patterns
 
@@ -4262,9 +4232,7 @@ export default function Docs({ params }: { params: { slug?: string[] } }) {
 ```
 
 
-</Accordion>
-
-<Accordion title="Server Actions">
+### Server Actions
 
 # Server Actions Reference
 
@@ -4476,9 +4444,7 @@ export function ProfileForm({ user }: { user: User }) {
 ```
 
 
-</Accordion>
-
-<Accordion title="Server Components">
+### Server Components
 
 # Server Components Reference
 
@@ -4784,9 +4750,7 @@ export default async function Page() {
 }
 ```
 
-</Accordion>
-
-<Accordion title="Streaming Patterns">
+### Streaming Patterns
 
 # Streaming Patterns Reference
 
@@ -5185,9 +5149,7 @@ app/
 4. **Consider PPR**: Use Partial Prerendering for mixed static/dynamic pages
 5. **Test on slow connections**: Verify streaming works well on 3G networks
 
-</Accordion>
-
-<Accordion title="Tanstack Router Patterns">
+### Tanstack Router Patterns
 
 # React 19 + TanStack Router Patterns
 
@@ -5582,17 +5544,12 @@ When migrating Next.js patterns to TanStack Router:
 - [Zod Validation](https://zod.dev/)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Rsc Implementation Checklist">
+### Rsc Implementation Checklist
 
 # React Server Components Implementation Checklist
 
@@ -5861,7 +5818,3 @@ Use this checklist when implementing features with React Server Components and N
 - [ ] Test each migrated route thoroughly
 - [ ] Remove `pages/` when fully migrated
 
-
-</Accordion>
-
-</Accordions>

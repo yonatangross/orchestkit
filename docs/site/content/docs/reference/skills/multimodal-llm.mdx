@@ -2,7 +2,6 @@
 title: "Multimodal Llm"
 description: "Vision, audio, and multimodal LLM integration patterns. Use when processing images, transcribing audio, generating speech, or building multimodal AI pipelines."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -126,9 +125,7 @@ response = client.messages.create(
 
 ## Rules (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Audio Model Selection — MEDIUM">
+### Audio Model Selection — MEDIUM
 
 
 ## Audio Model Selection
@@ -212,9 +209,7 @@ async with model.connect(config=config) as session:
 - For phone agents, &lt;1s time-to-first-audio is the quality threshold
 
 
-</Accordion>
-
-<Accordion title="Audio Speech-to-Text — HIGH">
+### Audio Speech-to-Text — HIGH
 
 
 ## Audio Speech-to-Text
@@ -298,9 +293,7 @@ transcript = aai.Transcriber().transcribe(audio_url, config=config)
 - Always specify language when known — improves accuracy significantly
 
 
-</Accordion>
-
-<Accordion title="Audio Text-to-Speech — MEDIUM">
+### Audio Text-to-Speech — MEDIUM
 
 
 ## Audio Text-to-Speech
@@ -375,9 +368,7 @@ config = live.LiveConnectConfig(
 - Test with real users — perceived quality varies by use case and language
 
 
-</Accordion>
-
-<Accordion title="Vision Document Understanding — HIGH">
+### Vision Document Understanding — HIGH
 
 
 ## Vision Document Understanding
@@ -439,9 +430,7 @@ response = client.chat.completions.create(
 | Large PDF threshold | >10 pages |
 
 
-</Accordion>
-
-<Accordion title="Vision Image Analysis — HIGH">
+### Vision Image Analysis — HIGH
 
 
 ## Vision Image Analysis
@@ -537,9 +526,7 @@ response = model.generate_content([
 - Claude uses `media_type`, OpenAI uses `mime` in the data URI
 
 
-</Accordion>
-
-<Accordion title="Vision Model Selection — MEDIUM">
+### Vision Model Selection — MEDIUM
 
 
 ## Vision Model Selection
@@ -615,7 +602,3 @@ response = client.chat.completions.create(
 - Validate image format before encoding (corrupt files cause silent failures)
 - Always check rate limits on vision endpoints — they are lower than text-only
 
-
-</Accordion>
-
-</Accordions>

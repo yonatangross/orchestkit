@@ -2,7 +2,6 @@
 title: "Analytics"
 description: "Query cross-project usage analytics. Use when reviewing agent, skill, hook, or team performance across OrchestKit projects."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -99,9 +98,7 @@ Present results as a clean markdown table. Include counts, percentages, and aver
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Dashboard Layout & Widgets — HIGH">
+### Dashboard Layout & Widgets — HIGH
 
 
 ## Dashboard Layout & Widgets
@@ -220,9 +217,7 @@ function useRealtimeMetrics() {
 - Update specific query keys on real-time events, not entire cache
 
 
-</Accordion>
-
-<Accordion title="Recharts Chart Components — HIGH">
+### Recharts Chart Components — HIGH
 
 
 ## Recharts Chart Components
@@ -338,7 +333,3 @@ function AccessibleChart({ data, title }: { data: ChartData[]; title: string }) 
 - Limit data points to prevent rendering performance issues
 - Memoize data calculations outside the render function
 
-
-</Accordion>
-
-</Accordions>

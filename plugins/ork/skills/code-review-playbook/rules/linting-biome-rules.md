@@ -7,7 +7,7 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
 
 ## Biome Rule Configuration and CI Integration
 
-**Incorrect -- default config without key rules enabled:**
+**Incorrect — default config without key rules enabled:**
 ```json
 {
   "linter": { "enabled": true }
@@ -16,7 +16,7 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
 }
 ```
 
-**Correct -- production Biome configuration:**
+**Correct — production Biome configuration:**
 ```json
 {
   "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
@@ -56,7 +56,7 @@ tags: biome, rules, type-inference, ci, github-actions, configuration
 - `noFloatingPromises`: Catches unhandled promises (previously required tsconfig)
 - Multi-file analysis: Cross-module diagnostics
 
-**Correct -- CI integration (GitHub Actions):**
+**Correct — CI integration (GitHub Actions):**
 ```yaml
 # .github/workflows/lint.yml
 name: Lint

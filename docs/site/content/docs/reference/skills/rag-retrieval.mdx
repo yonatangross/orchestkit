@@ -2,7 +2,6 @@
 title: "Rag Retrieval"
 description: "Retrieval-Augmented Generation patterns for grounded LLM responses. Use when building RAG pipelines, embedding documents, implementing hybrid search, contextual retrieval, HyDE, agentic RAG, multimodal RAG, query decomposition, reranking, or pgvector search."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -260,9 +259,7 @@ See `test-cases.json` for 30 test cases across all categories.
 
 ## Rules (30)
 
-<Accordions type="multiple">
-
-<Accordion title="Adaptive Retrieval — MEDIUM">
+### Adaptive Retrieval — MEDIUM
 
 
 ## Adaptive Retrieval
@@ -316,9 +313,7 @@ async def adaptive_search(question: str, top_k: int = 10) -> list[dict]:
 - Routing adds ~200ms overhead — use heuristics for fast-path decisions
 
 
-</Accordion>
-
-<Accordion title="Corrective RAG (CRAG) — HIGH">
+### Corrective RAG (CRAG) — HIGH
 
 
 ## Corrective RAG (CRAG)
@@ -378,9 +373,7 @@ def web_search(state: RAGState) -> dict:
 - No fallback path = workflow hangs on bad queries
 
 
-</Accordion>
-
-<Accordion title="Knowledge Graph RAG (GraphRAG) — MEDIUM">
+### Knowledge Graph RAG (GraphRAG) — MEDIUM
 
 
 ## Knowledge Graph RAG (GraphRAG)
@@ -409,9 +402,7 @@ Query → [Entity Extraction] → [KG Lookup] → [Vector Search] → [Merge] �
 - Neo4j or similar graph DB for production knowledge graphs
 
 
-</Accordion>
-
-<Accordion title="Self-RAG — Document Grading — HIGH">
+### Self-RAG — Document Grading — HIGH
 
 
 ## Self-RAG — Document Grading
@@ -471,9 +462,7 @@ def grade_documents(state: RAGState) -> dict:
 - Self-RAG lets the LLM decide when to retrieve — adaptive by design
 
 
-</Accordion>
-
-<Accordion title="Contextual Retrieval — Hybrid BM25+Vector — HIGH">
+### Contextual Retrieval — Hybrid BM25+Vector — HIGH
 
 
 ## Contextual Retrieval — Hybrid BM25+Vector
@@ -524,9 +513,7 @@ class HybridRetriever:
 - Adding reranking on top takes failure rate from 1.9% to 1.3%
 
 
-</Accordion>
-
-<Accordion title="Contextual Retrieval — Complete Pipeline — MEDIUM">
+### Contextual Retrieval — Complete Pipeline — MEDIUM
 
 
 ## Contextual Retrieval — Complete Pipeline
@@ -591,9 +578,7 @@ async def contextualize_parallel(document: str, chunks: list[str]) -> list[str]:
 - Prompt caching reduces cost by ~90% when processing many chunks from same document
 
 
-</Accordion>
-
-<Accordion title="Contextual Retrieval — Context Prepending — HIGH">
+### Contextual Retrieval — Context Prepending — HIGH
 
 
 ## Contextual Retrieval — Context Prepending
@@ -660,9 +645,7 @@ def contextualize_cached(document: str, chunk: str) -> str:
 - Use prompt caching (ephemeral) for 90% cost reduction when processing many chunks from same doc
 
 
-</Accordion>
-
-<Accordion title="Basic RAG Pattern — CRITICAL">
+### Basic RAG Pattern — CRITICAL
 
 
 ## Basic RAG Pattern
@@ -721,9 +704,7 @@ async def rag_with_citations(question: str) -> dict:
 - Return sources alongside answers for transparency
 
 
-</Accordion>
-
-<Accordion title="Context Window Management — HIGH">
+### Context Window Management — HIGH
 
 
 ## Context Window Management
@@ -784,9 +765,7 @@ async def rag_with_sufficiency(question: str, top_k: int = 5) -> str:
 - Abstain when confidence > 0.7 and context is insufficient
 
 
-</Accordion>
-
-<Accordion title="Hybrid Search (Semantic + Keyword) — HIGH">
+### Hybrid Search (Semantic + Keyword) — HIGH
 
 
 ## Hybrid Search (Semantic + Keyword)
@@ -839,9 +818,7 @@ def multi_rrf(result_lists: list[list[dict]], k: int = 60) -> list[dict]:
 - Normalize scores before combining if not using RRF
 
 
-</Accordion>
-
-<Accordion title="Pipeline Composition — MEDIUM">
+### Pipeline Composition — MEDIUM
 
 
 ## Pipeline Composition
@@ -903,9 +880,7 @@ class RAGPipeline:
 - Each stage is optional — start simple, add stages as needed
 
 
-</Accordion>
-
-<Accordion title="Advanced Embedding Patterns — MEDIUM">
+### Advanced Embedding Patterns — MEDIUM
 
 
 ## Advanced Embedding Patterns
@@ -972,9 +947,7 @@ response = client.embeddings.create(
 - Rate limit: 0.1s delay between batches as courtesy to API providers
 
 
-</Accordion>
-
-<Accordion title="Chunking Strategies — HIGH">
+### Chunking Strategies — HIGH
 
 
 ## Chunking Strategies
@@ -1038,9 +1011,7 @@ def chunk_by_sentences(text: str, chunk_size: int = 512) -> list[str]:
 - Not chunking long documents is a common mistake — context gets lost in embeddings
 
 
-</Accordion>
-
-<Accordion title="Embedding Models & API — HIGH">
+### Embedding Models & API — HIGH
 
 
 ## Embedding Models & API
@@ -1095,9 +1066,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
 - Most models return normalized vectors (cosine = dot product)
 
 
-</Accordion>
-
-<Accordion title="HyDE Fallback Strategy — MEDIUM">
+### HyDE Fallback Strategy — MEDIUM
 
 
 ## HyDE Fallback Strategy
@@ -1136,9 +1105,7 @@ async def hyde_with_fallback(
 - Log fallback events to monitor HyDE generation reliability
 
 
-</Accordion>
-
-<Accordion title="HyDE Generation — HIGH">
+### HyDE Generation — HIGH
 
 
 ## HyDE Generation
@@ -1206,9 +1173,7 @@ async def generate_hyde(
 - Adds ~500ms latency — always implement with timeout fallback
 
 
-</Accordion>
-
-<Accordion title="Per-Concept HyDE — MEDIUM">
+### Per-Concept HyDE — MEDIUM
 
 
 ## Per-Concept HyDE
@@ -1252,9 +1217,7 @@ class HyDEService:
 - Combine with query decomposition for best results on complex queries
 
 
-</Accordion>
-
-<Accordion title="Multimodal Document Chunking — MEDIUM">
+### Multimodal Document Chunking — MEDIUM
 
 
 ## Multimodal Document Chunking
@@ -1312,9 +1275,7 @@ def chunk_multimodal_document(pdf_path: str) -> list[Chunk]:
 - Always store image paths alongside embeddings for result display
 
 
-</Accordion>
-
-<Accordion title="Multimodal Embeddings — HIGH">
+### Multimodal Embeddings — HIGH
 
 
 ## Multimodal Embeddings
@@ -1379,9 +1340,7 @@ def embed_multimodal(texts=None, images=None) -> list[list[float]]:
 - Always embed both images AND captions for maximum coverage
 
 
-</Accordion>
-
-<Accordion title="Multimodal RAG Pipeline — MEDIUM">
+### Multimodal RAG Pipeline — MEDIUM
 
 
 ## Multimodal RAG Pipeline
@@ -1441,9 +1400,7 @@ async def generate_with_context(query: str, chunks: list[Chunk], model: str = "c
 - Missing image URL storage is a common mistake — always store paths for display
 
 
-</Accordion>
-
-<Accordion title="PGVector Hybrid Search (SQL) — HIGH">
+### PGVector Hybrid Search (SQL) — HIGH
 
 
 ## PGVector Hybrid Search (SQL)
@@ -1509,9 +1466,7 @@ rrf_score = 1/(k + vector_rank) + 1/(k + keyword_rank)  # k=60 (standard)
 - `plainto_tsquery` for user queries (handles multi-word safely)
 
 
-</Accordion>
-
-<Accordion title="PGVector Index Strategies — HIGH">
+### PGVector Index Strategies — HIGH
 
 
 ## PGVector Index Strategies
@@ -1558,9 +1513,7 @@ SET hnsw.iterative_scan = 'relaxed_order';
 - Use `iterative_scan = 'relaxed_order'` for filtered vector queries
 
 
-</Accordion>
-
-<Accordion title="PGVector Metadata Filtering & Patterns — MEDIUM">
+### PGVector Metadata Filtering & Patterns — MEDIUM
 
 
 ## PGVector Metadata Filtering & Patterns
@@ -1607,9 +1560,7 @@ final = deduplicate_and_rerank(all_results)
 - Choose Redis 8 for: sub-5ms latency, caching layer, simpler deployment
 
 
-</Accordion>
-
-<Accordion title="PGVector Database Schema — HIGH">
+### PGVector Database Schema — HIGH
 
 
 ## PGVector Database Schema
@@ -1649,9 +1600,7 @@ CREATE INDEX idx_chunks_content_tsvector ON chunks
 - Include content_type for filtered search (code, text, table)
 
 
-</Accordion>
-
-<Accordion title="Query Decomposition + RRF Fusion — HIGH">
+### Query Decomposition + RRF Fusion — HIGH
 
 
 ## Query Decomposition + RRF Fusion
@@ -1707,9 +1656,7 @@ async def decomposed_search(query: str, search_fn, llm, top_k: int = 10) -> list
 - Set timeout with fallback to original query if decomposition fails
 
 
-</Accordion>
-
-<Accordion title="Multi-Concept Query Detection — MEDIUM">
+### Multi-Concept Query Detection — MEDIUM
 
 
 ## Multi-Concept Query Detection
@@ -1748,9 +1695,7 @@ def is_multi_concept_heuristic(query: str) -> bool:
 - This is the fast path — always check before calling the LLM decomposer
 
 
-</Accordion>
-
-<Accordion title="Decomposition + HyDE Combo — MEDIUM">
+### Decomposition + HyDE Combo — MEDIUM
 
 
 ## Decomposition + HyDE Combo
@@ -1794,9 +1739,7 @@ async def decomposed_hyde_search(
 - This is the most expensive retrieval path — use only when simpler methods fail
 
 
-</Accordion>
-
-<Accordion title="Combined Scoring & Reranking Service — MEDIUM">
+### Combined Scoring & Reranking Service — MEDIUM
 
 
 ## Combined Scoring & Reranking Service
@@ -1846,9 +1789,7 @@ class ReRankingService:
 - Store score components for debugging and tuning
 
 
-</Accordion>
-
-<Accordion title="Cross-Encoder Reranking — HIGH">
+### Cross-Encoder Reranking — HIGH
 
 
 ## Cross-Encoder Reranking
@@ -1886,9 +1827,7 @@ class CrossEncoderReranker:
 - Truncate document content to 200-400 chars for reranking efficiency
 
 
-</Accordion>
-
-<Accordion title="LLM Reranking — MEDIUM">
+### LLM Reranking — MEDIUM
 
 
 ## LLM Reranking
@@ -1949,17 +1888,12 @@ class CohereReranker:
 - Set timeout with fallback to base ranking
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Rag Quality">
+### Rag Quality
 
 # RAG Quality Checklist
 
@@ -2030,9 +1964,7 @@ Quality assurance for agentic RAG implementations.
 - [ ] User feedback integration
 
 
-</Accordion>
-
-<Accordion title="Search Implementation Checklist">
+### Search Implementation Checklist
 
 # PGVector Hybrid Search Implementation Checklist
 
@@ -2610,7 +2542,3 @@ for chunk, score in results:
 - **Constants**: `backend/app/core/constants.py`
 - **Related Skill**: `the `database-schema-designer` skill`
 
-
-</Accordion>
-
-</Accordions>

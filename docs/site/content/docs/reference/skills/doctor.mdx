@@ -2,7 +2,6 @@
 title: "Doctor"
 description: "OrchestKit health diagnostics. Use when checking plugin health or troubleshooting issues."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -367,9 +366,7 @@ ls -la .claude/memory/
 
 ## References (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Agents Validation">
+### Agents Validation
 
 # Agents Validation
 
@@ -466,9 +463,7 @@ Ensure skill exists in `src/skills/` directory.
 Check tool spelling matches CC tool names exactly.
 
 
-</Accordion>
-
-<Accordion title="Hook Validation">
+### Hook Validation
 
 # Hook Validation
 
@@ -635,9 +630,7 @@ Default timeout: 120s (bash), 600s (CC 2.1.3+)
 | 2 | Block (stops execution) |
 
 
-</Accordion>
-
-<Accordion title="Memory Health">
+### Memory Health
 
 # Memory Health
 
@@ -736,9 +729,7 @@ with open('.claude/memory/decisions.jsonl') as f:
 Queue items accumulate if the stop dispatcher doesn't run (e.g., session crash). The queue-recovery hook processes orphaned queues on the next session start.
 
 
-</Accordion>
-
-<Accordion title="Permission Rules">
+### Permission Rules
 
 # Permission Rules Analysis
 
@@ -829,9 +820,7 @@ jq '.permissions // [] | map(.matcher) | unique' .claude/settings.json
 3. Test rules with actual tool invocations
 4. Review rules after plugin updates
 
-</Accordion>
-
-<Accordion title="Schema Validation">
+### Schema Validation
 
 # Schema Validation
 
@@ -952,9 +941,7 @@ jq '.properties | to_entries | map({key: .key, type: .value.type})' \
   .claude/schemas/skill files
 ```
 
-</Accordion>
-
-<Accordion title="Skills Validation">
+### Skills Validation
 
 # Skills Validation
 
@@ -1050,7 +1037,3 @@ Split into SKILL.md + references/ directory.
 
 Ensure file exists at `references/filename.md`.
 
-
-</Accordion>
-
-</Accordions>

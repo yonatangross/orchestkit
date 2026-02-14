@@ -2,7 +2,6 @@
 title: "Performance"
 description: "Performance optimization patterns covering Core Web Vitals, React render optimization, lazy loading, image optimization, backend profiling, and LLM inference. Use when improving page speed, debugging slow renders, optimizing bundles, reducing image payload, profiling backend, or deploying LLMs efficiently."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -249,9 +248,7 @@ export default async function Page() {
 
 ## Rules (22)
 
-<Accordions type="multiple">
-
-<Accordion title="HTTP & Prompt Caching — HIGH">
+### HTTP & Prompt Caching — HIGH
 
 
 ## HTTP & Prompt Caching
@@ -326,9 +323,7 @@ async def get_profile(response: Response):
 - Never cache error responses or authentication tokens
 
 
-</Accordion>
-
-<Accordion title="Redis & Backend Caching — HIGH">
+### Redis & Backend Caching — HIGH
 
 
 ## Redis & Backend Caching
@@ -407,9 +402,7 @@ async def on_user_updated(event: UserUpdatedEvent, cache: CacheAside):
 - Never use cache as primary storage (data loss risk)
 
 
-</Accordion>
-
-<Accordion title="CLS Prevention — CRITICAL">
+### CLS Prevention — CRITICAL
 
 
 # CLS Prevention
@@ -497,9 +490,7 @@ Prevent Cumulative Layout Shift for the 2026 threshold of &lt;= 0.08.
 7. Target **&lt;= 0.08** for 2026 thresholds
 
 
-</Accordion>
-
-<Accordion title="INP Optimization — CRITICAL">
+### INP Optimization — CRITICAL
 
 
 # INP Optimization
@@ -584,9 +575,7 @@ function SearchResults() {
 6. Target **&lt;= 150ms** for 2026 thresholds
 
 
-</Accordion>
-
-<Accordion title="LCP Optimization — CRITICAL">
+### LCP Optimization — CRITICAL
 
 
 # LCP Optimization
@@ -666,9 +655,7 @@ useEffect(() => { fetchData().then(setData); }, []);
 6. Target **&lt;= 2.0s** for 2026 thresholds
 
 
-</Accordion>
-
-<Accordion title="Modern Image Formats — HIGH">
+### Modern Image Formats — HIGH
 
 
 # Modern Image Formats
@@ -731,9 +718,7 @@ higher quality for small thumbnails (already small files).
 - **Automate** format conversion in the build pipeline, not manually
 
 
-</Accordion>
-
-<Accordion title="Next.js Image Component — HIGH">
+### Next.js Image Component — HIGH
 
 
 # Next.js Image Component
@@ -826,9 +811,7 @@ export default function cloudflareLoader({
 - **Use** `fill` with `sizes` for responsive containers instead of fixed dimensions
 
 
-</Accordion>
-
-<Accordion title="Responsive Images — HIGH">
+### Responsive Images — HIGH
 
 
 # Responsive Images
@@ -912,9 +895,7 @@ function imgixUrl(src: string, width: number, quality = 80) {
 - **Set** explicit `width` and `height` to prevent CLS
 
 
-</Accordion>
-
-<Accordion title="Model Quantization — MEDIUM">
+### Model Quantization — MEDIUM
 
 
 # Model Quantization
@@ -992,9 +973,7 @@ def eval_quantized(client, test_cases):
 - **Pre-quantized** models (e.g., TheBloke) save quantization time
 
 
-</Accordion>
-
-<Accordion title="Speculative Decoding — MEDIUM">
+### Speculative Decoding — MEDIUM
 
 
 # Speculative Decoding
@@ -1079,9 +1058,7 @@ Draft model speculation:
 - **Output quality** is identical to non-speculative decoding (mathematically guaranteed)
 
 
-</Accordion>
-
-<Accordion title="vLLM Deployment — MEDIUM">
+### vLLM Deployment — MEDIUM
 
 
 # vLLM Deployment
@@ -1154,9 +1131,7 @@ Tensor Parallelism:
 - **Set** `--max-model-len` to the actual max you need (lower = more concurrent requests)
 
 
-</Accordion>
-
-<Accordion title="Lazy Component Loading — HIGH">
+### Lazy Component Loading — HIGH
 
 
 # Lazy Component Loading
@@ -1234,9 +1209,7 @@ function DashboardSkeleton() {
 - **Group** related lazy components under a single Suspense boundary
 
 
-</Accordion>
-
-<Accordion title="Prefetch Strategies — HIGH">
+### Prefetch Strategies — HIGH
 
 
 # Prefetch Strategies
@@ -1325,9 +1298,7 @@ async function handleExport() {
 - **Import on interaction** for rarely-used heavy features
 
 
-</Accordion>
-
-<Accordion title="Route-Based Code Splitting — HIGH">
+### Route-Based Code Splitting — HIGH
 
 
 # Route-Based Code Splitting
@@ -1403,9 +1374,7 @@ export default defineConfig({
 - **Group** vendor libraries into shared chunks to avoid duplication
 
 
-</Accordion>
-
-<Accordion title="Python Backend Profiling — MEDIUM">
+### Python Backend Profiling — MEDIUM
 
 
 # Python Backend Profiling
@@ -1486,9 +1455,7 @@ async def profile_requests(request: Request, call_next):
 - **Focus** on the top 3-5 hotspots by cumulative time
 
 
-</Accordion>
-
-<Accordion title="Bundle Analysis — MEDIUM">
+### Bundle Analysis — MEDIUM
 
 
 # Bundle Analysis
@@ -1573,9 +1540,7 @@ const sorted = items.toSorted((a, b) => a.name.localeCompare(b.name));
 - **Replace** large dependencies with native APIs when possible
 
 
-</Accordion>
-
-<Accordion title="React DevTools Profiler — MEDIUM">
+### React DevTools Profiler — MEDIUM
 
 
 # React DevTools Profiler
@@ -1652,9 +1617,7 @@ MyComponent.whyDidYouRender = true;
 - **Ignore** gray (not rendered) components in the flamegraph
 
 
-</Accordion>
-
-<Accordion title="TanStack Query Optimistic Updates — HIGH">
+### TanStack Query Optimistic Updates — HIGH
 
 
 ## TanStack Query Optimistic Updates
@@ -1762,9 +1725,7 @@ function PendingTodos() {
 - Selective invalidation: `queryKey: ['todos', id]` not `queryClient.invalidateQueries()` (invalidates everything)
 
 
-</Accordion>
-
-<Accordion title="TanStack Query Prefetching — HIGH">
+### TanStack Query Prefetching — HIGH
 
 
 ## TanStack Query Prefetching
@@ -1852,9 +1813,7 @@ const queryClient = new QueryClient({
 - `isPending` (v5) replaces `isLoading` for initial load state
 
 
-</Accordion>
-
-<Accordion title="React Compiler — HIGH">
+### React Compiler — HIGH
 
 
 # React Compiler
@@ -1906,9 +1865,7 @@ Open React DevTools and look for the "Memo ✨" badge on components. If present,
 5. **Profile** before adding any manual optimization
 
 
-</Accordion>
-
-<Accordion title="Manual Memoization Escape Hatches — HIGH">
+### Manual Memoization Escape Hatches — HIGH
 
 
 # Manual Memoization Escape Hatches
@@ -1978,9 +1935,7 @@ function App() {
 5. **Split** context into state and dispatch providers
 
 
-</Accordion>
-
-<Accordion title="List Virtualization — HIGH">
+### List Virtualization — HIGH
 
 
 # List Virtualization
@@ -2055,17 +2010,12 @@ const virtualizer = useVirtualizer({
 5. **Position** items with `transform: translateY()` (avoids layout recalculation)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (17)
 
-<Accordions type="multiple">
-
-<Accordion title="Caching Strategies">
+### Caching Strategies
 
 # Caching Strategies
 
@@ -2340,9 +2290,7 @@ async function getAnalysis(id: string): Promise<Analysis> {
 - See `scripts/caching-patterns.ts` for complete implementation
 
 
-</Accordion>
-
-<Accordion title="Cdn Setup">
+### Cdn Setup
 
 # Image CDN Configuration
 
@@ -2716,7 +2664,7 @@ CMD ["node", "server.js"]
 
 ### Nginx Configuration
 
-```nginx
+```text
 # /etc/nginx/conf.d/images.conf
 
 # Image caching
@@ -2872,9 +2820,7 @@ export function getOptimizedImageUrl(
 ```
 
 
-</Accordion>
-
-<Accordion title="Core Web Vitals">
+### Core Web Vitals
 
 # Core Web Vitals Optimization
 
@@ -3191,9 +3137,7 @@ Google measures at the **75th percentile** of all page loads:
 - [web-vitals library](https://github.com/GoogleChrome/web-vitals)
 
 
-</Accordion>
-
-<Accordion title="Database Optimization">
+### Database Optimization
 
 # Database Query Optimization
 
@@ -3333,9 +3277,7 @@ LIMIT 20;  -- Only scans 20 rows
 - See `scripts/database-optimization.ts` for implementation patterns
 
 
-</Accordion>
-
-<Accordion title="Devtools Profiler Workflow">
+### Devtools Profiler Workflow
 
 # React DevTools Profiler Workflow
 
@@ -3511,9 +3453,7 @@ function onRenderCallback(
 | State changed | Verify state is necessary |
 
 
-</Accordion>
-
-<Accordion title="Edge Deployment">
+### Edge Deployment
 
 # Edge Deployment
 
@@ -3804,9 +3744,7 @@ def benchmark_edge(model_path: str, prompts: list[str]):
 - `quantization-guide` - Quantization methods
 
 
-</Accordion>
-
-<Accordion title="Frontend Performance">
+### Frontend Performance
 
 # Frontend Performance Optimization
 
@@ -4052,9 +3990,7 @@ du -sh dist/
 - See `scripts/frontend-optimization.tsx` for complete examples
 
 
-</Accordion>
-
-<Accordion title="Memoization Escape Hatches">
+### Memoization Escape Hatches
 
 # Memoization Escape Hatches
 
@@ -4260,9 +4196,7 @@ const value = useMemo(() => {
 ```
 
 
-</Accordion>
-
-<Accordion title="Profiling">
+### Profiling
 
 # Performance Profiling
 
@@ -4653,9 +4587,7 @@ node --inspect app.js
 - See `scripts/performance-metrics.ts` for Prometheus metrics setup
 
 
-</Accordion>
-
-<Accordion title="Quantization Guide">
+### Quantization Guide
 
 # Quantization Guide
 
@@ -4895,9 +4827,7 @@ model.quantize(
 - `embeddings` - Quantized embedding models
 
 
-</Accordion>
-
-<Accordion title="React Compiler Migration">
+### React Compiler Migration
 
 # React Compiler Migration Guide
 
@@ -5094,9 +5024,7 @@ const handleSubmit = useCallback(async () => {
 - Compiler output is equivalent to manual optimization
 
 
-</Accordion>
-
-<Accordion title="Route Splitting">
+### Route Splitting
 
 # Route-Based Code Splitting
 
@@ -5202,9 +5130,7 @@ npx vite-bundle-visualizer
 ```
 
 
-</Accordion>
-
-<Accordion title="Rum Setup">
+### Rum Setup
 
 # Real User Monitoring (RUM) Setup
 
@@ -5910,9 +5836,7 @@ export default function RootLayout({ children }) {
 ```
 
 
-</Accordion>
-
-<Accordion title="Speculative Decoding">
+### Speculative Decoding
 
 # Speculative Decoding
 
@@ -6144,9 +6068,7 @@ benchmark_speculation("meta-llama/Meta-Llama-3.1-8B-Instruct", prompts)
 - `prompt-caching` - Combine with prefix caching
 
 
-</Accordion>
-
-<Accordion title="State Colocation">
+### State Colocation
 
 # State Colocation
 
@@ -6354,9 +6276,7 @@ const LocaleContext = createContext('en')
 - [ ] Is it URL state? → Use router params
 
 
-</Accordion>
-
-<Accordion title="Tanstack Virtual Patterns">
+### Tanstack Virtual Patterns
 
 # TanStack Virtual Patterns
 
@@ -6618,9 +6538,7 @@ function WindowList({ items }) {
 5. **Debounce scroll**: For very heavy computations
 
 
-</Accordion>
-
-<Accordion title="Vllm Deployment">
+### Vllm Deployment
 
 # vLLM Deployment
 
@@ -6831,17 +6749,12 @@ Key metrics:
 - `performance-testing` - Load testing inference endpoints
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Cwv Checklist">
+### Cwv Checklist
 
 # Core Web Vitals Optimization Checklist
 
@@ -7201,9 +7114,7 @@ module.exports = {
 - [ ] Plan optimizations for next sprint
 
 
-</Accordion>
-
-<Accordion title="Image Checklist">
+### Image Checklist
 
 # Image Optimization Checklist
 
@@ -7498,9 +7409,7 @@ const [error, setError] = useState(false);
 - [ ] Consider image hashing for user content
 
 
-</Accordion>
-
-<Accordion title="Inference Optimization">
+### Inference Optimization
 
 # Inference Optimization Checklist
 
@@ -7586,9 +7495,7 @@ Performance validation for LLM inference.
 - [ ] Cost per request tracked
 
 
-</Accordion>
-
-<Accordion title="Performance Audit Checklist">
+### Performance Audit Checklist
 
 # Performance Audit Checklist
 
@@ -7663,7 +7570,7 @@ lighthouse http://localhost:3000 \
 
 **1. Find Slow Endpoints**
 
-```promql
+```text
 # Top 10 slowest endpoints (p95 latency)
 topk(10,
   histogram_quantile(0.95,
@@ -7883,7 +7790,7 @@ analyses = await session.execute(
 
 **1. Check Current Pool Usage**
 
-```promql
+```text
 # Connection pool saturation
 db_connections_active / db_connections_max
 ```
@@ -8246,9 +8153,7 @@ speedup = before_latency / after_latency  # 17x
 - [PostgreSQL EXPLAIN](https://www.postgresql.org/docs/current/using-explain.html)
 
 
-</Accordion>
-
-<Accordion title="Render Audit">
+### Render Audit
 
 # React Performance Audit Checklist
 
@@ -8366,17 +8271,12 @@ npx vite-bundle-visualizer
 - [ ] Performance regression tests in CI
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Cwv Examples">
+### Cwv Examples
 
 # Core Web Vitals Examples
 
@@ -9166,9 +9066,7 @@ new PerformanceObserver((list) => {
 ```
 
 
-</Accordion>
-
-<Accordion title="Image Examples">
+### Image Examples
 
 # Image Optimization Examples
 
@@ -9365,9 +9263,7 @@ function HeroWithNextImage() {
 ```
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Performance Wins">
+### Orchestkit Performance Wins
 
 # OrchestKit Performance Wins - Real Optimization Examples
 
@@ -10099,7 +9995,3 @@ MAX_STRING_LENGTH = 500  # Increased from 200
 - Template: `../scripts/caching-patterns.ts`
 - Template: `../scripts/database-optimization.ts`
 
-
-</Accordion>
-
-</Accordions>

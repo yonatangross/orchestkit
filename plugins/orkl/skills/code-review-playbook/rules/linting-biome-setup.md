@@ -7,14 +7,14 @@ tags: biome, linting, formatting, eslint-migration, code-quality
 
 ## Biome Linting Setup and Migration
 
-**Incorrect -- complex multi-tool setup:**
+**Incorrect — complex multi-tool setup:**
 ```json
 // 4+ config files: .eslintrc, .prettierrc, .prettierignore, .editorconfig
 // 127+ npm packages for ESLint + Prettier + plugins
 // 3-5s lint time for 10k lines
 ```
 
-**Correct -- Biome single-tool setup:**
+**Correct — Biome single-tool setup:**
 ```bash
 # Install (single binary, no plugins needed)
 npm install --save-dev --save-exact @biomejs/biome
@@ -32,7 +32,7 @@ npx @biomejs/biome check --write .
 npx @biomejs/biome ci .
 ```
 
-**Correct -- ESLint migration:**
+**Correct — ESLint migration:**
 ```bash
 # Auto-migrate ESLint configuration
 npx @biomejs/biome migrate eslint --write
@@ -48,7 +48,7 @@ Common rule mappings:
 | eslint-plugin-react | Most supported |
 | eslint-plugin-jsx-a11y | Most supported |
 
-**Correct -- gradual adoption with overrides:**
+**Correct — gradual adoption with overrides:**
 ```json
 {
   "overrides": [

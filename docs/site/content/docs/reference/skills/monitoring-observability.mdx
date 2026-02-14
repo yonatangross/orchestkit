@@ -2,7 +2,6 @@
 title: "Monitoring Observability"
 description: "Monitoring and observability patterns for Prometheus metrics, Grafana dashboards, Langfuse LLM tracing, and drift detection. Use when adding logging, metrics, distributed tracing, LLM cost tracking, or quality drift monitoring."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -132,9 +131,7 @@ Detection and alerting for silent failures in LLM agents.
 
 ## Rules (12)
 
-<Accordions type="multiple">
-
-<Accordion title="Drift: Alerting — HIGH">
+### Drift: Alerting — HIGH
 
 
 # Drift Alerting
@@ -268,9 +265,7 @@ class DriftAlertPipeline:
 | Tool stack | Langfuse (traces) + Evidently/Phoenix (drift analysis) |
 
 
-</Accordion>
-
-<Accordion title="Drift: Quality Regression — HIGH">
+### Drift: Quality Regression — HIGH
 
 
 # Quality Drift Detection
@@ -436,9 +431,7 @@ Monitor drift in RAG retrieval quality by comparing retrieved document overlap a
 | Embedding method | Centroid distance for speed, cluster PSI for depth |
 
 
-</Accordion>
-
-<Accordion title="Drift: Statistical Methods — HIGH">
+### Drift: Statistical Methods — HIGH
 
 
 # Statistical Drift Detection
@@ -591,9 +584,7 @@ def combined_drift_score(expected, actual, weights=None):
 | Sudden change detection | 0.4-0.5 | Quick response |
 
 
-</Accordion>
-
-<Accordion title="LLM: Cost Tracking — HIGH">
+### LLM: Cost Tracking — HIGH
 
 
 # LLM Cost Tracking
@@ -757,9 +748,7 @@ GROUP BY DATE(timestamp) ORDER BY date;
 7. **Use Metrics API** for programmatic queries instead of raw SQL
 
 
-</Accordion>
-
-<Accordion title="LLM: Evaluation Scoring — HIGH">
+### LLM: Evaluation Scoring — HIGH
 
 
 # LLM Evaluation Scoring
@@ -908,9 +897,7 @@ ORDER BY date;
 8. **Alert on quality drops** (e.g., avg_score &lt; 0.6 for 3 consecutive days)
 
 
-</Accordion>
-
-<Accordion title="LLM: Langfuse Traces — HIGH">
+### LLM: Langfuse Traces — HIGH
 
 
 # Langfuse Traces
@@ -1054,9 +1041,7 @@ sdk.start();
 7. **Tag production vs staging** traces for environment filtering
 
 
-</Accordion>
-
-<Accordion title="Monitoring: Alerting Rules — CRITICAL">
+### Monitoring: Alerting Rules — CRITICAL
 
 
 # Alerting Rules
@@ -1190,9 +1175,7 @@ Every alert must link to a runbook containing:
 | **Email** | Low priority (daily digest) | P4 |
 
 
-</Accordion>
-
-<Accordion title="Monitoring: Grafana Dashboards — CRITICAL">
+### Monitoring: Grafana Dashboards — CRITICAL
 
 
 # Grafana Dashboards
@@ -1225,7 +1208,7 @@ Every alert must link to a runbook containing:
 
 ## RED Metrics for Dashboards
 
-```promql
+```text
 # Rate
 rate(http_requests_total[5m])
 
@@ -1246,7 +1229,7 @@ histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 
 ### Service Level Indicators (SLIs)
 
-```promql
+```text
 # Availability SLI: % of successful requests
 sum(rate(http_requests_total{status!~"5.."}[30d])) /
 sum(rate(http_requests_total[30d]))
@@ -1282,9 +1265,7 @@ sum(rate(http_request_duration_seconds_count[30d]))
 5. **Link to runbooks** — from alert panels
 
 
-</Accordion>
-
-<Accordion title="Monitoring: Prometheus Metrics — CRITICAL">
+### Monitoring: Prometheus Metrics — CRITICAL
 
 
 # Prometheus Metrics
@@ -1415,7 +1396,7 @@ cache_operations = Counter(
 
 ## PromQL Quick Reference
 
-```promql
+```text
 # Rate of requests
 rate(http_requests_total[5m])
 
@@ -1431,9 +1412,7 @@ sum(increase(llm_cost_dollars_total[1d])) by (model)
 ```
 
 
-</Accordion>
-
-<Accordion title="Silent Failure Alerting — HIGH">
+### Silent Failure Alerting — HIGH
 
 
 ## Silent Failure Alerting
@@ -1495,9 +1474,7 @@ class BaselineAnomalyDetector:
 - Combine statistical detection with proactive quality checks
 
 
-</Accordion>
-
-<Accordion title="Silent Quality Degradation Detection — HIGH">
+### Silent Quality Degradation Detection — HIGH
 
 
 ## Silent Quality Degradation Detection
@@ -1572,9 +1549,7 @@ class LoopDetector:
 - Not-empty and no-error are insufficient quality checks
 
 
-</Accordion>
-
-<Accordion title="Silent Tool Skipping Detection — CRITICAL">
+### Silent Tool Skipping Detection — CRITICAL
 
 
 ## Silent Tool Skipping Detection
@@ -1629,17 +1604,12 @@ if tool_check["alert"]:
 - Always have a fallback path when expected tools are not called
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (21)
 
-<Accordions type="multiple">
-
-<Accordion title="Agent Observability">
+### Agent Observability
 
 # Agent Observability
 
@@ -1916,9 +1886,7 @@ async def run_openai_agent(query: str):
 - [Tool Calls](https://langfuse.com/docs/tracing-features/tool-calls)
 
 
-</Accordion>
-
-<Accordion title="Alerting Dashboards">
+### Alerting Dashboards
 
 # Alerting and Dashboards
 
@@ -2054,7 +2022,7 @@ groups:
 ## SLO/SLI Dashboards
 
 **Service Level Indicators (SLIs):**
-```promql
+```text
 # Availability SLI: % of successful requests
 sum(rate(http_requests_total{status!~"5.."}[30d])) /
 sum(rate(http_requests_total[30d]))
@@ -2080,9 +2048,7 @@ sum(rate(http_request_duration_seconds_count[30d]))
 
 See `scripts/alerting-rules.yml` for complete examples.
 
-</Accordion>
-
-<Accordion title="Alerting Strategies">
+### Alerting Strategies
 
 # Alerting Strategies
 
@@ -2138,9 +2104,7 @@ groups:
 See `scripts/alerting-rules.yml` for complete examples.
 
 
-</Accordion>
-
-<Accordion title="Cost Tracking">
+### Cost Tracking
 
 # Token & Cost Tracking
 
@@ -2344,9 +2308,7 @@ ORDER BY date;
 - [Spend Alerts](https://langfuse.com/docs/analytics/alerts)
 
 
-</Accordion>
-
-<Accordion title="Dashboards">
+### Dashboards
 
 # Monitoring Dashboards
 
@@ -2394,9 +2356,7 @@ Target: < 0.001
 See Grafana dashboards in `backend/grafana/dashboards/`.
 
 
-</Accordion>
-
-<Accordion title="Distributed Tracing">
+### Distributed Tracing
 
 # Distributed Tracing
 
@@ -2521,9 +2481,7 @@ service.name = "analysis-worker"
 
 See `scripts/opentelemetry-tracing.ts` for complete setup.
 
-</Accordion>
-
-<Accordion title="Embedding Drift">
+### Embedding Drift
 
 # Embedding Drift Detection
 
@@ -2956,9 +2914,7 @@ def evidently_embedding_drift(
 - [AWS: Monitor Embedding Drift for LLMs](https://aws.amazon.com/blogs/machine-learning/monitor-embedding-drift-for-llms-deployed-from-amazon-sagemaker-jumpstart/)
 
 
-</Accordion>
-
-<Accordion title="Evaluation Scores">
+### Evaluation Scores
 
 # LLM Evaluation & Scoring
 
@@ -3203,9 +3159,7 @@ async def quality_gate_node(state: WorkflowState):
 - [Datasets Guide](https://langfuse.com/docs/datasets)
 
 
-</Accordion>
-
-<Accordion title="Ewma Baselines">
+### Ewma Baselines
 
 # EWMA Dynamic Baselines
 
@@ -3292,9 +3246,7 @@ class MultiMetricEWMA:
 - [EWMA Control Charts](https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc324.htm)
 
 
-</Accordion>
-
-<Accordion title="Experiments Api">
+### Experiments Api
 
 # Langfuse Experiments API
 
@@ -3733,9 +3685,7 @@ def export_experiment_results(experiment_id: str) -> pd.DataFrame:
 8. **Organize datasets** in folders by purpose (production, experiments, dev)
 
 
-</Accordion>
-
-<Accordion title="Framework Integrations">
+### Framework Integrations
 
 # Framework Integrations
 
@@ -4064,9 +4014,7 @@ sdk.start();
 - [Python SDK Integrations](https://langfuse.com/docs/integrations/python)
 
 
-</Accordion>
-
-<Accordion title="Langfuse Evidently Integration">
+### Langfuse Evidently Integration
 
 # Langfuse + Evidently AI Integration
 
@@ -4135,9 +4083,7 @@ class LangfuseEvidentlyMonitor:
 - [Langfuse SDK](https://langfuse.com/docs/sdk/python)
 
 
-</Accordion>
-
-<Accordion title="Logging Patterns">
+### Logging Patterns
 
 # Logging Patterns
 
@@ -4204,7 +4150,7 @@ if should_sample("INFO", rate=0.1):
 ## Log Aggregation with Loki
 
 **Loki Query Language (LogQL) examples:**
-```logql
+```text
 # Find all errors in last hour
 {app="backend"} |= "ERROR" | json
 
@@ -4288,9 +4234,7 @@ async def supervisor_node(state: AnalysisState):
 
 See `scripts/structured-logging.ts` for Winston setup.
 
-</Accordion>
-
-<Accordion title="Metrics Collection">
+### Metrics Collection
 
 # Metrics Collection
 
@@ -4460,7 +4404,7 @@ async def call_llm(prompt: str, model: str, operation: str) -> str:
 ```
 
 **Grafana dashboard queries:**
-```promql
+```text
 # Total cost per day
 sum(increase(llm_cost_dollars_total[1d])) by (model)
 
@@ -4476,9 +4420,7 @@ histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
 
 See `scripts/prometheus-metrics.ts` for complete setup.
 
-</Accordion>
-
-<Accordion title="Migration V2 V3">
+### Migration V2 V3
 
 # Migration Guide: v2 → v3 (Python) / v3 → v4 (JS)
 
@@ -4792,9 +4734,7 @@ ClickHouse Inc. acquired Langfuse on January 16, 2026. Key implications:
 - [ClickHouse Acquisition](https://langfuse.com/blog/clickhouse-acquisition)
 
 
-</Accordion>
-
-<Accordion title="Multi Judge Evaluation">
+### Multi Judge Evaluation
 
 # Multi-Judge Evaluation with Langfuse
 
@@ -5203,9 +5143,7 @@ GROUP BY name;
    - Analyze trends over time
 
 
-</Accordion>
-
-<Accordion title="Prompt Management">
+### Prompt Management
 
 # Prompt Management
 
@@ -5505,9 +5443,7 @@ system_prompt = await prompt_manager.get_prompt(
 - [Prompt Templates Guide](https://langfuse.com/docs/prompts/get-started)
 
 
-</Accordion>
-
-<Accordion title="Session Tracking">
+### Session Tracking
 
 # Session & User Tracking
 
@@ -5781,9 +5717,7 @@ LIMIT 10;
 - [Natural Language Filtering](https://langfuse.com/docs/tracing-features/filtering)
 
 
-</Accordion>
-
-<Accordion title="Statistical Methods">
+### Statistical Methods
 
 # Statistical Methods for Drift Detection
 
@@ -6159,9 +6093,7 @@ def combined_drift_score(
 - [Superwise: Introduction to Drift Metrics](https://superwise.ai/blog/a-hands-on-introduction-to-drift-metrics/)
 
 
-</Accordion>
-
-<Accordion title="Structured Logging">
+### Structured Logging
 
 # Structured Logging
 
@@ -6215,9 +6147,7 @@ logger.info({ userId: '123', action: 'login' }, 'User logged in');
 See `scripts/structured-logging.ts` for implementation.
 
 
-</Accordion>
-
-<Accordion title="Tracing Setup">
+### Tracing Setup
 
 # Distributed Tracing with Langfuse
 
@@ -6437,17 +6367,12 @@ sdk.start();
 - [Observation Types](https://langfuse.com/docs/tracing-features/observations)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Langfuse Setup Checklist">
+### Langfuse Setup Checklist
 
 # Langfuse Setup Checklist
 
@@ -6908,9 +6833,7 @@ HAVING SUM(calculated_total_cost) > 100;
 - Template: `../scripts/langfuse-decorator-pattern.py`
 
 
-</Accordion>
-
-<Accordion title="Monitoring Implementation Checklist">
+### Monitoring Implementation Checklist
 
 # Monitoring Implementation Checklist
 
@@ -7466,7 +7389,7 @@ datasources:
 ### Example Panel Queries
 
 **Latency Panel:**
-```promql
+```text
 # p50 latency
 histogram_quantile(0.5, rate(http_request_duration_seconds_bucket[5m]))
 
@@ -7478,12 +7401,12 @@ histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))
 ```
 
 **Traffic Panel:**
-```promql
+```text
 sum(rate(http_requests_total[5m]))
 ```
 
 **Error Rate Panel:**
-```promql
+```text
 sum(rate(http_requests_total{status=~"5.."}[5m])) /
 sum(rate(http_requests_total[5m]))
 ```
@@ -7679,17 +7602,12 @@ curl http://localhost:9090/api/v1/alerts
 - [Loki Documentation](https://grafana.com/docs/loki/)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Orchestkit Langfuse Traces">
+### Orchestkit Langfuse Traces
 
 # OrchestKit Langfuse Traces - Real Implementation
 
@@ -8126,9 +8044,7 @@ LIMIT 20;
 - [OrchestKit QUALITY_INITIATIVE_FIXES.md](../../../docs/QUALITY_INITIATIVE_FIXES.md)
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Monitoring Dashboard">
+### Orchestkit Monitoring Dashboard
 
 # OrchestKit Monitoring Dashboard - Real Implementation
 
@@ -8165,7 +8081,7 @@ This document shows OrchestKit's actual monitoring setup including metrics, dash
 
 **Prometheus Queries:**
 
-```promql
+```text
 # p95 latency
 histogram_quantile(0.95,
   rate(http_request_duration_seconds_bucket[5m])
@@ -8191,7 +8107,7 @@ avg(rate(process_cpu_seconds_total[5m])) * 100
 - LLM latency distribution
 
 **Cost Breakdown Panel:**
-```promql
+```text
 # Total cost per day by model
 sum(increase(llm_cost_dollars_total[1d])) by (model)
 
@@ -8208,7 +8124,7 @@ sum(increase(llm_cost_dollars_total[1h])) by (operation)
 | **Total** | **$7.40** | **$222** |
 
 **Cache Performance Panel:**
-```promql
+```text
 # Cache hit rate
 sum(rate(cache_operations_total{result="hit"}[5m])) /
 sum(rate(cache_operations_total[5m]))
@@ -8234,7 +8150,7 @@ avg_over_time(llm_cost_dollars_total[1h])
 4. Quality score distribution
 
 **Quality Gate Pass Rate:**
-```promql
+```text
 # Pass rate over last 24h
 sum(rate(quality_gate_passed_total[24h])) /
 sum(rate(quality_gate_total[24h]))
@@ -8269,7 +8185,7 @@ GROUP BY DATE(timestamp);
 4. Cache hit ratio
 
 **Query Latency:**
-```promql
+```text
 # p95 query latency
 histogram_quantile(0.95,
   rate(db_query_duration_seconds_bucket[5m])
@@ -8277,7 +8193,7 @@ histogram_quantile(0.95,
 ```
 
 **Connection Pool:**
-```promql
+```text
 # Active connections
 db_connections_active
 
@@ -8298,7 +8214,7 @@ db_connections_active / db_connections_max
 **Metrics from Golden Dataset (98 analyses, 415 chunks):**
 
 **Pass Rate:**
-```promql
+```text
 # Retrieval pass rate (expected chunk in top-k)
 sum(retrieval_pass_total) / sum(retrieval_total)
 ```
@@ -8325,7 +8241,7 @@ GROUP BY difficulty;
 | **Overall** | **203** | **0.777** | **91.6%** |
 
 **Search Latency:**
-```promql
+```text
 # Hybrid search latency (HNSW + BM25 RRF)
 histogram_quantile(0.95,
   rate(search_duration_seconds_bucket[5m])
@@ -8440,26 +8356,26 @@ histogram_quantile(0.95,
 ### Loki Queries (LogQL)
 
 **Find all errors in last hour:**
-```logql
+```text
 {app="orchestkit-backend"} |= "ERROR" | json
 ```
 
 **Count errors by endpoint:**
-```logql
+```text
 sum by (endpoint) (
   count_over_time({app="orchestkit-backend"} |= "ERROR" [5m])
 )
 ```
 
 **Search for specific analysis:**
-```logql
+```text
 {app="orchestkit-backend"}
 | json
 | analysis_id="550e8400-e29b-41d4-a716-446655440000"
 ```
 
 **p95 LLM latency from logs:**
-```logql
+```text
 quantile_over_time(0.95,
   {app="orchestkit-backend"}
   | json
@@ -8713,7 +8629,3 @@ async def readiness_check():
 - [OrchestKit Redis Connection](../../../../backend/app/shared/services/cache/redis_connection.py)
 - [OrchestKit Quality Initiative](../../../../docs/QUALITY_INITIATIVE_FIXES.md)
 
-
-</Accordion>
-
-</Accordions>

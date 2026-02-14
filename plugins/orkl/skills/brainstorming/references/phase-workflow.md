@@ -45,7 +45,7 @@ Do NOT suggest patterns marked OVERKILL for this tier in the scope-appropriate-a
 | Database | `backend-system-architect` | database-schema-designer |
 | Auth/Security | `security-auditor`, `backend-system-architect` | auth-patterns |
 | AI/LLM | `llm-integrator`, `workflow-architect` | rag-retrieval |
-| Performance | `performance-engineer` | performance |
+| Performance | `frontend-performance-engineer` | performance |
 
 **Always include:** `workflow-architect` (system design perspective)
 

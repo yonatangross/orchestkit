@@ -2,7 +2,6 @@
 title: "Python Backend"
 description: "Python backend patterns for asyncio, FastAPI, SQLAlchemy 2.0 async, and connection pooling. Use when building async Python services, FastAPI endpoints, database sessions, or connection pool tuning."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -162,9 +161,7 @@ pool_size = (concurrent_requests / avg_queries_per_request) * 1.5
 
 ## Rules (12)
 
-<Accordions type="multiple">
-
-<Accordion title="Asyncio: Cancellation Handling — HIGH">
+### Asyncio: Cancellation Handling — HIGH
 
 
 # Cancellation Handling
@@ -208,9 +205,7 @@ async with asyncio.timeout(10):
 - Never use bare `create_task()` outside a TaskGroup
 
 
-</Accordion>
-
-<Accordion title="Asyncio: Structured Concurrency — HIGH">
+### Asyncio: Structured Concurrency — HIGH
 
 
 # Structured Concurrency Patterns
@@ -269,9 +264,7 @@ async def wrapper_for_sync_lib():
 - Never block the event loop with `time.sleep()` or `requests.get()`
 
 
-</Accordion>
-
-<Accordion title="Asyncio: TaskGroup & Timeout — HIGH">
+### Asyncio: TaskGroup & Timeout — HIGH
 
 
 # TaskGroup & Timeout Patterns
@@ -339,9 +332,7 @@ async def process_batch(items: list[dict]) -> tuple[list[dict], list[Exception]]
 - TaskGroup auto-cancels remaining tasks when one fails
 
 
-</Accordion>
-
-<Accordion title="FastAPI: Lifespan & Health — HIGH">
+### FastAPI: Lifespan & Health — HIGH
 
 
 # FastAPI Lifespan & Health
@@ -442,9 +433,7 @@ app = FastAPI(default_response_class=ORJSONResponse)
 ```
 
 
-</Accordion>
-
-<Accordion title="FastAPI: Dependencies — HIGH">
+### FastAPI: Dependencies — HIGH
 
 
 # FastAPI Dependency Injection
@@ -540,9 +529,7 @@ async def get_admin_user(user: User = Depends(get_current_user)) -> User:
 ```
 
 
-</Accordion>
-
-<Accordion title="FastAPI: Middleware — HIGH">
+### FastAPI: Middleware — HIGH
 
 
 # FastAPI Middleware Patterns
@@ -627,9 +614,7 @@ Add middleware in this order (last added runs first):
 4. Logging (innermost)
 
 
-</Accordion>
-
-<Accordion title="Pooling: Database — MEDIUM">
+### Pooling: Database — MEDIUM
 
 
 # Database Connection Pooling
@@ -688,9 +673,7 @@ Example: 100 concurrent / 3 queries = 50
 ```
 
 
-</Accordion>
-
-<Accordion title="Pooling: HTTP Sessions — MEDIUM">
+### Pooling: HTTP Sessions — MEDIUM
 
 
 # HTTP Connection Pooling
@@ -749,9 +732,7 @@ app = FastAPI(lifespan=lifespan)
 - Configure DNS caching for high-throughput scenarios
 
 
-</Accordion>
-
-<Accordion title="Pooling: Monitoring & Tuning — MEDIUM">
+### Pooling: Monitoring & Tuning — MEDIUM
 
 
 # Pool Monitoring & Tuning
@@ -827,9 +808,7 @@ async def fetch():
 ```
 
 
-</Accordion>
-
-<Accordion title="SQLAlchemy: Repository & Bulk Operations — HIGH">
+### SQLAlchemy: Repository & Bulk Operations — HIGH
 
 
 # Repository & Bulk Operations
@@ -907,9 +886,7 @@ async def bulk_insert_chunked(
 - Transaction boundary at the service layer, not repository
 
 
-</Accordion>
-
-<Accordion title="SQLAlchemy: Relationships & Eager Loading — HIGH">
+### SQLAlchemy: Relationships & Eager Loading — HIGH
 
 
 # Relationships & Eager Loading
@@ -976,9 +953,7 @@ async def get_data_from_multiple_users(user_ids: list[UUID]) -> list[dict]:
 | Concurrent queries | Separate sessions per task | AsyncSession is NOT thread-safe |
 
 
-</Accordion>
-
-<Accordion title="SQLAlchemy: Sessions & Models — HIGH">
+### SQLAlchemy: Sessions & Models — HIGH
 
 
 # SQLAlchemy Sessions & Models
@@ -1057,17 +1032,12 @@ class User(Base):
 - Use `lazy="raise"` on all relationships
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Eager Loading">
+### Eager Loading
 
 # Eager Loading Patterns for Async SQLAlchemy
 
@@ -1196,9 +1166,7 @@ async def get_recent_orders(db: AsyncSession, user_id: UUID) -> list[Order]:
 ```
 
 
-</Accordion>
-
-<Accordion title="Fastapi Integration">
+### Fastapi Integration
 
 # FastAPI + SQLAlchemy 2.0 Async Integration
 
@@ -1382,9 +1350,7 @@ app = FastAPI(lifespan=lifespan)
 ```
 
 
-</Accordion>
-
-<Accordion title="Middleware Stack">
+### Middleware Stack
 
 # FastAPI Middleware Stack
 
@@ -1770,9 +1736,7 @@ async def test_timing_header_present(client: AsyncClient):
 - See SKILL.md for lifespan and dependencies
 
 
-</Accordion>
-
-<Accordion title="Pool Sizing">
+### Pool Sizing
 
 # Connection Pool Sizing Guide
 
@@ -1904,9 +1868,7 @@ print(f"Max: {pool.get_max_size()}")
 | Failed checkouts | > 1/min | > 10/min |
 
 
-</Accordion>
-
-<Accordion title="Semaphore Patterns">
+### Semaphore Patterns
 
 # Semaphore Patterns for Concurrency Limiting
 
@@ -2047,9 +2009,7 @@ async with asyncio.timeout(30):
 ```
 
 
-</Accordion>
-
-<Accordion title="Taskgroup Patterns">
+### Taskgroup Patterns
 
 # TaskGroup Patterns
 
@@ -2141,17 +2101,12 @@ failures = [r for r in results if isinstance(r, Exception)]
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Async Implementation Checklist">
+### Async Implementation Checklist
 
 # Async Implementation Checklist
 
@@ -2210,9 +2165,7 @@ failures = [r for r in results if isinstance(r, Exception)]
 - [ ] Monitoring for event loop blocking (> 100ms)
 
 
-</Accordion>
-
-<Accordion title="Connection Pool Checklist">
+### Connection Pool Checklist
 
 # Connection Pool Checklist
 
@@ -2270,9 +2223,7 @@ failures = [r for r in results if isinstance(r, Exception)]
 - [ ] max_overflow tuned for burst patterns
 
 
-</Accordion>
-
-<Accordion title="Fastapi Production Checklist">
+### Fastapi Production Checklist
 
 # FastAPI Production Checklist
 
@@ -2529,9 +2480,7 @@ failures = [r for r in results if isinstance(r, Exception)]
 | Middleware | CORS → RequestID → Timing → Logging → Auth → RateLimit |
 
 
-</Accordion>
-
-<Accordion title="Sqlalchemy Async Checklist">
+### Sqlalchemy Async Checklist
 
 # SQLAlchemy 2.0 Async Checklist
 
@@ -2607,17 +2556,12 @@ failures = [r for r in results if isinstance(r, Exception)]
 - [ ] Query execution time logged
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Asyncio Examples">
+### Asyncio Examples
 
 # Asyncio Advanced Examples
 
@@ -2863,9 +2807,7 @@ async with pool.acquire() as conn:
 ```
 
 
-</Accordion>
-
-<Accordion title="Connection Pooling Examples">
+### Connection Pooling Examples
 
 # Connection Pooling Examples
 
@@ -3309,9 +3251,7 @@ async def create_user(user: UserCreate):
 ```
 
 
-</Accordion>
-
-<Accordion title="Fastapi Lifespan">
+### Fastapi Lifespan
 
 # FastAPI Lifespan Management
 
@@ -3713,9 +3653,7 @@ async def lifespan(app: FastAPI):
 ```
 
 
-</Accordion>
-
-<Accordion title="Sqlalchemy Async Examples">
+### Sqlalchemy Async Examples
 
 # SQLAlchemy 2.0 Async Examples
 
@@ -4014,7 +3952,3 @@ async def get_user_order_summary(
     }
 ```
 
-
-</Accordion>
-
-</Accordions>

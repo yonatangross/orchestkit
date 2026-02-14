@@ -55,7 +55,7 @@ AskUserQuestion(
 **Based on answer, adjust workflow:**
 - **Full review**: All 6-7 parallel agents
 - **Security focus**: Prioritize security-auditor, reduce other agents
-- **Performance focus**: Add performance-engineer agent
+- **Performance focus**: Add frontend-performance-engineer agent
 - **Quick review**: Single code-quality-reviewer agent only
 
 ---

@@ -2,7 +2,6 @@
 title: "Scope Appropriate Architecture"
 description: "Right-sizes architecture to project scope. Prevents over-engineering by classifying projects into 6 tiers and constraining pattern choices accordingly. Use when designing architecture, selecting patterns, or when brainstorming/implement detect a project tier."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -153,9 +152,7 @@ The detected tier is passed as context to constrain downstream decisions.
 
 ## References (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Enterprise">
+### Enterprise
 
 # Enterprise Guide (Tiers 4-5)
 
@@ -326,9 +323,7 @@ Even at enterprise scale, these patterns need specific justification:
 | Chaos | Failure injection (Chaos Monkey / Litmus) |
 
 
-</Accordion>
-
-<Accordion title="Interview Takehome">
+### Interview Takehome
 
 # Interview & Take-Home Guide (Tiers 1-2)
 
@@ -444,9 +439,7 @@ db.ts           # Data access
 - **UI**: Tailwind + shadcn/ui (fastest to good-looking)
 
 
-</Accordion>
-
-<Accordion title="Open Source">
+### Open Source
 
 # Open Source Guide (Tier 6)
 
@@ -568,9 +561,7 @@ test("createClient throws on missing apiKey", () => {
 | Plugin system | No | Yes — extensibility |
 
 
-</Accordion>
-
-<Accordion title="Startup Mvp">
+### Startup Mvp
 
 # Startup & MVP Guide (Tier 3)
 
@@ -684,7 +675,3 @@ Upgrade when you have evidence, not speculation:
 | Deployment frequency > 5x/day | Add staging environment |
 | Revenue > $10K MRR | Invest in monitoring + reliability |
 
-
-</Accordion>
-
-</Accordions>

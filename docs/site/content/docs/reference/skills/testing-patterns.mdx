@@ -2,7 +2,6 @@
 title: "Testing Patterns"
 description: "Comprehensive testing patterns for unit, integration, E2E, pytest, API mocking (MSW/VCR), test data, property/contract testing, performance, LLM, and accessibility testing. Use when writing tests, setting up test infrastructure, or validating application quality."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -221,9 +220,7 @@ Evidence collection for verifiable task completion.
 
 ## Rules (35)
 
-<Accordions type="multiple">
-
-<Accordion title="A11y: CI Gates — MEDIUM">
+### A11y: CI Gates — MEDIUM
 
 
 # CI/CD Accessibility Gates
@@ -272,9 +269,7 @@ new AxeBuilder({ page })
 | Exclusions | Third-party widgets only | Minimize blind spots |
 
 
-</Accordion>
-
-<Accordion title="A11y: jest-axe Testing — MEDIUM">
+### A11y: jest-axe Testing — MEDIUM
 
 
 # jest-axe Unit Testing
@@ -322,9 +317,7 @@ it('form is accessible', async () => {
 - Use for fast feedback in development
 
 
-</Accordion>
-
-<Accordion title="A11y: Playwright axe-core — MEDIUM">
+### A11y: Playwright axe-core — MEDIUM
 
 
 # Playwright + axe-core E2E
@@ -364,9 +357,7 @@ test('modal state has no violations', async ({ page }) => {
 | Browser matrix | Chromium + Firefox | Cross-browser coverage |
 
 
-</Accordion>
-
-<Accordion title="Data: Factory Patterns — MEDIUM">
+### Data: Factory Patterns — MEDIUM
 
 
 # Test Data Factories
@@ -428,9 +419,7 @@ const createAnalysis = (overrides = {}) => ({
 | Scope | Function-scoped for isolation |
 
 
-</Accordion>
-
-<Accordion title="Data: JSON Fixtures — MEDIUM">
+### Data: JSON Fixtures — MEDIUM
 
 
 # JSON Fixtures and Composition
@@ -489,9 +478,7 @@ def completed_workflow(user_with_analyses):
 ```
 
 
-</Accordion>
-
-<Accordion title="Data: Seeding & Cleanup — MEDIUM">
+### Data: Seeding & Cleanup — MEDIUM
 
 
 # Database Seeding and Cleanup
@@ -540,9 +527,7 @@ async def clean_database(db_session):
 - Over-complex fixtures
 
 
-</Accordion>
-
-<Accordion title="E2E: AI Agents — HIGH">
+### E2E: AI Agents — HIGH
 
 
 # Playwright AI Agents (1.58+)
@@ -595,9 +580,7 @@ npx playwright init-agents --loop=opencode  # For OpenCode
 ```
 
 
-</Accordion>
-
-<Accordion title="E2E: Page Objects — HIGH">
+### E2E: Page Objects — HIGH
 
 
 # Page Object Model
@@ -655,9 +638,7 @@ await expect(page).toHaveScreenshot('checkout-page.png', {
 4. **User Settings:** Profile update, preferences
 
 
-</Accordion>
-
-<Accordion title="E2E: Playwright Core — HIGH">
+### E2E: Playwright Core — HIGH
 
 
 # Playwright E2E Testing (1.58+)
@@ -732,9 +713,7 @@ await expect(page.getByRole('alert')).toBeVisible();
 | Retries | 2-3 in CI, 0 locally |
 
 
-</Accordion>
-
-<Accordion title="Coverage Reporting — HIGH">
+### Coverage Reporting — HIGH
 
 
 ## Coverage Reporting
@@ -786,9 +765,7 @@ npm run test -- --coverage --coverageReporters=text --coverageReporters=lcov
 - Coverage numbers alone do not indicate test quality — pair with mutation testing for confidence
 
 
-</Accordion>
-
-<Accordion title="Parallel Test Execution — HIGH">
+### Parallel Test Execution — HIGH
 
 
 ## Parallel Test Execution
@@ -850,9 +827,7 @@ poetry run pytest tests/unit/ -k "test_name" -v
 - Use `--watch` mode during frontend development for continuous feedback
 
 
-</Accordion>
-
-<Accordion title="Integration: API Testing — HIGH">
+### Integration: API Testing — HIGH
 
 
 # API Integration Testing
@@ -916,9 +891,7 @@ async def test_create_user(client: AsyncClient):
 | Component interactions | 70%+ |
 
 
-</Accordion>
-
-<Accordion title="Integration: Component Testing — HIGH">
+### Integration: Component Testing — HIGH
 
 
 # React Component Integration Testing
@@ -952,9 +925,7 @@ test('form submits and shows success', async () => {
 - Use `findBy*` for async assertions (auto-waits)
 
 
-</Accordion>
-
-<Accordion title="Integration: Database Testing — HIGH">
+### Integration: Database Testing — HIGH
 
 
 # Database Integration Testing
@@ -997,9 +968,7 @@ def db_session():
 - Slow setup/teardown
 
 
-</Accordion>
-
-<Accordion title="LLM: DeepEval Quality — HIGH">
+### LLM: DeepEval Quality — HIGH
 
 
 # DeepEval Quality Testing
@@ -1040,9 +1009,7 @@ assert_test(test_case, metrics)
 | Schema validation | Test both valid and invalid |
 
 
-</Accordion>
-
-<Accordion title="LLM: Mock Responses — HIGH">
+### LLM: Mock Responses — HIGH
 
 
 # LLM Response Mocking
@@ -1091,9 +1058,7 @@ async def test_llm_integration():
 | Edge cases | Test all null/empty paths |
 
 
-</Accordion>
-
-<Accordion title="LLM: Structured Output — HIGH">
+### LLM: Structured Output — HIGH
 
 
 # Structured Output and Timeout Testing
@@ -1137,9 +1102,7 @@ async def test_structured_output():
 | Edge cases | Test all null/empty paths |
 
 
-</Accordion>
-
-<Accordion title="Mocking: LLM APIs — HIGH">
+### Mocking: LLM APIs — HIGH
 
 
 # LLM API Mocking
@@ -1190,9 +1153,7 @@ def vcr_config():
 - Missing cassettes in git
 
 
-</Accordion>
-
-<Accordion title="Mocking: MSW 2.x — HIGH">
+### Mocking: MSW 2.x — HIGH
 
 
 # MSW (Mock Service Worker) 2.x
@@ -1269,9 +1230,7 @@ server.use(http.get('/api/...', () => HttpResponse.json({...})))
 | Unhandled requests | Error (catch missing mocks) |
 
 
-</Accordion>
-
-<Accordion title="Mocking: VCR.py — HIGH">
+### Mocking: VCR.py — HIGH
 
 
 # VCR.py HTTP Recording
@@ -1340,9 +1299,7 @@ def filter_request_body(request):
 | Sensitive data | Always filter headers/body |
 
 
-</Accordion>
-
-<Accordion title="Performance: k6 Patterns — MEDIUM">
+### Performance: k6 Patterns — MEDIUM
 
 
 # k6 Load Testing
@@ -1400,9 +1357,7 @@ const successRate = new Rate('success_rate');
 | Duration | 5-10 min for load, 4h+ for soak |
 
 
-</Accordion>
-
-<Accordion title="Performance: Locust — MEDIUM">
+### Performance: Locust — MEDIUM
 
 
 # Locust Load Testing
@@ -1441,9 +1396,7 @@ class APIUser(HttpUser):
 | Authentication | Use on_start for login |
 
 
-</Accordion>
-
-<Accordion title="Performance: Test Types — MEDIUM">
+### Performance: Test Types — MEDIUM
 
 
 # Performance Test Types
@@ -1500,9 +1453,7 @@ export const options = {
 - Missing error rate thresholds
 
 
-</Accordion>
-
-<Accordion title="Pytest: Custom Markers — HIGH">
+### Pytest: Custom Markers — HIGH
 
 
 # Custom Pytest Markers
@@ -1542,9 +1493,7 @@ def test_complex_analysis():
 | Nightly | `pytest` (all markers) for full coverage |
 
 
-</Accordion>
-
-<Accordion title="Pytest: Plugins & Hooks — HIGH">
+### Pytest: Plugins & Hooks — HIGH
 
 
 # Pytest Plugins and Hooks
@@ -1599,9 +1548,7 @@ def temp_db():
 | Fixture scope | Function default, session for expensive setup |
 
 
-</Accordion>
-
-<Accordion title="Pytest: Parallel Execution — HIGH">
+### Pytest: Parallel Execution — HIGH
 
 
 # Parallel Execution with pytest-xdist
@@ -1642,9 +1589,7 @@ def db_engine(worker_id):
 | Async testing | pytest-asyncio with auto mode |
 
 
-</Accordion>
-
-<Accordion title="Unit: AAA Pattern — CRITICAL">
+### Unit: AAA Pattern — CRITICAL
 
 
 # AAA Pattern (Arrange-Act-Assert)
@@ -1716,9 +1661,7 @@ class TestCalculateDiscount:
 - Over-mocking (testing mocks not code)
 
 
-</Accordion>
-
-<Accordion title="Unit: Fixture Scoping — CRITICAL">
+### Unit: Fixture Scoping — CRITICAL
 
 
 # Fixture Scoping
@@ -1763,9 +1706,7 @@ def db_engine():
 | Coverage tool | c8, nyc, pytest-cov |
 
 
-</Accordion>
-
-<Accordion title="Unit: Parametrized Tests — CRITICAL">
+### Unit: Parametrized Tests — CRITICAL
 
 
 # Parametrized Tests
@@ -1824,9 +1765,7 @@ def test_access_matrix(role, status):
 ```
 
 
-</Accordion>
-
-<Accordion title="End-to-End Type Safety Validation — HIGH">
+### End-to-End Type Safety Validation — HIGH
 
 
 ## End-to-End Type Safety Validation
@@ -1919,9 +1858,7 @@ Key decisions:
 - Always test validation schemas reject invalid data
 
 
-</Accordion>
-
-<Accordion title="Zod Schema Validation Testing — HIGH">
+### Zod Schema Validation Testing — HIGH
 
 
 ## Zod Schema Validation Testing
@@ -2000,9 +1937,7 @@ Key principles:
 - Reuse schemas (don't create inline in hot paths)
 
 
-</Accordion>
-
-<Accordion title="Verification: Contract Testing — MEDIUM">
+### Verification: Contract Testing — MEDIUM
 
 
 # Contract Testing with Pact
@@ -2070,9 +2005,7 @@ pact-broker can-i-deploy \
 | Matchers | Use Like(), EachLike() for flexibility |
 
 
-</Accordion>
-
-<Accordion title="Evidence Verification for Task Completion — MEDIUM">
+### Evidence Verification for Task Completion — MEDIUM
 
 
 ## Evidence Verification for Task Completion
@@ -2147,9 +2080,7 @@ Key principles:
 - Minimum coverage: 70% (production-grade), 80% (gold standard)
 
 
-</Accordion>
-
-<Accordion title="Verification: Property-Based Testing — MEDIUM">
+### Verification: Property-Based Testing — MEDIUM
 
 
 # Property-Based Testing with Hypothesis
@@ -2207,9 +2138,7 @@ def test_normalize_idempotent(text):
 | Stateful tests | RuleBasedStateMachine for state machines |
 
 
-</Accordion>
-
-<Accordion title="Verification: Stateful Testing — MEDIUM">
+### Verification: Stateful Testing — MEDIUM
 
 
 # Stateful Testing
@@ -2271,17 +2200,12 @@ def test_username(name):
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (19)
 
-<Accordions type="multiple">
-
-<Accordion title="A11y Testing Tools">
+### A11y Testing Tools
 
 # Accessibility Testing Tools Reference
 
@@ -2664,9 +2588,7 @@ axe http://localhost:3000 \
 - **A11y Project Checklist:** https://www.a11yproject.com/checklist/
 
 
-</Accordion>
-
-<Accordion title="Aaa Pattern">
+### Aaa Pattern
 
 # AAA Pattern (Arrange-Act-Assert)
 
@@ -2737,9 +2659,7 @@ describe('PricingCalculator', () => {
 - [ ] No logic between Act and Assert phases
 - [ ] Single behavior tested per test method
 
-</Accordion>
-
-<Accordion title="Consumer Tests">
+### Consumer Tests
 
 # Consumer-Side Contract Tests
 
@@ -2879,9 +2799,7 @@ def test_create_order(pact):
 ```
 
 
-</Accordion>
-
-<Accordion title="Custom Plugins">
+### Custom Plugins
 
 # Custom Pytest Plugins
 
@@ -2990,9 +2908,7 @@ my_plugin = "pytest_my_plugin"
 ```
 
 
-</Accordion>
-
-<Accordion title="Deepeval Ragas Api">
+### Deepeval Ragas Api
 
 # DeepEval & RAGAS API Reference
 
@@ -3312,9 +3228,7 @@ print(f"Mean: {mean:.2f}, 95% CI: [{lower:.2f}, {upper:.2f}]")
 - [LLM Evaluation Best Practices](https://www.anthropic.com/research/evaluations)
 
 
-</Accordion>
-
-<Accordion title="Factory Patterns">
+### Factory Patterns
 
 # Factory Patterns for Test Data
 
@@ -3405,9 +3319,7 @@ temp_user = UserFactory.build()
 - [ ] Keep factories close to model definitions
 - [ ] Document factory-specific test data assumptions
 
-</Accordion>
-
-<Accordion title="Generator Agent">
+### Generator Agent
 
 # Generator Agent
 
@@ -3618,9 +3530,7 @@ npx playwright test tests/checkout.spec.ts
 See `references/healer-agent.md` for automatic test repair.
 
 
-</Accordion>
-
-<Accordion title="Healer Agent">
+### Healer Agent
 
 # Healer Agent
 
@@ -3697,9 +3607,7 @@ Healer can't fix:
 These require manual intervention.
 
 
-</Accordion>
-
-<Accordion title="K6 Patterns">
+### K6 Patterns
 
 # k6 Load Testing Patterns
 
@@ -3784,9 +3692,7 @@ export default function (data) {
 - [ ] Externalize configuration (stages, VUs)
 - [ ] Run smoke test before full load test
 
-</Accordion>
-
-<Accordion title="Msw 2x Api">
+### Msw 2x Api
 
 # MSW 2.x API Reference
 
@@ -4067,9 +3973,7 @@ http.post('/api/data', async ({ request, params, cookies }) => {
 - [MSW Examples Repository](https://github.com/mswjs/examples)
 
 
-</Accordion>
-
-<Accordion title="Pact Broker">
+### Pact Broker
 
 # Pact Broker Integration
 
@@ -4257,9 +4161,7 @@ consumer_version_selectors = [
 ```
 
 
-</Accordion>
-
-<Accordion title="Planner Agent">
+### Planner Agent
 
 # Planner Agent
 
@@ -4433,9 +4335,7 @@ Once you have `specs/*.md`, use Generator agent to create executable tests.
 See `references/generator-agent.md` for code generation workflow.
 
 
-</Accordion>
-
-<Accordion title="Playwright 1.57 Api">
+### Playwright 1.57 Api
 
 # Playwright 1.58+ API Reference
 
@@ -4764,9 +4664,7 @@ npx playwright install
 - [Authentication Guide](https://playwright.dev/docs/auth)
 
 
-</Accordion>
-
-<Accordion title="Playwright Setup">
+### Playwright Setup
 
 # Playwright Setup with Test Agents
 
@@ -4913,9 +4811,7 @@ Run `agent-browser --help` for full CLI docs.
 
 See `references/planner-agent.md` for detailed workflow.
 
-</Accordion>
-
-<Accordion title="Provider Verification">
+### Provider Verification
 
 # Provider Verification
 
@@ -5085,9 +4981,7 @@ def test_verify_with_broker():
 ```
 
 
-</Accordion>
-
-<Accordion title="Stateful Testing">
+### Stateful Testing
 
 # Stateful Testing with Hypothesis
 
@@ -5231,9 +5125,7 @@ state.teardown()
 You can replay this exact sequence to debug.
 
 
-</Accordion>
-
-<Accordion title="Strategies Guide">
+### Strategies Guide
 
 # Hypothesis Strategies Guide
 
@@ -5361,9 +5253,7 @@ st.text().filter(lambda x: x in ["red", "green", "blue"])
 ```
 
 
-</Accordion>
-
-<Accordion title="Visual Regression">
+### Visual Regression
 
 # Playwright Native Visual Regression Testing
 
@@ -5855,9 +5745,7 @@ e2e/__screenshots__/**/*.png filter=lfs diff=lfs merge=lfs -text
 ```
 
 
-</Accordion>
-
-<Accordion title="Xdist Parallel">
+### Xdist Parallel
 
 # pytest-xdist Parallel Execution
 
@@ -5950,17 +5838,12 @@ pytest -n logical
 - Database tests need worker-isolated databases
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (11)
 
-<Accordions type="multiple">
-
-<Accordion title="A11y Testing Checklist">
+### A11y Testing Checklist
 
 # Accessibility Testing Checklist
 
@@ -6254,9 +6137,7 @@ button:focus-visible {
 ```
 
 
-</Accordion>
-
-<Accordion title="Contract Testing Checklist">
+### Contract Testing Checklist
 
 # Contract Testing Checklist
 
@@ -6342,9 +6223,7 @@ button:focus-visible {
 - [ ] Pending pact policy documented
 
 
-</Accordion>
-
-<Accordion title="E2e Checklist">
+### E2e Checklist
 
 # E2E Testing Checklist
 
@@ -6447,9 +6326,7 @@ Before PR:
 - [ ] Ignoring flaky test warnings
 
 
-</Accordion>
-
-<Accordion title="E2e Testing Checklist">
+### E2e Testing Checklist
 
 # E2E Testing Checklist
 
@@ -6807,9 +6684,7 @@ Comprehensive checklist for planning, implementing, and maintaining E2E tests wi
 5. Accessibility and responsive design
 
 
-</Accordion>
-
-<Accordion title="Llm Test Checklist">
+### Llm Test Checklist
 
 # LLM Testing Checklist
 
@@ -6913,9 +6788,7 @@ Before PR:
 - [ ] Not testing error paths
 
 
-</Accordion>
-
-<Accordion title="Msw Setup Checklist">
+### Msw Setup Checklist
 
 # MSW Setup Checklist
 
@@ -7039,9 +6912,7 @@ Before PR:
 - [ ] Loading states tested with `delay()`
 
 
-</Accordion>
-
-<Accordion title="Performance Checklist">
+### Performance Checklist
 
 # Performance Testing Checklist
 
@@ -7081,9 +6952,7 @@ Before PR:
 - [ ] Create action items
 
 
-</Accordion>
-
-<Accordion title="Property Testing Checklist">
+### Property Testing Checklist
 
 # Property-Based Testing Checklist
 
@@ -7136,9 +7005,7 @@ Before PR:
 - [ ] Coverage reports include property tests
 
 
-</Accordion>
-
-<Accordion title="Pytest Production Checklist">
+### Pytest Production Checklist
 
 # Pytest Production Checklist
 
@@ -7184,9 +7051,7 @@ Before PR:
 - [ ] Test names follow convention (`test_&lt;what&gt;_&lt;condition&gt;_&lt;expected&gt;`)
 
 
-</Accordion>
-
-<Accordion title="Test Data Checklist">
+### Test Data Checklist
 
 # Test Data Management Checklist
 
@@ -7226,9 +7091,7 @@ Before PR:
 - [ ] Document data requirements
 
 
-</Accordion>
-
-<Accordion title="Vcr Checklist">
+### Vcr Checklist
 
 # VCR.py Checklist
 
@@ -7285,17 +7148,12 @@ Before PR:
 - [ ] Test with fresh cassettes periodically
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (6)
 
-<Accordions type="multiple">
-
-<Accordion title="A11y Testing Examples">
+### A11y Testing Examples
 
 # Accessibility Testing Examples
 
@@ -7917,9 +7775,7 @@ jobs:
 These examples provide a comprehensive foundation for implementing automated accessibility testing in your application.
 
 
-</Accordion>
-
-<Accordion title="E2e Test Patterns">
+### E2e Test Patterns
 
 # E2E Test Patterns
 
@@ -8201,9 +8057,7 @@ test.describe('Accessibility', () => {
 ```
 
 
-</Accordion>
-
-<Accordion title="Handler Patterns">
+### Handler Patterns
 
 # MSW Handler Patterns
 
@@ -8617,9 +8471,7 @@ describe('CreateUserForm', () => {
 ```
 
 
-</Accordion>
-
-<Accordion title="Llm Test Patterns">
+### Llm Test Patterns
 
 # LLM Testing Patterns
 
@@ -8928,9 +8780,7 @@ async def test_concurrent_requests():
 ```
 
 
-</Accordion>
-
-<Accordion title="Orchestkit E2e Tests">
+### Orchestkit E2e Tests
 
 # OrchestKit E2E Test Examples
 
@@ -9616,9 +9466,7 @@ jobs:
 8. **CI Integration** - Run tests on every PR, block merges on failures
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Test Strategy">
+### Orchestkit Test Strategy
 
 # OrchestKit Testing Strategy
 
@@ -10345,7 +10193,3 @@ async def test_hybrid_search_performance(db_session):
 - **Vitest Docs:** https://vitest.dev/
 - **Testing Library:** https://testing-library.com/
 
-
-</Accordion>
-
-</Accordions>

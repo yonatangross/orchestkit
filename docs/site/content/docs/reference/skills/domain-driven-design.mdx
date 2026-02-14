@@ -2,7 +2,6 @@
 title: "Domain Driven Design"
 description: "Domain-Driven Design tactical patterns for complex business domains. Use when modeling entities, value objects, domain services, repositories, or establishing bounded contexts."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -166,9 +165,7 @@ async def get(self, id: UUID) -> OrderModel:  # WRONG - return domain!
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Aggregate Root Boundaries and Consistency — HIGH">
+### Aggregate Root Boundaries and Consistency — HIGH
 
 
 ## Aggregate Root Boundaries and Consistency
@@ -239,9 +236,7 @@ def items(self) -> list:
 - One aggregate = one repository = one transaction boundary
 
 
-</Accordion>
-
-<Accordion title="Enforcing Business Invariants — HIGH">
+### Enforcing Business Invariants — HIGH
 
 
 ## Enforcing Business Invariants
@@ -333,9 +328,7 @@ class OrderAggregate:
 - Status transitions follow explicit state machine rules
 
 
-</Accordion>
-
-<Accordion title="Right-Sizing Aggregates — HIGH">
+### Right-Sizing Aggregates — HIGH
 
 
 ## Right-Sizing Aggregates
@@ -420,17 +413,12 @@ class InventoryEventHandler:
 - Measure **lock contention** — split if concurrent modifications conflict
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Bounded Contexts">
+### Bounded Contexts
 
 # Bounded Contexts
 
@@ -658,9 +646,7 @@ class PaymentGatewayACL:
 ```
 
 
-</Accordion>
-
-<Accordion title="Domain Events">
+### Domain Events
 
 # Domain Events
 
@@ -918,9 +904,7 @@ dispatcher.register("user.created", update_analytics)
 ```
 
 
-</Accordion>
-
-<Accordion title="Entities Value Objects">
+### Entities Value Objects
 
 # Entities and Value Objects
 
@@ -1163,9 +1147,7 @@ CREATE TABLE users (
 ```
 
 
-</Accordion>
-
-<Accordion title="Repositories">
+### Repositories
 
 # Repository Pattern
 
@@ -1392,17 +1374,12 @@ user_dict = await repo.get_raw(id)  # Returns dict, caller maps
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Ddd Checklist">
+### Ddd Checklist
 
 # Domain-Driven Design Checklist
 
@@ -1525,7 +1502,3 @@ user_dict = await repo.get_raw(id)  # Returns dict, caller maps
 - [ ] Recent records clustered together
 - [ ] Better cache locality for recent queries
 
-
-</Accordion>
-
-</Accordions>

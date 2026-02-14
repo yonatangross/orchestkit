@@ -2,7 +2,6 @@
 title: "Langgraph"
 description: "LangGraph workflow patterns for state management, routing, parallel execution, supervisor-worker, tool calling, checkpointing, human-in-loop, streaming, subgraphs, and functional API. Use when building LangGraph pipelines, multi-agent systems, or AI workflows."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -221,9 +220,7 @@ See `test-cases.json` for consolidated test cases across all categories.
 
 ## Rules (32)
 
-<Accordions type="multiple">
-
-<Accordion title="State Recovery and Debugging — HIGH">
+### State Recovery and Debugging — HIGH
 
 
 ## State Recovery and Debugging
@@ -282,9 +279,7 @@ app.update_state(config, previous.values)
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-</Accordion>
-
-<Accordion title="Checkpointer Setup — HIGH">
+### Checkpointer Setup — HIGH
 
 
 ## Checkpointer Setup
@@ -324,9 +319,7 @@ result = app.invoke(initial_state, config=config)
 Reference: [LangGraph Persistence](https://langchain-ai.github.io/langgraph/concepts/persistence/)
 
 
-</Accordion>
-
-<Accordion title="Cross-Thread Store Memory — HIGH">
+### Cross-Thread Store Memory — HIGH
 
 
 ## Cross-Thread Store Memory
@@ -402,9 +395,7 @@ Thread 1 (chat-001)    Thread 2 (chat-002)
 Reference: [LangGraph Memory](https://langchain-ai.github.io/langgraph/concepts/memory/)
 
 
-</Accordion>
-
-<Accordion title="@entrypoint Decorator — MEDIUM">
+### @entrypoint Decorator — MEDIUM
 
 
 ## @entrypoint Decorator
@@ -469,9 +460,7 @@ for chunk in approval_workflow.stream(Command(resume=True), config):
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-</Accordion>
-
-<Accordion title="StateGraph to Functional API Migration — MEDIUM">
+### StateGraph to Functional API Migration — MEDIUM
 
 
 ## StateGraph to Functional API Migration
@@ -560,9 +549,7 @@ const workflow = entrypoint(
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-</Accordion>
-
-<Accordion title="@task Decorator and Futures — MEDIUM">
+### @task Decorator and Futures — MEDIUM
 
 
 ## @task Decorator and Futures
@@ -623,9 +610,7 @@ def batch_workflow(items: list[dict]) -> list[dict]:
 Reference: [LangGraph Functional API](https://langchain-ai.github.io/langgraph/concepts/functional_api/)
 
 
-</Accordion>
-
-<Accordion title="Approval Gate Pattern — MEDIUM">
+### Approval Gate Pattern — MEDIUM
 
 
 ## Approval Gate Pattern
@@ -690,9 +675,7 @@ app = workflow.compile(interrupt_before=["first_review", "final_review"])
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-</Accordion>
-
-<Accordion title="Feedback Loop Pattern — MEDIUM">
+### Feedback Loop Pattern — MEDIUM
 
 
 ## Feedback Loop Pattern
@@ -757,9 +740,7 @@ def get_valid_age(state):
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-</Accordion>
-
-<Accordion title="Dynamic Interrupt and Resume — MEDIUM">
+### Dynamic Interrupt and Resume — MEDIUM
 
 
 ## Dynamic Interrupt and Resume
@@ -820,9 +801,7 @@ if "__interrupt__" in result:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-</Accordion>
-
-<Accordion title="Error Isolation in Parallel Execution — HIGH">
+### Error Isolation in Parallel Execution — HIGH
 
 
 ## Error Isolation in Parallel Execution
@@ -869,9 +848,7 @@ async def parallel_with_isolation(agents: list, content: str, timeout: int = 30)
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-</Accordion>
-
-<Accordion title="Fan-Out/Fan-In Pattern — HIGH">
+### Fan-Out/Fan-In Pattern — HIGH
 
 
 ## Fan-Out/Fan-In Pattern
@@ -928,9 +905,7 @@ builder.add_edge("generate_joke", END)  # All branches converge automatically
 Reference: [LangGraph Send API](https://langchain-ai.github.io/langgraph/concepts/low_level/#send)
 
 
-</Accordion>
-
-<Accordion title="Map-Reduce Pattern — HIGH">
+### Map-Reduce Pattern — HIGH
 
 
 ## Map-Reduce Pattern
@@ -982,9 +957,7 @@ async def map_reduce_node(state: State) -> dict:
 Reference: [LangGraph Parallel Execution](https://langchain-ai.github.io/langgraph/how-tos/map-reduce/)
 
 
-</Accordion>
-
-<Accordion title="Conditional Edge Routing — HIGH">
+### Conditional Edge Routing — HIGH
 
 
 ## Conditional Edge Routing
@@ -1045,9 +1018,7 @@ Diamond:       A → (B, C) → D         (parallel then merge)
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-</Accordion>
-
-<Accordion title="Retry Loop Pattern — HIGH">
+### Retry Loop Pattern — HIGH
 
 
 ## Retry Loop Pattern
@@ -1103,9 +1074,7 @@ workflow.add_conditional_edges("llm_call", should_retry, {
 Reference: [LangGraph Conditional Edges](https://langchain-ai.github.io/langgraph/concepts/low_level/#conditional-edges)
 
 
-</Accordion>
-
-<Accordion title="Semantic & Command Routing — HIGH">
+### Semantic & Command Routing — HIGH
 
 
 ## Semantic & Command Routing
@@ -1178,9 +1147,7 @@ def semantic_router(state) -> str:
 Reference: [LangGraph Command API](https://langchain-ai.github.io/langgraph/concepts/low_level/#command)
 
 
-</Accordion>
-
-<Accordion title="MessagesState Pattern — CRITICAL">
+### MessagesState Pattern — CRITICAL
 
 
 ## MessagesState Pattern
@@ -1229,9 +1196,7 @@ def agent_node(state):
 Reference: [LangGraph MessagesState](https://langchain-ai.github.io/langgraph/concepts/low_level/#messagesstate)
 
 
-</Accordion>
-
-<Accordion title="Pydantic State Validation — HIGH">
+### Pydantic State Validation — HIGH
 
 
 ## Pydantic State Validation
@@ -1280,9 +1245,7 @@ class WorkflowOutput(BaseModel):
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-</Accordion>
-
-<Accordion title="Custom Annotated Reducers — HIGH">
+### Custom Annotated Reducers — HIGH
 
 
 ## Custom Annotated Reducers
@@ -1345,9 +1308,7 @@ def agent_node(state: WorkflowState, remaining: RemainingSteps):
 Reference: [LangGraph Reducers](https://langchain-ai.github.io/langgraph/concepts/low_level/#reducers)
 
 
-</Accordion>
-
-<Accordion title="TypedDict State Pattern — CRITICAL">
+### TypedDict State Pattern — CRITICAL
 
 
 ## TypedDict State Pattern
@@ -1421,9 +1382,7 @@ graph = builder.compile(cache=InMemoryCache())
 Reference: [LangGraph State Concepts](https://langchain-ai.github.io/langgraph/concepts/low_level/#state)
 
 
-</Accordion>
-
-<Accordion title="Custom Event Streaming — MEDIUM">
+### Custom Event Streaming — MEDIUM
 
 
 ## Custom Event Streaming
@@ -1488,9 +1447,7 @@ async def stream_workflow(request: WorkflowRequest):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-</Accordion>
-
-<Accordion title="Stream Modes — MEDIUM">
+### Stream Modes — MEDIUM
 
 
 ## Stream Modes
@@ -1541,9 +1498,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-</Accordion>
-
-<Accordion title="LLM Token Streaming — MEDIUM">
+### LLM Token Streaming — MEDIUM
 
 
 ## LLM Token Streaming
@@ -1592,9 +1547,7 @@ def call_custom_llm(state):
 Reference: [LangGraph Streaming](https://langchain-ai.github.io/langgraph/concepts/streaming/)
 
 
-</Accordion>
-
-<Accordion title="Add Subgraph as Node (Shared State) — MEDIUM">
+### Add Subgraph as Node (Shared State) — MEDIUM
 
 
 ## Add Subgraph as Node (Shared State)
@@ -1643,9 +1596,7 @@ parent_builder.add_edge("agent_team", END)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-</Accordion>
-
-<Accordion title="Invoke Subgraph from Node — MEDIUM">
+### Invoke Subgraph from Node — MEDIUM
 
 
 ## Invoke Subgraph from Node
@@ -1705,9 +1656,7 @@ parent_builder.add_node("analysis", call_analysis)
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-</Accordion>
-
-<Accordion title="Subgraph State Mapping — MEDIUM">
+### Subgraph State Mapping — MEDIUM
 
 
 ## Subgraph State Mapping
@@ -1769,9 +1718,7 @@ for namespace, chunk in graph.stream(inputs, subgraphs=True, stream_mode="update
 Reference: [LangGraph Subgraphs](https://langchain-ai.github.io/langgraph/concepts/low_level/#subgraphs)
 
 
-</Accordion>
-
-<Accordion title="Supervisor-Worker Pattern — HIGH">
+### Supervisor-Worker Pattern — HIGH
 
 
 ## Supervisor-Worker Pattern
@@ -1835,9 +1782,7 @@ app = graph.compile()
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-</Accordion>
-
-<Accordion title="Priority-Based Supervisor Routing — HIGH">
+### Priority-Based Supervisor Routing — HIGH
 
 
 ## Priority-Based Supervisor Routing
@@ -1902,9 +1847,7 @@ async def llm_supervisor(state):
 Reference: [LangGraph Supervisor](https://langchain-ai.github.io/langgraph/concepts/multi_agent/#supervisor)
 
 
-</Accordion>
-
-<Accordion title="Round-Robin Supervisor Dispatch — MEDIUM">
+### Round-Robin Supervisor Dispatch — MEDIUM
 
 
 ## Round-Robin Supervisor Dispatch
@@ -1963,9 +1906,7 @@ for name in ALL_AGENTS:
 Reference: [LangGraph Multi-Agent](https://langchain-ai.github.io/langgraph/concepts/multi_agent/)
 
 
-</Accordion>
-
-<Accordion title="Tool Binding to LLMs — CRITICAL">
+### Tool Binding to LLMs — CRITICAL
 
 
 ## Tool Binding to LLMs
@@ -2024,9 +1965,7 @@ model.bind_tools(tools, tool_choice="search_database")  # Specific tool
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-</Accordion>
-
-<Accordion title="Dynamic Tool Selection — HIGH">
+### Dynamic Tool Selection — HIGH
 
 
 ## Dynamic Tool Selection
@@ -2078,9 +2017,7 @@ def agent_with_dynamic_tools(state):
 Reference: [LangGraph Tool Calling](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
 
-</Accordion>
-
-<Accordion title="Tool Interrupt Approval Gates — CRITICAL">
+### Tool Interrupt Approval Gates — CRITICAL
 
 
 ## Tool Interrupt Approval Gates
@@ -2153,9 +2090,7 @@ def long_running_analysis(data: str) -> str:
 Reference: [LangGraph Human-in-the-Loop](https://langchain-ai.github.io/langgraph/concepts/human_in_the_loop/)
 
 
-</Accordion>
-
-<Accordion title="ToolNode Execution — CRITICAL">
+### ToolNode Execution — CRITICAL
 
 
 ## ToolNode Execution
@@ -2207,7 +2142,3 @@ graph = builder.compile()
 
 Reference: [LangGraph ToolNode](https://langchain-ai.github.io/langgraph/concepts/agentic_concepts/#tool-calling-agent)
 
-
-</Accordion>
-
-</Accordions>

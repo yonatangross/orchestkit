@@ -2,7 +2,6 @@
 title: "Devops Deployment"
 description: "Use when setting up CI/CD pipelines, containerizing applications, deploying to Kubernetes, or writing infrastructure as code. DevOps & Deployment covers GitHub Actions, Docker, Helm, and Terraform patterns."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -302,9 +301,7 @@ Use Opus 4.6 adaptive thinking for:
 
 ## Rules (5)
 
-<Accordions type="multiple">
-
-<Accordion title="CI/CD: Branch Protection — HIGH">
+### CI/CD: Branch Protection — HIGH
 
 
 ## CI/CD: Branch Protection
@@ -369,9 +366,7 @@ dev branch:
 Reference: `references/ci-cd-pipelines.md` (lines 5-21)
 
 
-</Accordion>
-
-<Accordion title="CI/CD: Pipeline Caching — HIGH">
+### CI/CD: Pipeline Caching — HIGH
 
 
 ## CI/CD: Pipeline Caching
@@ -438,9 +433,7 @@ steps:
 Reference: `references/ci-cd-pipelines.md` (lines 23-68)
 
 
-</Accordion>
-
-<Accordion title="DevOps: Database Migrations — CRITICAL">
+### DevOps: Database Migrations — CRITICAL
 
 
 ## DevOps: Database Migrations
@@ -513,9 +506,7 @@ ALTER TABLE users ALTER COLUMN email SET NOT NULL;
 Reference: `references/environment-management.md` (lines 115-162)
 
 
-</Accordion>
-
-<Accordion title="Docker: Layer Security — CRITICAL">
+### Docker: Layer Security — CRITICAL
 
 
 ## Docker: Layer Security
@@ -588,9 +579,7 @@ tests/
 Reference: `references/docker-patterns.md` (lines 52-85)
 
 
-</Accordion>
-
-<Accordion title="Docker: Multi-Stage Builds — HIGH">
+### Docker: Multi-Stage Builds — HIGH
 
 
 ## Docker: Multi-Stage Builds
@@ -653,17 +642,12 @@ CMD ["node", "dist/main.js"]
 Reference: `references/docker-patterns.md` (lines 7-50)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Ci Cd Pipelines">
+### Ci Cd Pipelines
 
 # CI/CD Pipelines
 
@@ -846,9 +830,7 @@ jobs:
 
 See `scripts/github-actions-pipeline.yml` for complete examples.
 
-</Accordion>
-
-<Accordion title="Deployment Strategies">
+### Deployment Strategies
 
 # Deployment Strategies
 
@@ -920,9 +902,7 @@ spec:
 See `scripts/argocd-application.yaml` for GitOps patterns.
 
 
-</Accordion>
-
-<Accordion title="Docker Patterns">
+### Docker Patterns
 
 # Docker Patterns
 
@@ -1105,9 +1085,7 @@ volumes:
 
 See `scripts/Dockerfile` and `scripts/docker-compose.yml` for complete examples.
 
-</Accordion>
-
-<Accordion title="Environment Management">
+### Environment Management
 
 # Environment Management
 
@@ -1326,9 +1304,7 @@ alembic downgrade -1
 
 See `scripts/external-secrets.yaml` and `scripts/argocd-application.yaml` for complete examples.
 
-</Accordion>
-
-<Accordion title="Kubernetes Basics">
+### Kubernetes Basics
 
 # Kubernetes Basics
 
@@ -1517,9 +1493,7 @@ charts/app/
 
 See `scripts/k8s-manifests.yaml` and `scripts/helm-values.yaml` for complete examples.
 
-</Accordion>
-
-<Accordion title="Observability">
+### Observability
 
 # Observability & Monitoring
 
@@ -1570,7 +1544,7 @@ async def metrics():
 
 ## Grafana Dashboard Queries
 
-```promql
+```text
 # Request rate (requests per second)
 rate(http_requests_total[5m])
 
@@ -1689,17 +1663,12 @@ async def process_order(order_id: str):
         # Processing logic here
 ```
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Production Readiness">
+### Production Readiness
 
 # Production Readiness Checklist
 
@@ -1808,17 +1777,12 @@ curl http://localhost:9090/metrics
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Github Actions Cicd">
+### Github Actions Cicd
 
 # GitHub Actions CI/CD Example
 
@@ -2032,7 +1996,3 @@ jobs:
 | Environments | Production requires approval |
 | Artifacts | Coverage reports to Codecov |
 
-
-</Accordion>
-
-</Accordions>

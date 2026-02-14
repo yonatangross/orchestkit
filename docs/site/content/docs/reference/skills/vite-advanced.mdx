@@ -2,7 +2,6 @@
 title: "Vite Advanced"
 description: "Advanced Vite 7+ patterns including Environment API, plugin development, SSR configuration, library mode, and build optimization. Use when customizing build pipelines, creating plugins, or configuring multi-environment builds."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -334,9 +333,7 @@ export default defineConfig({
 
 ## Rules (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Vite: Chunk Optimization — HIGH">
+### Vite: Chunk Optimization — HIGH
 
 
 ## Vite: Chunk Optimization
@@ -411,9 +408,7 @@ export default defineConfig({
 Reference: `references/chunk-optimization.md`
 
 
-</Accordion>
-
-<Accordion title="Vite: Environment API — MEDIUM">
+### Vite: Environment API — MEDIUM
 
 
 ## Vite: Environment API
@@ -485,9 +480,7 @@ export function envAwarePlugin(): Plugin {
 Reference: `references/environment-api.md`
 
 
-</Accordion>
-
-<Accordion title="Vite: Library Mode — HIGH">
+### Vite: Library Mode — HIGH
 
 
 ## Vite: Library Mode
@@ -562,9 +555,7 @@ export default defineConfig({
 Reference: `references/library-mode.md`
 
 
-</Accordion>
-
-<Accordion title="Vite: Plugin Hooks — MEDIUM">
+### Vite: Plugin Hooks — MEDIUM
 
 
 ## Vite: Plugin Hooks
@@ -641,17 +632,12 @@ export function preProcessPlugin(): Plugin {
 Reference: `references/plugin-development.md`
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Chunk Optimization">
+### Chunk Optimization
 
 # Vite Build Optimization
 
@@ -1168,9 +1154,7 @@ advancedChunks: {
 Both `manualChunks` and `advancedChunks` can coexist during migration, but `advancedChunks` takes precedence when both match the same module. For cleanest results, fully migrate to `advancedChunks`.
 
 
-</Accordion>
-
-<Accordion title="Environment Api">
+### Environment Api
 
 # Vite 7 Environment API
 
@@ -1410,9 +1394,7 @@ Vite 7 requires:
 These versions support `require(esm)` without a flag, enabling ESM-only distribution.
 
 
-</Accordion>
-
-<Accordion title="Library Mode">
+### Library Mode
 
 # Vite Library Mode
 
@@ -1653,9 +1635,7 @@ npm publish
 ```
 
 
-</Accordion>
-
-<Accordion title="Plugin Development">
+### Plugin Development
 
 # Vite Plugin Development
 
@@ -1917,9 +1897,7 @@ declare module 'virtual:my-data' {
 ```
 
 
-</Accordion>
-
-<Accordion title="Ssr Configuration">
+### Ssr Configuration
 
 # Vite SSR Configuration
 
@@ -2170,17 +2148,12 @@ export function render(url: string, res: Response) {
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Production Build">
+### Production Build
 
 # Vite Production Build Checklist
 
@@ -2327,7 +2300,3 @@ npx vite-bundle-visualizer
 - [ ] Performance acceptable
 - [ ] Ready for deployment
 
-
-</Accordion>
-
-</Accordions>

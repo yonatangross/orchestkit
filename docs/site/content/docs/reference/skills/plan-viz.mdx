@@ -2,7 +2,6 @@
 title: "Plan Viz"
 description: "Visualize planned changes before implementation. Use when reviewing plans, comparing before/after architecture, assessing risk, or analyzing execution order and impact."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -376,9 +375,7 @@ Sequential Block C (verification):
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="ASCII Architecture Visualization Patterns — MEDIUM">
+### ASCII Architecture Visualization Patterns — MEDIUM
 
 
 ## ASCII Architecture Visualization Patterns
@@ -463,9 +460,7 @@ GET  /invoices            InvoiceList.tsx        MISSING  !!
 | Comparison tables | Cross-layer consistency, before/after |
 
 
-</Accordion>
-
-<Accordion title="ASCII Diagram Fundamentals — MEDIUM">
+### ASCII Diagram Fundamentals — MEDIUM
 
 
 ## ASCII Diagram Fundamentals
@@ -550,17 +545,12 @@ Frontend ------[Wait]--------[Components]=======[Integration]=+
 | Annotations | Use !! for risk, ** for new, [A/M/D] for change type |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Blast Radius Patterns">
+### Blast Radius Patterns
 
 # Blast Radius Patterns
 
@@ -676,9 +666,7 @@ BLAST RADIUS: routes.py -> 3 direct, 5 transitive, 4 tests = 12 files
 ```
 
 
-</Accordion>
-
-<Accordion title="Change Manifest Patterns">
+### Change Manifest Patterns
 
 # Change Manifest Patterns
 
@@ -788,9 +776,7 @@ CHANGES: 3 files (+85 -12)
 ```
 
 
-</Accordion>
-
-<Accordion title="Decision Log Patterns">
+### Decision Log Patterns
 
 # Decision Log Patterns
 
@@ -900,9 +886,7 @@ DECISION LOG
 ```
 
 
-</Accordion>
-
-<Accordion title="Execution Swimlane Patterns">
+### Execution Swimlane Patterns
 
 # Execution Swimlane Patterns
 
@@ -1032,9 +1016,7 @@ When phases have success/failure branches:
 ```
 
 
-</Accordion>
-
-<Accordion title="Risk Dashboard Patterns">
+### Risk Dashboard Patterns
 
 # Risk Dashboard Patterns
 
@@ -1191,7 +1173,3 @@ Total detection time: 30s (if pool alert configured)
 Blast radius without alert: ~5 min until user-visible
 ```
 
-
-</Accordion>
-
-</Accordions>

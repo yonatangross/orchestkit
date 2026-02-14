@@ -2,7 +2,6 @@
 title: "Browser Tools"
 description: "Browser automation and content capture patterns for Playwright, Puppeteer, web scraping, and structured data extraction. Use when automating browser workflows, capturing web content, or extracting structured data from web pages."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -274,9 +273,7 @@ Run `agent-browser --help` for the full 60+ command reference.
 
 ## Rules (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Browser: Auth Security — CRITICAL">
+### Browser: Auth Security — CRITICAL
 
 
 ## Browser: Auth Security
@@ -351,9 +348,7 @@ CURRENT_URL=$(agent-browser get url)
 Reference: `references/auth-flows.md` (Security Considerations, Secure State Files)
 
 
-</Accordion>
-
-<Accordion title="Browser: Rate Limiting — HIGH">
+### Browser: Rate Limiting — HIGH
 
 
 ## Browser: Rate Limiting
@@ -430,9 +425,7 @@ fetch_with_retry() {
 Reference: `references/anti-bot-handling.md` (Rate Limiting, Adaptive Rate Limiting, Retry Logic)
 
 
-</Accordion>
-
-<Accordion title="Browser: Scraping Ethics — CRITICAL">
+### Browser: Scraping Ethics — CRITICAL
 
 
 ## Browser: Scraping Ethics
@@ -492,9 +485,7 @@ agent-browser get text @e5  # Extract specific content area, not full page
 Reference: `references/anti-bot-handling.md` (Respectful Scraping Principles, Check robots.txt)
 
 
-</Accordion>
-
-<Accordion title="Browser: Snapshot Workflow — HIGH">
+### Browser: Snapshot Workflow — HIGH
 
 
 ## Browser: Snapshot Workflow
@@ -562,17 +553,12 @@ agent-browser get text body          # 4. Full body (last resort)
 Reference: `references/page-interaction.md` (Snapshot + Refs), `references/content-extraction.md` (Extraction Methods)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (8)
 
-<Accordions type="multiple">
-
-<Accordion title="Anti Bot Handling">
+### Anti Bot Handling
 
 # Anti-Bot Handling
 
@@ -825,9 +811,7 @@ agent-browser frame main
 | Access denied | Check robots.txt, try headed mode |
 
 
-</Accordion>
-
-<Accordion title="Auth Flows">
+### Auth Flows
 
 # Authentication Flows
 
@@ -1093,9 +1077,7 @@ agent-browser state save /tmp/notion-auth.json
 ```
 
 
-</Accordion>
-
-<Accordion title="Content Extraction">
+### Content Extraction
 
 # Content Extraction
 
@@ -1296,9 +1278,7 @@ agent-browser console
 6. **Handle empty content** -- Always check if extraction returned meaningful content
 
 
-</Accordion>
-
-<Accordion title="Page Interaction">
+### Page Interaction
 
 # Page Interaction
 
@@ -1487,9 +1467,7 @@ agent-browser eval "document.querySelector('#modal').style.display = 'none'"
 5. **Check for errors after form submission** -- Snapshot and look for error elements
 
 
-</Accordion>
-
-<Accordion title="Playwright Setup">
+### Playwright Setup
 
 # Playwright Setup & Configuration
 
@@ -1636,9 +1614,7 @@ agent-browser --session scrape2 state save /tmp/session2.json
 Run `agent-browser --help` for the full 60+ command reference.
 
 
-</Accordion>
-
-<Accordion title="Scraping Strategies">
+### Scraping Strategies
 
 # Scraping Strategies
 
@@ -1906,9 +1882,7 @@ echo "All pages crawled"
 5. **Limit batch size** -- Process links in batches of 20-50 to manage memory
 
 
-</Accordion>
-
-<Accordion title="Spa Extraction">
+### Spa Extraction
 
 # SPA Content Extraction
 
@@ -2121,9 +2095,7 @@ main ? main.innerText : document.body.innerText;
 | 404 after nav | Client routing issue | Use full page reload |
 
 
-</Accordion>
-
-<Accordion title="Structured Output">
+### Structured Output
 
 # Structured Output
 
@@ -2418,7 +2390,3 @@ fi
 5. **Normalize whitespace** -- Clean up tabs, multiple spaces, excessive newlines
 6. **Check for JSON-LD** -- Structured data may already exist on the page
 
-
-</Accordion>
-
-</Accordions>

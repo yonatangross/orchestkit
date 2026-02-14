@@ -2,7 +2,6 @@
 title: "Verify"
 description: "Comprehensive verification with parallel test agents. Use when verifying implementations or validating changes."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -344,9 +343,7 @@ Define verification rules in `.claude/policies/verification-policy.json`:
 
 ## References (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Alternative Comparison">
+### Alternative Comparison
 
 # Alternative Comparison
 
@@ -420,9 +417,7 @@ Score = (5 - Effort) * 0.3 + (5 - Risk) * 0.25 + Benefit * 0.45
 ```
 
 
-</Accordion>
-
-<Accordion title="Grading Rubric">
+### Grading Rubric
 
 # Verification Grading Rubric
 
@@ -510,9 +505,7 @@ Score = (5 - Effort) * 0.3 + (5 - Risk) * 0.25 + Benefit * 0.45
 | &lt; 5.0 | F | Do not merge |
 
 
-</Accordion>
-
-<Accordion title="Policy As Code">
+### Policy As Code
 
 # Policy-as-Code
 
@@ -620,9 +613,7 @@ Store at: `.claude/policies/verification-policy.yaml`
 Multiple policies: `.claude/policies/\{name\}-policy.yaml`
 
 
-</Accordion>
-
-<Accordion title="Report Template">
+### Report Template
 
 # Verification Report Template
 
@@ -874,9 +865,7 @@ Copy this template and fill in results from parallel agent verification.
 }
 ```
 
-</Accordion>
-
-<Accordion title="Verification Checklist">
+### Verification Checklist
 
 # Verification Checklist
 
@@ -910,7 +899,7 @@ Pre-flight checklist for comprehensive feature verification with parallel agents
 | Condition | Agent | Launched |
 |-----------|-------|----------|
 | AI/ML features | llm-integrator | [ ] |
-| Performance-critical | performance-engineer | [ ] |
+| Performance-critical | frontend-performance-engineer | [ ] |
 | Database changes | database-engineer | [ ] |
 
 ## Quality Gate Checklist
@@ -1017,17 +1006,12 @@ Focus: React 19, Zod, exhaustive types, skeletons, prefetch, a11y
 3. Focus on critical paths first
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Verification Checklist">
+### Verification Checklist
 
 # Verification Checklist
 
@@ -1074,7 +1058,3 @@ Quick checklist for comprehensive feature verification.
 - [ ] Verdict assigned (Ready/Recommended/Blocked)
 - [ ] Tasks updated to completed
 
-
-</Accordion>
-
-</Accordions>

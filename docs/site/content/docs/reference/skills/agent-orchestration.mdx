@@ -2,7 +2,6 @@
 title: "Agent Orchestration"
 description: "Agent orchestration patterns for agentic loops, multi-agent coordination, alternative frameworks, and multi-scenario workflows. Use when building autonomous agent loops, coordinating multiple agents, evaluating CrewAI/AutoGen/Swarm, or orchestrating complex multi-step scenarios."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -178,9 +177,7 @@ Orchestrate a single skill across 3 parallel scenarios (simple/medium/complex) w
 
 ## Rules (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Frameworks: Microsoft Agent Framework / AutoGen — HIGH">
+### Frameworks: Microsoft Agent Framework / AutoGen — HIGH
 
 
 # Microsoft Agent Framework (AutoGen + Semantic Kernel)
@@ -385,9 +382,7 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 6. Use run_stream() for real-time feedback
 
 
-</Accordion>
-
-<Accordion title="Frameworks: Comparison & Selection — HIGH">
+### Frameworks: Comparison & Selection — HIGH
 
 
 # Framework Comparison & Selection
@@ -554,9 +549,7 @@ Task Duration > 1 hour?
 - Overcomplicating simple tasks (use single agent)
 
 
-</Accordion>
-
-<Accordion title="Frameworks: CrewAI — HIGH">
+### Frameworks: CrewAI — HIGH
 
 
 # CrewAI Patterns (v1.8+)
@@ -763,9 +756,7 @@ result = ResearchCrew().crew().kickoff(inputs={"topic": "AI Safety"})
 7. One clear deliverable per task
 
 
-</Accordion>
-
-<Accordion title="Loops: Plan-and-Execute — HIGH">
+### Loops: Plan-and-Execute — HIGH
 
 
 # Plan-and-Execute Pattern
@@ -939,9 +930,7 @@ export async function functionCallingAgent(task: string): Promise<AgentResult> {
 | Self-Correction | Quality-critical output | Higher cost, better quality |
 
 
-</Accordion>
-
-<Accordion title="Loops: ReAct Pattern — HIGH">
+### Loops: ReAct Pattern — HIGH
 
 
 # ReAct Pattern (Reasoning + Acting)
@@ -1076,9 +1065,7 @@ class AgentMemory:
 - Over-complex prompts (agent gets confused)
 
 
-</Accordion>
-
-<Accordion title="Multi-Agent: Debate & Conflict Resolution — HIGH">
+### Multi-Agent: Debate & Conflict Resolution — HIGH
 
 
 # Agent Debate & Conflict Resolution
@@ -1188,9 +1175,7 @@ class AgentBus:
 - Broadcasting when a direct message suffices (wastes tokens)
 
 
-</Accordion>
-
-<Accordion title="Multi-Agent: Supervisor Pattern — CRITICAL">
+### Multi-Agent: Supervisor Pattern — CRITICAL
 
 
 # Supervisor Pattern
@@ -1379,9 +1364,7 @@ SendMessage(type="broadcast",
 | Topology | Task tool (star) for simple; Agent Teams (mesh) for complex |
 
 
-</Accordion>
-
-<Accordion title="Multi-Agent: Result Synthesis — HIGH">
+### Multi-Agent: Result Synthesis — HIGH
 
 
 # Result Synthesis
@@ -1533,9 +1516,7 @@ Generate actionable recommendations:
 - [ ] Agent health checks and performance metrics
 
 
-</Accordion>
-
-<Accordion title="Scenario: Multi-Scenario Orchestrator — MEDIUM">
+### Scenario: Multi-Scenario Orchestrator — MEDIUM
 
 
 # Multi-Scenario Orchestrator
@@ -1711,9 +1692,7 @@ class SkillOrchestrator(ABC):
 - Missing aggregation (individual results lack comparative insights)
 
 
-</Accordion>
-
-<Accordion title="Scenario: Routing & Synchronization — MEDIUM">
+### Scenario: Routing & Synchronization — MEDIUM
 
 
 # Scenario Routing & Synchronization
@@ -1936,17 +1915,12 @@ python run_scenario.py
 | Checkpoint frequency | Every milestone + completion |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (11)
 
-<Accordions type="multiple">
-
-<Accordion title="Architectural Patterns">
+### Architectural Patterns
 
 # Architectural Patterns for Multi-Scenario Orchestration
 
@@ -2549,9 +2523,7 @@ def analyze_performance(
 - `skill-agnostic-template.md` - Template for new skills
 
 
-</Accordion>
-
-<Accordion title="Claude Code Instance Management">
+### Claude Code Instance Management
 
 # Claude Code Instance Management: Multi-Scenario Demos
 
@@ -3051,9 +3023,7 @@ PostgreSQL checkpoints serve as the distributed state store.
 → Enable checkpointing to disk, reduce batch sizes for complex scenario
 
 
-</Accordion>
-
-<Accordion title="Coordination Patterns">
+### Coordination Patterns
 
 # Agent Coordination Patterns
 
@@ -3156,9 +3126,7 @@ async def resolve_agent_conflicts(
 - Use cheaper models for simple agents
 - Parallelize independent agents always
 
-</Accordion>
-
-<Accordion title="Crewai Patterns">
+### Crewai Patterns
 
 # CrewAI Patterns (v1.8+)
 
@@ -3930,9 +3898,7 @@ class ReviewFlow(Flow):
 | No flow control | Flows with `@start`, `@listen`, `@router` |
 
 
-</Accordion>
-
-<Accordion title="Framework Comparison">
+### Framework Comparison
 
 # Framework Comparison
 
@@ -4070,9 +4036,7 @@ workflow.add_edge("agent1", "agent2")
 5. **Research**: AG2 (open community, experimental features)
 
 
-</Accordion>
-
-<Accordion title="Gpt 5 2 Codex">
+### Gpt 5 2 Codex
 
 # GPT-5.2-Codex
 
@@ -4769,9 +4733,7 @@ response = client.chat.completions.create(
 - [Multi-Agent Orchestration](../SKILL.md)
 
 
-</Accordion>
-
-<Accordion title="Langgraph Implementation">
+### Langgraph Implementation
 
 # LangGraph Implementation: Multi-Scenario Orchestration
 
@@ -5397,9 +5359,7 @@ async def test_multi_scenario_orchestration():
 ```
 
 
-</Accordion>
-
-<Accordion title="Microsoft Agent Framework">
+### Microsoft Agent Framework
 
 # Microsoft Agent Framework
 
@@ -5601,9 +5561,7 @@ from autogen_agentchat.teams import RoundRobinGroupChat
 6. **Streaming**: Use run_stream() for real-time feedback
 
 
-</Accordion>
-
-<Accordion title="Openai Agents Sdk">
+### Openai Agents Sdk
 
 # OpenAI Agents SDK
 
@@ -6089,9 +6047,7 @@ agent = Agent(
 - **v0.6.0**: Sessions feature, improved handoff history
 
 
-</Accordion>
-
-<Accordion title="Skill Agnostic Template">
+### Skill Agnostic Template
 
 # Skill-Agnostic Template Abstraction
 
@@ -6754,9 +6710,7 @@ async def test_full_orchestration(orchestrator):
 ```
 
 
-</Accordion>
-
-<Accordion title="State Machine Design">
+### State Machine Design
 
 # State Machine Design: Multi-Scenario Orchestration
 
@@ -7401,17 +7355,12 @@ async def test_state_transition_running_to_complete():
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Framework Selection">
+### Framework Selection
 
 # Framework Selection Checklist
 
@@ -7494,9 +7443,7 @@ Choose the right multi-agent framework.
 - [ ] Review date scheduled
 
 
-</Accordion>
-
-<Accordion title="Orchestration Checklist">
+### Orchestration Checklist
 
 # Multi-Agent Orchestration Checklist
 
@@ -7535,7 +7482,3 @@ Choose the right multi-agent framework.
 - [ ] Performance metrics
 - [ ] Error rates
 
-
-</Accordion>
-
-</Accordions>

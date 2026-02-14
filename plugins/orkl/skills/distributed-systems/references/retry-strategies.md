@@ -375,7 +375,7 @@ async def call_with_context_management(prompt: str, max_tokens: int = 4096) -> s
 
 ## Monitoring
 
-```promql
+```text
 # Retry rate
 rate(retries_total[5m])
 

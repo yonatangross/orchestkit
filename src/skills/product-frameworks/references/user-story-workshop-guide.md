@@ -101,7 +101,7 @@ so that [benefit/outcome].
 
 ### Given-When-Then Format
 
-```gherkin
+```text
 Scenario: [Scenario name]
   Given [precondition/context]
   When [action taken]
@@ -111,7 +111,7 @@ Scenario: [Scenario name]
 
 ### Example
 
-```gherkin
+```text
 Scenario: User filters search results by date
   Given I have search results displayed
   And the date filter is visible

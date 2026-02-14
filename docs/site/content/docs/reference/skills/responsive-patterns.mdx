@@ -2,7 +2,6 @@
 title: "Responsive Patterns"
 description: "Responsive design with Container Queries, fluid typography, cqi/cqb units, and mobile-first patterns for React applications. Use when building responsive layouts or container queries."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -461,9 +460,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Motion Library & View Transitions — HIGH">
+### Motion Library & View Transitions — HIGH
 
 
 ## Motion Library & View Transitions
@@ -550,9 +547,7 @@ function ProductCard({ product }: { product: Product }) {
 - Use View Transitions API for page navigation, Motion for component animations
 
 
-</Accordion>
-
-<Accordion title="Scroll-Driven Animations — MEDIUM">
+### Scroll-Driven Animations — MEDIUM
 
 
 ## Scroll-Driven Animations
@@ -660,9 +655,7 @@ window.addEventListener('scroll', () => {
 - Respect `prefers-reduced-motion` — disable parallax and motion effects
 
 
-</Accordion>
-
-<Accordion title="PWA Offline & Installability — HIGH">
+### PWA Offline & Installability — HIGH
 
 
 ## PWA Offline & Installability
@@ -765,9 +758,7 @@ registerRoute(
 - Test offline behavior in Chrome DevTools Application tab
 
 
-</Accordion>
-
-<Accordion title="PWA Service Worker & Workbox — HIGH">
+### PWA Service Worker & Workbox — HIGH
 
 
 ## PWA Service Worker & Workbox
@@ -859,17 +850,12 @@ export default defineConfig({
 - Include `navigateFallback: '/index.html'` for SPA offline support
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Container Queries">
+### Container Queries
 
 # Container Queries Reference
 
@@ -994,9 +980,7 @@ Container queries are built into Tailwind CSS v4 - no plugin required.
 ```
 
 
-</Accordion>
-
-<Accordion title="Fluid Typography">
+### Fluid Typography
 
 # Fluid Typography Reference
 
@@ -1110,7 +1094,3 @@ p {
 - [Utopia.fyi](https://utopia.fyi/type/calculator) - Fluid type scale generator
 - [Fluid Type Scale](https://www.fluid-type-scale.com/) - Calculate clamp values
 
-
-</Accordion>
-
-</Accordions>

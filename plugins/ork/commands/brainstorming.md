@@ -173,7 +173,7 @@ Skip brainstorming when:
 | "brainstorm API for users" | workflow-architect, backend-system-architect, security-auditor |
 | "brainstorm dashboard UI" | workflow-architect, frontend-ui-developer, ux-researcher |
 | "brainstorm RAG pipeline" | workflow-architect, llm-integrator, data-pipeline-engineer |
-| "brainstorm caching strategy" | workflow-architect, backend-system-architect, performance-engineer |
+| "brainstorm caching strategy" | workflow-architect, backend-system-architect, frontend-performance-engineer |
 
 **Always include:** `workflow-architect` for system design perspective.
 

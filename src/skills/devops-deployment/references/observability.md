@@ -47,7 +47,7 @@ async def metrics():
 
 ## Grafana Dashboard Queries
 
-```promql
+```text
 # Request rate (requests per second)
 rate(http_requests_total[5m])
 

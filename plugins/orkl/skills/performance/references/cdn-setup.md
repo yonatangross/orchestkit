@@ -370,7 +370,7 @@ CMD ["node", "server.js"]
 
 ### Nginx Configuration
 
-```nginx
+```text
 # /etc/nginx/conf.d/images.conf
 
 # Image caching

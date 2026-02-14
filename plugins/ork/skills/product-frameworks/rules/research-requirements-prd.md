@@ -51,7 +51,7 @@ Acceptance Criteria:
 
 ### Given-When-Then Format (Gherkin)
 
-```gherkin
+```text
 Scenario: Successful login with valid credentials
   Given I am on the login page
   And I have a valid account

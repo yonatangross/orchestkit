@@ -2,7 +2,6 @@
 title: "Accessibility"
 description: "Accessibility patterns for WCAG 2.2 compliance, keyboard focus management, and React Aria component patterns. Use when implementing screen reader support, keyboard navigation, ARIA patterns, focus traps, or accessible component libraries."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -125,9 +124,7 @@ Adobe React Aria hooks for building WCAG-compliant interactive UI.
 
 ## Rules (9)
 
-<Accordions type="multiple">
-
-<Accordion title="React Aria: Components — HIGH">
+### React Aria: Components — HIGH
 
 
 # React Aria Components (useButton, useDialog, useMenu)
@@ -297,9 +294,7 @@ const { buttonProps } = useButton({ onPress: handleClick }, ref);
 ```
 
 
-</Accordion>
-
-<Accordion title="React Aria: Forms — HIGH">
+### React Aria: Forms — HIGH
 
 
 # React Aria Forms (useComboBox, useTextField, useListBox)
@@ -505,9 +500,7 @@ function Select(props) {
 ```
 
 
-</Accordion>
-
-<Accordion title="React Aria: Overlays — HIGH">
+### React Aria: Overlays — HIGH
 
 
 # React Aria Overlays (useModalOverlay, useTooltip, usePopover)
@@ -743,9 +736,7 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 ```
 
 
-</Accordion>
-
-<Accordion title="Focus: Keyboard Navigation — HIGH">
+### Focus: Keyboard Navigation — HIGH
 
 
 # Keyboard Navigation (WCAG 2.1.1, 2.4.3, 2.4.7)
@@ -968,9 +959,7 @@ useEffect(() => inputRef.current?.focus(), []);
 ```
 
 
-</Accordion>
-
-<Accordion title="Focus: Focus Restoration — HIGH">
+### Focus: Focus Restoration — HIGH
 
 
 # Focus Restoration (WCAG 2.4.3)
@@ -1124,9 +1113,7 @@ function FormWithConfirmation() {
 | Forgetting `tabIndex=\{-1\}` on non-interactive targets | Required for programmatic focus on divs |
 
 
-</Accordion>
-
-<Accordion title="Focus: Focus Trap — HIGH">
+### Focus: Focus Trap — HIGH
 
 
 # Focus Trap (WCAG 2.1.1, 2.1.2)
@@ -1288,9 +1275,7 @@ useEffect(() => { modalRef.current?.focus(); }, []);  // Incomplete!
 ```
 
 
-</Accordion>
-
-<Accordion title="WCAG: Color Contrast — CRITICAL">
+### WCAG: Color Contrast — CRITICAL
 
 
 # Color Contrast (WCAG 1.4.3, 1.4.11)
@@ -1402,9 +1387,7 @@ Content must reflow without horizontal scrolling at 320px width:
 | Tiny touch targets | Minimum 24px, 44px for touch devices |
 
 
-</Accordion>
-
-<Accordion title="WCAG: Semantic HTML — CRITICAL">
+### WCAG: Semantic HTML — CRITICAL
 
 
 # Semantic HTML & ARIA (WCAG 1.3.1, 4.1.2)
@@ -1555,9 +1538,7 @@ Always follow h1-h6 order without skipping levels:
 - **Decorative images without alt=""**: Must use `alt=""` or `role="presentation"`
 
 
-</Accordion>
-
-<Accordion title="WCAG: Accessibility Testing — CRITICAL">
+### WCAG: Accessibility Testing — CRITICAL
 
 
 # Accessibility Testing
@@ -1660,17 +1641,12 @@ Test with at least one screen reader:
 | Ignoring screen reader announcements | Test with NVDA/VoiceOver for dynamic content |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Focus Patterns">
+### Focus Patterns
 
 # Focus Management Patterns
 
@@ -2107,9 +2083,7 @@ test('modal traps focus', async ({ page }) => {
 **Last Updated:** 2026-01-16
 
 
-</Accordion>
-
-<Accordion title="React Aria Hooks">
+### React Aria Hooks
 
 # React Aria Hooks Reference
 
@@ -2691,9 +2665,7 @@ function MyButton(props: AriaButtonProps) {
 - [ARIA Authoring Practices Guide](https://www.w3.org/WAI/ARIA/apg/)
 
 
-</Accordion>
-
-<Accordion title="Wcag Criteria">
+### Wcag Criteria
 
 # WCAG 2.2 Level AA Criteria Reference
 
@@ -3360,17 +3332,12 @@ Status updates must be programmatically determinable:
 **Based on**: WCAG 2.2 Level AA
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Focus Checklist">
+### Focus Checklist
 
 # Focus Management Checklist
 
@@ -3557,9 +3524,7 @@ Comprehensive checklist for implementing and verifying focus management in React
 **Last Updated:** 2026-01-16
 
 
-</Accordion>
-
-<Accordion title="React Aria Checklist">
+### React Aria Checklist
 
 # React Aria Component Checklist
 
@@ -3787,9 +3752,7 @@ Before merging:
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
 
 
-</Accordion>
-
-<Accordion title="Wcag Checklist">
+### Wcag Checklist
 
 # WCAG 2.2 AA Compliance Checklist
 
@@ -4077,17 +4040,12 @@ Date: ____________________
 **Based on**: WCAG 2.2 Level AA
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Focus Examples">
+### Focus Examples
 
 # Focus Management Examples
 
@@ -4665,9 +4623,7 @@ test('modal traps focus correctly', async ({ page }) => {
 **Last Updated:** 2026-01-16
 
 
-</Accordion>
-
-<Accordion title="React Aria Examples">
+### React Aria Examples
 
 # React Aria Examples
 
@@ -5219,9 +5175,7 @@ describe('MenuButton', () => {
 - [ARIA Authoring Practices Examples](https://www.w3.org/WAI/ARIA/apg/example-index/)
 
 
-</Accordion>
-
-<Accordion title="Wcag Examples">
+### Wcag Examples
 
 # WCAG Compliance Code Examples
 
@@ -5979,7 +5933,3 @@ export function ErrorSummary({ errors }: ErrorSummaryProps) {
 **Version**: 1.0.0
 **Last Updated**: 2026-01-16
 
-
-</Accordion>
-
-</Accordions>

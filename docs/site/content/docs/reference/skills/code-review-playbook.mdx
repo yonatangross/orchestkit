@@ -2,7 +2,6 @@
 title: "Code Review Playbook"
 description: "Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -352,14 +351,12 @@ Each category has individual rule files in `rules/` loaded on-demand:
 
 ## Rules (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Biome Rule Configuration and CI Integration — HIGH">
+### Biome Rule Configuration and CI Integration — HIGH
 
 
 ## Biome Rule Configuration and CI Integration
 
-**Incorrect -- default config without key rules enabled:**
+**Incorrect — default config without key rules enabled:**
 ```json
 {
   "linter": { "enabled": true }
@@ -368,7 +365,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 }
 ```
 
-**Correct -- production Biome configuration:**
+**Correct — production Biome configuration:**
 ```json
 {
   "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
@@ -408,7 +405,7 @@ Each category has individual rule files in `rules/` loaded on-demand:
 - `noFloatingPromises`: Catches unhandled promises (previously required tsconfig)
 - Multi-file analysis: Cross-module diagnostics
 
-**Correct -- CI integration (GitHub Actions):**
+**Correct — CI integration (GitHub Actions):**
 ```yaml
 # .github/workflows/lint.yml
 name: Lint
@@ -440,21 +437,19 @@ Key decisions:
 - Config strictness: recommended -> warn -> error progression
 
 
-</Accordion>
-
-<Accordion title="Biome Linting Setup and Migration — HIGH">
+### Biome Linting Setup and Migration — HIGH
 
 
 ## Biome Linting Setup and Migration
 
-**Incorrect -- complex multi-tool setup:**
+**Incorrect — complex multi-tool setup:**
 ```json
 // 4+ config files: .eslintrc, .prettierrc, .prettierignore, .editorconfig
 // 127+ npm packages for ESLint + Prettier + plugins
 // 3-5s lint time for 10k lines
 ```
 
-**Correct -- Biome single-tool setup:**
+**Correct — Biome single-tool setup:**
 ```bash
 # Install (single binary, no plugins needed)
 npm install --save-dev --save-exact @biomejs/biome
@@ -472,7 +467,7 @@ npx @biomejs/biome check --write .
 npx @biomejs/biome ci .
 ```
 
-**Correct -- ESLint migration:**
+**Correct — ESLint migration:**
 ```bash
 # Auto-migrate ESLint configuration
 npx @biomejs/biome migrate eslint --write
@@ -488,7 +483,7 @@ Common rule mappings:
 | eslint-plugin-react | Most supported |
 | eslint-plugin-jsx-a11y | Most supported |
 
-**Correct -- gradual adoption with overrides:**
+**Correct — gradual adoption with overrides:**
 ```json
 {
   "overrides": [
@@ -515,9 +510,7 @@ Key decisions:
 - Speed: ~200ms for 10k lines vs 3-5s with ESLint+Prettier
 
 
-</Accordion>
-
-<Accordion title="Python Quality Review Rules — HIGH">
+### Python Quality Review Rules — HIGH
 
 
 ## Python Quality Review Rules
@@ -608,9 +601,7 @@ async def fetch_user(user_id: str) -> User:
 | Division safety | MEDIUM | Division without checking `len() > 0` |
 
 
-</Accordion>
-
-<Accordion title="Security Baseline Review Rules — CRITICAL">
+### Security Baseline Review Rules — CRITICAL
 
 
 ## Security Baseline Review Rules
@@ -722,9 +713,7 @@ logger.debug("User authenticated", extra={"user_id": user.id})
 | `set -x` with secrets | HIGH | BLOCK — never expose secrets in logs |
 
 
-</Accordion>
-
-<Accordion title="TypeScript Quality Review Rules — HIGH">
+### TypeScript Quality Review Rules — HIGH
 
 
 ## TypeScript Quality Review Rules
@@ -816,17 +805,12 @@ function CardSkeleton() {
 | MSW for tests | HIGH | `jest.mock(fetch)` instead of MSW |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Review Patterns">
+### Review Patterns
 
 # Code Review Patterns & Practices
 
@@ -1058,17 +1042,12 @@ results = db.query(Analysis).filter(Analysis.url == user_url).all()
 **Remember:** Code review is about **collaboration**, not gatekeeping. Explain reasoning, suggest alternatives, and celebrate good work. Every review is a learning opportunity for both author and reviewer.
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Code Review Checklist">
+### Code Review Checklist
 
 # Code Review Checklist
 
@@ -1479,17 +1458,12 @@ Use this comprehensive checklist when reviewing code to ensure thorough and cons
 **Last Updated**: 2025-10-31
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Conventional Comments">
+### Conventional Comments
 
 # Conventional Comments Examples
 
@@ -1624,9 +1598,7 @@ suggestion: Consider using X because Y. What do you think?
 ```
 
 
-</Accordion>
-
-<Accordion title="Pr Review Walkthrough">
+### Pr Review Walkthrough
 
 # PR Review Walkthrough Example
 
@@ -1728,7 +1700,3 @@ LGTM once the security issue is addressed! 🔐
 4. **Include examples** - Show the fix, don't just describe it
 5. **Summarize** - Group by priority for easy action
 
-
-</Accordion>
-
-</Accordions>

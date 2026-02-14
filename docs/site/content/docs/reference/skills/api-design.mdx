@@ -2,7 +2,6 @@
 title: "Api Design"
 description: "API design patterns for REST/GraphQL framework design, versioning strategies, and RFC 9457 error handling. Use when designing API endpoints, choosing versioning schemes, implementing Problem Details errors, or building OpenAPI specifications."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -213,9 +212,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 ## Rules (15)
 
-<Accordions type="multiple">
-
-<Accordion title="Error Type Catalog — HIGH">
+### Error Type Catalog — HIGH
 
 
 ## Error Type Catalog
@@ -417,9 +414,7 @@ async function fetchWithProblemDetails(url: string): Promise<Response> {
 - Provide client handling examples in both Python and TypeScript
 
 
-</Accordion>
-
-<Accordion title="RFC 9457 Problem Details — HIGH">
+### RFC 9457 Problem Details — HIGH
 
 
 ## RFC 9457 Problem Details
@@ -586,9 +581,7 @@ return {"detail": str(exc), "traceback": traceback.format_exc()}
 - Never expose stack traces or internal details in production
 
 
-</Accordion>
-
-<Accordion title="Validation Error Handling — HIGH">
+### Validation Error Handling — HIGH
 
 
 ## Validation Error Handling
@@ -732,9 +725,7 @@ async def test_validation_error_includes_field_errors(client: AsyncClient):
 - Map Pydantic error types to user-friendly codes where needed
 
 
-</Accordion>
-
-<Accordion title="OpenAPI Specifications — HIGH">
+### OpenAPI Specifications — HIGH
 
 
 ## OpenAPI Specifications
@@ -911,9 +902,7 @@ class AnalyzeRequest(BaseModel):
 - Generate per-version documentation when versioning
 
 
-</Accordion>
-
-<Accordion title="Resource Modeling — HIGH">
+### Resource Modeling — HIGH
 
 
 ## Resource Modeling
@@ -1047,9 +1036,7 @@ type PageInfo {
 - Provide field selection for bandwidth optimization
 
 
-</Accordion>
-
-<Accordion title="REST API Conventions — HIGH">
+### REST API Conventions — HIGH
 
 
 ## REST API Conventions
@@ -1138,9 +1125,7 @@ async def list_analyses(
 - Use cursor-based pagination for large datasets
 
 
-</Accordion>
-
-<Accordion title="GraphQL Schema Patterns and FastAPI Integration — HIGH">
+### GraphQL Schema Patterns and FastAPI Integration — HIGH
 
 
 ## GraphQL Schema Patterns and FastAPI Integration
@@ -1222,9 +1207,7 @@ Key decisions:
 - Context getter for dependency injection
 
 
-</Accordion>
-
-<Accordion title="Strawberry GraphQL Schema Design — HIGH">
+### Strawberry GraphQL Schema Design — HIGH
 
 
 ## Strawberry GraphQL Schema Design
@@ -1317,9 +1300,7 @@ Key decisions:
 - Do NOT use when: Simple CRUD (use REST), internal microservices (use gRPC)
 
 
-</Accordion>
-
-<Accordion title="gRPC Service Definition and Implementation — HIGH">
+### gRPC Service Definition and Implementation — HIGH
 
 
 ## gRPC Service Definition and Implementation
@@ -1333,7 +1314,7 @@ response = requests.post("http://user-service/api/users",
 ```
 
 **Correct -- protobuf service definition:**
-```protobuf
+```text
 syntax = "proto3";
 package user.v1;
 
@@ -1408,9 +1389,7 @@ Key decisions:
 - Do NOT use when: Public APIs (use REST/GraphQL), simple CRUD, no HTTP/2
 
 
-</Accordion>
-
-<Accordion title="gRPC Streaming and Interceptors — HIGH">
+### gRPC Streaming and Interceptors — HIGH
 
 
 ## gRPC Streaming and Interceptors
@@ -1487,9 +1466,7 @@ Key decisions:
 - Never skip deadline/timeout on client calls
 
 
-</Accordion>
-
-<Accordion title="Server-Sent Events (SSE) Streaming — HIGH">
+### Server-Sent Events (SSE) Streaming — HIGH
 
 
 ## Server-Sent Events (SSE) Streaming
@@ -1595,9 +1572,7 @@ Key decisions:
 - Exponential backoff for reconnection (1s to 30s)
 
 
-</Accordion>
-
-<Accordion title="WebSocket and Async Generator Patterns — HIGH">
+### WebSocket and Async Generator Patterns — HIGH
 
 
 ## WebSocket and Async Generator Patterns
@@ -1680,9 +1655,7 @@ Key decisions:
 - Monitor buffer sizes, pause production when consumer is slow
 
 
-</Accordion>
-
-<Accordion title="Deprecation and Lifecycle — HIGH">
+### Deprecation and Lifecycle — HIGH
 
 
 ## Deprecation and Lifecycle
@@ -1831,9 +1804,7 @@ class UserResponse(BaseModel):
 - Track usage of deprecated versions and contact heavy users
 
 
-</Accordion>
-
-<Accordion title="Header-Based Versioning — HIGH">
+### Header-Based Versioning — HIGH
 
 
 ## Header-Based Versioning
@@ -1946,9 +1917,7 @@ async def test_header_versioning(client: AsyncClient):
 - Always document which versions are supported
 
 
-</Accordion>
-
-<Accordion title="URL Path Versioning — HIGH">
+### URL Path Versioning — HIGH
 
 
 ## URL Path Versioning
@@ -2056,17 +2025,12 @@ async def get_user_v2(user_id: str, service: UserService = Depends()):
 - Never version internal implementation (services, repositories)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (7)
 
-<Accordions type="multiple">
-
-<Accordion title="Frontend Integration">
+### Frontend Integration
 
 # Frontend API Integration (2026 Patterns)
 
@@ -2209,9 +2173,7 @@ const user: User = await response.json()    // Runtime crash waiting
 const user = UserSchema.parse(await response.json())
 ```
 
-</Accordion>
-
-<Accordion title="Graphql Api">
+### Graphql Api
 
 # GraphQL API Design
 
@@ -2344,15 +2306,13 @@ type CreateUserPayload {
 }
 ```
 
-</Accordion>
-
-<Accordion title="Grpc Api">
+### Grpc Api
 
 # gRPC API Design
 
 ## Proto File Structure
 
-```protobuf
+```text
 syntax = "proto3";
 
 package company.user.v1;
@@ -2418,9 +2378,7 @@ message ListUsersResponse {
 | RESOURCE_EXHAUSTED | 429 | Rate limit |
 | INTERNAL | 500 | Server error |
 
-</Accordion>
-
-<Accordion title="Rest Api">
+### Rest Api
 
 # REST API Design
 
@@ -2586,9 +2544,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
 X-API-Key: sk_live_abc123...
 ```
 
-</Accordion>
-
-<Accordion title="Rest Patterns">
+### Rest Patterns
 
 # RESTful API Design Patterns
 
@@ -3199,9 +3155,7 @@ async def get_analysis(
 - See SKILL.md for GraphQL and gRPC patterns
 
 
-</Accordion>
-
-<Accordion title="Rfc9457 Spec">
+### Rfc9457 Spec
 
 # RFC 9457 Problem Details for HTTP APIs
 
@@ -3499,9 +3453,7 @@ async function fetchWithProblemDetails(url: string): Promise<Response> {
 - See SKILL.md for complete patterns
 
 
-</Accordion>
-
-<Accordion title="Versioning Strategies">
+### Versioning Strategies
 
 # API Versioning Strategies
 
@@ -3808,17 +3760,12 @@ class ResponseAdapter:
 - See `checklists/versioning-checklist.md` for implementation checklist
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Api Design Checklist">
+### Api Design Checklist
 
 # API Design Review Checklist
 
@@ -4115,9 +4062,7 @@ Use this checklist when designing or reviewing APIs to ensure consistency, usabi
 **Last Updated**: 2025-10-31
 
 
-</Accordion>
-
-<Accordion title="Error Handling Checklist">
+### Error Handling Checklist
 
 # Error Handling Implementation Checklist
 
@@ -4305,9 +4250,7 @@ async def handle_api_error(response):
 | 503 | `service-unavailable` | Temporary outage |
 
 
-</Accordion>
-
-<Accordion title="Versioning Checklist">
+### Versioning Checklist
 
 # API Versioning Implementation Checklist
 
@@ -4513,17 +4456,12 @@ async def handle_api_error(response):
 - [ ] **Inconsistent versioning**: Use same strategy everywhere
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Fastapi Problem Details">
+### Fastapi Problem Details
 
 # FastAPI Problem Details Implementation
 
@@ -4979,9 +4917,7 @@ async def test_validation_error_includes_field_errors(client: AsyncClient):
 ```
 
 
-</Accordion>
-
-<Accordion title="Fastapi Versioning">
+### Fastapi Versioning
 
 # FastAPI API Versioning Examples
 
@@ -5397,9 +5333,7 @@ async def test_header_versioning(client: AsyncClient):
 ```
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Api Design">
+### Orchestkit Api Design
 
 # OrchestKit API Design Decisions
 
@@ -5924,7 +5858,3 @@ def get_artifact_repository() -> IArtifactRepository:
 - See `streaming-api-patterns` skill for SSE implementation details
 - See `assets/openapi-template.yaml` for OpenAPI specification template
 
-
-</Accordion>
-
-</Accordions>

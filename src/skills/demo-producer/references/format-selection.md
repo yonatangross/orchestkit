@@ -11,7 +11,7 @@
 ## Terminal Dimensions by Format
 
 ### Horizontal (16:9)
-```tape
+```text
 Set Width 1400
 Set Height 650
 Set FontSize 18
@@ -22,7 +22,7 @@ Set Padding 30
 - Characters per line: ~140
 
 ### Vertical (9:16)
-```tape
+```text
 Set Width 900
 Set Height 1400
 Set FontSize 22
@@ -33,7 +33,7 @@ Set Padding 40
 - Characters per line: ~80
 
 ### Square (1:1)
-```tape
+```text
 Set Width 1080
 Set Height 1080
 Set FontSize 20

@@ -2,7 +2,6 @@
 title: "Architecture Patterns"
 description: "Architecture validation and patterns for clean architecture, backend structure enforcement, project structure validation, test standards, and context-aware sizing. Use when designing system boundaries, enforcing layered architecture, validating project structure, defining test standards, or choosing the right architecture tier for project scope."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -222,9 +221,7 @@ class UserService:
 
 ## Rules (13)
 
-<Accordions type="multiple">
-
-<Accordion title="Backend: Dependency Injection — HIGH">
+### Backend: Dependency Injection — HIGH
 
 
 # Dependency Injection
@@ -275,9 +272,7 @@ async def get_users(db: AsyncSession):  # Missing Depends()
 | Missing await | Sync calls in async | Add await or use executor |
 
 
-</Accordion>
-
-<Accordion title="Backend: Layer Separation — HIGH">
+### Backend: Layer Separation — HIGH
 
 
 # Backend Layer Separation
@@ -328,9 +323,7 @@ async def get_user(user_id: int, service: UserService = Depends(get_user_service
 ```
 
 
-</Accordion>
-
-<Accordion title="Backend: File Naming & Exceptions — HIGH">
+### Backend: File Naming & Exceptions — HIGH
 
 
 # File Naming & Exceptions
@@ -366,9 +359,7 @@ await loop.run_in_executor(None, sync_function)
 - All database operations must use `await`
 
 
-</Accordion>
-
-<Accordion title="Clean: SOLID & Dependency Inversion — HIGH">
+### Clean: SOLID & Dependency Inversion — HIGH
 
 
 # SOLID Principles in Python
@@ -439,9 +430,7 @@ def get_analysis_service(db: AsyncSession = Depends(get_db)) -> AnalysisService:
 | Dataclass vs Pydantic | Dataclass for domain, Pydantic for API |
 
 
-</Accordion>
-
-<Accordion title="Clean: Hexagonal Architecture — HIGH">
+### Clean: Hexagonal Architecture — HIGH
 
 
 # Hexagonal Architecture (Ports & Adapters)
@@ -499,9 +488,7 @@ backend/app/
 - Driven adapters are called outward (services -> repositories)
 
 
-</Accordion>
-
-<Accordion title="Clean: DDD Tactical Patterns — HIGH">
+### Clean: DDD Tactical Patterns — HIGH
 
 
 # DDD Tactical Patterns
@@ -567,9 +554,7 @@ class AnalysisAggregate:
 | Event publishing | Collect in aggregate, publish after commit |
 
 
-</Accordion>
-
-<Accordion title="Right-Sizing Decision Guide — HIGH">
+### Right-Sizing Decision Guide — HIGH
 
 
 ## Right-Sizing Decision Guide
@@ -644,9 +629,7 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 - Add abstractions only when pain appears, not preemptively
 
 
-</Accordion>
-
-<Accordion title="Architecture Sizing Tiers — HIGH">
+### Architecture Sizing Tiers — HIGH
 
 
 ## Architecture Sizing Tiers
@@ -731,9 +714,7 @@ def list_todos():
 - User can override detected tier explicitly — respect manual overrides
 
 
-</Accordion>
-
-<Accordion title="Structure: Import Direction & Conventions — HIGH">
+### Structure: Import Direction & Conventions — HIGH
 
 
 # Import Direction & Conventions
@@ -791,9 +772,7 @@ BLOCKED: app/user_service.py (not in services/), app/services/router_users.py (r
 ```
 
 
-</Accordion>
-
-<Accordion title="Structure: Folder Organization — HIGH">
+### Structure: Folder Organization — HIGH
 
 
 # Folder Organization
@@ -860,9 +839,7 @@ import { Button } from '@/components/Button';
 Barrel files break tree-shaking, cause circular dependencies, and slow builds.
 
 
-</Accordion>
-
-<Accordion title="Testing: AAA Pattern & Isolation — MEDIUM">
+### Testing: AAA Pattern & Isolation — MEDIUM
 
 
 # AAA Pattern & Test Isolation
@@ -933,9 +910,7 @@ def test_email_validation(self, email: str, expected: bool):
 ```
 
 
-</Accordion>
-
-<Accordion title="Testing: Coverage & Fixtures — MEDIUM">
+### Testing: Coverage & Fixtures — MEDIUM
 
 
 # Coverage & Fixtures
@@ -991,9 +966,7 @@ def db_engine():
 - 100% coverage required for all new code
 
 
-</Accordion>
-
-<Accordion title="Testing: Naming Conventions — MEDIUM">
+### Testing: Naming Conventions — MEDIUM
 
 
 # Test Naming Conventions
@@ -1047,17 +1020,12 @@ BLOCKED:
 - Place all tests in dedicated test directories
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (16)
 
-<Accordions type="multiple">
-
-<Accordion title="Backend Layers: Dependency Injection Patterns — HIGH">
+### Backend Layers: Dependency Injection Patterns — HIGH
 
 
 # Dependency Injection Patterns
@@ -1328,9 +1296,7 @@ def test_get_user(client, mock_user_service):
 | Test with overrides | Use `app.dependency_overrides` for mocking |
 
 
-</Accordion>
-
-<Accordion title="Backend Layers: Layer Separation Rules — HIGH">
+### Backend Layers: Layer Separation Rules — HIGH
 
 
 # Backend Layer Separation Rules
@@ -1550,9 +1516,7 @@ async def process_file(file_path: str) -> bytes:
 | Async Consistency | Sync calls in async blocked | all |
 
 
-</Accordion>
-
-<Accordion title="Backend Layers: File Naming & Domain Exceptions — HIGH">
+### Backend Layers: File Naming & Domain Exceptions — HIGH
 
 
 # File Naming Conventions & Domain Exceptions
@@ -1735,9 +1699,7 @@ open(path, 'rb')    # Sync I/O in async - VIOLATION
 | Business logic in router | Complex conditions, loops | Extract to service |
 
 
-</Accordion>
-
-<Accordion title="Clean Architecture: DDD Tactical Patterns — HIGH">
+### Clean Architecture: DDD Tactical Patterns — HIGH
 
 
 # DDD Tactical Patterns
@@ -1946,9 +1908,7 @@ class AnalysisService:
 ```
 
 
-</Accordion>
-
-<Accordion title="Clean Architecture: Hexagonal Ports & Adapters — HIGH">
+### Clean Architecture: Hexagonal Ports & Adapters — HIGH
 
 
 # Hexagonal Architecture (Ports & Adapters)
@@ -2162,9 +2122,7 @@ async def test_create_analysis_endpoint(client: TestClient, db: AsyncSession):
 ```
 
 
-</Accordion>
-
-<Accordion title="Clean Architecture: SOLID Principles & Dependency Rule — HIGH">
+### Clean Architecture: SOLID Principles & Dependency Rule — HIGH
 
 
 # SOLID Principles & Dependency Rule
@@ -2321,9 +2279,7 @@ async def get_user(
 | How to test | Override `Depends()` | FastAPI's `app.dependency_overrides` |
 
 
-</Accordion>
-
-<Accordion title="Dependency Injection">
+### Dependency Injection
 
 # Dependency Injection Patterns
 
@@ -2636,9 +2592,7 @@ def test_get_user(client, mock_user_service):
 | **Use factories** | For parameterized dependencies (permissions) |
 | **Test with overrides** | Use `app.dependency_overrides` for mocking |
 
-</Accordion>
-
-<Accordion title="Hexagonal Architecture">
+### Hexagonal Architecture
 
 # Hexagonal Architecture (Ports & Adapters)
 
@@ -2848,9 +2802,7 @@ async def test_create_analysis_endpoint(client: TestClient, db: AsyncSession):
 - See SKILL.md for DDD patterns
 
 
-</Accordion>
-
-<Accordion title="Layer Rules">
+### Layer Rules
 
 # Layer Separation Rules
 
@@ -3055,9 +3007,7 @@ async def process_file(file_path: str) -> bytes:
 | **Service** | Business logic, validation, orchestration | HTTPException, Request object |
 | **Repository** | DB queries, data persistence | HTTP concerns, business logic |
 
-</Accordion>
-
-<Accordion title="Naming Conventions">
+### Naming Conventions
 
 # Test Naming Conventions
 
@@ -3140,9 +3090,7 @@ def test_uses_cache():
 - [ ] Names are 3-10 words (not too short, not too long)
 - [ ] Avoid generic words: test, check, verify (alone)
 
-</Accordion>
-
-<Accordion title="Project Structure: Folder Conventions & Nesting — HIGH">
+### Project Structure: Folder Conventions & Nesting — HIGH
 
 
 # Folder Conventions & Nesting Depth
@@ -3311,9 +3259,7 @@ BLOCKED:
 | Service in wrong dir | *_service.py outside services/ | Move to app/services/ |
 
 
-</Accordion>
-
-<Accordion title="Project Structure: Import Direction & Component Location — HIGH">
+### Project Structure: Import Direction & Component Location — HIGH
 
 
 # Import Direction & Component Location
@@ -3478,9 +3424,7 @@ Component should receive data as props, not fetch it directly:
 - **Testing**: Cannot test components in isolation with circular deps
 
 
-</Accordion>
-
-<Accordion title="Test Standards: AAA Pattern & Test Isolation — MEDIUM">
+### Test Standards: AAA Pattern & Test Isolation — MEDIUM
 
 
 # AAA Pattern & Test Isolation
@@ -3692,9 +3636,7 @@ def test_user_operations(self):
 ```
 
 
-</Accordion>
-
-<Accordion title="Test Standards: Coverage Thresholds & File Location — MEDIUM">
+### Test Standards: Coverage Thresholds & File Location — MEDIUM
 
 
 # Coverage Thresholds & Test File Location
@@ -3936,9 +3878,7 @@ tests/
 ```
 
 
-</Accordion>
-
-<Accordion title="Test Standards: Naming Conventions — MEDIUM">
+### Test Standards: Naming Conventions — MEDIUM
 
 
 # Test Naming Conventions
@@ -4076,9 +4016,7 @@ class TestMisc:
 ```
 
 
-</Accordion>
-
-<Accordion title="Violation Examples">
+### Violation Examples
 
 # Project Structure Violations
 
@@ -4501,17 +4439,12 @@ BLOCKED DIRECTIONS:
   features/ -> app/, other features/
 ```
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Solid Checklist">
+### Solid Checklist
 
 # SOLID Principles Checklist
 
@@ -4635,17 +4568,12 @@ Use this checklist when designing or reviewing code architecture.
 5. **Implementing interface partially** → Apply ISP, split interface
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Fastapi Clean Architecture">
+### Fastapi Clean Architecture
 
 # FastAPI Clean Architecture Example
 
@@ -5088,7 +5016,3 @@ async def test_create_analysis(service, mock_repo):
     mock_repo.save.assert_called_once()
 ```
 
-
-</Accordion>
-
-</Accordions>

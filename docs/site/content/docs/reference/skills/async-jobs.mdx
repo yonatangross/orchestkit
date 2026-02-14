@@ -2,7 +2,6 @@
 title: "Async Jobs"
 description: "Async job processing patterns for background tasks, Celery workflows, task scheduling, retry strategies, and distributed task execution. Use when implementing background job processing, task queues, or scheduled task systems."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -394,9 +393,7 @@ Activity and worker patterns for Temporal.io I/O operations.
 
 ## Rules (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Celery: Canvas Workflows — HIGH">
+### Celery: Canvas Workflows — HIGH
 
 
 # Canvas Workflows
@@ -464,9 +461,7 @@ workflow = process_item.chunks(items, batch_size=100)
 - Always use `si()` (immutable signatures) in chords to prevent arg pollution
 
 
-</Accordion>
-
-<Accordion title="Jobs: Status Tracking — HIGH">
+### Jobs: Status Tracking — HIGH
 
 
 # Job Status Tracking
@@ -525,9 +520,7 @@ async def get_job(job_id: str):
 ```
 
 
-</Accordion>
-
-<Accordion title="Jobs: Scheduling & Background Tasks — HIGH">
+### Jobs: Scheduling & Background Tasks — HIGH
 
 
 # Scheduling & Background Tasks
@@ -584,9 +577,7 @@ async def create_export(data: ExportRequest, arq: ArqRedis = Depends(get_arq_poo
 | LLM workflows | LangGraph (not Celery) |
 
 
-</Accordion>
-
-<Accordion title="Jobs: Task Queue Setup — HIGH">
+### Jobs: Task Queue Setup — HIGH
 
 
 # Task Queue Setup
@@ -668,9 +659,7 @@ def send_email(self, to: str, subject: str, body: str) -> dict:
 | FastAPI BackgroundTasks | Quick in-process | None |
 
 
-</Accordion>
-
-<Accordion title="Temporal Activity and Worker Patterns — HIGH">
+### Temporal Activity and Worker Patterns — HIGH
 
 
 ## Temporal Activity and Worker Patterns
@@ -777,9 +766,7 @@ async def test_order_workflow(workflow_env):
 | Testing | `WorkflowEnvironment.start_local()` for integration tests |
 
 
-</Accordion>
-
-<Accordion title="Temporal Workflow Definitions — HIGH">
+### Temporal Workflow Definitions — HIGH
 
 
 ## Temporal Workflow Definitions
@@ -891,17 +878,12 @@ class OrderSagaWorkflow:
 | Timers | `workflow.wait_condition()` with timeout for human-in-the-loop |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (8)
 
-<Accordions type="multiple">
-
-<Accordion title="Arq Patterns">
+### Arq Patterns
 
 # ARQ Patterns
 
@@ -1110,9 +1092,7 @@ async def create_user(
 - Need per-task rate limiting -- use Celery
 
 
-</Accordion>
-
-<Accordion title="Canvas Workflows">
+### Canvas Workflows
 
 # Canvas Workflows
 
@@ -1331,9 +1311,7 @@ def inspect_chain_result(task_id: str) -> dict:
 4. **Link error**: Use `link_error` callback for notifications
 
 
-</Accordion>
-
-<Accordion title="Celery Config">
+### Celery Config
 
 # Celery Configuration
 
@@ -1477,9 +1455,7 @@ celery_app.conf.broker_transport_options = {
 ```
 
 
-</Accordion>
-
-<Accordion title="Monitoring Health">
+### Monitoring Health
 
 # Monitoring & Health Checks
 
@@ -1732,9 +1708,7 @@ def check_alerts(health: dict):
 | Worker count | Gauge | Number of active workers |
 
 
-</Accordion>
-
-<Accordion title="Result Backends">
+### Result Backends
 
 # Result Backends
 
@@ -1981,9 +1955,7 @@ def charge_customer(self, customer_id: str, amount: int):
 | Per-user | Multi-tenant fairness | User-keyed counters |
 
 
-</Accordion>
-
-<Accordion title="Retry Strategies">
+### Retry Strategies
 
 # Retry Strategies
 
@@ -2182,9 +2154,7 @@ def singleton_task(self, resource_id: str) -> dict:
 | Base class | Shared config | Custom Task subclass |
 
 
-</Accordion>
-
-<Accordion title="Scheduled Tasks">
+### Scheduled Tasks
 
 # Scheduled Tasks
 
@@ -2421,9 +2391,7 @@ def on_beat_sent(sender, task_id, task, args, kwargs, **_):
 | Set task time limits | Prevent runaway scheduled tasks |
 
 
-</Accordion>
-
-<Accordion title="Task Routing">
+### Task Routing
 
 # Task Routing & Priority Queues
 
@@ -2622,7 +2590,3 @@ def should_scale_workers(queue: str, threshold: int = 500) -> bool:
 | `prefetch_multiplier` | Tasks per worker fetch | 1 (critical), 4-8 (bulk) |
 | Queue count | Separation granularity | 3-5 queues |
 
-
-</Accordion>
-
-</Accordions>

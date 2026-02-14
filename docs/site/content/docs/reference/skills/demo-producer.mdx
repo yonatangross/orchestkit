@@ -2,7 +2,6 @@
 title: "Demo Producer"
 description: "Creates polished demo videos for skills, tutorials, and CLI demonstrations. Use when producing video showcases, marketing content, or terminal recordings."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-green">low</span>
 
@@ -363,7 +362,7 @@ const AGENT_COLORS = {
   workflow:     "#8b5cf6",  // Purple - workflow-architect
   backend:      "#06b6d4",  // Cyan - backend-system-architect
   security:     "#ef4444",  // Red - security-auditor
-  performance:  "#22c55e",  // Green - performance-engineer
+  performance:  "#22c55e",  // Green - frontend-performance-engineer
   frontend:     "#f59e0b",  // Amber - frontend-ui-developer
   data:         "#ec4899",  // Pink - data-pipeline-engineer
   llm:          "#6366f1",  // Indigo - llm-integrator
@@ -448,9 +447,7 @@ Rule: If content doesn't earn its screen time, cut it.
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Skill Analyzer Patterns — MEDIUM">
+### Skill Analyzer Patterns — MEDIUM
 
 
 ## Skill Analyzer Patterns
@@ -514,9 +511,7 @@ tags=$(grep "^tags:" SKILL.md | sed 's/tags: \[//' | sed 's/\]//' | tr -d '"')
 - Validate extracted metadata against the `SkillMetadata` interface before generating demos
 
 
-</Accordion>
-
-<Accordion title="Video Composition and Audio — HIGH">
+### Video Composition and Audio — HIGH
 
 
 ## Video Composition and Audio
@@ -592,9 +587,7 @@ Production/
 | Caption style | TikTokCaption for shorts, subtitle for long-form |
 
 
-</Accordion>
-
-<Accordion title="Video Production Pipeline — HIGH">
+### Video Production Pipeline — HIGH
 
 
 ## Video Production Pipeline
@@ -651,17 +644,12 @@ video-pacing            elevenlabs-narration
 | Intro card duration | 2-4 seconds |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (4)
 
-<Accordions type="multiple">
-
-<Accordion title="Content Types">
+### Content Types
 
 # Content Type Templates
 
@@ -843,9 +831,7 @@ Installing {plugin_name}...
 | Cinematic | 60s | 120s | Product launches, keynotes |
 
 
-</Accordion>
-
-<Accordion title="Format Selection">
+### Format Selection
 
 # Format Selection Guide
 
@@ -1013,9 +999,7 @@ height={1080}
 - Best practice: 30-90s
 
 
-</Accordion>
-
-<Accordion title="Script Generation">
+### Script Generation
 
 # Script Generation
 
@@ -1247,9 +1231,7 @@ calculate_duration() {
 ```
 
 
-</Accordion>
-
-<Accordion title="Template System">
+### Template System
 
 # Template System Architecture
 
@@ -2131,7 +2113,3 @@ remotion render Root MySkillDemo out/custom.mp4 \
 - `demo-producer` - Main skill for orchestrating demo creation
 - `video-production` - Recording, composition, audio, and visual effects for demos
 
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "Review Pr"
 description: "PR review with parallel specialized agents. Use when reviewing pull requests or code."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -52,7 +51,7 @@ AskUserQuestion(
 **Based on answer, adjust workflow:**
 - **Full review**: All 6-7 parallel agents
 - **Security focus**: Prioritize security-auditor, reduce other agents
-- **Performance focus**: Add performance-engineer agent
+- **Performance focus**: Add frontend-performance-engineer agent
 - **Quick review**: Single code-quality-reviewer agent only
 
 ---
@@ -482,9 +481,7 @@ Use these prefixes for comments:
 
 ## References (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Review Template">
+### Review Template
 
 # PR Review Template
 
@@ -592,7 +589,3 @@ issue: This SQL query is vulnerable to injection - use parameterized queries ins
 
 question: Is there a reason we're not using the existing `UserService` here?
 ```
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "Llm Integration"
 description: "LLM integration patterns for function calling, streaming responses, local inference with Ollama, and fine-tuning customization. Use when implementing tool use, SSE streaming, local model deployment, LoRA/QLoRA fine-tuning, or multi-provider LLM APIs."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -196,9 +195,7 @@ Design, version, and optimize prompts for production LLM applications.
 
 ## Rules (18)
 
-<Accordions type="multiple">
-
-<Accordion title="Function Calling: Parallel Execution — HIGH">
+### Function Calling: Parallel Execution — HIGH
 
 
 # Parallel Tool Calls
@@ -269,9 +266,7 @@ async def execute_tools_parallel(tool_calls: list) -> list[dict]:
 - Missing tool_call_id in response messages
 
 
-</Accordion>
-
-<Accordion title="Function Calling: Tool Definition — CRITICAL">
+### Function Calling: Tool Definition — CRITICAL
 
 
 # Tool Definition (Strict Mode)
@@ -421,9 +416,7 @@ analysis = response.choices[0].message.parsed  # Typed Analysis object
 - Too many tools (LLM gets confused beyond 15)
 
 
-</Accordion>
-
-<Accordion title="Function Calling: Validation & Execution Loop — CRITICAL">
+### Function Calling: Validation & Execution Loop — CRITICAL
 
 
 # Tool Validation & Execution Loop
@@ -546,9 +539,7 @@ async def run_tool_loop(
 - Missing tool_call_id in response messages
 
 
-</Accordion>
-
-<Accordion title="Context Caching and Budget Scaling — HIGH">
+### Context Caching and Budget Scaling — HIGH
 
 
 ## Context Caching and Budget Scaling
@@ -610,9 +601,7 @@ Key principles:
 - Test compression with probes (>90% pass rate), not ROUGE/BLEU similarity metrics
 
 
-</Accordion>
-
-<Accordion title="Context Window Management — HIGH">
+### Context Window Management — HIGH
 
 
 ## Context Window Management
@@ -671,9 +660,7 @@ Key principles:
 - Optimize for tokens-per-task, not tokens-per-request
 
 
-</Accordion>
-
-<Accordion title="LLM Evaluation Benchmarks and Quality Gates — HIGH">
+### LLM Evaluation Benchmarks and Quality Gates — HIGH
 
 
 ## LLM Evaluation Benchmarks and Quality Gates
@@ -747,9 +734,7 @@ Key principles:
 - Track evaluation scores over time for regression detection
 
 
-</Accordion>
-
-<Accordion title="LLM Evaluation Metrics — HIGH">
+### LLM Evaluation Metrics — HIGH
 
 
 ## LLM Evaluation Metrics
@@ -813,9 +798,7 @@ Key decisions:
 - Sample size: 50+ for reliable metrics
 
 
-</Accordion>
-
-<Accordion title="Local Inference: GPU Optimization — HIGH">
+### Local Inference: GPU Optimization — HIGH
 
 
 # GPU Optimization & Provider Factory
@@ -929,9 +912,7 @@ async def prewarm_models() -> None:
 | Cloud fallback | Provider factory pattern |
 
 
-</Accordion>
-
-<Accordion title="Local Inference: Model Selection — HIGH">
+### Local Inference: Model Selection — HIGH
 
 
 # Model Selection Guide
@@ -1004,9 +985,7 @@ ollama pull deepseek-r1:70b-q4_0
 - CI: Use 7B models (93% cheaper than cloud)
 
 
-</Accordion>
-
-<Accordion title="Local Inference: Ollama Setup — HIGH">
+### Local Inference: Ollama Setup — HIGH
 
 
 # Ollama Setup & LangChain Integration
@@ -1113,9 +1092,7 @@ ollama pull deepseek-r1:70b-q4_K_M
 - Not checking if Ollama is running before making calls
 
 
-</Accordion>
-
-<Accordion title="Prompt Design Patterns — HIGH">
+### Prompt Design Patterns — HIGH
 
 
 ## Prompt Design Patterns
@@ -1194,9 +1171,7 @@ Key decisions:
 - Always use CoT for math/logic tasks
 
 
-</Accordion>
-
-<Accordion title="Prompt Testing and Optimization — HIGH">
+### Prompt Testing and Optimization — HIGH
 
 
 ## Prompt Testing and Optimization
@@ -1279,9 +1254,7 @@ Key decisions:
 - Self-consistency: 5 paths for hard reasoning problems
 
 
-</Accordion>
-
-<Accordion title="Streaming: Backpressure & Cancellation — MEDIUM">
+### Streaming: Backpressure & Cancellation — MEDIUM
 
 
 # Backpressure & Stream Cancellation
@@ -1382,9 +1355,7 @@ async def stream_chat(prompt: str, request: Request):
 - Not yielding control in consumer (starves event loop)
 
 
-</Accordion>
-
-<Accordion title="Streaming: SSE Endpoints — HIGH">
+### Streaming: SSE Endpoints — HIGH
 
 
 # SSE Streaming Endpoints
@@ -1482,9 +1453,7 @@ await streamChat('Hello', (token) => {
 - Buffering entire response (defeats purpose of streaming)
 
 
-</Accordion>
-
-<Accordion title="Streaming: Structured & Tool Calls — HIGH">
+### Streaming: Structured & Tool Calls — HIGH
 
 
 # Streaming with Tool Calls & Structured Data
@@ -1575,9 +1544,7 @@ async def stream_structured_output(prompt: str):
 - Not signaling stream completion to consumers
 
 
-</Accordion>
-
-<Accordion title="Fine-Tuning: Dataset Preparation — HIGH">
+### Fine-Tuning: Dataset Preparation — HIGH
 
 
 # Dataset Preparation & Synthetic Data
@@ -1715,9 +1682,7 @@ def to_chatml_format(examples: list[dict]) -> list[dict]:
 5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
 
 
-</Accordion>
-
-<Accordion title="Fine-Tuning: DPO Alignment & Evaluation — HIGH">
+### Fine-Tuning: DPO Alignment & Evaluation — HIGH
 
 
 # DPO Alignment & Evaluation
@@ -1847,9 +1812,7 @@ trainer = SFTTrainer(..., eval_dataset=eval)
 **Catastrophic forgetting**: Increase beta, mix in general data, use LoRA
 
 
-</Accordion>
-
-<Accordion title="Fine-Tuning: LoRA/QLoRA Configuration — HIGH">
+### Fine-Tuning: LoRA/QLoRA Configuration — HIGH
 
 
 # LoRA/QLoRA Fine-Tuning
@@ -1973,17 +1936,12 @@ merged_model.save_pretrained("./merged_model")
 | 70B | 560GB+ | 160GB | 48GB |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (6)
 
-<Accordions type="multiple">
-
-<Accordion title="Dpo Alignment">
+### Dpo Alignment
 
 # DPO: Direct Preference Optimization
 
@@ -2281,9 +2239,7 @@ async def evaluate_alignment(
 - Use LoRA to preserve base weights
 
 
-</Accordion>
-
-<Accordion title="Lora Qlora">
+### Lora Qlora
 
 # LoRA & QLoRA: Parameter-Efficient Fine-Tuning
 
@@ -2541,9 +2497,7 @@ outputs = model.generate(**inputs, max_new_tokens=256)
 - Use 4-bit quantization (QLoRA)
 
 
-</Accordion>
-
-<Accordion title="Model Selection">
+### Model Selection
 
 # Model Selection Guide
 
@@ -2616,9 +2570,7 @@ ollama pull deepseek-r1:70b-q4_0
 - Load max 2-3 models simultaneously
 - CI: Use 7B models (93% cheaper than cloud)
 
-</Accordion>
-
-<Accordion title="Synthetic Data">
+### Synthetic Data
 
 # Synthetic Data Generation for Fine-Tuning
 
@@ -2992,9 +2944,7 @@ print(f"Estimated cost: ${cost:.2f}")  # ~$32.50
 5. **Iterative Refinement**: Generate, train, evaluate, adjust generation
 
 
-</Accordion>
-
-<Accordion title="Tool Schema">
+### Tool Schema
 
 # Tool Schema Patterns
 
@@ -3092,9 +3042,7 @@ tools = [create_anthropic_tool(
 - Cache tool schemas (they're static)
 - Disable parallel_tool_calls with strict mode
 
-</Accordion>
-
-<Accordion title="When To Finetune">
+### When To Finetune
 
 # When to Fine-Tune: Decision Framework
 
@@ -3346,17 +3294,12 @@ def should_finetune(
 - [ ] Cost-benefit analysis positive
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Fine Tuning Decision">
+### Fine Tuning Decision
 
 # Fine-Tuning Decision Checklist
 
@@ -3431,9 +3374,7 @@ Determine whether fine-tuning is appropriate.
 - [ ] Rollback procedure defined
 
 
-</Accordion>
-
-<Accordion title="Streaming Checklist">
+### Streaming Checklist
 
 # LLM Streaming Checklist
 
@@ -3466,9 +3407,7 @@ Determine whether fine-tuning is appropriate.
 - [ ] Resume stream after tools
 
 
-</Accordion>
-
-<Accordion title="Tool Checklist">
+### Tool Checklist
 
 # Function Calling Checklist
 
@@ -3521,7 +3460,3 @@ Determine whether fine-tuning is appropriate.
 - [ ] Test error handling
 - [ ] Test with invalid inputs
 
-
-</Accordion>
-
-</Accordions>

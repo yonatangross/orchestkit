@@ -2,7 +2,6 @@
 title: "Ui Components"
 description: "UI component library patterns for shadcn/ui and Radix Primitives. Use when building accessible component libraries, customizing shadcn components, using Radix unstyled primitives, or creating design system foundations."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -159,9 +158,7 @@ React Hook Form v7 with Zod validation and React 19 Server Actions.
 
 ## Rules (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Design System Component Architecture — HIGH">
+### Design System Component Architecture — HIGH
 
 
 ## Design System Component Architecture
@@ -253,9 +250,7 @@ const buttonVariants = cva(
 | Class merging | Always use cn() for Tailwind conflicts |
 
 
-</Accordion>
-
-<Accordion title="Design System Token Architecture — HIGH">
+### Design System Token Architecture — HIGH
 
 
 ## Design System Token Architecture
@@ -332,9 +327,7 @@ const tokens = {
 | Dark mode | Tailwind `@theme` with CSS variables |
 
 
-</Accordion>
-
-<Accordion title="React Hook Form Patterns — HIGH">
+### React Hook Form Patterns — HIGH
 
 
 ## React Hook Form Patterns
@@ -454,9 +447,7 @@ import { Controller } from 'react-hook-form';
 - Use `aria-invalid` and `role="alert"` for accessibility
 
 
-</Accordion>
-
-<Accordion title="Zod Validation & Server Actions — HIGH">
+### Zod Validation & Server Actions — HIGH
 
 
 ## Zod Validation & Server Actions
@@ -574,9 +565,7 @@ const paymentSchema = z.discriminatedUnion('method', [
 - Custom error messages in every `.email()`, `.min()`, `.refine()` call
 
 
-</Accordion>
-
-<Accordion title="Radix: Composition — HIGH">
+### Radix: Composition — HIGH
 
 
 # Radix Composition Patterns
@@ -757,9 +746,7 @@ const MyButton = (props) => <button {...props} />
 | **Tabs** | Tabbed interfaces |
 
 
-</Accordion>
-
-<Accordion title="Radix: Dialog Patterns — HIGH">
+### Radix: Dialog Patterns — HIGH
 
 
 # Radix Dialog Patterns
@@ -941,9 +928,7 @@ export const DialogContent = React.forwardRef<
 - Screen reader announcements
 
 
-</Accordion>
-
-<Accordion title="Radix: Styling & Focus — HIGH">
+### Radix: Styling & Focus — HIGH
 
 
 # Radix Styling & Focus Management
@@ -1124,9 +1109,7 @@ Every Radix primitive includes:
 | Select | Enter | Select option |
 
 
-</Accordion>
-
-<Accordion title="shadcn/ui: Customization — HIGH">
+### shadcn/ui: Customization — HIGH
 
 
 # shadcn/ui Customization
@@ -1285,9 +1268,7 @@ npx shadcn@latest add dialog card input label
 5. **Preserve displayName**: Helps with debugging
 
 
-</Accordion>
-
-<Accordion title="shadcn/ui: Data Table — HIGH">
+### shadcn/ui: Data Table — HIGH
 
 
 # shadcn/ui Data Table
@@ -1452,9 +1433,7 @@ npx shadcn@latest add table badge dropdown-menu button input
 ```
 
 
-</Accordion>
-
-<Accordion title="shadcn/ui: Forms — HIGH">
+### shadcn/ui: Forms — HIGH
 
 
 # shadcn/ui Form Patterns
@@ -1638,17 +1617,12 @@ npm install lucide-react             # Icons
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Aschild Composition">
+### Aschild Composition
 
 # asChild Composition Pattern
 
@@ -1789,9 +1763,7 @@ const MyButton = (props) => <button {...props} />
 ```
 
 
-</Accordion>
-
-<Accordion title="Cn Utility Patterns">
+### Cn Utility Patterns
 
 # cn() Utility Patterns
 
@@ -1974,9 +1946,7 @@ items.map(item => cn(classes, item.className)) // Consider memoization
 ```
 
 
-</Accordion>
-
-<Accordion title="Component Extension">
+### Component Extension
 
 # Component Extension Patterns
 
@@ -2213,9 +2183,7 @@ const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
 5. **Document extensions** - Make custom props discoverable
 
 
-</Accordion>
-
-<Accordion title="Cva Variant System">
+### Cva Variant System
 
 # CVA Variant System
 
@@ -2435,9 +2403,7 @@ const goodVariants = cva('...', {
 ```
 
 
-</Accordion>
-
-<Accordion title="Dark Mode Toggle">
+### Dark Mode Toggle
 
 # Dark Mode Toggle
 
@@ -2685,9 +2651,7 @@ In Tailwind CSS v4, dark mode uses a CSS-first approach. The `dark:` variant wor
 No `tailwind.config.js` configuration needed - the `dark:` variant is enabled by default in v4 and responds to the `.dark` class on a parent element.
 
 
-</Accordion>
-
-<Accordion title="Dialog Modal Patterns">
+### Dialog Modal Patterns
 
 # Dialog and Modal Patterns
 
@@ -2880,9 +2844,7 @@ export const DialogDescription = DialogPrimitive.Description
 - Screen reader announcements
 
 
-</Accordion>
-
-<Accordion title="Dropdown Menu Patterns">
+### Dropdown Menu Patterns
 
 # Dropdown Menu Patterns
 
@@ -3096,9 +3058,7 @@ Built-in keyboard support:
 - **Type ahead**: Focus matching item
 
 
-</Accordion>
-
-<Accordion title="Focus Management">
+### Focus Management
 
 # Focus Management
 
@@ -3280,9 +3240,7 @@ import { FocusScope } from '@radix-ui/react-focus-scope'
 ```
 
 
-</Accordion>
-
-<Accordion title="Oklch Theming">
+### Oklch Theming
 
 # OKLCH Theming (2026 Standard)
 
@@ -3487,9 +3445,7 @@ Use tools like [oklch.com](https://oklch.com) for accurate conversion.
 - OKLCH makes it easier to maintain contrast by adjusting lightness predictably
 
 
-</Accordion>
-
-<Accordion title="Popover Tooltip Patterns">
+### Popover Tooltip Patterns
 
 # Popover and Tooltip Patterns
 
@@ -3694,17 +3650,12 @@ Common positioning props:
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Accessibility Audit">
+### Accessibility Audit
 
 # Radix Accessibility Audit Checklist
 
@@ -3799,9 +3750,7 @@ npm install -D @axe-core/react
 5. **Reduced motion**: Test with `prefers-reduced-motion: reduce`
 
 
-</Accordion>
-
-<Accordion title="Shadcn Setup">
+### Shadcn Setup
 
 # shadcn/ui Setup Checklist
 
@@ -3939,7 +3888,3 @@ if (!mounted) return null
 5. `dropdown-menu` - Actions menu
 6. `toast` - Notifications
 
-
-</Accordion>
-
-</Accordions>

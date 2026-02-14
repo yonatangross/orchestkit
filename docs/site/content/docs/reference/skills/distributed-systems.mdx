@@ -2,7 +2,6 @@
 title: "Distributed Systems"
 description: "Distributed systems patterns for locking, resilience, idempotency, and rate limiting. Use when implementing distributed locks, circuit breakers, retry policies, idempotency keys, token bucket rate limiters, or fault tolerance patterns."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -174,9 +173,7 @@ request_counts = {}  # Lost on restart, not shared across instances
 
 ## Rules (16)
 
-<Accordions type="multiple">
-
-<Accordion title="Edge Caching & CDN Patterns — HIGH">
+### Edge Caching & CDN Patterns — HIGH
 
 
 ## Edge Caching & CDN Patterns
@@ -267,9 +264,7 @@ Vary: Cookie, Authorization
 - Never cache authenticated/personalized responses without `Vary` or `private`
 
 
-</Accordion>
-
-<Accordion title="Edge Workers & Runtime — HIGH">
+### Edge Workers & Runtime — HIGH
 
 
 ## Edge Workers & Runtime
@@ -346,9 +341,7 @@ export function middleware(request: NextRequest) {
 - Use Durable Objects for strong consistency when needed
 
 
-</Accordion>
-
-<Accordion title="Event Messaging & Outbox — HIGH">
+### Event Messaging & Outbox — HIGH
 
 
 ## Event Messaging & Outbox
@@ -447,9 +440,7 @@ async def handle_event(event: Event, db: AsyncSession):
 - Use dead letter queues (DLQ) for messages that fail after max retries
 
 
-</Accordion>
-
-<Accordion title="Event Sourcing & CQRS — HIGH">
+### Event Sourcing & CQRS — HIGH
 
 
 ## Event Sourcing & CQRS
@@ -554,9 +545,7 @@ class BalanceProjection:
 - Never delete events — use compensating events instead
 
 
-</Accordion>
-
-<Accordion title="Idempotency: Database-Backed — HIGH">
+### Idempotency: Database-Backed — HIGH
 
 
 # Database-Backed Idempotency
@@ -712,9 +701,7 @@ async def create_order(
 | Cleanup | Batch delete, daily job | Avoid long locks |
 
 
-</Accordion>
-
-<Accordion title="Idempotency: Request Deduplication — HIGH">
+### Idempotency: Request Deduplication — HIGH
 
 
 # Event Consumer Deduplication
@@ -849,9 +836,7 @@ async def good_process(key):
 ```
 
 
-</Accordion>
-
-<Accordion title="Idempotency: Key Generation — HIGH">
+### Idempotency: Key Generation — HIGH
 
 
 # Idempotency Key Generation & Stripe-Style Header
@@ -979,9 +964,7 @@ async def create_payment(data):
 ```
 
 
-</Accordion>
-
-<Accordion title="Locks: Fencing Tokens & Safety — CRITICAL">
+### Locks: Fencing Tokens & Safety — CRITICAL
 
 
 # Lock Safety: Fencing Tokens, TTL & Heartbeat
@@ -1091,9 +1074,7 @@ async def transfer_funds(session, from_account: int, to_account: int, amount):
 - Metrics: acquisition time, hold duration, failures
 
 
-</Accordion>
-
-<Accordion title="Locks: PostgreSQL Advisory — CRITICAL">
+### Locks: PostgreSQL Advisory — CRITICAL
 
 
 # PostgreSQL Advisory Locks
@@ -1229,9 +1210,7 @@ WHERE l.locktype = 'advisory';
 ```
 
 
-</Accordion>
-
-<Accordion title="Locks: Redis & Redlock — CRITICAL">
+### Locks: Redis & Redlock — CRITICAL
 
 
 # Redis & Redlock Distributed Locks
@@ -1369,9 +1348,7 @@ class Redlock:
 - Holding locks across slow external calls without heartbeat
 
 
-</Accordion>
-
-<Accordion title="Rate Limiting: Distributed & Tiered — HIGH">
+### Rate Limiting: Distributed & Tiered — HIGH
 
 
 # Distributed Rate Limiting with SlowAPI and Tiered Limits
@@ -1510,9 +1487,7 @@ async def admin_endpoint():  # No rate limit = vulnerable
 ```
 
 
-</Accordion>
-
-<Accordion title="Rate Limiting: Sliding Window — HIGH">
+### Rate Limiting: Sliding Window — HIGH
 
 
 # Sliding Window Rate Limiting
@@ -1602,9 +1577,7 @@ end
 5. Consider memory: each request stores a member in the sorted set
 
 
-</Accordion>
-
-<Accordion title="Rate Limiting: Token Bucket — HIGH">
+### Rate Limiting: Token Bucket — HIGH
 
 
 # Token Bucket Rate Limiting
@@ -1702,9 +1675,7 @@ class TokenBucketLimiter:
 | Redis Operations | 1 HMSET | 1 ZADD + 1 ZREMRANGEBYSCORE |
 
 
-</Accordion>
-
-<Accordion title="Resilience: Bulkhead Isolation — CRITICAL">
+### Resilience: Bulkhead Isolation — CRITICAL
 
 
 # Bulkhead Pattern
@@ -1817,9 +1788,7 @@ async def run_analysis(content: str):
 - No correlation with circuit breaker (slots stay blocked on slow service)
 
 
-</Accordion>
-
-<Accordion title="Resilience: Circuit Breaker — CRITICAL">
+### Resilience: Circuit Breaker — CRITICAL
 
 
 # Circuit Breaker Pattern
@@ -1946,9 +1915,7 @@ async def analyze():
 | Database | 2-3 | 15s | 5s |
 
 
-</Accordion>
-
-<Accordion title="Resilience: Retry & Backoff — CRITICAL">
+### Resilience: Retry & Backoff — CRITICAL
 
 
 # Retry with Exponential Backoff
@@ -2067,17 +2034,12 @@ class RetryBudget:
 6. **Log all retries** -- include trace ID for correlation
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Bulkhead Pattern">
+### Bulkhead Pattern
 
 # Bulkhead Pattern
 
@@ -2380,9 +2342,7 @@ async def call_external_service():
 ```
 
 
-</Accordion>
-
-<Accordion title="Circuit Breaker">
+### Circuit Breaker
 
 # Circuit Breaker Pattern
 
@@ -2593,7 +2553,7 @@ async def call_service():
 ## Monitoring Queries
 
 ### Prometheus
-```promql
+```text
 # Circuit state changes per minute
 rate(circuit_breaker_state_changes_total[5m])
 
@@ -2614,9 +2574,7 @@ trace.update(metadata={
 ```
 
 
-</Accordion>
-
-<Accordion title="Error Classification">
+### Error Classification
 
 # Error Classification
 
@@ -2934,9 +2892,7 @@ class EnrichedError(Exception):
 5. **Test classification**: Unit test your classification logic
 
 
-</Accordion>
-
-<Accordion title="Llm Resilience">
+### Llm Resilience
 
 # LLM-Specific Resilience Patterns
 
@@ -3400,9 +3356,7 @@ rate_limiter = RateLimiter(
 ```
 
 
-</Accordion>
-
-<Accordion title="Postgres Advisory Locks">
+### Postgres Advisory Locks
 
 # PostgreSQL Advisory Locks
 
@@ -3659,9 +3613,7 @@ WHERE l.locktype = 'advisory';
 ```
 
 
-</Accordion>
-
-<Accordion title="Redis Locks">
+### Redis Locks
 
 # Redis Distributed Locks
 
@@ -3907,9 +3859,7 @@ async def process_payment(redis: redis.Redis, order_id: UUID):
 ```
 
 
-</Accordion>
-
-<Accordion title="Redlock Algorithm">
+### Redlock Algorithm
 
 # Redlock Algorithm (Multi-Node Redis)
 
@@ -4155,9 +4105,7 @@ async def critical_operation(resource_id: str):
 | Simpler setup | Complex setup |
 
 
-</Accordion>
-
-<Accordion title="Retry Strategies">
+### Retry Strategies
 
 # Retry Strategies
 
@@ -4536,7 +4484,7 @@ async def call_with_context_management(prompt: str, max_tokens: int = 4096) -> s
 
 ## Monitoring
 
-```promql
+```text
 # Retry rate
 rate(retries_total[5m])
 
@@ -4551,9 +4499,7 @@ retry_budget_used / retry_budget_total
 ```
 
 
-</Accordion>
-
-<Accordion title="Stripe Pattern">
+### Stripe Pattern
 
 # Stripe-Style Idempotency Pattern
 
@@ -4750,9 +4696,7 @@ async def create_charge_safely(amount: int, currency: str):
 6. **Response fully cached**: Body, status, and relevant headers
 
 
-</Accordion>
-
-<Accordion title="Token Bucket Algorithm">
+### Token Bucket Algorithm
 
 # Token Bucket Algorithm
 
@@ -4970,17 +4914,12 @@ async def get_rate_limiter() -> TokenBucket:
 - See SKILL.md for sliding window implementation
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Circuit Breaker Setup">
+### Circuit Breaker Setup
 
 # Circuit Breaker Setup Guide
 
@@ -5334,9 +5273,7 @@ Add to your service's README:
 ```
 
 
-</Accordion>
-
-<Accordion title="Distributed Locks Checklist">
+### Distributed Locks Checklist
 
 # Distributed Locks Checklist
 
@@ -5440,9 +5377,7 @@ Add to your service's README:
 - [ ] Graceful degradation strategy
 
 
-</Accordion>
-
-<Accordion title="Idempotency Checklist">
+### Idempotency Checklist
 
 # Idempotency Implementation Checklist
 
@@ -5516,9 +5451,7 @@ Add to your service's README:
 - [ ] Client retry guidance provided
 
 
-</Accordion>
-
-<Accordion title="Pre Deployment Resilience">
+### Pre Deployment Resilience
 
 # Pre-Deployment Resilience Checklist
 
@@ -5686,9 +5619,7 @@ Use this checklist before deploying services with resilience patterns.
   - [ ] Rate limits prevent abuse
 
 
-</Accordion>
-
-<Accordion title="Rate Limiting Checklist">
+### Rate Limiting Checklist
 
 # Rate Limiting Implementation Checklist
 
@@ -5866,17 +5797,12 @@ def make_request_with_retry(url: str, max_retries: int = 3):
 - [ ] Provide upgrade path for users hitting limits
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Fastapi Rate Limiting">
+### Fastapi Rate Limiting
 
 # FastAPI Rate Limiting Examples
 
@@ -6220,9 +6146,7 @@ async def test_rate_limit_headers():
 - See SKILL.md for sliding window and fixed window algorithms
 
 
-</Accordion>
-
-<Accordion title="Idempotency Examples">
+### Idempotency Examples
 
 # Idempotency Implementation Examples
 
@@ -6767,9 +6691,7 @@ async def test_mismatched_body_rejected():
 ```
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Workflow Resilience">
+### Orchestkit Workflow Resilience
 
 # OrchestKit Workflow Resilience Integration
 
@@ -7278,7 +7200,3 @@ async def test_fallback_chain_uses_fallback():
     assert response.source == ResponseSource.FALLBACK
 ```
 
-
-</Accordion>
-
-</Accordions>

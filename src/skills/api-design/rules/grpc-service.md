@@ -16,7 +16,7 @@ response = requests.post("http://user-service/api/users",
 ```
 
 **Correct -- protobuf service definition:**
-```protobuf
+```text
 syntax = "proto3";
 package user.v1;
 

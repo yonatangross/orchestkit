@@ -2,7 +2,6 @@
 title: "Security Patterns"
 description: "Security patterns for authentication, defense-in-depth, input validation, OWASP Top 10, LLM safety, and PII masking. Use when implementing auth flows, security layers, input sanitization, vulnerability prevention, prompt injection defense, or data redaction."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-orange">high</span>
 
@@ -269,9 +268,7 @@ langfuse.trace(input=raw_prompt)                   # Unmasked observability data
 
 ## Rules (20)
 
-<Accordions type="multiple">
-
-<Accordion title="Auth: JWT Tokens & Password Hashing — CRITICAL">
+### Auth: JWT Tokens & Password Hashing — CRITICAL
 
 
 # JWT Tokens & Password Hashing
@@ -414,9 +411,7 @@ return "Invalid credentials"
 ```
 
 
-</Accordion>
-
-<Accordion title="Auth: OAuth 2.1 & Passkeys — CRITICAL">
+### Auth: OAuth 2.1 & Passkeys — CRITICAL
 
 
 # OAuth 2.1 & Passkeys/WebAuthn
@@ -568,9 +563,7 @@ code_challenge=challenge&code_challenge_method=S256
 ```
 
 
-</Accordion>
-
-<Accordion title="Auth: RBAC & MFA — CRITICAL">
+### Auth: RBAC & MFA — CRITICAL
 
 
 # Role-Based Access Control & Multi-Factor Authentication
@@ -728,9 +721,7 @@ def password_reset():
 | Backup codes | 10 one-time use codes |
 
 
-</Accordion>
-
-<Accordion title="Defense: 8-Layer Security Architecture — CRITICAL">
+### Defense: 8-Layer Security Architecture — CRITICAL
 
 
 # 8-Layer Security Architecture
@@ -852,9 +843,7 @@ class TenantScopedRepository:
 | Complete Mediation | Saltzer & Schroeder | Every access checked |
 
 
-</Accordion>
-
-<Accordion title="Defense: Zero Trust & Tenant Isolation — CRITICAL">
+### Defense: Zero Trust & Tenant Isolation — CRITICAL
 
 
 # Zero Trust & Tenant Isolation
@@ -1041,9 +1030,7 @@ async def test_tenant_a_cannot_see_tenant_b_documents(tenant_a_ctx, tenant_b_ctx
 ```
 
 
-</Accordion>
-
-<Accordion title="LLM Red-Teaming and OWASP LLM Compliance — CRITICAL">
+### LLM Red-Teaming and OWASP LLM Compliance — CRITICAL
 
 
 ## LLM Red-Teaming and OWASP LLM Compliance
@@ -1118,9 +1105,7 @@ Key decisions:
 - Always test multi-turn jailbreaking (GOAT-style attacks)
 
 
-</Accordion>
-
-<Accordion title="NeMo Guardrails and Guardrails AI — CRITICAL">
+### NeMo Guardrails and Guardrails AI — CRITICAL
 
 
 ## NeMo Guardrails and Guardrails AI
@@ -1215,9 +1200,7 @@ Key decisions:
 - Never use single validation layer
 
 
-</Accordion>
-
-<Accordion title="LLM: Content Filtering & Three-Phase Pattern — HIGH">
+### LLM: Content Filtering & Three-Phase Pattern — HIGH
 
 
 # Content Filtering & Three-Phase Pattern
@@ -1380,9 +1363,7 @@ artifact.id = uuid4()                   # We generate
 - [ ] Attribution uses context, not LLM output
 
 
-</Accordion>
-
-<Accordion title="LLM: Output Guardrails — HIGH">
+### LLM: Output Guardrails — HIGH
 
 
 # Output Guardrails
@@ -1537,9 +1518,7 @@ parsed, results = await run_guardrails(
 ```
 
 
-</Accordion>
-
-<Accordion title="LLM: Prompt Injection Defense — HIGH">
+### LLM: Prompt Injection Defense — HIGH
 
 
 # Prompt Injection Defense
@@ -1670,9 +1649,7 @@ prompt = f"Analyze the following document:\n{document_content}"
 - [ ] No violations detected
 
 
-</Accordion>
-
-<Accordion title="OWASP: Authentication & Session Attacks — CRITICAL">
+### OWASP: Authentication & Session Attacks — CRITICAL
 
 
 # Authentication & Session Attacks
@@ -1841,9 +1818,7 @@ semgrep --config "p/python-security-audit" .
 | CSRF | N/A | SameSite cookies, tokens |
 
 
-</Accordion>
-
-<Accordion title="OWASP: Injection Prevention — CRITICAL">
+### OWASP: Injection Prevention — CRITICAL
 
 
 # Injection Prevention
@@ -1978,9 +1953,7 @@ grep -rn "requests.get\|urllib.urlopen" --include="*.py" .
 | Insecure deserialization | JSON, not pickle |
 
 
-</Accordion>
-
-<Accordion title="PII: Detection Patterns — HIGH">
+### PII: Detection Patterns — HIGH
 
 
 # PII Detection Patterns
@@ -2113,9 +2086,7 @@ langfuse = Langfuse(mask=mask_pii)
 | Reversibility | LLM Guard Vault for deanonymization |
 
 
-</Accordion>
-
-<Accordion title="PII: Redaction & Observability Integration — HIGH">
+### PII: Redaction & Observability Integration — HIGH
 
 
 # PII Redaction & Observability Integration
@@ -2328,9 +2299,7 @@ def test_pii_redaction_in_logs():
 ```
 
 
-</Accordion>
-
-<Accordion title="Dependency Scanning — HIGH">
+### Dependency Scanning — HIGH
 
 
 ## Dependency Scanning
@@ -2389,9 +2358,7 @@ CRITICAL=$(cat trivy-scan.json | jq '[.Results[].Vulnerabilities[]? | select(.Se
 - Auto-fix with `npm audit fix` only for non-breaking updates; review breaking fixes manually
 
 
-</Accordion>
-
-<Accordion title="Static Analysis (SAST) — HIGH">
+### Static Analysis (SAST) — HIGH
 
 
 ## Static Analysis (SAST)
@@ -2460,9 +2427,7 @@ repos:
 - Block on ERROR severity; WARNING findings go to review queue
 
 
-</Accordion>
-
-<Accordion title="Secret Detection — CRITICAL">
+### Secret Detection — CRITICAL
 
 
 ## Secret Detection
@@ -2527,9 +2492,7 @@ detect-secrets audit .secrets.baseline
 - Run both pre-commit AND CI scanning — defense in depth
 
 
-</Accordion>
-
-<Accordion title="Validation: Input Schema Validation — HIGH">
+### Validation: Input Schema Validation — HIGH
 
 
 # Input Schema Validation
@@ -2649,9 +2612,7 @@ db.query('SELECT * FROM users WHERE name = ?', [name]);
 | Error messages | Generic (don't leak info) |
 
 
-</Accordion>
-
-<Accordion title="Validation: Output Encoding & XSS Prevention — HIGH">
+### Validation: Output Encoding & XSS Prevention — HIGH
 
 
 # Output Encoding & XSS Prevention
@@ -2760,9 +2721,7 @@ const safe = DOMPurify.sanitize(userInput);
 ```
 
 
-</Accordion>
-
-<Accordion title="Validation: Advanced Schemas & File Validation — HIGH">
+### Validation: Advanced Schemas & File Validation — HIGH
 
 
 # Advanced Schemas & File Validation
@@ -2910,17 +2869,12 @@ Notification = Union[EmailNotification, SMSNotification]
 | Form validation | Zod + React Hook Form |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (15)
 
-<Accordions type="multiple">
-
-<Accordion title="Audit Logging">
+### Audit Logging
 
 # Audit Logging
 
@@ -3175,9 +3129,7 @@ generation = trace.generation(
 - Never log PHI content in logs
 
 
-</Accordion>
-
-<Accordion title="Context Separation">
+### Context Separation
 
 # Context Separation Pattern
 
@@ -3455,9 +3407,7 @@ class TestContextSeparation:
 ```
 
 
-</Accordion>
-
-<Accordion title="Langfuse Mask Callback">
+### Langfuse Mask Callback
 
 # Langfuse Mask Callback
 
@@ -3535,9 +3485,7 @@ langfuse = Langfuse(mask=presidio_mask)
 - [Langfuse Privacy](https://langfuse.com/docs/data-security-privacy)
 
 
-</Accordion>
-
-<Accordion title="Llm Guard Sanitization">
+### Llm Guard Sanitization
 
 # LLM Guard Sanitization
 
@@ -3798,9 +3746,7 @@ def test_deanonymization():
 - [LLM Guard GitHub](https://github.com/protectai/llm-guard)
 
 
-</Accordion>
-
-<Accordion title="Logging Redaction">
+### Logging Redaction
 
 # Logging Redaction Patterns
 
@@ -4099,9 +4045,7 @@ def test_pii_redaction_in_logs():
 - [Structlog Processors Guide](https://www.structlog.org/en/stable/processors.html)
 
 
-</Accordion>
-
-<Accordion title="Oauth 2.1 Passkeys">
+### Oauth 2.1 Passkeys
 
 # OAuth 2.1 & Passkeys Reference
 
@@ -4391,9 +4335,7 @@ def rotate_refresh_token(old_token: str, db) -> tuple[str, str]:
 - [py_webauthn Library](https://github.com/duo-labs/py_webauthn)
 
 
-</Accordion>
-
-<Accordion title="Output Guardrails">
+### Output Guardrails
 
 # Output Guardrails
 
@@ -4828,9 +4770,7 @@ class TestGuardrails:
 ```
 
 
-</Accordion>
-
-<Accordion title="Post Llm Attribution">
+### Post Llm Attribution
 
 # Post-LLM Attribution
 
@@ -5181,9 +5121,7 @@ class TestAttribution:
 ```
 
 
-</Accordion>
-
-<Accordion title="Pre Llm Filtering">
+### Pre Llm Filtering
 
 # Pre-LLM Filtering
 
@@ -5510,9 +5448,7 @@ class TestPreLLMFiltering:
 ```
 
 
-</Accordion>
-
-<Accordion title="Presidio Integration">
+### Presidio Integration
 
 # Microsoft Presidio Integration
 
@@ -5582,9 +5518,7 @@ analyzer.registry.add_recognizer(internal_id_recognizer)
 - [Supported Entities](https://microsoft.github.io/presidio/supported_entities/)
 
 
-</Accordion>
-
-<Accordion title="Prompt Audit">
+### Prompt Audit
 
 # Prompt Audit
 
@@ -5985,9 +5919,7 @@ class TestPromptAudit:
 ```
 
 
-</Accordion>
-
-<Accordion title="Request Context Pattern">
+### Request Context Pattern
 
 # Request Context Pattern
 
@@ -6141,9 +6073,7 @@ def process(self):
 ```
 
 
-</Accordion>
-
-<Accordion title="Tenant Isolation">
+### Tenant Isolation
 
 # Tenant Isolation Patterns
 
@@ -6399,9 +6329,7 @@ SET app.tenant_id = 'tenant-uuid-here';
 This provides database-level enforcement even if application code has bugs.
 
 
-</Accordion>
-
-<Accordion title="Vulnerability Demos">
+### Vulnerability Demos
 
 # Vulnerability Demonstrations
 
@@ -6825,9 +6753,7 @@ grep -rn "md5\|sha1\|sha256" --include="*.py" . | grep -i password
 - `auth-patterns` - Authentication implementation
 - `security-scanning` - Automated detection
 
-</Accordion>
-
-<Accordion title="Zod V4 Api">
+### Zod V4 Api
 
 # Zod v4 API Reference
 
@@ -7134,17 +7060,12 @@ print(user.name)  # "John Doe"
 - [Pydantic Documentation](https://docs.pydantic.dev/)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (5)
 
-<Accordions type="multiple">
-
-<Accordion title="Auth Checklist">
+### Auth Checklist
 
 # Authentication Security Checklist
 
@@ -7256,9 +7177,7 @@ Before deployment:
 - [ ] No client-side token storage in localStorage
 
 
-</Accordion>
-
-<Accordion title="Pre Deployment Security">
+### Pre Deployment Security
 
 # Pre-Deployment Security Checklist
 
@@ -7351,9 +7270,7 @@ grep -rn "api_key\s*=\s*['\"]" backend/
 - [ ] CI/CD security scans pass
 
 
-</Accordion>
-
-<Accordion title="Pre Llm Call">
+### Pre Llm Call
 
 # Pre-LLM Call Checklist
 
@@ -7453,9 +7370,7 @@ After LLM returns:
 **Sign-off:** Run `verify_llm_ready()` before every LLM call
 
 
-</Accordion>
-
-<Accordion title="Safety Checklist">
+### Safety Checklist
 
 # LLM Safety Checklist
 
@@ -7495,9 +7410,7 @@ After LLM returns:
 - [ ] Incident response plan
 
 
-</Accordion>
-
-<Accordion title="Validation Checklist">
+### Validation Checklist
 
 # Input Validation Checklist
 
@@ -7635,17 +7548,12 @@ Before PR:
 | Buffer Overflow | Length limits |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Auth Implementations">
+### Auth Implementations
 
 # Authentication Implementation Examples
 
@@ -7935,9 +7843,7 @@ def issue_tokens(user):
 ```
 
 
-</Accordion>
-
-<Accordion title="Owasp Top10 Fixes">
+### Owasp Top10 Fixes
 
 # OWASP Top 10 - Vulnerable vs Secure Code
 
@@ -8078,9 +7984,7 @@ data = json.loads(user_input)  # Only parses data, no code execution
 | Weak crypto | Argon2/bcrypt, TLS 1.3, AES-256-GCM |
 
 
-</Accordion>
-
-<Accordion title="Validation Patterns">
+### Validation Patterns
 
 # Input Validation Patterns
 
@@ -8356,7 +8260,3 @@ function SignupForm() {
 }
 ```
 
-
-</Accordion>
-
-</Accordions>

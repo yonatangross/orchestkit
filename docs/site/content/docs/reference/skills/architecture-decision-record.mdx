@@ -2,7 +2,6 @@
 title: "Architecture Decision Record"
 description: "Use this skill when documenting significant architectural decisions. Provides ADR templates following the Nygard format with sections for context, decision, consequences, and alternatives. Use when writing ADRs, recording decisions, or evaluating options."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -232,9 +231,7 @@ Keep ADRs in version control alongside code:
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Reliability Interrogation — HIGH">
+### Reliability Interrogation — HIGH
 
 
 ## Reliability Interrogation
@@ -310,9 +307,7 @@ Questions covering data architecture, UX impact, and system coherence. Ensures d
 - Breaking changes require a **migration plan** before implementation
 
 
-</Accordion>
-
-<Accordion title="Scalability Interrogation — HIGH">
+### Scalability Interrogation — HIGH
 
 
 ## Scalability Interrogation
@@ -366,9 +361,7 @@ Ask these questions before committing to any architectural decision. Prevents co
 - Exponential growth requires **fundamentally different architecture** than linear
 
 
-</Accordion>
-
-<Accordion title="Security Interrogation — HIGH">
+### Security Interrogation — HIGH
 
 
 ## Security Interrogation
@@ -451,17 +444,12 @@ def get_tags(request):
 - "Everyone can access" is almost always the **wrong answer**
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Adr Best Practices">
+### Adr Best Practices
 
 # ADR Best Practices
 
@@ -1806,17 +1794,12 @@ Use this quick reference before creating or reviewing an ADR:
 **Skill**: architecture-decision-record v1.0.0
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Adr Review Checklist">
+### Adr Review Checklist
 
 # ADR Review Checklist
 
@@ -2110,17 +2093,12 @@ When to reject an ADR (requires rewrite):
 - Skill: architecture-decision-record v1.0.0
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Adr 0001 Adopt Microservices">
+### Adr 0001 Adopt Microservices
 
 # ADR-0001: Adopt Microservices Architecture
 
@@ -2470,9 +2448,7 @@ This is a good intermediate step but doesn't solve our core problems:
 **Implemented**: TBD (Target: Q2 2026)
 
 
-</Accordion>
-
-<Accordion title="Choose PostgreSQL as Primary Database">
+### Choose PostgreSQL as Primary Database
 
 
 # ADR-0002: Choose PostgreSQL as Primary Database
@@ -2733,9 +2709,7 @@ DynamoDB lacks SQL querying and creates tight AWS coupling. PostgreSQL RDS gives
 **Next Review**: 2025-04-15 (6 months post-migration)
 
 
-</Accordion>
-
-<Accordion title="API Versioning Strategy Using URL Path Versioning">
+### API Versioning Strategy Using URL Path Versioning
 
 
 # ADR-0003: API Versioning Strategy Using URL Path Versioning
@@ -3068,7 +3042,3 @@ Not realistic for long-term API evolution. We need the ability to make breaking 
 **Last Updated**: 2024-11-01
 **Next Review**: 2025-05-01 (after v2 launch)
 
-
-</Accordion>
-
-</Accordions>

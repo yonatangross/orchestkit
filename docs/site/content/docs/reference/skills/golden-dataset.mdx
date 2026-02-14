@@ -2,7 +2,6 @@
 title: "Golden Dataset"
 description: "Golden dataset lifecycle patterns for curation, versioning, quality validation, and CI integration. Use when building evaluation datasets, managing dataset versions, validating quality scores, or integrating golden tests into pipelines."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -150,9 +149,7 @@ See `test-cases.json` for 9 test cases across all categories.
 
 ## Rules (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Add to Golden Dataset Workflow — HIGH">
+### Add to Golden Dataset Workflow — HIGH
 
 
 ## Add to Golden Dataset Workflow
@@ -237,9 +234,7 @@ quality_score = (
 - Minimum requirements: 2+ domain tags, 3+ test queries per document
 
 
-</Accordion>
-
-<Accordion title="Multi-Agent Annotation — HIGH">
+### Multi-Agent Annotation — HIGH
 
 
 ## Multi-Agent Annotation
@@ -416,9 +411,7 @@ trace.event(name="curation_decision", metadata={"decision": "include"})
 - Log all scores to Langfuse for audit trail
 
 
-</Accordion>
-
-<Accordion title="Content Collection — HIGH">
+### Content Collection — HIGH
 
 
 ## Content Collection
@@ -503,9 +496,7 @@ required_queries: 3       # At least 3 test queries
 - Track provenance for full audit trail
 
 
-</Accordion>
-
-<Accordion title="Dataset Diversity — HIGH">
+### Dataset Diversity — HIGH
 
 
 ## Dataset Diversity
@@ -638,9 +629,7 @@ def analyze_coverage_gaps(
 - Target all 5 expected domains (ai-ml, backend, frontend, devops, security)
 
 
-</Accordion>
-
-<Accordion title="CI Integration — HIGH">
+### CI Integration — HIGH
 
 
 ## CI Integration
@@ -800,9 +789,7 @@ fi
 - Include pre-deployment validation in release checklists
 
 
-</Accordion>
-
-<Accordion title="Storage Patterns — HIGH">
+### Storage Patterns — HIGH
 
 
 ## Storage Patterns
@@ -925,9 +912,7 @@ async def verify_golden_dataset() -> dict:
 - SQL dumps for local snapshots only, not version control
 
 
-</Accordion>
-
-<Accordion title="Dataset Versioning — HIGH">
+### Dataset Versioning — HIGH
 
 
 ## Dataset Versioning
@@ -1048,9 +1033,7 @@ poetry run python scripts/backup_golden_dataset.py restore
 - Test restore procedures in staging before production
 
 
-</Accordion>
-
-<Accordion title="Drift Detection — CRITICAL">
+### Drift Detection — CRITICAL
 
 
 ## Drift Detection
@@ -1189,9 +1172,7 @@ async def validate_before_add(
 - Truncate content to 8000 chars for embedding comparison
 
 
-</Accordion>
-
-<Accordion title="Quality Validation — CRITICAL">
+### Quality Validation — CRITICAL
 
 
 ## Quality Validation
@@ -1345,9 +1326,7 @@ def validate_references(documents: list[dict], queries: list[dict]) -> list[str]
 - Content quality checks are warnings (non-blocking) but should be addressed
 
 
-</Accordion>
-
-<Accordion title="Regression Testing — CRITICAL">
+### Regression Testing — CRITICAL
 
 
 ## Regression Testing
@@ -1510,17 +1489,12 @@ poetry run python scripts/data/add_to_golden_dataset.py coverage
 - Treat difficulty distribution and coverage gaps as warnings that should be addressed
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (8)
 
-<Accordions type="multiple">
-
-<Accordion title="Annotation Patterns">
+### Annotation Patterns
 
 # Annotation Patterns
 
@@ -1876,9 +1850,7 @@ All curation prompts are managed in Langfuse:
 | `golden-domain-tagger` | Extract tags | `golden-dataset`, `tagging` |
 | `golden-query-generator` | Generate queries | `golden-dataset`, `query-gen` |
 
-</Accordion>
-
-<Accordion title="Backup Restore">
+### Backup Restore
 
 # Backup & Restore Golden Dataset
 
@@ -2199,9 +2171,7 @@ async def restore_with_error_handling():
 - OrchestKit: `backend/data/golden_dataset_backup.json`
 
 
-</Accordion>
-
-<Accordion title="Quality Metrics">
+### Quality Metrics
 
 # Quality Metrics and Coverage Analysis
 
@@ -2458,9 +2428,7 @@ if echo "$CHANGED_FILES" | grep -q "fixtures/documents_expanded.json\|fixtures/q
 fi
 ```
 
-</Accordion>
-
-<Accordion title="Selection Criteria">
+### Selection Criteria
 
 # Selection Criteria
 
@@ -2651,9 +2619,7 @@ Always record:
 - Agent scores (for audit trail)
 - Langfuse trace ID
 
-</Accordion>
-
-<Accordion title="Storage Patterns">
+### Storage Patterns
 
 # Storage Patterns
 
@@ -2889,9 +2855,7 @@ jobs:
           git push
 ```
 
-</Accordion>
-
-<Accordion title="Validation Contracts">
+### Validation Contracts
 
 # Data Validation & Contracts
 
@@ -3230,9 +3194,7 @@ jobs:
 - OrchestKit: `backend/tests/integration/test_retrieval_quality.py`
 
 
-</Accordion>
-
-<Accordion title="Validation Rules">
+### Validation Rules
 
 # Validation Rules
 
@@ -3468,9 +3430,7 @@ def normalize_url(url: str) -> str:
     ))
 ```
 
-</Accordion>
-
-<Accordion title="Versioning">
+### Versioning
 
 # Versioning and Recovery
 
@@ -3747,17 +3707,12 @@ def verify_url_contract(analyses: list[Analysis]) -> list[str]:
     return invalid
 ```
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Backup Restore Checklist">
+### Backup Restore Checklist
 
 # Golden Dataset Backup/Restore Checklist
 
@@ -4307,17 +4262,12 @@ poetry run pytest tests/smoke/retrieval/test_retrieval_quality.py -v
 **Remember:** Golden datasets are critical infrastructure. Always verify backups, test restores in staging, and document all changes.
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Orchestkit Dataset Workflow">
+### Orchestkit Dataset Workflow
 
 # OrchestKit Golden Dataset Workflow
 
@@ -5045,7 +4995,3 @@ poetry run python scripts/backup_golden_dataset.py verify
 
 **Remember:** The golden dataset is the foundation of retrieval quality testing. Always verify backups, never skip URL validation, and test restore in staging before production.
 
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "Web Research Workflow"
 description: "Unified decision tree for web research and competitive monitoring. Auto-selects WebFetch, Tavily, or agent-browser based on target site characteristics and available API keys. Includes competitor page tracking, snapshot diffing, and change alerting. Use when researching web content, scraping, extracting raw markdown, capturing documentation, or monitoring competitor changes."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -465,9 +464,7 @@ This skill is used by:
 
 ## Rules (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Change Detection and Site Discovery — HIGH">
+### Change Detection and Site Discovery — HIGH
 
 
 ## Change Detection and Site Discovery
@@ -545,9 +542,7 @@ jobs:
 - Automate monitoring in CI with daily schedules for consistent coverage
 
 
-</Accordion>
-
-<Accordion title="Competitor Page Monitoring — HIGH">
+### Competitor Page Monitoring — HIGH
 
 
 ## Competitor Page Monitoring
@@ -622,7 +617,3 @@ agent-browser close
 - Classify changes by severity to prioritize strategic response
 - Store findings in knowledge graph for cross-session persistence
 
-
-</Accordion>
-
-</Accordions>

@@ -2,7 +2,6 @@
 title: "Zustand Patterns"
 description: "Zustand 5.x state management with slices, middleware, Immer, useShallow, and persistence patterns for React applications. Use when building state management with Zustand."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-green">low</span>
 
@@ -342,9 +341,7 @@ function Dashboard() {
 
 ## Rules (3)
 
-<Accordions type="multiple">
-
-<Accordion title="Zustand: Middleware Order — CRITICAL">
+### Zustand: Middleware Order — CRITICAL
 
 
 ## Zustand: Middleware Order
@@ -407,9 +404,7 @@ const useStore = create<AppState>()(
 Reference: `references/middleware-composition.md` (Middleware Execution Order, Why Order Matters)
 
 
-</Accordion>
-
-<Accordion title="Zustand: Middleware Pitfalls — HIGH">
+### Zustand: Middleware Pitfalls — HIGH
 
 
 ## Zustand: Middleware Pitfalls
@@ -484,9 +479,7 @@ persist((set) => ({ theme: 'light', fontSize: 14 }), {
 Reference: `references/middleware-composition.md` (Common Pitfalls)
 
 
-</Accordion>
-
-<Accordion title="Zustand: Slice Pattern — HIGH">
+### Zustand: Slice Pattern — HIGH
 
 
 ## Zustand: Slice Pattern
@@ -558,17 +551,12 @@ const useStore = create<AppStore>()(
 Reference: `references/middleware-composition.md` (TypeScript Typing for Middleware)
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Middleware Composition">
+### Middleware Composition
 
 # Middleware Composition
 
@@ -955,17 +943,12 @@ import type {} from '@redux-devtools/extension';
 ```
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Zustand Checklist">
+### Zustand Checklist
 
 # Zustand Implementation Checklist
 
@@ -1112,17 +1095,12 @@ stores/
 - [ ] README explains store architecture
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Zustand Examples">
+### Zustand Examples
 
 # Zustand Real-World Examples
 
@@ -1650,7 +1628,3 @@ export const useNotifications = () => useNotificationStore((s) => s.notification
 export const useHasNotifications = () => useNotificationStore((s) => s.notifications.length > 0);
 ```
 
-
-</Accordion>
-
-</Accordions>

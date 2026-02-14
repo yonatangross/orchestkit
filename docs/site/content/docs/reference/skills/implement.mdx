@@ -2,7 +2,6 @@
 title: "Implement"
 description: "Full-power feature implementation with parallel subagents. Use when implementing, building, or creating features."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-blue">Command</span> <span className="badge badge-yellow">medium</span>
 
@@ -431,9 +430,7 @@ TaskUpdate(taskId=task_id, status="completed")
 
 ## References (10)
 
-<Accordions type="multiple">
-
-<Accordion title="Agent Phases">
+### Agent Phases
 
 # Agent Phases Reference
 
@@ -889,9 +886,7 @@ Task(
 In Agent Teams mode, the code-reviewer has been reviewing continuously during Phase 5. Integration validation is lighter: the lead merges worktrees, runs integration tests, and collects the code-reviewer's final APPROVE/REJECT verdict. After Phase 6, the lead tears down the team (shutdown_request to all teammates + TeamDelete + worktree cleanup).
 
 
-</Accordion>
-
-<Accordion title="Agent Teams Full Stack">
+### Agent Teams Full Stack
 
 # Agent Teams: Full-Stack Feature Pipeline
 
@@ -1221,9 +1216,7 @@ After all teammates complete (or when all tasks are done):
 - **Override:** Set `ORCHESTKIT_PREFER_TEAMS=1` to always use Agent Teams
 
 
-</Accordion>
-
-<Accordion title="Agent Teams Phases">
+### Agent Teams Phases
 
 # Agent Teams Phase Alternatives
 
@@ -1350,9 +1343,7 @@ Bash("git branch -d feat/{feature}/backend feat/{feature}/frontend feat/{feature
 > Phases 7-10 (Scope Creep, E2E Verification, Documentation, Reflection) are the same in both modes — the team is already disbanded.
 
 
-</Accordion>
-
-<Accordion title="Agent Teams Security Audit">
+### Agent Teams Security Audit
 
 # Agent Teams: Security Audit Pipeline
 
@@ -1490,9 +1481,7 @@ Track actual values to validate.
 - **Complexity threshold:** Average score >= 3.0 across 7 dimensions
 
 
-</Accordion>
-
-<Accordion title="Cc Enhancements">
+### Cc Enhancements
 
 # CC 2.1.30+ Enhancements
 
@@ -1540,9 +1529,7 @@ Before ending implementation sessions, capture context:
 Resume later with full context preserved.
 
 
-</Accordion>
-
-<Accordion title="Micro Planning Guide">
+### Micro Planning Guide
 
 # Micro-Planning Guide
 
@@ -1632,9 +1619,7 @@ Split the task if:
 | No acceptance criteria | Define "done" before starting |
 
 
-</Accordion>
-
-<Accordion title="Orchestration Modes">
+### Orchestration Modes
 
 # Orchestration Mode Selection
 
@@ -1669,9 +1654,7 @@ else:
 If Agent Teams mode encounters issues (teammate failures, messaging problems), fall back to Task tool mode for remaining phases. The approaches are compatible — work done in Teams mode transfers to Task tool continuation.
 
 
-</Accordion>
-
-<Accordion title="Scope Creep Detection">
+### Scope Creep Detection
 
 # Scope Creep Detection
 
@@ -1757,9 +1740,7 @@ diff /tmp/planned.txt /tmp/actual.txt
 - Use TODO comments for out-of-scope ideas
 
 
-</Accordion>
-
-<Accordion title="Team Worktree Setup">
+### Team Worktree Setup
 
 # Team Worktree Setup
 
@@ -1941,9 +1922,7 @@ After all teammates complete:
 - [ ] Role branches deleted
 
 
-</Accordion>
-
-<Accordion title="Worktree Workflow">
+### Worktree Workflow
 
 # Git Worktree Workflow
 
@@ -2046,17 +2025,12 @@ git worktree remove ../myapp-auth
 5. **Clean before remove:** Always check `git status`
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (1)
 
-<Accordions type="multiple">
-
-<Accordion title="Implementation Review">
+### Implementation Review
 
 # Implementation Review Checklist
 
@@ -2111,7 +2085,3 @@ Scope Creep Score: ___/10
 Ready to merge: [ ] Yes [ ] No - needs: _______________
 ```
 
-
-</Accordion>
-
-</Accordions>

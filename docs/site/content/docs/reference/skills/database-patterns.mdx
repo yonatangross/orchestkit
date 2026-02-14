@@ -2,7 +2,6 @@
 title: "Database Patterns"
 description: "Database design and migration patterns for Alembic migrations, schema design (SQL/NoSQL), and database versioning. Use when creating migrations, designing schemas, normalizing data, managing database versions, or handling schema drift."
 ---
-import { Accordions, Accordion } from "fumadocs-ui/components/accordion";
 
 <span className="badge badge-gray">Reference</span> <span className="badge badge-yellow">medium</span>
 
@@ -148,9 +147,7 @@ Safe database schema changes without downtime using expand-contract pattern and 
 
 ## Rules (11)
 
-<Accordions type="multiple">
-
-<Accordion title="Alembic: Autogenerate Migrations — CRITICAL">
+### Alembic: Autogenerate Migrations — CRITICAL
 
 
 # Alembic Autogenerate Migrations
@@ -274,9 +271,7 @@ def downgrade() -> None:
 - Missing `target_metadata` configuration
 
 
-</Accordion>
-
-<Accordion title="Alembic: Branching & Merging — CRITICAL">
+### Alembic: Branching & Merging — CRITICAL
 
 
 # Alembic Branching & Merge Patterns
@@ -387,9 +382,7 @@ def downgrade() -> None:
 - Not using `--branch-label` for feature isolation
 
 
-</Accordion>
-
-<Accordion title="Alembic: Data Migration — CRITICAL">
+### Alembic: Data Migration — CRITICAL
 
 
 # Alembic Data Migration Patterns
@@ -502,9 +495,7 @@ def upgrade() -> None:
 - Skipping `FOR UPDATE SKIP LOCKED` in batch queries (deadlocks)
 
 
-</Accordion>
-
-<Accordion title="Migration Rollback and Monitoring — HIGH">
+### Migration Rollback and Monitoring — HIGH
 
 
 ## Migration Rollback and Monitoring
@@ -596,9 +587,7 @@ FROM users;
 | Environment order | local -> CI -> staging -> production (never skip) |
 
 
-</Accordion>
-
-<Accordion title="Zero-Downtime Migration Patterns — CRITICAL">
+### Zero-Downtime Migration Patterns — CRITICAL
 
 
 ## Zero-Downtime Migration Patterns
@@ -691,9 +680,7 @@ ALTER TABLE orders VALIDATE CONSTRAINT chk_amount_positive;
 | Index strategy | CONCURRENTLY always |
 
 
-</Accordion>
-
-<Accordion title="Schema: Indexing Strategies — HIGH">
+### Schema: Indexing Strategies — HIGH
 
 
 # Schema Indexing Strategies
@@ -803,9 +790,7 @@ CREATE TABLE products (
 - **FLOAT for money:** Use DECIMAL(10, 2) for financial values.
 
 
-</Accordion>
-
-<Accordion title="Schema: Normalization — HIGH">
+### Schema: Normalization — HIGH
 
 
 # Schema Normalization Patterns
@@ -913,9 +898,7 @@ CREATE TABLE agent_findings (
 4. **Plan for scale from day one** - Indexing, partitioning, caching strategy
 
 
-</Accordion>
-
-<Accordion title="Schema: NoSQL Patterns — HIGH">
+### Schema: NoSQL Patterns — HIGH
 
 
 # NoSQL Schema Design Patterns
@@ -1019,9 +1002,7 @@ db.createCollection("users", {
 - Treating NoSQL as "no schema" (still needs design)
 
 
-</Accordion>
-
-<Accordion title="Versioning: Changelog & Audit Trails — HIGH">
+### Versioning: Changelog & Audit Trails — HIGH
 
 
 # Versioning Changelog & Audit Trails
@@ -1129,9 +1110,7 @@ CREATE VIEW orders_summary AS SELECT * FROM orders_summary_v2;  -- Current alias
 | Semantic versioning | Clear impact communication |
 
 
-</Accordion>
-
-<Accordion title="Versioning: Drift Detection — HIGH">
+### Versioning: Drift Detection — HIGH
 
 
 # Versioning Drift Detection
@@ -1249,9 +1228,7 @@ def upgrade() -> None:
 - Versioning sensitive data in migrations (security risk)
 
 
-</Accordion>
-
-<Accordion title="Versioning: Rollback — HIGH">
+### Versioning: Rollback — HIGH
 
 
 # Versioning Rollback Patterns
@@ -1381,17 +1358,12 @@ command.stamp(alembic_config, "head")  # Loses history
 | Immutable migrations | Never modify after deployment | Audit trail integrity |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## References (7)
 
-<Accordions type="multiple">
-
-<Accordion title="Alembic Advanced">
+### Alembic Advanced
 
 # Alembic Advanced Implementation Guide
 
@@ -1683,9 +1655,7 @@ context.configure(
 ```
 
 
-</Accordion>
-
-<Accordion title="Audit Trails">
+### Audit Trails
 
 # Database Audit Trail Patterns
 
@@ -1797,9 +1767,7 @@ FOR EACH ROW EXECUTE FUNCTION log_changes();
 | CDC | Full audit compliance | High |
 
 
-</Accordion>
-
-<Accordion title="Environment Coordination">
+### Environment Coordination
 
 # Environment Coordination Patterns
 
@@ -1894,9 +1862,7 @@ Option 3: Hybrid (Date + Sequence)
 | Never skip environments | Ensure consistency |
 
 
-</Accordion>
-
-<Accordion title="Migration Patterns">
+### Migration Patterns
 
 # Database Migration Patterns
 
@@ -2388,9 +2354,7 @@ op.alter_column('analyses', 'status_new', new_column_name='status')
 5. Create indexes CONCURRENTLY for large tables
 
 
-</Accordion>
-
-<Accordion title="Migration Testing">
+### Migration Testing
 
 # Migration Testing Patterns
 
@@ -2494,9 +2458,7 @@ migration-test:
 ```
 
 
-</Accordion>
-
-<Accordion title="Normalization Patterns">
+### Normalization Patterns
 
 # Database Normalization Patterns
 
@@ -2891,9 +2853,7 @@ CREATE INDEX idx_artifacts_analysis_id ON artifacts(analysis_id);
 **Golden Rule:** Start normalized (3NF), measure performance, then selectively denormalize based on evidence.
 
 
-</Accordion>
-
-<Accordion title="Object Versioning">
+### Object Versioning
 
 # Database Object Versioning
 
@@ -2990,17 +2950,12 @@ def downgrade():
 | Reference data | Version column | Soft delete old |
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Checklists (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Migration Checklist">
+### Migration Checklist
 
 # Migration Deployment Checklist
 
@@ -3169,9 +3124,7 @@ alembic current
 - [ ] Confirm monitoring alerts are not firing
 
 
-</Accordion>
-
-<Accordion title="Schema Design Checklist">
+### Schema Design Checklist
 
 # Database Schema Design Checklist
 
@@ -3402,17 +3355,12 @@ Use this checklist when designing or reviewing database schemas.
 **Last Updated**: 2025-10-31
 
 
-</Accordion>
-
-</Accordions>
 
 ---
 
 ## Examples (2)
 
-<Accordions type="multiple">
-
-<Accordion title="Alembic Examples">
+### Alembic Examples
 
 # Alembic Migration Examples
 
@@ -3774,9 +3722,7 @@ def downgrade() -> None:
 ```
 
 
-</Accordion>
-
-<Accordion title="Orchestkit Database Schema">
+### Orchestkit Database Schema
 
 # OrchestKit Database Schema
 
@@ -4313,7 +4259,3 @@ DELETE FROM analyses WHERE id = :analysis_id;
 4. **Connection Pooling:** PgBouncer for reduced connection overhead
 5. **Archive Old Analyses:** Move completed analyses >90 days to cold storage
 
-
-</Accordion>
-
-</Accordions>

@@ -213,7 +213,7 @@ For each dimension, spawn a background agent with **scope constraints**:
 for dimension, agent_type in [
     ("CORRECTNESS + MAINTAINABILITY", "code-quality-reviewer"),
     ("SECURITY", "security-auditor"),
-    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; performance-engineer for frontend
+    ("PERFORMANCE + SCALABILITY", "python-performance-engineer"),  # Use python-performance-engineer for backend; frontend-performance-engineer for frontend
     ("TESTABILITY", "test-generator"),
 ]:
     Task(subagent_type=agent_type, run_in_background=True, max_turns=15,
@@ -264,7 +264,7 @@ Task(subagent_type="security-auditor", name="security-assessor",
      When you find performance-impacting security measures, message perf-assessor.
      Share your score and flag any cross-dimension trade-offs.""")
 
-Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or performance-engineer for frontend
+Task(subagent_type="python-performance-engineer", name="perf-assessor",  # or frontend-performance-engineer for frontend
      team_name="assess-{target-slug}", max_turns=15,
      prompt=f"""Assess PERFORMANCE (0-10) and SCALABILITY (0-10) for: {target}
      {SCOPE_INSTRUCTIONS}
